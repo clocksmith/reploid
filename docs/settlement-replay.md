@@ -18,7 +18,7 @@ implementation is `server/fleet/settlement-replay.js`; the signers are
 | Settlement acceptance (`reploid.settlement-acceptance/v1`) | each stage | before it reserves | the digest of those exact terms and its own stage index |
 | Stage receipt (`reploid.stage-receipt/v1`) | each stage | after every step and at close | steps, tokens, timing, closing status; the final stage also commits a hash chain over its outputs |
 | Output acknowledgment (`reploid.output-acknowledgment/v1`) | requester | for each output it received | the output count and chain value |
-| Settlement stop (`reploid.settlement-stop/v1`) | requester | when it ends an answer early | the reservation, `attemptId` and its acknowledged count |
+| Settlement stop (`reploid.settlement-stop/v1`) | requester | when it ends an answer early, before its stages are told to stop | the reservation, `attemptId` and its acknowledged count |
 
 Participant IDs derive from public keys, so a signature names its signer without an
 enrollment table. A stage does not compute step `s` (counting from 0) without the
@@ -388,9 +388,23 @@ the replay and pending in the ledger, and both settle it at window expiry under
 step 6. The ledger times records against its own request deadline (its creation
 time plus `maxRequestMs`), so the two agree on time rules when the terms'
 deadline is that one. Like the replay, the ledger charges only an acknowledgment
-signed by the deadline plus the skew allowance and accepts closing receipts until
-the window expires; unlike the replay, it also refuses a receipt whose step times
-(`reservedAt`, `firstStepAt`, `lastStepAt`) fall after its deadline.
+signed by the deadline plus the skew allowance, ignores a step receipt signed
+later, and accepts closing receipts until the window expires, whatever the step
+times they report. It applies step 9 to the records it holds: the final stage's
+latest receipt decides `finished` and `withheld`, and the requester's stop
+decides `stopped`. The live split route therefore collects the stop: when the
+person stops a split answer, the requester signs it and hands it to the ledger
+before its stages are told to stop, so the ledger holds it before any stage
+closes ([fleet-service.md](fleet-service.md#stop)). A stop that reaches the
+ledger only after it settled the answer changes nothing there. Whether a
+voluntary stop on a split route should cost anything is an open decision of the
+owner; as implemented, a requester stop charges the acknowledged prefix. The
+ledger accepts outputs past the ceiling, charges `maxOutputTokens` and records
+the rest as `beyondCeiling`, as the replay does. A delivered answer that a stage
+has no receipt covering is `unknown` in the replay; the ledger, which must
+release the hold, records it as `expired` with reason
+`unknown-delivered-answer-without-covering-receipt`. Both move nothing.
+Reservations made before these rules keep the ones they were accepted under.
 
 ## Checking it
 

@@ -7,15 +7,23 @@
  * requester's own account did for its own request is neither charged nor credited.
  */
 export const UNFINISHED_ANSWER_TERMS = 'reploid.unfinished-answer/provider-loss-free/v1';
+/**
+ * A split reservation that names these rules settles as the settlement replay computes (docs/settlement-replay.md):
+ * a stage ending an unfinished answer on its own costs nothing, a requester's signed stop charges the acknowledged
+ * prefix, closes inside the release window count, and outputs past the signed ceiling are never charged. A
+ * reservation made before them keeps the rules it was accepted under.
+ */
+export const SETTLEMENT_RULES = 'reploid.settlement-replay/v1';
 
 /**
- * The units a settled request moves. Under these terms a split answer whose stage owner vanished charges the
- * requester nothing and pays no stage, even for acknowledged output. A reservation made before them has no
+ * The units a settled request moves. Under these terms a split answer whose stage owner vanished, or that a stage
+ * ended on its own (credit-evidence.js `stageEnded`), charges the requester nothing and pays no stage, even for
+ * acknowledged output. A reservation made before them has no
  * `unfinishedTerms` and keeps the acknowledged-prefix charge it was accepted under.
  */
 export function settledCreditUnits(request, observed, creditsPerOutputToken) {
   if (observed.fixedCharge !== null && observed.fixedCharge !== undefined) return observed.fixedCharge;
-  if (request.unfinishedTerms === UNFINISHED_ANSWER_TERMS && observed.interruptedStages?.length) return 0;
+  if (request.unfinishedTerms === UNFINISHED_ANSWER_TERMS && (observed.interruptedStages?.length || observed.stageEnded === true)) return 0;
   return observed.outputTokens * creditsPerOutputToken;
 }
 

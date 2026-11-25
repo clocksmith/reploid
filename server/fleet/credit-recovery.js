@@ -2,11 +2,13 @@ import { createHash } from 'node:crypto';
 import { canonicalize } from '../../shared/vendor/reploid/artifacts/canonical-json.js';
 import { assert, same, FLEET_SERVICE_REQUEST_SCHEMA } from './contract.js';
 import { verifyParticipantSignature } from '../../shared/vendor/reploid/artifacts/participant-proofs.js';
-import { stagesClosedAtLastStep, verifyCreditEvidence, verifyPartitionComponents } from './credit-evidence.js';
+import {
+  deliveredWithoutCoveringReceipt, replayRules, stagesClosedAtLastStep, verifyCreditEvidence, verifyPartitionComponents, verifySplitStop
+} from './credit-evidence.js';
 
 /** Durable admission fences and independently verified proof components. No timeout asserts
  * remote cleanup. Deadline expiry only closes admission; an admitted owner must still sign. */
-export function createCreditRecovery({ db, transaction, read, settle, post, enrollment, policy, now, holdAccount }) {
+export function createCreditRecovery({ db, transaction, read, settle, post, enrollment, policy, now, holdAccount, maxUnacknowledgedOutputs }) {
   db.exec(`CREATE TABLE IF NOT EXISTS fleet_admissions (request_id TEXT NOT NULL, stage INTEGER NOT NULL, PRIMARY KEY(request_id,stage));
     CREATE TABLE IF NOT EXISTS fleet_stage_owners (request_id TEXT NOT NULL, stage INTEGER NOT NULL, owner TEXT NOT NULL, closure TEXT, PRIMARY KEY(request_id,stage));
     CREATE TABLE IF NOT EXISTS fleet_components (request_id TEXT NOT NULL, kind TEXT NOT NULL, payload TEXT NOT NULL, PRIMARY KEY(request_id,kind));`);
@@ -46,8 +48,11 @@ export function createCreditRecovery({ db, transaction, read, settle, post, enro
     const closedAtLastStep = stagesClosedAtLastStep(request, { receipts, ...data.ack }, policy.maxClockSkewMs);
     if (!closedAtLastStep || !same(closedAtLastStep, awaitingStages)) return null;
     const { acknowledgment } = data.ack;
-    return { evidence: { identity: request.route, receipts, ...data.ack, closedAtLastStep },
-      observed: { outputTokens: acknowledgment.count, outputIdentity: acknowledgment.chain, closedAtLastStep,
+    // The same ceiling as verifyCreditEvidence: outputs past the signed `maxOutputTokens` are recorded, never charged.
+    const ceiling = replayRules(request) ? request.maxOutputTokens : Infinity, beyondCeiling = Math.max(0, acknowledgment.count - ceiling);
+    return { evidence: { identity: request.route, receipts, ...data.ack, ...(data.stop ? { stop: data.stop } : {}), closedAtLastStep },
+      observed: { outputTokens: Math.min(acknowledgment.count, ceiling), outputIdentity: acknowledgment.chain, closedAtLastStep,
+        ...(beyondCeiling ? { beyondCeiling } : {}),
         workIds: request.providers.map((provider, index) => `stage:${provider.participantId}:${request.id}:${request.executionId}:${index}`) } };
   };
   const expiry = () => transaction(() => {
@@ -88,7 +93,12 @@ export function createCreditRecovery({ db, transaction, read, settle, post, enro
         if (delivered) { post(row.id, delivered.observed, delivered.evidence); continue; }
         const unsigned = progress.stages.map((receipt, index) => (!receipt || receipt.status === 'executing' || receipt.timing.closedAt === null
           || progress.awaitingStages.includes(index)) ? index : null).filter(index => index !== null);
-        outcome = { ...outcome, reason: 'stage-unclaimed-after-window', acknowledgedOutputTokens: progress.acknowledgedOutputTokens,
+        // A delivered answer that some stage has no receipt covering is the replay's `unknown`: nothing moves either way,
+        // and the outcome names it rather than calling it an unclaimed stage.
+        const undecided = Boolean(progress.data.ack) && deliveredWithoutCoveringReceipt(request.binding,
+          { receipts: progress.stages.filter(Boolean), ...progress.data.ack }, policy.maxClockSkewMs);
+        outcome = { ...outcome, reason: undecided ? 'unknown-delivered-answer-without-covering-receipt' : 'stage-unclaimed-after-window',
+          acknowledgedOutputTokens: progress.acknowledgedOutputTokens,
           unclaimedStages: unsigned.map(stage => ({ stage, participantId: request.binding.providers[stage].participantId,
             cleanup: progress.missing.includes(stage) ? 'never-admitted' : 'unverified' })) };
       }
@@ -166,6 +176,10 @@ export function createCreditRecovery({ db, transaction, read, settle, post, enro
         return this.recover(id);
       }
       const proof = await verifyPartitionComponents(row.binding, evidence, enrollment, now(), policy.maxClockSkewMs);
+      // The requester's own signed stop (settlement-terms.js), retained so the ledger can tell a requester that ended
+      // the answer (it owes the acknowledged prefix) from a stage that ended it (nobody is charged). A late stop is ignored.
+      const stop = replayRules(row.binding) && evidence.stop != null
+        ? await verifySplitStop(row.binding, evidence.stop, enrollment, now(), policy.maxClockSkewMs) : null;
       if (proof.acknowledgment?.count > 0 && !proof.acknowledgedReceipt) {
         proof.acknowledgedReceipt = proof.receipts.find(receipt => receipt.partitionIndex === row.binding.providers.length - 1
           && receipt.output?.count === proof.acknowledgment.count && receipt.output.chain === proof.acknowledgment.chain);
@@ -191,6 +205,7 @@ export function createCreditRecovery({ db, transaction, read, settle, post, enro
           }
           store(id, key, receipt);
         }
+        if (stop && !retained.stop) store(id, 'stop', stop);
         const ack = proof.acknowledgment, prior = retained.ack?.acknowledgment;
         if (ack && (!prior || ack.count >= prior.count)) {
           assert(!prior || ack.count !== prior.count || ack.chain === prior.chain, 'Conflicting acknowledged output');
@@ -280,7 +295,8 @@ export function createCreditRecovery({ db, transaction, read, settle, post, enro
       if (acknowledgedOutputTokens === null || awaitingStages.length) {
         return { id, status: 'pending', heldCredits: request.maximum, acknowledgedOutputTokens, awaitingStages };
       }
-      return settle(id, { identity: request.route, receipts: stages.filter(Boolean), ...(interrupted.length ? { interruptedOwners: interrupted.map(row => row.closure) } : {}), ...data.ack });
+      return settle(id, { identity: request.route, receipts: stages.filter(Boolean), ...(interrupted.length ? { interruptedOwners: interrupted.map(row => row.closure) } : {}),
+        ...data.ack, ...(data.stop ? { stop: data.stop } : {}) });
     }
   };
 }

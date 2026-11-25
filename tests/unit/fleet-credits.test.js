@@ -527,10 +527,12 @@ describe('enrolled fleet service credits', () => {
     expect(await ledger.recover(input.id)).toMatchObject({ status: 'pending', heldCredits: 10, awaitingStages: [0] });
     expect(balances()).toEqual([[0, 10], [0, 0], [0, 0]]);
 
-    // After the stated window the request is final: nobody is charged or paid, and the hold is gone.
+    // After the stated window the request is final: nobody is charged or paid, and the hold is gone. The final stage
+    // signed `done` and the requester acknowledged it, but stage 0 has no receipt covering the answer: the replay's
+    // `unknown`, which the outcome names.
     clock = at + policy.maxRequestMs + 5000;
     const final = await ledger.recover(input.id);
-    expect(final).toMatchObject({ status: 'expired', reason: 'stage-unclaimed-after-window', charge: 0, credits: [],
+    expect(final).toMatchObject({ status: 'expired', reason: 'unknown-delivered-answer-without-covering-receipt', charge: 0, credits: [],
       acknowledgedOutputTokens: 7, unclaimedStages: [{ stage: 0, participantId: identities[1].peerId, cleanup: 'unverified' }] });
     expect(balances()).toEqual([[0, 0], [0, 0], [0, 0]]);
 
@@ -566,7 +568,7 @@ describe('enrolled fleet service credits', () => {
     clock = at + policy.maxRequestMs + DEFAULT_UNCLAIMED_RELEASE_MS - 1;
     expect(await ledger.recover(lost.input.id)).toMatchObject({ status: 'pending', heldCredits: 10, awaitingStages: [0] });
     clock = at + policy.maxRequestMs + DEFAULT_UNCLAIMED_RELEASE_MS;
-    expect(await ledger.recover(lost.input.id)).toMatchObject({ status: 'expired', charge: 0, reason: 'stage-unclaimed-after-window' });
+    expect(await ledger.recover(lost.input.id)).toMatchObject({ status: 'expired', charge: 0, reason: 'unknown-delivered-answer-without-covering-receipt' });
     expect(ledger.snapshot().accounts[0]).toMatchObject({ balance: 0, held: 0 });
   });
   it('reconciles orphaned requester reservations on process restart without touching active or unresolved admitted holds', async () => {

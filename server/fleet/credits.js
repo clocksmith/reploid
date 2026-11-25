@@ -8,7 +8,8 @@ import { assert, creditPolicy, creditRefusal, digest, enrollComputer, enrollComp
   withCreditPolicyDefaults } from './contract.js';
 import { createCreditRecovery } from './credit-recovery.js';
 import { verifyCreditEvidence } from './credit-evidence.js';
-import { accountSettlement, settledCreditUnits, UNFINISHED_ANSWER_TERMS } from './credit-shares.js';
+import { accountSettlement, settledCreditUnits, SETTLEMENT_RULES, UNFINISHED_ANSWER_TERMS } from './credit-shares.js';
+import { MAX_UNACKNOWLEDGED_OUTPUTS } from '../../shared/vendor/reploid/mesh/partitions/partition-attempt-evidence.js';
 
 /** Balances are kept per owner account: every computer and key an owner enrolled spends and earns one balance. */
 export const FLEET_ACCOUNT_UNIT = 'owner/v1';
@@ -36,6 +37,8 @@ export function ensureJournalAttribution(db) {
  * through its own journal (self-serve.js); every appended record is checked as an enrollment file is. */
 export async function openFleetCredits({ file, computers, policy: supplied, now = Date.now, openEnrollment = false }) {
   const policy = creditPolicy(withCreditPolicyDefaults(supplied)), enrollment = await enrollComputers(computers, { allowEmpty: openEnrollment === true });
+  // K, the acknowledgment bound: the public policy's when it names one, otherwise the stages' receiver policy's.
+  const maxUnacknowledgedOutputs = policy.maxUnacknowledgedOutputs ?? MAX_UNACKNOWLEDGED_OUTPUTS;
   // Owner accounts and their computers, read live: an open ledger appends accounts and keys as it runs.
   const accounts = () => ownerAccounts(enrollment);
   assert(path.isAbsolute(file), 'Absolute service-credit database path required');
@@ -132,11 +135,15 @@ export async function openFleetCredits({ file, computers, policy: supplied, now 
         .run(id, entry.accountId, entry.delta, now(), entry.computerId);
     }
     db.prepare('UPDATE fleet_accounts SET held=held-? WHERE id=?').run(request.maximum, holdAccount(request));
-    const { interruptedStages, closedAtLastStep } = observed;
+    const { interruptedStages, closedAtLastStep, beyondCeiling } = observed;
     const outcome = { id, unit: policy.unit, charge, ownComputeUnits, outputTokens: observed.outputTokens,
       ...(observed.terminalStatus ? { status: observed.terminalStatus, usage: null } : {}),
       ...(interruptedStages ? { status: 'failed', reason: 'interrupted-stage-owner', interruptedStages } : {}),
       ...(closedAtLastStep ? { reason: 'closed-at-last-signed-step-after-window', closedAtLastStep } : {}),
+      // The replay's "a stage ended the answer before it finished": no requester stop, no withheld acknowledgments.
+      ...(observed.stageEnded ? { reason: 'stage-ended-unfinished-answer' } : {}),
+      // Outputs acknowledged past the signed ceiling: recorded, never charged.
+      ...(beyondCeiling ? { beyondCeiling } : {}),
       credits, evidenceHash: sha256(evidence), economicHash: economicHashOf(observed), settledAt: now() };
     db.prepare('INSERT INTO fleet_evidence VALUES (?,?)').run(id, JSON.stringify(evidence));
     db.prepare("UPDATE fleet_requests SET state='settled',outcome=? WHERE id=?").run(JSON.stringify(outcome), id);
@@ -144,7 +151,7 @@ export async function openFleetCredits({ file, computers, policy: supplied, now 
   };
   let ledger;
   const recovery = createCreditRecovery({ db, transaction, read, settle: (id, evidence) => ledger.settle(id, evidence), post: postSettlement,
-    enrollment, policy, now, holdAccount });
+    enrollment, policy, now, holdAccount, maxUnacknowledgedOutputs });
   // An account's debt limit (its starter allowance): the policy's, lowered by any limit set on one of its computers.
   const debtLimitFor = accountId => Math.min(policy.maxDebt, ...(accounts().get(accountId) ?? [])
     .map(computer => computer.debtLimit ?? policy.maxDebt));
@@ -193,14 +200,19 @@ export async function openFleetCredits({ file, computers, policy: supplied, now 
         assert(value.route.requesterId === value.consumer && value.route.route.modelId === value.model.id && value.route.route.modelIdentity === value.model.identity,
           'Partition model differs');
       }
-      assert(value.unfinishedTerms === undefined, 'Unfinished-answer terms are set by the ledger');
-      // A retry of a reservation made before these terms existed must still find it.
-      const earlierHash = createHash('sha256').update(canonicalize(value)).digest('hex');
-      if (value.mode === 'partition') value.unfinishedTerms = UNFINISHED_ANSWER_TERMS;
-      const requestHash = createHash('sha256').update(canonicalize(value)).digest('hex');
+      assert(value.unfinishedTerms === undefined && value.settlementRules === undefined, 'Unfinished-answer terms are set by the ledger');
+      // A retry of a reservation made before these terms, or before the replay's rules, must still find it.
+      const hashOf = item => createHash('sha256').update(canonicalize(item)).digest('hex');
+      const earlierHashes = [hashOf(value)];
+      if (value.mode === 'partition') {
+        value.unfinishedTerms = UNFINISHED_ANSWER_TERMS;
+        earlierHashes.push(hashOf(value));
+        value.settlementRules = SETTLEMENT_RULES;
+      }
+      const requestHash = hashOf(value);
       return transaction(() => {
         const prior = read(value.id);
-        if (prior) { assert([requestHash, earlierHash].includes(prior.binding.requestHash), 'Reservation identity reused with different terms'); return prior.binding; }
+        if (prior) { assert([requestHash, ...earlierHashes].includes(prior.binding.requestHash), 'Reservation identity reused with different terms'); return prior.binding; }
         const quote = fleetCreditQuote(policy, value.maxOutputTokens, value.mode);
         if (value.acceptedQuote !== undefined) assert(same(value.acceptedQuote, quote),
           'Accepted service-credit quote changed; review terms before retrying');
@@ -242,11 +254,11 @@ export async function openFleetCredits({ file, computers, policy: supplied, now 
       const row = read(id); assert(row, 'Unknown credit reservation');
       assert(row.state !== 'settled' || row.outcome?.status !== 'expired', 'Claim window closed; this hold was released unclaimed');
       const observed = await verifyCreditEvidence(row.binding, evidence, enrollment, now(), policy.maxClockSkewMs, { unadmitted: recovery.unadmitted(id),
-        interrupted: recovery.interrupted(id), releaseWindowMs: policy.partitionUnclaimedReleaseMs });
+        interrupted: recovery.interrupted(id), releaseWindowMs: policy.partitionUnclaimedReleaseMs, maxUnacknowledgedOutputs });
       assert(!observed.terminalStatus || integer(observed.fixedCharge), 'Accepted fixed terminal terms required');
       const economicHash = economicHashOf(observed);
       const previousEconomicHash = row.outcome?.economicHash ?? (row.evidence ? sha256(
-        await verifyCreditEvidence(row.binding, row.evidence, enrollment, now(), policy.maxClockSkewMs)) : null);
+        await verifyCreditEvidence(row.binding, row.evidence, enrollment, now(), policy.maxClockSkewMs, { maxUnacknowledgedOutputs })) : null);
       const evidenceHash = sha256(evidence);
       return transaction(() => {
         const current = read(id);

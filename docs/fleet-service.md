@@ -121,7 +121,9 @@ Unacknowledged work is not billed, and neither is an acknowledgment signed after
 the request deadline plus clock skew: the ledger keeps the requester's earlier
 in-time acknowledgment and refuses to settle on the late one, as the
 [settlement replay](settlement-replay.md) does. A stage's closing receipt still
-counts when it arrives after the deadline but before the release window expires.
+counts when it arrives after the deadline but before the release window expires,
+even when the steps it reports ran after the deadline; a step receipt signed
+after the deadline plus clock skew is verified and ignored.
 A signed `failed` receipt proves cleanup only
 with its closing timestamp; it does not turn a failed answer into a completed one.
 Equivalent verified re-signatures retain the original economic outcome.
@@ -152,9 +154,22 @@ requester countersigned just before the Stop and the receipt arrives second, the
 provider is not paid for that answer.
 
 A split answer settles on its stages' signed closing receipts and the
-requester's signed acknowledgments: the acknowledged count is charged, or zero
-when a stage owner vanished, under the provider-loss-free terms
-(`credit-shares.js`, `settlement-replay.js`).
+requester's signed acknowledgments, by the settlement replay's charge rule
+([settlement-replay.md](settlement-replay.md), step 9; `credit-shares.js`,
+`credit-evidence.js`). When the person stops a split answer, the requester signs
+`reploid.settlement-stop/v1` and hands it to the ledger through `collect` before
+its stages are told to stop (it waits at most 2 s for the ledger), then sends it
+again with the closing evidence. With that stop the acknowledged prefix is
+charged. Without it, an unfinished answer that the stages closed on their own,
+with `settled` or `failed` receipts and no more than `K` outputs unacknowledged,
+was ended by a stage: under the provider-loss-free terms it charges nothing and
+pays no stage, with reason `stage-ended-unfinished-answer`. It is also zero
+when a stage owner vanished. Whether a voluntary Stop on a split route should
+cost anything is an open owner decision; as implemented it charges the
+acknowledged prefix. Outputs acknowledged past the reservation's output ceiling
+are accepted, never charged, and recorded as `beyondCeiling`. A reservation made
+before these rules (no `settlementRules` in its binding) keeps the rules it was
+accepted under.
 
 A lost connection is not a Stop: a closed HTTP stream or browser stream leaves
 the answer recoverable through `POST /v1/reploid/recover` until its deadline
@@ -202,7 +217,11 @@ proof is still incomplete reaches one final outcome: status `expired`, reason
 `stage-unclaimed-after-window`, no charge, and no credit to any stage, including
 stages that did sign. The outcome records the acknowledged output count and
 lists each stage that never signed with `cleanup: "unverified"` (or
-`"never-admitted"`); it asserts nothing about what a silent host did. A later
+`"never-admitted"`); it asserts nothing about what a silent host did. When the
+answer was delivered (the final stage signed `done` at the count the requester
+acknowledged in time) but some stage has no receipt covering it, the reason is
+`unknown-delivered-answer-without-covering-receipt` instead: the replay's
+`unknown`, with the same zero amounts. A later
 claim or late receipt for that request is refused and pays nobody, and the
 outcome survives a restart. A requester that retries does so as a new request,
 charged once. A request whose proof is complete is settled when that proof

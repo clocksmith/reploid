@@ -1,10 +1,16 @@
 import { verifyGenerationTerminal, GENERATION_TERMINAL_SCHEMAS } from '../../shared/vendor/reploid/artifacts/generation-terminal.js';
 import { verifyReceipt } from '../../shared/vendor/reploid/artifacts/receipt.js';
-import { verifyStageReceipt, verifyOutputAcknowledgment, attemptRouteHash, outputChainGenesis } from '../../shared/vendor/reploid/mesh/partitions/partition-attempt-evidence.js';
+import {
+  MAX_UNACKNOWLEDGED_OUTPUTS, verifyStageReceipt, verifyOutputAcknowledgment, attemptRouteHash, outputChainGenesis
+} from '../../shared/vendor/reploid/mesh/partitions/partition-attempt-evidence.js';
 import { canonicalRouteAttemptBinding } from '../../shared/vendor/reploid/mesh/partitions/partition-contract.js';
 import { normalizeParticipantPublicKey } from '../../shared/vendor/reploid/artifacts/participant-proofs.js';
 import { assert, same, integer } from './contract.js';
 import { SETTLEMENT_STOP_SCHEMA, verifySettlementStop } from './settlement-terms.js';
+import { SETTLEMENT_RULES, UNFINISHED_ANSWER_TERMS } from './credit-shares.js';
+
+/** A split reservation made since the ledger applies the settlement replay's charge rules (docs/settlement-replay.md). */
+export const replayRules = request => request.mode === 'partition' && request.settlementRules === SETTLEMENT_RULES;
 
 /**
  * A whole-model answer the requester stopped before it countersigned a receipt. Whole-model output has no
@@ -25,6 +31,44 @@ async function verifyWholeModelStop(request, evidence, enrollment, now, skew) {
 }
 
 const closedReceipt = receipt => receipt.status !== 'executing' && receipt.timing.closedAt !== null;
+
+/**
+ * The requester's signed stop of one split answer, checked against the reservation. Returns the stop when it was
+ * signed in time (by the deadline plus the clock allowance), null when it was signed later: like the replay, the
+ * ledger ignores a late stop. A stop that does not verify or names another request is refused.
+ */
+export async function verifySplitStop(request, stop, enrollment, now, skew) {
+  const checked = await verifySettlementStop(stop);
+  const signedAt = checked.ok ? Date.parse(checked.body.signedAt) : NaN;
+  assert(checked.ok && checked.body.reservationId === request.id && checked.body.attemptId === request.executionId
+    && checked.body.requesterId === request.consumer
+    && same(normalizeParticipantPublicKey(stop.publicJwk), enrollment.byPeer.get(request.consumer)?.publicJwk)
+    && signedAt >= request.createdAt - skew && signedAt <= now + skew, 'Requester stop does not match the accepted request');
+  return signedAt <= request.deadline + skew ? structuredClone(stop) : null;
+}
+
+/** The final stage's latest retained receipt: its closing or step receipt, or the one the requester acknowledged. */
+const finalReceiptOf = (request, { receipts, acknowledgedReceipt }) => [receipts.find(row => row.partitionIndex === request.providers.length - 1),
+  acknowledgedReceipt].filter(Boolean).sort((a, b) => a.sequence - b.sequence).at(-1) ?? null;
+
+/**
+ * Whether the retained components show a delivered answer (the final stage signed `done` at N > 0 and the requester
+ * acknowledged N with its chain in time) that some stage has no in-time receipt covering. The replay calls such an
+ * attempt `unknown`; the ledger releases its hold with no charge and says so.
+ */
+export function deliveredWithoutCoveringReceipt(request, { receipts, acknowledgment, acknowledgedReceipt }, skew) {
+  const count = acknowledgment?.count ?? 0;
+  const inTime = value => Date.parse(value) <= request.deadline + skew;
+  if (count === 0 || !inTime(acknowledgment.signedAt)) return false;
+  const delivered = finalReceiptOf(request, { receipts, acknowledgedReceipt })?.output;
+  if (!(delivered?.done === true && delivered.count === count && delivered.chain === acknowledgment.chain)) return false;
+  return request.providers.some((_, index) => {
+    const own = receipts.find(row => row.partitionIndex === index);
+    if (own && closedReceipt(own)) return false;
+    const covering = [own, index === request.providers.length - 1 ? acknowledgedReceipt : null].filter(row => row && inTime(row.signedAt));
+    return !covering.some(row => row.steps >= count);
+  });
+}
 
 /**
  * The settlement replay's closing rule (docs/settlement-replay.md, step 6) over already verified split components.
@@ -56,7 +100,8 @@ export function stagesClosedAtLastStep(request, { receipts, acknowledgment, ackn
 /** Reuse execution signatures; the credit service never treats a completed counter as evidence.
  * `releaseWindowMs` (split only) admits evidence that names `closedAtLastStep`: it verifies only at or after the
  * deadline plus that window, and only when stagesClosedAtLastStep names exactly those stages. */
-export async function verifyCreditEvidence(request, evidence, enrollment, now, skew, { unadmitted = [], interrupted = [], releaseWindowMs = null } = {}) {
+export async function verifyCreditEvidence(request, evidence, enrollment, now, skew, { unadmitted = [], interrupted = [], releaseWindowMs = null,
+  maxUnacknowledgedOutputs = MAX_UNACKNOWLEDGED_OUTPUTS } = {}) {
   const within = at => Number.isFinite(at) && at >= request.createdAt - skew
     && at <= Math.min(now, request.deadline) + skew;
   if (request.mode === 'whole-model') {
@@ -131,8 +176,25 @@ export async function verifyCreditEvidence(request, evidence, enrollment, now, s
     assert(final?.output?.count === acknowledgment.count && final.output.chain === acknowledgment.chain,
       'Final output differs from requester acknowledgment');
   }
-  return { outputTokens: acknowledgment.count, outputIdentity: acknowledgment.chain, workIds,
-    ...(interruptedStages.length ? { interruptedStages } : {}), ...(closedAtLastStep ? { closedAtLastStep } : {}) };
+  if (!replayRules(request)) {
+    return { outputTokens: acknowledgment.count, outputIdentity: acknowledgment.chain, workIds,
+      ...(interruptedStages.length ? { interruptedStages } : {}), ...(closedAtLastStep ? { closedAtLastStep } : {}) };
+  }
+  // The settlement replay's charge rule (docs/settlement-replay.md, step 9). The signed ceiling caps the charge: outputs
+  // past `maxOutputTokens` are recorded and never charged. Under provider-loss-free terms an unfinished answer is owed
+  // only when the requester ended it, by its own in-time signed stop or by withholding more than K acknowledgments; a
+  // stage that closes such an answer on its own, `settled` or `failed`, earns nothing and costs the requester nothing.
+  const stop = evidence.stop === undefined || evidence.stop === null ? null
+    : await verifySplitStop(request, evidence.stop, enrollment, now, skew);
+  const delivered = finalReceiptOf(request, proof)?.output ?? null;
+  const finished = delivered?.done === true;
+  const withheld = Boolean(delivered) && delivered.count - acknowledgment.count > maxUnacknowledgedOutputs;
+  const stageEnded = request.unfinishedTerms === UNFINISHED_ANSWER_TERMS && !finished && !stop && !withheld && acknowledgment.count > 0
+    && !interruptedStages.length;
+  const beyondCeiling = Math.max(0, acknowledgment.count - request.maxOutputTokens);
+  return { outputTokens: Math.min(acknowledgment.count, request.maxOutputTokens), outputIdentity: acknowledgment.chain, workIds,
+    ...(interruptedStages.length ? { interruptedStages } : {}), ...(closedAtLastStep ? { closedAtLastStep } : {}),
+    ...(stageEnded ? { stageEnded: true } : {}), ...(beyondCeiling ? { beyondCeiling } : {}) };
 }
 
 /** Validate independently submitted pieces before retaining them. A signed failure is a closing
@@ -144,14 +206,18 @@ export async function verifyPartitionComponents(request, evidence, enrollment, n
   const signedTime = value => Number.isFinite(Date.parse(value)) && Date.parse(value) >= request.createdAt - skew
     && Date.parse(value) <= now + skew;
   const executionTime = value => signedTime(value) && Date.parse(value) <= request.deadline + skew;
+  // Under the replay's rules a receipt is timed by its signature alone, as in the replay: a closing receipt counts when
+  // signed before the hold's release window ends (collect refuses nothing after it), a step receipt when signed by the
+  // deadline plus the clock allowance. Steps past the signed ceiling are accepted and never charged.
+  const rules = replayRules(request);
   const checkReceipt = async receipt => {
     const provider = request.providers[receipt?.partitionIndex];
     assert(provider, 'Unknown receipt stage');
     const checked = await verifyStageReceipt(receipt, { publicJwk: enrollment.byPeer.get(provider.participantId).publicJwk });
     assert(checked.ok && receipt.participantId === provider.participantId && receipt.reservationId === request.id
-      && receipt.attemptId === request.executionId && receipt.routeHash === routeHash && receipt.steps <= request.maxOutputTokens
-      && signedTime(receipt.signedAt) && executionTime(receipt.timing.reservedAt)
-      && (receipt.steps === 0 || executionTime(receipt.timing.firstStepAt) && executionTime(receipt.timing.lastStepAt))
+      && receipt.attemptId === request.executionId && receipt.routeHash === routeHash && (rules || receipt.steps <= request.maxOutputTokens)
+      && signedTime(receipt.signedAt) && (rules || executionTime(receipt.timing.reservedAt)
+        && (receipt.steps === 0 || executionTime(receipt.timing.firstStepAt) && executionTime(receipt.timing.lastStepAt)))
       && (receipt.status === 'executing' ? receipt.timing.closedAt === null : signedTime(receipt.timing.closedAt)),
     'Stage receipt does not match the admitted work');
     assert(receipt.partitionIndex === request.providers.length - 1 ? receipt.output !== null : receipt.output === null,
@@ -159,7 +225,9 @@ export async function verifyPartitionComponents(request, evidence, enrollment, n
     return structuredClone(receipt);
   };
   assert(Array.isArray(evidence.receipts) && evidence.receipts.length <= request.providers.length, 'Bounded stage receipts required');
-  const receipts = await Promise.all(evidence.receipts.map(checkReceipt));
+  // A step receipt signed after the deadline (plus the clock allowance) is late: verified, then ignored, as in the replay.
+  const receipts = (await Promise.all(evidence.receipts.map(checkReceipt)))
+    .filter(row => !rules || closedReceipt(row) || executionTime(row.signedAt));
   assert(new Set(receipts.map(row => row.partitionIndex)).size === receipts.length, 'Duplicate stage receipt');
   const acknowledgment = evidence.acknowledgment ?? evidence.acknowledged?.acknowledgment ?? null;
   const acknowledgedReceipt = evidence.acknowledgedReceipt ?? evidence.acknowledged?.receipt ?? null;
@@ -168,7 +236,7 @@ export async function verifyPartitionComponents(request, evidence, enrollment, n
     const ack = await verifyOutputAcknowledgment(acknowledgment, { publicJwk: enrollment.byPeer.get(request.consumer).publicJwk });
     assert(ack.ok && acknowledgment.requesterId === request.consumer && acknowledgment.reservationId === request.id
       && acknowledgment.attemptId === request.executionId && acknowledgment.routeHash === routeHash
-      && signedTime(acknowledgment.signedAt) && acknowledgment.count <= request.maxOutputTokens, 'Matching requester acknowledgment required');
+      && signedTime(acknowledgment.signedAt) && (rules || acknowledgment.count <= request.maxOutputTokens), 'Matching requester acknowledgment required');
     if (acknowledgment.count === 0) assert(acknowledgment.chain === await outputChainGenesis({ reservationId: request.id, routeHash }),
       'Zero acknowledgment must bind the genesis chain');
     if (acknowledgedReceipt) {

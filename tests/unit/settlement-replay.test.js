@@ -27,15 +27,15 @@ const replay = (records, at) => replaySettlement({ records, policies: [POLICY], 
  * attempt at T0; `collect(a, records)` hands the ledger, before the deadline, the latest receipt of each stage found
  * in `records` and the requester's latest acknowledged pair, as the live route retains them.
  */
-async function openLiveLedger(parties) {
+async function openLiveLedger(parties, policy = POLICY) {
   const directory = await mkdtemp(path.join(tmpdir(), 'reploid-settlement-ledger-'));
   const people = [parties.requester, ...parties.stages];
   const computers = people.map((identity, index) => ({ id: `computer-${index}`, name: `Computer ${index}`, ownerId: `owner-${index}`,
     providers: [{ participantId: identity.peerId, publicJwk: identity.publicJwk }] }));
   const accountOf = new Map(computers.map(row => [row.providers[0].participantId, row.ownerId]));
   const live = { clock: T0, accountOf, owners: computers.map(row => row.ownerId) };
-  live.ledger = await openFleetCredits({ file: path.join(directory, 'credits.sqlite'), computers, policy: POLICY, now: () => live.clock });
-  live.closesAt = T0 + POLICY.maxRequestMs + POLICY.partitionUnclaimedReleaseMs;
+  live.ledger = await openFleetCredits({ file: path.join(directory, 'credits.sqlite'), computers, policy, now: () => live.clock });
+  live.closesAt = T0 + policy.maxRequestMs + policy.partitionUnclaimedReleaseMs;
   live.admit = a => {
     live.clock = T0;
     live.ledger.reserve({ id: a.reservationId, executionId: a.identity.attemptId, mode: 'partition', consumer: parties.requester.peerId,
@@ -51,7 +51,20 @@ async function openLiveLedger(parties) {
     const acknowledgment = records.filter(row => row.schema === OUTPUT_ACKNOWLEDGMENT_SCHEMA).sort((x, y) => x.count - y.count).at(-1);
     const acknowledgedReceipt = records.find(row => row.schema === STAGE_RECEIPT_SCHEMA && row.partitionIndex === parties.stages.length - 1
       && row.output?.count === acknowledgment.count && row.output.chain === acknowledgment.chain);
-    return { identity: a.identity, receipts, acknowledgment, ...(acknowledgment.count > 0 ? { acknowledgedReceipt } : {}) };
+    const stop = records.find(row => row.schema === SETTLEMENT_STOP_SCHEMA);
+    return { identity: a.identity, receipts, acknowledgment, ...(acknowledgment.count > 0 ? { acknowledgedReceipt } : {}), ...(stop ? { stop } : {}) };
+  };
+  /** As the live route does: each acknowledgment is collected when it is signed, then everything once the last record is. */
+  live.collectAsSigned = async (a, records) => {
+    for (const acknowledgment of records.filter(row => row.schema === OUTPUT_ACKNOWLEDGMENT_SCHEMA && row.count > 0).sort((x, y) => x.count - y.count)) {
+      const acknowledgedReceipt = records.find(row => row.schema === STAGE_RECEIPT_SCHEMA && row.partitionIndex === parties.stages.length - 1
+        && row.output?.count === acknowledgment.count && row.output.chain === acknowledgment.chain);
+      live.clock = Date.parse(acknowledgment.signedAt) + 1;
+      await live.ledger.collect(a.reservationId, { identity: a.identity, receipts: [], acknowledgment, acknowledgedReceipt });
+    }
+    live.clock = Math.max(...records.map(row => Date.parse(row.signedAt))) + 1;
+    await live.ledger.fence(a.reservationId, parties.requester.peerId);
+    return live.ledger.collect(a.reservationId, live.evidence(a, records));
   };
   live.collect = async (a, records) => {
     live.clock = Date.parse(a.terms.notBefore) + 25000;
@@ -59,7 +72,7 @@ async function openLiveLedger(parties) {
     return live.ledger.collect(a.reservationId, live.evidence(a, records));
   };
   live.balances = () => live.ledger.snapshot().accounts.map(row => [row.id, row.balance, row.held]);
-  live.replay = (records, at) => replaySettlement({ records, policies: [POLICY], at, accountOf: id => accountOf.get(id) });
+  live.replay = (records, at) => replaySettlement({ records, policies: [policy], at, accountOf: id => accountOf.get(id) });
   live.close = async () => { live.ledger.close(); await rm(directory, { recursive: true, force: true }); };
   return live;
 }
@@ -585,5 +598,80 @@ describe('settlement replay', () => {
     expect((theirs.credits ?? []).every(c => c.participantId === stranger.peerId)).toBe(true);
     expect(out.balances).toEqual({ [parties.requester.peerId]: -120, [parties.stages[0].peerId]: 30, [parties.stages[1].peerId]: 90,
       ...(theirs.status === 'expired' ? { [stranger.peerId]: 0 } : {}) });
+  });
+});
+
+/** The live ledger's deadline is the signed one: the requester signs `deadline = notBefore + maxRequestMs`. */
+const SAME_DEADLINE = Object.freeze({ ...POLICY, maxRequestMs: 30000 });
+const amounts = rows => rows.map(row => [row.participantId, row.amount]);
+
+describe('the live ledger posts what the replay computes', () => {
+  it('charges nothing when the stages close an unfinished answer on their own, and the acknowledged prefix after a requester stop', async () => {
+    const parties = await createParties(2), live = await openLiveLedger(parties, SAME_DEADLINE);
+    try {
+      const cases = [['failed', { stagesFailAfter: 3 }, 0, a => a.all()], ['stopped', { requesterStopAfter: 3 }, 9, a => a.all()],
+        // The same stopped answer without the requester's signed stop reads as a stage ending it, in both.
+        ['unsigned', { requesterStopAfter: 3 }, 0, a => a.all().filter(row => row.schema !== SETTLEMENT_STOP_SCHEMA)]];
+      for (const [tag, options, charge, recordsOf] of cases) {
+        const a = await runAttempt(parties, { tag: `ended-${tag}`, policy: SAME_DEADLINE, ...options }), records = recordsOf(a);
+        expect(a.acknowledged).toBe(3);
+        live.admit(a);
+        await live.collectAsSigned(a, records);
+        live.clock = live.closesAt + 1;
+        const outcome = await live.ledger.recover(a.reservationId), r = (await live.replay(records, a.closesAt + 1)).reservations[0];
+        expect(r).toMatchObject({ status: 'settled', debit: charge });
+        expect(outcome.charge).toBe(r.debit);
+        expect(amounts(outcome.credits.length ? outcome.credits : r.credits.map(row => ({ ...row, amount: 0 })))).toEqual(amounts(r.credits));
+        if (charge === 0) expect(outcome.reason).toBe('stage-ended-unfinished-answer');
+      }
+    } finally { await live.close(); }
+  });
+
+  it('charges the outputs acknowledged in time when the last output, its acknowledgment and the closes come inside the release window', async () => {
+    const parties = await createParties(2), live = await openLiveLedger(parties, SAME_DEADLINE);
+    try {
+      // The fifth step itself runs 5 s past the deadline: its step times, acknowledgment and the closes are all late.
+      const base = createClock(); let steps = 0;
+      const clock = { now: base.now, set: base.set, advance: ms => (++steps === 5 ? (base.set(T0 + 30000 + 5000), base.now()) : base.advance(ms)) };
+      const a = await runAttempt(parties, { tag: 'late-step', policy: SAME_DEADLINE, clock });
+      live.admit(a);
+      await live.collectAsSigned(a, a.all());
+      live.clock = live.closesAt + 1;
+      const outcome = await live.ledger.recover(a.reservationId), r = (await live.replay(a.all(), a.closesAt + 1)).reservations[0];
+      expect(r).toMatchObject({ status: 'settled', debit: 12, outputs: 4 });
+      expect(outcome).toMatchObject({ charge: 12, outputTokens: 4 });
+      expect(amounts(outcome.credits)).toEqual(amounts(r.credits));
+    } finally { await live.close(); }
+  });
+
+  it('charges an answer that ran past the signed ceiling up to the ceiling, and records the overrun', async () => {
+    const parties = await createParties(2), live = await openLiveLedger(parties, SAME_DEADLINE);
+    try {
+      for (const [tag, recordsOf] of [['all', a => a.all()], ['veto', a => withoutClosing(a, 0)]]) {
+        const a = await runAttempt(parties, { tag: `ceiling-${tag}`, policy: SAME_DEADLINE, maxOutputTokens: 3 }), records = recordsOf(a);
+        expect(a.acknowledged).toBe(5);
+        live.admit(a);
+        await live.collectAsSigned(a, records);
+        live.clock = live.closesAt + 1;
+        const outcome = await live.ledger.recover(a.reservationId), r = (await live.replay(records, a.closesAt + 1)).reservations[0];
+        expect(r).toMatchObject({ status: 'settled', debit: 9, chargedOutputs: 3, beyondCeiling: 2 });
+        expect(outcome).toMatchObject({ charge: 9, outputTokens: 3, beyondCeiling: 2 });
+        expect(amounts(outcome.credits)).toEqual(amounts(r.credits));
+      }
+    } finally { await live.close(); }
+  });
+
+  it('names a delivered answer that one stage has no receipt covering as the replay\'s unknown, and moves nothing', async () => {
+    const parties = await createParties(2), live = await openLiveLedger(parties, SAME_DEADLINE);
+    try {
+      const a = await runAttempt(parties, { tag: 'uncovered', policy: SAME_DEADLINE });
+      const records = a.all().filter(row => !(row.schema === STAGE_RECEIPT_SCHEMA && row.partitionIndex === 0));
+      live.admit(a);
+      await live.collectAsSigned(a, records);
+      live.clock = live.closesAt + 1;
+      const outcome = await live.ledger.recover(a.reservationId);
+      expect((await live.replay(records, a.closesAt + 1)).reservations[0]).toMatchObject({ status: 'unknown' });
+      expect(outcome).toMatchObject({ status: 'expired', charge: 0, credits: [], reason: 'unknown-delivered-answer-without-covering-receipt' });
+    } finally { await live.close(); }
   });
 });

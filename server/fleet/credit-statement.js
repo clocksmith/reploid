@@ -21,7 +21,8 @@ import { verifyParticipantSignature } from '../../shared/vendor/reploid/artifact
 import { canonicalRouteAttemptBinding } from '../../shared/vendor/reploid/mesh/partitions/partition-contract.js';
 import { assert, creditPolicy, digest, enrollComputers, FLEET_SERVICE_REQUEST_SCHEMA, integer, same, text } from './contract.js';
 import { verifyCreditEvidence, verifyPartitionComponents } from './credit-evidence.js';
-import { accountSettlement, creditSettlementDeltas, settledCreditUnits, UNFINISHED_ANSWER_TERMS } from './credit-shares.js';
+import { accountSettlement, creditSettlementDeltas, settledCreditUnits, SETTLEMENT_RULES, UNFINISHED_ANSWER_TERMS } from './credit-shares.js';
+import { MAX_UNACKNOWLEDGED_OUTPUTS } from '../../shared/vendor/reploid/mesh/partitions/partition-attempt-evidence.js';
 
 export const FLEET_CREDIT_STATEMENT_SCHEMA = 'reploid.fleet-credit-statement/v1';
 export const FLEET_CREDIT_STATEMENT_V2_SCHEMA = 'reploid.fleet-credit-statement/v2';
@@ -84,7 +85,8 @@ function verifyRequestBinding(request, requestId, enrollment, policy) {
   assert(Number.isSafeInteger(createdAt) && deadline === createdAt + policy.maxRequestMs
     && maximum === request.maxOutputTokens * policy.creditsPerOutputToken
     && (terminalCharge === null || request.mode === 'whole-model' && terminalCharge === 0)
-    && (request.unfinishedTerms === undefined || request.mode === 'partition' && request.unfinishedTerms === UNFINISHED_ANSWER_TERMS),
+    && (request.unfinishedTerms === undefined || request.mode === 'partition' && request.unfinishedTerms === UNFINISHED_ANSWER_TERMS)
+    && (request.settlementRules === undefined || request.unfinishedTerms === UNFINISHED_ANSWER_TERMS && request.settlementRules === SETTLEMENT_RULES),
   'Request ceiling or deadline differs from policy terms');
 }
 
@@ -135,6 +137,7 @@ export async function verifyCreditStatement(statement, { computers, participantI
   const holder = perAccount ? statement.accountId : statement.computerId;
   assert(text(holder), perAccount ? 'Explicit statement account ID required' : 'Explicit statement computer ID required');
   const policy = creditPolicy(statement.policy);
+  const maxUnacknowledgedOutputs = policy.maxUnacknowledgedOutputs ?? MAX_UNACKNOWLEDGED_OUTPUTS;
   assert(statement.unit === policy.unit, 'Statement credit unit differs from policy');
   assert(Number.isSafeInteger(statement.balance) && integer(statement.held) && Number.isSafeInteger(statement.issuedAt),
     'Explicit integer statement balance, hold and issue time required');
@@ -232,7 +235,7 @@ export async function verifyCreditStatement(statement, { computers, participantI
       }
       const interrupted = await verifyInterruptedOwners(entry.request, entry.evidence, enrollment, entry.at, policy.maxClockSkewMs);
       const observed = await verifyCreditEvidence(entry.request, entry.evidence, enrollment, entry.at, policy.maxClockSkewMs,
-        { interrupted, releaseWindowMs: atWindow ? window : null });
+        { interrupted, releaseWindowMs: atWindow ? window : null, maxUnacknowledgedOutputs });
       assert(!observed.terminalStatus || integer(observed.fixedCharge), 'Accepted fixed terminal terms required');
       for (const workId of observed.workIds) {
         assert(!expiredWorkIds.has(workId), 'Claim window closed; expired hold cannot reopen settlement');
@@ -295,7 +298,7 @@ export async function verifyCreditStatement(statement, { computers, participantI
         }
         assert(claim.evidence !== null && claim.evidence !== undefined, 'Missing signed settlement evidence');
         const interrupted = await verifyInterruptedOwners(request, claim.evidence, enrollment, at, policy.maxClockSkewMs);
-        const observed = await verifyCreditEvidence(request, claim.evidence, enrollment, at, policy.maxClockSkewMs, { interrupted });
+        const observed = await verifyCreditEvidence(request, claim.evidence, enrollment, at, policy.maxClockSkewMs, { interrupted, maxUnacknowledgedOutputs });
         for (const workId of observed.workIds) {
           assert(!expiredWorkIds.has(workId), 'Claim window closed; expired hold cannot reopen settlement');
           assert(!seenWorkIds.has(workId), 'Duplicate settled work evidence');
