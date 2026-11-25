@@ -54,8 +54,8 @@ import { PROMPTS, RULE, percentile, summarize } from './reliability.js';
 
 /**
  * How an answer ended, in the page's own words. Each answer row has an execution line whose first word is the
- * attempt's status (apps/poolday/ui/pool-home/execution-ribbon.js: Complete, Failed, Stopped, Interrupted,
- * Disconnected) and, for a failure only, a system line that says why (message-list.js, "System · ...").
+ * attempt's status (apps/poolday/host/decisions/transcript.js projectActivity: Complete, Failed, Stopped, Interrupted,
+ * Disconnected) and, for a failure only, a system line that says why (apps/poolday-react/src/features/chat/presentation/MessagesView.tsx, "System · ...").
  */
 export function labelOf({ activity = '', statusText = '', outputChars, timedOut, sheetProblem }) {
   if (sheetProblem) return 'unavailable';
@@ -72,13 +72,13 @@ export function labelOf({ activity = '', statusText = '', outputChars, timedOut,
 
 /** Installed in the page before any of its scripts: times the first visible character of the newest answer. */
 function installProbe() {
-  const rows = () => [...globalThis.document.querySelectorAll('[data-message-stream] .chat-message-row.is-assistant')];
+  const rows = () => [...globalThis.document.querySelectorAll('[data-message-stream] [data-message-role=assistant]')];
   const shown = node => Boolean(node) && !node.hidden && node.getClientRects().length > 0;
   const probe = { before: 0, sentAt: null, firstAt: null, observer: null };
   const answer = () => rows()[probe.before] ?? null;
   const check = () => {
     if (probe.firstAt !== null || probe.sentAt === null) return;
-    const text = answer()?.querySelector('.chat-message-content')?.textContent ?? '';
+    const text = answer()?.querySelector('.pool-prose')?.textContent ?? '';
     if (text.trim().length > 0) probe.firstAt = globalThis.performance.now();
   };
   globalThis.__pilot = {
@@ -99,7 +99,7 @@ function installProbe() {
         sendShown: shown(globalThis.document.querySelector('[data-composer-send]')),
         sheetOpen: Boolean(globalThis.document.querySelector('[data-model-picker]')?.open),
         permissionShown: shown(globalThis.document.querySelector('[data-remote-permission] [data-remote-permission-allow]')),
-        outputChars: (row?.querySelector('.chat-message-content')?.textContent ?? '').trim().length,
+        outputChars: (row?.querySelector('.pool-prose')?.textContent ?? '').trim().length,
         statusText: (row?.querySelector('[data-system-status]')?.textContent ?? '').trim().slice(0, 300),
         // The execution line: "<status> · ...". The page marks it data-active while the attempt runs.
         activity: (row?.querySelector('[data-execution-trigger]')?.getAttribute('aria-label') ?? '').replace(/\. Execution details$/, '').slice(0, 200),
@@ -111,10 +111,29 @@ function installProbe() {
 
 const ENDED = /^(Complete|Failed|Stopped|Interrupted|Disconnected)\b/;
 
-const selectedModel = page => page.evaluate(() => globalThis.document.querySelector('[data-active-model-select]')?.value || null);
+/**
+ * The composer names the thread's model by its title ("Qwen 3.5 0.8B"), not its id. Each open sheet lists every
+ * model's id beside its title, so the page's titles are learnt from the sheet and the composer's title is read back
+ * as an id. A title never seen in a sheet is returned as it is, so it can never match an id by accident.
+ */
+const MODEL_TITLES = new WeakMap();
+async function learnModels(page) {
+  const pairs = await page.evaluate(() => [...globalThis.document.querySelectorAll('[data-model-picker] [data-model-choice]')].map(node => {
+    const input = node.querySelector('input');
+    return [(globalThis.document.getElementById(input?.getAttribute('aria-labelledby') ?? '')?.textContent ?? '').trim(), node.getAttribute('data-model-choice')];
+  })).catch(() => []);
+  const titles = MODEL_TITLES.get(page) ?? new Map();
+  // An adapter row ("model/adapter") can share its base model's title; the base model keeps the title.
+  for (const [title, id] of pairs) if (title && id && !id.includes('/') && !titles.has(title)) titles.set(title, id);
+  MODEL_TITLES.set(page, titles);
+}
+async function selectedModel(page) {
+  const title = await page.evaluate(() => globalThis.document.querySelector('[data-composer-model-name]')?.textContent?.trim() || null);
+  return title === null ? null : MODEL_TITLES.get(page)?.get(title) ?? title;
+}
 const answerOnLabel = page => page.locator('[data-open-model]').getAttribute('aria-label', { timeout: 2000 }).catch(() => null);
 const pickerOpen = page => page.evaluate(() => Boolean(globalThis.document.querySelector('[data-model-picker]')?.open));
-const rowCount = page => page.evaluate(() => globalThis.document.querySelectorAll('[data-message-stream] .chat-message-row').length);
+const rowCount = page => page.evaluate(() => globalThis.document.querySelectorAll('[data-message-stream] [data-message-role]').length);
 
 /** The "Where should this run?" sheet is modal: left open, it blocks every later request. */
 async function closeSheet(page) {
@@ -129,7 +148,7 @@ async function newThread(page) {
   const button = page.locator('[data-new-thread]');
   if (!await button.isVisible()) await page.locator('[data-toggle-thread-rail]').click({ timeout: 5000 });
   await button.click({ timeout: 5000 });
-  await page.waitForFunction(() => globalThis.document.querySelectorAll('[data-message-stream] .chat-message-row').length === 0, null, { timeout: 5000 });
+  await page.waitForFunction(() => globalThis.document.querySelectorAll('[data-message-stream] [data-message-role]').length === 0, null, { timeout: 5000 });
 }
 
 /** Chooses `model` on Contributors through "Answer on", as a person would. A usable choice applies on tap. */
@@ -137,7 +156,9 @@ async function chooseModel(page, model) {
   await closeSheet(page);
   await page.locator('[data-open-model]').click({ timeout: 5000 });
   await page.locator('[data-execution-choice=network]').click({ timeout: 5000 }).catch(() => {});
-  await page.locator(`[data-model-picker] .chat-model-choices input[value="${model}"]`).filter({ visible: true }).click({ timeout: 15000 }).catch(() => {});
+  await page.locator(`[data-model-picker] [data-model-choice="${model}"]`).waitFor({ timeout: 15000 }).catch(() => {});
+  await learnModels(page);
+  await page.locator(`[data-model-picker] [data-model-choice="${model}"] label`).click({ timeout: 15000 }).catch(() => {});
   await page.waitForFunction(() => !globalThis.document.querySelector('[data-model-picker]')?.open, null, { timeout: 5000 }).catch(() => {});
   await closeSheet(page);
 }
@@ -191,7 +212,9 @@ async function sendAndWatch(page, record, { timeoutMs, model = null, expectModel
     if (state.sheetOpen && !record.sheet) {
       record.sheet = true;
       await page.locator('[data-execution-choice=network]').click({ timeout: 5000 }).catch(() => {});
-      if (model) await page.locator(`[data-model-picker] .chat-model-choices input[value="${model}"]`).filter({ visible: true }).click({ timeout: 15000 }).catch(() => {});
+      if (model) await page.locator(`[data-model-picker] [data-model-choice="${model}"]`).waitFor({ timeout: sheetWaitMs }).catch(() => {});
+      await learnModels(page);
+      if (model) await page.locator(`[data-model-picker] [data-model-choice="${model}"] label`).click({ timeout: 15000 }).catch(() => {});
       // Either the choice sends by itself and the sheet closes, or its button turns into Send ("Send to contributors").
       const ready = await page.waitForFunction(() => {
         const picker = globalThis.document.querySelector('[data-model-picker]'), button = globalThis.document.querySelector('[data-change-model]');
@@ -369,8 +392,12 @@ export async function runBurst({ url, prompts, sessions, rounds, model = null, g
 const MOCK_PAGE = `<!doctype html><meta charset="utf-8"><title>mock</title>
 <button data-new-thread>New thread</button>
 <div data-message-stream></div>
-<dialog data-model-picker><button data-model-picker-close>Close</button><button data-execution-choice="local">This device</button><button data-execution-choice="network">Contributors</button><div class="chat-model-choices"><label><input type="radio" name="model" value="small">small</label><label><input type="radio" name="model" value="big">big</label></div><span data-next-model-status></span><button data-change-model disabled>Choose</button></dialog>
-<select data-active-model-select hidden><option value="small">small</option><option value="big">big</option></select><button data-open-model aria-label="Answer on Contributors · small, Ready">Answer on</button>
+<dialog data-model-picker><button data-model-picker-close>Close</button><button data-execution-choice="local">This device</button><button data-execution-choice="network">Contributors</button>
+<div data-model-choice="small"><input id="m-small" type="radio" name="model" value="small" aria-labelledby="t-small"><label for="m-small"><span id="t-small">Small Model</span> Ready</label></div>
+<div data-model-choice="small/adapter"><input id="m-adapter" type="radio" name="model" value="small/adapter" aria-labelledby="t-adapter"><label for="m-adapter"><span id="t-adapter">Big Model</span> No computer serves it now</label></div>
+<div data-model-choice="big"><input id="m-big" type="radio" name="model" value="big" aria-labelledby="t-big"><label for="m-big"><span id="t-big">Big Model</span> Ready</label></div>
+<span data-next-model-status></span><button data-change-model disabled>Choose</button></dialog>
+<button data-open-model aria-label="Answer on Contributors · Small Model, Ready"><span data-composer-model-name>Small Model</span></button>
 <div data-remote-permission hidden><button data-remote-permission-allow>Allow</button></div>
 <p data-model-status>Finding computers…</p>
 <textarea data-composer-input></textarea><button data-composer-send>Send</button><button data-composer-stop hidden>Stop</button>
@@ -378,8 +405,9 @@ const MOCK_PAGE = `<!doctype html><meta charset="utf-8"><title>mock</title>
 const $ = selector => document.querySelector(selector), stream = $('[data-message-stream]'), send = $('[data-composer-send]'), stop = $('[data-composer-stop]');
 let chosen = false, allowed = false, timers = [], current = null, bySend = false, answered = 0;
 // ?forget: New thread returns to the default model, as the page did before. ?lose: after the setup answer, no other model can be chosen.
-const query = new URLSearchParams(location.search), model = $('[data-active-model-select]');
-const setModel = value => { model.value = value; $('[data-open-model]').setAttribute('aria-label', 'Answer on Contributors · ' + value + ', Ready'); };
+// As the React page: the composer names the model by its title only.
+const query = new URLSearchParams(location.search), TITLES = { small: 'Small Model', big: 'Big Model' };
+const setModel = value => { $('[data-composer-model-name]').textContent = TITLES[value]; $('[data-open-model]').setAttribute('aria-label', 'Answer on Contributors · ' + TITLES[value] + ', Ready'); };
 const later = (ms, run) => timers.push(setTimeout(run, ms));
 // As the real page: the execution line carries the status and is data-active while running; the system line appears only for a failure.
 const line = (row, summary, active) => { row.querySelector('[data-execution-trigger]').setAttribute('aria-label', summary + '. Execution details'); row.querySelector('[data-execution-activity]').toggleAttribute('data-active', active); };
@@ -390,11 +418,11 @@ function start() {
   if (!chosen) { bySend = true; $('[data-model-picker]').showModal(); return; }
   answered++;
   if (!allowed) { $('[data-remote-permission]').hidden = false; return; }
-  const user = document.createElement('div'); user.className = 'chat-message-row is-user'; stream.append(user);
-  const row = document.createElement('div'); row.className = 'chat-message-row is-assistant';
-  row.innerHTML = '<div class="chat-message-content"></div><div class="chat-message-system" data-system-status hidden></div><div data-execution-activity><button data-execution-trigger aria-label=""></button></div>';
+  const user = document.createElement('article'); user.dataset.messageRole = 'user'; user.innerHTML = '<div class="pool-message-text">question</div>'; stream.append(user);
+  const row = document.createElement('article'); row.dataset.messageRole = 'assistant';
+  row.innerHTML = '<div class="pool-prose"></div><span data-system-status hidden></span><div class="pool-message-footer"><div data-execution-activity><button data-execution-trigger aria-label="">details</button></div></div>';
   stream.append(row); current = row;
-  const body = row.querySelector('.chat-message-content');
+  const body = row.querySelector('.pool-prose');
   if (kind === 'refuse') { finish(row, 'Failed', 'Not sent. Not enough service credits: this answer can cost up to 192 and your account can spend 0 now.'); return; }
   send.hidden = true; stop.hidden = false; line(row, 'Queued', true);
   later(20, () => line(row, 'Generating · 1 computer', true));
@@ -410,7 +438,8 @@ send.onclick = start;
 stop.onclick = () => { timers.forEach(clearTimeout); finish(current, 'Stopped', 'Stopped. Your partial answer is saved.'); };
 $('[data-new-thread]').onclick = () => { stream.replaceChildren(); if (query.has('forget')) setModel('small'); };
 $('[data-open-model]').onclick = () => { bySend = false; $('[data-model-picker]').showModal(); };
-for (const radio of document.querySelectorAll('.chat-model-choices input')) radio.onclick = () => {
+for (const radio of document.querySelectorAll('[data-model-choice] input')) radio.onclick = () => {
+  if (radio.value.includes('/')) return;
   if (query.has('lose') && answered > 0) return;
   setModel(radio.value);
   if (!bySend && chosen) $('[data-model-picker]').close();
@@ -438,7 +467,7 @@ async function selfCheck() {
     expect('setup waited for discovery to settle before pressing Send', setup.discoveryMs >= 250 && setup.discoveryMs < 5000);
     expect('no measured request met the sheet again', results.every(row => !row.sheet && !row.permissionPrompt));
     expect('setup and every measured request asked the chosen model, choosing it again after New thread reset it',
-      setup.model === 'big' && results.length === kinds.length && results.every(row => row.model === 'big' && row.modelChosen && /· big, Ready$/.test(row.answerOn)));
+      setup.model === 'big' && results.length === kinds.length && results.every(row => row.model === 'big' && row.modelChosen && /· Big Model, Ready$/.test(row.answerOn)));
     expect('ok completes with a first character near 80 ms', by(0).completed && by(0).firstTokenMs >= 70 && by(0).firstTokenMs < 300);
     expect('slow ignores whitespace and times the first real character near 400 ms', by(1).completed && by(1).firstTokenMs >= 390 && by(1).firstTokenMs < 700);
     expect('a dropped answer is transport and keeps its first-character time', by(2).failure === 'transport' && by(2).firstTokenMs !== null);
