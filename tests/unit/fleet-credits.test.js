@@ -149,9 +149,20 @@ describe('enrolled fleet service credits', () => {
   });
   it('reserves against outstanding debt and concurrent holds before execution', () => {
     ledger.reserve(request('one')); ledger.reserve(request('two'));
-    expect(() => ledger.reserve(request('three'))).toThrow('limit');
+    expect(() => ledger.reserve(request('three'))).toThrow('2 unfinished answers on this account. Nothing was sent.');
     ledger.abandonBeforeDispatch('two', identities[0].peerId);
     expect(ledger.reserve(request('three')).maximum).toBe(10);
+  });
+  it('refuses an answer the account cannot cover before any hold, naming the quote and what can be spent', async () => {
+    ledger.close();
+    ledger = await openFleetCredits({ ...options, file: path.join(directory, 'no-debt.sqlite'),
+      policy: { ...policy, maxDebt: 0, maxPendingPerComputer: 4 } });
+    expect(() => ledger.reserve(request('broke'))).toThrow(
+      'not enough service credits. This answer can cost up to 10 and 0 can be spent now. Nothing was sent.');
+    expect(ledger.request('broke')).toBeNull();
+    expect(ledger.snapshot().accounts.every(row => row.balance === 0 && row.held === 0)).toBe(true);
+    // A smaller output limit that fits is still refused at zero credit and no debt: nothing is spendable.
+    expect(() => ledger.reserve({ ...request('smaller'), maxOutputTokens: 1 })).toThrow('can cost up to 1 and 0 can be spent now');
   });
   it('expires only never-dispatched reservations and fences a late dispatch after restart', async () => {
     const input = request('crash-before-dispatch');

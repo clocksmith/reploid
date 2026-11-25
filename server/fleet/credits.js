@@ -96,8 +96,12 @@ export async function openFleetCredits({ file, computers, policy: supplied, now 
         const account = db.prepare('SELECT * FROM fleet_accounts WHERE id=?').get(consumer.computerId);
         const pending = db.prepare("SELECT COUNT(*) AS count FROM fleet_requests WHERE state IN ('reserved','dispatched','closing') AND json_extract(binding,'$.computerId')=?").get(consumer.computerId).count;
         const maximum = value.maxOutputTokens * policy.creditsPerOutputToken;
-        assert(pending < policy.maxPendingPerComputer && account.balance - account.held - maximum >= -policy.maxDebt,
-          'Service-credit admission limit reached');
+        // Refused before any hold or disclosure: the requester sends the prompt only after this reservation exists.
+        assert(pending < policy.maxPendingPerComputer,
+          `Service-credit admission limit reached: ${pending} unfinished answers on this account. Nothing was sent.`);
+        const spendable = account.balance - account.held + policy.maxDebt;
+        assert(spendable >= maximum,
+          `Service-credit admission limit reached: not enough service credits. This answer can cost up to ${maximum} and ${Math.max(0, spendable)} can be spent now. Nothing was sent.`);
         const createdAt = now();
         const binding = { ...value, requestHash, computerId: consumer.computerId, maximum,
           policyVersion: policy.version, terminalCharge: value.mode === 'whole-model' ? policy.wholeModelTerminalCharge ?? null : null,
