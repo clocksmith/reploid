@@ -83,7 +83,14 @@ function agentSession(command, { log = () => {} } = {}) {
         pending.set(id, { resolve: value => { clearTimeout(timer); resolve(value); }, reject: error => { clearTimeout(timer); reject(error); } });
       });
     },
-    end() { if (!closed) { try { child.stdin.write(JSON.stringify({ id: 0, op: 'exit' }) + '\n'); } catch { /* gone */ } setTimeout(() => child.kill(), 2000).unref(); } }
+    /** Ends the session; resolves once the agent (and any tunnel its command opened) has exited. */
+    end() {
+      if (closed || child.exitCode !== null) return Promise.resolve();
+      const exited = new Promise(resolve => child.once('exit', resolve));
+      try { child.stdin.write(JSON.stringify({ id: 0, op: 'exit' }) + '\n'); } catch { /* gone */ }
+      setTimeout(() => child.kill(), 3000).unref();
+      return exited;
+    }
   };
 }
 
@@ -158,7 +165,7 @@ export async function runSecretShared({ config, directory, log = () => {}, now =
     const proved = await session.call('identity', { file: op.identityFile });
     if (await createPeerIdFromPublicJwk(proved.publicJwk) !== proved.participantId) throw Error(`${op.label} proved a malformed identity`);
     proven.push({ ...op, participantId: proved.participantId, publicJwk: proved.publicJwk });
-    session.end();
+    await session.end();
   }
   const participants = { requester: { participantId: requester.peerId, publicJwk: requester.publicJwk },
     edgeIn: { participantId: edgeIn.peerId, publicJwk: edgeIn.publicJwk }, edgeOut: { participantId: edgeOut.peerId, publicJwk: edgeOut.publicJwk } };
@@ -272,6 +279,18 @@ export async function runSecretShared({ config, directory, log = () => {}, now =
             model: { id: model.id, identity: model.identity, adapterIdentities: [] }, inputDigest: 'sha256:' + sha256(JSON.stringify(messages)),
             maxOutputTokens: kase.maxTokens, providers: stageIds.map((participantId, index) => ({ participantId, weight: weights[index] })), route: identity, acceptedQuote: quote });
           record.quote = { quotedBeforeDispatch: structuredClone(quote), hold: binding.maximum, at: stamp(), balanceBefore: beforeBalance };
+          try { await prepareStages(binding); }
+          catch (error) {
+            // Nothing left this machine yet: release the hold rather than strand it.
+            credits.abandonBeforeDispatch(reservationId, requester.peerId);
+            record.abandonedBeforeDispatch = { at: stamp(), error: redactor.text(error?.message ?? error) };
+            throw error;
+          }
+          credits.dispatch(reservationId, requester.peerId);
+          return runRequester({ signal, onAdmitted, onDelta });
+        }
+      });
+      async function prepareStages(binding) {
           held.terms = await signSettlementTerms({ signer: signers.requester, identity, reservationId, policy: credits.policy, maxOutputTokens: kase.maxTokens, weights,
             notBefore: binding.createdAt, deadline: binding.deadline, maxUnacknowledgedOutputs: credits.policy.maxUnacknowledgedOutputs ?? MAX_UNACKNOWLEDGED_OUTPUTS });
           // Every stage accepts the exact terms at its own index before any share is sent.
@@ -286,7 +305,8 @@ export async function runSecretShared({ config, directory, log = () => {}, now =
             held.acceptances.push(await session.call('accept', { terms: held.terms, partitionIndex: index + 1 }));
           }
           held.acceptances.push(await acceptSettlementTerms({ signer: signers.edgeOut, terms: held.terms, partitionIndex: stageIds.length - 1 }));
-          credits.dispatch(reservationId, requester.peerId);
+      }
+      async function runRequester({ signal, onAdmitted, onDelta }) {
           acks = await openOutputAcknowledgments({ signer: signers.requester, identity, reservationId, textlessOutputs: true });
           held.acks.push(acks.charge);
           edgeInReceipts = await openStageReceipts({ signer: signers.edgeIn, identity, partitionIndex: 0, charge: acks.charge, textlessOutputs: true });
@@ -345,8 +365,7 @@ export async function runSecretShared({ config, directory, log = () => {}, now =
           return { text: record.streamed, stopReason: ended.stopReason, usage: { inputTokens: record.promptTokens, outputTokens: record.tokens.length },
             settlement: { reservationId }, evidence: { freshness: ended.freshness,
               transport: config.transport ?? 'each requester-operator link is its own encrypted channel (SSH or WireGuard)' } };
-        }
-      });
+      }
       const inference = createInference({ resolveRoute: async () => { throw Error('readable routes are not used here'); }, execute: async () => { throw Error('unused'); },
         secretSharedExecution: secretShared, unreviewedSecretSharedExecution: true });
       const prepared = await inference.prepare({ model: { id: model.id, identity: model.identity }, generation: { maxOutputTokens: kase.maxTokens },
@@ -366,7 +385,7 @@ export async function runSecretShared({ config, directory, log = () => {}, now =
       const closingIn = edgeInReceipts ? await edgeInReceipts.close({ failed: attemptFailed }) : null;
       const closingOut = edgeOutReceipts ? await edgeOutReceipts.close({ failed: attemptFailed }) : null;
       const agentRecords = await Promise.all(agents.map(session => session.call('records').catch(error => ({ records: [], deliveries: [], log: [{ error: String(error?.message ?? error) }] }))));
-      for (const session of agents) session.end();
+      await Promise.all(agents.map(session => session.end()));
       record.deliveries = agentRecords.map((row, index) => ({ label: proven[index].label, stage: proven[index].stage, share: proven[index].share === 0 ? 'A' : 'B',
         participantId: proven[index].participantId, records: row.deliveries, log: row.log.slice(-20) }));
 
@@ -378,6 +397,14 @@ export async function runSecretShared({ config, directory, log = () => {}, now =
         ...(latest ? { acknowledgedReceipt: latest.receipt } : {}), ...(held.stop ? { stop: held.stop } : {}) };
       try { await credits.settle(reservationId, evidence); record.settleError = null; }
       catch (error) { record.settleError = String(error?.message ?? error); }
+      if (credits.request(reservationId)?.state !== 'settled' && record.closing.some(row => row.died)) {
+        // A share that died left no close: the ledger finalizes the attempt once the release window has passed.
+        const binding = credits.request(reservationId).binding;
+        const finalAt = binding.deadline + credits.policy.partitionUnclaimedReleaseMs + credits.policy.maxClockSkewMs + 1000;
+        record.finalization = { waitingUntil: new Date(finalAt).toISOString(), rule: 'verified provider failure: a stage without a counting close after the release window' };
+        while (now() < finalAt + 15000 && credits.request(reservationId)?.state !== 'settled') { credits.expire(); await delay(2000); }
+        record.finalization.finalizedAt = stamp();
+      }
       record.settlement = await ledgerTrace(credits, reservationId);
       const records = [held.terms, ...held.acceptances, ...(held.stop ? [held.stop] : []), ...held.acks, ...held.edge.in.filter(Boolean), ...held.edge.out.filter(Boolean),
         closingIn, closingOut, ...agentRecords.flatMap(row => row.records.filter(item => item.schema !== 'reploid.settlement-acceptance/v1'))].filter(Boolean);

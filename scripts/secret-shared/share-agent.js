@@ -110,9 +110,13 @@ export function createShareAgent({ spawnOperator = (command, args, env) => spawn
         await stepQueue;
         const died = Boolean(status && (status.signal || status.code !== 0));
         if (child && !status) { child.stdin.end(); child.kill('SIGTERM'); }
-        const receipt = receipts ? await receipts.close({ failed: failed || died }) : null;
+        // A share whose operator process died did not finish its stage, so it signs no close: under the decided
+        // settlement rules a stage without a counting close is a verified provider failure once the release window
+        // passes, and the attempt is relieved in full. A `failed` close would read as an unattributed disconnect and
+        // charge the requester the acknowledged prefix for a failure that was the operator's.
+        const receipt = receipts && !died ? await receipts.close({ failed }) : null;
         if (receipt) records.push(receipt);
-        return { receipt, operatorExit: status, died };
+        return { receipt, operatorExit: status, died, closed: Boolean(receipt) };
       })();
       return closing;
     },
