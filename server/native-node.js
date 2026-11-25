@@ -19,8 +19,9 @@ import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 
 const MODES = ['--connect-only', '--share-files', '--contribute'];
-// The model `reploid` serves when no model id is given: the one public peers supply.
-export const DEFAULT_MODEL = 'qwen-3-5-2b-q4k-ef16-af32';
+// The model `reploid` serves when no model id is given: the smallest, which most computers can run. `ask` without a
+// model is not bound to it: it uses the smallest model a ready provider serves.
+export const DEFAULT_MODEL = 'qwen-3-5-0-8b-q4k-ef16-af32-vf16';
 // Options that only exist for partition execution; giving one keeps the participant's own default.
 const PARTITION_ONLY = ['--partition-index', '--ordered-config', '--canonical', '--readiness-log'];
 /** The participant arguments this command stands for. Pure, so it can be checked. */
@@ -88,8 +89,8 @@ async function main() {
   process.argv = participantProcessArgv(process.argv, node.args);
   const { main: runParticipant } = await import('./native-participant.js');
   if (command.prompt !== undefined) {
-    const response = await runParticipant({ runOnce: (participant, model, signal) => askMesh(participant, model, command.prompt,
-      { signal, ...(command.execution ? { execution: command.execution } : {}) }) });
+    const response = await runParticipant({ anyModel: command.anyModel === true, runOnce: (participant, model, signal) => askMesh(participant, model, command.prompt,
+      { signal, anyModel: command.anyModel === true, ...(command.execution ? { execution: command.execution } : {}) }) });
     console.log(response);
     return;
   }

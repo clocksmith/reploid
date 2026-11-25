@@ -404,9 +404,13 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     if (pinnedModel && !models.some(model => keyFor(model) === keyFor(pinnedModel))) models.push(unavailableModelChoice(pinnedModel));
     const location = effectiveLocation(state);
     const defaultModel = state.defaultModels?.[location] || state.defaultModel;
+    const freshVisitor = !thread && viewState.privacy === undefined && !viewState.privacyTouched && !lockedDestination(state);
     // On this device, start with a model that runs or downloads here, so the chip never names a pair that cannot answer.
+    // Among downloads, the smallest one contributors serve comes first, so the same model can answer either way.
+    const downloadable = model => canDownloadModelHere(model, state, !!inspector.downloadModel);
+    const servedDownload = models.find(model => modelExecutionState(model, 'network').usable && downloadable(model));
     const localStart = !pinnedModel && location === 'local'
-      ? startingLocalModel(models, { defaultModel, canDownloadHere: model => canDownloadModelHere(model, state, !!inspector.downloadModel) }) : null;
+      ? startingLocalModel(models, { defaultModel: servedDownload || defaultModel, canDownloadHere: downloadable }) : null;
     const current = keyFor(pinnedModel) || keyFor(localStart)
       || keyFor(models.find(model => keyFor(model) === keyFor(defaultModel) && selectable(model)))
       || keyFor(models.find(selectable)) || keyFor(models[0]);
@@ -436,7 +440,6 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     const acquiring = state.acquisition?.phase === 'downloading';
     const phase = state.discoveryPhase;
     const exhausted = phase === 'observed' || phase === 'interrupted' || phase === 'paused';
-    const freshVisitor = !thread && viewState.privacy === undefined && !viewState.privacyTouched && !lockedDestination(state);
     // Discovery settles on the first advertisement, which may be for another model than the one this device would
     // start with; a Contributors tap in the sheet follows to a model they serve, so a public computer can answer.
     const publicCanAnswer = freshVisitor && (modelExecutionState(selectedModel, 'network').usable
@@ -550,6 +553,8 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     // The selector names where the answer runs and with which model; availability is a separate dot and the status line.
     const lockedHost = lockedDestination(state), destination = destinationKey(state);
     const runsHere = destination === 'device' || location === 'local' || execution.usable && execution.source === 'local';
+    // Before discovery settles, a first visitor's starting model may be one nobody serves: the chip names no model yet.
+    const findingFirst = freshVisitor && !pinnedModel && phase === 'searching' && !execution.usable;
     const computerName = runsHere ? 'This device' : destination === 'desktop' ? lockedHost?.label
       : destination === 'named' ? 'Named computers' : selectedModel?.fleet ? execution.label : 'Contributors';
     const availability = execution.usable ? 'ready' : preparing || phase === 'searching' ? 'waiting' : 'unavailable';
@@ -558,12 +563,12 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     dot.dataset.availability = availability;
     dot.classList.toggle('pool-dot-open', availability === 'unavailable');
     dot.classList.toggle('pool-dot-pulse', availability === 'waiting');
-    const modelDigest = activeModel ? `${computerName} · ${modelVariantLabel(activeModel)}` : '';
-    find('[data-composer-model-name]').textContent = activeModel ? modelVariantLabel(activeModel) : '';
-    find('[data-composer-model-source]').textContent = activeModel ? computerName : '';
-    find('[data-open-model]').setAttribute('aria-label', modelDigest ? `Answer on ${modelDigest}, ${availabilityText}` : 'Answer on');
+    const modelDigest = findingFirst ? '' : activeModel ? `${computerName} · ${modelVariantLabel(activeModel)}` : '';
+    find('[data-composer-model-name]').textContent = findingFirst ? 'Finding computers…' : activeModel ? modelVariantLabel(activeModel) : '';
+    find('[data-composer-model-source]').textContent = findingFirst ? '' : activeModel ? computerName : '';
+    find('[data-open-model]').setAttribute('aria-label', modelDigest ? `Answer on ${modelDigest}, ${availabilityText}` : findingFirst ? 'Answer on, Finding computers' : 'Answer on');
     // The box names who receives the message, using the selector's own label; status stays on the dot and status line.
-    input.placeholder = !activeModel ? 'Message…' : computerName === 'Contributors' ? 'Message a contributor…' : `Message ${computerName}…`;
+    input.placeholder = !activeModel || findingFirst ? 'Message…' : computerName === 'Contributors' ? 'Message a contributor…' : `Message ${computerName}…`;
     threads.update(state.threads || [], state.selectedId, { archived, models: state.models });
     const emptyList = find('[data-thread-empty]');
     emptyList.hidden = !!find('[data-thread-list] [data-thread-item-id]');

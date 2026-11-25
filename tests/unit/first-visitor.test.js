@@ -116,7 +116,19 @@ it('tells a first visitor a public computer can answer instead of reporting a de
   expect(f.find('[data-change-model]').textContent).not.toMatch(/^Send/);
 });
 
-it('says a public computer can answer when contributors serve another model than the one this device starts with', () => {
+it('names no model before discovery settles, then the smallest one a contributor serves', () => {
+  const f = fixture({ fresh: true });
+  const [small, medium] = CANONICAL_CHAT_MODELS;
+  const chip = () => [f.find('[data-composer-model-source]').textContent, f.find('[data-composer-model-name]').textContent];
+  // Nothing can answer yet: no "This device · 2B" that may not run anywhere.
+  expect(chip()).toEqual(['', 'Finding computers…']);
+  expect(f.find('[data-open-model]').getAttribute('aria-label')).toBe('Answer on, Finding computers');
+  const served = model => ({ ...model, availability: 'ready', networkAvailability: 'ready', providerIds: ['peer'], reachableProviderIds: ['peer'] });
+  f.publish({ ...observedDiscovery, models: [served(small), served(medium)] });
+  expect(f.find('[data-active-model-select]').value).toBe(small.id);
+  expect(chip()).toEqual(['This device', small.name]);
+});
+it('starts a first visitor on a model contributors serve and says a public computer can answer', () => {
   const f = fixture({ fresh: true }), status = f.find('[data-model-status]');
   const [first, second] = CANONICAL_CHAT_MODELS;
   f.publish({ ...observedDiscovery, models: [first, second] });
@@ -124,7 +136,9 @@ it('says a public computer can answer when contributors serve another model than
   // Discovery settled on the first advertisement, for the model this device would not start with.
   f.publish({ models: [first, second].map(model => (model.selectionId || model.id) === starting ? model
     : { ...model, availability: 'ready', networkAvailability: 'ready', providerIds: ['peer'], reachableProviderIds: ['peer'] }) });
-  expect(f.find('[data-active-model-select]').value).toBe(starting);
+  // A model contributors serve and this device could download is where a first visitor starts.
+  const served = [first, second].find(model => (model.selectionId || model.id) !== starting);
+  expect(f.find('[data-active-model-select]').value).toBe(served.selectionId || served.id);
   expect(status.textContent).toBe('Not on this device. A public computer can answer.');
   expect(f.find('[data-download-local]').hidden).toBe(true);
 });

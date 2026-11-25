@@ -37,7 +37,7 @@ import { createGuestAccess } from './circles/guest-access.js';
 import { createOwnerPairingTerminal, ownerPairingDisplayName, ownerPairingPrompt } from './circles/owner-pairing-terminal.js';
 import { ownerPairingRoomId, ownerPairingRoomMarker } from '../shared/vendor/reploid/transport/index.js';
 
-export async function main({ argv, runOnce } = {}) {
+export async function main({ argv, runOnce, anyModel = false } = {}) {
   const { values } = parseArgs({ ...(argv === undefined ? {} : { args: argv }), options: participantOptions });
   if (values.help) {
     console.log(participantHelp);
@@ -206,6 +206,7 @@ export async function main({ argv, runOnce } = {}) {
     sourceRuntime, getRtcConfig,
     ...(runOnce ? { logger: { log() {}, debug() {}, info() {}, warn: console.warn, error: console.error } } : {}),
     executionMode: values['execution-mode'] || 'partition',
+    ...(runOnce && anyModel ? { requesterModels: configuredModels } : {}),
     onModelFill: (() => {
       // Piece lines at most every 5 s; every other fill event is logged.
       let last = 0;

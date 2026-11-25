@@ -42,7 +42,8 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
   signalingUrl, roomId, roomToken, nativeGpu, cacheDirectory, maxCacheBytes, maxSupplyBytes, supplyTo = undefined, sourceFilePaths = undefined, canonical = null, ordered = null, onFileChange = () => {}, onChange = () => {}, logger = console,
   owner: ownerGate = null, onCustodyCertificate = () => {}, earning = null, shaderCache = null, readiness = null, executionMode = 'partition', webWorker = null,
   generationJournalFile = null, executionAdmission = null, ownerPairing = null, guestAccess = null, onModelFill = () => {}, createWholeModel = createNativeWholeModel,
-  onPartitionReceiveTiming, localStageWitness = null, privateCustodyPrefill = null, resolvePartitionSource = null, sourceRuntime = null, rankProviders = null, getRtcConfig = null }) {
+  onPartitionReceiveTiming, localStageWitness = null, privateCustodyPrefill = null, resolvePartitionSource = null, sourceRuntime = null, rankProviders = null, getRtcConfig = null,
+  requesterModels = null }) {
   requireValue(getRtcConfig === null || typeof getRtcConfig === 'function', 'RTC configuration provider must be a function');
   if (localStageWitness) requireValue(roomId && roomId !== bootstrap.publicRoomId && roomToken && ordered && !canonical && typeof localStageWitness.wrap === 'function',
     'Token parity witnesses require a private ordered stage');
@@ -188,7 +189,8 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
           && (!admission || (!request.contact && !request.from) || await admission.verify(request.contact || request.from)) }
     })
   } });
-  if (!wholeMode && !canonical) wholeRequester = createWholeModelRequester({ mesh, models: [model] });
+  // A requester asked for no particular model watches every catalog model, so it can use whichever is served.
+  if (!wholeMode && !canonical) wholeRequester = createWholeModelRequester({ mesh, models: requesterModels ?? [model] });
   // Claims read this host's own records only; they never change admission or settlement.
   const observeEarning = () => {
     if (!earning) return;

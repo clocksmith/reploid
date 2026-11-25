@@ -4,6 +4,16 @@ import { createExecutionPolicy, compileExecutionRequirements, EXECUTION_BACKENDS
 import { createInference } from '../shared/vendor/reploid/inference/index.js';
 import { partitionAdapterIdentities } from '../shared/vendor/reploid/mesh/partitions/partition-contract.js';
 import { setTimeout as delay } from 'node:timers/promises';
+import chatModels from '../shared/config/chat-models.json' with { type: 'json' };
+
+/**
+ * The route `reploid ask` takes when no model is named: the smallest ready model, by its place in the catalog
+ * (chat-models.json lists models from smallest to largest), whole-model routes before split ones.
+ */
+export function smallestServed(eligible, catalog = chatModels) {
+  const order = id => { const index = (catalog || chatModels).findIndex(row => row.id === id); return index < 0 ? Infinity : index; };
+  return [...eligible].sort((a, b) => Number(!!a.partition) - Number(!!b.partition) || order(a.id) - order(b.id))[0] ?? null;
+}
 
 /** `reploid ask` without execution flags: any eligible provider may read the prompt, and the metadata a plaintext route discloses is allowed. */
 export const DEFAULT_ASK_EXECUTION = Object.freeze({ placement: 'network-allowed', participants: Object.freeze({ kind: 'open' }),
@@ -21,27 +31,31 @@ export function askExecution({ participants = [], confidentiality = 'executor-re
 
 /** One prompt through `reploid/inference`, the same API the browser and the SDK use. */
 export async function askMesh(participant, model, prompt, { signal, report = console.error, discoveryMs = 45000, generationMs = 120000,
-  execution = DEFAULT_ASK_EXECUTION } = {}) {
+  execution = DEFAULT_ASK_EXECUTION, anyModel = false, catalog = null, settleMs = 2000 } = {}) {
   // Unsupported guarantees (requester-only) and malformed requirements fail before discovery or any message.
   compileExecutionRequirements(structuredClone(execution));
   const discovery = AbortSignal.timeout(discoveryMs);
   const waiting = AbortSignal.any([signal, discovery]);
-  let route;
+  let route, firstReadyAt = null;
   try {
     for (;;) {
       waiting.throwIfAborted();
       const eligible = (participant.getState().models || []).filter(candidate =>
-        candidate.id === model.id && candidate.identity === model.identity && candidate.availability === 'ready'
+        (anyModel || candidate.id === model.id && candidate.identity === model.identity) && candidate.availability === 'ready'
         && !candidate.adapters?.length && (!candidate.partition || participant.executionClass === 'private-pool' || availablePartitionRoute(candidate)));
-      route = eligible.find(candidate => !candidate.partition) ?? eligible[0];
+      route = anyModel ? smallestServed(eligible, catalog) : eligible.find(candidate => !candidate.partition) ?? eligible[0];
+      // Providers advertise one by one: without a named model, a smaller one has a moment to appear after the first.
+      if (route && anyModel && (firstReadyAt ??= Date.now()) + settleMs > Date.now()) route = null;
       if (route) break;
       await delay(200, undefined, { signal: waiting });
     }
   } catch (error) {
     signal.throwIfAborted();
-    if (discovery.aborted) throw Error(`No ready provider for ${model.name} in room ${participant.roomId}. Check discovery with reploid connect.`);
+    if (discovery.aborted) throw Error(anyModel ? `No ready provider for any model in room ${participant.roomId}. Check discovery with reploid connect.`
+      : `No ready provider for ${model.name} in room ${participant.roomId}. Check discovery with reploid connect.`);
     throw error;
   }
+  if (anyModel) { model = route; report(`Asking ${route.name}, the smallest model a ready provider serves.`); }
   const threadId = randomUUID(), attemptId = randomUUID();
   const stages = route.partition && [...new Set(route.partition.route?.stages?.map(stage => stage.participantId)
     ?? [route.partition.participantA, route.partition.participantB])];

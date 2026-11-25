@@ -1,11 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import { nativeCommand } from '../../server/native-node-commands.js';
 import { DEFAULT_MODEL, nodeArguments, participantProcessArgv } from '../../server/native-node.js';
+
+const TWO_B = 'qwen-3-5-2b-q4k-ef16-af32';
 import { homePathFindings, nativePackageManifest } from '../../scripts/package-native.js';
 
 describe('reploid <model>: the short native command', () => {
   it('serves the default model when no model id is given, keeping any options', () => {
-    expect(DEFAULT_MODEL).toBe('qwen-3-5-2b-q4k-ef16-af32');
+    // The smallest catalog model, which most computers can serve.
+    expect(DEFAULT_MODEL).toBe('qwen-3-5-0-8b-q4k-ef16-af32-vf16');
     expect(nodeArguments([], { home: '/h' }).args).toEqual(nodeArguments([DEFAULT_MODEL], { home: '/h' }).args);
     const withOption = nodeArguments(['--connect-only'], { home: '/h' });
     expect(withOption.model).toBe(DEFAULT_MODEL);
@@ -14,7 +17,7 @@ describe('reploid <model>: the short native command', () => {
     expect(withOption.args).not.toContain('--contribute');
   });
   it('still selects a reissued model by the name it replaced, and finds the weights stored under that name', () => {
-    expect(nativeCommand(['serve', 'qwen-3-5-2b-q4k-ehaf16']).args[0]).toBe(DEFAULT_MODEL);
+    expect(nativeCommand(['serve', 'qwen-3-5-2b-q4k-ehaf16']).args[0]).toBe(TWO_B);
     expect(nativeCommand(['qwen-3-6-35b-a3b-text-source-q4_0-af32', '--connect-only']).args[0]).toBe('qwen-3-6-35b-a3b-text-source-q40-hq6k-af32');
     expect(() => nativeCommand(['serve', 'qwen-3-5-2b-q4k-ehaf17'])).toThrow(/Unknown model/);
     expect(nativeCommand(['serve', 'flash']).args[0]).toBe('qwen-3-8-flash-next-177b-text-source-q40-hq80-af32');
@@ -110,12 +113,14 @@ describe('reploid <model>: the short native command', () => {
 
 describe('native command vocabulary', () => {
   it('expands friendly commands and preserves legacy and private-room flags', () => {
-    expect(nativeCommand(['serve', '2b']).args).toEqual([DEFAULT_MODEL, '--contribute', '--execution-mode', 'whole-model']);
+    expect(nativeCommand(['serve', '2b']).args).toEqual([TWO_B, '--contribute', '--execution-mode', 'whole-model']);
     expect(nativeCommand(['split', '2b', '--stage=1', '--weights', '/weights', '--room', 'lab']).args)
-      .toEqual([DEFAULT_MODEL, '--contribute', '--execution-mode', 'partition', '--partition-index=1', '--model-directory', '/weights', '--room', 'lab']);
+      .toEqual([TWO_B, '--contribute', '--execution-mode', 'partition', '--partition-index=1', '--model-directory', '/weights', '--room', 'lab']);
     expect(nativeCommand(['--model', DEFAULT_MODEL, '--connect-only']).args).toEqual([DEFAULT_MODEL, '--connect-only']);
     expect(nativeCommand(['connect']).args).toEqual(['--connect-only']);
-    expect(nativeCommand(['share', '2b']).args).toEqual([DEFAULT_MODEL, '--share-files']);
+    expect(nativeCommand(['share', '2b']).args).toEqual([TWO_B, '--share-files']);
+    expect(nativeCommand(['serve']).args).toEqual(['--contribute', '--execution-mode', 'whole-model']);
+    expect(nodeArguments(nativeCommand(['serve']).args, { home: '/h' }).model).toBe(DEFAULT_MODEL);
     expect(nativeCommand(['custom', '--model-config', '/private/model.json']).args[0]).toBe('custom');
   });
   it('reports catalog limits before starting contribution', () => {

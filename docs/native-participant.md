@@ -18,9 +18,9 @@ sizes, solo RAM estimates, whole/split support and sources for missing whole-mod
 sizes describe storage. Runtime memory also depends on context and backend.
 
 ```sh
-npx reploid ask 2b "Count to five"   # send one plaintext request to an approved recipient, no model download
+npx reploid ask "Count to five"      # one plaintext request to the smallest model served now, no model download
 npx reploid doctor                   # check local prerequisites and signaling
-npx reploid serve 2b                 # contribute this GPU to the public room
+npx reploid serve                    # contribute this GPU to the public room with the 0.8B
 npx reploid connect                  # discover peers
 npx reploid share 2b --weights ./weights
 npx reploid help split               # see stage and private-room options
@@ -34,10 +34,12 @@ run `source <(npx reploid completion zsh)`. In Bash, save it first with
 sourced from the shell startup file. For Fish, run `npx reploid completion fish | source`. Completions use the catalog at generation time.
 
 `ask` searches the selected room for a ready exact model; it prefers whole-model
-serving and can use a ready split. It prints the recipient IDs to standard error
-before disclosure and the completed answer to standard output. Providers in the
-selected room can read the request. The default is 2B in the public room; use
-`--room`, `--room-token-file` and `--signaling-url` to use a private room.
+serving and can use a ready split. Without a model it takes the smallest model a
+ready provider serves and names it on standard error. It prints the recipient IDs
+to standard error before disclosure and the completed answer to standard output.
+Providers in the selected room can read the request. The room defaults to the
+public room; use `--room`, `--room-token-file` and `--signaling-url` to use a
+private room.
 `doctor` enumerates a GPU adapter and checks the installed Doppler package version
 and signaling handshake. A successful diagnostic does not establish model fit.
 
@@ -47,8 +49,8 @@ The original positional form still works:
 reploid qwen-3-5-2b-q4k-ef16-af32
 ```
 
-With no model id, `reploid` serves `qwen-3-5-2b-q4k-ef16-af32`, the model public
-peers supply; any options may follow directly (`reploid --connect-only`).
+With no model id, `reploid` serves `qwen-3-5-0-8b-q4k-ef16-af32-vf16`, the smallest
+catalog model; any options may follow directly (`reploid --connect-only`).
 
 It runs `reploid-participant --contribute --execution-mode whole-model` for that
 catalog model with state under `~/.reploid` (`weights/<model id>/` and

@@ -39,22 +39,22 @@ const commandNames = [...Object.keys(commands), 'help'];
 const help = `Reploid · share this computer with an inference network
 
   npx reploid models             See models and where to get their weights
-  npx reploid serve 2b           Serve the default 2B model on your GPU
-  npx reploid ask 2b "Hello"     Ask a provider without downloading weights
+  npx reploid serve              Serve the default 0.8B model on your GPU
+  npx reploid ask "Hello"        Ask the smallest model a provider serves now, without downloading weights
 
 ${Object.entries(commands).map(([name, description]) => '  ' + name.padEnd(13) + description).join('\n')}
 
 Run “npx reploid help split” for private-room setup or “npx reploid help options”
-for all participant flags. With no arguments, Reploid serves the default 2B
+for all participant flags. With no arguments, Reploid serves the default 0.8B
 model in the public room. Model files are stored under ~/.reploid/weights.
 Press Ctrl+C to stop.`;
 const details = {
   ask: `npx reploid ask [model] "Your question"
-Send one ordinary request. The selected provider can read the prompt. Defaults to 2B and the public room. Private room options: --room reploid-swarm-NAME --room-token-file PATH --signaling-url URL.
+Send one ordinary request. The selected provider can read the prompt. Without a model, it uses the smallest model a ready provider serves; the room defaults to the public room. Private room options: --room reploid-swarm-NAME --room-token-file PATH --signaling-url URL.
 Execution: --participant ID (repeatable) limits who may read the prompt; --allow-metadata model-id,timing,length lists the metadata the route may expose;
 --confidentiality requester-only asks that no executor can read the prompt. No backend qualifies for that yet, so it is refused before anything is sent.`,
   doctor: 'npx reploid doctor [--signaling-url URL] [--origin URL]\nCheck Node, host RAM, the installed Doppler version, GPU adapter and signaling connectivity.',
-  serve: 'npx reploid serve [model] [--weights DIRECTORY]\nServe the whole model. Missing weights can come from authorized peers or a pinned origin.',
+  serve: 'npx reploid serve [model] [--weights DIRECTORY]\nServe the whole model; without a model, the 0.8B. Missing weights can come from authorized peers or a pinned origin.',
   split: `npx reploid split <model> --stage 0|1 [--weights DIRECTORY]
 Start one contributor on each computer, using a different stage on each.
 For a private room, pass these options on both computers and the requester:
@@ -172,7 +172,9 @@ export function nativeCommand(argv) {
   }
   if (command === 'serve' && model && !values['model-config'] && !resolvePinnedOrigin(model)) return { args, peerFillOnly: true };
   if (prompt === undefined) return { args };
+  // Without a model, ask uses whichever model a ready provider serves (askMesh), not the serving default.
+  const anyModel = command === 'ask' && name === undefined && !values['model-config'];
   const execution = values.participant || values.confidentiality || values['allow-metadata'] !== undefined
     ? askExecution({ participants: values.participant ?? [], confidentiality: values.confidentiality, allowMetadata: values['allow-metadata'] }) : undefined;
-  return execution ? { args, prompt, execution } : { args, prompt };
+  return { args, prompt, ...(execution ? { execution } : {}), ...(anyModel ? { anyModel } : {}) };
 }

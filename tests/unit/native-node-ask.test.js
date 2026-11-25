@@ -1,7 +1,9 @@
 // @vitest-environment node
 import { afterEach, expect, it, vi } from 'vitest';
 import { nativeCommand } from '../../server/native-node-commands.js';
-import { askMesh, askExecution } from '../../server/native-node-ask.js';
+import { askMesh, askExecution, smallestServed } from '../../server/native-node-ask.js';
+import { readFileSync } from 'node:fs';
+import chatModels from '../../shared/config/chat-models.json' with { type: 'json' };
 import { createWholeModelRequester } from '../../server/whole-model-requester.js';
 import { bindExecutionRoute, plaintextExecutionRoute, requestExecutionPolicy } from '../../packages/reploid/src/chat/execution-policy.js';
 import { GENERATION_CONTRACT } from '../../shared/config/doppler-generation-contract.js';
@@ -10,8 +12,9 @@ const approvals = vi.hoisted(() => []);
 vi.mock('../../apps/poolday/config/partition-releases.json', () => ({ default: { approvals } }));
 afterEach(() => { approvals.length = 0; });
 
-it('defaults to 2B, accepts a quoted prompt and keeps compute flags out of ask', () => {
-  expect(nativeCommand(['ask', 'two words'])).toEqual({ args: ['--connect-only'], prompt: 'two words' });
+it('asks any served model by default, accepts a quoted prompt and keeps compute flags out of ask', () => {
+  expect(nativeCommand(['ask', 'two words'])).toEqual({ args: ['--connect-only'], prompt: 'two words', anyModel: true });
+  expect(nativeCommand(['ask', '2b', 'two words'])).not.toHaveProperty('anyModel');
   expect(nativeCommand(['ask', '--model', '2b', '--room', 'my-team', '--', '--help'])).toMatchObject({
     args: ['qwen-3-5-2b-q4k-ef16-af32', '--connect-only', '--room', 'my-team'], prompt: '--help'
   });
@@ -82,6 +85,55 @@ it('selects the exact whole route ahead of a split and binds disclosure to the r
   };
   expect(await askMesh(participant, model, 'query', { signal: new AbortController().signal, report })).toBe('answer');
   expect(report).toHaveBeenCalledTimes(1);
+});
+
+it('without a model, asks the smallest model a ready provider serves and says which', async () => {
+  const catalog = [{ id: 'tiny' }, { id: 'small' }, { id: 'large' }];
+  const at = (id, letter, extra = {}) => ({ id, identity: 'sha256:' + letter.repeat(64), name: id.toUpperCase(), availability: 'ready', ...extra });
+  const large = at('large', 'c'), small = at('small', 'b');
+  const report = vi.fn();
+  const participant = { roomId: 'test-room', executionClass: 'public-pool',
+    // The tiny model is advertised but not ready, and a split of the tiny model is listed: neither is taken.
+    getState: () => ({ models: [large, at('tiny', 'a', { availability: 'unavailable' }), at('tiny', 'a', { partition: {} }), small] }),
+    async generate(request, controls) {
+      expect(request.model).toBe(small);
+      const privacyBinding = await bindExecutionRoute(request, plaintextExecutionRoute(request, { recipients: ['peer-id'] }));
+      expect(await controls.requestApproval({ modelId: small.id, modelIdentity: small.identity, recipients: ['peer-id'], threadId: request.threadId,
+        attemptId: request.attemptId, input: { messages: request.messages }, privacyBinding })).toBe(true);
+      return { modelId: small.id, modelIdentity: small.identity, content: 'answer', execution: { stopReason: 'eos-token' } };
+    } };
+  // The model the participant was started with (the serving default) is not what an unnamed ask is bound to.
+  expect(await askMesh(participant, at('tiny', 'a'), 'query', { signal: new AbortController().signal, report, anyModel: true, catalog, settleMs: 0 })).toBe('answer');
+  expect(report.mock.calls[0][0]).toBe('Asking SMALL, the smallest model a ready provider serves.');
+});
+
+it('lists catalog models from smallest to largest, which is the order smallestServed and the page default rely on', () => {
+  const bytes = model => {
+    const file = model.source.files.find(row => row.role === 'model-manifest');
+    return JSON.parse(readFileSync(new URL(`../../shared${file.url}`, import.meta.url))).totalSize;
+  };
+  const sizes = chatModels.map(bytes);
+  expect(sizes).toEqual([...sizes].sort((a, b) => a - b));
+  expect(smallestServed([{ id: chatModels[2].id }, { id: chatModels[1].id }]).id).toBe(chatModels[1].id);
+});
+
+it('without a model, waits a moment after the first advertisement so a smaller model can appear', async () => {
+  const catalog = [{ id: 'small' }, { id: 'large' }];
+  const at = (id, letter) => ({ id, identity: 'sha256:' + letter.repeat(64), name: id, availability: 'ready' });
+  let models = [at('large', 'c')], chosen = null;
+  setTimeout(() => { models = [at('large', 'c'), at('small', 'b')]; }, 300);
+  const participant = { roomId: 'room', executionClass: 'public-pool', getState: () => ({ models }),
+    async generate(request) { chosen = request.model.id; throw Error('stop here'); } };
+  await expect(askMesh(participant, at('small', 'b'), 'q', { signal: new AbortController().signal, report: vi.fn(), anyModel: true, catalog, settleMs: 800 }))
+    .rejects.toThrow();
+  expect(chosen).toBe('small');
+});
+
+it('without a model and no ready provider, says so and sends nothing', async () => {
+  const generate = vi.fn();
+  await expect(askMesh({ roomId: 'room', getState: () => ({ models: [] }), generate }, { name: 'Tiny' }, 'q',
+    { signal: new AbortController().signal, report: vi.fn(), anyModel: true, discoveryMs: 50 })).rejects.toThrow('No ready provider for any model in room room');
+  expect(generate).not.toHaveBeenCalled();
 });
 
 it('runs normal ask through the whole-model requester with current explicit policy', async () => {

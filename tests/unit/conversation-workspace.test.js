@@ -193,32 +193,34 @@ describe('Conversation workspace', () => {
         readiness: 'ready', hasInference: true, availableSlots: 1, identityProtocol: 1, admissionProtocol: 2 }));
       session.setCachedModels([]);
     };
-    publish([small]); expect(find('[data-active-model-select]').value).toBe(small.id);
+    publish([medium]); expect(find('[data-active-model-select]').value).toBe(medium.id);
     expect(find('[data-composer-send]').disabled).toBe(false);
-    expect(find('[data-model-digest]').textContent).toContain(small.name);
+    expect(find('[data-model-digest]').textContent).toContain(medium.name);
     const draft = find('[data-composer-input]');
     draft.value = 'Keep the selected destination'; draft.dispatchEvent(new Event('input'));
-    publish([small, medium]); expect(find('[data-active-model-select]').value).toBe(small.id);
-    draft.value = ''; draft.dispatchEvent(new Event('input'));
     publish([small, medium]); expect(find('[data-active-model-select]').value).toBe(medium.id);
-    publish([small, medium, large]); expect(find('[data-active-model-select]').value).toBe(large.id);
-    const select = find('[data-active-model-select]'); select.value = small.id;
+    draft.value = ''; draft.dispatchEvent(new Event('input'));
+    // The automatic default is the smallest model a contributor serves.
+    publish([small, medium]); expect(find('[data-active-model-select]').value).toBe(small.id);
+    publish([medium, large]); expect(find('[data-active-model-select]').value).toBe(medium.id);
+    publish([small, medium, large]); expect(find('[data-active-model-select]').value).toBe(small.id);
+    const select = find('[data-active-model-select]'); select.value = large.id;
     select.dispatchEvent(new Event('change', { bubbles: true }));
-    publish([small, medium]); expect(select.value).toBe(small.id);
+    publish([small, large]); expect(select.value).toBe(large.id);
     // New thread keeps the person's choice while a computer still serves it, and new capacity does not replace it.
     find('[data-new-thread]').click();
     await new Promise(resolve => setTimeout(resolve, 0));
-    expect(select.value).toBe(small.id);
-    publish([small, medium, large]); expect(select.value).toBe(small.id);
+    expect(select.value).toBe(large.id);
+    publish([small, medium, large]); expect(select.value).toBe(large.id);
     // Nothing serves it now, but computers are still being looked for: a new thread keeps it until that wait ends.
-    publish([medium, large]);
+    publish([small, medium]);
     find('[data-new-thread]').click();
     await new Promise(resolve => setTimeout(resolve, 0));
-    expect(select.value).toBe(small.id);
-    session.createThread({ model: large });
-    publish([small, medium]);
-    expect(session.getState().activeThread.model.id).toBe(large.id);
-    expect(find('[data-model-digest]').textContent).toContain(large.name);
+    expect(select.value).toBe(large.id);
+    session.createThread({ model: medium });
+    publish([small]);
+    expect(session.getState().activeThread.model.id).toBe(medium.id);
+    expect(find('[data-model-digest]').textContent).toContain(medium.name);
   });
 
   it('keeps the chosen model and computer for each new thread and the next visit while a computer serves it', async () => {
@@ -238,20 +240,20 @@ describe('Conversation workspace', () => {
     dispose = bind();
     serve([small, medium]);
     const select = () => find('[data-active-model-select]').value, source = () => find('[data-composer-model-source]').textContent;
-    expect(select()).toBe(medium.id);
-    await chooseShared(small.id);
-    expect(select()).toBe(small.id); expect(source()).toBe('Contributors');
-    expect(JSON.parse(saved.get('reploid.answer-choice.v1'))).toEqual({ selectionId: small.id, identity: small.identity, route: 'contributors' });
+    expect(select()).toBe(small.id);
+    await chooseShared(medium.id);
+    expect(select()).toBe(medium.id); expect(source()).toBe('Contributors');
+    expect(JSON.parse(saved.get('reploid.answer-choice.v1'))).toEqual({ selectionId: medium.id, identity: medium.identity, route: 'contributors' });
     // An answered thread, then New thread: the same model and computer, not the default.
-    session.createThread({ model: small, privacy: openPolicy, executionLocation: 'network' });
+    session.createThread({ model: medium, privacy: openPolicy, executionLocation: 'network' });
     await vi.waitFor(() => expect(session.getState().activeThread).not.toBeNull());
     find('[data-new-thread]').click();
     await vi.waitFor(() => expect(session.getState().selectedId).toBeNull());
-    expect(select()).toBe(small.id); expect(source()).toBe('Contributors');
+    expect(select()).toBe(medium.id); expect(source()).toBe('Contributors');
     expect(find('[data-composer-send]').disabled).toBe(false);
     // The next visit starts there too, without asking again where to run.
     dispose(); dispose = bind();
-    expect(select()).toBe(small.id); expect(source()).toBe('Contributors');
+    expect(select()).toBe(medium.id); expect(source()).toBe('Contributors');
     expect(find('[data-composer-send]').disabled).toBe(false);
     // A later visit where another computer advertises first: discovery settles on that advertisement, but the
     // remembered model keeps its place and the composer still reads as finding computers until its own arrives.
@@ -263,22 +265,22 @@ describe('Conversation workspace', () => {
           getState: () => ({ introductionState: 'connected', consumer: { connectionState: 'connected', peers } }) } });
         serve(list); dispose = bind();
       };
-      visit([medium]);
+      visit([small]);
       expect(session.getState().discoveryPhase).toBe('observed');
-      expect(select()).toBe(small.id);
+      expect(select()).toBe(medium.id);
       expect(find('[data-model-status]').textContent).toBe('Finding computers…');
       expectSendDoesNotDispatch();
-      serve([small, medium]);
-      expect(select()).toBe(small.id); expect(find('[data-composer-send]').disabled).toBe(false);
+      serve([medium, small]);
+      expect(select()).toBe(medium.id); expect(find('[data-composer-send]').disabled).toBe(false);
       // A visit where it never arrives: after the bounded wait the default answers instead of a choice that cannot.
-      visit([medium]);
-      expect(select()).toBe(small.id);
-      vi.advanceTimersByTime(8000);
+      visit([small]);
       expect(select()).toBe(medium.id);
-      // The choice stays remembered for a visit where it is served again.
-      expect(JSON.parse(saved.get('reploid.answer-choice.v1')).selectionId).toBe(small.id);
-      visit([small, medium]);
+      vi.advanceTimersByTime(8000);
       expect(select()).toBe(small.id);
+      // The choice stays remembered for a visit where it is served again.
+      expect(JSON.parse(saved.get('reploid.answer-choice.v1')).selectionId).toBe(medium.id);
+      visit([medium, small]);
+      expect(select()).toBe(medium.id);
     } finally { vi.useRealTimers(); }
   });
 

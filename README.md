@@ -27,9 +27,14 @@ Inspect available models, ask a ready peer directly without downloading weights,
 
 ```sh
 npx reploid models
-npx reploid ask 2b "Explain speculative decoding in two sentences."
-npx reploid serve 2b --model-directory /path/to/qwen-3-5-2b-q4k-ef16-af32
+npx reploid ask "Explain speculative decoding in two sentences."
+npx reploid ask 35b "The same, from a named model."
+npx reploid serve
 ```
+
+Without a model, `ask` uses the smallest model a ready provider serves and says which, and `serve` serves
+the 0.8B, the smallest catalog model. Name a model (`npx reploid serve 2b --model-directory /path/to/weights`)
+for any other.
 
 ### Local workspace and HTTP API
 
