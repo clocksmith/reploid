@@ -6,7 +6,7 @@
  */
 import { createSigningIdentity } from '../../packages/reploid/src/artifacts/identity.js';
 import {
-  ACKNOWLEDGMENT_OVERDUE, createAttemptEvidenceSigner, openOutputAcknowledgments, openStageReceipts
+  ACKNOWLEDGMENT_OVERDUE, MAX_UNACKNOWLEDGED_OUTPUTS, createAttemptEvidenceSigner, openOutputAcknowledgments, openStageReceipts
 } from '../../packages/reploid/src/mesh/partitions/partition-attempt-evidence.js';
 import { acceptSettlementTerms, signSettlementStop, signSettlementTerms } from '../../server/fleet/settlement-terms.js';
 import { UNFINISHED_ANSWER_TERMS } from '../../server/fleet/credit-shares.js';
@@ -46,11 +46,12 @@ const route = (parties, tag) => ({
  *  requesterStopAfter: the requester signs a stop after this many outputs and the stages close
  *  stagesFailAfter: the stages close with a failed receipt after this many outputs, the requester having acknowledged all
  *  maxOutputTokens: the ceiling in the requester's signed terms
+ *  maxUnacknowledgedOutputs: K in the signed terms and the stages' acceptances (the stages' tallies enforce the receiver policy's K)
  * Returns the records each party holds, the attempt's terms, and what was actually delivered.
  */
 export async function runAttempt(parties, { tag = 'r1', outputs = ['The', ' answer', ' is', ' 26', '.'], weights = [1, 3],
   stopAckingAfter = Infinity, vanishStage = null, vanishAfterStep = Infinity, lateAckDelayMs = null, clock = createClock(),
-  requesterStopAfter = null, stagesFailAfter = null, maxOutputTokens = 64,
+  requesterStopAfter = null, stagesFailAfter = null, maxOutputTokens = 64, maxUnacknowledgedOutputs = MAX_UNACKNOWLEDGED_OUTPUTS,
   unfinishedTerms = UNFINISHED_ANSWER_TERMS, policy = POLICY } = {}) {
   const r = route(parties, tag);
   const identity = { schema: 'reploid.partition-attempt/v2', threadId: `thread-${tag}`, attemptId: `attempt-${tag}`,
@@ -60,8 +61,9 @@ export async function runAttempt(parties, { tag = 'r1', outputs = ['The', ' answ
   const stageSigners = parties.stages.map(stage => createAttemptEvidenceSigner({ identity: stage, now }));
   const notBefore = now(), deadline = notBefore + 30000;
   const terms = await signSettlementTerms({ signer: requesterSigner, identity, reservationId, policy, maxOutputTokens,
-    weights, notBefore, deadline, unfinishedTerms });
-  const acceptances = await Promise.all(stageSigners.map((signer, index) => acceptSettlementTerms({ signer, terms, partitionIndex: index })));
+    weights, notBefore, deadline, unfinishedTerms, maxUnacknowledgedOutputs });
+  const acceptances = await Promise.all(stageSigners.map((signer, index) => acceptSettlementTerms({ signer, terms, partitionIndex: index,
+    maxUnacknowledgedOutputs })));
   const acks = await openOutputAcknowledgments({ signer: requesterSigner, identity, reservationId });
   const tallies = await Promise.all(stageSigners.map((signer, index) => openStageReceipts({ signer, identity, partitionIndex: index, charge: acks.charge })));
   const held = { requester: [terms, acks.charge], stages: parties.stages.map((_, index) => [terms, acceptances[index], acks.charge]) };

@@ -1,6 +1,6 @@
 {
   "schema": "reploid.settlement-attack-matrix/v1",
-  "generatedAt": "2026-11-25T02:38:24.255Z",
+  "generatedAt": "2026-11-25T06:20:58.850Z",
   "policy": {
     "schema": "reploid.service-credit-policy/v1",
     "unit": "noncash-service-credit",
@@ -138,9 +138,29 @@
     },
     {
       "kind": "participant",
+      "case": "P1b requester withholds the last acknowledgment of a finished 40-output answer",
+      "replay": {
+        "status": "settled",
+        "delivered": 40,
+        "paid": 39,
+        "debit": 117,
+        "unpaidOutputs": 1
+      },
+      "countersign": {
+        "status": "requester never countersigns",
+        "paid": 0
+      }
+    },
+    {
+      "kind": "participant",
       "case": "P2 requester signs two sets of terms",
       "replay": {
-        "status": "conflict"
+        "status": "settled",
+        "debit": 15,
+        "recorded": [
+          "terms-equivocation"
+        ],
+        "note": "both stages accepted the first set, so it settles on that set and records the equivocation"
       },
       "countersign": {
         "status": "not modelled"

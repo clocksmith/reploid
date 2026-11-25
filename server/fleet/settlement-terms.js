@@ -10,7 +10,7 @@
  * an enrollment table. Mapping participant IDs to people or accounts stays outside this module.
  */
 import { canonicalPartitionJson, canonicalRouteAttemptBinding } from '../../shared/vendor/reploid/mesh/partitions/partition-contract.js';
-import { attemptRouteHash } from '../../shared/vendor/reploid/mesh/partitions/partition-attempt-evidence.js';
+import { MAX_UNACKNOWLEDGED_OUTPUTS, attemptRouteHash } from '../../shared/vendor/reploid/mesh/partitions/partition-attempt-evidence.js';
 import { sha256Hex as digestText } from '../../shared/vendor/reploid/artifacts/signatures.js';
 import { normalizeParticipantPublicKey, participantIdFor, verifyParticipantSignature } from '../../shared/vendor/reploid/artifacts/participant-proofs.js';
 import { canonicalize } from '../../shared/vendor/reploid/artifacts/canonical-json.js';
@@ -21,7 +21,8 @@ export const SETTLEMENT_ACCEPTANCE_SCHEMA = 'reploid.settlement-acceptance/v1';
 export const SETTLEMENT_STOP_SCHEMA = 'reploid.settlement-stop/v1';
 
 const TERMS_KEYS = Object.freeze(['schema', 'reservationId', 'attemptId', 'routeHash', 'requesterId', 'policyDigest', 'unit',
-  'creditsPerOutputToken', 'maxOutputTokens', 'maximum', 'shares', 'unfinishedTerms', 'notBefore', 'deadline', 'releaseWindowMs', 'signedAt']);
+  'creditsPerOutputToken', 'maxOutputTokens', 'maximum', 'shares', 'unfinishedTerms', 'maxUnacknowledgedOutputs', 'notBefore', 'deadline',
+  'releaseWindowMs', 'signedAt']);
 const ACCEPTANCE_KEYS = Object.freeze(['schema', 'termsDigest', 'reservationId', 'attemptId', 'participantId', 'partitionIndex', 'signedAt']);
 const STOP_KEYS = Object.freeze(['schema', 'reservationId', 'attemptId', 'requesterId', 'acknowledged', 'signedAt']);
 const DIGEST = /^sha256:[a-f0-9]{64}$/;
@@ -45,6 +46,7 @@ function termsProblem(body) {
     || !body.shares.every((row, index) => exact(row, ['partitionIndex', 'participantId', 'weight']) && row.partitionIndex === index
       && text(row.participantId) && positive(row.weight))
     || !(body.unfinishedTerms === null || text(body.unfinishedTerms, 128))
+    || !Number.isSafeInteger(body.maxUnacknowledgedOutputs) || body.maxUnacknowledgedOutputs < 0
     || !time(body.notBefore) || !time(body.deadline) || Date.parse(body.deadline) <= Date.parse(body.notBefore)
     || !positive(body.releaseWindowMs) || !time(body.signedAt)) return 'terms_malformed';
   return null;
@@ -67,7 +69,9 @@ async function verifySelfCertified(record, { domain, problemOf, signerOf }) {
   const problem = problemOf(body);
   if (problem) return { ok: false, problem };
   const key = normalizeParticipantPublicKey(carried);
-  if (!key || typeof signature !== 'string') return { ok: false, problem: problemOf(null) };
+  // Exactly the key's coordinates, as stage receipts and acknowledgments require: the key is not signed, so a
+  // relay must not be able to add members that one verifier ignores and another refuses.
+  if (!key || !exact(carried, Object.keys(key)) || typeof signature !== 'string') return { ok: false, problem: problemOf(null) };
   if (await participantIdFor(key) !== signerOf(body)) return { ok: false, problem: 'signer_key_mismatch' };
   if (!await verifyParticipantSignature(key, domain, body, signature)) return { ok: false, problem: 'signature_invalid' };
   return { ok: true, body };
@@ -92,9 +96,11 @@ export async function signSettlementStop({ signer, terms, acknowledged, now = si
 /**
  * The requester's terms for one attempt, signed with its own identity (`signer` from createAttemptEvidenceSigner).
  * `weights` gives each stage's share in stage order; the policy supplies price, unit and the release window.
+ * `maxUnacknowledgedOutputs` is K, the acknowledgment bound the stages enforce (MAX_UNACKNOWLEDGED_OUTPUTS); it is
+ * signed so that a verifier reads it from the terms rather than assuming a constant.
  */
 export async function signSettlementTerms({ signer, identity, reservationId, policy, maxOutputTokens, weights, notBefore, deadline,
-  unfinishedTerms = null, now = signer?.now ?? Date.now }) {
+  unfinishedTerms = null, maxUnacknowledgedOutputs, now = signer?.now ?? Date.now }) {
   const binding = canonicalRouteAttemptBinding(identity);
   if (signer?.participantId !== binding.requesterId) throw Error('Settlement terms need the requester\'s own signing identity');
   const stages = binding.route.stages;
@@ -105,7 +111,7 @@ export async function signSettlementTerms({ signer, identity, reservationId, pol
     requesterId: binding.requesterId, policyDigest: await policyDigest(policy), unit: policy.unit,
     creditsPerOutputToken: policy.creditsPerOutputToken, maxOutputTokens, maximum: maxOutputTokens * policy.creditsPerOutputToken,
     shares: stages.map((stage, index) => ({ partitionIndex: index, participantId: stage.participantId, weight: weights[index] })),
-    unfinishedTerms, notBefore: new Date(notBefore).toISOString(), deadline: new Date(deadline).toISOString(),
+    unfinishedTerms, maxUnacknowledgedOutputs, notBefore: new Date(notBefore).toISOString(), deadline: new Date(deadline).toISOString(),
     releaseWindowMs, signedAt: new Date(now()).toISOString()
   };
   const problem = termsProblem(body);
@@ -113,10 +119,15 @@ export async function signSettlementTerms({ signer, identity, reservationId, pol
   return signer.sign(SETTLEMENT_TERMS_SCHEMA, body);
 }
 
-/** A stage's signed acceptance of exactly these terms, at its own stage index, before it reserves. */
-export async function acceptSettlementTerms({ signer, terms, partitionIndex, now = signer?.now ?? Date.now }) {
+/**
+ * A stage's signed acceptance of exactly these terms, at its own stage index, before it reserves. A stage accepts
+ * only the acknowledgment bound it enforces (`maxUnacknowledgedOutputs`, by default its receiver policy's K).
+ */
+export async function acceptSettlementTerms({ signer, terms, partitionIndex, maxUnacknowledgedOutputs = MAX_UNACKNOWLEDGED_OUTPUTS,
+  now = signer?.now ?? Date.now }) {
   const checked = await verifySettlementTerms(terms);
   if (!checked.ok) throw Error(`Settlement terms do not verify: ${checked.problem}`);
+  if (checked.body.maxUnacknowledgedOutputs !== maxUnacknowledgedOutputs) throw Error('The terms name another acknowledgment bound than this stage enforces');
   const share = checked.body.shares[partitionIndex];
   if (!share || share.participantId !== signer?.participantId) throw Error('A stage accepts only its own share');
   return signer.sign(SETTLEMENT_ACCEPTANCE_SCHEMA, {

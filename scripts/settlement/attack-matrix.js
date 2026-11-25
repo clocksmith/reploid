@@ -171,14 +171,25 @@ async function main() {
     countersign: { status: 'requester never countersigns', delivered: 40, paid: 0, unpaidOutputs: 40, note: 'nothing in a post-hoc log stops delivery' },
     operatorLog: { status: 'operator decides', note: 'trusted operator' } });
   }
+  // P1b the same requester receives a finished 40-output answer and withholds only its last acknowledgment.
+  {
+    const outputs = Array.from({ length: 40 }, (_, i) => ` t${i}`);
+    const last = await runAttempt(parties, { tag: 'last', outputs, stopAckingAfter: 39 });
+    const t = await truthOf(last.all(), last.closesAt + 1);
+    rows.push({ kind: 'participant', case: 'P1b requester withholds the last acknowledgment of a finished 40-output answer',
+      replay: { status: t.r.status, delivered: last.delivered, paid: t.r.outputs, debit: t.r.debit, unpaidOutputs: last.delivered - t.r.outputs },
+      countersign: { status: 'requester never countersigns', paid: 0 } });
+  }
   // P2 requester equivocates: signs a second set of terms for the same reservation.
   {
     const a = await runAttempt(parties, { tag: 'eq' });
     const signer = createAttemptEvidenceSigner({ identity: parties.requester, now: () => Date.parse(a.terms.notBefore) });
     const other = await signSettlementTerms({ signer, identity: a.identity, reservationId: a.reservationId, policy: POLICY, maxOutputTokens: 64,
-      weights: [3, 1], notBefore: Date.parse(a.terms.notBefore), deadline: Date.parse(a.terms.deadline) });
+      weights: [3, 1], maxUnacknowledgedOutputs: MAX_UNACKNOWLEDGED_OUTPUTS, notBefore: Date.parse(a.terms.notBefore), deadline: Date.parse(a.terms.deadline) });
     const t = await truthOf([...a.all(), other], a.closesAt + 1);
-    rows.push({ kind: 'participant', case: 'P2 requester signs two sets of terms', replay: { status: t.r.status }, countersign: { status: 'not modelled' } });
+    rows.push({ kind: 'participant', case: 'P2 requester signs two sets of terms', replay: { status: t.r.status, debit: t.r.debit,
+      recorded: t.r.conflicts.map(row => row.kind), note: 'both stages accepted the first set, so it settles on that set and records the equivocation' },
+    countersign: { status: 'not modelled' } });
   }
   // P3 final stage equivocates: a second receipt at the same sequence with a different output chain.
   {

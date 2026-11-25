@@ -25,7 +25,7 @@ import { createFleetRequester } from '../../server/fleet/requester.js';
 import { createFleetExecutionAdmission } from '../../server/fleet/execution-admission.js';
 import { openStageOwner } from '../../server/fleet/stage-owner.js';
 import { openStageTokenWitness } from '../../server/fleet/stage-token-witness.js';
-import { createAttemptEvidenceSigner } from '../../packages/reploid/src/mesh/partitions/partition-attempt-evidence.js';
+import { MAX_UNACKNOWLEDGED_OUTPUTS, createAttemptEvidenceSigner } from '../../packages/reploid/src/mesh/partitions/partition-attempt-evidence.js';
 import { acceptSettlementTerms, signSettlementStop, signSettlementTerms } from '../../server/fleet/settlement-terms.js';
 import { UNFINISHED_ANSWER_TERMS } from '../../server/fleet/credit-shares.js';
 import { STAGE1_MODEL_ID } from './expectations.js';
@@ -157,7 +157,7 @@ export async function openStage1Participant({ stageIndex, identity, config, nati
     return signSettlementTerms({ signer, reservationId: `service:${identity.peerId}:${attemptId}`, policy,
       identity: { schema: 'reploid.partition-attempt/v2', threadId, attemptId, requesterId: identity.peerId, placementGeneration: 0, route: preview.route },
       maxOutputTokens: preview.serviceCreditQuote?.maxOutputTokens, weights, notBefore, deadline: notBefore + policy.maxRequestMs,
-      unfinishedTerms: UNFINISHED_ANSWER_TERMS });
+      unfinishedTerms: UNFINISHED_ANSWER_TERMS, maxUnacknowledgedOutputs: MAX_UNACKNOWLEDGED_OUTPUTS });
   }
 
   /** `keepPartial` returns a failed answer with the text received so far instead of throwing. */

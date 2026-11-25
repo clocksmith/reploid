@@ -1,12 +1,23 @@
+// @vitest-environment node
 // Independent settlement replay over real signatures: every outcome class, retries, late and forged records.
 // Proves the replay's arithmetic and refusals over records the production signers produce; it does not prove
 // that any computation was correct or that a physical run produced these records.
 import { describe, expect, it } from 'vitest';
+import { mkdtemp, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
 
-import { createAttemptEvidenceSigner, STAGE_RECEIPT_SCHEMA, OUTPUT_ACKNOWLEDGMENT_SCHEMA, MAX_UNACKNOWLEDGED_OUTPUTS } from '../../packages/reploid/src/mesh/partitions/partition-attempt-evidence.js';
+import { createSigningIdentity } from '../../packages/reploid/src/artifacts/identity.js';
+import {
+  createAttemptEvidenceSigner, STAGE_RECEIPT_SCHEMA, OUTPUT_ACKNOWLEDGMENT_SCHEMA, MAX_UNACKNOWLEDGED_OUTPUTS, verifyOutputAcknowledgment
+} from '../../packages/reploid/src/mesh/partitions/partition-attempt-evidence.js';
+import { openFleetCredits } from '../../server/fleet/credits.js';
 import { replaySettlement } from '../../server/fleet/settlement-replay.js';
-import { signSettlementTerms, termsDigest, verifySettlementTerms } from '../../server/fleet/settlement-terms.js';
-import { POLICY, createClock, createParties, runAttempt } from '../../scripts/settlement/scenario.js';
+import {
+  SETTLEMENT_STOP_SCHEMA, SETTLEMENT_TERMS_SCHEMA, acceptSettlementTerms, signSettlementTerms, termsDigest, verifySettlementAcceptance,
+  verifySettlementStop, verifySettlementTerms
+} from '../../server/fleet/settlement-terms.js';
+import { POLICY, T0, createClock, createParties, runAttempt } from '../../scripts/settlement/scenario.js';
 
 const replay = (records, at) => replaySettlement({ records, policies: [POLICY], at });
 const bodyOf = record => { const { publicJwk: _k, signature: _s, ...rest } = record; return rest; };
@@ -51,15 +62,102 @@ describe('settlement replay', () => {
     expect(out.balances[parties.requester.peerId]).toBe(-15);
   });
 
-  it('reports a requester that signed two sets of terms as a conflict', async () => {
+  it('settles on the terms every stage accepted when the requester signs a second set, and records the equivocation', async () => {
     const parties = await createParties(2);
     const a = await runAttempt(parties);
     const signer = createAttemptEvidenceSigner({ identity: parties.requester, now: () => Date.parse(a.terms.notBefore) });
     const other = await signSettlementTerms({ signer, identity: a.identity, reservationId: a.reservationId, policy: POLICY,
-      maxOutputTokens: 64, weights: [3, 1], notBefore: Date.parse(a.terms.notBefore), deadline: Date.parse(a.terms.deadline) });
+      maxOutputTokens: 64, weights: [3, 1], maxUnacknowledgedOutputs: MAX_UNACKNOWLEDGED_OUTPUTS,
+      notBefore: Date.parse(a.terms.notBefore), deadline: Date.parse(a.terms.deadline) });
     const r = (await replay([...a.all(), other], a.closesAt + 1)).reservations[0];
-    expect(r.status).toBe('conflict');
-    expect(r.debit).toBeNull();
+    expect(r).toMatchObject({ status: 'settled', debit: 15 });
+    expect(r.credits.map(c => c.amount)).toEqual([3, 12]);
+    expect(r.conflicts).toEqual([expect.objectContaining({ signer: parties.requester.peerId, kind: 'terms-equivocation', blocking: false,
+      settledOn: await termsDigest(bodyOf(a.terms)) })]);
+    // Only when the stages' acceptances name different sets is there nothing to settle on.
+    const stageSigner = createAttemptEvidenceSigner({ identity: parties.stages[1], now: () => Date.parse(a.terms.notBefore) });
+    const split = a.all().filter(row => !(row.schema === 'reploid.settlement-acceptance/v1' && row.partitionIndex === 1));
+    split.push(await acceptSettlementTerms({ signer: stageSigner, terms: other, partitionIndex: 1 }));
+    const c = (await replay([...split, other], a.closesAt + 1)).reservations[0];
+    expect(c).toMatchObject({ status: 'conflict', debit: null });
+    expect(c.conflicts.some(row => row.kind === 'terms-equivocation' && row.blocking)).toBe(true);
+  });
+
+  it('lists terms signed by anyone but the route\'s requester as foreign, never as a conflict', async () => {
+    const parties = await createParties(2), stranger = await createSigningIdentity({ algorithm: 'Ed25519' });
+    const a = await runAttempt(parties);
+    const signer = createAttemptEvidenceSigner({ identity: stranger, now: () => Date.parse(a.terms.notBefore) });
+    // Terms for the stranger's own binding of the same route: its route hash differs, because the hash binds the requester.
+    const own = await signSettlementTerms({ signer, identity: { ...a.identity, requesterId: stranger.peerId }, reservationId: a.reservationId,
+      policy: POLICY, maxOutputTokens: 64, weights: [3, 1], maxUnacknowledgedOutputs: MAX_UNACKNOWLEDGED_OUTPUTS,
+      notBefore: Date.parse(a.terms.notBefore), deadline: Date.parse(a.terms.deadline) });
+    // Terms copying the requester's route hash under the stranger's own requester ID.
+    const copied = await signer.sign(SETTLEMENT_TERMS_SCHEMA, { ...bodyOf(a.terms), requesterId: stranger.peerId, shares: [...a.terms.shares].reverse()
+      .map((row, index) => ({ ...row, partitionIndex: index })) });
+    for (const records of [[own, ...a.all()], [copied, ...a.all()], [own, copied, ...a.all()]]) {
+      const out = await replay(records, a.closesAt + 1), r = out.reservations[0];
+      expect(r).toMatchObject({ status: 'settled', debit: 15, requesterId: parties.requester.peerId });
+      expect(r.foreign.length).toBe(records.length - a.all().length);
+      expect(r.foreign.every(row => row.signer === stranger.peerId)).toBe(true);
+      expect(out.balances[parties.requester.peerId]).toBe(-15);
+      expect(out.balances[stranger.peerId]).toBeUndefined();
+    }
+  });
+
+  it('lists terms and acceptances signed after the deadline as late and ignores them', async () => {
+    const parties = await createParties(2);
+    const a = await runAttempt(parties);
+    const afterDeadline = () => Date.parse(a.terms.deadline) + POLICY.maxClockSkewMs + 5000;
+    const lateRequester = createAttemptEvidenceSigner({ identity: parties.requester, now: afterDeadline });
+    const lateTerms = await signSettlementTerms({ signer: lateRequester, identity: a.identity, reservationId: a.reservationId, policy: POLICY,
+      maxOutputTokens: 64, weights: [1, 3], maxUnacknowledgedOutputs: MAX_UNACKNOWLEDGED_OUTPUTS,
+      notBefore: Date.parse(a.terms.notBefore), deadline: Date.parse(a.terms.deadline) });
+    const lateAcceptances = await Promise.all(parties.stages.map((stage, index) => acceptSettlementTerms({
+      signer: createAttemptEvidenceSigner({ identity: stage, now: afterDeadline }), terms: lateTerms, partitionIndex: index })));
+    const others = a.all().filter(row => !['reploid.settlement-terms/v1', 'reploid.settlement-acceptance/v1'].includes(row.schema));
+    const r = (await replay([lateTerms, ...lateAcceptances, ...others], a.closesAt + 1)).reservations[0];
+    expect(r).toMatchObject({ status: 'unknown', debit: null });
+    expect(r.late).toEqual([expect.objectContaining({ kind: 'terms' })]);
+    // In-time terms with late acceptances: the acceptances are listed and the attempt cannot settle.
+    const lateAccepted = await Promise.all(parties.stages.map((stage, index) => acceptSettlementTerms({
+      signer: createAttemptEvidenceSigner({ identity: stage, now: afterDeadline }), terms: a.terms, partitionIndex: index })));
+    const s = (await replay([a.terms, ...lateAccepted, ...others], a.closesAt + 1)).reservations[0];
+    expect(s).toMatchObject({ status: 'unknown', debit: null });
+    expect(s.late.filter(row => row.kind === 'acceptance').map(row => row.partitionIndex)).toEqual([0, 1]);
+  });
+
+  it('rejects terms, acceptances and stops whose key carries extra members, as acknowledgments are rejected', async () => {
+    const parties = await createParties(2);
+    const a = await runAttempt(parties, { outputs: Array.from({ length: 12 }, (_, i) => `t${i}`), requesterStopAfter: 6 });
+    const stop = a.all().find(row => row.schema === SETTLEMENT_STOP_SCHEMA);
+    const acceptance = a.all().find(row => row.schema === 'reploid.settlement-acceptance/v1');
+    const ack = a.all().find(row => row.schema === OUTPUT_ACKNOWLEDGMENT_SCHEMA);
+    const extra = row => ({ ...row, publicJwk: { ...row.publicJwk, alg: 'EdDSA' } });
+    expect(await verifyOutputAcknowledgment(extra(ack))).toMatchObject({ ok: false });
+    expect(await verifySettlementTerms(extra(a.terms))).toMatchObject({ ok: false });
+    expect(await verifySettlementAcceptance(extra(acceptance))).toMatchObject({ ok: false });
+    expect(await verifySettlementStop(extra(stop))).toMatchObject({ ok: false });
+    expect(await verifySettlementTerms(a.terms)).toMatchObject({ ok: true });
+  });
+
+  it('signs K into the terms and reads it from there, not from a constant', async () => {
+    const parties = await createParties(2);
+    const a = await runAttempt(parties);
+    expect(a.terms.maxUnacknowledgedOutputs).toBe(MAX_UNACKNOWLEDGED_OUTPUTS);
+    const { maxUnacknowledgedOutputs: _k, ...missing } = bodyOf(a.terms);
+    const signer = createAttemptEvidenceSigner({ identity: parties.requester, now: () => Date.parse(a.terms.signedAt) });
+    expect(await verifySettlementTerms(await signer.sign(SETTLEMENT_TERMS_SCHEMA, missing))).toMatchObject({ ok: false, problem: 'terms_malformed' });
+    await expect(acceptSettlementTerms({ signer: createAttemptEvidenceSigner({ identity: parties.stages[0] }),
+      terms: await signer.sign(SETTLEMENT_TERMS_SCHEMA, { ...missing, maxUnacknowledgedOutputs: MAX_UNACKNOWLEDGED_OUTPUTS + 1 }), partitionIndex: 0 }))
+      .rejects.toThrow('acknowledgment bound');
+    // A stage that stopped K + 1 outputs ahead of the requester: under the terms' K the requester withheld, so the
+    // acknowledged prefix is owed; under terms that signed a larger K the same gap reads as the stage ending early.
+    const outputs = Array.from({ length: 20 }, (_, i) => `t${i}`);
+    const stall = await runAttempt(parties, { tag: 'k2', outputs, stopAckingAfter: 6 });
+    expect((await replay(stall.all(), stall.closesAt + 1)).reservations[0]).toMatchObject({ debit: 18, chargedOutputs: 6 });
+    const wide = await runAttempt(parties, { tag: 'k3', outputs, stopAckingAfter: 6, maxUnacknowledgedOutputs: MAX_UNACKNOWLEDGED_OUTPUTS + 1 });
+    expect(wide.terms.maxUnacknowledgedOutputs).toBe(MAX_UNACKNOWLEDGED_OUTPUTS + 1);
+    expect((await replay(wide.all(), wide.closesAt + 1)).reservations[0]).toMatchObject({ debit: 0, chargedOutputs: 0 });
   });
 
   it('reports a final stage that signed two output chains for one count as a conflict', async () => {
@@ -154,5 +252,52 @@ describe('settlement replay', () => {
     const checked = await verifySettlementTerms(a.terms);
     expect(checked.ok).toBe(true);
     expect(await termsDigest(checked.body)).toMatch(/^sha256:[a-f0-9]{64}$/);
+  });
+
+  it('charges a finished answer whose last one or two acknowledgments the requester withholds', async () => {
+    const parties = await createParties(2), outputs = Array.from({ length: 40 }, (_, i) => ` t${i}`);
+    for (const [acked, debit] of [[40, 120], [39, 117], [38, 114], [37, 111]]) {
+      const a = await runAttempt(parties, { tag: `w${acked}`, outputs, stopAckingAfter: acked });
+      expect(a.delivered).toBe(40);
+      const r = (await replay(a.all(), a.closesAt + 1)).reservations[0];
+      expect(r).toMatchObject({ status: 'settled', outputs: acked, debit, chargedOutputs: acked, unacknowledgedOutputs: 40 - acked });
+    }
+  });
+
+  it('matches the live ledger\'s charge and credits for the same signed records', async () => {
+    const parties = await createParties(2), outputs = Array.from({ length: 40 }, (_, i) => ` t${i}`);
+    const directory = await mkdtemp(path.join(tmpdir(), 'reploid-settlement-replay-'));
+    const people = [parties.requester, ...parties.stages];
+    const computers = people.map((identity, index) => ({ id: `computer-${index}`, name: `Computer ${index}`, ownerId: `owner-${index}`,
+      providers: [{ participantId: identity.peerId, publicJwk: identity.publicJwk }] }));
+    const accountOf = new Map(computers.map(row => [row.providers[0].participantId, row.ownerId]));
+    let clock = T0;
+    const ledger = await openFleetCredits({ file: path.join(directory, 'credits.sqlite'), computers, policy: POLICY, now: () => clock });
+    try {
+      for (const acked of [40, 39, 38, 37, 10]) {
+        clock = T0;
+        const a = await runAttempt(parties, { tag: `l${acked}`, outputs, stopAckingAfter: acked });
+        ledger.reserve({ id: a.reservationId, executionId: a.identity.attemptId, mode: 'partition', consumer: parties.requester.peerId,
+          providers: a.terms.shares.map(row => ({ participantId: row.participantId, weight: row.weight })),
+          model: { id: a.identity.route.modelId, identity: a.identity.route.modelIdentity, adapterIdentities: [] },
+          inputDigest: 'sha256:' + 'd'.repeat(64), maxOutputTokens: a.terms.maxOutputTokens, route: a.identity });
+        ledger.dispatch(a.reservationId, parties.requester.peerId);
+        clock = Date.parse(a.terms.notBefore) + 25000;
+        // The evidence the ledger settles on: each stage's closing receipt and the requester's latest acknowledged pair.
+        const closing = a.held.stages.map(rows => rows.filter(row => row.schema === STAGE_RECEIPT_SCHEMA).at(-1));
+        const acknowledgments = a.held.requester.filter(row => row.schema === OUTPUT_ACKNOWLEDGMENT_SCHEMA);
+        const acknowledgment = acknowledgments.at(-1);
+        const acknowledgedReceipt = a.held.requester.find(row => row.schema === STAGE_RECEIPT_SCHEMA && row.output?.count === acknowledgment.count);
+        const live = await ledger.settle(a.reservationId, { identity: a.identity, receipts: closing, acknowledgment, acknowledgedReceipt });
+        const r = (await replaySettlement({ records: a.all(), policies: [POLICY], at: a.closesAt + 1, accountOf: id => accountOf.get(id) })).reservations[0];
+        expect(r.status).toBe('settled');
+        expect(r.debit).toBe(live.charge);
+        expect(r.credits.map(row => [row.participantId, row.amount])).toEqual(live.credits.map(row => [row.participantId, row.amount]));
+        expect(live.charge).toBe(acked * POLICY.creditsPerOutputToken);
+      }
+    } finally {
+      ledger.close();
+      await rm(directory, { recursive: true, force: true });
+    }
   });
 });
