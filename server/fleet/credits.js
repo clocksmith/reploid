@@ -111,8 +111,40 @@ export async function openFleetCredits({ file, computers, policy: supplied, now 
     return row ? { ...row, binding: JSON.parse(row.binding), outcome: row.outcome && JSON.parse(row.outcome),
       evidence: evidence ? JSON.parse(evidence.payload) : null } : null;
   };
+  const sha256 = value => createHash('sha256').update(canonicalize(value)).digest('hex');
+  // Which stages were treated as closed, or exited, is not part of the economics: the same answer settles once.
+  const economicHashOf = ({ interruptedStages: _interrupted, closedAtLastStep: _closed, ...economics }) => sha256(economics);
+  /** Posts one verified settlement. Runs inside the caller's transaction; the request must still be open. */
+  const postSettlement = (id, observed, evidence) => {
+    const current = read(id);
+    assert(['dispatched', 'closing'].includes(current.state), 'Request no longer admits settlement');
+    const request = current.binding, totalUnits = settledCreditUnits(request, observed, policy.creditsPerOutputToken);
+    const { credits, ownComputeUnits, charge, entries, deltas } = accountSettlement(request, totalUnits, placeOf);
+    for (const work of observed.workIds) db.prepare('INSERT INTO fleet_work VALUES (?,?)').run(work, id);
+    for (const [accountId, delta] of deltas) {
+      const account = db.prepare('SELECT balance FROM fleet_accounts WHERE id=?').get(accountId);
+      assert(Number.isSafeInteger(account.balance + delta), 'Credit balance exceeds integer precision');
+      db.prepare('UPDATE fleet_accounts SET balance=balance+? WHERE id=?').run(delta, accountId);
+    }
+    // One journal row per account and computer: the balance moves per account, the attribution stays per computer.
+    for (const entry of entries) {
+      db.prepare('INSERT INTO fleet_journal (request_id,account_id,delta,at,computer_id) VALUES (?,?,?,?,?)')
+        .run(id, entry.accountId, entry.delta, now(), entry.computerId);
+    }
+    db.prepare('UPDATE fleet_accounts SET held=held-? WHERE id=?').run(request.maximum, holdAccount(request));
+    const { interruptedStages, closedAtLastStep } = observed;
+    const outcome = { id, unit: policy.unit, charge, ownComputeUnits, outputTokens: observed.outputTokens,
+      ...(observed.terminalStatus ? { status: observed.terminalStatus, usage: null } : {}),
+      ...(interruptedStages ? { status: 'failed', reason: 'interrupted-stage-owner', interruptedStages } : {}),
+      ...(closedAtLastStep ? { reason: 'closed-at-last-signed-step-after-window', closedAtLastStep } : {}),
+      credits, evidenceHash: sha256(evidence), economicHash: economicHashOf(observed), settledAt: now() };
+    db.prepare('INSERT INTO fleet_evidence VALUES (?,?)').run(id, JSON.stringify(evidence));
+    db.prepare("UPDATE fleet_requests SET state='settled',outcome=? WHERE id=?").run(JSON.stringify(outcome), id);
+    return outcome;
+  };
   let ledger;
-  const recovery = createCreditRecovery({ db, transaction, read, settle: (id, evidence) => ledger.settle(id, evidence), enrollment, policy, now, holdAccount });
+  const recovery = createCreditRecovery({ db, transaction, read, settle: (id, evidence) => ledger.settle(id, evidence), post: postSettlement,
+    enrollment, policy, now, holdAccount });
   // An account's debt limit (its starter allowance): the policy's, lowered by any limit set on one of its computers.
   const debtLimitFor = accountId => Math.min(policy.maxDebt, ...(accounts().get(accountId) ?? [])
     .map(computer => computer.debtLimit ?? policy.maxDebt));
@@ -209,13 +241,13 @@ export async function openFleetCredits({ file, computers, policy: supplied, now 
       evidence = structuredClone(evidence);
       const row = read(id); assert(row, 'Unknown credit reservation');
       assert(row.state !== 'settled' || row.outcome?.status !== 'expired', 'Claim window closed; this hold was released unclaimed');
-      const observed = await verifyCreditEvidence(row.binding, evidence, enrollment, now(), policy.maxClockSkewMs, { unadmitted: recovery.unadmitted(id), interrupted: recovery.interrupted(id) });
+      const observed = await verifyCreditEvidence(row.binding, evidence, enrollment, now(), policy.maxClockSkewMs, { unadmitted: recovery.unadmitted(id),
+        interrupted: recovery.interrupted(id), releaseWindowMs: policy.partitionUnclaimedReleaseMs });
       assert(!observed.terminalStatus || integer(observed.fixedCharge), 'Accepted fixed terminal terms required');
-      const { interruptedStages, ...economics } = observed;
-      const economicHash = createHash('sha256').update(canonicalize(economics)).digest('hex');
-      const previousEconomicHash = row.outcome?.economicHash ?? (row.evidence ? createHash('sha256').update(canonicalize(
-        await verifyCreditEvidence(row.binding, row.evidence, enrollment, now(), policy.maxClockSkewMs))).digest('hex') : null);
-      const evidenceHash = createHash('sha256').update(canonicalize(evidence)).digest('hex');
+      const economicHash = economicHashOf(observed);
+      const previousEconomicHash = row.outcome?.economicHash ?? (row.evidence ? sha256(
+        await verifyCreditEvidence(row.binding, row.evidence, enrollment, now(), policy.maxClockSkewMs)) : null);
+      const evidenceHash = sha256(evidence);
       return transaction(() => {
         const current = read(id);
         if (current.state === 'settled') {
@@ -224,28 +256,7 @@ export async function openFleetCredits({ file, computers, policy: supplied, now 
           db.prepare('INSERT OR IGNORE INTO fleet_evidence VALUES (?,?)').run(id, JSON.stringify(evidence));
           return current.outcome;
         }
-        assert(['dispatched', 'closing'].includes(current.state), 'Request no longer admits settlement');
-        const request = current.binding, totalUnits = settledCreditUnits(request, observed, policy.creditsPerOutputToken);
-        const { credits, ownComputeUnits, charge, entries, deltas } = accountSettlement(request, totalUnits, placeOf);
-        for (const work of observed.workIds) db.prepare('INSERT INTO fleet_work VALUES (?,?)').run(work, id);
-        for (const [accountId, delta] of deltas) {
-          const account = db.prepare('SELECT balance FROM fleet_accounts WHERE id=?').get(accountId);
-          assert(Number.isSafeInteger(account.balance + delta), 'Credit balance exceeds integer precision');
-          db.prepare('UPDATE fleet_accounts SET balance=balance+? WHERE id=?').run(delta, accountId);
-        }
-        // One journal row per account and computer: the balance moves per account, the attribution stays per computer.
-        for (const entry of entries) {
-          db.prepare('INSERT INTO fleet_journal (request_id,account_id,delta,at,computer_id) VALUES (?,?,?,?,?)')
-            .run(id, entry.accountId, entry.delta, now(), entry.computerId);
-        }
-        db.prepare('UPDATE fleet_accounts SET held=held-? WHERE id=?').run(request.maximum, holdAccount(request));
-        const outcome = { id, unit: policy.unit, charge, ownComputeUnits, outputTokens: observed.outputTokens,
-          ...(observed.terminalStatus ? { status: observed.terminalStatus, usage: null } : {}),
-          ...(interruptedStages ? { status: 'failed', reason: 'interrupted-stage-owner', interruptedStages } : {}),
-          credits, evidenceHash, economicHash, settledAt: now() };
-        db.prepare('INSERT INTO fleet_evidence VALUES (?,?)').run(id, JSON.stringify(evidence));
-        db.prepare("UPDATE fleet_requests SET state='settled',outcome=? WHERE id=?").run(JSON.stringify(outcome), id);
-        return outcome;
+        return postSettlement(id, observed, evidence);
       });
     },
     dispatch(id, consumer) {

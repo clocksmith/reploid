@@ -201,8 +201,27 @@ lists each stage that never signed with `cleanup: "unverified"` (or
 claim or late receipt for that request is refused and pays nobody, and the
 outcome survives a restart. A requester that retries does so as a new request,
 charged once. A request whose proof is complete is settled when that proof
-arrives and is never expired. Whether a stage that signed should be paid when
-another stage vanishes is an open policy question; today it is not.
+arrives and is never expired.
+
+One case settles at the window instead of expiring, the same rule the settlement
+replay applies ([settlement-replay.md](settlement-replay.md), step 6): the final
+stage's retained receipt signed `done` at count `N > 0`, the requester's
+retained acknowledgment of `N` carries that receipt's chain and was signed by
+the deadline (plus clock skew), every stage that closed covers `N`, and each
+stage that never closed has a retained step receipt signed by the deadline with
+`steps >= N`. Those stages are treated as closed at their last signed step, so
+one stage withholding its closing receipt cannot stop every stage's pay for an
+answer the requester received and acknowledged in full. The request settles
+once, with the `credit-shares.js` arithmetic: the requester is charged for `N`
+outputs and every stage is credited its share. The outcome has reason
+`closed-at-last-signed-step-after-window` and lists the stages in
+`closedAtLastStep`; the journal entry's evidence carries the same list, and the
+statement verifier accepts it only when the entry is dated at or after the
+deadline plus the window and the retained receipts meet every condition. A
+closing receipt or claim that arrives later returns the settled outcome and
+moves nothing. An answer that did not finish, as after a provider loss, never
+meets the rule and still expires with no charge. Stages that exited through a
+signed owner closure keep their own rule.
 
 Both windows default to 120000 ms (`DEFAULT_UNCLAIMED_RELEASE_MS` in
 `server/fleet/contract.js`) when a policy omits them, and cannot be switched

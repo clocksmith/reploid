@@ -2,11 +2,11 @@ import { createHash } from 'node:crypto';
 import { canonicalize } from '../../shared/vendor/reploid/artifacts/canonical-json.js';
 import { assert, same, FLEET_SERVICE_REQUEST_SCHEMA } from './contract.js';
 import { verifyParticipantSignature } from '../../shared/vendor/reploid/artifacts/participant-proofs.js';
-import { verifyCreditEvidence, verifyPartitionComponents } from './credit-evidence.js';
+import { stagesClosedAtLastStep, verifyCreditEvidence, verifyPartitionComponents } from './credit-evidence.js';
 
 /** Durable admission fences and independently verified proof components. No timeout asserts
  * remote cleanup. Deadline expiry only closes admission; an admitted owner must still sign. */
-export function createCreditRecovery({ db, transaction, read, settle, enrollment, policy, now, holdAccount }) {
+export function createCreditRecovery({ db, transaction, read, settle, post, enrollment, policy, now, holdAccount }) {
   db.exec(`CREATE TABLE IF NOT EXISTS fleet_admissions (request_id TEXT NOT NULL, stage INTEGER NOT NULL, PRIMARY KEY(request_id,stage));
     CREATE TABLE IF NOT EXISTS fleet_stage_owners (request_id TEXT NOT NULL, stage INTEGER NOT NULL, owner TEXT NOT NULL, closure TEXT, PRIMARY KEY(request_id,stage));
     CREATE TABLE IF NOT EXISTS fleet_components (request_id TEXT NOT NULL, kind TEXT NOT NULL, payload TEXT NOT NULL, PRIMARY KEY(request_id,kind));`);
@@ -38,6 +38,18 @@ export function createCreditRecovery({ db, transaction, read, settle, enrollment
     }
     return { data, missing, interrupted, acknowledgedOutputTokens, stages, awaitingStages };
   };
+  /** The observation and evidence for settling a delivered answer whose unclosed stages covered it; otherwise null.
+   * The retained components were verified when they were collected. */
+  const closedAtLastStepSettlement = (request, { data, stages, interrupted, awaitingStages }) => {
+    if (!data.ack || interrupted.length) return null;
+    const receipts = stages.filter(Boolean);
+    const closedAtLastStep = stagesClosedAtLastStep(request, { receipts, ...data.ack }, policy.maxClockSkewMs);
+    if (!closedAtLastStep || !same(closedAtLastStep, awaitingStages)) return null;
+    const { acknowledgment } = data.ack;
+    return { evidence: { identity: request.route, receipts, ...data.ack, closedAtLastStep },
+      observed: { outputTokens: acknowledgment.count, outputIdentity: acknowledgment.chain, closedAtLastStep,
+        workIds: request.providers.map((provider, index) => `stage:${provider.participantId}:${request.id}:${request.executionId}:${index}`) } };
+  };
   const expiry = () => transaction(() => {
     for (const row of db.prepare("SELECT id FROM fleet_requests WHERE state IN ('reserved','dispatched')").all()) {
       const request = read(row.id);
@@ -57,6 +69,12 @@ export function createCreditRecovery({ db, transaction, read, settle, enrollment
     // After the window the request reaches one final outcome: expired, no charge, no credit to any stage. The
     // outcome names the stages that never signed and reports their cleanup as unverified: nothing here asserts
     // what a silent host did. A request whose proof is already complete is left for recover() to settle.
+    //
+    // One exception, the settlement replay's closing rule: when the final stage signed `done` at N, the requester
+    // acknowledged N in time, and each stage that never closed signed in-time step receipts covering all N steps,
+    // those stages are treated as closed at their last signed step and every stage is paid its share
+    // (stagesClosedAtLastStep). One stage withholding its closing receipt cannot veto the others' payment. An answer
+    // that did not finish never qualifies and still expires with no charge.
     for (const row of db.prepare("SELECT id FROM fleet_requests WHERE state='closing'").all()) {
       const request = read(row.id), split = request.binding.mode !== 'whole-model';
       const window = split ? policy.partitionUnclaimedReleaseMs : policy.wholeModelUnclaimedReleaseMs;
@@ -66,6 +84,8 @@ export function createCreditRecovery({ db, transaction, read, settle, enrollment
       if (split) {
         const progress = splitProgress(row.id, request.binding);
         if (progress.acknowledgedOutputTokens !== null && progress.awaitingStages.length === 0) continue;
+        const delivered = closedAtLastStepSettlement(request.binding, progress);
+        if (delivered) { post(row.id, delivered.observed, delivered.evidence); continue; }
         const unsigned = progress.stages.map((receipt, index) => (!receipt || receipt.status === 'executing' || receipt.timing.closedAt === null
           || progress.awaitingStages.includes(index)) ? index : null).filter(index => index !== null);
         outcome = { ...outcome, reason: 'stage-unclaimed-after-window', acknowledgedOutputTokens: progress.acknowledgedOutputTokens,

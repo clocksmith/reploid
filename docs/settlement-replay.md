@@ -190,10 +190,9 @@ terms and the policy they name.
    full. The rule needs the final stage's signed `done` and the requester's
    acknowledgment of that exact count with the final stage's chain. An answer
    that did not finish (a lost provider, a stage ending early) never meets it
-   and stays `expired` or provider-loss free, as before. The live ledger
-   (`server/fleet/credits.js`) does not apply this rule yet: it still needs
-   every stage's closing receipt, so here the replay settles an attempt the
-   ledger has not.
+   and stays `expired` or provider-loss free, as before. The live ledger applies
+   the same rule when the release window expires (see
+   [fleet-service.md](fleet-service.md#release-windows)).
 7. **Steps.** The outcome is `conflict` if any stage's latest receipt has fewer
    `steps` than the acknowledged count.
 8. **Acceptances.** The outcome is `unknown` if any stage has no in-time
@@ -323,7 +322,9 @@ node scripts/settlement/baseline-matrix.js --out /absolute/path/baseline.json
 ```
 
 The unit tests include a check that the replay's charge and credits equal the
-live ledger's (`server/fleet/credits.js`) for the same signed records.
+live ledger's (`server/fleet/credits.js`) for the same signed records, including
+an answer settled at window expiry with a stage closed at its last signed step,
+and that provider-loss attempts expire with no charge in both.
 
 The attack matrix judges the same attempts three ways with real signatures: the
 replay; an operator-signed usage log (B1); and a usage log that the requester and

@@ -24,8 +24,39 @@ async function verifyWholeModelStop(request, evidence, enrollment, now, skew) {
     workIds: [`whole:${request.providers[0].participantId}:${request.consumer}:request:${request.executionId}`] };
 }
 
-/** Reuse execution signatures; the credit service never treats a completed counter as evidence. */
-export async function verifyCreditEvidence(request, evidence, enrollment, now, skew, { unadmitted = [], interrupted = [] } = {}) {
+const closedReceipt = receipt => receipt.status !== 'executing' && receipt.timing.closedAt !== null;
+
+/**
+ * The settlement replay's closing rule (docs/settlement-replay.md, step 6) over already verified split components.
+ * It applies when the final stage signed `done` at N > 0, the requester acknowledged N with the final stage's chain
+ * before the deadline (plus clock skew), every stage that closed covers N, and each stage that did not close has a
+ * receipt signed before the deadline covering all N steps. Returns those unclosed stages, which are treated as
+ * closed at their last signed step once the release window has passed; otherwise null. An unfinished answer, as
+ * after a provider loss, never qualifies.
+ */
+export function stagesClosedAtLastStep(request, { receipts, acknowledgment, acknowledgedReceipt }, skew) {
+  const count = acknowledgment?.count ?? 0, finalIndex = request.providers.length - 1;
+  const inTime = value => Date.parse(value) <= request.deadline + skew;
+  if (count === 0 || !inTime(acknowledgment.signedAt)) return null;
+  const own = index => [receipts.find(row => row.partitionIndex === index), index === finalIndex ? acknowledgedReceipt : null]
+    .filter(Boolean).sort((a, b) => a.sequence - b.sequence);
+  const delivered = own(finalIndex).filter(row => inTime(row.signedAt)).at(-1)?.output;
+  if (!(delivered?.done === true && delivered.count === count && delivered.chain === acknowledgment.chain)) return null;
+  const unclosed = [];
+  for (let index = 0; index <= finalIndex; index++) {
+    const rows = own(index), closing = rows.find(closedReceipt);
+    if (closing) { if (closing.steps < count) return null; continue; }
+    const covering = rows.filter(row => inTime(row.signedAt)).at(-1);
+    if (!covering || covering.steps < count) return null;
+    unclosed.push(index);
+  }
+  return unclosed.length ? unclosed : null;
+}
+
+/** Reuse execution signatures; the credit service never treats a completed counter as evidence.
+ * `releaseWindowMs` (split only) admits evidence that names `closedAtLastStep`: it verifies only at or after the
+ * deadline plus that window, and only when stagesClosedAtLastStep names exactly those stages. */
+export async function verifyCreditEvidence(request, evidence, enrollment, now, skew, { unadmitted = [], interrupted = [], releaseWindowMs = null } = {}) {
   const within = at => Number.isFinite(at) && at >= request.createdAt - skew
     && at <= Math.min(now, request.deadline) + skew;
   if (request.mode === 'whole-model') {
@@ -68,9 +99,19 @@ export async function verifyCreditEvidence(request, evidence, enrollment, now, s
   const proof = await verifyPartitionComponents(request, evidence, enrollment, now, skew);
   const { receipts, acknowledgment, acknowledgedReceipt } = proof;
   assert(acknowledgment, 'Matching requester acknowledgment required');
+  const closedAtLastStep = evidence.closedAtLastStep ?? null;
+  if (closedAtLastStep !== null) {
+    assert(Number.isSafeInteger(releaseWindowMs) && now >= request.deadline + releaseWindowMs
+      && !evidence.interruptedOwners?.length && same(closedAtLastStep, stagesClosedAtLastStep(request, proof, skew)),
+    'A stage is treated as closed at its last signed step only after the release window, for a delivered and acknowledged answer');
+  }
   const workIds = [], interruptedStages = [];
   for (let index = 0; index < request.providers.length; index++) {
     const receipt = receipts.find(row => row.partitionIndex === index);
+    if (closedAtLastStep?.includes(index)) {
+      workIds.push(`stage:${request.providers[index].participantId}:${request.id}:${request.executionId}:${index}`);
+      continue;
+    }
     if (!receipt && unadmitted.includes(index) && acknowledgment.count === 0) continue;
     const exit = interrupted.find(row => row.stage === index);
     if (exit && (!receipt || receipt.status === 'executing') && evidence.interruptedOwners?.some(claim => same(claim, exit.closure))) {
@@ -90,7 +131,7 @@ export async function verifyCreditEvidence(request, evidence, enrollment, now, s
       'Final output differs from requester acknowledgment');
   }
   return { outputTokens: acknowledgment.count, outputIdentity: acknowledgment.chain, workIds,
-    ...(interruptedStages.length ? { interruptedStages } : {}) };
+    ...(interruptedStages.length ? { interruptedStages } : {}), ...(closedAtLastStep ? { closedAtLastStep } : {}) };
 }
 
 /** Validate independently submitted pieces before retaining them. A signed failure is a closing

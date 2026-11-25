@@ -13,6 +13,7 @@ import {
 } from '../../packages/reploid/src/mesh/partitions/partition-attempt-evidence.js';
 import { openFleetCredits } from '../../server/fleet/credits.js';
 import { replaySettlement } from '../../server/fleet/settlement-replay.js';
+import { verifyCreditStatement } from '../../server/fleet/credit-statement.js';
 import {
   SETTLEMENT_STOP_SCHEMA, SETTLEMENT_TERMS_SCHEMA, acceptSettlementTerms, signSettlementTerms, termsDigest, verifySettlementAcceptance,
   verifySettlementStop, verifySettlementTerms
@@ -20,6 +21,50 @@ import {
 import { POLICY, T0, createClock, createParties, runAttempt } from '../../scripts/settlement/scenario.js';
 
 const replay = (records, at) => replaySettlement({ records, policies: [POLICY], at });
+
+/**
+ * A live ledger over the parties' enrolled keys, one owner account each. `admit(a)` reserves and dispatches the
+ * attempt at T0; `collect(a, records)` hands the ledger, before the deadline, the latest receipt of each stage found
+ * in `records` and the requester's latest acknowledged pair, as the live route retains them.
+ */
+async function openLiveLedger(parties) {
+  const directory = await mkdtemp(path.join(tmpdir(), 'reploid-settlement-ledger-'));
+  const people = [parties.requester, ...parties.stages];
+  const computers = people.map((identity, index) => ({ id: `computer-${index}`, name: `Computer ${index}`, ownerId: `owner-${index}`,
+    providers: [{ participantId: identity.peerId, publicJwk: identity.publicJwk }] }));
+  const accountOf = new Map(computers.map(row => [row.providers[0].participantId, row.ownerId]));
+  const live = { clock: T0, accountOf, owners: computers.map(row => row.ownerId) };
+  live.ledger = await openFleetCredits({ file: path.join(directory, 'credits.sqlite'), computers, policy: POLICY, now: () => live.clock });
+  live.closesAt = T0 + POLICY.maxRequestMs + POLICY.partitionUnclaimedReleaseMs;
+  live.admit = a => {
+    live.clock = T0;
+    live.ledger.reserve({ id: a.reservationId, executionId: a.identity.attemptId, mode: 'partition', consumer: parties.requester.peerId,
+      providers: a.terms.shares.map(row => ({ participantId: row.participantId, weight: row.weight })),
+      model: { id: a.identity.route.modelId, identity: a.identity.route.modelIdentity, adapterIdentities: [] },
+      inputDigest: 'sha256:' + 'd'.repeat(64), maxOutputTokens: a.terms.maxOutputTokens, route: a.identity });
+    live.ledger.dispatch(a.reservationId, parties.requester.peerId);
+    a.identity.route.stages.forEach((_, index) => live.ledger.admit(a.reservationId, index));
+  };
+  live.evidence = (a, records) => {
+    const receipts = parties.stages.map((_, index) => records.filter(row => row.schema === STAGE_RECEIPT_SCHEMA && row.partitionIndex === index)
+      .sort((x, y) => x.sequence - y.sequence).at(-1)).filter(Boolean);
+    const acknowledgment = records.filter(row => row.schema === OUTPUT_ACKNOWLEDGMENT_SCHEMA).sort((x, y) => x.count - y.count).at(-1);
+    const acknowledgedReceipt = records.find(row => row.schema === STAGE_RECEIPT_SCHEMA && row.partitionIndex === parties.stages.length - 1
+      && row.output?.count === acknowledgment.count && row.output.chain === acknowledgment.chain);
+    return { identity: a.identity, receipts, acknowledgment, ...(acknowledgment.count > 0 ? { acknowledgedReceipt } : {}) };
+  };
+  live.collect = async (a, records) => {
+    live.clock = Date.parse(a.terms.notBefore) + 25000;
+    await live.ledger.fence(a.reservationId, parties.requester.peerId);
+    return live.ledger.collect(a.reservationId, live.evidence(a, records));
+  };
+  live.balances = () => live.ledger.snapshot().accounts.map(row => [row.id, row.balance, row.held]);
+  live.replay = (records, at) => replaySettlement({ records, policies: [POLICY], at, accountOf: id => accountOf.get(id) });
+  live.close = async () => { live.ledger.close(); await rm(directory, { recursive: true, force: true }); };
+  return live;
+}
+
+const withoutClosing = (a, index) => a.all().filter(row => !(row.schema === STAGE_RECEIPT_SCHEMA && row.partitionIndex === index && row.status !== 'executing'));
 const bodyOf = record => { const { publicJwk: _k, signature: _s, ...rest } = record; return rest; };
 
 describe('settlement replay', () => {
@@ -189,6 +234,136 @@ describe('settlement replay', () => {
     const partial = a.all().filter(row => !(row.schema === STAGE_RECEIPT_SCHEMA && row.partitionIndex === 0 && (row.status !== 'executing' || row.steps > 20)));
     for (const at of [a.closesAt - 1, a.closesAt + 1]) {
       expect((await replay(partial, at)).reservations[0]).toMatchObject({ status: 'unknown', debit: null });
+    }
+  });
+
+  it('settles a withheld closing receipt in the live ledger at window expiry exactly as the replay does', async () => {
+    const parties = await createParties(2), outputs = Array.from({ length: 40 }, (_, i) => ` t${i}`);
+    const live = await openLiveLedger(parties);
+    try {
+      let charged = 0;
+      for (const index of [0, 1]) {
+        const a = await runAttempt(parties, { tag: `live-veto-${index}`, outputs });
+        const records = withoutClosing(a, index);
+        live.admit(a);
+        expect(await live.collect(a, records)).toMatchObject({ status: 'pending', acknowledgedOutputTokens: 40, awaitingStages: [index] });
+        // Before the window both still wait for the stage's closing receipt.
+        live.clock = live.closesAt - 1;
+        expect(await live.ledger.recover(a.reservationId)).toMatchObject({ status: 'pending', awaitingStages: [index] });
+        expect((await live.replay(records, a.closesAt - 1)).reservations[0].status).toBe('open');
+        live.clock = live.closesAt;
+        const outcome = await live.ledger.recover(a.reservationId);
+        const r = (await live.replay(records, a.closesAt + 1)).reservations[0];
+        expect(r).toMatchObject({ status: 'settled', debit: 120, closedAtLastStep: [index] });
+        expect(outcome).toMatchObject({ charge: r.debit, outputTokens: 40, closedAtLastStep: [index], reason: 'closed-at-last-signed-step-after-window' });
+        expect(outcome.credits.map(row => [row.participantId, row.amount])).toEqual(r.credits.map(row => [row.participantId, row.amount]));
+        charged += outcome.charge;
+        // Exactly once: further expiry passes, recovery, statements and snapshots post nothing more.
+        const journal = live.ledger.snapshot().journal.length;
+        expect(await live.ledger.recover(a.reservationId)).toEqual(outcome);
+        live.ledger.statement('owner-0');
+        expect(live.ledger.snapshot().journal).toHaveLength(journal);
+      }
+      expect(live.balances()).toEqual([['owner-0', -charged, 0], ['owner-1', 60, 0], ['owner-2', 180, 0]]);
+    } finally {
+      await live.close();
+    }
+  });
+
+  it('expires provider-loss attempts in the live ledger with no charge, as the replay does', async () => {
+    const parties = await createParties(2), outputs = Array.from({ length: 40 }, (_, i) => ` t${i}`);
+    const live = await openLiveLedger(parties);
+    try {
+      for (const [vanishStage, vanishAfterStep] of [[1, 9], [0, 9], [0, 1]]) {
+        const lost = await runAttempt(parties, { tag: `live-loss-${vanishStage}-${vanishAfterStep}`, outputs, vanishStage, vanishAfterStep });
+        expect(lost.acknowledged).toBeGreaterThan(0);
+        live.admit(lost);
+        await live.collect(lost, lost.all());
+        live.clock = live.closesAt;
+        const outcome = await live.ledger.recover(lost.reservationId);
+        const r = (await live.replay(lost.all(), lost.closesAt + 1)).reservations[0];
+        expect(r).toMatchObject({ status: 'expired', debit: 0 });
+        expect(outcome).toMatchObject({ status: 'expired', charge: 0, credits: [], reason: 'stage-unclaimed-after-window' });
+        expect(outcome.closedAtLastStep).toBeUndefined();
+      }
+      expect(live.balances()).toEqual([['owner-0', 0, 0], ['owner-1', 0, 0], ['owner-2', 0, 0]]);
+      expect(live.ledger.snapshot().journal).toHaveLength(0);
+    } finally {
+      await live.close();
+    }
+  });
+
+  it('refuses to let a late claim reopen a hold the window settled or expired', async () => {
+    const parties = await createParties(2), outputs = Array.from({ length: 40 }, (_, i) => ` t${i}`);
+    const live = await openLiveLedger(parties);
+    try {
+      const a = await runAttempt(parties, { tag: 'live-late', outputs });
+      live.admit(a);
+      await live.collect(a, withoutClosing(a, 0));
+      live.clock = live.closesAt + 1000;
+      const outcome = await live.ledger.recover(a.reservationId);
+      expect(outcome.closedAtLastStep).toEqual([0]);
+      const before = { balances: live.balances(), journal: live.ledger.snapshot().journal.length };
+      // The withheld closing receipt arrives after the window: the settled outcome stands and nothing moves.
+      const full = live.evidence(a, a.all());
+      expect(await live.ledger.collect(a.reservationId, full)).toEqual(outcome);
+      expect(await live.ledger.settle(a.reservationId, full)).toEqual(outcome);
+      // Evidence naming a stage that did close as closed at its last step is refused.
+      await expect(live.ledger.settle(a.reservationId, { ...full, closedAtLastStep: [0, 1] })).rejects.toThrow();
+      expect({ balances: live.balances(), journal: live.ledger.snapshot().journal.length }).toEqual(before);
+
+      // A provider-loss hold that expired stays expired whatever arrives later.
+      const lost = await runAttempt(parties, { tag: 'live-late-loss', outputs, vanishStage: 0, vanishAfterStep: 9 });
+      live.admit(lost);
+      await live.collect(lost, lost.all());
+      live.clock = live.closesAt + 1000;
+      expect(await live.ledger.recover(lost.reservationId)).toMatchObject({ status: 'expired', charge: 0 });
+      const lostEvidence = live.evidence(lost, lost.all());
+      await expect(live.ledger.settle(lost.reservationId, lostEvidence)).rejects.toThrow('Claim window closed');
+      await expect(live.ledger.settle(lost.reservationId, { ...lostEvidence, closedAtLastStep: [0] })).rejects.toThrow('Claim window closed');
+      await expect(live.ledger.collect(lost.reservationId, lostEvidence)).rejects.toThrow('Claim window closed');
+      expect({ balances: live.balances(), journal: live.ledger.snapshot().journal.length }).toEqual(before);
+      // The statement verifier blocks the same late claims offline.
+      const verdict = await verifyCreditStatement(live.ledger.statement('owner-0'), { lateClaims: [
+        { requestId: a.reservationId, evidence: full, at: live.clock },
+        { requestId: lost.reservationId, evidence: lostEvidence, at: live.clock }] });
+      expect(verdict.lateClaims.map(row => row.reopenAllowed)).toEqual([false, false]);
+    } finally {
+      await live.close();
+    }
+  });
+
+  it('accepts the window-settled entries in every account statement, and only at or after the window', async () => {
+    const parties = await createParties(2), outputs = Array.from({ length: 40 }, (_, i) => ` t${i}`);
+    const live = await openLiveLedger(parties);
+    try {
+      for (const index of [0, 1]) {
+        const a = await runAttempt(parties, { tag: `live-statement-${index}`, outputs });
+        live.admit(a);
+        await live.collect(a, withoutClosing(a, index));
+      }
+      const lost = await runAttempt(parties, { tag: 'live-statement-loss', outputs, vanishStage: 1, vanishAfterStep: 9 });
+      live.admit(lost);
+      await live.collect(lost, lost.all());
+      live.clock = live.closesAt;
+      live.ledger.expire();
+      for (const owner of live.owners) {
+        const statement = live.ledger.statement(owner);
+        const verdict = await verifyCreditStatement(statement);
+        expect(verdict).toMatchObject({ ok: true, uncheckedCount: 0, verifiedCount: 2, expiredCount: 1, balanceMatches: true });
+        expect(verdict.recomputedBalance).toBe(statement.balance);
+      }
+      const statement = live.ledger.statement('owner-0');
+      expect(statement.balance).toBe(-240);
+      // The same entry dated before the window, or listing a stage that did close, does not verify.
+      const early = structuredClone(statement);
+      early.entries[0].at = live.closesAt - 1;
+      expect((await verifyCreditStatement(early)).unchecked[0].reason).toMatch('release window');
+      const widened = structuredClone(statement);
+      widened.entries[0].evidence.closedAtLastStep = [0, 1];
+      expect((await verifyCreditStatement(widened)).unchecked).toHaveLength(1);
+    } finally {
+      await live.close();
     }
   });
 

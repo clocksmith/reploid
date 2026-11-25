@@ -6,7 +6,8 @@
  * receipts, output acknowledgments, terminal cleanup proofs and accepted
  * request bindings, without trusting the operator's running total or SQLite
  * tables. Verifies expired unclaimed holds, enforces policy claim-release
- * windows so late receipts cannot reopen settlement, and reports any journal
+ * windows so late receipts cannot reopen settlement, accepts a delivered answer
+ * settled at the window with stages closed at their last signed step, and reports any journal
  * entry whose proof is missing, unsigned, replayed or mismatched in `unchecked`.
  */
 import fs from 'node:fs/promises';
@@ -222,12 +223,16 @@ export async function verifyCreditStatement(statement, { computers, participantI
       const window = releaseWindowFor(entry.request, policy);
       assert(entry.at >= entry.request.createdAt - policy.maxClockSkewMs
         && entry.at <= statement.issuedAt + policy.maxClockSkewMs, 'Journal timestamp is outside request or statement bounds');
-      if (Number.isSafeInteger(window)) {
+      assert(entry.evidence !== null && entry.evidence !== undefined, 'Missing signed settlement evidence');
+      // A delivered answer whose unclosed stages covered it settles at the window instead (settlement replay, step 6):
+      // verifyCreditEvidence accepts that evidence only at or after the deadline plus the window.
+      const atWindow = entry.request.mode === 'partition' && entry.evidence.closedAtLastStep !== undefined;
+      if (Number.isSafeInteger(window) && !atWindow) {
         assert(entry.at < entry.request.deadline + window, 'Claim window closed before settlement');
       }
-      assert(entry.evidence !== null && entry.evidence !== undefined, 'Missing signed settlement evidence');
       const interrupted = await verifyInterruptedOwners(entry.request, entry.evidence, enrollment, entry.at, policy.maxClockSkewMs);
-      const observed = await verifyCreditEvidence(entry.request, entry.evidence, enrollment, entry.at, policy.maxClockSkewMs, { interrupted });
+      const observed = await verifyCreditEvidence(entry.request, entry.evidence, enrollment, entry.at, policy.maxClockSkewMs,
+        { interrupted, releaseWindowMs: atWindow ? window : null });
       assert(!observed.terminalStatus || integer(observed.fixedCharge), 'Accepted fixed terminal terms required');
       for (const workId of observed.workIds) {
         assert(!expiredWorkIds.has(workId), 'Claim window closed; expired hold cannot reopen settlement');
