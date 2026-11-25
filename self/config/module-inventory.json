@@ -4369,7 +4369,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:b6694180bd395818b3804bf20914d994c8a7a7fd74004f3a7b9968c37aa73a4b",
+      "sha256": "sha256:aeb02c3748ce1adf180d6b417a81a5afd06b9e20170130d929c3df5cdb1afc6f",
       "imports": []
     },
     {
@@ -19308,7 +19308,7 @@
     {
       "path": "vendor/reploid/inference/protected.js",
       "owner": "vendor",
-      "sha256": "sha256:fd26d5d1badd45069b17040f29c6d24cbc628e96b75ef73708abfb665a491a61",
+      "sha256": "sha256:46352934514db37ebb0a010c884477abaecbbb733d1e2125040bd34f617b7b85",
       "imports": [
         "../artifacts/identity.js",
         "../artifacts/signatures.js",

@@ -1416,7 +1416,7 @@
     {
       "path": "config/module-inventory.json",
       "byteLength": 699791,
-      "sha256": "sha256:2b4562b24100f08b731b5cbfa91a4b74a6bf8b11fa40566ed7a11fd133ff0baa"
+      "sha256": "sha256:1f288b5e9c84a51c5487cfff63478ba63a1eb8bdb184d84f4d484d27901b0e27"
     },
     {
       "path": "config/module-registry.json",
@@ -3830,8 +3830,8 @@
     },
     {
       "path": "ui/pool-home/app.bundle.js",
-      "byteLength": 2810879,
-      "sha256": "sha256:b6694180bd395818b3804bf20914d994c8a7a7fd74004f3a7b9968c37aa73a4b"
+      "byteLength": 2811041,
+      "sha256": "sha256:aeb02c3748ce1adf180d6b417a81a5afd06b9e20170130d929c3df5cdb1afc6f"
     },
     {
       "path": "ui/pool-home/auto-download.js",
@@ -12185,8 +12185,8 @@
     },
     {
       "path": "vendor/reploid/inference/protected.js",
-      "byteLength": 11295,
-      "sha256": "sha256:fd26d5d1badd45069b17040f29c6d24cbc628e96b75ef73708abfb665a491a61"
+      "byteLength": 13615,
+      "sha256": "sha256:46352934514db37ebb0a010c884477abaecbbb733d1e2125040bd34f617b7b85"
     },
     {
       "path": "vendor/reploid/measurement/capacity-utilization.js",
@@ -12561,7 +12561,7 @@
     {
       "path": "vendor/reploid/package-assets.json",
       "byteLength": 62742,
-      "sha256": "sha256:b8ac6888495b3a5658370c71efa50efc3bbd811bc2762c546bd36a2e72dea261"
+      "sha256": "sha256:252547cf2cf7130f36bb4506f99567980c720b2b6ba17bf4ce05bcd8215e0f83"
     },
     {
       "path": "vendor/reploid/plugins/index.js",
@@ -12849,5 +12849,5 @@
       "sha256": "sha256:abb6c18f6167d6afc8ee1b3adfcbbb89c0e93fb4fc4e98d7a12250f78aab206a"
     }
   ],
-  "bundleHash": "sha256:11565e7f628615a57027eda8c6727e43e6d4687fd86f01a0c802c2e24645dbcb"
+  "bundleHash": "sha256:fd01a2983618f72108096d2729f70a988a2a5ebd51494f1ceee410f7cb175889"
 }

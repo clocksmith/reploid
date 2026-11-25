@@ -105,7 +105,11 @@ describe.skipIf(!enabled)('protected route with the CPU CKKS backend (real proce
     const { inference, protectedExecution } = inferenceFor([peers.honest.endpoint], { stateDir });
     const { events, result, plan } = await runOnce(inference);
     expect(plan.route.participants).toEqual([peers.honest.participantId]);
-    expect(plan.disclosures.contentReadableBy).toMatchObject({ requesterDevice: true, participants: [] });
+    // The development ring is insecure: the disclosures must say no confidentiality and count the evaluator as a reader.
+    expect(plan.disclosures.contentReadableBy).toMatchObject({ requesterDevice: true, participants: [peers.honest.participantId] });
+    expect(plan.disclosures).toMatchObject({ executorsReadContent: true, confidentiality: { status: 'none' } });
+    expect(plan.disclosures.statement).toMatch(/NO confidentiality/);
+    expect(plan.disclosures.statement).not.toMatch(/Only this device can read/);
     expect(result.status).toBe('completed');
     expect(result.output.text).toBe(reference);
     expect(events.filter(e => e.type === 'output.delta').map(e => e.text).join('')).toBe(reference);

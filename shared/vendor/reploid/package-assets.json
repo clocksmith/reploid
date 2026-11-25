@@ -951,8 +951,8 @@
     },
     {
       "path": "inference/protected.js",
-      "bytes": 11295,
-      "sha256": "fd26d5d1badd45069b17040f29c6d24cbc628e96b75ef73708abfb665a491a61"
+      "bytes": 13615,
+      "sha256": "46352934514db37ebb0a010c884477abaecbbb733d1e2125040bd34f617b7b85"
     },
     {
       "path": "measurement/capacity-utilization.js",

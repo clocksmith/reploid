@@ -29,20 +29,43 @@ export const PROTECTED_EXECUTION_STATUS = freeze({ available: false, reason: PRO
 export const PROTECTED_METADATA = freeze(['model-id', 'timing', 'length']);
 const SESSION_TTL_MS = 30 * 60 * 1000;
 
-/** Disclosures for a protected route: who can read content, and what still leaks. */
+/**
+ * Disclosures for a protected route. They state only what holds. Keeping content from every remote party is the
+ * route's TARGET, not an established property: the parameters were never estimated and the protocol is unreviewed.
+ * On an insecure development parameter set there is no confidentiality, and the evaluator counts as a reader.
+ */
 export function protectedDisclosures(route) {
+  const oracle = route.protected?.traps?.source === 'oracle';
+  const insecure = route.protected?.insecureDevelopment !== false;
+  const confidentiality = insecure
+    ? { status: 'none', reason: 'insecure development parameter set' }
+    : { status: 'target-not-established', reason: `parameters not estimated; ${PROTECTED_REVIEW_REASON}` };
   return freeze({
-    contentReadableBy: { requesterDevice: true, participants: [], selection: 'all' },
-    executorsReadContent: false,
+    contentReadableBy: insecure ? { requesterDevice: true, participants: [...route.participants], selection: 'all' }
+      : { requesterDevice: true, participants: [], selection: 'all', target: true },
+    executorsReadContent: insecure,
+    confidentiality,
     metadata: [...PROTECTED_METADATA],
     computedBy: [...route.participants],
-    leaks: ['model and circuit identity', 'prompt length and generated token count', 'ciphertext and message sizes',
-      'timing of each step', 'evaluator and requester identities and network metadata'],
+    leaks: ['model and circuit identity', 'prompt length (in the bind offer, before the endpoint proves its key) and generated token count',
+      'lane count', 'ciphertext and message sizes', 'timing of each step', 'session linkage through the key epoch',
+      'whether a session ends early: a trap failure is visible to the evaluator and can be steered by it',
+      'evaluator and requester identities and network metadata'],
+    trapOracle: oracle ? { learns: ['that a session is starting', 'prompt length, generated count and trap count', 'request time and network address'],
+      trusted: 'not to collude with the evaluator' } : null,
     review: { ...PROTECTED_EXECUTION_STATUS },
-    statement: 'Only this device can read the prompt and the answer: the evaluator computes on ciphertext under a key that never leaves this device, '
-      + 'even if every remote party colludes. The evaluator sees the model identity, the prompt length, the number of generated tokens, '
-      + 'ciphertext sizes and timing. Results are checked with known-answer traps, which catch a tampering evaluator only with the stated probability. '
-      + `Research route, ${PROTECTED_REVIEW_REASON}.`
+    statement: (insecure
+      ? 'Research route on an insecure development parameter set: NO confidentiality. Treat the evaluator as able to read the prompt and the answer. '
+      : 'Research route. Target, not established: the evaluator computes on ciphertext under a key held by this device\'s key holder, intended to keep '
+        + 'the prompt and the answer from every remote party. The parameters have not been security-estimated and the protocol has not been '
+        + 'independently reviewed, so this is not a claim that no one else can read them. ')
+      + 'The evaluator sees the model identity, the prompt length, the number of generated tokens and lanes, sizes and timing. '
+      + 'Results are checked with known-answer traps. The checks are probabilistic and defeatable: the stated detection odds hold only for an evaluator '
+      + 'that tampers blindly, '
+      + (oracle ? 'they assume the trap oracle does not collude with the evaluator (it learns that a session happened, its size and its time), '
+        : 'a public trap set is defeated by a perturbation that vanishes on it, ')
+      + 'and a failed check can reveal one chosen fact about the prompt per attempt. '
+      + `${PROTECTED_REVIEW_REASON[0].toUpperCase()}${PROTECTED_REVIEW_REASON.slice(1)}.`
   });
 }
 
@@ -145,15 +168,20 @@ export function protectedEvidence({ plan, admitted, evidence, error }) {
   return {
     confidentiality: {
       mode: 'requester-only',
-      contentReadBy: admitted ? { requesterDevice: true, participants: [] } : null,
+      // A target, never a verified property here: see `status`.
+      status: plan.disclosures.confidentiality.status,
+      contentReadBy: admitted ? { requesterDevice: true, participants: [...plan.disclosures.contentReadableBy.participants],
+        target: plan.disclosures.contentReadableBy.target === true } : null,
       verified: admitted ? [
-        { claim: 'requester-held-key', by: 'requester', method: 'key-generated-on-this-device-never-sent', value: evidence?.keyEpoch ?? null },
         { claim: 'evaluator-session-binding', by: 'requester', method: 'mutually-signed-binding-before-upload', value: admitted.id },
         { claim: 'no-evaluator-requests-answered', by: 'requester', method: 'frame-kind-allowlist' }
       ] : [],
+      // Reported by the local key holder, not checked by this client.
+      keyHolderReports: admitted ? { keyEpoch: evidence?.keyEpoch ?? null, secretKeySent: false } : null,
       // What left this device, all of it public evaluation keys or fresh ciphertexts.
       uploaded: details?.uploaded ?? null,
-      notVerified: ['independent-security-review', 'parameter-security-estimate', 'timing-independence', 'side-channels', 'recipient-conduct'],
+      notVerified: ['confidentiality', 'requester-held-key', 'independent-security-review', 'parameter-security-estimate', 'timing-independence',
+        'side-channels', 'selective-failure-leakage', 'recipient-conduct'],
       review: { ...PROTECTED_EXECUTION_STATUS }
     },
     integrity: {

@@ -179,14 +179,27 @@ describe('protected route flag', () => {
 
 describe('prepare', () => {
   it('finds the eligible backend without any content and states who can read it and what leaks', async () => {
-    const { inference, counts, identity } = await setup({ insecure: true, allowInsecure: true });
+    const { inference, counts, identity } = await setup();
     const plan = await inference.prepare(prepareInput());
     expect(counts).toMatchObject({ discover: 1, connect: 0 });
     expect(plan.route).toMatchObject({ backend: 'doppler-protected-ckks/v1', protocol: 'reploid.protected-generation/v1', shape: 'remote',
       selection: 'one-of', participants: [identity.peerId], protected: { circuit: CIRCUIT, parameterSet: PROFILE, lanes: 4, trapLanes: 3 } });
     expect(plan.disclosures).toMatchObject({ contentReadableBy: { requesterDevice: true, participants: [] }, executorsReadContent: false,
       metadata: ['model-id', 'timing', 'length'], review: { available: false, reason: 'awaiting independent security review' } });
-    expect(plan.disclosures.leaks).toContain('prompt length and generated token count');
+    expect(plan.disclosures.confidentiality).toEqual({ status: 'target-not-established', reason: 'parameters not estimated; awaiting independent security review' });
+    expect(plan.disclosures.statement).toMatch(/Target, not established/);
+    expect(plan.disclosures.statement).not.toMatch(/Only this device can read|even if every remote party colludes/);
+  });
+
+  it('an insecure development parameter set is disclosed as no confidentiality, with the evaluator as a reader', async () => {
+    const { inference, identity } = await setup({ insecure: true, allowInsecure: true });
+    const plan = await inference.prepare(prepareInput());
+    expect(plan.disclosures).toMatchObject({ executorsReadContent: true, confidentiality: { status: 'none' },
+      contentReadableBy: { requesterDevice: true, participants: [identity.peerId] } });
+    expect(plan.disclosures.statement).toMatch(/NO confidentiality/);
+    const { result } = await runToEnd(inference, plan);
+    expect(result.executionReceipt.evidence.confidentiality).toMatchObject({ status: 'none', contentReadBy: { participants: [identity.peerId] } });
+    expect(result.executionReceipt.evidence.confidentiality.notVerified).toEqual(expect.arrayContaining(['confidentiality', 'requester-held-key']));
   });
 
   it('refuses a route whose leakage the request does not allow', async () => {

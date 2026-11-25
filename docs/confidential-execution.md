@@ -444,8 +444,9 @@ pass the flag, no advertisement or capability list mentions the route, and
    disclosures:
 
    ```json
-   { "contentReadableBy": { "requesterDevice": true, "participants": [], "selection": "all" },
+   { "contentReadableBy": { "requesterDevice": true, "participants": [], "selection": "all", "target": true },
      "executorsReadContent": false,
+     "confidentiality": { "status": "target-not-established", "reason": "parameters not estimated; awaiting independent security review" },
      "metadata": ["model-id", "timing", "length"],
      "computedBy": ["peer:…"],
      "leaks": ["model and circuit identity", "prompt length and generated token count", "ciphertext and message sizes",
@@ -453,8 +454,11 @@ pass the flag, no advertisement or capability list mentions the route, and
      "review": { "available": false, "reason": "awaiting independent security review" } }
    ```
 
-   A request that does not allow all of `model-id`, `timing` and `length` is
-   `LEAKAGE_NOT_ALLOWED`. `run` resolves the route again and refuses any change
+   On an insecure development parameter set the same disclosures list the
+   evaluator in `contentReadableBy.participants`, set `executorsReadContent:
+   true` and `confidentiality.status: "none"`, and the statement says there is
+   no confidentiality. A request that does not allow all of `model-id`,
+   `timing` and `length` is `LEAKAGE_NOT_ALLOWED`. `run` resolves the route again and refuses any change
    (`EXECUTION_PLAN_CHANGED`) before connecting.
 3. **Binding before upload.** The requester sends a `bind-offer` signed with a
    fresh signing key: plan id, route id, descriptor digest, evaluator identity,
@@ -511,8 +515,10 @@ instead:
   logit within the tolerance and the argmax. Only if all pass does it decrypt the
   real lane. A failure decrypts nothing real and ends with `RESULT_UNVERIFIED`;
   no partial text is a result. Rejection depends only on trap results, and the
-  real lane's argmax is total (NaN counts as lowest), so whether a session ends
-  never depends on real content.
+  real lane's argmax is total (NaN counts as lowest), so the requester itself
+  never branches on real values. An evaluator can still make a trap fail on
+  purpose depending on the real input, so whether a session ends can leak one
+  chosen bit about the prompt per attempt (see the review notes).
 
 **Detection.** An evaluator that tampers m of the K lanes, unable to tell them
 apart, is caught in a session with probability 1 − C(K − T, m) / C(K, m). With
@@ -548,8 +554,17 @@ extra in Doppler's own requester, not this route's guarantee.
 
 ### Threat model
 
-- **Confidentiality** rests on RLWE with one secret key that never leaves the
-  requester's key holder, and holds if every remote party colludes. The
+- **Confidentiality is a target, not an established property.** The design
+  rests on RLWE with one secret key that never leaves the requester's key
+  holder, and aims to hold if every remote party colludes. Nothing here shows
+  that it does. The parameters were never security-estimated, the protocol is
+  unreviewed, and on the insecure development parameter set
+  (`dev-insecure-n12`, used by the tests) there is **no confidentiality**. There,
+  the disclosures list the evaluator as a reader. The disclosures and receipts
+  never claim that no one else can read the prompt. They state
+  `confidentiality.status`: `none` for insecure parameters,
+  `target-not-established` otherwise, and the receipt lists `confidentiality`
+  and `requester-held-key` as not verified. The
   evaluator sees the model and circuit identity, the evaluation keys, the prompt
   length, the generated count, ciphertext sizes, per-step timing (Lattigo is not
   constant-time) and network metadata. The requester never returns a decrypted
