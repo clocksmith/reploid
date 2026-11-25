@@ -38,6 +38,7 @@ import { createAttemptEvidenceSigner, openStageReceipts, openOutputAcknowledgmen
 import { PARTITION_ROUTE_SCHEMA, ROUTE_ATTEMPT_SCHEMA } from '../../packages/reploid/src/contracts/partition.js';
 import { acceptSettlementTerms, signSettlementStop, signSettlementTerms, policyDigest } from '../../server/fleet/settlement-terms.js';
 import { replaySettlement } from '../../server/fleet/settlement-replay.js';
+import { openFleetCredits } from '../../server/fleet/credits.js';
 import { fleetCreditQuote } from '../../server/fleet/contract.js';
 import { createFleetClient } from '../../server/fleet/service.js';
 import { createFleetRequester } from '../../server/fleet/requester.js';
@@ -198,12 +199,21 @@ export async function runHeSplit({ config, directory, log = () => {}, now = Date
       accounts.push({ label: 'buyer', participants: [{ participantId: buyer.peerId, publicJwk: buyer.publicJwk }] });
     }
     const earnModel = config.earner ? catalog.find(row => row.id === config.earner.modelId) : null;
-    coordinator = await step('start coordinator', () => startPhysicalCoordinator({ config: { coordinator: config.coordinator, credit: { ...config.credit, weights: [1, 1] } },
-      peers: {}, directory, model: { id: model.id, identity: model.identity, partitionPlanId: planId }, fixture: { maxOutputTokens: config.credit.maxOutputTokens },
-      expectations: { creditsPerOutputToken: cpt }, computers: accounts, allowSameOwner: true, roomPrefix: 'reploid-swarm-he-split-', onSecret: value => redactor.add(value),
-      ...(earnModel ? { earnModel: { id: earnModel.id, identity: earnModel.identity } } : {}) }));
-    redactor.add(coordinator.serviceUrl); redactor.add(coordinator.signalingUrl);
-    credits = coordinator.credits; ledgerFile = coordinator.ledgerFile;
+    if (config.earner) {
+      coordinator = await step('start coordinator', () => startPhysicalCoordinator({ config: { coordinator: config.coordinator, credit: { ...config.credit, weights: [1, 1] } },
+        peers: {}, directory, model: { id: model.id, identity: model.identity, partitionPlanId: planId }, fixture: { maxOutputTokens: config.credit.maxOutputTokens },
+        expectations: { creditsPerOutputToken: cpt }, computers: accounts, allowSameOwner: true, roomPrefix: 'reploid-swarm-he-split-', onSecret: value => redactor.add(value),
+        earnModel: { id: earnModel.id, identity: earnModel.identity } }));
+      redactor.add(coordinator.serviceUrl); redactor.add(coordinator.signalingUrl);
+      credits = coordinator.credits; ledgerFile = coordinator.ledgerFile;
+    } else {
+      // A rehearsal without the earn step: a local ledger under the same policy shape, with a starting grant.
+      ledgerFile = path.join(directory, 'credits.sqlite');
+      credits = await openFleetCredits({ file: ledgerFile, computers: accounts.map(({ label, participants: list }) => ({ id: `computer-${label}`, name: label, ownerId: `owner-${label}`, providers: list })),
+        policy: { schema: 'reploid.service-credit-policy/v1', version: 'he-split-rehearsal/1', unit: 'noncash-service-credit', creditsPerOutputToken: cpt,
+          maxDebt: config.credit.maxDebt, maxOutputTokens: config.credit.maxOutputTokens, maxPendingPerComputer: 2, maxClockSkewMs: 30000,
+          maxRequestMs: config.credit.maxRequestMs, allowSameOwner: true, wholeModelTerminalCharge: 0, partitionUnclaimedReleaseMs: config.credit.partitionUnclaimedReleaseMs } });
+    }
     const accountOf = id => credits.enrollment.byPeer.get(id)?.computerId ?? id;
     const balance = computerId => credits.snapshot().accounts.find(row => row.computerIds.includes(computerId))?.balance ?? null;
     receipt.participants = { accounts: accounts.map(account => ({ accountId: `owner-${account.label}`, participants: account.participants.map(row => row.participantId) })),
@@ -302,9 +312,11 @@ export async function runHeSplit({ config, directory, log = () => {}, now = Date
       await fs.mkdir(work, { recursive: true });
       const reportFile = path.join(work, 'requester-report.json');
       const r = config.doppler;
-      const child = spawn('/usr/bin/time', ['-l', r.requester, 'requester', '--profile', r.profile, '--model-identity', model.identity, '--prompt', kase.prompt,
+      const timed = process.platform === 'darwin' ? ['/usr/bin/time', '-l'] : [];
+      const argv = [...timed, r.requester, 'requester', '--profile', r.profile, '--model-identity', model.identity, '--prompt', kase.prompt,
         '--generate', String(kase.maxTokens), '--stage-a', `${proven[0].endpoint.host}:${proven[0].endpoint.port}`, '--stage-b', `${proven[1].endpoint.host}:${proven[1].endpoint.port}`,
-        '--state-dir', r.requesterStateDirectory, '--report', reportFile, '--events'], { cwd: r.toolsDirectory, stdio: ['pipe', 'pipe', 'pipe'] });
+        '--state-dir', r.requesterStateDirectory, '--report', reportFile, '--events'];
+      const child = spawn(argv[0], argv.slice(1), { cwd: r.toolsDirectory, stdio: ['pipe', 'pipe', 'pipe'] });
       const stderr = [];
       readline.createInterface({ input: child.stderr }).on('line', line => { stderr.push(line.slice(0, 300)); });
       let ended = null, failed = null, stopSent = false;
@@ -403,7 +415,7 @@ export async function runHeSplit({ config, directory, log = () => {}, now = Date
     receipt.error = redactor.text(error?.stack ?? error?.message ?? error);
   } finally {
     for (const session of sessions) { try { session.end(); } catch { /* ended */ } }
-    if (coordinator) await coordinator.close().catch(() => {});
+    if (coordinator) await coordinator.close().catch(() => {}); else try { credits?.close?.(); } catch { /* closed */ }
     receipt.finishedAt = stamp();
   }
   receipt.notEstablished = [
