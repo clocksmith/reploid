@@ -2,7 +2,7 @@ import type { ExecutionPolicy } from '../chat/execution-policy.js';
 import type { ExecutionPlan, PrepareRequest, RunRequest, RouteCandidate, InferenceEvent, InferenceResult, AdmittedRoute, ValidatedPrepareRequest } from './contract.js';
 export * from './contract.js';
 export { createProtectedExecution, PROTECTED_EXECUTION_STATUS, protectedDisclosures } from './protected.js';
-export { createAttestedExecution, ATTESTED_EXECUTION_STATUS, attestedDisclosures, ATTESTED_TRUST_BOUNDARY } from './attested/execution.js';
+export { createAttestedExecution, ATTESTED_EXECUTION_STATUS, attestedDisclosures, ATTESTED_TRUST_BOUNDARY, attestedTrustBoundary } from './attested/execution.js';
 export { connectWebSocketFrames } from './attested/websocket-channel.js';
 import type { ProtectedExecution } from './protected.js';
 import type { AttestedExecution } from './attested/execution.js';

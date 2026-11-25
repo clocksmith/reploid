@@ -4369,7 +4369,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:dc9cfe665d5d63d1dcf366bdfad46b10f322dcb329965507b02b4a7d1cba70ce",
+      "sha256": "sha256:89c74772d4ec699c27464c79569551cdd65784a424c7929aed43d8535ebbd090",
       "imports": []
     },
     {
@@ -19297,7 +19297,7 @@
     {
       "path": "vendor/reploid/inference/attested/execution.js",
       "owner": "vendor",
-      "sha256": "sha256:e151c5252dea33cc0aa060cb31a8ae155a2002537781fdd941a552b17d54d72c",
+      "sha256": "sha256:0cb8726f7d1b53fc28453a3331d7f3365337175d10f2abf0072819d55dbf1a4b",
       "imports": [
         "../../artifacts/signatures.js",
         "../../chat/execution-policy.js",
@@ -19336,7 +19336,7 @@
     {
       "path": "vendor/reploid/inference/attested/verifier.js",
       "owner": "vendor",
-      "sha256": "sha256:c614ee85dca14b868793dc652ddf675f31232a12087532ba443720adad63d64c",
+      "sha256": "sha256:c6344d5671ea926ad545411a92d2fff898b988610f8059b48e5febf337716f23",
       "imports": [
         "../../chat/execution-policy.js",
         "./bytes.js",
@@ -19373,7 +19373,7 @@
     {
       "path": "vendor/reploid/inference/index.js",
       "owner": "vendor",
-      "sha256": "sha256:b1694e9464f694bae1bae62d8bc10678ee646aa34cad91ae1208cbf1e97d4277",
+      "sha256": "sha256:26e50d5a648b2c9e9aa3cac52c317268fe5313fe2163055181c50064f361e9d4",
       "imports": [
         "../artifacts/signatures.js",
         "./attested/execution.js",

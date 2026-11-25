@@ -1416,7 +1416,7 @@
     {
       "path": "config/module-inventory.json",
       "byteLength": 702149,
-      "sha256": "sha256:9d6c9b7d7ffef61ff0e97b3e4f0fd911ce727309c35a2f4809e96ac2bf6f368d"
+      "sha256": "sha256:5751f72cd4950c3af0259b60497b10e8b941f77b9b72f4633b51797c9fd9b718"
     },
     {
       "path": "config/module-registry.json",
@@ -3830,8 +3830,8 @@
     },
     {
       "path": "ui/pool-home/app.bundle.js",
-      "byteLength": 2819923,
-      "sha256": "sha256:dc9cfe665d5d63d1dcf366bdfad46b10f322dcb329965507b02b4a7d1cba70ce"
+      "byteLength": 2820969,
+      "sha256": "sha256:89c74772d4ec699c27464c79569551cdd65784a424c7929aed43d8535ebbd090"
     },
     {
       "path": "ui/pool-home/auto-download.js",
@@ -12180,8 +12180,8 @@
     },
     {
       "path": "vendor/reploid/inference/attested/execution.js",
-      "byteLength": 14093,
-      "sha256": "sha256:e151c5252dea33cc0aa060cb31a8ae155a2002537781fdd941a552b17d54d72c"
+      "byteLength": 18055,
+      "sha256": "sha256:0cb8726f7d1b53fc28453a3331d7f3365337175d10f2abf0072819d55dbf1a4b"
     },
     {
       "path": "vendor/reploid/inference/attested/hpke.js",
@@ -12200,8 +12200,8 @@
     },
     {
       "path": "vendor/reploid/inference/attested/verifier.js",
-      "byteLength": 22465,
-      "sha256": "sha256:c614ee85dca14b868793dc652ddf675f31232a12087532ba443720adad63d64c"
+      "byteLength": 22632,
+      "sha256": "sha256:c6344d5671ea926ad545411a92d2fff898b988610f8059b48e5febf337716f23"
     },
     {
       "path": "vendor/reploid/inference/attested/websocket-channel.js",
@@ -12220,8 +12220,8 @@
     },
     {
       "path": "vendor/reploid/inference/index.js",
-      "byteLength": 17772,
-      "sha256": "sha256:b1694e9464f694bae1bae62d8bc10678ee646aa34cad91ae1208cbf1e97d4277"
+      "byteLength": 17795,
+      "sha256": "sha256:26e50d5a648b2c9e9aa3cac52c317268fe5313fe2163055181c50064f361e9d4"
     },
     {
       "path": "vendor/reploid/inference/protected.js",
@@ -12601,7 +12601,7 @@
     {
       "path": "vendor/reploid/package-assets.json",
       "byteLength": 64741,
-      "sha256": "sha256:2aef8dbc12c7a8118ee9da79b77d83df844b67bcc6d0ad73da082af6ba1b958b"
+      "sha256": "sha256:6b59ac853d417992f006c24bd823e0e1510602927fb76e03c5cb986176336806"
     },
     {
       "path": "vendor/reploid/plugins/index.js",
@@ -12889,5 +12889,5 @@
       "sha256": "sha256:abb6c18f6167d6afc8ee1b3adfcbbb89c0e93fb4fc4e98d7a12250f78aab206a"
     }
   ],
-  "bundleHash": "sha256:f95ff3c04c18ed1cdea6f0d41dcddc5e4463ff67216113c8c43c144093278a0e"
+  "bundleHash": "sha256:311afabc24fd303d3027afd362d99480ea8220df5839c04bc06069aacaa98aab"
 }

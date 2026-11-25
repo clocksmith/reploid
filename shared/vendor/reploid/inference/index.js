@@ -21,7 +21,7 @@ import {
 
 export * from './contract.js';
 export { createProtectedExecution, PROTECTED_EXECUTION_STATUS, protectedDisclosures } from './protected.js';
-export { createAttestedExecution, ATTESTED_EXECUTION_STATUS, attestedDisclosures, ATTESTED_TRUST_BOUNDARY } from './attested/execution.js';
+export { createAttestedExecution, ATTESTED_EXECUTION_STATUS, attestedDisclosures, ATTESTED_TRUST_BOUNDARY, attestedTrustBoundary } from './attested/execution.js';
 export { connectWebSocketFrames } from './attested/websocket-channel.js';
 
 const DEFAULT_PLAN_TTL_MS = 120000;
