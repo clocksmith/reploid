@@ -48,6 +48,7 @@ for (const item of expected.receipts) {
   for (const row of verdict.attempts) {
     const f = row.facts;
     say(`  ${row.ok ? 'PASS' : 'FAIL'} ${row.name}: ${f.status ?? '-'}, requester charged ${f.debit ?? '-'}, paid ${JSON.stringify(f.payouts ?? {})}`);
+    if (f.accounts) say(`    accounts, each signed by its own party: requester ${f.accounts.requester}; stages ${f.accounts.stages.join(', ')}`);
     if (f.ownAccountStages?.length) say(`    note: ${f.ownAccountStages.length} stage(s) on the requester's own account, neither charged nor paid; no signed record confirms that grouping`);
     for (const problem of row.problems) say(`    problem: ${problem}`);
   }

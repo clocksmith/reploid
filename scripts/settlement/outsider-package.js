@@ -55,6 +55,7 @@ function readme({ title, commit, receipts, expected, fileCount }) {
   const lines = item => [
     item.label,
     ...item.attempts.flatMap(row => [`  ${row.ok ? 'PASS' : 'FAIL'} ${row.name}: ${row.facts.status ?? '-'}, requester charged ${row.facts.debit ?? '-'}, paid ${JSON.stringify(row.facts.payouts ?? {})}`,
+      ...(row.facts.accounts ? [`    accounts, each signed by its own party: requester ${row.facts.accounts.requester}; stages ${row.facts.accounts.stages.join(', ')}`] : []),
       ...(row.facts.ownAccountStages?.length ? [`    note: ${row.facts.ownAccountStages.length} stage(s) on the requester's own account, neither charged nor paid; no signed record confirms that grouping`] : [])]),
     `  ${item.ok ? 'The trade verifies' : 'The trade does NOT verify'}, and the result is the expected one.`];
   return `# ${title}
@@ -107,7 +108,7 @@ written verifiers must agree on every attempt.
 
 It does not show who owns a key, that the computation itself was correct, that nobody withheld a record, or when a
 record was really signed. Where a receipt places stages on the requester's own account without a signed record of
-that, the verifier says so in a note.
+that, the verifier says so in a note. Where the parties signed their own accounts, it prints them instead.
 
 ## Where the verifier comes from
 
