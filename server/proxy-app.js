@@ -21,6 +21,7 @@ import { installJsonBodyMiddleware } from './json-body-middleware.js';
 import { createExternalBrainRouter } from './external-brain.js';
 import { mountEarningRoutes } from './earning-routes/mount.js';
 import { mountTextApi } from './text-api-mount.js';
+import { mountSelfServeFleet } from './fleet/self-serve-mount.js';
 import { mountSearchRoutes } from './search/mount.js';
 import { mountLandingAttribution } from './landing-attribution.js';
 import { createFirebaseStore } from './pool/firebase-store.js';
@@ -349,6 +350,10 @@ const runtimeServices = createProxyRuntimeServices({ localEndpoint: LOCAL_MODEL_
 // their own bounded bodies, so they mount before the general JSON parser, and no loopback or
 // local-development bypass applies to them. An invalid or unsafe configuration stops startup.
 const textApi = await mountTextApi(app, { env: process.env });
+// Hosted self-serve accounts and fleet credits at /v1/fleet, off unless REPLOID_FLEET_SELF_SERVE=enabled.
+// Like the earning routes they parse their own bounded bodies and refuse the test sign-in in production.
+const selfServeFleet = await mountSelfServeFleet(app, { env: process.env });
+if (selfServeFleet.mounted) console.log(`[Fleet self-serve] Mounted at ${selfServeFleet.prefix} (production: ${selfServeFleet.production})`);
 try {
   const earningRoutes = await mountEarningRoutes(app, { env: process.env });
   if (earningRoutes.mounted) {
@@ -655,7 +660,7 @@ server.on('upgrade', (req, socket, head) => {
 
 let closing;
 const close = () => closing ??= (async () => {
-  const resources = [runtimeServices, textApi, externalBrain, publicSwarmServer, signalingServer, agentBridge];
+  const resources = [runtimeServices, textApi, selfServeFleet, externalBrain, publicSwarmServer, signalingServer, agentBridge];
   const results = await Promise.allSettled(resources.filter(Boolean).map(resource => Promise.resolve().then(() => resource.close())));
   if (server.listening) await new Promise((resolve, reject) => server.close(error => error ? reject(error) : resolve()));
   const errors = results.filter(result => result.status === 'rejected').map(result => result.reason);
