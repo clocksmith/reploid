@@ -20,7 +20,7 @@ Inputs:
 - `GET /v1/client` from the page's own server; the [earning client](../earning/CATSCAN.md); [Supabase sign-in](../supabase-sign-in.js).
 
 Outputs:
-- `openBrowserEarning` and `deferredEarning` in [browser.js](browser.js) for the product session and the Settings [credits panel](../../ui/pool-home/account-panel.js).
+- `openBrowserEarning` and `deferredEarning` in [browser.js](browser.js) for the product session and the Settings credits panel ([hostSettings.ts](../../../poolday-react/src/features/settings/infrastructure/hostSettings.ts)).
 
 ## Invariants
 - Off unless the page's server publishes the service; failures leave the product unchanged.
@@ -33,7 +33,7 @@ Outputs:
 - Conversation text never travels.
 
 ## Acceptance
-- Evidence: [composition](../../../../tests/integration/earning-browser.test.js), [identity](../../../../tests/unit/product-session-registered-identity.test.js), [deadline](../../../../tests/unit/earning-first-output.test.js) and [panel](../../../../tests/unit/account-panel.test.js) tests.
+- Evidence: [composition](../../../../tests/integration/earning-browser.test.js), [identity](../../../../tests/unit/product-session-registered-identity.test.js), [deadline](../../../../tests/unit/earning-first-output.test.js) and [panel](../../../../tests/unit/settings-account-data.test.tsx) tests.
 - Limits: live Supabase and Stripe, installed browsers and physical devices await acceptance.
 
 ## Non-goals

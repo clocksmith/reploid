@@ -44,8 +44,8 @@ policy, `scripts/poolday-ui-architecture.json`.
 - a layer importing a layer it may not, one feature importing another, a package not
   allowlisted for the layer, reaching past `@reploid/poolday-ui`'s entry, unresolvable or
   computed imports, cycles, symlinks and manifest drift;
-- platform globals outside infrastructure and composition, and React beyond hooks and types in
-  presentation;
+- platform globals outside infrastructure and composition, and React beyond hooks, types and `memo`
+  (so a message re-renders only when its own record changes) in presentation;
 - for `packages/reploid/src`: React or design-system imports, JSX, markup writes
   (`innerHTML` and the like), DOM globals, and public entries without types; only
   infrastructure may import the bridge, and only its public entries.
@@ -67,19 +67,31 @@ The Zero / X RD specimen is at `/x/design`.
 
 ## Migration status
 
-Every product route still runs the vanilla shell. `/design` is the first page built from the
-library. The conversation, Answer on, thread, Computers, Settings and Connect a desktop screens
-exist as compositions on `/design`, driven by synthetic records; none is wired to a product
-route yet. Each moves behind its real route in its own change, with the e2e journeys as the
-parity bar, and `/` stays on the vanilla shell until the owner switches it.
+The conversation workspace is the React product. `index.html` and `pool-entry.html` load
+`/ui/react/app.js` on `/` and `/network` and the vanilla bundle only on the specialist routes.
+`apps/poolday-react/src/main-app.tsx` keeps the vanilla entry contract (`initPoolHome`) and adds
+`mountPoolday(root, { host, viewState })`, which the browser journeys use to mount the product on
+a fixture host.
 
-| Screen | React (`@reploid/poolday-ui`) | Product routes |
+The screens render records and call commands; the decisions stay framework-free in
+`apps/poolday/host/decisions/`. The conversation controller
+(`conversation-controller.js`) is the vanilla workspace binding with the DOM taken out: drafts,
+"Answer on", "Who can read it?", the queued Send, the reviewed download, threads and the
+transcript, decided by the same functions the vanilla page called. The transcript keeps each
+message's record until that message or its attempt changes, so an update costs the same with 2
+threads or 30 (`tests/unit/poolday-conversation-controller.test.js`).
+
+| Screen | React (`@reploid/poolday-ui`) | Still vanilla |
 | --- | --- | --- |
 | `/design` | Whole page | |
-| Conversation: transcript, receipts, composer | Composition on `/design` | Vanilla |
-| Answer on and the reviewed download | Compositions on `/design` | Vanilla |
-| Threads | Composition on `/design` | Vanilla |
-| Computers, Settings, Connect a desktop | Compositions on `/design` | Vanilla |
+| Conversation: transcript, receipts, composer, queued Send | `features/chat` | |
+| Answer on, Who can read it?, the reviewed download | `features/chat` | |
+| Threads: list, rename, archive, new | `features/chat` | |
+| Conversation details | `features/details` | |
+| Computers, Connect a desktop, the account, contribution | `features/computers` | |
+| Settings | `features/settings` | |
+| First visit, loading, failure, history handover | `app/` | |
+| Specialist routes (`/ask`, `/compute`, `/records`, `/room-1`, `/history`, `/improve`, `/examples`, `/experiments`) | | Vanilla shell |
 
 `scripts/poolday-ui-ratchet.json` records what remains in the vanilla interface; it falls as
-each vanilla screen is deleted after `/` moves.
+each vanilla screen is deleted.

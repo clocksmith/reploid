@@ -57,6 +57,7 @@ const PATHS = {
     </>
   ),
   close: <path d="m6 6 12 12M18 6 6 18" />,
+  tokens: <path d="M8 4 6 20M18 4l-2 16M3 9h18M2 15h18" />,
   activity: <path d="M3 12h4l3-7 4 14 3-7h4" />,
   peers: (
     <>

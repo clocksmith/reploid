@@ -27,6 +27,10 @@ type CommonButtonProps = {
   readonly hasPopup?: 'dialog' | 'menu';
   readonly controls?: string;
   readonly describedBy?: string;
+  /** The accessible name, when the visible label alone is not enough. */
+  readonly accessibleLabel?: string;
+  /** A tooltip with more detail. */
+  readonly title?: string;
   readonly data?: DataAttributes;
 };
 
@@ -47,6 +51,8 @@ export function Button({
   hasPopup,
   controls,
   describedBy,
+  accessibleLabel,
+  title,
   data,
 }: CommonButtonProps & {
   readonly label: string;
@@ -64,7 +70,7 @@ export function Button({
   );
   if (href !== undefined) {
     return (
-      <a className={cx(className, 'pool-plain')} href={href} aria-current={current ? 'page' : undefined} {...dataProps(data)}>
+      <a className={cx(className, 'pool-plain')} href={href} aria-current={current ? 'page' : undefined} aria-label={accessibleLabel} title={title} {...dataProps(data)}>
         {content}
       </a>
     );
@@ -83,6 +89,8 @@ export function Button({
       aria-describedby={describedBy}
       aria-busy={pending || undefined}
       aria-live={pending ? 'polite' : undefined}
+      aria-label={accessibleLabel}
+      title={title}
       {...dataProps(data)}
     >
       {content}
@@ -129,14 +137,24 @@ export function IconButton({
 export function Chip({
   label,
   onPress,
+  concealed = false,
   data,
 }: {
   readonly label: string;
   readonly onPress: () => void;
+  /** Keeps its space but is not shown or reachable, so neighbours never move when it returns. */
+  readonly concealed?: boolean;
   readonly data?: DataAttributes;
 }) {
   return (
-    <button type="button" className="pool-chip" onClick={onPress} {...dataProps(data)}>
+    <button
+      type="button"
+      className={cx('pool-chip', concealed && 'pool-concealed')}
+      onClick={concealed ? undefined : onPress}
+      aria-hidden={concealed || undefined}
+      tabIndex={concealed ? -1 : undefined}
+      {...dataProps(data)}
+    >
       {label}
     </button>
   );

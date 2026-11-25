@@ -21,7 +21,7 @@ Subtree.
 
 Inputs: [catalog](../../../shared/config/chat-models.json), [runtime](../pool/CATSCAN.md).
 
-Outputs: [product session](product-session.js), [conversations](chat-session.js).
+Outputs: [product session](product-session.js), [conversations](chat-session.js), screen decisions ([decisions/](decisions/conversation-controller.js)).
 
 ## Invariants
 - Disconnect prevents rejoin. Discovery grants no authority; operator config assigns stages/`auto`.

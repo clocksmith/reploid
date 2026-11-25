@@ -1,15 +1,32 @@
 import { useState, type ReactNode } from 'react';
 import {
   Badge,
+  BarButton,
   Button,
+  ConversationLayout,
+  Drawer,
+  MessageRow,
+  MessageText,
+  Menu,
+  Readout,
+  SelectorButton,
+  StatusDot,
+  ThreadItem,
+  Toolbar,
+  Transcript,
+  Workspace,
+  WorkspaceBar,
   Card,
   Chip,
+  CodeBlock,
   Columns,
   Dialog,
   Disclosure,
   Divider,
   Facts,
+  Stats,
   Field,
+  FilePicker,
   Frame,
   Grow,
   Icon,
@@ -26,6 +43,7 @@ import {
   Prose,
   Row,
   Section,
+  ShareBar,
   Sheet,
   SingleChoice,
   Spinner,
@@ -179,7 +197,135 @@ function DialogSpecimen({ sheet }: { readonly sheet: boolean }) {
   );
 }
 
+function DrawerSpecimen() {
+  const [open, setOpen] = useState(true);
+  return (
+    <Stack gap="md">
+      <Row>
+        <Button label={open ? 'Drawer open' : 'Open the drawer'} pressed={open} onPress={() => setOpen(true)} />
+      </Row>
+      <Drawer side="end" title="Computers" open={open} onClose={() => setOpen(false)} closeLabel="Close">
+        <Text variant="small">Escape or Close returns focus to what opened it.</Text>
+      </Drawer>
+    </Stack>
+  );
+}
+
+function WorkspaceSpecimen() {
+  const [threads, setThreads] = useState(false);
+  return (
+    <Workspace
+      bar={
+        <WorkspaceBar label="Workspace destinations" lead={<BarButton icon="threads" label="Threads" href="#threads" current={threads} onPress={() => setThreads(!threads)} />}>
+          <BarButton icon="activity" label="Conversation details" href="#details" onPress={() => undefined} />
+          <BarButton icon="peers" label="Computers" href="#computers" onPress={() => undefined} />
+          <BarButton icon="settings" label="Settings" href="#settings" onPress={() => undefined} />
+        </WorkspaceBar>
+      }
+      start={
+        <Drawer side="start" title="Threads" open={threads} onClose={() => setThreads(false)} closeLabel="Close">
+          <Text variant="small">The conversation keeps its place while a drawer is open.</Text>
+        </Drawer>
+      }
+    >
+      <ConversationLayout transcript={<Transcript label="Messages" conversation={null}>{null}</Transcript>} composer={<Text variant="small" muted>The composer sits here.</Text>} />
+    </Workspace>
+  );
+}
+
 const SPECIMENS: Record<string, () => ReactNode> = {
+  StatusDot: () => (
+    <Row gap="md">
+      <Row gap="xs"><StatusDot state="ready" /><Text as="span" variant="small">Ready</Text></Row>
+      <Row gap="xs"><StatusDot state="waiting" /><Text as="span" variant="small">Finding computers</Text></Row>
+      <Row gap="xs"><StatusDot state="unavailable" /><Text as="span" variant="small">Unavailable</Text></Row>
+    </Row>
+  ),
+  Readout: () => (
+    <Readout
+      items={[
+        { icon: 'privacy', text: 'Readable by This device', title: 'Readable by This device. Checked here: content stayed on this device.' },
+        { icon: 'activity', text: '41.2 tok/s', title: 'Generation average including prompt processing; excludes queue and model loading' },
+        { icon: 'tokens', text: '128 tokens', title: '128 generated tokens' },
+        { icon: 'clock', text: '3.1 s', title: 'Generation time including prompt processing' },
+      ]}
+    />
+  ),
+  Toolbar: () => (
+    <Toolbar label="Composer controls">
+      <IconButton label="Attach text files" icon="attach" onPress={() => undefined} />
+      <Button variant="quiet" icon="privacy" label="Your devices" onPress={() => undefined} />
+      <IconButton variant="primary" label="Send" icon="send" onPress={() => undefined} />
+    </Toolbar>
+  ),
+  SelectorButton: () => (
+    <Stack gap="sm">
+      <SelectorButton label="Answer on This device · Qwen 3.5 2B, Ready" status="ready" parts={[{ text: 'This device' }, { text: 'Qwen 3.5 2B' }]} onPress={() => undefined} />
+      <SelectorButton label="Answer on, Finding computers" status="waiting" parts={[{ text: 'Finding computers…' }]} onPress={() => undefined} />
+    </Stack>
+  ),
+  Menu: () => (
+    <Row>
+      <Menu label="Actions for Ocean tides" items={[{ label: 'Rename', onPress: () => undefined }, { label: 'Archive', onPress: () => undefined }]} />
+    </Row>
+  ),
+  MessageText: () => <MessageText label="Your message">Explain ocean tides in two sentences.</MessageText>,
+  MessageRow: () => (
+    <Stack gap="lg">
+      <MessageRow role="user">
+        <MessageText label="Your message">Explain ocean tides in two sentences.</MessageText>
+      </MessageRow>
+      <MessageRow role="assistant" footer={<Text as="span" variant="caption">This device · 3.1 s</Text>}>
+        <Prose markdown="The Moon's gravity pulls the oceans into a bulge, and the Earth turns beneath it." />
+      </MessageRow>
+      <MessageRow role="assistant" author="Thinking…" />
+    </Stack>
+  ),
+  Transcript: () => (
+    <Transcript label="Messages" conversation="specimen">
+      <MessageRow role="user">
+        <MessageText label="Your message">What makes a good night sky for stargazing?</MessageText>
+      </MessageRow>
+      <MessageRow role="assistant">
+        <Prose markdown="Dark, dry and steady air, far from city lights, with the Moon below the horizon." />
+      </MessageRow>
+    </Transcript>
+  ),
+  ConversationLayout: () => (
+    <ConversationLayout
+      transcript={
+        <Transcript label="Messages" conversation="layout">
+          <MessageRow role="assistant">
+            <Prose markdown="The transcript fills the column and scrolls." />
+          </MessageRow>
+        </Transcript>
+      }
+      notices={<Notice>Notices sit under the transcript.</Notice>}
+      composer={<InputGroup><Text variant="small" muted>The composer stays at the bottom.</Text></InputGroup>}
+    />
+  ),
+  ThreadItem: () => (
+    <Stack gap="sm">
+      <ThreadItem title="Ocean tides" digest="Complete" monogram="O" time="2m" current label="Ocean tides: Complete" onPress={() => undefined} menu={<Menu label="Actions for Ocean tides" items={[{ label: 'Rename', onPress: () => undefined }]} />} />
+      <ThreadItem title="Night sky" digest="Generating" monogram="N" time="now" mark="working" activity="executing" label="Night sky: Generating" onPress={() => undefined} />
+      <ThreadItem title="Trip plan" digest="New answer" monogram="T" time="1h" mark="unread" label="Trip plan: New answer" onPress={() => undefined} />
+      <ThreadItem title="Recipe" digest="Interrupted" monogram="R" time="1d" mark="attention" label="Recipe: Interrupted" onPress={() => undefined} />
+    </Stack>
+  ),
+  BarButton: () => (
+    <Row>
+      <BarButton icon="threads" label="Threads" href="#threads" current onPress={() => undefined} />
+      <BarButton icon="peers" label="Computers" href="#computers" onPress={() => undefined} />
+    </Row>
+  ),
+  WorkspaceBar: () => (
+    <WorkspaceBar label="Workspace destinations" lead={<BarButton icon="threads" label="Threads" href="#threads" onPress={() => undefined} />}>
+      <BarButton icon="activity" label="Conversation details" href="#details" onPress={() => undefined} />
+      <BarButton icon="settings" label="Settings" href="#settings" onPress={() => undefined} />
+    </WorkspaceBar>
+  ),
+  Drawer: () => <DrawerSpecimen />,
+  Workspace: () => <WorkspaceSpecimen />,
   PooldayRoot: () => (
     <Columns>
       <PooldayRoot theme="dark">
@@ -223,6 +369,7 @@ const SPECIMENS: Record<string, () => ReactNode> = {
     </Text>
   ),
   Facts: () => <Facts items={[['Answered on', 'This device'], ['Model', 'Qwen 3.5 2B'], ['Time', '1.4 s']]} />,
+  Stats: () => <Stats label="Recorded output tokens" items={[['Tokens supplied', '12,480'], ['Tokens consumed', '3,072']]} />,
   Icon: () => (
     <Row gap="md">
       {ICON_NAMES.map((name) => (
@@ -428,6 +575,13 @@ const SPECIMENS: Record<string, () => ReactNode> = {
   ),
   Dialog: () => <DialogSpecimen sheet={false} />,
   Sheet: () => <DialogSpecimen sheet />,
+  CodeBlock: () => <CodeBlock>{'{\n  "kind": "permission",\n  "recipient": "peer:a1b2"\n}'}</CodeBlock>,
+  ShareBar: () => <ShareBar label="Recorded step time share: This device 62%, Desktop 38%" shares={[0.62, 0.38]} />,
+  FilePicker: () => (
+    <FilePicker label="Data export file" accept=".json" onFiles={() => undefined}>
+      {(open) => <Button icon="upload" label="Import data" onPress={open} />}
+    </FilePicker>
+  ),
   TokenSwatch: () => (
     <Row gap="md">
       <TokenSwatch name="--pool-color-ink" kind="color" />

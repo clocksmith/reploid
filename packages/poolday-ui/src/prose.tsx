@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { useLayoutEffect, useRef, useState, type MouseEvent, type ReactNode } from 'react';
 
 // Bounded Markdown presentation, ported from apps/poolday/ui/components/message-markdown.js: the
 // same grammar and limits, rendered as React elements. No HTML is evaluated; links open only
@@ -91,11 +91,59 @@ function parse(value: string, targets: ReadonlyMap<string, string>): Node[] {
 
 const ALLOWED = new Set(['p', 'pre', 'code', 'h3', 'h4', 'h5', 'h6', 'table', 'thead', 'tbody', 'tr', 'th', 'td', 'ul', 'ol', 'li', 'a', 'strong', 'em', 'span']);
 
-function render(nodes: Node[], prefix: string): ReactNode[] {
+type CopyLabels = { readonly copy: string; readonly copied: string } | null;
+const plainText = (nodes: Node[]): string => nodes.map((node) => ('text' in node ? node.text : plainText(node.children))).join('');
+
+/** A code block with its own Copy action, which says when it copied. */
+function CodeBlock({ code, labels, children }: { readonly code: string; readonly labels: { readonly copy: string; readonly copied: string }; readonly children: ReactNode }) {
+  const [copied, setCopied] = useState(false);
+  return (
+    <pre>
+      <button
+        type="button"
+        className="pool-button btn-ghost pool-caption"
+        data-copy-code=""
+        onClick={() => {
+          void navigator.clipboard?.writeText(code).then(() => setCopied(true), () => undefined);
+        }}
+      >
+        {copied ? labels.copied : labels.copy}
+      </button>
+      {children}
+    </pre>
+  );
+}
+
+/**
+ * A run of text that grows in place: while an answer streams, new text is appended to the same text node, so a
+ * reader's selection and the node itself survive each update. Other changes replace the text.
+ */
+function StreamText({ text }: { readonly text: string }) {
+  const span = useRef<HTMLSpanElement>(null);
+  const shown = useRef('');
+  useLayoutEffect(() => {
+    const node = span.current;
+    if (!node || shown.current === text) return;
+    const leaf = node.firstChild;
+    if (leaf instanceof Text && shown.current && text.startsWith(shown.current)) leaf.appendData(text.slice(shown.current.length));
+    else node.textContent = text;
+    shown.current = text;
+  }, [text]);
+  return <span ref={span} data-text-block="" />;
+}
+
+function render(nodes: Node[], prefix: string, labels: CopyLabels = null): ReactNode[] {
   return nodes.map((node, index) => {
     const key = `${prefix}${index}`;
-    if ('text' in node) return node.text;
-    if (!ALLOWED.has(node.tag)) return node.children.length ? render(node.children, `${key}.`) : null;
+    if ('text' in node) return <StreamText key={key} text={node.text} />;
+    if (!ALLOWED.has(node.tag)) return node.children.length ? render(node.children, `${key}.`, labels) : null;
+    if (node.tag === 'pre' && labels) {
+      return (
+        <CodeBlock key={key} code={plainText(node.children)} labels={labels}>
+          {render(node.children, `${key}.`)}
+        </CodeBlock>
+      );
+    }
     const Tag = node.tag as 'span';
     const { scope, start, href, target, rel, title } = node.attrs;
     const props: Record<string, string | number | undefined> = { scope, href, target, rel, title };
@@ -103,7 +151,7 @@ function render(nodes: Node[], prefix: string): ReactNode[] {
     if ('data-source-reference' in node.attrs) props['data-source-reference'] = '';
     return (
       <Tag key={key} {...props}>
-        {render(node.children, `${key}.`)}
+        {render(node.children, `${key}.`, labels)}
       </Tag>
     );
   });
@@ -114,15 +162,31 @@ export function Prose({
   markdown,
   sources = new Map(),
   label,
+  copyLabels = null,
 }: {
   readonly markdown: string;
   /** Citation markers that link: marker text ("1" or "D1:P2") to the id of its source element. */
   readonly sources?: ReadonlyMap<string, string>;
   readonly label?: string;
+  /** With labels, each code block offers Copy. */
+  readonly copyLabels?: { readonly copy: string; readonly copied: string } | null;
 }) {
+  // A citation opens and focuses the passage it names, inside its folded document, without leaving the page.
+  const onClick = (event: MouseEvent<HTMLDivElement>) => {
+    const link = (event.target as Element).closest?.('[data-source-reference]');
+    const id = link?.getAttribute('href')?.slice(1);
+    const passage = id ? link?.ownerDocument.getElementById(id) : null;
+    if (!passage) return;
+    event.preventDefault();
+    const folded = passage.closest('details');
+    if (folded) folded.open = true;
+    if (!passage.hasAttribute('tabindex')) passage.setAttribute('tabindex', '-1');
+    passage.focus({ preventScroll: true });
+    passage.scrollIntoView({ block: 'nearest' });
+  };
   return (
-    <div className="pool-prose pool-prose-blocks pool-body" aria-label={label}>
-      {render(parse(markdown, sources), 'p')}
+    <div className="pool-prose pool-prose-blocks pool-body" aria-label={label} onClick={onClick}>
+      {render(parse(markdown, sources), 'p', copyLabels)}
     </div>
   );
 }

@@ -49,7 +49,7 @@ assessment behind it are in [docs/poolday-ui-architecture.md](docs/poolday-ui-ar
   | ui | `packages/poolday-ui/src/` | ui, `react` |
   | domain | `features/<f>/domain/` | domain |
   | infrastructure | `features/<f>/infrastructure/` | domain, platform globals, the API bridge's public entries and `apps/poolday/host/` |
-  | presentation | `features/<f>/presentation/` | ui, domain, application, l10n, React hooks and types |
+  | presentation | `features/<f>/presentation/` | ui, domain, application, l10n, React hooks, types and `memo` |
   | composition | `app/`, `main-*.tsx` | everything, `react-dom/client`, platform globals |
   | l10n | `l10n/` | l10n |
 

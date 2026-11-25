@@ -9,9 +9,9 @@ import { parseTokenValues } from '../../../apps/poolday-react/src/features/desig
 import { designIndex } from '../../../apps/poolday-react/src/app/designIndex.generated';
 import { compositionSpecimens } from '../../../apps/poolday-react/src/app/designSpecimens';
 import * as fixtures from '../../../apps/poolday-react/src/app/designFixtures';
-import { Composer } from '../../../apps/poolday-react/src/features/chat/presentation/Composer';
-import { ModelSheet } from '../../../apps/poolday-react/src/features/chat/presentation/ModelSheet';
-import { ThreadList } from '../../../apps/poolday-react/src/features/chat/presentation/ThreadList';
+import type { ConversationCommands } from '../../../apps/poolday-react/src/features/chat/domain/conversation';
+import { ComposerBar } from '../../../apps/poolday-react/src/features/chat/presentation/ComposerBar';
+import { DownloadDialog } from '../../../apps/poolday-react/src/features/chat/presentation/ChatDialogs';
 import { buildDesignIndex, renderDesignIndex } from '../../../scripts/build-poolday-design-index.mjs';
 
 const repo = resolve(import.meta.dirname, '..', '..', '..');
@@ -86,7 +86,7 @@ describe('design page', () => {
       const frame = within(article).getByRole('figure');
       expect(frame.textContent?.trim().length, composition.name).toBeGreaterThan(20);
     }
-    expect(within(document.querySelector('[data-composition="ModelSheet"]') as HTMLElement).getByRole('dialog', { name: 'Answer on' })).toBeTruthy();
+    expect(within(document.querySelector('[data-composition="AnswerOnSheet"]') as HTMLElement).getByRole('dialog', { name: 'Answer on' })).toBeTruthy();
   });
 
   it('shows loading and failure states for token values', () => {
@@ -98,49 +98,36 @@ describe('design page', () => {
   });
 });
 
-describe('compositions', () => {
-  it('model sheet: one computer, one model, the reason first and a primary that says what it does', async () => {
-    const onComputer = vi.fn();
-    const onCommit = vi.fn();
-    const { rerender } = render(
-      <ModelSheet presentation="inline" open state={fixtures.sheetReady} onClose={() => undefined} onComputer={onComputer} onModel={() => undefined} onCommit={onCommit} onWhoCanRead={() => undefined} />,
-    );
-    const computers = screen.getByRole('radiogroup', { name: 'Computer' });
-    expect(within(computers).getAllByRole('radio').filter((radio) => (radio as HTMLInputElement).checked)).toHaveLength(1);
-    await userEvent.click(within(computers).getByRole('radio', { name: 'Contributors' }));
-    expect(onComputer).toHaveBeenCalledWith('network');
-    await userEvent.click(screen.getByRole('button', { name: 'Answer on this device' }));
-    expect(onCommit).toHaveBeenCalledOnce();
-    rerender(
-      <ModelSheet presentation="inline" open state={fixtures.sheetSearching} onClose={() => undefined} onComputer={onComputer} onModel={() => undefined} onCommit={onCommit} onWhoCanRead={() => undefined} />,
-    );
-    expect(screen.getByRole('button', { name: 'Answer with contributors' })).toHaveProperty('disabled', true);
-    expect(screen.getAllByRole('status').some((node) => node.textContent?.startsWith('Finding computers'))).toBe(true);
-  });
+const commands = (overrides: Partial<ConversationCommands> = {}) =>
+  new Proxy(overrides, { get: (target, key) => (target as Record<string | symbol, unknown>)[key] ?? (() => undefined) }) as ConversationCommands;
 
-  it('composer: Enter sends a draft, Stop replaces Send while running, errors are alerts', async () => {
-    const onSend = vi.fn();
-    const onStop = vi.fn();
-    const { rerender } = render(
-      <Composer state={{ ...fixtures.composer, draft: 'Hello' }} onDraft={() => undefined} onSend={onSend} onStop={onStop} onOpenAnswerOn={() => undefined} />,
-    );
+describe('compositions', () => {
+  it('composer: Enter sends a draft, Stop replaces Send while running, and the next action follows the status', async () => {
+    const send = vi.fn();
+    const stop = vi.fn();
+    const cancelQueuedSend = vi.fn();
+    const { rerender } = render(<ComposerBar composer={{ ...fixtures.composer, draft: 'Hello' }} commands={commands({ send, stop })} focusSignal={0} answerOnFocus={0} />);
     await userEvent.type(screen.getByRole('textbox', { name: 'Message' }), '{Enter}');
-    expect(onSend).toHaveBeenCalledOnce();
-    expect(screen.getByRole('button', { name: /Answer on/ }).getAttribute('aria-haspopup')).toBe('dialog');
-    rerender(<Composer state={{ ...fixtures.composer, running: true, error: 'Disconnected' }} onDraft={() => undefined} onSend={onSend} onStop={onStop} onOpenAnswerOn={() => undefined} />);
+    expect(send).toHaveBeenCalledOnce();
+    expect(screen.getByRole('button', { name: /^Answer on This device/ }).getAttribute('aria-haspopup')).toBe('dialog');
+    rerender(<ComposerBar composer={fixtures.composerRunning} commands={commands({ send, stop })} focusSignal={0} answerOnFocus={0} />);
     expect(screen.queryByRole('button', { name: 'Send' })).toBeNull();
     await userEvent.click(screen.getByRole('button', { name: 'Stop' }));
-    expect(onStop).toHaveBeenCalledOnce();
-    expect(screen.getAllByRole('alert').map((node) => node.textContent)).toContain('Disconnected');
+    expect(stop).toHaveBeenCalledOnce();
+    rerender(<ComposerBar composer={fixtures.composerQueued} commands={commands({ cancelQueuedSend })} focusSignal={0} answerOnFocus={0} />);
+    expect(document.querySelector('[data-model-status]')?.textContent).toBe('Waiting for a computer running Gemma 27B…');
+    await userEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+    expect(cancelQueuedSend).toHaveBeenCalledOnce();
   });
 
-  it('thread list: exactly one current thread; the empty state says so', async () => {
-    const onSelect = vi.fn();
-    const { rerender } = render(<ThreadList threads={fixtures.threads} current="t2" view="active" onView={() => undefined} onSelect={onSelect} onNew={() => undefined} />);
-    expect(document.querySelectorAll('[aria-current="true"]')).toHaveLength(1);
-    await userEvent.click(screen.getByRole('button', { name: /Recipe for four/ }));
-    expect(onSelect).toHaveBeenCalledWith('t3');
-    rerender(<ThreadList threads={[]} current={null} view="active" onView={() => undefined} onSelect={onSelect} onNew={() => undefined} />);
-    expect(screen.getByText('No threads yet.')).toBeTruthy();
+  it('download: the size is checked before the primary can download', async () => {
+    const confirmDownload = vi.fn();
+    const { rerender } = render(<DownloadDialog presentation="inline" download={fixtures.downloadChecking} commands={commands({ confirmDownload })} />);
+    expect((screen.getByRole('button', { name: 'Download model' }) as HTMLButtonElement).disabled).toBe(true);
+    expect(document.querySelector('[data-download-size]')?.textContent).toBe('Checking download size…');
+    rerender(<DownloadDialog presentation="inline" download={fixtures.downloadReady} commands={commands({ confirmDownload })} />);
+    expect(document.querySelector('[data-download-size]')?.textContent).toBe('640 MB download');
+    await userEvent.click(screen.getByRole('button', { name: 'Download model' }));
+    expect(confirmDownload).toHaveBeenCalledOnce();
   });
 });

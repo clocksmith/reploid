@@ -1,4 +1,4 @@
-import { useId, type KeyboardEvent, type ReactNode } from 'react';
+import { useEffect, useId, useRef, type KeyboardEvent, type ReactNode } from 'react';
 import { cx, dataProps, type DataAttributes } from './internal.js';
 
 type FieldProps = {
@@ -72,10 +72,18 @@ export function Field({
   required,
   maxLength,
   autoFocus,
+  min,
+  max,
+  spellCheck,
   data,
 }: FieldProps & {
   readonly type?: 'text' | 'search' | 'url' | 'email' | 'password' | 'number';
   readonly autoComplete?: string;
+  /** Bounds of a number field. */
+  readonly min?: number;
+  readonly max?: number;
+  /** Off for identifiers and codes, which are not words. */
+  readonly spellCheck?: boolean;
 }) {
   const id = useId();
   return (
@@ -92,6 +100,9 @@ export function Field({
         maxLength={maxLength}
         autoComplete={autoComplete}
         autoFocus={autoFocus}
+        min={min}
+        max={max}
+        spellCheck={spellCheck}
         aria-invalid={error ? true : undefined}
         aria-describedby={describedBy(id, hint, error)}
         onChange={(event) => onChange(event.currentTarget.value)}
@@ -121,13 +132,20 @@ export function TextArea({
   required,
   maxLength,
   autoFocus,
+  focusSignal,
   data,
 }: FieldProps & {
   readonly rows?: number;
   readonly bare?: boolean;
   readonly onSubmit?: () => void;
+  /** Focuses the field each time this number changes (after a choice returns to the draft). */
+  readonly focusSignal?: number;
 }) {
   const id = useId();
+  const field = useRef<HTMLTextAreaElement>(null);
+  useEffect(() => {
+    if (focusSignal) field.current?.focus({ preventScroll: true });
+  }, [focusSignal]);
   const onKeyDown = onSubmit
     ? (event: KeyboardEvent<HTMLTextAreaElement>) => {
         if (event.key === 'Enter' && !event.shiftKey && !event.nativeEvent.isComposing) {
@@ -140,6 +158,7 @@ export function TextArea({
     <FieldFrame id={id} label={label} labelHidden={labelHidden} hint={hint} error={error}>
       <textarea
         id={id}
+        ref={field}
         className={cx(bare ? 'pool-bare pool-body' : 'pool-input')}
         rows={rows}
         value={value}

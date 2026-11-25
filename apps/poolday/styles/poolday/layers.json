@@ -7,7 +7,9 @@
     "primitives/choices.css",
     "primitives/layout.css",
     "primitives/text.css",
-    "primitives/optical.css"
+    "primitives/optical.css",
+    "primitives/workspace.css",
+    "primitives/messages.css"
   ],
   "compositions": [
     "compositions/screens.css",

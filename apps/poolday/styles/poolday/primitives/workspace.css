@@ -1,0 +1,117 @@
+/* Workspace primitives: the application frame of the product routes.
+   pool-workspace        a frame one visual viewport tall (--pool-param-workspace-height); data-compact while it is short
+   pool-workspace-bar    the bar of destinations, pinned along the top; on narrow screens a dock at the bottom
+   pool-bar-button       a destination in the bar: icon and label, stacked in the dock
+   pool-drawer           a side panel over the page margin (pool-drawer-start, pool-drawer-end), heading then a scrolling body
+   pool-workspace-main   the main column between them; it never moves when a drawer opens */
+.pool-home .pool-workspace {
+  --pool-param-workspace-gutter: var(--pool-size-16);
+  --pool-param-bar-height: calc(var(--pool-size-44) + var(--pool-size-4) * 2 + var(--pool-border-hairline) * 2);
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  block-size: var(--pool-param-workspace-height, 100dvh);
+  min-block-size: 0;
+  padding: var(--pool-param-workspace-gutter);
+  padding-block-start: calc(var(--pool-param-bar-height) + var(--pool-param-workspace-gutter) * 2);
+  overflow: hidden;
+}
+.pool-home .pool-workspace *, .pool-home .pool-workspace *::before, .pool-home .pool-workspace *::after { box-sizing: border-box; }
+.pool-home .pool-workspace [hidden] { display: none; }
+.pool-home .pool-workspace-main { display: flex; flex: 1; flex-direction: column; min-block-size: 0; min-inline-size: 0; }
+.pool-home .pool-workspace-bar {
+  position: fixed;
+  inset-block-start: var(--pool-param-workspace-gutter);
+  inset-inline: var(--pool-param-workspace-gutter);
+  z-index: var(--pool-z-8);
+  display: flex;
+  align-items: center;
+  gap: var(--pool-size-8);
+  min-inline-size: 0;
+  padding: var(--pool-size-4);
+}
+.pool-home .pool-workspace-bar-lead { display: flex; flex: 1; align-items: center; gap: var(--pool-size-8); min-inline-size: 0; }
+.pool-home .pool-workspace-bar-end { display: flex; flex: none; align-items: center; gap: var(--pool-size-8); }
+.pool-home .pool-bar-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--pool-size-8);
+  block-size: var(--pool-size-44);
+  min-block-size: 0;
+  min-inline-size: var(--pool-size-44);
+  margin: 0;
+  padding: 0 var(--pool-size-12);
+  white-space: nowrap;
+}
+.pool-home .pool-bar-label { display: inline; }
+.pool-home .pool-drawer {
+  position: fixed;
+  inset-block-start: calc(var(--pool-param-bar-height) + var(--pool-param-workspace-gutter) * 2);
+  inset-block-end: var(--pool-param-workspace-gutter);
+  z-index: var(--pool-z-overlay);
+  display: flex;
+  flex-direction: column;
+  gap: var(--pool-size-16);
+  min-inline-size: 0;
+  min-block-size: 0;
+  margin: 0;
+  padding: var(--pool-size-16);
+  overflow: hidden;
+}
+.pool-home .pool-drawer-start { inset-inline-start: var(--pool-param-workspace-gutter); inline-size: min(var(--pool-layout-threads), calc(100vw - var(--pool-size-32))); }
+.pool-home .pool-drawer-end { inset-inline-end: var(--pool-param-workspace-gutter); inline-size: min(var(--pool-layout-inspector), calc(100vw - var(--pool-size-32))); }
+.pool-home .pool-drawer-header { display: flex; flex: none; align-items: center; justify-content: space-between; gap: var(--pool-size-8); }
+.pool-home .pool-drawer-header > h2 { margin: 0; }
+.pool-home .pool-drawer-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--pool-size-16);
+  min-block-size: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+/* While the visual viewport is short (a phone keyboard), the bar stays reachable; the conversation tightens instead. */
+
+@media (max-width: 760px) {
+  .pool-home .pool-workspace {
+    --pool-param-workspace-gutter: var(--pool-size-8);
+    --pool-param-dock-inset: max(var(--pool-size-8), env(safe-area-inset-bottom));
+    padding-block-start: var(--pool-size-8);
+    padding-inline: max(var(--pool-size-8), env(safe-area-inset-left)) max(var(--pool-size-8), env(safe-area-inset-right));
+    padding-block-end: calc(var(--pool-metric-app-bar) + var(--pool-param-dock-inset) + var(--pool-size-8));
+  }
+  .pool-home .pool-workspace-bar {
+    inset-block-start: auto;
+    inset-block-end: calc(max(0px, 100dvh - var(--pool-param-workspace-height, 100dvh)) + var(--pool-param-dock-inset));
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, auto));
+    justify-content: space-between;
+    align-items: stretch;
+    gap: var(--pool-size-4);
+    min-block-size: var(--pool-metric-app-bar);
+    padding: var(--pool-size-4) var(--pool-size-8);
+  }
+  .pool-home .pool-workspace-bar-lead, .pool-home .pool-workspace-bar-end { display: contents; }
+  .pool-home .pool-bar-button {
+    flex-direction: column;
+    gap: var(--pool-size-2);
+    block-size: auto;
+    min-block-size: var(--pool-size-44);
+    padding: var(--pool-size-4);
+    font-size: var(--pool-text-xs);
+    white-space: normal;
+  }
+  .pool-home .pool-drawer {
+    inset-block-start: var(--pool-size-8);
+    inset-inline: max(var(--pool-param-workspace-gutter), env(safe-area-inset-left)) max(var(--pool-param-workspace-gutter), env(safe-area-inset-right));
+    inset-block-end: calc(max(0px, 100dvh - var(--pool-param-workspace-height, 100dvh)) + var(--pool-metric-app-bar) + var(--pool-param-dock-inset) + var(--pool-size-8));
+    inline-size: auto;
+  }
+}
+/* A Poolday root holding the workspace gives the page to it: the frame owns its gutters and height. */
+.pool-home:has(> .pool-workspace) { padding: 0; gap: 0; min-block-size: 0; }
+/* Buttons that carry an icon box keep the icon and the label on one centre line. */
+.pool-home .pool-button:has(> .pool-icon-box) { display: inline-flex; align-items: center; justify-content: center; gap: var(--pool-size-8); }

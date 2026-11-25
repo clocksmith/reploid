@@ -34,7 +34,6 @@
   .pool-primary-nav.pool-mobile-app-bar .pool-primary-wordmark { display: none; }
   .pool-mobile-app-bar .pool-primary-actions { grid-column: 3; grid-row: 1; }
   .pool-home .pool-mobile-app-bar > .execution-ribbon { grid-column: 2; grid-row: 1; min-width: 0; }
-  .pool-mobile-app-bar .execution-ribbon-route { display: none; }
   .pool-mobile-app-bar .execution-ribbon-trigger { padding: 0; }
   .pool-mobile-app-bar .pool-settings > summary { width: var(--pool-size-44); min-width: 0; height: var(--pool-size-44); padding: 0; }
   /* On phones the app menu spans the page gutter so its theme and app choices fit. */
@@ -49,16 +48,6 @@
     padding-left: max(var(--pool-size-8), env(safe-area-inset-left));
     padding-right: max(var(--pool-size-8), env(safe-area-inset-right));
     padding-bottom: calc(var(--pool-metric-app-bar) + var(--pool-param-app-bar-inset) + var(--pool-param-app-bar-gap));
-  }
-  .pool-mobile-app-bar .chat-rail-toolbar {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, auto));
-    justify-content: space-between;
-    align-items: stretch;
-    gap: var(--pool-size-4);
-    padding: var(--pool-size-4) var(--pool-size-8);
-    min-height: var(--pool-metric-app-bar);
-    box-sizing: border-box;
   }
   .pool-home .pool-mobile-app-bar :is(.chat-rail-primary, .chat-rail-heading, .chat-rail-footer, [data-network-trigger-slot], [data-inspector-navigation], .chat-thread-brand) { display: contents; }
   .pool-home .pool-mobile-app-bar :is([data-toggle-thread-rail], [data-inspector-section]) {
@@ -75,7 +64,6 @@
   }
   .pool-mobile-app-bar [data-toggle-thread-rail] .pool-primary-wordmark { margin-inline: 0; }
   .pool-mobile-app-bar .chat-rail-label { display: block; white-space: normal; }
-  .pool-mobile-app-bar .chat-rail-digest { display: none; }
   .pool-home:is([data-pool-route-id='home'], [data-pool-route-id='network']),
   .pool-home[data-chat-compact]:is([data-pool-route-id='home'], [data-pool-route-id='network']) { padding-top: var(--pool-size-8); }
 }

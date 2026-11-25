@@ -1,0 +1,244 @@
+/**
+ * The Computers pane: the view records the host's decisions project (apps/poolday/host/decisions/computers.js)
+ * and the commands the screens may call. The host owns pairing, accounts, discovery and contribution; these
+ * records are its snapshot, never a stronger claim.
+ */
+export type Tone = 'ready' | 'pending' | 'unavailable';
+export type Fact = readonly [term: string, value: string];
+
+/** Computers narrowed to those serving one model, from the Answer on sheet. */
+export type ComputersFilter = { readonly providerIds: ReadonlyArray<string>; readonly label: string };
+
+export type FleetPairingView = {
+  readonly state: string;
+  readonly code: string;
+  readonly command: string;
+  readonly computer: string;
+  readonly fingerprint: string;
+  readonly status: string;
+  readonly canConfirm: boolean;
+  readonly confirmed: boolean;
+};
+
+export type FleetAccountView =
+  | { readonly available: false }
+  | {
+      readonly available: true;
+      readonly busy: boolean;
+      readonly signedIn: boolean;
+      readonly hasAccount: boolean;
+      readonly status: string;
+      readonly starter: string;
+      readonly computers: ReadonlyArray<{ readonly id: string; readonly name: string; readonly status: string; readonly removable: boolean }>;
+      readonly activityKey: string;
+      readonly error: string;
+      readonly pairing: FleetPairingView | null;
+    };
+
+export type PrivateComputersView =
+  | { readonly available: false }
+  | {
+      readonly available: true;
+      readonly connected: boolean;
+      readonly hasRequester: boolean;
+      readonly status: string;
+      readonly error: string;
+      readonly activityKey: string;
+      readonly computers: ReadonlyArray<{ readonly id: string; readonly name: string; readonly status: string; readonly tone: Tone; readonly facts: ReadonlyArray<Fact> }>;
+    };
+
+export type PeerView = {
+  readonly id: string;
+  readonly name: string;
+  readonly status: string;
+  readonly tone: Tone;
+  readonly phase: string;
+  readonly state: string;
+  readonly model: string;
+  readonly hardware: string | null;
+  readonly detail: string;
+  readonly progress: { readonly value: number; readonly max: number } | null;
+  readonly quiet: boolean;
+  readonly blocked: boolean;
+  /** The verified signing identity, when there is one: names and blocks attach to it. */
+  readonly identity: string;
+  readonly localName: string;
+  readonly blockNote: string;
+  readonly connection: ReadonlyArray<Fact>;
+  readonly usage: ReadonlyArray<Fact>;
+  readonly ids: ReadonlyArray<Fact>;
+};
+
+export type DeviceView = {
+  readonly summary: string;
+  readonly localComputer: string;
+  readonly supplied: string;
+  readonly consumed: string;
+  readonly usageScope: string;
+  readonly usageError: string;
+  readonly sharingSummary: string;
+  readonly computeOn: boolean;
+  readonly computeLabel: string;
+  readonly computeDisabled: boolean;
+  readonly retryStop: boolean;
+  readonly retryStopDisabled: boolean;
+  readonly progress: string;
+  readonly introductions: boolean;
+  readonly limits: string;
+};
+
+export type ShareableModel = {
+  readonly id: string;
+  readonly name: string;
+  readonly status: string;
+  readonly disabled: boolean;
+  readonly needsSize: boolean;
+  readonly label: string;
+};
+
+export type ProductionView = {
+  readonly attention: boolean;
+  readonly error: string;
+  readonly local: ReadonlyArray<string>;
+  readonly work: string;
+  readonly metrics: ReadonlyArray<Fact>;
+  readonly progress: { readonly message: string; readonly value: number | null; readonly max: number | null } | null;
+  readonly settlement: boolean;
+  readonly setup: boolean;
+  readonly changeModel: boolean;
+  readonly models: ReadonlyArray<ShareableModel>;
+  readonly empty: string;
+  readonly emptyTitle: string;
+  readonly selection: string | null;
+  readonly history: {
+    readonly count: string;
+    readonly status: string;
+    readonly records: ReadonlyArray<{ readonly id: string; readonly model: string; readonly at: string; readonly tokens: string }>;
+  };
+};
+
+export type DiagnosticView =
+  | { readonly available: false }
+  | {
+      readonly available: true;
+      readonly busy: boolean;
+      readonly measuring: boolean;
+      readonly canSave: boolean;
+      readonly baselineStored: boolean;
+      readonly error: string;
+      readonly baseline: string;
+      readonly hardware: string;
+      readonly result: string;
+    };
+
+export type ComputersView = {
+  readonly connection: { readonly on: boolean; readonly label: string; readonly detail: string; readonly privateScope: boolean };
+  readonly filterLabel: string;
+  readonly readiness: string;
+  readonly peers: ReadonlyArray<PeerView>;
+  readonly empty: string;
+  readonly quiet: { readonly show: string; readonly hide: string } | null;
+  /** The pane's network line: a discovery or action error, the relay notice, or empty. */
+  readonly message: string;
+  readonly fleet: FleetAccountView;
+  readonly privateComputers: PrivateComputersView;
+  readonly ownerPairing: { readonly status: string; readonly paired: boolean; readonly busy: boolean; readonly error: string } | null;
+  readonly circleInvites: boolean;
+  readonly device: DeviceView;
+  readonly production: ProductionView;
+  readonly diagnostic: DiagnosticView;
+  readonly specialized: boolean;
+};
+
+export type CreditActivity = { readonly key: string; readonly text: string; readonly at: string | null };
+
+export type PrivateAccount = {
+  readonly own: string;
+  readonly activity: ReadonlyArray<CreditActivity> | null;
+  readonly others: string;
+  readonly hasStatement: boolean;
+};
+
+export type GuestInvite = {
+  readonly id: string;
+  readonly state: string;
+  readonly summary: string;
+  readonly usage: string;
+  readonly queued: string;
+  readonly active: boolean;
+};
+
+export type InviteLimits = { readonly hours: number; readonly maxRequests: number; readonly maxOutputTokens: number };
+
+export type PairingTarget = { readonly hostParticipantId: string; readonly code: string; readonly hostLabel?: string; readonly roomId?: string };
+
+export type OperationModel = { readonly id: string; readonly label: string };
+export type OperationView = { readonly phase: 'idle' | 'starting' | 'sharing' | 'stopping'; readonly status: string };
+
+/** What the composition root supplies to the Computers screens. Every command resolves or rejects with the host's error. */
+export type ComputersServices = {
+  readonly subscribe: (listener: () => void) => () => void;
+  /** One view per host notification; the same object until the next one, for a given filter. */
+  readonly getView: () => ComputersView;
+  readonly setFilter: (filter: ComputersFilter | null) => void;
+  readonly network: {
+    readonly toggleConnection: () => Promise<unknown>;
+    readonly copyInvite: () => Promise<void>;
+    readonly setIntroductions: (on: boolean) => Promise<unknown>;
+  };
+  readonly device: {
+    readonly setCompute: (on: boolean) => Promise<unknown>;
+    readonly retryStop: () => Promise<unknown>;
+    /** Cancels a download or stops a model being prepared for sharing. */
+    readonly cancelPreparation: () => Promise<unknown>;
+  };
+  readonly fleet: {
+    readonly signIn: (provider: 'google' | 'anonymous') => Promise<unknown>;
+    readonly createAccount: () => Promise<unknown>;
+    readonly startPairing: () => Promise<unknown>;
+    readonly confirmPairing: () => Promise<unknown>;
+    readonly useThisComputer: () => Promise<unknown>;
+    readonly cancelPairing: () => Promise<unknown>;
+    readonly closePairing: () => void;
+    readonly revoke: (id: string) => Promise<unknown>;
+    readonly activity: () => Promise<ReadonlyArray<CreditActivity>>;
+    readonly saveStatement: () => Promise<void>;
+  };
+  readonly owner: {
+    readonly parseLink: (value: string) => PairingTarget | null;
+    readonly pair: (target: PairingTarget, options?: { readonly signal?: AbortSignal }) => Promise<{ readonly hostLabel: string }>;
+    readonly unpair: () => void;
+    readonly transportPath: () => string | null;
+    /** The pairing link this page was opened with, if any. */
+    readonly linkTarget: () => PairingTarget | null;
+    readonly forgetLink: () => void;
+  };
+  readonly privateComputers: {
+    readonly connect: (address: string, secret: string) => Promise<unknown>;
+    readonly disconnect: () => Promise<unknown>;
+    readonly account: () => Promise<PrivateAccount>;
+    readonly saveStatement: () => Promise<void>;
+  };
+  readonly invites: {
+    readonly list: () => Promise<ReadonlyArray<GuestInvite>>;
+    readonly issue: (limits: InviteLimits) => Promise<{ readonly id: string; readonly link: string }>;
+    readonly revoke: (id: string) => Promise<string>;
+    readonly copy: (link: string) => Promise<void>;
+  };
+  readonly preferences: {
+    readonly rename: (peerId: string, name: string, identity: string) => Promise<unknown>;
+    readonly setBlocked: (peerId: string, blocked: boolean, identity: string) => Promise<unknown>;
+    readonly measure: () => Promise<unknown>;
+    readonly cancel: () => void;
+    readonly saveBaseline: () => Promise<unknown>;
+    readonly clearBaseline: () => Promise<unknown>;
+  };
+  readonly operations: {
+    readonly models: () => ReadonlyArray<OperationModel>;
+    readonly limits: () => string;
+    readonly getState: () => OperationView;
+    readonly subscribe: (listener: () => void) => () => void;
+    readonly start: (selection: { readonly modelId: string } | { readonly file: File }) => Promise<unknown>;
+    readonly stop: () => Promise<unknown>;
+  };
+};

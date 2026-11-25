@@ -1,147 +1,154 @@
-// The React conversation screen against an in-memory session that implements the host's port.
+// The shipped conversation screens (ChatWorkspace and the Threads drawer) on the host's conversation controller
+// over an in-memory session with the host session's shape: what a person does, and what the screens then show.
 import { act, cleanup, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { createDemoChat } from '../../../apps/poolday-react/src/app/demoChat';
-import { ChatServicesContext } from '../../../apps/poolday-react/src/features/chat/presentation/chatServices';
+import { createConversation } from '../../../apps/poolday-react/src/features/chat/infrastructure/conversation';
 import { ChatWorkspace } from '../../../apps/poolday-react/src/features/chat/presentation/ChatWorkspace';
-import { projectMessages, projectThreads, relativeTime } from '../../../apps/poolday-react/src/features/chat/application/projections';
+import { ConversationProvider } from '../../../apps/poolday-react/src/features/chat/presentation/ConversationProvider';
+import { ThreadsPanel } from '../../../apps/poolday-react/src/features/chat/presentation/ThreadsPanel';
 
+beforeEach(() => localStorage.clear());
 afterEach(cleanup);
 
-function renderWorkspace(options: { searching?: boolean } = {}) {
-  const services = createDemoChat({ answerDelayMs: 10, ...options });
+function mount(options: Parameters<typeof createDemoChat>[0] = {}) {
+  const demo = createDemoChat({ answerDelayMs: 5, ...options });
+  const create = () => createConversation({ host: { chat: demo.chat } });
   render(
-    <ChatServicesContext.Provider value={services}>
+    <ConversationProvider create={create}>
       <ChatWorkspace />
-    </ChatServicesContext.Provider>,
+      <ThreadsPanel onDone={() => undefined} />
+    </ConversationProvider>,
   );
-  return services;
+  return demo;
+}
+
+const composer = () => screen.getByRole('textbox', { name: 'Message' });
+const answerOn = () => screen.getByRole('button', { name: /^Answer on/ });
+const sheet = () => document.querySelector('[data-model-picker]') as HTMLElement;
+const transcript = () => screen.getByRole('log', { name: 'Messages' });
+
+async function openSheet() {
+  await userEvent.click(answerOn());
+  await waitFor(() => expect(sheet().hasAttribute('open')).toBe(true));
+  return sheet();
+}
+
+async function closeSheet() {
+  await userEvent.click(within(sheet()).getByRole('button', { name: 'Close' }));
+  await waitFor(() => expect(sheet().hasAttribute('open')).toBe(false));
+}
+
+async function chooseContributors() {
+  const picker = await openSheet();
+  await userEvent.click(within(picker).getByRole('radio', { name: 'Contributors' }));
+  await waitFor(() => expect((within(sheet()).getByRole('radio', { name: 'Contributors' }) as HTMLInputElement).checked).toBe(true));
+  await closeSheet();
+}
+
+async function send(text: string) {
+  await userEvent.type(composer(), `${text}{Enter}`);
 }
 
 describe('ChatWorkspace', () => {
-  it('sends a draft on this device, streams the answer and shows its receipt', async () => {
-    const services = renderWorkspace();
-    expect(screen.getByRole('button', { name: /Answer on · This device · Qwen 3.5 2B/ })).toBeTruthy();
-    await userEvent.type(screen.getByRole('textbox', { name: 'Message' }), 'Hello{Enter}');
-    await waitFor(() => expect(screen.getByText('A synthetic answer to: Hello')).toBeTruthy());
-    const log = screen.getByRole('log', { name: 'Messages' });
-    expect(within(log).getByText('Hello')).toBeTruthy();
-    expect(within(log).getByText('Receipt')).toBeTruthy();
-    expect((screen.getByRole('textbox', { name: 'Message' }) as HTMLTextAreaElement).value).toBe('');
-    const state = services.chat.getState();
-    expect(state.threads).toHaveLength(1);
-    expect(state.activeThread?.permissions?.executionLocation).toBe('local');
+  it('sends a draft on this device and shows the answer with its measurements', async () => {
+    mount();
+    await waitFor(() => expect(answerOn().getAttribute('aria-label')).toBe('Answer on This device · Qwen 3.5 2B, Ready'));
+    expect(document.querySelector('[data-prompt-disclosure]')?.textContent).toBe('Nothing leaves this device.');
+    await send('Explain ocean tides.');
+    await waitFor(() => expect(within(transcript()).getByText('A synthetic answer to: Explain ocean tides.')).toBeTruthy());
+    expect(within(transcript()).getByLabelText('Your message').textContent).toBe('Explain ocean tides.');
+    expect(within(transcript()).getByLabelText('Generation time including prompt processing')).toBeTruthy();
+    expect((composer() as HTMLTextAreaElement).value).toBe('');
   });
 
-  it('moves the answer to contributors from the sheet, and the next thread runs there', async () => {
-    const services = renderWorkspace();
-    await userEvent.click(screen.getByRole('button', { name: /Answer on/ }));
-    const sheet = document.querySelector('[data-model-picker]') as HTMLElement;
-    await userEvent.click(within(sheet).getByRole('radio', { name: 'Contributors' }));
-    expect(within(sheet).getByText('The answering computer can read your prompt.')).toBeTruthy();
-    await userEvent.click(within(sheet).getByRole('button', { name: 'Answer with contributors' }));
-    await waitFor(() => expect(screen.getByRole('button', { name: /Answer on · Contributors/ })).toBeTruthy());
-    await userEvent.type(screen.getByRole('textbox', { name: 'Message' }), 'Hi{Enter}');
-    await waitFor(() => expect(services.chat.getState().activeThread?.permissions?.executionLocation).toBe('network'));
+  it('moves the answer to contributors from Answer on, and says who can read the prompt', async () => {
+    mount();
+    await chooseContributors();
+    expect(document.querySelector('[data-composer-model-source]')?.textContent).toBe('Contributors');
+    expect(document.querySelector('[data-prompt-disclosure]')?.textContent).toBe('The answering computer can read your prompt.');
+    await send('Pick 3 light comedies.');
+    await waitFor(() => expect(within(transcript()).getByText('A synthetic answer to: Pick 3 light comedies.')).toBeTruthy());
   });
 
-  it('shows a download size before approval, and only then downloads', async () => {
-    const services = renderWorkspace();
-    await userEvent.click(screen.getByRole('button', { name: /Answer on/ }));
-    const sheet = document.querySelector('[data-model-picker]') as HTMLElement;
-    await userEvent.click(within(sheet).getByRole('radio', { name: 'Qwen 3.5 0.8B' }));
-    expect(within(sheet).getByText('Not on this device yet. You see its size before it downloads.')).toBeTruthy();
-    await userEvent.click(within(sheet).getByRole('button', { name: 'Download Qwen 3.5 0.8B' }));
-    const review = document.querySelector('[data-download-review]') as HTMLElement;
-    await waitFor(() => expect(within(review).getByText('0.64 GB')).toBeTruthy());
-    expect(services.chat.getState().models!.find((model) => model.id === 'qwen-0-8b')?.localCached).toBeFalsy();
-    await userEvent.click(within(review).getByRole('button', { name: 'Download' }));
-    await waitFor(() => expect(services.chat.getState().models!.find((model) => model.id === 'qwen-0-8b')?.localCached).toBe(true));
-    await waitFor(() => expect(screen.getByRole('button', { name: /Answer on · This device · Qwen 3.5 0.8B/ })).toBeTruthy());
+  it('reviews a download: its size is shown before anything downloads', async () => {
+    const demo = mount();
+    const picker = await openSheet();
+    await userEvent.click(within(picker).getByRole('radio', { name: 'Qwen 3.5 0.8B' }));
+    const primary = within(sheet()).getByRole('button', { name: 'Download Qwen 3.5 0.8B' });
+    await userEvent.click(primary);
+    const dialog = document.querySelector('[data-model-dialog]') as HTMLElement;
+    await waitFor(() => expect(dialog.querySelector('[data-download-size]')?.textContent).toBe('640 MB download'));
+    expect(demo.chat.getState().models.find((model) => model.id === 'qwen-0-8b')?.localCached).toBeFalsy();
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Download model' }));
+    await waitFor(() => expect(demo.chat.getState().models.find((model) => model.id === 'qwen-0-8b')?.localCached).toBe(true));
   });
 
-  it('keeps the chosen model, computer and privacy when a new thread starts', async () => {
-    const services = renderWorkspace();
-    await userEvent.click(screen.getByRole('button', { name: /Answer on/ }));
-    const sheet = document.querySelector('[data-model-picker]') as HTMLElement;
-    // Not the default model: the default would be Qwen 3.5 2B.
-    await userEvent.click(within(sheet).getByRole('radio', { name: 'Gemma 27B' }));
-    await userEvent.click(within(sheet).getByRole('button', { name: 'Answer with contributors' }));
-    await waitFor(() => expect(screen.getByRole('button', { name: /Answer on · Contributors · Gemma 27B/ })).toBeTruthy());
-    // From a fresh choice, before any thread exists.
+  it('keeps the chosen model and computer when a new thread starts', async () => {
+    mount();
+    const picker = await openSheet();
+    await userEvent.click(within(picker).getByRole('radio', { name: 'Contributors' }));
+    await userEvent.click(within(sheet()).getByRole('radio', { name: 'Gemma 27B' }));
+    await waitFor(() => expect(sheet().hasAttribute('open')).toBe(false));
+    expect(document.querySelector('[data-composer-model-name]')?.textContent).toBe('Gemma 27B');
+    await send('First question');
+    await waitFor(() => expect(within(transcript()).getByText('A synthetic answer to: First question')).toBeTruthy());
     await userEvent.click(screen.getByRole('button', { name: 'New thread' }));
-    await waitFor(() => expect(screen.getByRole('button', { name: /Answer on · Contributors · Gemma 27B/ })).toBeTruthy());
-    // From a thread that ran on it.
-    await userEvent.type(screen.getByRole('textbox', { name: 'Message' }), 'Hi{Enter}');
-    await waitFor(() => expect(services.chat.getState().activeThread?.model.id).toBe('gemma-27b'));
-    await waitFor(() => expect(screen.getByText('A synthetic answer to: Hi')).toBeTruthy());
+    await waitFor(() => expect(within(transcript()).queryByText('A synthetic answer to: First question')).toBeNull());
+    expect(document.querySelector('[data-composer-model-name]')?.textContent).toBe('Gemma 27B');
+    expect(document.querySelector('[data-composer-model-source]')?.textContent).toBe('Contributors');
+  });
+
+  it('asks where to run, queues Send while computers are found, and sends when one arrives', async () => {
+    const demo = mount({ searching: true, stored: false });
+    await userEvent.type(composer(), 'Explain ocean tides.');
+    await userEvent.click(screen.getByRole('button', { name: 'Send' }));
+    await waitFor(() => expect(sheet().hasAttribute('open')).toBe(true));
+    expect(sheet().querySelector('[data-picker-title]')?.textContent).toBe('Where should this run?');
+    await userEvent.click(within(sheet()).getByRole('radio', { name: 'Contributors' }));
+    await closeSheet();
+    await userEvent.click(screen.getByRole('button', { name: 'Send' }));
+    await waitFor(() => expect(document.querySelector('[data-model-status]')?.textContent).toContain('Waiting for a computer running'));
+    expect(screen.getByRole('button', { name: 'Cancel' })).toBeTruthy();
+    act(() => demo.contributorsArrive());
+    await waitFor(() => expect(within(transcript()).getByText('A synthetic answer to: Explain ocean tides.')).toBeTruthy());
+  });
+
+  it('keeps each thread\'s draft when switching between threads', async () => {
+    mount();
+    await send('Thread one');
+    await waitFor(() => expect(within(transcript()).getByText('A synthetic answer to: Thread one')).toBeTruthy());
     await userEvent.click(screen.getByRole('button', { name: 'New thread' }));
-    await waitFor(() => expect(services.chat.getState().selectedId).toBeNull());
-    expect(screen.getByRole('button', { name: /Answer on · Contributors · Gemma 27B/ })).toBeTruthy();
-    await userEvent.type(screen.getByRole('textbox', { name: 'Message' }), 'Again{Enter}');
-    await waitFor(() => expect(services.chat.getState().threads).toHaveLength(2));
-    expect(services.chat.getState().activeThread).toMatchObject({ model: { id: 'gemma-27b' }, permissions: { executionLocation: 'network' } });
+    await send('Thread two');
+    await waitFor(() => expect(within(transcript()).getByText('A synthetic answer to: Thread two')).toBeTruthy());
+    await userEvent.type(composer(), 'Unsent follow-up');
+    const list = document.querySelector('[data-thread-list]') as HTMLElement;
+    await userEvent.click(within(list).getByRole('button', { name: /^Thread one/ }));
+    await waitFor(() => expect((composer() as HTMLTextAreaElement).value).toBe(''));
+    expect(list.querySelectorAll('[aria-current="true"]')).toHaveLength(1);
+    await userEvent.click(within(list).getByRole('button', { name: /^Thread two/ }));
+    await waitFor(() => expect((composer() as HTMLTextAreaElement).value).toBe('Unsent follow-up'));
   });
 
-  it('queues Send while computers are found, sends when one arrives, and a draft edit cancels the wait', async () => {
-    const services = renderWorkspace({ searching: true });
-    await userEvent.click(screen.getByRole('button', { name: /Answer on/ }));
-    const sheet = document.querySelector('[data-model-picker]') as HTMLElement;
-    await userEvent.click(within(sheet).getByRole('radio', { name: 'Contributors' }));
-    await userEvent.click(within(sheet).getByRole('button', { name: 'Close' }));
-    await waitFor(() => expect(screen.getByRole('button', { name: /Answer on · Contributors/ })).toBeTruthy());
-    expect(services.chat.getState().discoveryPhase).toBe('searching');
-    await userEvent.type(screen.getByRole('textbox', { name: 'Message' }), 'Wait{Enter}');
-    expect(services.chat.getState().threads).toHaveLength(0);
-    expect(screen.getByText(/Waiting for a computer running Qwen 3.5 2B/)).toBeTruthy();
-    act(() => services.controls.contributorsArrive());
-    await waitFor(() => expect(services.chat.getState().threads).toHaveLength(1));
-  });
-
-  it('keeps one current thread and switches between threads from the threads sheet', async () => {
-    const services = renderWorkspace();
-    await act(async () => {
-      const first = await services.chat.createThread({ model: services.chat.getState().models![0]!, executionLocation: 'local', sharingScope: 'local' });
-      await services.chat.send(first, 'First');
-      await services.chat.createThread({ model: services.chat.getState().models![0]!, executionLocation: 'local', sharingScope: 'local' });
-    });
-    await userEvent.click(screen.getByRole('button', { name: 'Threads' }));
-    const threads = document.querySelector('[data-threads-dialog]') as HTMLElement;
-    expect(threads.querySelectorAll('[aria-current="true"]')).toHaveLength(1);
-    await userEvent.click(within(threads).getByRole('button', { name: /First/ }));
-    await waitFor(() => expect(services.chat.getState().selectedId).toBe('thread-1'));
-  });
-});
-
-describe('chat projections', () => {
-  it('words relative times and orders threads by recent activity', () => {
-    expect(relativeTime(0, 30000)).toBe('now');
-    expect(relativeTime(0, 5 * 60000)).toBe('5m');
-    expect(relativeTime(0, 3 * 3600000)).toBe('3h');
-    expect(relativeTime(0, 2 * 86400000)).toBe('2d');
-    const services = createDemoChat();
-    const state = services.chat.getState();
-    const thread = (id: string, at: number) => ({ id, model: state.models![0]!, messages: [{ role: 'user' as const, content: id }], attempts: [{ id: `a-${id}`, status: 'completed', createdAt: at }] });
-    const projected = projectThreads({ ...state, threads: [thread('old', 1), thread('new', 2)], selectedId: 'old' }, 'active', new Map(), 10, 'New thread');
-    expect(projected.map((item) => [item.id, item.unread])).toEqual([['new', true], ['old', false]]);
-  });
-
-  it('collapses a retried failure and keeps a failure as a system note, never as model output', () => {
-    const { decisions, chat } = createDemoChat();
-    const model = chat.getState().models![0]!;
-    const thread = {
-      id: 't',
-      model,
-      messages: [
-        { role: 'user' as const, content: 'Q' },
-        { role: 'assistant' as const, content: '', attemptId: 'a1' },
-        { role: 'assistant' as const, content: '', attemptId: 'a2' },
-      ],
-      attempts: [{ id: 'a1', status: 'failed' }, { id: 'a2', status: 'failed', retryOf: 'a1' }],
-    };
-    const messages = projectMessages(thread, chat.getState(), decisions);
-    expect(messages.map((message) => message.id)).toEqual(['message-0', 'message-2']);
-    expect(messages[1]).toMatchObject({ text: '', systemNote: 'This answer could not finish.' });
+  it('renames and archives a thread from its menu', async () => {
+    mount();
+    await send('Plan a trip');
+    await waitFor(() => expect(within(transcript()).getByText('A synthetic answer to: Plan a trip')).toBeTruthy());
+    const list = document.querySelector('[data-thread-list]') as HTMLElement;
+    const menu = list.querySelector('details') as HTMLDetailsElement;
+    menu.open = true;
+    await userEvent.click(within(menu).getByRole('button', { name: 'Rename' }));
+    const dialog = document.querySelector('[data-rename-dialog]') as HTMLElement;
+    const name = within(dialog).getByRole('textbox', { name: 'Name' });
+    await userEvent.clear(name);
+    await userEvent.type(name, 'Lisbon weekend');
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Save' }));
+    await waitFor(() => expect(within(list).getByRole('button', { name: /^Lisbon weekend/ })).toBeTruthy());
+    (list.querySelector('details') as HTMLDetailsElement).open = true;
+    await userEvent.click(within(list).getByRole('button', { name: 'Archive' }));
+    await waitFor(() => expect(screen.getByText('No threads yet.')).toBeTruthy());
+    await userEvent.click(screen.getByRole('radio', { name: 'Archived' }));
+    expect(within(list).getByRole('button', { name: /^Lisbon weekend/ })).toBeTruthy();
   });
 });

@@ -62,6 +62,6 @@ export function Spinner({ label }: { readonly label: string }) {
 }
 
 /** Measured progress; omit `value` while the total is unknown. */
-export function Progress({ label, value, max = 1 }: { readonly label: string; readonly value?: number; readonly max?: number }) {
-  return <progress className="pool-progress pool-progress-line" aria-label={label} value={value} max={value === undefined ? undefined : max} />;
+export function Progress({ label, value, max = 1, data }: { readonly label: string; readonly value?: number | undefined; readonly max?: number | undefined; readonly data?: DataAttributes }) {
+  return <progress className="pool-progress pool-progress-line" aria-label={label} value={value} max={value === undefined ? undefined : max} {...dataProps(data)} />;
 }

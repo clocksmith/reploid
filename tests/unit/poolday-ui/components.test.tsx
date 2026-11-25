@@ -6,15 +6,32 @@ import { useState } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   Badge,
+  BarButton,
   Button,
+  ConversationLayout,
+  Drawer,
+  Menu,
+  MessageRow,
+  MessageText,
+  Readout,
+  SelectorButton,
+  StatusDot,
+  ThreadItem,
+  Toolbar,
+  Transcript,
+  Workspace,
+  WorkspaceBar,
   Card,
+  CodeBlock,
   Chip,
   Columns,
   Dialog,
   Disclosure,
   Divider,
   Facts,
+  Stats,
   Field,
+  FilePicker,
   Frame,
   Grow,
   Icon,
@@ -31,6 +48,7 @@ import {
   Prose,
   Row,
   Section,
+  ShareBar,
   Sheet,
   SidebarLayout,
   SingleChoice,
@@ -116,6 +134,18 @@ describe('scope, text and layout', () => {
     expect(screen.getByRole('heading', { name: 'Desktop' })).toBeTruthy();
     expect(screen.getByRole('figure', { name: 'Phone' }).className).toBe('pool-frame pool-frame-narrow');
     expect(screen.getByText('Model').tagName).toBe('DT');
+  });
+});
+
+describe('stats', () => {
+  it('names a group of measured values and pairs each caption with its value', () => {
+    const { container } = render(<Stats label="Recorded output tokens" items={[['Tokens supplied', '12'], ['Tokens consumed', '3']]} data={{ 'data-usage': true }} />);
+    const group = container.querySelector('dl');
+    expect(group?.getAttribute('aria-label')).toBe('Recorded output tokens');
+    expect(group?.classList.contains('pool-stats')).toBe(true);
+    expect(group?.getAttribute('data-usage')).toBe('');
+    expect([...container.querySelectorAll('dt')].map((node) => node.textContent)).toEqual(['Tokens supplied', 'Tokens consumed']);
+    expect(screen.getByText('12').tagName).toBe('DD');
   });
 });
 
@@ -466,5 +496,238 @@ describe('dialog and sheet', () => {
     const panel = screen.getByRole('dialog', { name: 'Connect a desktop' });
     expect(panel.className).toContain('pool-dialog-inline');
     expect(screen.getByText('Steps')).toBeTruthy();
+  });
+});
+
+describe('records', () => {
+  it('shows a record verbatim on an inset well', () => {
+    const { container } = render(<CodeBlock label="Permission record">{'{\n  "id": 1\n}'}</CodeBlock>);
+    const block = container.querySelector('pre') as HTMLElement;
+    expect(block.className).toBe('pool-well pool-caption pool-mono');
+    expect(block.textContent).toBe('{\n  "id": 1\n}');
+    expect(block.getAttribute('aria-label')).toBe('Permission record');
+  });
+
+  it('states every share in words and sets only the share parameter', () => {
+    render(<ShareBar label="Recorded step time share: A 75%, B 25%" shares={[0.75, 0.25]} />);
+    const bar = screen.getByRole('img', { name: 'Recorded step time share: A 75%, B 25%' });
+    expect(bar.className).toBe('pool-bar');
+    expect([...bar.children].map((span) => (span as HTMLElement).style.getPropertyValue('--pool-param-share'))).toEqual(['0.75', '0.25']);
+  });
+
+  it('opens the chooser from its control and reports the chosen files once', async () => {
+    const onFiles = vi.fn();
+    const { container } = render(
+      <FilePicker label="Data export file" accept=".json" onFiles={onFiles} data={{ 'data-file': true }}>
+        {(open) => <Button label="Import data" onPress={open} />}
+      </FilePicker>,
+    );
+    const input = container.querySelector('input[type=file]') as HTMLInputElement;
+    expect(input.hidden).toBe(true);
+    expect(input.getAttribute('aria-label')).toBe('Data export file');
+    expect(input.hasAttribute('data-file')).toBe(true);
+    const click = vi.spyOn(input, 'click');
+    await userEvent.click(screen.getByRole('button', { name: 'Import data' }));
+    expect(click).toHaveBeenCalledTimes(1);
+    const file = new File(['{}'], 'export.json', { type: 'application/json' });
+    await userEvent.upload(input, file);
+    expect(onFiles).toHaveBeenCalledWith([file]);
+    expect(input.value).toBe('');
+  });
+});
+
+describe('workspace', () => {
+  function Frame({ onClose }: { readonly onClose?: () => void }) {
+    const [open, setOpen] = useState(false);
+    return (
+      <Workspace
+        bar={
+          <WorkspaceBar label="Workspace destinations" lead={<BarButton icon="threads" label="Threads" href="?view=threads" current={open} controls="threads" onPress={() => setOpen(!open)} />}>
+            <BarButton icon="settings" label="Settings" href="?view=settings" onPress={() => undefined} />
+          </WorkspaceBar>
+        }
+        start={
+          <Drawer id="threads" side="start" title="Threads" open={open} onClose={() => { setOpen(false); onClose?.(); }} closeLabel="Close">
+            <Button label="New thread" onPress={() => undefined} />
+          </Drawer>
+        }
+      >
+        <Text>Conversation</Text>
+      </Workspace>
+    );
+  }
+
+  it('names its bar, links each destination and reports the current one', () => {
+    render(<Frame />);
+    const nav = screen.getByRole('navigation', { name: 'Workspace destinations' });
+    expect(nav.className).toBe('pool-workspace-bar pool-surface');
+    const threads = within(nav).getByRole('link', { name: 'Threads' });
+    expect(threads.getAttribute('href')).toBe('?view=threads');
+    expect(threads.getAttribute('aria-expanded')).toBe('false');
+    expect(screen.getByRole('main').className).toBe('pool-workspace-main');
+  });
+
+  it('opens a drawer on a plain click, focuses its heading, and returns focus to its opener when closed', async () => {
+    const onClose = vi.fn();
+    render(<Frame onClose={onClose} />);
+    const threads = screen.getByRole('link', { name: 'Threads' });
+    await userEvent.click(threads);
+    expect(threads.getAttribute('aria-current')).toBe('page');
+    const drawer = document.getElementById('threads') as HTMLElement;
+    expect(drawer.hidden).toBe(false);
+    expect(document.activeElement).toBe(within(drawer).getByRole('heading', { name: 'Threads' }));
+    await userEvent.keyboard('{Escape}');
+    expect(onClose).toHaveBeenCalledOnce();
+    expect(drawer.hidden).toBe(true);
+    expect(document.activeElement).toBe(threads);
+  });
+
+  it('leaves a modified click to the browser, as a link does', () => {
+    const onPress = vi.fn();
+    render(<BarButton icon="peers" label="Computers" href="?view=computers" onPress={onPress} />);
+    const link = screen.getByRole('link', { name: 'Computers' });
+    const modified = fireEvent.click(link, { metaKey: true });
+    expect(modified).toBe(true);
+    expect(onPress).not.toHaveBeenCalled();
+    expect(fireEvent.click(link)).toBe(false);
+    expect(onPress).toHaveBeenCalledOnce();
+  });
+});
+
+describe('conversation', () => {
+  it('keeps a reader at the bottom as output arrives, and lays the column out once', () => {
+    const { container, rerender } = render(
+      <ConversationLayout
+        transcript={<Transcript label="Messages" conversation="a"><MessageRow role="user"><MessageText label="Your message">Hello</MessageText></MessageRow></Transcript>}
+        composer={<Text>Composer</Text>}
+      />,
+    );
+    const log = screen.getByRole('log', { name: 'Messages' });
+    expect(log.getAttribute('aria-live')).toBe('polite');
+    const scroller = log.parentElement as HTMLElement;
+    expect(scroller.className).toBe('pool-transcript');
+    expect(container.querySelector('.pool-conversation-composer')?.textContent).toBe('Composer');
+    rerender(
+      <ConversationLayout
+        transcript={<Transcript label="Messages" conversation="b"><MessageRow role="assistant" author="Thinking…" /></Transcript>}
+        composer={<Text>Composer</Text>}
+      />,
+    );
+    expect(screen.getByText('Thinking…')).toBeTruthy();
+    expect(container.querySelector('article')?.className).toBe('pool-message pool-message-assistant');
+  });
+
+  it('places the person\'s words on a bubble and an answer across the column', () => {
+    const { container } = render(
+      <>
+        <MessageRow role="user" footer={<Text as="span">footer</Text>}><MessageText label="Your message">Hi</MessageText></MessageRow>
+        <MessageRow role="assistant"><Text>Answer</Text></MessageRow>
+      </>,
+    );
+    const [user, answer] = [...container.querySelectorAll('article')];
+    expect(user?.className).toBe('pool-message pool-message-user pool-reveal-host');
+    expect(answer?.className).toBe('pool-message pool-message-assistant');
+    expect(screen.getByLabelText('Your message').className).toBe('pool-message-text pool-well pool-body');
+  });
+
+  it('names a selector by its choice and availability, and hides its parts\' separators', async () => {
+    const onPress = vi.fn();
+    render(<SelectorButton label="Answer on This device · Qwen, Ready" status="ready" parts={[{ text: 'This device', data: { 'data-source': true } }, { text: 'Qwen' }]} onPress={onPress} />);
+    const button = screen.getByRole('button', { name: 'Answer on This device · Qwen, Ready' });
+    expect(button.getAttribute('aria-haspopup')).toBe('dialog');
+    expect(button.querySelector('[data-availability]')?.getAttribute('data-availability')).toBe('ready');
+    expect(button.querySelector('[data-source]')?.textContent).toBe('This device');
+    await userEvent.click(button);
+    expect(onPress).toHaveBeenCalledOnce();
+  });
+
+  it('marks availability with a dot: filled, pulsing or hollow', () => {
+    const { container } = render(<><StatusDot state="ready" /><StatusDot state="waiting" /><StatusDot state="unavailable" /></>);
+    expect([...container.querySelectorAll('span')].map((dot) => dot.className)).toEqual(['pool-dot', 'pool-dot pool-dot-pulse', 'pool-dot pool-dot-open']);
+  });
+
+  it('reads each measurement on focus and drops unrecorded ones', () => {
+    render(<Readout items={[{ icon: 'clock', text: '3.1 s', title: 'Generation time' }, { icon: 'tokens', text: '', title: null }]} />);
+    const time = screen.getByLabelText('Generation time');
+    expect(time.tabIndex).toBe(0);
+    expect(screen.queryAllByRole('generic', { name: /tokens/ })).toHaveLength(0);
+  });
+
+  it('closes a menu after a choice and returns focus to its button', async () => {
+    const rename = vi.fn();
+    const { container } = render(<Menu label="Actions for Ocean tides" items={[{ label: 'Rename', onPress: rename }]} />);
+    const details = container.querySelector('details') as HTMLDetailsElement;
+    const summary = container.querySelector('summary') as HTMLElement;
+    expect(summary.getAttribute('aria-label')).toBe('Actions for Ocean tides');
+    details.open = true;
+    await userEvent.click(screen.getByRole('button', { name: 'Rename' }));
+    expect(rename).toHaveBeenCalledOnce();
+    expect(details.open).toBe(false);
+    expect(document.activeElement).toBe(summary);
+  });
+
+  it('marks exactly the current thread, names it with its state, and keeps its menu beside it', async () => {
+    const onPress = vi.fn();
+    render(
+      <>
+        <ThreadItem title="Tides" digest="Complete" monogram="T" time="2m" current label="Tides: Complete" onPress={onPress} menu={<Menu label="Actions for Tides" items={[]} />} />
+        <ThreadItem title="Sky" digest="Generating" monogram="S" time="now" mark="working" activity="executing" label="Sky: Generating" onPress={() => undefined} />
+      </>,
+    );
+    const tides = screen.getByRole('button', { name: 'Tides: Complete' });
+    expect(tides.getAttribute('aria-current')).toBe('true');
+    expect(screen.getByRole('button', { name: 'Sky: Generating' }).getAttribute('aria-current')).toBe('false');
+    expect(screen.getByRole('button', { name: 'Sky: Generating' }).getAttribute('data-activity')).toBe('executing');
+    await userEvent.click(tides);
+    expect(onPress).toHaveBeenCalledOnce();
+  });
+
+  it('keeps a toolbar\'s controls in one named row', () => {
+    render(<Toolbar label="Composer controls"><Button label="Attach" onPress={() => undefined} /><Button label="Send" onPress={() => undefined} /></Toolbar>);
+    const bar = screen.getByRole('toolbar', { name: 'Composer controls' });
+    expect(bar.className).toBe('pool-toolbar');
+    expect(within(bar).getAllByRole('button')).toHaveLength(2);
+  });
+});
+
+describe('grouped choices', () => {
+  it('groups options in one radio group, browses with arrows, commits on Enter or a second click, and offers a deeper step', async () => {
+    const onChange = vi.fn();
+    const onCommit = vi.fn();
+    const inspect = vi.fn();
+    function Grouped() {
+      const [value, setValue] = useState<string>('a');
+      return (
+        <SingleChoice
+          label="Model"
+          value={value}
+          onChange={(next, input) => { setValue(next); onChange(next, input); }}
+          onCommit={onCommit}
+          groups={[
+            { id: 'local', label: 'On this device', options: [{ value: 'a', title: 'Model A', status: 'On this device' }] },
+            { id: 'shared', label: 'Public network', options: [{ value: 'b', title: 'Model B', status: 'Ready · 2 computers', action: { label: 'View 2 computers serving Model B', icon: 'next', onPress: inspect } }] },
+            { id: 'empty', label: 'Your private computers', options: [], empty: 'No private computer is connected.' },
+            { id: 'unavailable', label: 'Unavailable · 1', folded: true, options: [{ value: 'c', title: 'Model C', status: 'Unavailable', disabled: true }] },
+          ]}
+        />
+      );
+    }
+    render(<Grouped />);
+    const group = screen.getByRole('radiogroup', { name: 'Model' });
+    expect(within(group).getAllByRole('radio')).toHaveLength(3);
+    expect(within(group).getByRole('group', { name: 'Public network' })).toBeTruthy();
+    expect(screen.getByText('No private computer is connected.')).toBeTruthy();
+    const a = screen.getByRole('radio', { name: 'Model A' });
+    a.focus();
+    await userEvent.keyboard('{ArrowDown}');
+    expect(onChange).toHaveBeenLastCalledWith('b', { browsing: true });
+    await userEvent.keyboard('{Enter}');
+    expect(onCommit).toHaveBeenLastCalledWith('b');
+    await userEvent.click(screen.getByRole('radio', { name: 'Model A' }));
+    expect(onChange).toHaveBeenLastCalledWith('a', { browsing: false });
+    await userEvent.click(screen.getByRole('radio', { name: 'Model A' }));
+    expect(onCommit).toHaveBeenLastCalledWith('a');
+    await userEvent.click(screen.getByRole('button', { name: 'View 2 computers serving Model B' }));
+    expect(inspect).toHaveBeenCalledOnce();
   });
 });

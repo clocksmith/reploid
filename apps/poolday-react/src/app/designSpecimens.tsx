@@ -1,186 +1,206 @@
-// Composes each feature screen with synthetic records and local state for the design page.
-import { useState } from 'react';
-import type { ChatMessage, ComposerState, ModelSheetState, ThreadSummary } from '../features/chat/domain/chat';
-import type { ComputersState, PairingState } from '../features/computers/domain/computers';
-import type { SettingsState } from '../features/settings/domain/settings';
-import { ChatThread } from '../features/chat/presentation/ChatThread';
-import { ChatServicesContext } from '../features/chat/presentation/chatServices';
+// Composes each shipped screen for the design page: the conversation screens run on the host's conversation
+// controller over an in-memory session, and the Computers, Settings and details panels on their own
+// infrastructure adapters over the same session, so every specimen is the shipped screen, not a copy.
+import { useState, type ReactNode } from 'react';
+import type { ConversationCommands, ConversationPort, ConversationSnapshot } from '../features/chat/domain/conversation';
+import { createConversation } from '../features/chat/infrastructure/conversation';
+import { AnswerOnSheet } from '../features/chat/presentation/AnswerOnSheet';
+import { DownloadDialog, PrivacyDialog, RemotePermissionDialog, RenameDialog } from '../features/chat/presentation/ChatDialogs';
 import { ChatWorkspace } from '../features/chat/presentation/ChatWorkspace';
-import { DownloadReview } from '../features/chat/presentation/DownloadReview';
-import { Composer } from '../features/chat/presentation/Composer';
-import { MessageList } from '../features/chat/presentation/MessageList';
-import { ModelSheet } from '../features/chat/presentation/ModelSheet';
-import { Receipt } from '../features/chat/presentation/Receipt';
-import { ThreadList } from '../features/chat/presentation/ThreadList';
-import { Computers } from '../features/computers/presentation/Computers';
-import { ConnectDesktop } from '../features/computers/presentation/ConnectDesktop';
-import { Settings } from '../features/settings/presentation/Settings';
+import { ComposerBar } from '../features/chat/presentation/ComposerBar';
+import { ConversationProvider } from '../features/chat/presentation/ConversationProvider';
+import { useConversation } from '../features/chat/presentation/conversationContext';
+import { ThreadsPanel } from '../features/chat/presentation/ThreadsPanel';
+import type { ComputersServices, FleetAccountView } from '../features/computers/domain/services';
+import { createComputersServices } from '../features/computers/infrastructure/hostComputers';
+import { ComputersPanel } from '../features/computers/presentation/ComputersPanel';
+import { ActivityList, FleetAccount } from '../features/computers/presentation/FleetAccount';
+import { PairingLinkDialog } from '../features/computers/presentation/PairingLinkDialog';
+import { PublicNetwork } from '../features/computers/presentation/PublicNetwork';
+import { ThisComputer } from '../features/computers/presentation/ThisComputer';
+import { YourComputers } from '../features/computers/presentation/YourComputers';
 import type { CompositionSpecimen } from '../features/design/presentation/DesignPage';
+import { createDetailsServices } from '../features/details/infrastructure/hostDetails';
+import { ConversationDetailsPanel } from '../features/details/presentation/ConversationDetailsPanel';
+import { createSettingsServices } from '../features/settings/infrastructure/hostSettings';
+import { SettingsPanel } from '../features/settings/presentation/SettingsPanel';
+import { createAppearanceStore } from '../features/shell/infrastructure/appearance';
+import { createDemoChat, type DemoChat } from './demoChat';
 import * as fixtures from './designFixtures';
-import { createDemoChat } from './demoChat';
 
-function ComposerDemo({ initial }: { readonly initial: ComposerState }) {
-  const [state, setState] = useState(initial);
-  return (
-    <Composer
-      state={state}
-      onDraft={(draft) => setState({ ...state, draft })}
-      onSend={() => setState({ ...state, draft: '', running: true, status: 'Generating on this device' })}
-      onStop={() => setState({ ...state, running: false, status: 'Stopped' })}
-      onOpenAnswerOn={() => undefined}
-    />
-  );
+type Setup = (port: ConversationPort, demo: DemoChat) => void;
+
+/** A live conversation over a fresh in-memory session; `setup` stages the state the specimen shows. */
+function Live({ options, setup, children }: { readonly options?: Parameters<typeof createDemoChat>[0]; readonly setup?: Setup; readonly children: ReactNode }) {
+  const [create] = useState(() => () => {
+    const demo = createDemoChat({ answerDelayMs: 900, ...options });
+    const port = createConversation({ host: { chat: demo.chat } });
+    setup?.(port, demo);
+    return port;
+  });
+  return <ConversationProvider create={create}>{children}</ConversationProvider>;
 }
 
-function SheetDemo({ initial }: { readonly initial: ModelSheetState }) {
-  const [state, setState] = useState(initial);
-  return (
-    <ModelSheet
-      presentation="inline"
-      open
-      state={state}
-      onClose={() => undefined}
-      onComputer={(computer) => setState({ ...state, computer })}
-      onModel={(model) => setState({ ...state, model })}
-      onCommit={() => undefined}
-      onWhoCanRead={() => undefined}
-    />
-  );
+/** Renders a part of the live snapshot with the controller's commands. */
+function Part({ render }: { readonly render: (snapshot: ConversationSnapshot, commands: ConversationCommands) => ReactNode }) {
+  const [snapshot, port] = useConversation();
+  return <>{render(snapshot, port)}</>;
 }
 
-function ThreadsDemo({ initial }: { readonly initial: ReadonlyArray<ThreadSummary> }) {
-  const [current, setCurrent] = useState<string | null>(initial[0]?.id ?? null);
-  const [view, setView] = useState<'active' | 'archived'>('active');
-  return <ThreadList threads={view === 'active' ? initial : []} current={current} view={view} onView={setView} onSelect={setCurrent} onNew={() => setCurrent(null)} />;
+/** Commands that change nothing, for parts shown from a fixed record. */
+const still = new Proxy({}, { get: () => () => undefined }) as ConversationCommands;
+
+const selectSeeded: Setup = (port) => port.selectThread('seed-0');
+
+function LiveComputers({ render }: { readonly render: (services: ComputersServices) => ReactNode }) {
+  const [services] = useState(() => createComputersServices({ host: { chat: createDemoChat().chat }, earning: Promise.resolve(null) }));
+  return <>{render(services)}</>;
 }
 
-function ChatDemo({ initial, composer }: { readonly initial: ReadonlyArray<ChatMessage>; readonly composer: ComposerState }) {
-  const [state, setState] = useState(composer);
-  return (
-    <ChatThread
-      messages={initial}
-      composer={state}
-      onDraft={(draft) => setState({ ...state, draft })}
-      onSend={() => setState({ ...state, draft: '' })}
-      onStop={() => setState({ ...state, running: false })}
-      onOpenAnswerOn={() => undefined}
-    />
-  );
+function LiveDetails({ inspect = false }: { readonly inspect?: boolean }) {
+  const [demo] = useState(() => {
+    const chat = createDemoChat({ threads: 2 });
+    chat.chat.select('seed-0');
+    return chat;
+  });
+  const [services] = useState(() => createDetailsServices({ host: { chat: demo.chat } }));
+  return <ConversationDetailsPanel services={services} attemptId={inspect ? 'seed-0-attempt' : null} />;
 }
 
-function ComputersDemo({ initial }: { readonly initial: ComputersState }) {
-  const [state, setState] = useState(initial);
-  return (
-    <Computers
-      state={state}
-      onSharing={(sharing) => setState({ ...state, sharing })}
-      onSharingFiles={(sharingFiles) => setState({ ...state, sharingFiles })}
-      onConnectDesktop={() => undefined}
-      onOpenComputer={() => undefined}
-    />
-  );
+function LiveSettings() {
+  const [services] = useState(() => createSettingsServices({ host: { chat: createDemoChat().chat } }));
+  const [appearance] = useState(() => createAppearanceStore(null));
+  return <SettingsPanel services={services} appearance={appearance} />;
 }
 
-function ConnectDemo({ initial }: { readonly initial: PairingState }) {
-  return <ConnectDesktop presentation="inline" open state={initial} onClose={() => undefined} onCopy={() => undefined} onNewCode={() => undefined} />;
-}
-
-function SettingsDemo({ initial }: { readonly initial: SettingsState }) {
-  const [state, setState] = useState(initial);
-  return (
-    <Settings
-      state={state}
-      onAppearance={(appearance) => setState({ ...state, appearance })}
-      onNetworkAnswers={(networkAnswers) => setState({ ...state, networkAnswers })}
-      onWebSearch={(webSearch) => setState({ ...state, webSearch })}
-      onRecipients={(recipients) => setState({ ...state, recipients })}
-      onClearData={() => undefined}
-    />
-  );
-}
-
-function WorkspaceDemo() {
-  const [services] = useState(() => createDemoChat());
-  return (
-    <ChatServicesContext.Provider value={services}>
-      <ChatWorkspace />
-    </ChatServicesContext.Provider>
-  );
+/** A pairing link opened on this device, as the Computers adapter reads it from the address. */
+function LivePairingLink() {
+  const [services] = useState(() => {
+    const base = createComputersServices({ host: { chat: createDemoChat().chat }, earning: Promise.resolve(null) });
+    return { ...base, owner: { ...base.owner, linkTarget: () => fixtures.pairingTarget, forgetLink: () => undefined } };
+  });
+  return <PairingLinkDialog services={services} presentation="inline" />;
 }
 
 export const compositionSpecimens: ReadonlyArray<CompositionSpecimen> = [
   {
-    name: 'Receipt',
+    name: 'ComposerBar',
     states: [
-      { id: 'open', label: 'Expanded', render: () => <Receipt receipt={fixtures.receipt} defaultOpen /> },
-      { id: 'folded', label: 'Folded under an answer', render: () => <Receipt receipt={fixtures.receipt} /> },
+      { id: 'ready', label: 'Ready on this device', render: () => <ComposerBar composer={fixtures.composer} commands={still} focusSignal={0} answerOnFocus={0} /> },
+      { id: 'finding', label: 'Finding computers', render: () => <ComposerBar composer={fixtures.composerFinding} commands={still} focusSignal={0} answerOnFocus={0} /> },
+      { id: 'queued', label: 'Send waits for a computer', render: () => <ComposerBar composer={fixtures.composerQueued} commands={still} focusSignal={0} answerOnFocus={0} /> },
+      { id: 'download', label: 'Downloading', render: () => <ComposerBar composer={fixtures.composerDownloading} commands={still} focusSignal={0} answerOnFocus={0} /> },
+      { id: 'running', label: 'Generating', render: () => <ComposerBar composer={fixtures.composerRunning} commands={still} focusSignal={0} answerOnFocus={0} /> },
     ],
   },
   {
-    name: 'MessageList',
+    name: 'AnswerOnSheet',
     states: [
-      { id: 'answered', label: 'Answered', render: () => <MessageList messages={fixtures.messages} /> },
-      { id: 'streaming', label: 'Generating', render: () => <MessageList messages={fixtures.streaming} /> },
-      { id: 'failed', label: 'Disconnected', render: () => <MessageList messages={fixtures.failed} /> },
-      { id: 'empty', label: 'Empty', render: () => <MessageList messages={[]} /> },
+      {
+        id: 'device',
+        label: 'This device',
+        render: () => (
+          <Live setup={(port) => port.openSheet()}>
+            <Part render={(snapshot, port) => <AnswerOnSheet presentation="inline" sheet={snapshot.sheet} commands={port} onInspectProviders={() => undefined} />} />
+          </Live>
+        ),
+      },
+      {
+        id: 'contributors',
+        label: 'Contributors',
+        render: () => (
+          <Live setup={(port) => { port.openSheet(); port.pickComputer('network'); }}>
+            <Part render={(snapshot, port) => <AnswerOnSheet presentation="inline" sheet={snapshot.sheet} commands={port} onInspectProviders={() => undefined} />} />
+          </Live>
+        ),
+      },
+      {
+        id: 'searching',
+        label: 'Finding computers',
+        render: () => (
+          <Live options={{ searching: true }} setup={(port) => { port.openSheet(); port.pickComputer('network'); }}>
+            <Part render={(snapshot, port) => <AnswerOnSheet presentation="inline" sheet={snapshot.sheet} commands={port} onInspectProviders={() => undefined} />} />
+          </Live>
+        ),
+      },
     ],
   },
   {
-    name: 'Composer',
+    name: 'PrivacyDialog',
     states: [
-      { id: 'idle', label: 'Idle', render: () => <ComposerDemo initial={fixtures.composer} /> },
-      { id: 'running', label: 'Generating', render: () => <ComposerDemo initial={{ ...fixtures.composer, running: true, suggestion: null, status: 'Generating on this device' }} /> },
-      { id: 'download', label: 'Downloading', render: () => <ComposerDemo initial={{ ...fixtures.composer, suggestion: null, progress: 0.35, status: 'Downloading Qwen 3.5 0.8B · 0.2 of 0.6 GB' }} /> },
-      { id: 'error', label: 'Error', render: () => <ComposerDemo initial={{ ...fixtures.composer, suggestion: null, error: 'The contributor disconnected before answering.' }} /> },
+      {
+        id: 'device',
+        label: 'Only your devices',
+        render: () => (
+          <Live setup={(port) => port.openPrivacy()}>
+            <Part render={(snapshot, port) => <PrivacyDialog presentation="inline" privacy={snapshot.privacy} commands={port} />} />
+          </Live>
+        ),
+      },
+      { id: 'fixed', label: 'Fixed requirements', render: () => <PrivacyDialog presentation="inline" privacy={fixtures.privacyFixed} commands={still} /> },
     ],
   },
   {
-    name: 'DownloadReview',
+    name: 'DownloadDialog',
     states: [
-      { id: 'checking', label: 'Checking size', render: () => <DownloadReview presentation="inline" open state={{ model: 'Qwen 3.5 0.8B', size: null, error: null }} onApprove={() => undefined} onCancel={() => undefined} /> },
-      { id: 'ready', label: 'Size shown', render: () => <DownloadReview presentation="inline" open state={{ model: 'Qwen 3.5 0.8B', size: '0.64 GB', error: null }} onApprove={() => undefined} onCancel={() => undefined} /> },
-      { id: 'failed', label: 'Check failed', render: () => <DownloadReview presentation="inline" open state={{ model: 'Qwen 3.5 0.8B', size: null, error: 'Could not check the model download' }} onApprove={() => undefined} onCancel={() => undefined} /> },
+      { id: 'checking', label: 'Checking size', render: () => <DownloadDialog presentation="inline" download={fixtures.downloadChecking} commands={still} /> },
+      { id: 'ready', label: 'Size shown', render: () => <DownloadDialog presentation="inline" download={fixtures.downloadReady} commands={still} /> },
+      { id: 'failed', label: 'Check failed', render: () => <DownloadDialog presentation="inline" download={fixtures.downloadFailed} commands={still} /> },
+      { id: 'share', label: 'Start sharing', render: () => <DownloadDialog presentation="inline" download={fixtures.downloadShare} commands={still} /> },
+    ],
+  },
+  { name: 'RenameDialog', states: [{ id: 'open', label: 'Open', render: () => <RenameDialog presentation="inline" rename={fixtures.rename} commands={still} /> }] },
+  { name: 'RemotePermissionDialog', states: [{ id: 'open', label: 'Asking', render: () => <RemotePermissionDialog presentation="inline" permission={fixtures.remotePermission} commands={still} /> }] },
+  {
+    name: 'ThreadsPanel',
+    states: [
+      { id: 'threads', label: 'Threads', render: () => <Live options={{ threads: 4 }} setup={selectSeeded}><ThreadsPanel onDone={() => undefined} /></Live> },
+      { id: 'empty', label: 'No threads yet', render: () => <Live><ThreadsPanel onDone={() => undefined} /></Live> },
     ],
   },
   {
-    name: 'ModelSheet',
+    name: 'ChatWorkspace',
     states: [
-      { id: 'ready', label: 'Ready', render: () => <SheetDemo initial={fixtures.sheetReady} /> },
-      { id: 'download', label: 'Download needed', render: () => <SheetDemo initial={fixtures.sheetDownload} /> },
-      { id: 'searching', label: 'Finding computers', render: () => <SheetDemo initial={fixtures.sheetSearching} /> },
-      { id: 'empty', label: 'No models', render: () => <SheetDemo initial={fixtures.sheetEmpty} /> },
+      { id: 'new', label: 'New conversation', render: () => <Live><ChatWorkspace /></Live> },
+      { id: 'answered', label: 'Answered', render: () => <Live options={{ threads: 2 }} setup={selectSeeded}><ChatWorkspace /></Live> },
+      { id: 'searching', label: 'Finding computers', render: () => <Live options={{ searching: true }}><ChatWorkspace /></Live> },
     ],
   },
   {
-    name: 'ThreadList',
+    name: 'ConversationProvider',
+    states: [{ id: 'live', label: 'A live conversation', render: () => <Live><Part render={(snapshot, port) => <ComposerBar composer={snapshot.composer} commands={port} focusSignal={0} answerOnFocus={0} />} /></Live> }],
+  },
+  {
+    name: 'ActivityList',
     states: [
-      { id: 'threads', label: 'Threads', render: () => <ThreadsDemo initial={fixtures.threads} /> },
-      { id: 'empty', label: 'Empty', render: () => <ThreadsDemo initial={[]} /> },
+      { id: 'rows', label: 'Recent activity', render: () => <ActivityList rows={fixtures.activity} empty="No service-credit activity yet." /> },
+      { id: 'empty', label: 'Empty', render: () => <ActivityList rows={[]} empty="No service-credit activity yet." /> },
     ],
   },
   {
-    name: 'ChatThread',
+    name: 'FleetAccount',
     states: [
-      { id: 'answered', label: 'Answered', render: () => <ChatDemo initial={fixtures.messages} composer={fixtures.composer} /> },
-      { id: 'new', label: 'New thread', render: () => <ChatDemo initial={[]} composer={fixtures.composer} /> },
-      { id: 'generating', label: 'Generating', render: () => <ChatDemo initial={fixtures.streaming} composer={{ ...fixtures.composer, running: true, suggestion: null }} /> },
+      { id: 'signed-in', label: 'Signed in', render: () => <LiveComputers render={(services) => <FleetAccount view={fixtures.fleetSignedIn as FleetAccountView} services={services} />} /> },
+      { id: 'signed-out', label: 'Signed out', render: () => <LiveComputers render={(services) => <FleetAccount view={fixtures.fleetSignedOut as FleetAccountView} services={services} />} /> },
     ],
   },
+  { name: 'YourComputers', states: [{ id: 'none', label: 'Nothing paired', render: () => <LiveComputers render={(services) => <YourComputers view={{ ...services.getView(), ...fixtures.yourComputers }} services={services} />} /> }] },
   {
-    name: 'Computers',
+    name: 'PublicNetwork',
     states: [
-      { id: 'paired', label: 'Paired', render: () => <ComputersDemo initial={fixtures.computersState} /> },
-      { id: 'empty', label: 'Nothing paired', render: () => <ComputersDemo initial={fixtures.computersEmpty} /> },
+      { id: 'empty', label: 'No computers yet', render: () => <LiveComputers render={(services) => <PublicNetwork view={services.getView()} services={services} onClearFilter={() => undefined} onError={() => undefined} />} /> },
+      { id: 'peers', label: 'Computers ready', render: () => <LiveComputers render={(services) => <PublicNetwork view={{ ...services.getView(), ...fixtures.networkPeers }} services={services} onClearFilter={() => undefined} onError={() => undefined} />} /> },
     ],
   },
+  { name: 'ThisComputer', states: [{ id: 'idle', label: 'Not sharing', render: () => <LiveComputers render={(services) => <ThisComputer view={services.getView()} services={services} onStartSharing={() => undefined} />} /> }] },
+  { name: 'PairingLinkDialog', states: [{ id: 'request', label: 'Connect', render: () => <LivePairingLink /> }] },
+  { name: 'ComputersPanel', states: [{ id: 'live', label: 'This page', render: () => <LiveComputers render={(services) => <ComputersPanel services={services} filter={null} onClearFilter={() => undefined} />} /> }] },
   {
-    name: 'ConnectDesktop',
+    name: 'ConversationDetailsPanel',
     states: [
-      { id: 'waiting', label: 'Waiting', render: () => <ConnectDemo initial={fixtures.pairing} /> },
-      { id: 'connected', label: 'Connected', render: () => <ConnectDemo initial={{ ...fixtures.pairing, phase: 'connected', desktop: 'Studio desktop' }} /> },
-      { id: 'failed', label: 'Expired', render: () => <ConnectDemo initial={{ ...fixtures.pairing, phase: 'failed' }} /> },
+      { id: 'last', label: 'Last answer', render: () => <LiveDetails /> },
+      { id: 'inspected', label: 'An inspected answer', render: () => <LiveDetails inspect /> },
     ],
   },
-  { name: 'Settings', states: [{ id: 'default', label: 'Default', render: () => <SettingsDemo initial={fixtures.settingsState} /> }] },
-  { name: 'ChatWorkspace', states: [{ id: 'demo', label: 'Synthetic session', render: () => <WorkspaceDemo /> }] },
+  { name: 'SettingsPanel', states: [{ id: 'default', label: 'This page', render: () => <LiveSettings /> }] },
 ];

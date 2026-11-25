@@ -122,28 +122,42 @@ export function Disclosure({
   status,
   quiet = false,
   defaultOpen = false,
+  open,
+  onToggle,
   children,
+  statusData,
   data,
 }: {
+  /** A stable hook on the status beside the summary (a count), for tests and routing. */
+  readonly statusData?: DataAttributes;
   readonly summary: string;
   readonly status?: string;
   readonly quiet?: boolean;
   readonly defaultOpen?: boolean;
+  /** Controlled: the caller owns whether it is open and hears each toggle through `onToggle`. */
+  readonly open?: boolean;
+  /** Called with the new state whenever the person (or `open`) opens or closes it. */
+  readonly onToggle?: (open: boolean) => void;
   readonly children: ReactNode;
   readonly data?: DataAttributes;
 }) {
   return (
-    <details className={cx('pool-disclosure', quiet && 'pool-disclosure-quiet')} open={defaultOpen || undefined} {...dataProps(data)}>
+    <details
+      className={cx('pool-disclosure', quiet && 'pool-disclosure-quiet')}
+      open={(open ?? defaultOpen) || undefined}
+      onToggle={onToggle ? (event) => onToggle(event.currentTarget.open) : undefined}
+      {...dataProps(data)}
+    >
       <summary>
         {quiet ? (
           <span className="pool-row-text">
             <span className="pool-row-title">{summary}</span>
-            {status !== undefined && <span className="pool-row-status">{status}</span>}
+            {status !== undefined && <span className="pool-row-status" {...dataProps(statusData)}>{status}</span>}
           </span>
         ) : (
           <>
             {summary}
-            {status !== undefined && <span>{status}</span>}
+            {status !== undefined && <span {...dataProps(statusData)}>{status}</span>}
           </>
         )}
       </summary>

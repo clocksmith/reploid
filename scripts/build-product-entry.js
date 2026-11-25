@@ -11,7 +11,9 @@ const root = fileURLToPath(new URL('../', import.meta.url));
 
 /** React entries built from apps/poolday-react into the served tree, and the package they compose. */
 export const REACT_ENTRIES = Object.freeze([
-  { source: 'apps/poolday-react/src/main-design.tsx', served: 'ui/react/design.js' }
+  { source: 'apps/poolday-react/src/main-design.tsx', served: 'ui/react/design.js' },
+  // The React shell, opted into with ?ui=react until it reaches parity with the vanilla shell.
+  { source: 'apps/poolday-react/src/main-app.tsx', served: 'ui/react/app.js' }
 ]);
 const REACT_ALIASES = { '@reploid/poolday-ui': path.join(root, 'packages/poolday-ui/src/index.ts') };
 

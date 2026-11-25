@@ -1,4 +1,4 @@
-import { useId, type ReactNode } from 'react';
+import { useId, useRef, type KeyboardEvent, type ReactNode } from 'react';
 import { Icon, IconGlyph, type IconName } from './icon.js';
 import { cx, dataProps, type DataAttributes } from './internal.js';
 
@@ -19,8 +19,28 @@ export type ChoiceOption<T extends string> = {
   readonly disabled?: boolean;
   /** For a disabled option: the action that makes it available, shown where the check would be. */
   readonly fix?: { readonly label: string; readonly onPress: () => void };
+  /** One step deeper from this option (for example, who serves a model): an icon action at the row's end. */
+  readonly action?: { readonly label: string; readonly icon: IconName; readonly onPress: () => void; readonly data?: DataAttributes };
   readonly data?: DataAttributes;
+  /** Stable hooks on the native input and on the status line themselves, for tests and routing. */
+  readonly inputData?: DataAttributes;
+  readonly statusData?: DataAttributes;
 };
+
+/** Options under a heading inside one SingleChoice; a folded group shows its count and opens on demand. */
+export type ChoiceGroup<T extends string> = {
+  readonly id: string;
+  readonly label: string;
+  readonly options: ReadonlyArray<ChoiceOption<T>>;
+  readonly folded?: boolean;
+  /** For a folded group: open now (it holds the chosen option, or it is the only group). */
+  readonly open?: boolean;
+  /** The line an empty group shows, so a group never appears or vanishes as data loads. */
+  readonly empty?: string;
+};
+
+/** How a choice was made: arrow keys browse without committing; a click, tap or Enter commits. */
+export type ChoiceInput = { readonly browsing: boolean };
 
 function OptionRow<T extends string>({
   name,
@@ -29,6 +49,8 @@ function OptionRow<T extends string>({
   checked,
   onToggle,
   baseId,
+  onReselect,
+  autoFocus = false,
 }: {
   readonly name: string;
   readonly type: 'radio' | 'checkbox';
@@ -36,11 +58,15 @@ function OptionRow<T extends string>({
   readonly checked: boolean;
   readonly onToggle: (value: T, checked: boolean) => void;
   readonly baseId: string;
+  /** A click on the option that is already chosen: native radios report no change, but it is still a choice. */
+  readonly onReselect?: (value: T) => void;
+  /** Marks the chosen input as the control a dialog focuses when it opens. */
+  readonly autoFocus?: boolean;
 }) {
   const id = `${baseId}-${option.value}`;
   const statusId = `${id}-status`;
   const fixShown = Boolean(option.disabled && option.fix);
-  return (
+  const row = (
     <div className="pool-option" {...dataProps(option.data)}>
       {option.icon && <Icon name={option.icon} />}
       <input
@@ -52,13 +78,18 @@ function OptionRow<T extends string>({
         disabled={option.disabled}
         aria-labelledby={`${id}-title`}
         aria-describedby={statusId}
+        data-autofocus={autoFocus && checked ? '' : undefined}
+        {...dataProps(option.inputData)}
         onChange={(event) => onToggle(option.value, event.currentTarget.checked)}
+        onClick={(event) => {
+          if (checked && event.currentTarget.checked && !option.disabled) onReselect?.(option.value);
+        }}
       />
       <label className="pool-row-text" htmlFor={id}>
         <span className="pool-row-title" id={`${id}-title`}>
           {option.title}
         </span>
-        <span className="pool-row-status" id={statusId}>
+        <span className="pool-row-status" id={statusId} {...dataProps(option.statusData)}>
           {option.status}
         </span>
       </label>
@@ -72,29 +103,63 @@ function OptionRow<T extends string>({
       )}
     </div>
   );
+  if (!option.action) return row;
+  return (
+    <div className="pool-choice-row">
+      {row}
+      <button
+        type="button"
+        className="pool-button btn-ghost pool-icon pool-option-action"
+        aria-label={option.action.label}
+        title={option.action.label}
+        onClick={option.action.onPress}
+        {...dataProps(option.action.data)}
+      >
+        <IconGlyph name={option.action.icon} />
+      </button>
+    </div>
+  );
 }
 
-/** Exactly one of a set. */
+/** Exactly one of a set. With `groups`, the options sit under headings in one group of radios. */
 export function SingleChoice<T extends string>({
   label,
   labelHidden = false,
   value,
   onChange,
-  options,
+  onCommit,
+  options = [],
+  groups,
   layout = 'list',
   disabled = false,
+  autoFocusChecked = false,
   data,
 }: {
+  /** In a dialog: the chosen option takes focus when it opens, as a list picker should. */
+  readonly autoFocusChecked?: boolean;
   readonly label: string;
   readonly labelHidden?: boolean;
   readonly value: T | null;
-  readonly onChange: (value: T) => void;
-  readonly options: ReadonlyArray<ChoiceOption<T>>;
+  readonly onChange: (value: T, input: ChoiceInput) => void;
+  /** Enter on an option, or a click on the one already chosen: apply it. */
+  readonly onCommit?: (value: T) => void;
+  readonly options?: ReadonlyArray<ChoiceOption<T>>;
+  readonly groups?: ReadonlyArray<ChoiceGroup<T>>;
   readonly layout?: 'list' | 'segmented';
   readonly disabled?: boolean;
   readonly data?: DataAttributes;
 }) {
   const baseId = useId();
+  const browsing = useRef(false);
+  const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    browsing.current = event.key.startsWith('Arrow');
+    const target = event.target as HTMLInputElement;
+    if (event.key === 'Enter' && target.type === 'radio' && onCommit) {
+      event.preventDefault();
+      onCommit(target.value as T);
+    }
+  };
+  const choose = (next: T) => onChange(next, { browsing: browsing.current });
   if (layout === 'segmented') {
     return (
       <div className="pool-segmented" role="radiogroup" aria-label={label} {...dataProps(data)}>
@@ -106,7 +171,7 @@ export function SingleChoice<T extends string>({
               value={option.value}
               checked={value === option.value}
               disabled={disabled || option.disabled}
-              onChange={() => onChange(option.value)}
+              onChange={() => choose(option.value)}
             />
             {option.title}
           </label>
@@ -115,22 +180,49 @@ export function SingleChoice<T extends string>({
     );
   }
   const labelId = `${baseId}-label`;
+  const row = (option: ChoiceOption<T>) => (
+    <OptionRow
+      key={option.value}
+      name={baseId}
+      type="radio"
+      option={disabled ? { ...option, disabled: true } : option}
+      checked={value === option.value}
+      onToggle={(next) => choose(next)}
+      onReselect={onCommit}
+      autoFocus={autoFocusChecked}
+      baseId={baseId}
+    />
+  );
   return (
-    <div className="pool-options" role="radiogroup" aria-labelledby={labelId} {...dataProps(data)}>
+    <div
+      className="pool-options"
+      role="radiogroup"
+      aria-labelledby={labelId}
+      onKeyDown={onKeyDown}
+      onPointerDown={() => {
+        browsing.current = false;
+      }}
+      {...dataProps(data)}
+    >
       <p className={cx('pool-options-label', labelHidden && 'pool-visually-hidden')} id={labelId}>
         {label}
       </p>
-      {options.map((option) => (
-        <OptionRow
-          key={option.value}
-          name={baseId}
-          type="radio"
-          option={disabled ? { ...option, disabled: true } : option}
-          checked={value === option.value}
-          onToggle={(next) => onChange(next)}
-          baseId={baseId}
-        />
-      ))}
+      {groups
+        ? groups.map((group) =>
+            group.folded ? (
+              <details key={group.id} className="pool-stack pool-gap-xs pool-option-group" open={group.open || undefined} role="group" aria-label={group.label} data-choice-group={group.id}>
+                <summary className="pool-options-label">{group.label}</summary>
+                {group.options.map(row)}
+              </details>
+            ) : (
+              <div key={group.id} className="pool-stack pool-gap-xs pool-option-group" role="group" aria-label={group.label} data-choice-group={group.id}>
+                <p className="pool-options-label">{group.label}</p>
+                {group.options.length === 0 && group.empty ? <p className="pool-small pool-muted pool-option-empty">{group.empty}</p> : null}
+                {group.options.map(row)}
+              </div>
+            ),
+          )
+        : options.map(row)}
     </div>
   );
 }
@@ -185,6 +277,7 @@ export function Toggle({
   onChange,
   disabled = false,
   icon,
+  controlData,
   data,
 }: {
   readonly title: string;
@@ -193,6 +286,8 @@ export function Toggle({
   readonly onChange: (checked: boolean) => void;
   readonly disabled?: boolean;
   readonly icon?: IconName;
+  /** Stable hooks on the switch itself. */
+  readonly controlData?: DataAttributes;
   readonly data?: DataAttributes;
 }) {
   const id = useId();
@@ -216,6 +311,7 @@ export function Toggle({
         aria-describedby={`${id}-status`}
         disabled={disabled}
         onClick={() => onChange(!checked)}
+        {...dataProps(controlData)}
       >
         <span aria-hidden="true" />
       </button>

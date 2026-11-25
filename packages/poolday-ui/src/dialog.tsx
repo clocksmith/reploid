@@ -16,6 +16,9 @@ type DialogProps = {
   readonly wide?: boolean;
   /** `inline` shows the same shell in the page flow, for a panel or a design-page specimen. */
   readonly presentation?: 'modal' | 'inline';
+  /** Stable hooks on the heading and the Close button, for tests and routing. */
+  readonly headingData?: DataAttributes;
+  readonly closeData?: DataAttributes;
   readonly data?: DataAttributes;
 };
 
@@ -30,17 +33,14 @@ function DialogShell({
   wide = false,
   presentation = 'modal',
   fixed,
+  headingData,
+  closeData,
   data,
 }: DialogProps & { readonly fixed: boolean }) {
-  if (presentation === 'inline') {
-    return (
-      <InlineShell title={title} closeLabel={closeLabel} onClose={onClose} footer={footer} footerStatus={footerStatus} fixed={fixed} wide={wide} data={data}>
-        {children}
-      </InlineShell>
-    );
-  }
+  const parts = { title, closeLabel, onClose, footer, footerStatus, fixed, wide, headingData, closeData, data };
+  if (presentation === 'inline') return <InlineShell {...parts}>{children}</InlineShell>;
   return (
-    <ModalShell title={title} open={open} onClose={onClose} closeLabel={closeLabel} footer={footer} footerStatus={footerStatus} fixed={fixed} wide={wide} data={data}>
+    <ModalShell {...parts} open={open}>
       {children}
     </ModalShell>
   );
@@ -55,15 +55,19 @@ type ShellParts = {
   readonly footerStatus: ReactNode | undefined;
   readonly fixed: boolean;
   readonly wide: boolean;
+  readonly headingData: DataAttributes | undefined;
+  readonly closeData: DataAttributes | undefined;
   readonly data: DataAttributes | undefined;
 };
 
-function ShellContent({ titleId, title, closeLabel, onClose, children, footer, footerStatus }: ShellParts & { readonly titleId: string }) {
+function ShellContent({ titleId, title, closeLabel, onClose, children, footer, footerStatus, headingData, closeData }: ShellParts & { readonly titleId: string }) {
   return (
     <>
       <header className="pool-dialog-header">
-        <h2 id={titleId}>{title}</h2>
-        <IconButton label={closeLabel} icon="close" onPress={onClose} data={{ 'data-dialog-close': true }} />
+        <h2 id={titleId} {...dataProps(headingData)}>
+          {title}
+        </h2>
+        <IconButton label={closeLabel} icon="close" onPress={onClose} data={{ 'data-dialog-close': true, ...closeData }} />
       </header>
       <div className="pool-dialog-body">{children}</div>
       {(footer !== undefined || footerStatus !== undefined) && (
@@ -105,6 +109,9 @@ function ModalShell({ open, ...props }: ShellParts & { readonly open: boolean })
       opener.current = dialog.ownerDocument.activeElement;
       if (typeof dialog.showModal === 'function') dialog.showModal();
       else dialog.setAttribute('open', '');
+      // A control marked `data-autofocus` (the one action a dialog offers) takes focus instead of Close.
+      const initial = dialog.querySelector('[data-autofocus]');
+      if (initial instanceof HTMLElement) initial.focus({ preventScroll: true });
     } else if (!open && dialog.open) {
       if (typeof dialog.close === 'function') dialog.close();
       else dialog.removeAttribute('open');
@@ -133,9 +140,12 @@ function ModalShell({ open, ...props }: ShellParts & { readonly open: boolean })
 
   return (
     <dialog ref={ref} className={shellClass(fixed, wide, false)} aria-labelledby={titleId} {...dataProps(data)}>
-      <ShellContent {...props} titleId={titleId}>
-        {open ? props.children : null}
-      </ShellContent>
+      {/* A closed dialog renders nothing inside, so its controls are not in the page while it is closed. */}
+      {open ? (
+        <ShellContent {...props} titleId={titleId}>
+          {props.children}
+        </ShellContent>
+      ) : null}
     </dialog>
   );
 }

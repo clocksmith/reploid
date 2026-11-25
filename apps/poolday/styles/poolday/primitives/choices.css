@@ -346,3 +346,14 @@
 @media (max-width: 760px) {
   .pool-home .pool-dialog.pool-dialog-inline { border-end-start-radius: var(--pool-radius-panel); border-end-end-radius: var(--pool-radius-panel); }
 }
+
+/* An option with one step deeper (pool-option-action) shares the row's cell: the action sits at the row's
+   trailing edge, after the check, and the row leaves room for it. Nothing floats beside the row.
+   pool-option-group holds options under a heading; pool-option-empty is the line an empty group keeps. */
+.pool-home .pool-choice-row { display: grid; grid-template-columns: minmax(0, 1fr); }
+.pool-home .pool-choice-row > * { grid-area: 1 / 1; }
+.pool-home .pool-choice-row > .pool-option { padding-inline-end: calc(var(--pool-size-44) + var(--pool-size-8)); }
+.pool-home .pool-option-action { position: relative; z-index: var(--pool-z-2); justify-self: end; align-self: center; }
+.pool-home .pool-option-group > .pool-options-label { padding-inline: var(--pool-size-12); }
+.pool-home details.pool-option-group > summary { cursor: pointer; }
+.pool-home .pool-option-empty { display: flex; align-items: center; min-block-size: var(--pool-size-56); margin: 0; padding-inline: var(--pool-size-12); }

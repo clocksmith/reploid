@@ -55,6 +55,10 @@
   background: var(--pool-color-page);
 }
 .pool-home .pool-frame-narrow { inline-size: 100%; max-inline-size: var(--pool-size-360); }
+/* A frame contains its specimen: fixed bars and drawers place themselves in it, and a whole workspace takes a
+   specimen's height rather than the window's. */
+.pool-home .pool-frame { contain: layout paint; }
+.pool-home .pool-frame .pool-workspace { block-size: var(--pool-size-640); }
 @media (max-width: 760px) {
   .pool-home .pool-sidebar-layout { grid-template-columns: minmax(0, 1fr); padding-block-start: 0; }
   /* The navigator is pinned as a bar here: a section it jumps to stops below the bar, not under it. */

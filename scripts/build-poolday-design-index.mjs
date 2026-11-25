@@ -24,14 +24,17 @@ export const OUTPUT = path.join(ROOT, 'apps/poolday-react/src/app/designIndex.ge
 
 /** Simplest to most complex. Every component the package exports appears exactly once. */
 export const PRIMITIVE_ORDER = [
-  'PooldayRoot', 'Text', 'Prose', 'Wordmark', 'VisuallyHidden', 'Facts', 'Icon', 'Badge', 'StatusLine', 'Spinner', 'Progress',
-  'Divider', 'Stack', 'Row', 'Columns', 'Grow', 'Log', 'Surface', 'Card', 'Frame', 'Button', 'IconButton', 'Chip',
-  'Field', 'TextArea', 'InputGroup', 'Toggle', 'SingleChoice', 'MultiChoice', 'ListItem', 'List', 'Section',
-  'Disclosure', 'Notice', 'Navigator', 'SidebarLayout', 'Dialog', 'Sheet', 'TokenSwatch',
+  'PooldayRoot', 'Text', 'Prose', 'Wordmark', 'VisuallyHidden', 'Facts', 'Stats', 'CodeBlock', 'ShareBar', 'Icon', 'Badge', 'StatusDot', 'StatusLine', 'Spinner', 'Progress',
+  'Readout', 'Divider', 'Stack', 'Row', 'Columns', 'Grow', 'Toolbar', 'Log', 'Surface', 'Card', 'Frame', 'Button', 'IconButton', 'Chip', 'SelectorButton', 'Menu',
+  'Field', 'FilePicker', 'TextArea', 'InputGroup', 'Toggle', 'SingleChoice', 'MultiChoice', 'ListItem', 'List', 'Section',
+  'Disclosure', 'Notice', 'MessageText', 'MessageRow', 'Transcript', 'ConversationLayout', 'ThreadItem', 'Navigator', 'SidebarLayout',
+  'BarButton', 'WorkspaceBar', 'Drawer', 'Workspace', 'Dialog', 'Sheet', 'TokenSwatch',
 ];
 /** Small pieces first, whole screens last. */
 export const COMPOSITION_ORDER = [
-  'Receipt', 'MessageList', 'Composer', 'DownloadReview', 'ModelSheet', 'ThreadList', 'ChatThread', 'Computers', 'ConnectDesktop', 'Settings', 'ChatWorkspace',
+  'ComposerBar', 'AnswerOnSheet', 'PrivacyDialog', 'DownloadDialog', 'RenameDialog', 'RemotePermissionDialog', 'ThreadsPanel', 'ChatWorkspace',
+  'ConversationProvider', 'ActivityList', 'FleetAccount', 'YourComputers', 'PublicNetwork', 'ThisComputer', 'PairingLinkDialog', 'ComputersPanel',
+  'ConversationDetailsPanel', 'SettingsPanel',
 ];
 
 const stripComments = (css) => css.replace(/\/\*[\s\S]*?\*\//g, '');

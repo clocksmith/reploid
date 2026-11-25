@@ -43,6 +43,7 @@
       "packages": ["react"],
       "reactSymbols": [
         "createContext",
+        "memo",
         "useCallback",
         "useContext",
         "useEffect",
@@ -83,12 +84,6 @@
     "root": "packages/reploid/src",
     "manifest": "packages/reploid/package.json",
     "hostRoots": ["apps/poolday/host/", "apps/poolday/pool/"],
-    "legacyDecisionModules": [
-      "apps/poolday/ui/pool-home/conversation-model-picker.js",
-      "apps/poolday/ui/components/model-select.js",
-      "apps/poolday/ui/pool-home/privacy-controls.js",
-      "apps/poolday/ui/pool-home/message-list.js"
-    ],
     "forbiddenPackages": ["react", "react-dom", "@reploid/poolday-ui"],
     "forbiddenMembers": ["innerHTML", "outerHTML", "insertAdjacentHTML"],
     "forbiddenGlobals": ["document", "HTMLElement", "customElements"]

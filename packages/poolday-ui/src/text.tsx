@@ -21,9 +21,12 @@ export function Text({
   muted = false,
   mono = false,
   id,
+  hidden,
   children,
   data,
 }: {
+  /** Kept in the page but not shown, as one of several alternatives that share a place. */
+  readonly hidden?: boolean;
   readonly variant?: TextVariant;
   readonly as?: TextElement;
   readonly muted?: boolean;
@@ -36,6 +39,7 @@ export function Text({
   return (
     <Element
       id={id}
+      hidden={hidden || undefined}
       // Mono text is identifiers and values, which have no spaces to wrap at.
       className={cx(VARIANT_CLASS[variant], muted && 'pool-muted', mono && 'pool-mono', mono && 'pool-break')}
       {...dataProps(data)}
@@ -58,9 +62,9 @@ export function Wordmark({ label = 'REPLOID' }: { readonly label?: string }) {
 }
 
 /** Text for assistive technology only; it takes no space. */
-export function VisuallyHidden({ children, id }: { readonly children: ReactNode; readonly id?: string }) {
+export function VisuallyHidden({ children, id, data }: { readonly children: ReactNode; readonly id?: string; readonly data?: DataAttributes }) {
   return (
-    <span className="pool-visually-hidden" id={id}>
+    <span className="pool-visually-hidden" id={id} {...dataProps(data)}>
       {children}
     </span>
   );
