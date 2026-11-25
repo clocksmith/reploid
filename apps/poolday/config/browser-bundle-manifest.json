@@ -1416,7 +1416,7 @@
     {
       "path": "config/module-inventory.json",
       "byteLength": 698868,
-      "sha256": "sha256:3d0d2aa423d2be9ddbddc645852449af2cbd9172a51a8fcb5728892d449f2ba8"
+      "sha256": "sha256:624aad3a7743c5cc2568437734d061b1deae49eeb70dd7545e2b384c6c30dc43"
     },
     {
       "path": "config/module-registry.json",
@@ -3825,8 +3825,8 @@
     },
     {
       "path": "ui/pool-home/app.bundle.js",
-      "byteLength": 2772304,
-      "sha256": "sha256:7302e475bbcfeb6c04b3cf5e2a6190ee1204932d93b2af0a866fae815a2860c7"
+      "byteLength": 2772328,
+      "sha256": "sha256:2560871490cbc3775d3799870021037e3c2c0c654cc0614a0b8f8ae40f627f4b"
     },
     {
       "path": "ui/pool-home/auto-download.js",
@@ -4300,8 +4300,8 @@
     },
     {
       "path": "ui/pool-home/service-credit-text.js",
-      "byteLength": 3628,
-      "sha256": "sha256:42d4458ec09d930514679eb24527fa73d615cd80ede3f498f7185b372a89d661"
+      "byteLength": 3760,
+      "sha256": "sha256:1f420c528b2fcb08f2e27a2be7032c0b784b40da623037c0a94ee725cada2fb5"
     },
     {
       "path": "ui/pool-home/shell-view.js",
@@ -12834,5 +12834,5 @@
       "sha256": "sha256:abb6c18f6167d6afc8ee1b3adfcbbb89c0e93fb4fc4e98d7a12250f78aab206a"
     }
   ],
-  "bundleHash": "sha256:53379cbfaed920f007e73100303a074a65581c28dcc884dcb7c98e8b242931d2"
+  "bundleHash": "sha256:763b2550fd232c35cfa07bf129617c383810eb60143c6e788ea2e429edc2fcb8"
 }

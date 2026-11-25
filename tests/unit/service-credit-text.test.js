@@ -13,6 +13,8 @@ describe('service-credit wording for one answer', () => {
     [{ id: 'r', status: 'failed', reason: 'interrupted-stage-owner', charge: 0, settledAt: 1 }, 'A computer stopped mid-answer · nothing charged'],
     [{ id: 'r', status: 'expired', charge: 0, settledAt: 1 }, 'Hold released · the computer never reported back, nothing charged'],
     [{ id: 'r', status: 'abandoned', charge: 0, settledAt: 1 }, 'Not sent · nothing charged'],
+    // Dispatched, but no computer admitted it: the fence settles at zero with no status.
+    [{ id: 'r', charge: 0, outputTokens: 0, settledAt: 1 }, 'Nothing charged'],
     [{ id: 'r', status: 'pending', heldCredits: 48 }, 'Pending · 48 credits held until the computer reports back'],
     [{ id: 'r', status: 'pending', error: 'Fleet request failed' }, 'Pending · outcome not yet settled']
   ])('%j reads as %s', (credit, text) => {

@@ -23,6 +23,8 @@ export function serviceCreditOutcomeText(credit) {
     return credit.reason === 'interrupted-stage-owner' ? 'A computer stopped mid-answer · nothing charged'
       : `Answer failed · ${charge ? `${credits(charge)} charged` : 'nothing charged'}`;
   }
+  // A dispatched request that no computer admitted settles at zero without a status.
+  if (charge === 0) return 'Nothing charged';
   return `${credits(charge)} charged${Number.isSafeInteger(credit.outputTokens) ? ` for ${plural(credit.outputTokens, 'output token')}` : ''}`;
 }
 
