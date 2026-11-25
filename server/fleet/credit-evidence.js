@@ -7,10 +7,18 @@ import { canonicalRouteAttemptBinding } from '../../shared/vendor/reploid/mesh/p
 import { normalizeParticipantPublicKey } from '../../shared/vendor/reploid/artifacts/participant-proofs.js';
 import { assert, same, integer } from './contract.js';
 import { SETTLEMENT_STOP_SCHEMA, verifySettlementStop } from './settlement-terms.js';
-import { SETTLEMENT_RULES, UNFINISHED_ANSWER_TERMS } from './credit-shares.js';
+import { SETTLEMENT_RULES, SETTLEMENT_RULE_SETS, UNFINISHED_ANSWER_TERMS } from './credit-shares.js';
 
 /** A split reservation made since the ledger applies the settlement replay's charge rules (docs/settlement-replay.md). */
-export const replayRules = request => request.mode === 'partition' && request.settlementRules === SETTLEMENT_RULES;
+export const replayRules = request => request.mode === 'partition' && SETTLEMENT_RULE_SETS.includes(request.settlementRules);
+
+/**
+ * Whether a split request's release window has passed at `now`, so that it can be decided without the missing
+ * closes. Under the interim rules (SETTLEMENT_RULES) that is after deadline + window + clock allowance, the last
+ * instant a closing receipt counts (docs/settlement-replay.md, step 6); earlier reservations keep deadline + window.
+ */
+export const releaseWindowPassed = (request, now, releaseWindowMs, skew) => (request.mode === 'partition' && request.settlementRules === SETTLEMENT_RULES
+  ? now > request.deadline + releaseWindowMs + skew : now >= request.deadline + releaseWindowMs);
 
 /**
  * A whole-model answer the requester stopped before it countersigned a receipt. Whole-model output has no
@@ -147,7 +155,7 @@ export async function verifyCreditEvidence(request, evidence, enrollment, now, s
     : 'Matching requester acknowledgment required');
   const closedAtLastStep = evidence.closedAtLastStep ?? null;
   if (closedAtLastStep !== null) {
-    assert(Number.isSafeInteger(releaseWindowMs) && now >= request.deadline + releaseWindowMs
+    assert(Number.isSafeInteger(releaseWindowMs) && releaseWindowPassed(request, now, releaseWindowMs, skew)
       && !evidence.interruptedOwners?.length && same(closedAtLastStep, stagesClosedAtLastStep(request, proof, skew)),
     'A stage is treated as closed at its last signed step only after the release window, for a delivered and acknowledged answer');
   }
@@ -181,9 +189,11 @@ export async function verifyCreditEvidence(request, evidence, enrollment, now, s
       ...(interruptedStages.length ? { interruptedStages } : {}), ...(closedAtLastStep ? { closedAtLastStep } : {}) };
   }
   // The settlement replay's charge rule (docs/settlement-replay.md, step 9). The signed ceiling caps the charge: outputs
-  // past `maxOutputTokens` are recorded and never charged. Under provider-loss-free terms an unfinished answer is owed
-  // only when the requester ended it, by its own in-time signed stop or by withholding more than K acknowledgments; a
-  // stage that closes such an answer on its own, `settled` or `failed`, earns nothing and costs the requester nothing.
+  // past `maxOutputTokens` are recorded and never charged. `stageEnded` marks an unfinished answer the stages closed,
+  // `settled` or `failed`, with no in-time requester stop and no more than K acknowledgments withheld. Under
+  // SETTLEMENT_RULES_V1 it charges nothing, as the replay does; under the interim SETTLEMENT_RULES it charges the
+  // acknowledged prefix, because the requester drives every step and could otherwise stop asking and pay nothing
+  // (credit-shares.js settledCreditUnits; the known difference in docs/settlement-replay.md).
   const stop = evidence.stop === undefined || evidence.stop === null ? null
     : await verifySplitStop(request, evidence.stop, enrollment, now, skew);
   const delivered = finalReceiptOf(request, proof)?.output ?? null;
@@ -207,8 +217,8 @@ export async function verifyPartitionComponents(request, evidence, enrollment, n
     && Date.parse(value) <= now + skew;
   const executionTime = value => signedTime(value) && Date.parse(value) <= request.deadline + skew;
   // Under the replay's rules a receipt is timed by its signature alone, as in the replay: a closing receipt counts when
-  // signed before the hold's release window ends (collect refuses nothing after it), a step receipt when signed by the
-  // deadline plus the clock allowance. Steps past the signed ceiling are accepted and never charged.
+  // collected before the release window has passed (collect accepts nothing after it), a step receipt when signed by
+  // the deadline plus the clock allowance. Steps past the signed ceiling are accepted and never charged.
   const rules = replayRules(request);
   const checkReceipt = async receipt => {
     const provider = request.providers[receipt?.partitionIndex];

@@ -4,6 +4,7 @@
  */
 import { verifyStageTokenWitnesses } from '../../server/fleet/stage-token-witness.js';
 import { replaySettlement } from '../../server/fleet/settlement-replay.js';
+import { WALK_AWAY_DIFFERENCE, isWalkAwayRow } from '../../server/fleet/credit-shares.js';
 import { policyDigest } from '../../server/fleet/settlement-terms.js';
 import { EXECUTION_RECEIPT_SCHEMA } from '../../packages/reploid/src/inference/contract.js';
 import { witnessDigest } from './expectations.js';
@@ -177,7 +178,11 @@ export async function collectSettlementReplay({ requester, stages, attemptId, po
     ...bundleRecords(own.acknowledgments),
     ...stageRecords.flatMap(row => (row?.error ? [] : [...bundleRecords(row?.closing), ...(row?.checkpoints ?? [])]))];
   const result = await replaySettlement({ records, policies: [policy], at: at(), computerOf });
-  return { termsCollectedBy: 'stage1-harness', termsSigned: own.termsSigned ?? null, acceptancesSigned,
+  // Rows in the one case where the ledger's interim rule and the replay differ, labelled so the receipt check can
+  // tolerate exactly those (docs/settlement-replay.md, "Known difference, pending owner decision").
+  const knownDifferences = (result.reservations ?? []).filter(isWalkAwayRow).map(row => ({ case: WALK_AWAY_DIFFERENCE,
+    reservationId: row.reservationId, requesterId: row.requesterId, acknowledgedOutputs: row.outputs }));
+  return { termsCollectedBy: 'stage1-harness', termsSigned: own.termsSigned ?? null, acceptancesSigned, knownDifferences,
     ledgerPolicyDigest: await policyDigest(policy), termsPolicyDigest: own.terms?.policyDigest ?? null,
     stopSigned: Boolean(own.stop), requesterAttempts: { approvals: own.approvals ?? null, onThread: own.attemptsOnThread ?? null },
     problems, recordCount: records.length, records, result };

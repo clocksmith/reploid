@@ -5,12 +5,14 @@
  * acceptances, stage receipts, requester output acknowledgments). No operator journal, balance or enrollment table is
  * read. Each attempt comes out as exactly one of:
  *
- *   settled   every stage closed before the release window ended; the requester is debited for the outputs it
+ *   settled   every stage closed (a closing receipt signed by deadline + release window + clock allowance), or a
+ *             delivered answer's unclosed stages are treated as closed at their last step; the requester is debited for the outputs it
  *             acknowledged in time, and each stage is credited its signed share of that debit (credit-shares.js, the
  *             ledger's own arithmetic)
  *   expired   the release window passed without every stage closing and without a delivered answer, including an
  *             attempt that never started; nobody is charged or paid (the provider-loss-free terms)
- *   open      not every stage has closed and the release window has not passed; the outcome is not final yet
+ *   open      not every stage has closed and the release window has not passed (at <= deadline + releaseWindowMs +
+ *             maxClockSkewMs); the outcome is not final yet
  *   conflict  some participant signed two incompatible statements; the conflicting records are listed
  *   unknown   the records presented cannot decide the outcome (for example a delivered answer with no receipt from
  *             one stage covering it); nothing is inferred
@@ -126,6 +128,32 @@ const within = (terms, skew) => value => ms(value) >= ms(terms.notBefore) - skew
 
 const closingReceipt = row => row.status !== 'executing' && row.timing.closedAt !== null;
 
+/**
+ * One stage's contradictory receipts (docs/settlement-replay.md, "Conflict entries"), over its kept receipts sorted by
+ * sequence, late ones included. Each distinct pair `[earlier, later]` of sequences is listed once, in order of first
+ * finding: `[s, s]` when two different receipts carry sequence `s`; `[h, s]` when a receipt at `s` has fewer steps
+ * than one at a lower sequence, `h` being the lowest sequence with the most steps below `s`; `[c, s]` for each
+ * receipt after the stage's first closing receipt, at sequence `c`.
+ */
+function receiptConflicts(rows) {
+  const pairs = new Map(), add = (earlier, later) => pairs.set(`${earlier},${later}`, [earlier, later]);
+  let highest = null, closing = null;
+  for (let start = 0; start < rows.length;) {
+    let end = start;
+    while (end < rows.length && rows[end].sequence === rows[start].sequence) end += 1;
+    const group = rows.slice(start, end), { sequence } = group[0];
+    if (group.length > 1) add(sequence, sequence);
+    if (highest && group.some(row => row.steps < highest.steps)) add(highest.sequence, sequence);
+    if (closing) add(closing.sequence, sequence);
+    for (const row of group) {
+      if (!highest || row.steps > highest.steps) highest = row;
+      if (!closing && closingReceipt(row)) closing = row;
+    }
+    start = end;
+  }
+  return [...pairs.values()];
+}
+
 async function replayOne(reservationId, requesterId, group, { policies, at, computerOf, maxUnacknowledgedOutputs }) {
   // Every row has exactly these members (docs/settlement-replay.md, "Rows").
   const base = { reservationId, attemptId: null, requesterId, status: null, reason: null, debit: null, credits: null, outputs: null,
@@ -151,7 +179,10 @@ async function replayOne(reservationId, requesterId, group, { policies, at, comp
   }
   const skew = policy.maxClockSkewMs, closesAt = ms(agreed.deadline) + agreed.releaseWindowMs;
   const inTime = within(agreed, skew);
-  // A closing receipt counts when signed before the release window ends, even after the deadline: a stage that closes
+  // The release window has passed once no closing receipt signed in time can still arrive: after its last instant,
+  // deadline + releaseWindowMs + maxClockSkewMs. Until then an attempt with an unclosed stage stays `open`.
+  const windowOpen = at <= closesAt + skew;
+  // A closing receipt counts when signed by deadline + release window + clock allowance, even after the deadline: a stage that closes
   // honestly late is then paid what one that backdates its close would be. The charge stays capped by the requester's
   // in-time acknowledgments. Both ends carry the clock allowance, as `inTime`'s do.
   const closesInTime = value => ms(value) >= ms(agreed.notBefore) - skew && ms(value) <= closesAt + skew;
@@ -179,12 +210,8 @@ async function replayOne(reservationId, requesterId, group, { policies, at, comp
   const latest = [];
   for (const [index, rows] of perStage.entries()) {
     rows.sort((a, b) => a.sequence - b.sequence);
-    for (let i = 1; i < rows.length; i++) {
-      const [previous, current] = [rows[i - 1], rows[i]];
-      if (previous.sequence === current.sequence || current.steps < previous.steps || previous.timing.closedAt !== null) {
-        base.conflicts.push({ signer: current.participantId, kind: 'stage-receipt', blocking: true, partitionIndex: index,
-          sequences: [previous.sequence, current.sequence] });
-      }
+    for (const sequences of receiptConflicts(rows)) {
+      base.conflicts.push({ signer: agreed.shares[index].participantId, kind: 'stage-receipt', blocking: true, partitionIndex: index, sequences });
     }
     rows.filter(row => !counted(row)).forEach(row => base.late.push({ kind: 'stage-receipt', partitionIndex: index, sequence: row.sequence }));
     latest[index] = rows.filter(counted).at(-1) ?? null;
@@ -262,13 +289,15 @@ async function replayOne(reservationId, requesterId, group, { policies, at, comp
       return { ...base, status: 'unknown', outputs: acknowledged,
         reason: `the answer was delivered and acknowledged, but no in-time receipt covering it was presented for stage ${uncovered.join(', ')}` };
     }
-    if (at < closesAt) {
+    if (windowOpen) {
       return { ...base, status: 'open', outputs: acknowledged, reason: `the answer was delivered and acknowledged; stage ${unclosed.join(', ')} has not closed `
         + 'and the release window is still open' };
     }
     closedAtLastStep = unclosed;
+    // The stages stay listed whatever a later step decides (docs/settlement-replay.md, "Rows").
+    base.closedAtLastStep = closedAtLastStep;
   } else if (unclosed.length) {
-    if (at < closesAt) return { ...base, status: 'open', outputs: acknowledged, reason: 'not every stage has closed and the release window is still open' };
+    if (windowOpen) return { ...base, status: 'open', outputs: acknowledged, reason: 'not every stage has closed and the release window is still open' };
     return { ...base, status: 'expired', debit: 0, credits: agreed.shares.map(row => ({ participantId: row.participantId, amount: 0 })),
       outputs: acknowledged, reason: 'the release window passed without every stage closing; under these terms nobody is charged or paid' };
   }
@@ -298,6 +327,10 @@ async function replayOne(reservationId, requesterId, group, { policies, at, comp
   const units = providerEnded ? 0 : chargeable * agreed.creditsPerOutputToken;
   const request = { providers: agreed.shares.map(row => ({ participantId: row.participantId, weight: row.weight })), computerId: computerOf(agreed.requesterId) };
   const split = creditSettlementDeltas(request, units, computerOf);
+  // One entry per stage in stage order; a stage on the requester's own account is listed with amount 0.
+  const paid = split.credits[Symbol.iterator]();
+  const credits = agreed.shares.map(row => ({ participantId: row.participantId,
+    amount: computerOf(row.participantId) === request.computerId ? 0 : paid.next().value.amount }));
   const reason = closedAtLastStep.length ? `the answer was completed and acknowledged; stage ${closedAtLastStep.join(', ')} signed no closing `
     + 'receipt and is treated as closed at its last signed step'
     : fullyAcknowledged ? 'the answer was completed and acknowledged'
@@ -305,7 +338,7 @@ async function replayOne(reservationId, requesterId, group, { policies, at, comp
       : providerEnded ? 'a stage ended the answer before it finished; under these terms nobody is charged or paid'
         : stoppedByRequester ? 'the requester signed a stop; the outputs it acknowledged are charged'
           : 'the requester stopped acknowledging; the outputs it acknowledged are charged';
-  return { ...base, status: 'settled', debit: split.charge, credits: split.credits.map(row => ({ participantId: row.participantId, amount: row.amount })),
+  return { ...base, status: 'settled', debit: split.charge, credits,
     outputs: acknowledged, chargedOutputs: providerEnded ? 0 : chargeable, unacknowledgedOutputs: delivered ? delivered.count - acknowledged : null,
     beyondCeiling: Math.max(0, acknowledged - agreed.maxOutputTokens), closedAtLastStep, reason };
 }

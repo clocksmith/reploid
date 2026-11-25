@@ -126,8 +126,8 @@ Unacknowledged work is not billed, and neither is an acknowledgment signed after
 the request deadline plus clock skew: the ledger keeps the requester's earlier
 in-time acknowledgment and refuses to settle on the late one, as the
 [settlement replay](settlement-replay.md) does. A stage's closing receipt still
-counts when it arrives after the deadline but before the release window expires,
-even when the steps it reports ran after the deadline; a step receipt signed
+counts when it arrives after the deadline and is signed by the deadline plus the
+release window plus clock skew, even when the steps it reports ran after the deadline; a step receipt signed
 after the deadline plus clock skew is verified and ignored.
 A signed `failed` receipt proves cleanup only
 with its closing timestamp; it does not turn a failed answer into a completed one.
@@ -165,11 +165,18 @@ requester's signed acknowledgments, by the settlement replay's charge rule
 `reploid.settlement-stop/v1` and hands it to the ledger through `collect` before
 its stages are told to stop (it waits at most 2 s for the ledger), then sends it
 again with the closing evidence. With that stop the acknowledged prefix is
-charged. Without it, an unfinished answer that the stages closed on their own,
-with `settled` or `failed` receipts and no more than `K` outputs unacknowledged,
-was ended by a stage: under the provider-loss-free terms it charges nothing and
-pays no stage, with reason `stage-ended-unfinished-answer`. It is also zero
-when a stage owner vanished. Whether a voluntary Stop on a split route should
+charged. Without it, an unfinished answer that the stages closed, with `settled`
+or `failed` receipts and no more than `K` outputs unacknowledged, also charges
+the acknowledged prefix, split by the signed weights, with reason
+`unfinished-answer-closed-without-requester-stop`. This is an interim rule
+(`settlementRules: reploid.settlement-replay/v1+acknowledged-prefix`) and the
+one case where the ledger and the settlement replay differ: the replay charges
+nothing, so a requester that had read what it wanted could stop asking and pay
+nothing, and no requester would ever sign a stop. The owner's decision is
+pending ([settlement-replay.md](settlement-replay.md#known-difference-pending-owner-decision)).
+Reservations accepted under `reploid.settlement-replay/v1` keep that rule: such
+an answer charged nothing, with reason `stage-ended-unfinished-answer`. The
+charge is zero when a stage owner vanished. Whether a voluntary Stop on a split route should
 cost anything is an open owner decision; as implemented it charges the
 acknowledged prefix. Outputs acknowledged past the reservation's output ceiling
 are accepted, never charged, and recorded as `beyondCeiling`. A reservation made
@@ -217,8 +224,10 @@ work but returns after the window is therefore not paid for it.
 A split request has the same gap, and a wider one: settlement needs every
 stage's signed closure, so one stage host that disappears for good would strand
 the hold even when the other stages signed. `creditPolicy.partitionUnclaimedReleaseMs`
-bounds it. After the request deadline plus this window, a split request whose
-proof is still incomplete reaches one final outcome: status `expired`, reason
+bounds it. Once the clock passes the request deadline plus this window plus the
+clock skew allowance (the last instant a closing receipt still counts; a
+reservation accepted before the interim rules is decided at the deadline plus the
+window), a split request whose proof is still incomplete reaches one final outcome: status `expired`, reason
 `stage-unclaimed-after-window`, no charge, and no credit to any stage, including
 stages that did sign. The outcome records the acknowledged output count and
 lists each stage that never signed with `cleanup: "unverified"` (or

@@ -3,7 +3,7 @@ import { canonicalize } from '../../shared/vendor/reploid/artifacts/canonical-js
 import { assert, same, FLEET_SERVICE_REQUEST_SCHEMA } from './contract.js';
 import { verifyParticipantSignature } from '../../shared/vendor/reploid/artifacts/participant-proofs.js';
 import {
-  deliveredWithoutCoveringReceipt, replayRules, stagesClosedAtLastStep, verifyCreditEvidence, verifyPartitionComponents, verifySplitStop
+  deliveredWithoutCoveringReceipt, releaseWindowPassed, replayRules, stagesClosedAtLastStep, verifyCreditEvidence, verifyPartitionComponents, verifySplitStop
 } from './credit-evidence.js';
 
 /** Durable admission fences and independently verified proof components. No timeout asserts
@@ -83,7 +83,10 @@ export function createCreditRecovery({ db, transaction, read, settle, post, enro
     for (const row of db.prepare("SELECT id FROM fleet_requests WHERE state='closing'").all()) {
       const request = read(row.id), split = request.binding.mode !== 'whole-model';
       const window = split ? policy.partitionUnclaimedReleaseMs : policy.wholeModelUnclaimedReleaseMs;
-      if (!Number.isSafeInteger(window) || now() < request.binding.deadline + window) continue;
+      // Under the interim split rules the window passes only after the clock allowance too: a closing receipt signed
+      // up to deadline + window + allowance still counts (releaseWindowPassed).
+      if (!Number.isSafeInteger(window) || !(split ? releaseWindowPassed(request.binding, now(), window, policy.maxClockSkewMs)
+        : now() >= request.binding.deadline + window)) continue;
       let outcome = { id: row.id, unit: policy.unit, charge: 0, ownComputeUnits: 0, outputTokens: 0, status: 'expired', usage: null,
         reason: 'provider-unclaimed-after-window', credits: [], evidenceHash: null, economicHash: null, settledAt: now() };
       if (split) {

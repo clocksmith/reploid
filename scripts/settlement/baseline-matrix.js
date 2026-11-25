@@ -156,13 +156,13 @@ async function main() {
    * with the time it really did so; a presented record that is in neither list was never witnessed.
    */
   const judge = async (records, attempt, shown = []) => {
-    const replayed = await replaySettlement({ records, policies: [POLICY], at: attempt.closesAt + 1 });
+    const replayed = await replaySettlement({ records, policies: [POLICY], at: attempt.decidedAt });
     const r = replayed.reservations.find(row => row.reservationId === attempt.reservationId && row.requesterId === requesterId);
     const others = replayed.reservations.filter(row => row.reservationId === attempt.reservationId && row !== r);
     const honestRun = new Set(attempt.all()), witness = createWitness(witnessIdentity);
     const queue = [...[...new Set(records)].filter(row => honestRun.has(row)).map(row => [row, ms(row.signedAt)]), ...shown].sort((a, b) => a[1] - b[1]);
     for (const [record, at] of queue) await witness.see(record, at);
-    const b4 = await witnessedReplay({ records, statements: witness.statements, witnessKey: witnessIdentity.publicJwk, policies: [POLICY], at: attempt.closesAt + 1 });
+    const b4 = await witnessedReplay({ records, statements: witness.statements, witnessKey: witnessIdentity.publicJwk, policies: [POLICY], at: attempt.decidedAt });
     const w = b4.replayed.reservations.find(row => row.reservationId === attempt.reservationId && row.requesterId === requesterId);
     const tally = list => Object.fromEntries([...new Set(list)].map(reason => [reason, list.filter(item => item === reason).length]));
     const notes = (await debitNoteSettlement({ records, policies: [POLICY] })).filter(row => row.reservationId === attempt.reservationId);
@@ -207,7 +207,7 @@ async function main() {
       'the operator withholds stage0\'s acceptance; stage0 presents its own records');
   }
   {
-    const all = await replaySettlement({ records: done.all(), policies: [POLICY], at: done.closesAt + 1 });
+    const all = await replaySettlement({ records: done.all(), policies: [POLICY], at: done.decidedAt });
     const notes = await debitNoteSettlement({ records: done.all(), policies: [POLICY] });
     rows.push({ kind: 'operator', goal: 'G4 fabricate a request', replay: { achieved: all.reservations.length !== 1 }, debitNotes: { achieved: notes.length !== 1 },
       witnessed: { achieved: false }, note: 'no record names a reservation its requester did not sign; the witness only removes records' });
@@ -298,7 +298,7 @@ async function main() {
     const late = await runAttempt(parties, { tag: 'past', outputs: forty, lateAckDelayMs: 5000 });
     add('P5 the last acknowledgment and the closes fall 5 s after the deadline, inside the release window; every clock is honest', late,
       await judge(late.all(), late),
-      { note: 'the closes count because they were signed before the release window ended, so the replay, like B3, charges the 39 outputs acknowledged in time.' });
+      { note: 'the closes count because they were signed by the end of the release window plus the clock allowance, so the replay, like B3, charges the 39 outputs acknowledged in time.' });
     const deadline = ms(late.terms.deadline), early = iso(deadline - 1000), records = [], shown = [];
     for (const record of new Set(late.all())) {
       if (record.schema !== STAGE_RECEIPT_SCHEMA || ms(record.signedAt) <= deadline) { records.push(record); continue; }

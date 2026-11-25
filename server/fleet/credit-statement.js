@@ -20,8 +20,8 @@ import { canonicalize } from '../../shared/vendor/reploid/artifacts/canonical-js
 import { verifyParticipantSignature } from '../../shared/vendor/reploid/artifacts/participant-proofs.js';
 import { canonicalRouteAttemptBinding } from '../../shared/vendor/reploid/mesh/partitions/partition-contract.js';
 import { assert, creditPolicy, digest, enrollComputers, FLEET_SERVICE_REQUEST_SCHEMA, integer, same, text } from './contract.js';
-import { verifyCreditEvidence, verifyPartitionComponents } from './credit-evidence.js';
-import { accountSettlement, creditSettlementDeltas, settledCreditUnits, SETTLEMENT_RULES, UNFINISHED_ANSWER_TERMS } from './credit-shares.js';
+import { releaseWindowPassed, verifyCreditEvidence, verifyPartitionComponents } from './credit-evidence.js';
+import { accountSettlement, creditSettlementDeltas, settledCreditUnits, SETTLEMENT_RULE_SETS, UNFINISHED_ANSWER_TERMS } from './credit-shares.js';
 import { MAX_UNACKNOWLEDGED_OUTPUTS } from '../../shared/vendor/reploid/mesh/partitions/partition-attempt-evidence.js';
 
 export const FLEET_CREDIT_STATEMENT_SCHEMA = 'reploid.fleet-credit-statement/v1';
@@ -30,6 +30,9 @@ export const FLEET_CREDIT_STATEMENT_V2_SCHEMA = 'reploid.fleet-credit-statement/
 const releaseWindowFor = (request, policy) => (
   request.mode === 'whole-model' ? policy.wholeModelUnclaimedReleaseMs : policy.partitionUnclaimedReleaseMs
 );
+/** Whether the request's claim window has passed at `at` (credit-evidence.js releaseWindowPassed for a split request). */
+const windowPassed = (request, at, window, policy) => (request.mode === 'whole-model' ? at >= request.deadline + window
+  : releaseWindowPassed(request, at, window, policy.maxClockSkewMs));
 
 const requestWorkIds = request => (
   request.mode === 'whole-model'
@@ -86,7 +89,7 @@ function verifyRequestBinding(request, requestId, enrollment, policy) {
     && maximum === request.maxOutputTokens * policy.creditsPerOutputToken
     && (terminalCharge === null || request.mode === 'whole-model' && terminalCharge === 0)
     && (request.unfinishedTerms === undefined || request.mode === 'partition' && request.unfinishedTerms === UNFINISHED_ANSWER_TERMS)
-    && (request.settlementRules === undefined || request.unfinishedTerms === UNFINISHED_ANSWER_TERMS && request.settlementRules === SETTLEMENT_RULES),
+    && (request.settlementRules === undefined || request.unfinishedTerms === UNFINISHED_ANSWER_TERMS && SETTLEMENT_RULE_SETS.includes(request.settlementRules)),
   'Request ceiling or deadline differs from policy terms');
 }
 
@@ -199,7 +202,7 @@ export async function verifyCreditStatement(statement, { computers, participantI
         && outcome.charge === 0 && outcome.ownComputeUnits === 0 && outcome.outputTokens === 0
         && Array.isArray(outcome.credits) && outcome.credits.length === 0
         && Number.isSafeInteger(outcome.settledAt)
-        && outcome.settledAt >= item.request.deadline + window
+        && windowPassed(item.request, outcome.settledAt, window, policy)
         && outcome.settledAt <= statement.issuedAt + policy.maxClockSkewMs,
       'Invalid expired hold outcome');
       expiredRequests.add(requestId);
@@ -231,7 +234,7 @@ export async function verifyCreditStatement(statement, { computers, participantI
       // verifyCreditEvidence accepts that evidence only at or after the deadline plus the window.
       const atWindow = entry.request.mode === 'partition' && entry.evidence.closedAtLastStep !== undefined;
       if (Number.isSafeInteger(window) && !atWindow) {
-        assert(entry.at < entry.request.deadline + window, 'Claim window closed before settlement');
+        assert(!windowPassed(entry.request, entry.at, window, policy), 'Claim window closed before settlement');
       }
       const interrupted = await verifyInterruptedOwners(entry.request, entry.evidence, enrollment, entry.at, policy.maxClockSkewMs);
       const observed = await verifyCreditEvidence(entry.request, entry.evidence, enrollment, entry.at, policy.maxClockSkewMs,
@@ -294,7 +297,7 @@ export async function verifyCreditStatement(statement, { computers, participantI
         verifyRequestBinding(request, requestId, enrollment, policy);
         const window = releaseWindowFor(request, policy);
         if (Number.isSafeInteger(window)) {
-          assert(at < request.deadline + window, 'Claim window closed before settlement');
+          assert(!windowPassed(request, at, window, policy), 'Claim window closed before settlement');
         }
         assert(claim.evidence !== null && claim.evidence !== undefined, 'Missing signed settlement evidence');
         const interrupted = await verifyInterruptedOwners(request, claim.evidence, enrollment, at, policy.maxClockSkewMs);

@@ -80,7 +80,7 @@ describe('settlement replay encodings', () => {
       for (const tz of ['UTC', 'Asia/Tokyo', 'America/Los_Angeles', 'Pacific/Kiritimati']) {
         process.env.TZ = tz;
         parsed.push(Date.parse(zoneless.signedAt));
-        const { reservations, rejected } = await replay(presented, complete.closesAt + 1);
+        const { reservations, rejected } = await replay(presented, complete.decidedAt);
         verdicts.push({ status: reservations[0].status, debit: reservations[0].debit, rejected: rejected.length });
       }
     } finally {
@@ -114,7 +114,7 @@ describe('settlement replay encodings', () => {
     const parties = await createParties(2);
     const a = await runAttempt(parties);
     for (const policies of [[], undefined]) {
-      const out = await replaySettlement({ records: a.all(), policies, at: a.closesAt + 1 });
+      const out = await replaySettlement({ records: a.all(), policies, at: a.decidedAt });
       expect(out.reservations[0]).toMatchObject({ status: 'invalid', debit: null });
     }
   });
@@ -125,7 +125,7 @@ describe('settlement replay encodings', () => {
     const late = Date.parse(lost.terms.deadline) + POLICY.maxClockSkewMs + 5000;
     const stop = await signSettlementStop({ signer: createAttemptEvidenceSigner({ identity: parties.requester, now: () => late }),
       terms: lost.terms, acknowledged: lost.acknowledged });
-    for (const [at, status] of [[lost.closesAt - 1, 'open'], [lost.closesAt + 1, 'expired']]) {
+    for (const [at, status] of [[lost.closesAt - 1, 'open'], [lost.decidedAt, 'expired']]) {
       const r = (await replay([...lost.all(), stop], at)).reservations[0];
       expect(r.status).toBe(status);
       expect(r.late).toEqual([{ kind: 'stop', acknowledged: lost.acknowledged }]);
@@ -138,7 +138,7 @@ describe('settlement replay encodings', () => {
     const termsOnly = [a.terms, ...ofSchema(a.all(), SETTLEMENT_ACCEPTANCE_SCHEMA)];
     for (const records of [[a.terms], termsOnly]) {
       expect((await replay(records, a.closesAt - 1)).reservations[0]).toMatchObject({ status: 'open', debit: null, foreign: [] });
-      const r = (await replay(records, a.closesAt + 1)).reservations[0];
+      const r = (await replay(records, a.decidedAt)).reservations[0];
       expect(r).toMatchObject({ status: 'expired', debit: 0, foreign: [] });
       expect(r.credits.every(c => c.amount === 0)).toBe(true);
     }
@@ -150,7 +150,7 @@ describe('settlement replay encodings', () => {
     const beyond = ofSchema(a.held.stages[1], STAGE_RECEIPT_SCHEMA).find(row => row.output?.count === 7);
     expect(ofSchema(a.all(), OUTPUT_ACKNOWLEDGMENT_SCHEMA).some(row => row.count === 7)).toBe(false);
     const twin = await resign(parties.stages[1], beyond, { ...bodyOf(beyond), output: { ...beyond.output, chain: 'sha256:' + 'c'.repeat(64) } });
-    const r = (await replay([...a.all(), twin], a.closesAt + 1)).reservations[0];
+    const r = (await replay([...a.all(), twin], a.decidedAt)).reservations[0];
     expect(r.status).toBe('conflict');
     expect(r.conflicts).toContainEqual(expect.objectContaining({ signer: parties.stages[1].peerId, kind: 'output-chain', blocking: true, count: 7 }));
     expect(r.conflicts.every(row => typeof row.kind === 'string' && typeof row.blocking === 'boolean'
@@ -178,8 +178,8 @@ describe('closing after the deadline (L5)', () => {
   it('charges an honestly late close what a backdated one gets, and counts nothing signed after the release window', async () => {
     const parties = await createParties(2);
     const run = await lateRun(parties);
-    const honest = (await replay(run.all(), run.closesAt + 1)).reservations[0];
-    const backdated = (await replay(await redate(parties, run, new Date(Date.parse(run.terms.deadline) - 1000).toISOString()), run.closesAt + 1)).reservations[0];
+    const honest = (await replay(run.all(), run.decidedAt)).reservations[0];
+    const backdated = (await replay(await redate(parties, run, new Date(Date.parse(run.terms.deadline) - 1000).toISOString()), run.decidedAt)).reservations[0];
     expect(honest).toMatchObject({ status: 'settled', debit: 117, outputs: 39 });
     expect(honest.credits.map(c => c.amount)).toEqual([29, 88]);
     expect(backdated).toMatchObject({ status: honest.status, debit: honest.debit, credits: honest.credits });
@@ -226,7 +226,7 @@ describe('closing after the deadline (L5)', () => {
       const full = { identity: run.identity, receipts: closing, ...pairFor(acknowledged.at(-1)) };
       await expect(ledger.settle(run.reservationId, full)).rejects.toThrow('after the deadline');
       const outcome = await ledger.collect(run.reservationId, full);
-      const r = (await replaySettlement({ records: run.all(), policies: [policy], at: run.closesAt + 1, accountOf: id => accountOf.get(id) })).reservations[0];
+      const r = (await replaySettlement({ records: run.all(), policies: [policy], at: run.decidedAt, accountOf: id => accountOf.get(id) })).reservations[0];
       expect(r).toMatchObject({ status: 'settled', debit: 117 });
       expect(outcome).toMatchObject({ charge: r.debit, outputTokens: 39 });
       expect(outcome.credits.map(row => [row.participantId, row.amount])).toEqual(r.credits.map(row => [row.participantId, row.amount]));
@@ -263,7 +263,7 @@ describe('settlement replay, round 4', () => {
       expect(await VERIFY[schema](high), schema).toMatchObject({ ok: false, problem: 'encoding_not_canonical' });
       expect(await VERIFY[schema](record), schema).toMatchObject({ ok: true });
     }
-    const r = (await replay(all.map(row => (row.schema === STAGE_RECEIPT_SCHEMA ? { ...row, signature: otherS(row.signature) } : row)), a.closesAt + 1));
+    const r = (await replay(all.map(row => (row.schema === STAGE_RECEIPT_SCHEMA ? { ...row, signature: otherS(row.signature) } : row)), a.decidedAt));
     expect(r.rejected.length).toBe(all.filter(row => row.schema === STAGE_RECEIPT_SCHEMA).length);
   });
 
@@ -273,7 +273,7 @@ describe('settlement replay, round 4', () => {
     expect(() => creditPolicy(tight)).toThrow('longer than the clock skew allowance');
     expect(() => creditPolicy({ ...tight, partitionUnclaimedReleaseMs: POLICY.maxClockSkewMs + 1 })).not.toThrow();
     const a = await runAttempt(parties, { tag: 'tight', policy: tight });
-    expect((await replaySettlement({ records: a.all(), policies: [tight], at: a.closesAt + 1 })).reservations[0])
+    expect((await replaySettlement({ records: a.all(), policies: [tight], at: a.decidedAt })).reservations[0])
       .toMatchObject({ status: 'invalid', debit: null });
   });
 
@@ -285,7 +285,7 @@ describe('settlement replay, round 4', () => {
     // A late acknowledgment of the final count with another chain than the final stage's: the requester and the stage
     // signed incompatible statements, so the attempt is a conflict, as an in-time one would make it.
     const lateFake = await resign(parties.requester, top, { ...bodyOf(top), chain: fake, signedAt: late });
-    const disputed = (await replay([...a.all().filter(row => row !== top), lateFake], a.closesAt + 1)).reservations[0];
+    const disputed = (await replay([...a.all().filter(row => row !== top), lateFake], a.decidedAt)).reservations[0];
     expect(disputed.status).toBe('conflict');
     expect(disputed.late).toContainEqual({ kind: 'acknowledgment', count: top.count });
     expect(disputed.conflicts).toContainEqual(expect.objectContaining({ kind: 'output-chain', signer: null, count: top.count, blocking: true }));
@@ -293,7 +293,7 @@ describe('settlement replay, round 4', () => {
     // itself, which does not block, and the late count is still not charged.
     const timelyFake = await resign(parties.requester, top, { ...bodyOf(top), chain: fake });
     const lateRight = await resign(parties.requester, top, { ...bodyOf(top), signedAt: late });
-    const resolved = (await replay([...a.all().filter(row => row !== top), timelyFake, lateRight], a.closesAt + 1)).reservations[0];
+    const resolved = (await replay([...a.all().filter(row => row !== top), timelyFake, lateRight], a.decidedAt)).reservations[0];
     expect(resolved).toMatchObject({ status: 'settled', outputs: top.count - 1, debit: (top.count - 1) * POLICY.creditsPerOutputToken });
     expect(resolved.conflicts).toContainEqual({ signer: parties.requester.peerId, kind: 'acknowledgment-equivocation', count: top.count,
       blocking: false, chains: [fake] });
@@ -305,7 +305,7 @@ describe('settlement replay, round 4', () => {
       'unacknowledgedOutputs', 'beyondCeiling', 'closedAtLastStep', 'conflicts', 'late', 'foreign', 'unmatched'].sort();
     const settled = await runAttempt(parties, { tag: 'shape-settled' });
     const lost = await runAttempt(parties, { tag: 'shape-lost', vanishStage: 0, vanishAfterStep: 1 });
-    const rows = [...(await replay([...settled.all(), ...lost.all()], settled.closesAt + 1)).reservations,
+    const rows = [...(await replay([...settled.all(), ...lost.all()], settled.decidedAt)).reservations,
       ...(await replay([settled.terms], settled.closesAt - 1)).reservations, ...(await replaySettlement({ records: settled.all(), at: 0 })).reservations];
     expect(rows.map(row => row.status).sort()).toEqual(['expired', 'invalid', 'open', 'settled']);
     for (const row of rows) expect(Object.keys(row).sort(), row.status).toEqual(members);

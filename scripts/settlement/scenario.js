@@ -108,5 +108,7 @@ export async function runAttempt(parties, { tag = 'r1', outputs = ['The', ' answ
     held.stages[index].push(await tally.close({ failed: refusedAtStep !== null || failedClose }));
   }
   return { terms, reservationId, identity, held, delivered, acknowledged: latestPair?.acknowledgment.count ?? 0, refusedAtStep,
-    deadline, closesAt: deadline + policy.partitionUnclaimedReleaseMs, all: () => [...held.requester, ...held.stages.flat()] };
+    deadline, closesAt: deadline + policy.partitionUnclaimedReleaseMs,
+    // The first instant the attempt is decided: after the last one at which a closing receipt counts (step 6).
+    decidedAt: deadline + policy.partitionUnclaimedReleaseMs + policy.maxClockSkewMs + 1, all: () => [...held.requester, ...held.stages.flat()] };
 }

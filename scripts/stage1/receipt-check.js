@@ -7,7 +7,7 @@
  * directory whose fingerprint is unchanged since (see SEARCH_EVIDENCE). What a stage process actually read is the stage
  * loader's own record (`loaded`), measured during the answer; the searches show what each machine held around it.
  */
-import { creditSettlementDeltas } from '../../server/fleet/credit-shares.js';
+import { WALK_AWAY_DIFFERENCE, creditSettlementDeltas, isWalkAwayRow } from '../../server/fleet/credit-shares.js';
 import { WEIGHT_ROLES } from './stage-metadata.js';
 
 export const STAGE1_RECEIPT_SCHEMA = 'reploid.stage1-split-receipt/v1';
@@ -375,7 +375,13 @@ function checkReplay(receipt, name, fail) {
     return;
   }
   const amounts = (row.credits ?? []).map(credit => credit.amount), ledger = (trace.credits ?? []).map(credit => credit.amount);
-  if (row.debit !== trace.charge || !same(amounts, ledger)) {
+  // The one known difference (docs/settlement-replay.md, "Known difference, pending owner decision"): an unfinished
+  // answer the stages closed with no stop is free in the replay and charged its acknowledged prefix by the ledger. It
+  // is tolerated only when the receipt labels it for this reservation and the ledger charged exactly that prefix.
+  const labelled = (replay.knownDifferences ?? []).some(item => item?.case === WALK_AWAY_DIFFERENCE && item.reservationId === row.reservationId
+    && item.acknowledgedOutputs === row.outputs);
+  const knownDifference = labelled && isWalkAwayRow(row) && trace.outputTokens === row.outputs && trace.charge > 0;
+  if (!knownDifference && (row.debit !== trace.charge || !same(amounts, ledger))) {
     fail('replay-differs-from-ledger', `${name} replay ${row.debit} ${canonical(amounts)}, ledger ${trace.charge} ${canonical(ledger)}`);
   }
   if (name === 'cancel' && (replay.stopSigned !== true || row.chargedOutputs !== trace.outputTokens)) {

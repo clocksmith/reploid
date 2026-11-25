@@ -10,20 +10,38 @@ export const UNFINISHED_ANSWER_TERMS = 'reploid.unfinished-answer/provider-loss-
 /**
  * A split reservation that names these rules settles as the settlement replay computes (docs/settlement-replay.md):
  * a stage ending an unfinished answer on its own costs nothing, a requester's signed stop charges the acknowledged
- * prefix, closes inside the release window count, and outputs past the signed ceiling are never charged. A
- * reservation made before them keeps the rules it was accepted under.
+ * prefix, closes inside the release window count, and outputs past the signed ceiling are never charged. Reservations
+ * made under them on 2026-11-25 keep them; new ones take SETTLEMENT_RULES.
  */
-export const SETTLEMENT_RULES = 'reploid.settlement-replay/v1';
+export const SETTLEMENT_RULES_V1 = 'reploid.settlement-replay/v1';
+/**
+ * The ledger's interim rules, pending the owner's decision (docs/settlement-replay.md, "Known difference, pending
+ * owner decision"). The replay's rules, except that an unfinished split answer the stages closed with no requester
+ * stop charges the requester's acknowledged-in-time prefix, as before SETTLEMENT_RULES_V1: free-on-unfinished would
+ * let a requester that has read what it wants stop asking and pay nothing. A split answer is decided once the
+ * clock passes deadline + release window + clock allowance, the last instant a closing receipt counts.
+ */
+export const SETTLEMENT_RULES = 'reploid.settlement-replay/v1+acknowledged-prefix';
+export const SETTLEMENT_RULE_SETS = Object.freeze([SETTLEMENT_RULES_V1, SETTLEMENT_RULES]);
+/**
+ * The one named case where the ledger under SETTLEMENT_RULES and the settlement replay post different amounts: an
+ * unfinished split answer that the stages closed, with no in-time requester stop and no more than K acknowledgments
+ * withheld. The replay charges 0; the ledger charges the acknowledged prefix. A replay row shows it as `settled` with
+ * `outputs > 0` and `chargedOutputs: 0`, which no other settled row has (the ceiling is positive).
+ */
+export const WALK_AWAY_DIFFERENCE = 'unfinished-split-answer-closed-without-stop';
+export const isWalkAwayRow = row => row?.status === 'settled' && Number.isSafeInteger(row.outputs) && row.outputs > 0 && row.chargedOutputs === 0;
 
 /**
- * The units a settled request moves. Under these terms a split answer whose stage owner vanished, or that a stage
- * ended on its own (credit-evidence.js `stageEnded`), charges the requester nothing and pays no stage, even for
- * acknowledged output. A reservation made before them has no
+ * The units a settled request moves. Under these terms a split answer whose stage owner vanished charges the
+ * requester nothing and pays no stage, even for acknowledged output; so does one a stage ended on its own
+ * (credit-evidence.js `stageEnded`) under SETTLEMENT_RULES_V1 only. A reservation made before them has no
  * `unfinishedTerms` and keeps the acknowledged-prefix charge it was accepted under.
  */
 export function settledCreditUnits(request, observed, creditsPerOutputToken) {
   if (observed.fixedCharge !== null && observed.fixedCharge !== undefined) return observed.fixedCharge;
-  if (request.unfinishedTerms === UNFINISHED_ANSWER_TERMS && (observed.interruptedStages?.length || observed.stageEnded === true)) return 0;
+  if (request.unfinishedTerms === UNFINISHED_ANSWER_TERMS && (observed.interruptedStages?.length
+    || observed.stageEnded === true && request.settlementRules === SETTLEMENT_RULES_V1)) return 0;
   return observed.outputTokens * creditsPerOutputToken;
 }
 

@@ -8,7 +8,7 @@ import { assert, creditPolicy, creditRefusal, digest, enrollComputer, enrollComp
   withCreditPolicyDefaults } from './contract.js';
 import { createCreditRecovery } from './credit-recovery.js';
 import { verifyCreditEvidence } from './credit-evidence.js';
-import { accountSettlement, settledCreditUnits, SETTLEMENT_RULES, UNFINISHED_ANSWER_TERMS } from './credit-shares.js';
+import { accountSettlement, settledCreditUnits, SETTLEMENT_RULES, SETTLEMENT_RULES_V1, UNFINISHED_ANSWER_TERMS } from './credit-shares.js';
 import { MAX_UNACKNOWLEDGED_OUTPUTS } from '../../shared/vendor/reploid/mesh/partitions/partition-attempt-evidence.js';
 
 /** Balances are kept per owner account: every computer and key an owner enrolled spends and earns one balance. */
@@ -140,8 +140,11 @@ export async function openFleetCredits({ file, computers, policy: supplied, now 
       ...(observed.terminalStatus ? { status: observed.terminalStatus, usage: null } : {}),
       ...(interruptedStages ? { status: 'failed', reason: 'interrupted-stage-owner', interruptedStages } : {}),
       ...(closedAtLastStep ? { reason: 'closed-at-last-signed-step-after-window', closedAtLastStep } : {}),
-      // The replay's "a stage ended the answer before it finished": no requester stop, no withheld acknowledgments.
-      ...(observed.stageEnded ? { reason: 'stage-ended-unfinished-answer' } : {}),
+      // An unfinished answer the stages closed with no requester stop and no withheld acknowledgments. Under the
+      // interim rules it charges the acknowledged prefix (the known difference from the replay, which charges nothing);
+      // under SETTLEMENT_RULES_V1 it charged nothing.
+      ...(observed.stageEnded ? { reason: request.settlementRules === SETTLEMENT_RULES_V1 ? 'stage-ended-unfinished-answer'
+        : 'unfinished-answer-closed-without-requester-stop' } : {}),
       // Outputs acknowledged past the signed ceiling: recorded, never charged.
       ...(beyondCeiling ? { beyondCeiling } : {}),
       credits, evidenceHash: sha256(evidence), economicHash: economicHashOf(observed), settledAt: now() };
@@ -201,12 +204,13 @@ export async function openFleetCredits({ file, computers, policy: supplied, now 
           'Partition model differs');
       }
       assert(value.unfinishedTerms === undefined && value.settlementRules === undefined, 'Unfinished-answer terms are set by the ledger');
-      // A retry of a reservation made before these terms, or before the replay's rules, must still find it.
+      // A retry of a reservation made before these terms, before the replay's rules, or under their first version
+      // (SETTLEMENT_RULES_V1) must still find it; it keeps the rules it was accepted under.
       const hashOf = item => createHash('sha256').update(canonicalize(item)).digest('hex');
       const earlierHashes = [hashOf(value)];
       if (value.mode === 'partition') {
         value.unfinishedTerms = UNFINISHED_ANSWER_TERMS;
-        earlierHashes.push(hashOf(value));
+        earlierHashes.push(hashOf(value), hashOf({ ...value, settlementRules: SETTLEMENT_RULES_V1 }));
         value.settlementRules = SETTLEMENT_RULES;
       }
       const requestHash = hashOf(value);

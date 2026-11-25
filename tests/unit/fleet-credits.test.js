@@ -116,7 +116,7 @@ describe('enrolled fleet service credits', () => {
     const checked = await verifyCreditStatement(ledger.statement('computer-0'), { participantIds: [identities[0].peerId] });
     expect(checked).toMatchObject({ ok: true, recomputedBalance: -6, verifiedCount: 2, uncheckedCount: 0 });
   });
-  it('lets no hold outlive its deadline plus the release window, whatever went missing', async () => {
+  it('lets no hold outlive its deadline plus the release window (and, for a split hold, the clock allowance), whatever went missing', async () => {
     ledger.close();
     let clock = at;
     ledger = await openFleetCredits({ ...options, file: path.join(directory, 'bounded-all.sqlite'), policy: { ...policy, maxPendingPerComputer: 8, maxDebt: 100 },
@@ -133,6 +133,12 @@ describe('enrolled fleet service credits', () => {
     clock = at + policy.maxRequestMs + DEFAULT_UNCLAIMED_RELEASE_MS - 1;
     expect(ledger.snapshot().accounts[0].held).toBe(50);
     clock = at + policy.maxRequestMs + DEFAULT_UNCLAIMED_RELEASE_MS;
+    // Whole-model holds are released at deadline plus the window; a split hold one clock allowance later, the last
+    // instant one of its closing receipts still counts.
+    expect(ledger.snapshot().accounts[0].held).toBe(10);
+    clock += policy.maxClockSkewMs;
+    expect(ledger.snapshot().accounts[0].held).toBe(10);
+    clock += 1;
     expect(ledger.snapshot().accounts.map(row => [row.balance, row.held])).toEqual([[0, 0], [0, 0], [0, 0]]);
   });
   it.each(['cancelled', 'failed'])('settles signed %s cleanup without inventing token usage, even after the deadline', async status => {
@@ -544,7 +550,9 @@ describe('enrolled fleet service credits', () => {
     // After the stated window the request is final: nobody is charged or paid, and the hold is gone. The final stage
     // signed `done` and the requester acknowledged it, but stage 0 has no receipt covering the answer: the replay's
     // `unknown`, which the outcome names.
-    clock = at + policy.maxRequestMs + 5000;
+    clock = at + policy.maxRequestMs + 5000 + policy.maxClockSkewMs;
+    expect(await ledger.recover(input.id)).toMatchObject({ status: 'pending', awaitingStages: [0] });
+    clock += 1;
     const final = await ledger.recover(input.id);
     expect(final).toMatchObject({ status: 'expired', reason: 'unknown-delivered-answer-without-covering-receipt', charge: 0, credits: [],
       acknowledgedOutputTokens: 7, unclaimedStages: [{ stage: 0, participantId: identities[1].peerId, cleanup: 'unverified' }] });
@@ -569,7 +577,7 @@ describe('enrolled fleet service credits', () => {
     expect(paid.credits.map(row => row.amount)).toEqual([2, 5]);
     expect(balances()).toEqual([[-7, 0], [2, 0], [5, 0]]);
   });
-  it('releases a split hold at deadline plus the default window when the policy names none', async () => {
+  it('releases a split hold after deadline plus the default window and the clock allowance when the policy names none', async () => {
     ledger.close();
     let clock = at;
     const unbounded = { ...options, file: path.join(directory, 'split-open.sqlite'), now: () => clock };
@@ -579,9 +587,9 @@ describe('enrolled fleet service credits', () => {
     dispatch(lost.input); ledger.admit(lost.input.id, 0); ledger.admit(lost.input.id, 1);
     await ledger.fence(lost.input.id, lost.input.consumer);
     await ledger.collect(lost.input.id, { identity: lost.identity, receipts: [lost.receipts[1]], acknowledgment: lost.acknowledgment });
-    clock = at + policy.maxRequestMs + DEFAULT_UNCLAIMED_RELEASE_MS - 1;
+    clock = at + policy.maxRequestMs + DEFAULT_UNCLAIMED_RELEASE_MS + policy.maxClockSkewMs;
     expect(await ledger.recover(lost.input.id)).toMatchObject({ status: 'pending', heldCredits: 10, awaitingStages: [0] });
-    clock = at + policy.maxRequestMs + DEFAULT_UNCLAIMED_RELEASE_MS;
+    clock += 1;
     expect(await ledger.recover(lost.input.id)).toMatchObject({ status: 'expired', charge: 0, reason: 'unknown-delivered-answer-without-covering-receipt' });
     expect(ledger.snapshot().accounts[0]).toMatchObject({ balance: 0, held: 0 });
   });

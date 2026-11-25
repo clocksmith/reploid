@@ -95,11 +95,11 @@ async function main() {
 
   // Honest completed attempt: the base for operator goals.
   const done = await runAttempt(parties, { tag: 'g' });
-  const { truth } = await truthOf(done.all(), done.closesAt + 1);
+  const { truth } = await truthOf(done.all(), done.decidedAt);
   const honest = await logEntry(operator, honestEntry(truth));
   const forged = async entry => logEntry(operator, { ...honestEntry(truth), ...entry });
   const judge = async (goal, presentedRecords, b1Entries, b2Entries) => {
-    const replay = await replaySettlement({ records: presentedRecords, policies: [POLICY], at: done.closesAt + 1 });
+    const replay = await replaySettlement({ records: presentedRecords, policies: [POLICY], at: done.decidedAt });
     const rr = replay.reservations.find(r => r.reservationId === truth.reservationId);
     const replayAccepted = rr?.status === 'settled' ? { requesterId: truth.requesterId, debit: rr.debit, credits: rr.credits } : null;
     const b1 = (await verifyOperatorLog(b1Entries, operator)).get(truth.reservationId);
@@ -135,14 +135,14 @@ async function main() {
     const e = await logEntry(operator, fake);
     const b1 = (await verifyOperatorLog([e], operator)).get('reservation-fake');
     const b2 = (await verifyCountersigned([await honestCountersigns(e, { ...fake, debit: 0, credits: [] }, parties, [y])], operator)).get('reservation-fake');
-    const replay = await replaySettlement({ records: [...done.all()], policies: [POLICY], at: done.closesAt + 1 });
+    const replay = await replaySettlement({ records: [...done.all()], policies: [POLICY], at: done.decidedAt });
     rows.push({ kind: 'operator', goal: 'G4 fabricate a request', replay: { achieved: replay.reservations.some(r => r.reservationId === 'reservation-fake'), status: 'none' },
       operatorLog: { achieved: Boolean(b1) }, countersign: { achieved: Boolean(b2), accepted: Boolean(b2) } });
   }
   // G5 charge an attempt whose stage vanished (provider-loss-free terms say nobody pays).
   {
     const lost = await runAttempt(parties, { tag: 'lost', vanishStage: 0, vanishAfterStep: 1 });
-    const t = await truthOf(lost.all(), lost.closesAt + 1);
+    const t = await truthOf(lost.all(), lost.decidedAt);
     const e = await logEntry(operator, { reservationId: lost.reservationId, requesterId: parties.requester.peerId, debit: lost.acknowledged * POLICY.creditsPerOutputToken,
       credits: [{ participantId: y, amount: lost.acknowledged * POLICY.creditsPerOutputToken }] });
     const b1 = (await verifyOperatorLog([e], operator)).get(lost.reservationId);
@@ -152,7 +152,7 @@ async function main() {
   }
   // G6 settle the same reservation twice: present every record and every entry twice.
   {
-    const replay = await replaySettlement({ records: [...done.all(), ...done.all()], policies: [POLICY], at: done.closesAt + 1 });
+    const replay = await replaySettlement({ records: [...done.all(), ...done.all()], policies: [POLICY], at: done.decidedAt });
     const total = replay.balances[parties.requester.peerId];
     const b1Total = [honest, honest].length * truth.debit; // a log verifier that sums entries without a reservation key
     rows.push({ kind: 'operator', goal: 'G6 settle one reservation twice', replay: { achieved: total !== -truth.debit, status: replay.reservations[0].status },
@@ -165,7 +165,7 @@ async function main() {
   {
     const outputs = Array.from({ length: 40 }, (_, i) => ` t${i}`);
     const stall = await runAttempt(parties, { tag: 'stall', outputs, stopAckingAfter: 10 });
-    const t = await truthOf(stall.all(), stall.closesAt + 1);
+    const t = await truthOf(stall.all(), stall.decidedAt);
     rows.push({ kind: 'participant', case: 'P1 requester stops paying after 10 of 40 outputs', replay: { status: t.r.status, delivered: stall.delivered,
       paid: t.r.outputs, unpaidOutputs: stall.delivered - t.r.outputs, bound: MAX_UNACKNOWLEDGED_OUTPUTS + 1 },
     countersign: { status: 'requester never countersigns', delivered: 40, paid: 0, unpaidOutputs: 40, note: 'nothing in a post-hoc log stops delivery' },
@@ -175,7 +175,7 @@ async function main() {
   {
     const outputs = Array.from({ length: 40 }, (_, i) => ` t${i}`);
     const last = await runAttempt(parties, { tag: 'last', outputs, stopAckingAfter: 39 });
-    const t = await truthOf(last.all(), last.closesAt + 1);
+    const t = await truthOf(last.all(), last.decidedAt);
     rows.push({ kind: 'participant', case: 'P1b requester withholds the last acknowledgment of a finished 40-output answer',
       replay: { status: t.r.status, delivered: last.delivered, paid: t.r.outputs, debit: t.r.debit, unpaidOutputs: last.delivered - t.r.outputs },
       countersign: { status: 'requester never countersigns', paid: 0 } });
@@ -186,7 +186,7 @@ async function main() {
     const signer = createAttemptEvidenceSigner({ identity: parties.requester, now: () => Date.parse(a.terms.notBefore) });
     const other = await signSettlementTerms({ signer, identity: a.identity, reservationId: a.reservationId, policy: POLICY, maxOutputTokens: 64,
       weights: [3, 1], maxUnacknowledgedOutputs: MAX_UNACKNOWLEDGED_OUTPUTS, notBefore: Date.parse(a.terms.notBefore), deadline: Date.parse(a.terms.deadline) });
-    const t = await truthOf([...a.all(), other], a.closesAt + 1);
+    const t = await truthOf([...a.all(), other], a.decidedAt);
     rows.push({ kind: 'participant', case: 'P2 requester signs two sets of terms', replay: { status: t.r.status, debit: t.r.debit,
       recorded: t.r.conflicts.map(row => row.kind), note: 'both stages accepted the first set, so it settles on that set and records the equivocation' },
     countersign: { status: 'not modelled' } });
@@ -197,21 +197,21 @@ async function main() {
     const last = a.held.stages[1].filter(r => r.schema === STAGE_RECEIPT_SCHEMA && r.output?.count === a.acknowledged).at(0);
     const signer = createAttemptEvidenceSigner({ identity: parties.stages[1], now: () => Date.parse(last.signedAt) });
     const twin = await signer.sign(STAGE_RECEIPT_SCHEMA, { ...body(last), output: { ...last.output, chain: 'sha256:' + 'c'.repeat(64) } });
-    const t = await truthOf([...a.all(), twin], a.closesAt + 1);
+    const t = await truthOf([...a.all(), twin], a.decidedAt);
     rows.push({ kind: 'participant', case: 'P3 final stage signs two output chains', replay: { status: t.r.status }, countersign: { status: 'not detectable: no output chain' } });
   }
   // P4 a stage withholds its closing receipt after the answer was delivered.
   {
     const a = await runAttempt(parties, { tag: 'withhold' });
     const records = a.all().filter(r => !(r.schema === STAGE_RECEIPT_SCHEMA && r.partitionIndex === 0 && r.status !== 'executing'));
-    const t = await truthOf(records, a.closesAt + 1);
+    const t = await truthOf(records, a.decidedAt);
     rows.push({ kind: 'participant', case: 'P4 a stage withholds its closing receipt', replay: { status: t.r.status, reason: t.r.reason },
       countersign: { status: 'unsettled: that stage never countersigns' } });
   }
   // P5 the requester's last acknowledgment is signed after the deadline (late evidence cannot raise the charge).
   {
     const a = await runAttempt(parties, { tag: 'late', lateAckDelayMs: 5000, clock: createClock() });
-    const t = await truthOf(a.all(), a.closesAt + 1);
+    const t = await truthOf(a.all(), a.decidedAt);
     rows.push({ kind: 'participant', case: 'P5 last acknowledgment signed after the deadline', replay: { status: t.r.status, debit: t.r.debit, acknowledgedInTime: t.r.outputs, delivered: a.delivered, late: t.r.late,
         note: 'the stages closed after the deadline but inside the release window, so their closes count; the late acknowledgment does not, and only the outputs acknowledged in time are charged' },
       countersign: { status: 'no time rule: whatever the parties sign later' } });

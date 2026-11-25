@@ -127,6 +127,25 @@ describe('the settlement replay', () => {
     expect(codes(judged(change))).toEqual(expected);
   });
 
+  // The known difference (docs/settlement-replay.md): an unfinished split answer the stages closed with no stop is
+  // free in the replay and charged its acknowledged prefix by the ledger.
+  const walkAway = r => Object.assign(r.split.settlementReplay.result.reservations[0], { debit: 0, outputs: 3, chargedOutputs: 0,
+    credits: [{ participantId: 'peer:0', amount: 0 }, { participantId: 'peer:1', amount: 0 }] });
+  const label = (r, extra = {}) => { r.split.settlementReplay.knownDifferences = [{ case: 'unfinished-split-answer-closed-without-stop',
+    reservationId: 'split', requesterId: 'peer:r', acknowledgedOutputs: 3, ...extra }]; };
+  it('tolerates the walk-away difference only when it is labelled for that reservation', () => {
+    expect(codes(judged(r => { walkAway(r); label(r); }))).toEqual([]);
+    expect(codes(judged(walkAway))).toEqual(['replay-differs-from-ledger']);
+    expect(codes(judged(r => { walkAway(r); label(r, { reservationId: 'cancel' }); }))).toEqual(['replay-differs-from-ledger']);
+    expect(codes(judged(r => { walkAway(r); label(r, { acknowledgedOutputs: 2 }); }))).toEqual(['replay-differs-from-ledger']);
+    // A label does not cover any other difference.
+    expect(codes(judged(r => { label(r); r.split.settlementReplay.result.reservations[0].debit = 2; }))).toEqual(['replay-differs-from-ledger']);
+    // Nor a cancel whose stop was not signed.
+    expect(codes(judged(r => { Object.assign(r.cancel.settlementReplay, { stopSigned: false, knownDifferences: [{ case: 'unfinished-split-answer-closed-without-stop',
+      reservationId: 'cancel', acknowledgedOutputs: 1 }] });
+    Object.assign(r.cancel.settlementReplay.result.reservations[0], { debit: 0, outputs: 1, chargedOutputs: 0 }); }))).toEqual(['replay-differs-from-ledger']);
+  });
+
   it('accepts a dropped answer the replay settled at zero', () => {
     expect(checkStage1Receipt(goodReceipt(), expectations).ok).toBe(true);
     expect(codes(judged(r => { Object.assign(r.drop.settlementReplay.result.reservations[0], { status: 'settled', debit: 0 }); }))).toEqual([]);
