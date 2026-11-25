@@ -253,6 +253,8 @@ fn main(@builtin(workgroup_id) group: vec3u, @builtin(local_invocation_index) la
 var DEVICE_HOSTS = Object.freeze(["browser", "native"]);
 var PROOF_KEYS = Object.freeze(["schema", "challengeId", "nonce", "accountId", "audience", "participantId", "publicJwk", "host", "signature"]);
 var SESSION_BINDING_KEYS = Object.freeze(["schema", "challengeId", "nonce", "accountId", "sessionId", "participantId", "signature"]);
+var P256_ORDER = 0xffffffff00000000ffffffffffffffffbce6faada7179e84f3b9cac2fc632551n;
+var P256_HALF_ORDER = P256_ORDER >> 1n;
 
 // shared/vendor/reploid/mesh/partitions/partition-receiver-policy.json
 var partition_receiver_policy_default = {
