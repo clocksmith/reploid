@@ -38,14 +38,14 @@ does, and only from the document's text. A fix prompted by the service's code wo
 ## Result on main
 
 The document and the service's verifier at c29bc5d44 (the document's later commit, 9db60b49d, changes only its
-prior-work paragraph). 20 base attempts, 24 mutation families, Ed25519 and P-256 keys. The document reports one row
+prior-work paragraph). 20 base attempts, 25 mutation families, Ed25519 and P-256 keys. The document reports one row
 per reservation and requester, and the comparison is keyed the same way.
 
 | | Count |
 | --- | --- |
-| Record sets | 1,246 |
-| Judgments (one row at one clock value) | 1,774 |
-| Same outcome, same debit, same credit for every stage | 1,774 |
+| Record sets | 1,376 |
+| Judgments (one row at one clock value) | 1,904 |
+| Same outcome, same debit, same credit for every stage | 1,904 |
 | Disagreements | 0 |
 | Same outcome and amounts, but a late, foreign or rejected list differs | 0 |
 
@@ -53,9 +53,13 @@ Conflict entries are compared only by whether each verifier lists one. The docum
 but the entries' details are among the open items in DOC-GAPS.md, and this comparison does not test them.
 
 Read this as: on these record sets, a verifier written from the document's text alone reaches every verdict the
-service's verifier reaches. It is not a proof that the two agree on all records. The mutation families were written
-before the document's latest rules (canonical encodings, the exact time form, the check on `K`), so those rules are
-exercised only as far as the older mutations happen to reach them.
+service's verifier reaches. It is not a proof that the two agree on all records.
+
+The last family was added after the verifier's final update, for the rules the document gained at c29bc5d44. Both
+verifiers reject ten other forms of a time (no milliseconds, an offset, lower case, no zone, six fraction digits,
+30 February, hour 24, an expanded year, and two more), reject a signature or key coordinate whose last character is
+changed without changing its bytes, count a closing receipt signed up to the end of the release window, and list a
+later one as late. Both also accept the second valid form of a P-256 signature (see below).
 
 ### How the comparison got here
 
@@ -64,7 +68,7 @@ exercised only as far as the older mutations happen to reach them.
 | 83b534fdf | first version, 28 facts taken from code | 808 of 1,146 | four defects in the service's verifier, among them a finished answer made free by withholding the last acknowledgment |
 | 20121ae60 | rewritten by a fresh author from the text alone | 1,704 of 1,731 | a padded signature accepted; a run with no policy refused |
 | 4ee9dd6b2 | updated from the text | 1,749 of 1,774 | the same two |
-| c29bc5d44 | updated from the text | 1,774 of 1,774 | nothing |
+| c29bc5d44 | updated from the text | 1,774 of 1,774, then 1,904 of 1,904 with the added family | nothing |
 
 Between those rounds the comparison and [../baseline-matrix.js](../baseline-matrix.js) also showed properties both
 verifiers shared because the document said so, and the document and the service's verifier were changed on each: a
@@ -94,7 +98,8 @@ and 3 look wrong. Those most likely to matter to another implementer:
 - **Entry shapes and which rows exist:** `unmatched`, `closedAtLastStep`, an own-account stage's credit, and a
   reservation with only acceptances and receipts.
 - **P-256 signatures have a second valid form** (`r` with `n - s`), so "one accepted signature text" does not hold
-  for that curve. Not yet tested here.
+  for that curve. Both verifiers accept a record re-encoded that way, and a whole record set re-encoded that way
+  settles at the same amounts. Outcomes do not change, because identical bodies count once.
 - **Two windows that can cross:** a closing receipt's window ends at the deadline plus the release window with no
   clock allowance, an ordinary record's at the deadline plus the clock allowance.
 - **"Late records are ignored"** in one step, while the next uses late receipts in every conflict test.

@@ -417,6 +417,69 @@ const MUTATIONS = {
       await sign(ctx.requester, { ...bodyOf(ctx.acks[0]), chain: FAKE_CHAIN })] });
     return out;
   },
+  // Rules the document gained at c29bc5d44: one time form, canonical base64url, and a closing receipt's own window.
+  async 'canonical encodings, time forms and the closing window'(ctx) {
+    const out = [];
+    const resign = async (record, identity, edit, name) => {
+      if (!record) return;
+      const body = bodyOf(record);
+      edit(body);
+      out.push({ name, records: [...without(ctx.records, record), await sign(identity, body)] });
+    };
+    if (ctx.topAck.count > 0) {
+      const text = ctx.topAck.signedAt;
+      const forms = [['without milliseconds', text.replace(/\.\d{3}Z$/, 'Z')], ['with a +00:00 offset', text.replace(/Z$/, '+00:00')],
+        ['with a lower-case z', text.replace(/Z$/, 'z')], ['with a lower-case t', text.replace('T', 't')], ['with a space for the T', text.replace('T', ' ')],
+        ['without a zone', text.replace(/Z$/, '')], ['with six fraction digits', text.replace(/Z$/, '000Z')], ['naming 30 February', '2026-02-30T12:00:00.000Z'],
+        ['with hour 24', text.replace(/T\d\d/, 'T24')], ['with an expanded year', `+00${text}`]];
+      for (const [label, value] of forms) await resign(ctx.topAck, ctx.requester, body => { body.signedAt = value; }, `top acknowledgment signedAt ${label}`);
+    }
+    const final = ctx.receipts(ctx.finalIndex).at(-1);
+    if (final?.timing?.closedAt) {
+      await resign(final, ctx.stageIdentity(ctx.finalIndex), body => { body.timing = { ...body.timing, closedAt: body.timing.closedAt.replace(/\.\d{3}Z$/, 'Z') }; },
+        'final receipt closedAt without milliseconds');
+    }
+    out.push({ name: 'terms notBefore with a +00:00 offset', records: await withTerms(ctx, body => { body.notBefore = body.notBefore.replace(/Z$/, '+00:00'); }) });
+
+    // Another last character with the same decoded bytes: the low bit of the final base64url character is unused
+    // for a 32-byte coordinate and for a 64-byte signature.
+    const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_';
+    const alias = text => text.slice(0, -1) + ALPHABET[ALPHABET.indexOf(text.at(-1)) ^ 1];
+    const targets = [[ctx.terms, 'terms'], [ctx.acceptances[0], 'acceptance'], [final, 'final receipt'], [ctx.topAck, 'top acknowledgment'], [ctx.stops[0], 'stop']]
+      .filter(([record]) => record);
+    for (const [record, label] of targets) {
+      out.push({ name: `${label} signature with another final character for the same bytes`, records: [...without(ctx.records, record), { ...record, signature: alias(record.signature) }] });
+    }
+    out.push({ name: 'terms key coordinate with another final character for the same bytes',
+      records: [...without(ctx.records, ctx.terms), { ...ctx.terms, publicJwk: { ...ctx.terms.publicJwk, x: alias(ctx.terms.publicJwk.x) } }] });
+
+    // A P-256 signature (r, s) has a second valid form (r, n - s) over the same body.
+    if (ctx.terms.publicJwk.kty === 'EC') {
+      const ORDER = 0xffffffff00000000ffffffffffffffffbce6faada7179e84f3b9cac2fc632551n;
+      const twin = signature => {
+        const raw = Buffer.from(signature, 'base64url');
+        const s = BigInt(`0x${raw.subarray(32).toString('hex')}`);
+        return Buffer.concat([raw.subarray(0, 32), Buffer.from((ORDER - s).toString(16).padStart(64, '0'), 'hex')]).toString('base64url');
+      };
+      out.push({ name: 'terms carry the second valid P-256 signature', records: [...without(ctx.records, ctx.terms), { ...ctx.terms, signature: twin(ctx.terms.signature) }] });
+      out.push({ name: 'top acknowledgment presented under both valid P-256 signatures', records: [...ctx.records, { ...ctx.topAck, signature: twin(ctx.topAck.signature) }] });
+      out.push({ name: 'every record carries the second valid P-256 signature', records: ctx.records.map(record => ({ ...record, signature: twin(record.signature) })) });
+    }
+
+    // A closing receipt counts when signed before the deadline plus the release window; other records, within the clock allowance.
+    const closings = ctx.of(SCHEMAS.receipt).filter(record => record.status !== 'executing');
+    if (closings.length) {
+      const closeAt = async (at, name) => out.push({ name, records: [...without(ctx.records, ...closings), ...await Promise.all(closings.map(record =>
+        sign(ctx.stageIdentity(record.partitionIndex), { ...bodyOf(record), timing: { ...record.timing, closedAt: iso(at) }, signedAt: iso(at) })))] });
+      await closeAt(ctx.deadline + POLICY.maxClockSkewMs + 1, 'every closing receipt signed one millisecond past the clock allowance');
+      await closeAt(ctx.closesAt - 1, 'every closing receipt signed one millisecond before the release window ends');
+      await closeAt(ctx.closesAt, 'every closing receipt signed exactly when the release window ends');
+      const executing = ctx.receipts(0).filter(record => record.status === 'executing').at(-1);
+      if (executing) await resign(executing, ctx.stageIdentity(0), body => { body.signedAt = iso(ctx.deadline + POLICY.maxClockSkewMs + 1); },
+        'stage0 last step receipt signed one millisecond past the clock allowance');
+    }
+    return out;
+  },
   async 'unsigned additions'(ctx) {
     const targets = [[ctx.terms, 'terms'], [ctx.acceptances[0], 'acceptance'], [ctx.receipts(ctx.finalIndex).at(-1), 'final receipt'],
       [ctx.topAck, 'top acknowledgment'], [ctx.stops[0], 'stop']].filter(([record]) => record);
@@ -632,7 +695,11 @@ async function main() {
       'stage0 withholds its closing receipt', 'terms signature with base64 padding appended'].includes(line.mutation),
     line => line.base === 'requester stops acknowledging' && line.clock === 'after' && ['all records', 'terms name K = 5', 'terms name K = 0',
       'extra acknowledgment of one more output, signed 5 s late'].includes(line.mutation),
-    line => line.base === 'every party signs with P-256' && line.mutation === 'all records' && line.clock === 'after'
+    line => line.base === 'every party signs with P-256' && ['all records', 'terms carry the second valid P-256 signature',
+      'every record carries the second valid P-256 signature'].includes(line.mutation) && line.clock === 'after',
+    line => line.base === 'complete answer' && ['top acknowledgment signedAt without a zone', 'top acknowledgment signedAt with a +00:00 offset',
+      'terms signature with another final character for the same bytes', 'every closing receipt signed exactly when the release window ends',
+      'every closing receipt signed one millisecond past the clock allowance'].includes(line.mutation)
   ];
   const noted = all.filter(line => NOTED.some(test => test(line))).map(compact);
   let commit = 'unknown', dirty = null;
