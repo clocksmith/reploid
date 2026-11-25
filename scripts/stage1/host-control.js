@@ -260,8 +260,29 @@ export async function killExactProcess({ pid, startId, readStart = readProcessSt
 }
 
 const UNIT = /^[A-Za-z0-9][A-Za-z0-9_.@-]{0,127}\.service$/;
+const TASK = /^[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$/;
+/**
+ * A Windows scheduled task in the root folder, as the standing service. The state is read as the task's State enum,
+ * which is not translated; `Running` is reported as `active` and anything else as `inactive`, the two words the
+ * adapter compares. Not yet run on a Windows host: whether ending a task also ends every process it started, and
+ * whether a task set to restart comes back by itself, are still to be seen there.
+ */
+async function windowsTaskAction({ unit, action }, exec) {
+  if (typeof unit !== 'string' || !TASK.test(unit) || !['stop', 'start', 'is-active'].includes(action)) throw coded('service-refused', 'unsupported service request');
+  try {
+    if (action === 'is-active') {
+      const { stdout } = await exec('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', `(Get-ScheduledTask -TaskName '${unit}' -ErrorAction Stop).State`]);
+      return { state: stdout.trim() === 'Running' ? 'active' : 'inactive' };
+    }
+    await exec('schtasks.exe', [action === 'stop' ? '/End' : '/Run', '/TN', unit]);
+    return { done: true };
+  } catch {
+    throw coded('service-command-failed', `${action} did not succeed`);
+  }
+}
 /** Acts only on the one named unit. `is-active` reports a state; the others throw if the manager refuses. */
 export async function serviceAction({ manager, unit, action }, exec = run) {
+  if (manager === 'windows-task') return windowsTaskAction({ unit, action }, exec);
   if (!['systemd-user', 'systemd-system'].includes(manager) || !UNIT.test(unit) || !['stop', 'start', 'is-active'].includes(action)) {
     throw coded('service-refused', 'unsupported service request');
   }

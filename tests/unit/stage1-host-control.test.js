@@ -186,6 +186,31 @@ describe('the standing service', () => {
     await serviceAction({ manager: 'systemd-system', unit: 'worker.service', action: 'stop' }, exec);
     expect(exec).toHaveBeenLastCalledWith('systemctl', ['stop', '--', 'worker.service']);
   });
+  // The Windows scheduled-task manager through an injected exec. No Windows machine has run it.
+  it('acts on one Windows scheduled task and reports its state in the adapter\'s two words', async () => {
+    const exec = vi.fn(async command => ({ stdout: command === 'powershell.exe' ? 'Running\r\n' : 'SUCCESS\r\n' }));
+    expect(await serviceAction({ manager: 'windows-task', unit: 'PrivateWorker', action: 'is-active' }, exec)).toEqual({ state: 'active' });
+    expect(exec).toHaveBeenLastCalledWith('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', "(Get-ScheduledTask -TaskName 'PrivateWorker' -ErrorAction Stop).State"]);
+    expect(await serviceAction({ manager: 'windows-task', unit: 'PrivateWorker', action: 'stop' }, exec)).toEqual({ done: true });
+    expect(exec).toHaveBeenLastCalledWith('schtasks.exe', ['/End', '/TN', 'PrivateWorker']);
+    await serviceAction({ manager: 'windows-task', unit: 'PrivateWorker', action: 'start' }, exec);
+    expect(exec).toHaveBeenLastCalledWith('schtasks.exe', ['/Run', '/TN', 'PrivateWorker']);
+    for (const state of ['Ready', 'Disabled', 'Queued', '']) {
+      expect(await serviceAction({ manager: 'windows-task', unit: 'PrivateWorker', action: 'is-active' }, async () => ({ stdout: `${state}\r\n` }))).toEqual({ state: 'inactive' });
+    }
+    await expect(serviceAction({ manager: 'windows-task', unit: 'PrivateWorker', action: 'is-active' }, async () => { throw Error('no such task'); }))
+      .rejects.toMatchObject({ code: 'service-command-failed' });
+  });
+  it.each([
+    [{ manager: 'windows-task', unit: "x'; Stop-Computer; '", action: 'is-active' }],
+    [{ manager: 'windows-task', unit: 'Private Worker', action: 'stop' }],
+    [{ manager: 'windows-task', unit: 'Vendor\\Worker', action: 'stop' }],
+    [{ manager: 'windows-task', unit: 'PrivateWorker', action: 'delete' }]
+  ])('refuses %j', async request => {
+    const exec = vi.fn();
+    await expect(serviceAction(request, exec)).rejects.toMatchObject({ code: 'service-refused' });
+    expect(exec).not.toHaveBeenCalled();
+  });
   it('reads an inactive state from the exit of is-active', async () => {
     const exec = async () => { throw Object.assign(Error('exit 3'), { stdout: 'inactive\n' }); };
     expect(await serviceAction({ manager: 'systemd-user', unit: 'worker.service', action: 'is-active' }, exec)).toEqual({ state: 'inactive' });

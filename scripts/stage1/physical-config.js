@@ -17,6 +17,7 @@ export const STAGE1_HOST_PLATFORMS = Object.freeze(['posix', 'windows']);
 const MACHINE_ID = /^m-[a-f0-9]{16,64}$/;
 const PARTICIPANT_ID = /^peer:[a-f0-9]{24}$/;
 const SERVICE_UNIT = /^[A-Za-z0-9][A-Za-z0-9_.@-]{0,127}\.service$/;
+const WINDOWS_TASK = /^[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$/;
 const NETWORK_HOST = /^[A-Za-z0-9.:-]{1,253}$/;
 const ISO_TIME = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d{1,3})?)?(Z|[+-]\d{2}:\d{2})$/;
 
@@ -77,9 +78,8 @@ function validateHost(host, index) {
       refuse(`${field}.fullCopyDirectory contains a weight root`);
     }
   }
-  // The host agent has no memory reading and no service manager for Windows yet, so a Windows host must not claim either.
+  // The host agent has no memory reading for Windows yet, so a Windows host must not claim a memory guard.
   if (platform === 'windows' && host.memoryPressure !== null) refuse(`${field}.memoryPressure is not available on a Windows host`);
-  if (platform === 'windows' && host.standingService !== null) refuse(`${field}.standingService is not available on a Windows host`);
   // Linux hosts give `maxAvg10` (pressure-stall avg10); macOS hosts give `maxPressureLevel`, the highest kernel
   // memory pressure level (`normal` or `warning`) the run tolerates. null runs the host without a memory guard.
   if (host.memoryPressure !== null) {
@@ -91,8 +91,10 @@ function validateHost(host, index) {
   }
   if (host.standingService !== null) {
     object(host.standingService, `${field}.standingService`, ['manager', 'unit', 'approveStopForSolo']);
-    if (!['systemd-user', 'systemd-system'].includes(host.standingService.manager)) refuse(`${field}.standingService.manager`);
-    if (!SERVICE_UNIT.test(host.standingService.unit ?? '')) refuse(`${field}.standingService.unit`);
+    // A Windows host's standing service is a scheduled task in the root folder; every other host's is a systemd unit.
+    const managers = platform === 'windows' ? ['windows-task'] : ['systemd-user', 'systemd-system'];
+    if (!managers.includes(host.standingService.manager)) refuse(`${field}.standingService.manager`);
+    if (!(platform === 'windows' ? WINDOWS_TASK : SERVICE_UNIT).test(host.standingService.unit ?? '')) refuse(`${field}.standingService.unit`);
     if (typeof host.standingService.approveStopForSolo !== 'boolean') refuse(`${field}.standingService.approveStopForSolo`);
   }
 }
