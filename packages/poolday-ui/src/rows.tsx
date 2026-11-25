@@ -1,0 +1,153 @@
+import { useId, type ReactNode } from 'react';
+import { Icon, type IconName } from './icon.js';
+import { cx, dataProps, type DataAttributes } from './internal.js';
+
+/**
+ * A panel is a column of Sections. A Section is a small uppercase title over one List of rows on a
+ * quiet film, with an optional note below. Never box a group twice.
+ */
+export function Section({
+  title,
+  note,
+  children,
+  data,
+}: {
+  readonly title: string;
+  readonly note?: ReactNode;
+  readonly children: ReactNode;
+  readonly data?: DataAttributes;
+}) {
+  const id = useId();
+  return (
+    <section className="pool-section" aria-labelledby={id} {...dataProps(data)}>
+      <h3 className="pool-section-title" id={id}>
+        {title}
+      </h3>
+      {children}
+      {note !== undefined && <p className="pool-section-note">{note}</p>}
+    </section>
+  );
+}
+
+/** Rows that belong together, separated by hairlines. */
+export function List({ children, data }: { readonly children: ReactNode; readonly data?: DataAttributes }) {
+  return (
+    <div className="pool-group" {...dataProps(data)}>
+      {children}
+    </div>
+  );
+}
+
+/**
+ * One row of the alignment grid: [icon] [title over one status line] [trailing]. With `href` it is
+ * a destination and ends in a chevron; with `onPress` it is an action; with neither it is static.
+ */
+export function ListItem({
+  title,
+  status,
+  icon,
+  href,
+  onPress,
+  trailing,
+  current = false,
+  disabled = false,
+  label,
+  data,
+}: {
+  readonly title: ReactNode;
+  readonly status?: ReactNode;
+  readonly icon?: IconName;
+  readonly href?: string;
+  readonly onPress?: () => void;
+  /** Shown in the trailing slot: a badge, a time or a count. Never another control. */
+  readonly trailing?: ReactNode;
+  /** The one selected row of a navigation list. */
+  readonly current?: boolean;
+  readonly disabled?: boolean;
+  /** Accessible name, when the visible title and status are not enough. */
+  readonly label?: string;
+  readonly data?: DataAttributes;
+}) {
+  const text = (
+    <span className="pool-row-text">
+      <span className="pool-row-title">{title}</span>
+      {status !== undefined && <span className="pool-row-status">{status}</span>}
+    </span>
+  );
+  const leading = icon ? <Icon name={icon} /> : null;
+  if (href !== undefined) {
+    return (
+      <a
+        className="pool-action-row pool-plain"
+        href={href}
+        aria-current={current ? 'page' : undefined}
+        aria-label={label}
+        {...dataProps(data)}
+      >
+        {leading}
+        {text}
+        {trailing ?? <Icon name="next" size="sm" />}
+      </a>
+    );
+  }
+  if (onPress) {
+    return (
+      <button
+        type="button"
+        className="pool-action-row"
+        onClick={onPress}
+        disabled={disabled}
+        aria-current={current ? 'true' : undefined}
+        aria-label={label}
+        {...dataProps(data)}
+      >
+        {leading}
+        {text}
+        <span className="pool-row-trailing">{trailing}</span>
+      </button>
+    );
+  }
+  return (
+    <div className={cx('pool-action-row', 'pool-row-static')} aria-label={label} {...dataProps(data)}>
+      {leading}
+      {text}
+      <span className="pool-row-trailing">{trailing}</span>
+    </div>
+  );
+}
+
+/** Show or hide more detail. `quiet` reads as a row inside a List. */
+export function Disclosure({
+  summary,
+  status,
+  quiet = false,
+  defaultOpen = false,
+  children,
+  data,
+}: {
+  readonly summary: string;
+  readonly status?: string;
+  readonly quiet?: boolean;
+  readonly defaultOpen?: boolean;
+  readonly children: ReactNode;
+  readonly data?: DataAttributes;
+}) {
+  return (
+    <details className={cx('pool-disclosure', quiet && 'pool-disclosure-quiet')} open={defaultOpen || undefined} {...dataProps(data)}>
+      <summary>
+        {quiet ? (
+          <span className="pool-row-text">
+            <span className="pool-row-title">{summary}</span>
+            {status !== undefined && <span className="pool-row-status">{status}</span>}
+          </span>
+        ) : (
+          <>
+            {summary}
+            {status !== undefined && <span>{status}</span>}
+          </>
+        )}
+      </summary>
+      <div className="pool-stack pool-gap-sm">{children}</div>
+    </details>
+  );
+}

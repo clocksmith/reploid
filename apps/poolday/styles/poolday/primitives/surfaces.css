@@ -95,3 +95,30 @@
   margin: 0; padding: var(--pool-size-12); width: max-content; max-width: min(var(--pool-size-320), calc(100vw - var(--pool-size-16)));
   overflow-wrap: anywhere; white-space: pre-line; pointer-events: none;
 }
+
+/* Progress, spinner and token swatches.
+   pool-progress-line  a full-width measured bar on the native progress element
+   pool-spinner        work of unknown length; still under reduced motion
+   pool-swatch         a live token preview; pool-swatch-<kind> reads --pool-param-swatch */
+.pool-home .pool-progress-line { display: block; inline-size: 100%; block-size: var(--pool-size-4); border-radius: var(--pool-radius-pill); overflow: hidden; }
+.pool-home .pool-spinner-host { display: inline-flex; align-items: center; }
+.pool-home .pool-spinner {
+  display: inline-block;
+  inline-size: var(--pool-icon-sm);
+  block-size: var(--pool-icon-sm);
+  border: var(--pool-border-thick) solid var(--pool-color-line);
+  border-block-start-color: var(--pool-color-ink);
+  border-radius: var(--pool-radius-round);
+  animation: pool-spin var(--pool-motion-time-1100) linear infinite;
+}
+@media (prefers-reduced-motion: reduce) { .pool-home .pool-spinner { animation: none; } }
+.pool-home .pool-swatch { display: inline-grid; place-items: center; flex: none; inline-size: var(--pool-size-40); block-size: var(--pool-size-40); border-radius: var(--pool-radius-sm); color: var(--pool-color-ink); }
+.pool-home :is(.pool-swatch-color, .pool-swatch-image) { background: var(--pool-param-swatch); box-shadow: inset 0 0 0 var(--pool-border-thin) var(--pool-color-line); }
+.pool-home .pool-swatch-shadow { background: var(--pool-color-raised); box-shadow: var(--pool-param-swatch); }
+.pool-home .pool-swatch-length { justify-items: start; inline-size: var(--pool-size-128); }
+.pool-home .pool-swatch-length::before { content: ''; inline-size: min(100%, var(--pool-param-swatch)); block-size: var(--pool-size-4); border-radius: var(--pool-radius-pill); background: var(--pool-color-ink); }
+.pool-home .pool-swatch-radius { border: var(--pool-border-thick) solid var(--pool-color-ink); border-radius: var(--pool-param-swatch); }
+.pool-home .pool-swatch-border { border: var(--pool-param-swatch) solid var(--pool-color-ink); border-radius: 0; }
+.pool-home .pool-swatch-text { font-size: var(--pool-param-swatch); line-height: var(--pool-leading-solid); }
+.pool-home .pool-swatch-weight { font-size: var(--pool-text-lg); font-weight: var(--pool-param-swatch); }
+.pool-home .pool-swatch-family { font-size: var(--pool-text-lg); font-family: var(--pool-param-swatch); }
