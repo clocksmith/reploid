@@ -44,7 +44,7 @@
 .pool-home .pool-icon-box > svg { display: block; inline-size: var(--pool-icon-md); block-size: var(--pool-icon-md); }
 .pool-home .pool-icon-box.pool-icon-box-sm > svg { inline-size: var(--pool-icon-sm); block-size: var(--pool-icon-sm); }
 
-.pool-home .pool-row-text { display: grid; align-content: center; row-gap: var(--pool-space-row-text); min-inline-size: 0; }
+.pool-home .pool-row-text { display: grid; align-content: center; row-gap: var(--pool-size-2); min-inline-size: 0; }
 .pool-home .pool-row-title {
   margin: 0;
   font-size: var(--pool-text-sm);
@@ -73,10 +73,10 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  column-gap: var(--pool-space-row-gap);
+  column-gap: var(--pool-size-12);
   min-block-size: var(--pool-row-double);
   margin: 0;
-  padding: var(--pool-space-row-block) var(--pool-space-row-inline);
+  padding: var(--pool-size-8) var(--pool-size-12);
   border: var(--pool-border-hairline) solid transparent;
   border-radius: var(--pool-radius-control);
   color: var(--pool-color-ink);
@@ -91,7 +91,7 @@
 /* Choice lists. The native input is the control; the row is its target and its look. */
 /* Named for assistive technology only; takes no space. */
 .pool-home .pool-visually-hidden { position: absolute; inline-size: var(--pool-size-1); block-size: var(--pool-size-1); margin: 0; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-.pool-home .pool-options { display: grid; gap: var(--pool-space-option-gap); min-inline-size: 0; margin: 0; padding: 0; border: 0; }
+.pool-home .pool-options { display: grid; gap: var(--pool-size-4); min-inline-size: 0; margin: 0; padding: 0; border: 0; }
 .pool-home .pool-options-label { margin: 0; padding: 0; color: var(--pool-color-muted); font-size: var(--pool-text-xs); line-height: var(--pool-leading-snug); }
 .pool-home .pool-option { cursor: pointer; transition: background-color var(--pool-transition-fast); }
 .pool-home .pool-option > input {
@@ -133,7 +133,7 @@
   box-sizing: border-box;
   inline-size: var(--pool-icon-md);
   block-size: var(--pool-icon-md);
-  margin-inline: var(--pool-space-row-mark);
+  margin-inline: var(--pool-size-2);
   border: var(--pool-border-thick) solid var(--pool-color-muted);
   border-radius: var(--pool-radius-xs);
 }
@@ -225,20 +225,20 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  column-gap: var(--pool-space-row-gap);
+  column-gap: var(--pool-size-12);
   min-block-size: var(--pool-row-double);
-  padding: var(--pool-space-dialog-edge-tight) var(--pool-space-dialog-edge-tight) var(--pool-space-dialog-edge-tight) var(--pool-space-dialog-edge);
+  padding: var(--pool-size-8) var(--pool-size-8) var(--pool-size-8) var(--pool-size-24);
   border-bottom: var(--pool-border-hairline) solid var(--pool-color-line);
 }
 .pool-home .pool-dialog-header > :is(h2, h3) { margin: 0; font-size: var(--pool-text-base); font-weight: var(--pool-weight-semibold); line-height: var(--pool-leading-snug); }
-.pool-home .pool-dialog-header:not(:has(> .pool-button)) { padding-inline-end: var(--pool-space-dialog-edge); }
+.pool-home .pool-dialog-header:not(:has(> .pool-button)) { padding-inline-end: var(--pool-size-24); }
 .pool-home .pool-dialog-body {
   display: grid;
   align-content: start;
-  gap: var(--pool-space-dialog-gap);
+  gap: var(--pool-size-16);
   min-block-size: 0;
   margin: 0;
-  padding: var(--pool-space-dialog-gap) var(--pool-space-dialog-edge);
+  padding: var(--pool-size-16) var(--pool-size-24);
   overflow-y: auto;
   overscroll-behavior: contain;
 }
@@ -248,8 +248,8 @@
   flex-wrap: wrap;
   align-items: center;
   justify-content: flex-end;
-  gap: var(--pool-space-row-gap);
-  padding: var(--pool-space-dialog-gap) var(--pool-space-dialog-edge);
+  gap: var(--pool-size-12);
+  padding: var(--pool-size-16) var(--pool-size-24);
   border-top: var(--pool-border-hairline) solid var(--pool-color-line);
 }
 /* A footer reason or status sits at the start; the actions stay at the end. */
@@ -274,11 +274,11 @@
 }
 
 /* Sections and groups. A panel is a column of sections; a section is a heading over one group of rows. */
-.pool-home .pool-section { display: grid; gap: var(--pool-space-section-title); min-inline-size: 0; }
+.pool-home .pool-section { display: grid; gap: var(--pool-size-8); min-inline-size: 0; }
 .pool-home .pool-section > .pool-segmented, .pool-home .pool-section > * > .pool-segmented { inline-size: 100%; max-inline-size: none; }
 .pool-home .pool-section-title {
   margin: 0;
-  padding-inline: var(--pool-space-group-inline);
+  padding-inline: var(--pool-size-16);
   color: var(--pool-color-muted);
   font-size: var(--pool-text-xs);
   font-weight: var(--pool-weight-semibold);
@@ -286,12 +286,12 @@
   line-height: var(--pool-leading-snug);
   text-transform: uppercase;
 }
-.pool-home .pool-section-note { margin: 0; padding-inline: var(--pool-space-group-inline); color: var(--pool-color-muted); font-size: var(--pool-text-xs); line-height: var(--pool-leading-snug); }
+.pool-home .pool-section-note { margin: 0; padding-inline: var(--pool-size-16); color: var(--pool-color-muted); font-size: var(--pool-text-xs); line-height: var(--pool-leading-snug); }
 .pool-home .pool-group {
   display: grid;
   min-inline-size: 0;
   margin: 0;
-  padding: 0 var(--pool-space-group-inline);
+  padding: 0 var(--pool-size-16);
   border: 0;
   border-radius: var(--pool-radius-panel);
   background: var(--pool-color-group);
@@ -299,8 +299,8 @@
 }
 .pool-home .pool-group > * { min-inline-size: 0; }
 .pool-home .pool-group > :not([hidden]) ~ :not([hidden]) { border-block-start: var(--pool-border-hairline) solid var(--pool-color-line); }
-.pool-home .pool-group > :is(p, form, .pool-stack, .pool-segmented, .pool-row) { margin: 0; padding-block: var(--pool-space-row-gap); }
-.pool-home .pool-group > .pool-segmented { inline-size: 100%; max-inline-size: none; margin-block: var(--pool-space-row-gap); padding-block: var(--pool-size-4); }
+.pool-home .pool-group > :is(p, form, .pool-stack, .pool-segmented, .pool-row) { margin: 0; padding-block: var(--pool-size-12); }
+.pool-home .pool-group > .pool-segmented { inline-size: 100%; max-inline-size: none; margin-block: var(--pool-size-12); padding-block: var(--pool-size-4); }
 .pool-home .pool-group > :is(.pool-option, .pool-action-row) { padding-inline: 0; border-radius: 0; }
 .pool-home .pool-group .pool-segmented[role='radiogroup'] { inline-size: 100%; }
 
@@ -309,7 +309,7 @@
 /* The rotated chevron needs a few pixels at the trailing edge so it never overflows the row. */
 .pool-home .pool-disclosure.pool-disclosure-quiet > summary { min-block-size: var(--pool-row-single); padding: 0 var(--pool-size-4) 0 0; font-weight: var(--pool-weight-medium); }
 .pool-home .pool-disclosure.pool-disclosure-quiet[open] > summary { border-block-end: 0; }
-.pool-home .pool-disclosure.pool-disclosure-quiet > :not(summary) { max-inline-size: 100%; margin: 0 0 var(--pool-space-row-gap); }
+.pool-home .pool-disclosure.pool-disclosure-quiet > :not(summary) { max-inline-size: 100%; margin: 0 0 var(--pool-size-12); }
 .pool-home .pool-disclosure.pool-disclosure-quiet > summary:hover { color: var(--pool-color-ink); }
 .pool-home .pool-disclosure.pool-disclosure-quiet > summary .pool-row-title { color: var(--pool-color-ink); font-weight: var(--pool-weight-medium); }
 .pool-home .pool-disclosure.pool-disclosure-quiet > summary .pool-row-status { font-weight: var(--pool-weight-regular); }

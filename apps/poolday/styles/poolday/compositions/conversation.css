@@ -369,12 +369,12 @@
 .chat-model-picker-body { min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-gutter: stable; display: grid; align-content: start; gap: var(--pool-size-24); padding-block-end: var(--pool-size-24); }
 /* The last model group never meets the footer: the body keeps bottom padding. Headings, group labels, empty lines and
    the chosen row's reason all start at the row text's inset, so the sheet has one left edge. */
-.chat-model-picker-body :is(.pool-section-title, .pool-section-note, .pool-options-label, .chat-model-empty) { padding-inline: var(--pool-space-row-inline); }
+.chat-model-picker-body :is(.pool-section-title, .pool-section-note, .pool-options-label, .chat-model-empty) { padding-inline: var(--pool-size-12); }
 /* Status lines keep their line while their text loads or changes. */
 .chat-model-picker-body :is([data-computer-state], [data-choice-status]) { display: block; min-block-size: var(--pool-size-20); }
 .chat-model-empty { display: flex; align-items: center; min-block-size: var(--pool-size-56); margin: 0; }
 /* The chosen model's reason and its fix sit beneath it, across the whole row. */
-.chat-model-choices [data-choice-row] > .chat-answer-issue { grid-column: 1 / -1; padding: var(--pool-size-4) var(--pool-space-row-inline) 0; }
+.chat-model-choices [data-choice-row] > .chat-answer-issue { grid-column: 1 / -1; padding: var(--pool-size-4) var(--pool-size-12) 0; }
 .chat-answer-issue > .pool-button { justify-self: start; }
 /* It fades in without the shared dialog's travel, so its box is where it stays from the first frame. */
 .pool-home [data-model-picker][open] { animation-name: pool-dialog-fade; }

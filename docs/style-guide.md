@@ -197,8 +197,10 @@ so rows in one list line up whatever their state. Icons are always centred in
 their box, never placed on a text baseline. Longer explanations go in a
 `pool-caption` after the row or in a disclosure, not in the row.
 
-Spacing inside rows, lists and dialogs uses the `--pool-space-row-*`,
-`--pool-space-option-gap` and `--pool-space-dialog-*` tokens.
+Spacing inside rows, lists and dialogs uses the size scale directly
+(`--pool-size-2` to `--pool-size-24`). Only the page gap and the page gutter
+have named spacings, `--pool-space-page-gap` and `--pool-space-page-gutter`,
+because they are the two that shrink on phones.
 
 ### Panels: sections, groups and one type scale
 
