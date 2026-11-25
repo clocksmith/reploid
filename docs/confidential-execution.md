@@ -436,12 +436,13 @@ pass the flag, no advertisement or capability list mentions the route, and
 2. **Eligibility in `prepare`.** The requester's own allowlist decides, never
    the descriptor: allowed protocols and engine protocols, parameter sets by
    digest (with the requester's own record of which are insecure development
-   sets), pinned circuits with their layout, a signed trap set and the publisher
-   keys it accepts, a trap-lane count, a largest accepted tolerance and a
-   longest key epoch. `prepare` sees no prompt. It returns the route (one named
-   evaluator, `selection: "one-of"`, and a `protected` block with the descriptor,
-   parameter-set, circuit and trap-set digests and the lane counts) and these
-   disclosures:
+   sets), pinned circuits with their layout, each circuit's trap oracle
+   (endpoint and pinned Ed25519 keys), a trap-lane count, a largest accepted
+   tolerance and a longest key epoch. `prepare` sees no prompt and contacts no
+   oracle. It returns the route (one named evaluator, `selection: "one-of"`, and
+   a `protected` block with the descriptor, parameter-set and circuit digests,
+   the trap source with its oracle keys, and the lane counts) and these
+   disclosures (plus `trapOracle`, what the oracle learns):
 
    ```json
    { "contentReadableBy": { "requesterDevice": true, "participants": [], "selection": "all" },
@@ -488,60 +489,104 @@ pass the flag, no advertisement or capability list mentions the route, and
    marked abandoned, and a new plan starts a new session. A failure is never
    retried as readable or local.
 
-### Result verification: known-answer traps
+### Result verification: secret known-answer traps (v2)
 
-The requester holds no weights, so it cannot recompute an answer. Two
-evaluators agreeing proves nothing if they collude. The route uses traps
-instead:
+The requester holds no weights, so it cannot recompute an answer, and two
+evaluators agreeing proves nothing if they collude. The route checks results
+with known-answer traps that the evaluator cannot tell from the real input.
 
-- A reference publisher runs Doppler's `privacy-protected trapset` on the public
-  pinned weights. For prompts of each length it records the prompt, the
-  approximate circuit's own greedy continuation and the expected logits at every
-  generated position, and signs the exact body bytes with an Ed25519 key. The
-  requester pins that key and the trap set, and checks that the set names the
-  pinned circuit and a tolerance within its own limit (`0.75` logits in the
-  fixture set, with every trap's top-1 margin at least `2.5`).
-- Every session runs K = T + 1 lanes: one real lane at a uniformly random index
-  and T distinct traps of the same prompt length. Trap lanes feed back their
-  recorded continuation, which is exactly what an honest evaluator's own argmax
-  would produce, so every lane follows the same schedule and receives fresh
-  CKKS encryptions; the evaluator cannot tell them apart without breaking
-  RLWE (IND-CPA).
-- At each step the requester decrypts the T trap results first and checks every
-  logit within the tolerance and the argmax. Only if all pass does it decrypt the
-  real lane. A failure decrypts nothing real and ends with `RESULT_UNVERIFIED`;
-  no partial text is a result. Rejection depends only on trap results, and the
-  real lane's argmax is total (NaN counts as lowest), so whether a session ends
-  never depends on real content.
+**Why v1 was broken.** Version 1 used a public, signed trap set. An evaluator
+that reads the set can compute, on ciphertext and without any key, an indicator
+I(x) that is 1 exactly when a lane's prompt is a published trap, and add
+(1 − I(x)) · δ to the logits. The perturbation vanishes on every published trap
+and corrupts every other input, so every trap passes and every real answer is
+wrong. Doppler's evaluator implements this attack (`--misbehave vanish:<set>`),
+and the tests show it passing undetected under v1. Any fixed list has the same
+flaw. The public set is now ineligible unless a policy sets
+`allowPublicTrapSet: true`, which only the comparison tests do.
 
-**Detection.** An evaluator that tampers m of the K lanes, unable to tell them
-apart, is caught in a session with probability 1 − C(K − T, m) / C(K, m). With
-one real lane: tampering exactly one lane is caught with probability T / K
-(0.75 with the default T = 3), and tampering two or more lanes is always caught.
-An evaluator that keeps cheating is caught within n sessions with probability
-1 − (1/K)^n. Each trap lane costs one more lane of evaluator compute and upload
-(K = 4 is four times the work of an unprotected session). Measured detection is
-in [Tests](#tests).
+**v2: a trap oracle.** A party the evaluator cannot see into holds the pinned
+public weights and runs Doppler's `privacy-protected trap-oracle`. That party can
+be the model publisher or a separate host. For each session:
 
-**What traps do not catch.**
+1. The requester sends `doppler.protected-trap-request/v1`: the circuit digest,
+   the prompt length, the generated count, the number of traps, a fresh 256-bit
+   nonce and a one-time X25519 public key. It sends nothing about the prompt.
+2. The oracle samples fresh trap prompts of that length with the platform
+   CSPRNG. For the fixture it draws a third letter progressions (the training
+   task), a third sequences the model itself generates from a random start, and a
+   third random letters. Nothing comes from a fixed list. It keeps prompts whose
+   trajectory stays inside every approximation interval with a top-1 margin of
+   at least 2.5. For each it records the greedy continuation and the expected
+   logits from the pinned approximate circuit.
+3. It encrypts the batch to the requester's one-time key (X25519 with a fresh
+   oracle key, HKDF-SHA256 salted with the nonce, AES-256-GCM). It signs a
+   header with its Ed25519 key, and the header binds the batch id, the circuit,
+   the requester's nonce and key, the oracle's one-time key, the IV, the
+   ciphertext digest, the issue time and the expiry (10 minutes).
+4. The requester checks the signature against its pinned oracle key, the nonce
+   and key binding, the expiry, that the batch id is unused, the digest,
+   decryption, and every trap's shape and tolerance. Any failure ends the run
+   before anything reaches the evaluator (`EXECUTION_ROUTE_UNAVAILABLE`,
+   "Trap batch refused"). A forged, altered, expired or replayed batch never
+   opens.
+5. The session runs as before. The T traps are placed at random lane indices
+   beside the real lane, every lane is a fresh encryption on the same schedule,
+   and each step's traps are checked within the tolerance (and on argmax)
+   before the real lane is decrypted. A failure is `RESULT_UNVERIFIED`, with
+   nothing real decrypted.
 
-- A selective attack on the real lane is caught only probabilistically: the
-  undetected case is precisely the one that corrupts the real answer.
-- An evaluator that can tell lanes apart is never caught. The trap set is public
-  to anyone who can request it, so an evaluator can compute homomorphically
-  whether a lane's encrypted input equals one of the published traps, or has
-  some cheap feature traps lack, and tamper only where it does not. The cost of
-  such a predicate grows with the trap set's size and how closely traps follow
-  real prompts. The fixture set has 16 traps per prompt length, drawn half from
-  the training task family and half from random letters: far too few to resist a
-  membership test. A real deployment needs a large set sampled like real use, or
-  per-requester traps from a source that does not collude with evaluators.
-- Deviations below the tolerance. A sub-tolerance change can still flip the
-  real lane's argmax when its margin is smaller than the traps'.
-- Approximation error outside the trap distribution. Traps check the pinned
-  approximate circuit; about 2.5% of arbitrary three-letter fixture prompts make
-  the approximation diverge from the float64 model (Doppler plan, section 3).
-- Liveness. An evaluator can always refuse or drop; the request fails.
+The batch is end-to-end encrypted and signed, so any transport can carry it. The
+Node host posts it over HTTP
+([`requester-host.js`](../server/protected-route/requester-host.js)). The
+requester is anonymous to the oracle. **The oracle learns** that a session is
+starting, its prompt length, generated count and trap count, the request time
+and the network address. It never learns the prompt, the answer or which
+evaluator runs the session. The disclosures say so in `trapOracle`, and the
+receipt records the batch id and the oracle key.
+
+**Trust assumption.** The oracle must not collude with the evaluator. An oracle
+that tells the evaluator its traps defeats v2 completely: the evaluator then
+perturbs only the other lane. This is weaker than verifiable computation. Traps
+check a sample of the evaluator's work against outputs the oracle computed, and
+prove nothing about the real lane itself. The receipt lists
+`trap-oracle-independence-from-the-evaluator` as not verified.
+
+**Detection versus trap ratio.** With K = T + 1 lanes:
+
+- An evaluator that tampers lanes it cannot tell apart is caught with
+  probability 1 − C(K − T, m) / C(K, m) for m tampered lanes. That is T / K for
+  one lane (0.75 at T = 3) and certainty for two or more.
+- An evaluator that tampers by input, on some set C of prompts, corrupts a real
+  prompt drawn from the oracle's distribution D with probability p = D(C). It is
+  caught with probability 1 − (1 − p)^T. Its chance of a silent corruption per
+  session is p (1 − p)^T, at most (T/(T+1))^T / (T + 1): 0.25 at T = 1, 0.105 at
+  T = 3, 0.049 at T = 7.
+- Under v1 a public set made p ≈ 1 with zero detection. Under v2 a perturbation
+  that vanishes on fresh traps must also vanish on most real prompts like them.
+
+**What v2 does not catch.**
+
+- Real prompts unlike the oracle's distribution. An attack on rare inputs (small
+  p) is rarely caught, and it hurts a requester whose prompt is in that rare set.
+  The requester cannot tell the oracle its prompt's style without leaking it.
+- Low-margin inputs. Traps are filtered to a top-1 margin of at least 2.5, so
+  inputs with smaller margins are never sampled, and an attack confined to them
+  is unseen.
+- Deviations below the tolerance (0.75 logits), and approximation error of the
+  pinned circuit itself.
+- An oracle that colludes with the evaluator, or an oracle that is down: the run
+  fails, never silently.
+
+**Cost per session**, beyond an unprotected one:
+
+- T more lanes of evaluator compute and upload (K = 4 is four times the work).
+- One round trip to the oracle.
+- T greedy trajectories of the plaintext circuit on the oracle: about a
+  millisecond for the fixture, T × (L + G) forward passes for a real model.
+- A batch of T × G × vocabulary expected logits (about 10 KB for the fixture).
+- On the requester: one X25519 key generation, one ECDH, HKDF, AES-GCM and one
+  Ed25519 verification, a few milliseconds.
 
 Dual evaluation (two evaluators, byte-identical results) remains an optional
 extra in Doppler's own requester, not this route's guarantee.
@@ -556,7 +601,8 @@ extra in Doppler's own requester, not this route's guarantee.
   value; its next input is a fresh encryption of a token it chose. Publishing
   outputs gives an IND-CPA-D adversary argmax decisions only; key epochs bound
   how much is encrypted under one key.
-- **Integrity** is the trap detection above. The binding prevents a different
+- **Integrity** is the trap detection above, under the assumption that the trap
+  oracle does not collude with the evaluator. The binding prevents a different
   evaluator, a replayed frame or a network attacker from substituting results;
   it does not make the bound evaluator honest.
 - **Not covered:** the requester's own device and software, side channels on
@@ -572,11 +618,15 @@ extra in Doppler's own requester, not this route's guarantee.
   eligibility and leakage, happy path and journal contents, expired and changed
   plans, wrong identity, replay, transit tampering, all-lane lies, decrypt
   request, drop, non-finite real values, offer replay, and a 200-trial
-  single-lane liar.
+  single-lane liar. Trap v2 cases: the vanishing perturbation undetected under
+  v1 and caught under v2, forged or altered batches refused, a stale batch
+  replayed into a later session refused, the oracle request carrying only sizes.
 - [`tests/integration/protected-route.test.js`](../tests/integration/protected-route.test.js)
   runs real processes: this process as requester through `reploid/inference`,
-  Doppler's key holder as its child, and each evaluator peer as a separate Node
-  process with its own Go CKKS evaluator, on the insecure development ring. It
+  Doppler's key holder as its child, Doppler's trap oracle as its own process,
+  and each evaluator peer as a separate Node process with its own Go CKKS
+  evaluator, on the insecure development ring. The vanishing-perturbation peer
+  computes the attack homomorphically. It
   is skipped unless `REPLOID_PROTECTED_BACKEND_DIR` names Doppler's
   `tools/privacy-protected` and Go is installed.
 - [`scripts/protected-route-e2e.js`](../scripts/protected-route-e2e.js) runs the
@@ -589,7 +639,7 @@ The evaluator peer talks to its engine through one port (`describe(profile)`,
 `open(schedule)` returning `sendKey`, `keysHeld`, `ready`, `step`, `close`);
 [`go-evaluator.js`](../server/protected-route/go-evaluator.js) is the CPU one. A
 WebGPU evaluator implements the same port, computes the same pinned circuit
-(same profile digest and circuit digest, so the same trap set applies), returns
+(same profile digest and circuit digest, so the same trap oracle applies), returns
 one logits ciphertext per lane at the pinned layout, and never constructs a
 secret key. Nothing in the protocol, the API or the traps changes.
 
@@ -597,7 +647,8 @@ secret key. Nothing in the protocol, the API or the traps changes.
 
 An independent cryptographer reviews the parameters (lattice estimate for the
 exact N, Q, P and secret distribution), the protocol (binding, sequence and
-replay handling, key-epoch reuse, trap indistinguishability and set size,
+replay handling, key-epoch reuse, the trap oracle's channel and its sampling
+distribution, trap indistinguishability,
 decrypt-after-verify ordering, behaviour on approximation failure, timing
 leakage, IND-CPA-D exposure), the implementation (Lattigo deserialization of
 untrusted input, memory handling, side channels on the requester) and this

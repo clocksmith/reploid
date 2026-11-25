@@ -2,7 +2,7 @@
 /**
  * reploid.protected-generation/v1 with in-process fakes: a fake key holder whose "ciphertexts" are tagged tokens
  * and a fake engine computing a fixed toy model. These pin the protocol (eligibility, binding, frames, traps,
- * flag) and the trap detection rate cheaply; tests/integration/protected-route.test.js runs the real CKKS backend.
+ * flag, trap oracle v2 and the vanishing perturbation) and the trap detection rate cheaply; tests/integration/protected-route.test.js runs the real CKKS backend.
  */
 import { describe, it, expect } from 'vitest';
 import { createInference, PROTECTED_EXECUTION_STATUS } from '../../packages/reploid/src/inference/index.js';
@@ -13,6 +13,7 @@ import {
   trapDetectionProbability, totalArgmax, checkTrapResult, planProtectedLanes, createFrameDecoder, encodeProtectedFrame,
   inspectProtectedHeader, requestProtectedAdvertisement
 } from '../../packages/reploid/src/mesh/protected-generation.js';
+import { fromBase64Url } from '../../packages/reploid/src/artifacts/identity.js';
 
 const VOCAB = 32, CONTEXT = 8, ALPHABET = "abcdefghijklmnopqrstuvwxyz .,!?'";
 const MODEL = 'sha256:' + '1'.repeat(64), CIRCUIT = 'sha256:' + '2'.repeat(64), PROFILE = 'sha256:' + '3'.repeat(64);
@@ -56,6 +57,50 @@ async function signedTrapSet() {
     signature: toBase64Url(new Uint8Array(await crypto.subtle.sign({ name: 'Ed25519' }, keys.privateKey, signed))) }, publicKey };
 }
 
+/**
+ * A trap oracle in Doppler's wire format: fresh prompts per request (letter progressions and random letters), the toy
+ * model's continuation and expected logits, encrypted to the request's X25519 key and signed with Ed25519.
+ */
+async function fakeOracle() {
+  const keys = await crypto.subtle.generateKey({ name: 'Ed25519' }, true, ['sign', 'verify']);
+  const publicKey = toBase64Url(new Uint8Array(await crypto.subtle.exportKey('raw', keys.publicKey)));
+  const issued = [];
+  const enc = new TextEncoder();
+  const random = n => crypto.getRandomValues(new Uint32Array(1))[0] % n;
+  async function issue(request, { signWith = keys.privateKey, oracleKey = publicKey } = {}) {
+    const traps = [];
+    while (traps.length < request.count) {
+      const a = random(26), stride = 1 + random(3), uniform = random(2) === 1;
+      const prompt = Array.from({ length: request.promptLength }, (_, i) => uniform ? random(26) : (a + i * stride) % 26);
+      const out = greedy(prompt, request.generate), all = [...prompt, ...out];
+      const expectedLogits = Array.from({ length: request.generate }, (_, i) => toyLogits(all.slice(0, prompt.length + i)));
+      if (expectedLogits.some(row => { const sorted = [...row].sort((x, y) => y - x); return sorted[0] - sorted[1] < 2.5; })) continue;
+      traps.push({ id: `t${traps.length}`, prompt, continuation: out.slice(0, request.generate - 1), expectedLogits });
+    }
+    const batchId = hex(crypto.getRandomValues(new Uint8Array(16)));
+    const body = { schema: 'doppler.protected-trap-batch/v1', batchId, circuit: CIRCUIT, model: MODEL, requesterNonce: request.requesterNonce,
+      promptLength: request.promptLength, generate: request.generate, distribution: 'toy-mixture/v1',
+      tolerance: { maxAbsLogitError: 0.75, minReferenceMargin: 2.5, requireArgmax: true }, traps };
+    const eph = await crypto.subtle.generateKey({ name: 'X25519' }, true, ['deriveBits']);
+    const peer = await crypto.subtle.importKey('raw', fromBase64Url(request.requesterKey), { name: 'X25519' }, false, []);
+    const shared = await crypto.subtle.deriveBits({ name: 'X25519', public: peer }, eph.privateKey, 256);
+    const ikm = await crypto.subtle.importKey('raw', shared, 'HKDF', false, ['deriveKey']);
+    const salt = Uint8Array.from(request.requesterNonce.match(/../g), b => parseInt(b, 16));
+    const aes = await crypto.subtle.deriveKey({ name: 'HKDF', hash: 'SHA-256', salt, info: enc.encode('doppler.protected-trap-batch/v1') }, ikm, { name: 'AES-GCM', length: 256 }, false, ['encrypt']);
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const sealed = new Uint8Array(await crypto.subtle.encrypt({ name: 'AES-GCM', iv, additionalData: enc.encode(batchId) }, aes, enc.encode(JSON.stringify(body))));
+    const header = JSON.stringify({ schema: 'doppler.protected-trap-batch/v1', batchId, circuit: CIRCUIT, requesterNonce: request.requesterNonce,
+      requesterKey: request.requesterKey, oracleEphemeralKey: toBase64Url(new Uint8Array(await crypto.subtle.exportKey('raw', eph.publicKey))),
+      iv: toBase64Url(iv), ciphertextDigest: await sha(sealed), issuedAt: Date.now(), expiresAt: Date.now() + 600000 });
+    const signature = toBase64Url(new Uint8Array(await crypto.subtle.sign({ name: 'Ed25519' }, signWith,
+      new Uint8Array([...enc.encode('doppler.protected-trap-batch/v1\x00'), ...enc.encode(header)]))));
+    const envelope = { schema: 'doppler.protected-trap-batch-envelope/v1', header, ciphertext: toBase64Url(sealed), oracleKey, signature };
+    issued.push({ request, envelope, traps });
+    return envelope;
+  }
+  return { publicKey, issue, issued };
+}
+
 /** Fake key holder: "ciphertexts" are [tag, token, 14 random bytes]; decrypt reads back logits blobs. */
 function fakeKeyHolder({ keysDigest = null } = {}) {
   const stats = { encryptions: 0, decryptions: 0 };
@@ -75,21 +120,25 @@ function fakeKeyHolder({ keysDigest = null } = {}) {
 }
 
 /** Fake engine. `lie(lane)` adds 20 to symbol 'z' for that lane (a valid-looking wrong answer). */
-function fakeEngine({ lie = () => false, nanLane = -1 } = {}) {
+/** `vanishOn`: published trap prompts; the engine perturbs every lane whose prompt is not one of them (the attack). */
+function fakeEngine({ lie = () => false, nanLane = -1, vanishOn = null } = {}) {
   return {
     async open({ lanes }) {
       const histories = Array.from({ length: lanes }, () => []);
+      const promptLengths = [];
       const received = [];
       return {
         manifest: { profileDigest: PROFILE, circuit: CIRCUIT, heldKeysDigest: '', rotations: [1, 2, 4, 8, 16, 32] }, keyCount: 7,
         async sendKey(blob) { received.push(...blob); }, async keysHeld() {},
         async ready() { return sha(new Uint8Array(received)); },
-        async step({ blobs }) {
+        async step({ blobs, seq }) {
           const per = blobs.length / lanes;
           return histories.map((history, lane) => {
             history.push(...blobs.slice(lane * per, (lane + 1) * per).map(b => b[1]));
+            if (seq === 1) promptLengths[lane] = per;
             const logits = toyLogits(history);
             if (lie(lane)) logits[25] += 20;
+            if (vanishOn && !vanishOn.has(history.slice(0, promptLengths[lane]).join(','))) logits[25] += 20;
             if (lane === nanLane) logits.fill(NaN);
             return encodeLogits(logits);
           });
@@ -104,11 +153,13 @@ const manifest = { protocol: 'toy-engine/v0', implementation: 'fake', scheme: 'c
   circuit: CIRCUIT, model: MODEL, vocab: VOCAB, context: CONTEXT, inputLevel: 36, logSlots: 6, rotations: [1, 2, 4, 8, 16, 32], maxLanes: 8 };
 
 async function setup({ engine = fakeEngine(), misbehave = null, wrongIdentity = false, tap = null, insecure = false, allowInsecure = false,
-  extraAdvertisements = [], now = Date.now, keyHolder = () => fakeKeyHolder(), trapLanes = 3, randomInt } = {}) {
+  extraAdvertisements = [], now = Date.now, keyHolder = () => fakeKeyHolder(), trapLanes = 3, randomInt,
+  trapSource = 'oracle', allowPublicTrapSet = false, oracleAnswer = null, publicSet = null } = {}) {
+  const oracle = await fakeOracle();
   const identity = await createSigningIdentity({ algorithm: 'ECDSA' });
   const signingIdentity = wrongIdentity ? await createSigningIdentity({ algorithm: 'ECDSA' }) : identity;
   let advertisement = await createProtectedAdvertisement({ identity, manifest });
-  const { envelope, publicKey } = await signedTrapSet();
+  const { envelope, publicKey } = publicSet ?? await signedTrapSet();
   const seenNonces = new Map(), evaluatorJournal = createProtectedJournal();
   const counts = { discover: 0, connect: 0, sessions: [] };
   const served = [];
@@ -120,8 +171,9 @@ async function setup({ engine = fakeEngine(), misbehave = null, wrongIdentity = 
   const policy = { protocols: ['reploid.protected-generation/v1'], engines: ['toy-engine/v0'],
     parameterSets: [{ id: 'toy-n12', digest: PROFILE, insecureDevelopment: insecure }], allowInsecureDevelopment: allowInsecure,
     circuits: [{ identity: CIRCUIT, modelIdentity: MODEL, tokenizer: { alphabet: ALPHABET }, vocab: VOCAB, context: CONTEXT, inputLevel: 36, logSlots: 6,
-      rotations: [1, 2, 4, 8, 16, 32], trapSet: envelope, trapPublisherKeys: [publicKey] }],
-    trapLanes, maxTrapTolerance: 1, maxKeyEpochSeconds: 86400 };
+      rotations: [1, 2, 4, 8, 16, 32], traps: trapSource === 'oracle' ? { source: 'oracle', endpoint: 'oracle:1', oracleKeys: [oracle.publicKey] }
+        : { source: 'public-set', envelope, publisherKeys: [publicKey] } }],
+    trapLanes, maxTrapTolerance: 1, maxKeyEpochSeconds: 86400, allowPublicTrapSet };
   let holder = null;
   const requesterJournal = createProtectedJournal();
   const protectedExecution = createProtectedExecution({ policy, journal: requesterJournal, now, randomInt,
@@ -142,11 +194,14 @@ async function setup({ engine = fakeEngine(), misbehave = null, wrongIdentity = 
       pump(evaluator, proxyToEvaluator, 'up'); pump(proxyToEvaluator, evaluator, 'down');
       return requester;
     },
-    async openCrypto() { holder = keyHolder(); return holder; }
+    async openCrypto() { holder = keyHolder(); return holder; },
+    async requestTraps({ request }) { counts.oracle = (counts.oracle ?? 0) + 1; return oracleAnswer ? oracleAnswer(request, oracle) : oracle.issue(request); }
   });
   const inference = createInference({ resolveRoute() { throw new Error('plaintext route used'); }, execute() { throw new Error('plaintext executor used'); },
     now, protectedExecution, unreviewedProtectedExecution: true });
-  return { inference, identity, counts, served, evaluatorJournal, requesterJournal, holder: () => holder, advertisement: () => advertisement, setAdvertisement: value => { advertisement = value; }, policy, envelope };
+  const publicPrompts = new Set(JSON.parse(envelope.body).traps.map(trap => trap.prompt.join(',')));
+  return { inference, identity, counts, served, evaluatorJournal, requesterJournal, holder: () => holder, advertisement: () => advertisement,
+    setAdvertisement: value => { advertisement = value; }, policy, envelope, oracle, publicPrompts };
 }
 
 const execution = { placement: 'network-allowed', participants: { kind: 'open' }, confidentiality: 'requester-only', allowMetadata: ['model-id', 'timing', 'length'] };
@@ -163,7 +218,9 @@ describe('protected route flag', () => {
   it('without the flag, requester-only is refused before discovery and nothing is sent', async () => {
     const { counts } = await setup();
     let discovered = 0;
-    const port = createProtectedExecution({ policy: (await setup()).policy, discover: async () => { discovered++; return []; }, connect: async () => { throw new Error('sent'); }, openCrypto: async () => { throw new Error('opened'); } });
+    let asked = 0;
+    const port = createProtectedExecution({ policy: (await setup()).policy, discover: async () => { discovered++; return []; }, connect: async () => { throw new Error('sent'); },
+      openCrypto: async () => { throw new Error('opened'); }, requestTraps: async () => { asked++; throw new Error('asked'); } });
     for (const inference of [
       createInference({ resolveRoute() { throw new Error('x'); }, execute() { throw new Error('x'); } }),
       createInference({ resolveRoute() { throw new Error('x'); }, execute() { throw new Error('x'); }, protectedExecution: port }),
@@ -172,6 +229,7 @@ describe('protected route flag', () => {
       await expect(inference.prepare(prepareInput())).rejects.toMatchObject({ code: 'CONFIDENTIAL_EXECUTION_UNAVAILABLE', reason: 'awaiting independent security review' });
     }
     expect(discovered).toBe(0);
+    expect(asked).toBe(0);
     expect(counts.connect).toBe(0);
     expect(PROTECTED_EXECUTION_STATUS).toEqual({ available: false, reason: 'awaiting independent security review' });
   });
@@ -391,5 +449,74 @@ describe('trap verification', () => {
     const bad = createFrameDecoder({ inspect: inspectProtectedHeader, onFrame: () => {} });
     const [prefix, header] = encodeProtectedFrame({ schema: 'reploid.protected-generation/v1', kind: 'bye', blobs: [{ bytes: 10 }] });
     expect(() => { bad.push(prefix); bad.push(header); }).toThrow(/ceiling/);
+  });
+});
+
+describe('trap verification v2: secret fresh traps from a pinned oracle', () => {
+  it('the vanishing perturbation passes undetected with a public trap set (v1) and is caught with oracle traps (v2)', async () => {
+    // The attacker reads the published set and perturbs (+20 on symbol z) every prompt that is not in it.
+    const published = await signedTrapSet();
+    const listed = new Set(JSON.parse(published.envelope.body).traps.map(trap => trap.prompt.join(',')));
+    const real = Array.from({ length: 26 }, (_, a) => [a, (a + 2) % 26, (a + 4) % 26]).find(p => !listed.has(p.join(',')));
+    const v1 = await setup({ trapSource: 'public-set', allowPublicTrapSet: true, publicSet: published, engine: fakeEngine({ vanishOn: listed }) });
+    const one = await runToEnd(v1.inference, await v1.inference.prepare(prepareInput()), toText(real));
+    expect(one.result.status).toBe('completed');                       // every trap passed
+    expect(one.result.output.text).not.toBe(toText(greedy(real, 4)));
+    expect(one.result.output.text).toBe('zzzz');                       // and the real answer is the attacker's
+    // v2: the same attacker and the same published set; this requester's traps are secret and fresh.
+    for (let i = 0; i < 20; i++) {
+      const v2 = await setup({ engine: fakeEngine({ vanishOn: listed }) });
+      const two = await runToEnd(v2.inference, await v2.inference.prepare(prepareInput({ generation: { maxOutputTokens: 1 } })), toText(real), `v2-${i}`);
+      expect(two.result).toMatchObject({ status: 'failed', output: null, error: { code: 'RESULT_UNVERIFIED' } });
+      expect(two.result.executionReceipt.evidence.integrity.decryptions.real).toBe(0);
+    }
+  }, 60000);
+
+  it('refuses a batch signed by an unpinned oracle key, or altered after signing, and sends nothing to the evaluator', async () => {
+    const forgedKey = await crypto.subtle.generateKey({ name: 'Ed25519' }, true, ['sign', 'verify']);
+    const forgedPublic = toBase64Url(new Uint8Array(await crypto.subtle.exportKey('raw', forgedKey.publicKey)));
+    for (const oracleAnswer of [
+      (request, oracle) => oracle.issue(request, { signWith: forgedKey.privateKey, oracleKey: forgedPublic }),   // another oracle
+      (request, oracle) => oracle.issue(request, { signWith: forgedKey.privateKey }),                            // claims the pinned key
+      async (request, oracle) => { const e = await oracle.issue(request); return { ...e, header: e.header.replace('"expiresAt":', '"expiresAt":1') }; },
+      async (request, oracle) => { const e = await oracle.issue(request); const c = fromBase64Url(e.ciphertext); c[5] ^= 1; return { ...e, ciphertext: toBase64Url(c) }; }
+    ]) {
+      const s = await setup({ oracleAnswer });
+      const { result } = await runToEnd(s.inference, await s.inference.prepare(prepareInput()));
+      expect(result).toMatchObject({ status: 'failed', output: null, error: { code: 'EXECUTION_ROUTE_UNAVAILABLE' } });
+      expect(result.error.message).toMatch(/Trap batch refused/);
+      expect(s.counts.connect).toBe(0);
+    }
+  });
+
+  it('refuses a stale batch replayed into a later session', async () => {
+    let first = null;
+    const s = await setup({ oracleAnswer: async (request, oracle) => first ?? (first = await oracle.issue(request)) });
+    const one = await runToEnd(s.inference, await s.inference.prepare(prepareInput()), 'bdf', 'first');
+    expect(one.result.status).toBe('completed');
+    const connectsBefore = s.counts.connect;
+    const two = await runToEnd(s.inference, await s.inference.prepare(prepareInput()), 'bdf', 'second');
+    expect(two.result).toMatchObject({ status: 'failed', error: { code: 'EXECUTION_ROUTE_UNAVAILABLE' } });
+    expect(two.result.error.message).toMatch(/stale or replayed/);
+    expect(s.counts.connect).toBe(connectsBefore);
+  });
+
+  it('asks the oracle only for sizes: circuit, prompt length, generated count, trap count, a nonce and a one-time key', async () => {
+    const s = await setup();
+    const { result } = await runToEnd(s.inference, await s.inference.prepare(prepareInput()), 'bdf');
+    expect(result.status).toBe('completed');
+    const [{ request }] = s.oracle.issued;
+    expect(Object.keys(request).sort()).toEqual(['circuit', 'count', 'generate', 'promptLength', 'requesterKey', 'requesterNonce', 'schema']);
+    expect(request).toMatchObject({ promptLength: 3, generate: 4, count: 3 });
+    expect(JSON.stringify(request)).not.toMatch(/bdf|\[1,3,5\]/);
+    const traps = result.executionReceipt.evidence.integrity.verified.find(item => item.claim === 'known-answer-traps');
+    expect(traps.method).toMatch(/secret-fresh-traps/);
+    expect(traps.value).toMatchObject({ source: 'oracle', passed: 12 });
+    expect(result.executionReceipt.evidence.integrity.notVerified).toContain('trap-oracle-independence-from-the-evaluator');
+  });
+
+  it('a public trap set is ineligible unless explicitly allowed for comparison', async () => {
+    const s = await setup({ trapSource: 'public-set' });
+    await expect(s.inference.prepare(prepareInput())).rejects.toMatchObject({ code: 'EXECUTION_ROUTE_UNAVAILABLE' });
   });
 });

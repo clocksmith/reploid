@@ -24,7 +24,7 @@ const PROFILE = 'dev-insecure-n12';
 const execution = { placement: 'network-allowed', participants: { kind: 'open' }, confidentiality: 'requester-only', allowMetadata: ['model-id', 'timing', 'length'] };
 
 describe.skipIf(!enabled)('protected route with the CPU CKKS backend (real processes)', () => {
-  let dir, engine, model, modelIdentity, policy, reference;
+  let dir, engine, model, modelIdentity, policy, publicSetPolicy, reference, oracleEndpoint, rogueOracleEndpoint, trapFile, unlistedPrompt, unlistedReference;
   const peers = {};
   const children = new Set();
 
@@ -44,8 +44,9 @@ describe.skipIf(!enabled)('protected route with the CPU CKKS backend (real proce
     return peers[name];
   };
 
-  const inferenceFor = (endpoints, { stateDir = mkdtempSync(path.join(dir, 'requester-')), flag = true, now } = {}) => {
-    const protectedExecution = createNodeProtectedExecution({ endpoints, engine, policy, stateDir, ...(now ? { now } : {}) });
+  const inferenceFor = (endpoints, { stateDir = mkdtempSync(path.join(dir, 'requester-')), flag = true, now, pins = policy, requestTraps } = {}) => {
+    const protectedExecution = createNodeProtectedExecution({ endpoints, engine, policy: pins, stateDir, ...(now ? { now } : {}),
+      ...(requestTraps ? { requestTraps } : {}) });
     return { protectedExecution, inference: createInference({ resolveRoute() { throw new Error('plaintext route used'); }, execute() { throw new Error('plaintext executor used'); },
       protectedExecution, unreviewedProtectedExecution: flag, ...(now ? { now } : {}) }) };
   };
@@ -60,12 +61,18 @@ describe.skipIf(!enabled)('protected route with the CPU CKKS backend (real proce
 
   /** A TCP position between requester and evaluator that can rewrite frames, and counts connections. */
   const startProxy = async (target, tap = async frame => frame) => {
-    const state = { connections: 0 };
+    const state = { connections: 0, upstreamKinds: {} };
     const server = await listenFrameSocket({ onChannel: async downstream => {
       state.connections++;
       const upstream = await connectFrameSocket(target);
       const pump = async (from, to, direction) => {
-        try { for (;;) { const frame = await tap(await from.receive({ timeoutMs: 120000 }), direction); if (frame) await to.send(frame); } } catch { from.close(); to.close(); }
+        try {
+          for (;;) {
+            const frame = await tap(await from.receive({ timeoutMs: 120000 }), direction);
+            if (direction === 'up') state.upstreamKinds[frame.header.kind] = (state.upstreamKinds[frame.header.kind] ?? 0) + 1;
+            if (frame) await to.send(frame);
+          }
+        } catch { from.close(); to.close(); }
       };
       pump(downstream, upstream, 'up'); pump(upstream, downstream, 'down');
     } });
@@ -78,9 +85,24 @@ describe.skipIf(!enabled)('protected route with the CPU CKKS backend (real proce
     execFileSync('go', ['build', '-o', engine, '.'], { cwd: backendDir, stdio: 'inherit' });
     model = path.join(backendDir, 'tiny-model.json');
     modelIdentity = 'sha256:' + createHash('sha256').update(readFileSync(model)).digest('hex');
-    const trapFile = path.join(dir, 'trapset.json');
+    trapFile = path.join(dir, 'trapset.json');
     execFileSync(engine, ['trapset', '--model', model, '--key', path.join(dir, 'publisher.key'), '--new-key', '--out', trapFile]);
     const trapSet = JSON.parse(readFileSync(trapFile, 'utf8'));
+    const startOracle = async name => {
+      const ready = path.join(dir, `${name}.addr`);
+      const child = spawn(engine, ['trap-oracle', '--model', model, '--key', path.join(dir, `${name}.key`), '--new-key', '--ready-file', ready, '--exit-with-stdin'],
+        { stdio: ['pipe', 'ignore', 'pipe'] });
+      children.add(child);
+      for (const deadline = Date.now() + 30000; !existsSync(ready); await new Promise(resolve => setTimeout(resolve, 50))) {
+        if (Date.now() > deadline) throw new Error('trap oracle did not start');
+      }
+      const endpoint = `http://${readFileSync(ready, 'utf8')}`;
+      const descriptor = await (await fetch(new URL('/v1/descriptor', endpoint))).json();
+      return { endpoint, key: descriptor.oracleKey };
+    };
+    const oracle = await startOracle('oracle'), rogue = await startOracle('rogue');
+    oracleEndpoint = oracle.endpoint;
+    rogueOracleEndpoint = rogue.endpoint;
     const manifest = JSON.parse(execFileSync(engine, ['evaluator', '--describe', '--profile', PROFILE, '--model', model]));
     // The requester's own pins: the engine protocol, the parameter set (known here to be insecure), the circuit and
     // its layout, the trap set and the publisher key. Nothing below is taken from an advertisement.
@@ -88,11 +110,20 @@ describe.skipIf(!enabled)('protected route with the CPU CKKS backend (real proce
       parameterSets: [{ id: PROFILE, digest: manifest.profileDigest, insecureDevelopment: true }], allowInsecureDevelopment: true,
       circuits: [{ identity: manifest.circuit, modelIdentity, tokenizer: { alphabet: "abcdefghijklmnopqrstuvwxyz .,!?'" }, vocab: manifest.vocab,
         context: manifest.context, inputLevel: manifest.inputLevel, logSlots: manifest.logSlots, rotations: manifest.rotations,
-        trapSet, trapPublisherKeys: [trapSet.publicKey] }],
-      trapLanes: 3, maxTrapTolerance: 1, maxKeyEpochSeconds: 86400 };
+        traps: { source: 'oracle', endpoint: oracle.endpoint, oracleKeys: [oracle.key] } }],
+      trapLanes: 3, maxTrapTolerance: 1, maxKeyEpochSeconds: 86400, allowPublicTrapSet: false };
+    // v1, for the comparison only: the same pins with the published trap set.
+    publicSetPolicy = { ...policy, allowPublicTrapSet: true,
+      circuits: [{ ...policy.circuits[0], traps: { source: 'public-set', envelope: trapSet, publisherKeys: [trapSet.publicKey] } }] };
+    const listed = new Set(JSON.parse(trapSet.body).traps.map(trap => trap.prompt.join(',')));
+    const letters = "abcdefghijklmnopqrstuvwxyz";
+    unlistedPrompt = Array.from({ length: 26 }, (_, a) => letters[a] + letters[(a + 2) % 26] + letters[(a + 4) % 26])
+      .find(prompt => !listed.has([...prompt].map(c => letters.indexOf(c)).join(',')));
+    unlistedReference = JSON.parse(execFileSync(engine, ['reference', '--model', model, '--prompt', unlistedPrompt, '--generate', '2'])).approximateText;
     reference = JSON.parse(execFileSync(engine, ['reference', '--model', model, '--prompt', 'bdf', '--generate', '4'])).approximateText;
     await Promise.all([startPeer('honest'), startPeer('other'), startPeer('wrong', 'wrong-identity'), startPeer('replay', 'replay-result'),
-      startPeer('decrypt', 'ask-decrypt'), startPeer('liar', 'lie-all'), startPeer('random', 'lie-random'), startPeer('drop')]);
+      startPeer('decrypt', 'ask-decrypt'), startPeer('liar', 'lie-all'), startPeer('random', 'lie-random'), startPeer('drop'),
+      startPeer('vanish', `vanish:${trapFile}`)]);
   }, 240000);
 
   afterAll(() => {
@@ -217,6 +248,43 @@ describe.skipIf(!enabled)('protected route with the CPU CKKS backend (real proce
         .rejects.toMatchObject({ code: 'EXECUTION_PLAN_CHANGED' });
       expect(proxy.state.connections).toBe(before);
     } finally { await proxy.close(); }
+  }, 120000);
+
+  it('the vanishing perturbation: undetected with the public trap set (v1), caught with fresh oracle traps (v2)', async () => {
+    const v1 = await runOnce(inferenceFor([peers.vanish.endpoint], { pins: publicSetPolicy }).inference, { content: unlistedPrompt, tokens: 2 });
+    expect(v1.result.status).toBe('completed');                 // every published trap came back exact
+    expect(v1.result.output.text).not.toBe(unlistedReference);   // and the real answer is the attacker's
+    expect(v1.result.executionReceipt.evidence.integrity.verified.find(item => item.claim === 'known-answer-traps').value.passed).toBe(6);
+    const v2 = await runOnce(inferenceFor([peers.vanish.endpoint]).inference, { content: unlistedPrompt, tokens: 2 });
+    expect(v2.result).toMatchObject({ status: 'failed', output: null, error: { code: 'RESULT_UNVERIFIED' } });
+    expect(v2.result.error.message).toMatch(/trap failed at step 1/);
+    expect(v2.result.executionReceipt.evidence.integrity.decryptions.real).toBe(0);
+  }, 180000);
+
+  it('refuses traps from an oracle whose key is not pinned, before contacting the evaluator', async () => {
+    const proxy = await startProxy(peers.honest.endpoint);
+    try {
+      const pins = { ...policy, circuits: [{ ...policy.circuits[0], traps: { ...policy.circuits[0].traps, endpoint: rogueOracleEndpoint } }] };
+      const { result } = await runOnce(inferenceFor([proxy.endpoint], { pins }).inference);
+      expect(result).toMatchObject({ status: 'failed', output: null, error: { code: 'EXECUTION_ROUTE_UNAVAILABLE' } });
+      expect(result.error.message).toMatch(/oracle key is not pinned/);
+      // Advertisement requests (prepare, and run's recheck) only: no bind offer, key or ciphertext reached the evaluator.
+      expect(Object.keys(proxy.state.upstreamKinds)).toEqual(['advertise-request']);
+    } finally { await proxy.close(); }
+  }, 120000);
+
+  it('refuses a stale trap batch replayed into a later session', async () => {
+    let stale = null;
+    const requestTraps = async ({ endpoint, request }) => {
+      if (stale) return stale;
+      const response = await fetch(new URL('/v1/trap-batch', endpoint), { method: 'POST', body: JSON.stringify(request) });
+      return (stale = await response.json());
+    };
+    const { inference } = inferenceFor([peers.honest.endpoint], { requestTraps });
+    expect((await runOnce(inference, { tokens: 1 })).result.status).toBe('completed');
+    const { result } = await runOnce(inference, { tokens: 1 });
+    expect(result).toMatchObject({ status: 'failed', output: null, error: { code: 'EXECUTION_ROUTE_UNAVAILABLE' } });
+    expect(result.error.message).toMatch(/stale or replayed/);
   }, 120000);
 
   it('with the flag off, requester-only is refused and no evaluator is contacted', async () => {

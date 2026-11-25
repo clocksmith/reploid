@@ -1,6 +1,6 @@
 /**
  * Node host ports for a protected requester: discovery by asking listed endpoints for their signed advertisements,
- * the protected wire over TCP, and Doppler's key holder as a child process. A browser host implements the same
+ * the protected wire over TCP, Doppler's key holder as a child process, and trap batches from the pinned oracle. A browser host implements the same
  * three ports with its own transport and a WebAssembly key holder.
  */
 import { createProtectedExecution } from '../../shared/vendor/reploid/inference/index.js';
@@ -23,6 +23,14 @@ export function createNodeProtectedExecution({ endpoints, engine, policy, stateD
     connect: (endpoint, { signal }) => connectFrameSocket(endpoint, { signal, timeoutMs: connectTimeoutMs }),
     openCrypto: ({ parameterSet }) => openGoRequesterBridge({ binary: engine, profile: parameterSet.id,
       allowInsecureDevelopment: parameterSet.insecureDevelopment && policy.allowInsecureDevelopment, stateDir, keyTtlSeconds }),
+    // The batch is signed by the oracle and encrypted to this request's one-time key, so plain HTTP carries it; a
+    // network observer learns the same sizes and timing the oracle does.
+    async requestTraps({ endpoint, request, signal }) {
+      const response = await fetch(new URL('/v1/trap-batch', endpoint), { method: 'POST', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(request), signal: signal ? AbortSignal.any([signal, AbortSignal.timeout(connectTimeoutMs)]) : AbortSignal.timeout(connectTimeoutMs) });
+      if (!response.ok) throw new Error(`trap oracle answered ${response.status}`);
+      return response.json();
+    },
     ...options
   });
 }

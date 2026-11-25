@@ -1,4 +1,4 @@
-import type { ProtectedPolicy, FrameChannel, RequesterKeyHolder, ProtectedJournal, SigningIdentity } from '../mesh/protected-generation.js';
+import type { ProtectedPolicy, FrameChannel, RequesterKeyHolder, ProtectedJournal, SigningIdentity, TrapRequest } from '../mesh/protected-generation.js';
 import type { InferenceRoute } from './contract.js';
 export { PROTECTED_PROTOCOL, PROTECTED_BACKEND } from '../mesh/protected-generation.js';
 export { protectedError } from '../mesh/protected-generation.js';
@@ -9,6 +9,7 @@ export declare const PROTECTED_METADATA: readonly ['model-id', 'timing', 'length
 export interface ProtectedDisclosures {
   contentReadableBy: { requesterDevice: true; participants: []; selection: 'all' }; executorsReadContent: false;
   metadata: Array<'model-id' | 'timing' | 'length'>; computedBy: string[]; leaks: string[];
+  trapOracle: { learns: string[]; trusted: string } | null;
   review: { available: false; reason: string }; statement: string;
 }
 export declare function protectedDisclosures(route: InferenceRoute): ProtectedDisclosures;
@@ -17,6 +18,8 @@ export interface ProtectedExecutionPorts {
   discover(options: { signal?: AbortSignal; model: unknown }): Promise<Array<{ endpoint: unknown; advertisement: unknown }>>;
   connect(endpoint: unknown, options: { signal?: AbortSignal }): Promise<FrameChannel>;
   openCrypto(options: { parameterSet: { id: string; digest: string; insecureDevelopment: boolean }; signal?: AbortSignal }): Promise<RequesterKeyHolder>;
+  /** Required when a pinned circuit uses a trap oracle: deliver the request, return the oracle's envelope. */
+  requestTraps?: ((options: { endpoint: string; request: TrapRequest; signal?: AbortSignal }) => Promise<unknown>) | null;
   identity?: SigningIdentity | null; journal?: ProtectedJournal; randomInt?: (n: number) => number; now?: () => number; timeoutMs?: number;
 }
 export interface ProtectedExecution {

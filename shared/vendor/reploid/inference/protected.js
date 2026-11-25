@@ -8,6 +8,7 @@
  *   discover({ signal, model })        -> [{ endpoint, advertisement }]   signed advertisements; no content is sent
  *   connect(endpoint, { signal })      -> frame channel { send, receive, close }
  *   openCrypto({ parameterSet, signal }) -> the requester's key holder (it alone holds the secret key)
+ *   requestTraps({ endpoint, request, signal }) -> a trap batch envelope from the pinned trap oracle (v2)
  */
 import { createSigningIdentity } from '../artifacts/identity.js';
 import { hashJson } from '../artifacts/signatures.js';
@@ -15,7 +16,7 @@ import { executionError } from '../chat/execution-policy.js';
 import {
   PROTECTED_PROTOCOL, PROTECTED_BACKEND, PROTECTED_REVIEW_REASON, validateProtectedPolicy, verifyProtectedAdvertisement,
   protectedEligibility, verifyTrapSet, runProtectedRequesterSession, createProtectedJournal, secureRandomInt,
-  trapDetectionProbability, protectedError
+  trapDetectionProbability, protectedError, createTrapRequest, openTrapBatch
 } from '../mesh/protected-generation.js';
 
 export { PROTECTED_PROTOCOL, PROTECTED_BACKEND };
@@ -29,8 +30,9 @@ export const PROTECTED_EXECUTION_STATUS = freeze({ available: false, reason: PRO
 export const PROTECTED_METADATA = freeze(['model-id', 'timing', 'length']);
 const SESSION_TTL_MS = 30 * 60 * 1000;
 
-/** Disclosures for a protected route: who can read content, and what still leaks. */
+/** Disclosures for a protected route: who can read content, and what still leaks, including to the trap oracle. */
 export function protectedDisclosures(route) {
+  const oracle = route.protected?.traps?.source === 'oracle';
   return freeze({
     contentReadableBy: { requesterDevice: true, participants: [], selection: 'all' },
     executorsReadContent: false,
@@ -38,10 +40,13 @@ export function protectedDisclosures(route) {
     computedBy: [...route.participants],
     leaks: ['model and circuit identity', 'prompt length and generated token count', 'ciphertext and message sizes',
       'timing of each step', 'evaluator and requester identities and network metadata'],
+    trapOracle: oracle ? { learns: ['that a session is starting', 'prompt length, generated count and trap count', 'request time and network address'],
+      trusted: 'not to collude with the evaluator' } : null,
     review: { ...PROTECTED_EXECUTION_STATUS },
     statement: 'Only this device can read the prompt and the answer: the evaluator computes on ciphertext under a key that never leaves this device, '
       + 'even if every remote party colludes. The evaluator sees the model identity, the prompt length, the number of generated tokens, '
-      + 'ciphertext sizes and timing. Results are checked with known-answer traps, which catch a tampering evaluator only with the stated probability. '
+      + 'ciphertext sizes and timing. Results are checked with secret known-answer traps, which catch a tampering evaluator only with the stated probability '
+      + (oracle ? 'and only if the trap oracle does not collude with it; the oracle learns that a session happened, its size and its time. ' : 'and are broken for a public trap set. ')
       + `Research route, ${PROTECTED_REVIEW_REASON}.`
   });
 }
@@ -58,16 +63,21 @@ function tokenize(messages, alphabet) {
   return tokens;
 }
 
-export function createProtectedExecution({ policy: inputPolicy, discover, connect, openCrypto, identity = null,
+export function createProtectedExecution({ policy: inputPolicy, discover, connect, openCrypto, requestTraps = null, identity = null,
   journal = createProtectedJournal(), randomInt = secureRandomInt, now = Date.now, timeoutMs = SESSION_TTL_MS }) {
   for (const [name, port] of Object.entries({ discover, connect, openCrypto })) {
     if (typeof port !== 'function') throw new TypeError(`Protected execution port ${name} is required`);
   }
   const policy = validateProtectedPolicy(inputPolicy);
+  if (policy.circuits.some(circuit => circuit.traps.source === 'oracle') && typeof requestTraps !== 'function') {
+    throw new TypeError('Protected execution port requestTraps is required for a trap oracle');
+  }
+  // Batch ids this requester has opened, until they expire: a batch is good for one session.
+  const usedBatches = new Map();
   const trapSets = new Map();
   const trapSetFor = circuit => {
     if (!trapSets.has(circuit.identity)) {
-      const verifying = verifyTrapSet(circuit.trapSet, { publisherKeys: circuit.trapPublisherKeys, circuit, maxTolerance: policy.maxTrapTolerance });
+      const verifying = verifyTrapSet(circuit.traps.envelope, { publisherKeys: circuit.traps.publisherKeys, circuit, maxTolerance: policy.maxTrapTolerance });
       verifying.catch(() => trapSets.delete(circuit.identity));
       trapSets.set(circuit.identity, verifying);
     }
@@ -91,13 +101,15 @@ export function createProtectedExecution({ policy: inputPolicy, discover, connec
     candidates.sort((a, b) => a.verified.descriptor.evaluator.participantId.localeCompare(b.verified.descriptor.evaluator.participantId));
     const chosen = candidates[0];
     if (!chosen) throw executionError('EXECUTION_ROUTE_UNAVAILABLE', 'No protected backend on this requester\'s allowlist is available. Nothing was sent.');
-    const trapSet = await trapSetFor(chosen.circuit);
+    const source = chosen.circuit.traps.source;
+    const trapSet = source === 'public-set' ? await trapSetFor(chosen.circuit) : null;
     const lanes = policy.trapLanes + 1;
     const body = { schema: 'reploid.inference-route/v1', shape: 'remote', selection: 'one-of',
       participants: [chosen.verified.descriptor.evaluator.participantId], backend: PROTECTED_BACKEND, protocol: PROTECTED_PROTOCOL,
       model: structuredClone(request.model), planIdentity: null,
       protected: { descriptorDigest: chosen.verified.descriptorDigest, parameterSet: chosen.parameterSet.digest,
-        insecureDevelopment: chosen.parameterSet.insecureDevelopment, circuit: chosen.circuit.identity, trapSet: trapSet.digest,
+        insecureDevelopment: chosen.parameterSet.insecureDevelopment, circuit: chosen.circuit.identity,
+        traps: source === 'oracle' ? { source, oracleKeys: [...chosen.circuit.traps.oracleKeys] } : { source, trapSet: trapSet.digest },
         lanes, trapLanes: policy.trapLanes } };
     const route = freeze({ id: await hashJson(body), ...body });
     return { route, maxCharge: null, disclosures: protectedDisclosures(route),
@@ -116,6 +128,18 @@ export function createProtectedExecution({ policy: inputPolicy, discover, connec
       throw executionError('EXECUTION_REQUEST_INVALID', `A ${promptTokens.length}-symbol prompt with ${generate} generated tokens exceeds the ${circuit.context}-position context. Nothing was sent.`);
     }
     signal?.throwIfAborted();
+    // v2: a fresh secret batch for this session, fetched before anything reaches the evaluator.
+    let traps = trapSet;
+    if (circuit.traps.source === 'oracle') {
+      for (const [id, expiry] of usedBatches) if (expiry <= now()) usedBatches.delete(id);
+      const { request, secret } = await createTrapRequest({ circuit: circuit.identity, promptLength: promptTokens.length, generate, count: policy.trapLanes });
+      let envelope;
+      try { envelope = await requestTraps({ endpoint: circuit.traps.endpoint, request, signal }); } catch (error) {
+        throw protectedError('EXECUTION_ROUTE_UNAVAILABLE', `The trap oracle did not answer: ${error.message}. Nothing was sent.`);
+      }
+      traps = await openTrapBatch(envelope, { request, secret, oracleKeys: circuit.traps.oracleKeys, circuit, maxTolerance: policy.maxTrapTolerance, now, usedBatches });
+      journal.record({ role: 'requester', session: requestId, state: 'traps-ready', at: now(), trapLanes: traps.traps.length });
+    }
     const crypto = await openCrypto({ parameterSet: structuredClone(parameterSet), signal });
     let channel = null;
     try {
@@ -126,7 +150,7 @@ export function createProtectedExecution({ policy: inputPolicy, discover, connec
       signal?.addEventListener('abort', abort, { once: true });
       try {
         return await runProtectedRequesterSession({ channel, crypto, identity: requester, verified, planId: plan.id, routeId: plan.route.id,
-          expiresAt: now() + SESSION_TTL_MS, trapSet, trapLanes: policy.trapLanes, promptTokens, generate, journal, randomInt, now, timeoutMs, signal,
+          expiresAt: now() + SESSION_TTL_MS, trapSet: traps, trapLanes: policy.trapLanes, promptTokens, generate, journal, randomInt, now, timeoutMs, signal,
           onBound: onAdmitted, onToken: (token, step) => onToken(circuit.tokenizer.alphabet[token], step) });
       } finally { signal?.removeEventListener('abort', abort); }
     } finally {
@@ -158,8 +182,10 @@ export function protectedEvidence({ plan, admitted, evidence, error }) {
     },
     integrity: {
       verified: evidence ? [
-        { claim: 'known-answer-traps', by: 'requester', method: 'signed-trap-set/doppler.protected-trapset/v1', value: {
-          trapSet: evidence.trapSet, publisherKey: evidence.publisherKey, lanes: evidence.lanes, trapLanes: evidence.trapLanes,
+        { claim: 'known-answer-traps', by: 'requester', method: evidence.trapSource === 'oracle'
+          ? 'secret-fresh-traps/doppler.protected-trap-batch/v1' : 'public-trap-set/doppler.protected-trapset/v1 (broken: vanishing perturbation)', value: {
+          source: evidence.trapSource, batch: evidence.trapBatch, trapSet: evidence.trapSet, publisherKey: evidence.publisherKey,
+          lanes: evidence.lanes, trapLanes: evidence.trapLanes,
           checks: evidence.trapChecks, passed: evidence.trapsPassed, maxAbsError: evidence.maxTrapError, tolerance: evidence.tolerance,
           detectionProbabilityPerSession: evidence.detectionProbability } },
         { claim: 'frame-binding', by: 'requester', method: 'binding-digest-sequence-and-signature-per-frame', value: {
@@ -168,7 +194,8 @@ export function protectedEvidence({ plan, admitted, evidence, error }) {
       ] : [],
       decryptions: details?.decryptions ?? null,
       providerReceipt: null,
-      notVerified: ['correct-computation-of-the-real-lane', 'sub-tolerance-deviation', 'approximation-accuracy-outside-the-trap-distribution']
+      notVerified: ['correct-computation-of-the-real-lane', 'sub-tolerance-deviation', 'approximation-accuracy-outside-the-trap-distribution',
+        'trap-oracle-independence-from-the-evaluator']
     }
   };
 }
