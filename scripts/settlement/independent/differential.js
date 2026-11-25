@@ -23,6 +23,7 @@ import { policyDigest, termsDigest } from '../../../server/fleet/settlement-term
 import { createAttemptEvidenceSigner } from '../../../packages/reploid/src/mesh/partitions/partition-attempt-evidence.js';
 import { createSigningIdentity } from '../../../packages/reploid/src/artifacts/identity.js';
 import { POLICY, createParties, runAttempt } from '../scenario.js';
+import { UNFINISHED_ANSWER_TERMS } from '../../../server/fleet/credit-shares.js';
 
 const SCHEMAS = Object.freeze({
   terms: 'reploid.settlement-terms/v1', acceptance: 'reploid.settlement-acceptance/v1', receipt: 'reploid.stage-receipt/v1',
@@ -257,7 +258,8 @@ const MUTATIONS = {
       { name: 'no policy supplied to the verifier', records: ctx.records, policies: [] },
       { name: 'only another policy supplied to the verifier', records: ctx.records, policies: [otherPolicy] },
       { name: 'unrecognized unfinished-answer terms', records: await withTerms(ctx, { unfinishedTerms: 'reploid.unfinished-answer/something-else/v1' }) },
-      { name: 'legacy terms without unfinished-answer terms', records: await withTerms(ctx, { unfinishedTerms: null }) }
+      { name: 'legacy terms without unfinished-answer terms', records: await withTerms(ctx, { unfinishedTerms: null }) },
+      { name: 'older provider-loss-free unfinished-answer terms', records: await withTerms(ctx, { unfinishedTerms: UNFINISHED_ANSWER_TERMS }) }
     ];
   },
   async 'withheld records'(ctx) {
@@ -510,6 +512,9 @@ const BASES = [
   { name: 'final acknowledgment and closes 1 s after the deadline', options: { lateAckDelayMs: 1000 } },
   { name: 'final acknowledgment and closes 5 s after the deadline', options: { lateAckDelayMs: 5000 } },
   { name: 'legacy terms, stages close early', options: { stagesFailAfter: 3, unfinishedTerms: null } },
+  // Reservations made under the older rules keep them: the same early close under provider-loss-free terms.
+  { name: 'provider-loss-free terms, stages close early', options: { stagesFailAfter: 3, unfinishedTerms: UNFINISHED_ANSWER_TERMS } },
+  { name: 'provider-loss-free terms, requester stops after 3 outputs', options: { requesterStopAfter: 3, unfinishedTerms: UNFINISHED_ANSWER_TERMS } },
   { name: 'output ceiling 3 with 5 outputs', options: { maxOutputTokens: 3 } },
   { name: 'three stages with equal weights', options: { weights: [1, 1, 1] }, stages: 3 },
   { name: 'requester computes stage0 itself', options: {}, own: true },

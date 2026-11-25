@@ -16,6 +16,7 @@ import {
   isCanonicalParticipantProof, normalizeParticipantPublicKey, participantIdFor, verifyParticipantSignature
 } from '../../shared/vendor/reploid/artifacts/participant-proofs.js';
 import { canonicalize } from '../../shared/vendor/reploid/artifacts/canonical-json.js';
+import { UNFINISHED_ANSWER_TERMS_V2 } from './credit-shares.js';
 
 export const SETTLEMENT_TERMS_SCHEMA = 'reploid.settlement-terms/v1';
 export const SETTLEMENT_ACCEPTANCE_SCHEMA = 'reploid.settlement-acceptance/v1';
@@ -103,10 +104,11 @@ export async function signSettlementStop({ signer, terms, acknowledged, now = si
  * `weights` gives each stage's share in stage order; the policy supplies price, unit and the release window.
  * `maxUnacknowledgedOutputs` is K, the acknowledgment bound the stages enforce (MAX_UNACKNOWLEDGED_OUTPUTS); it is
  * signed so that a verifier reads it from the terms rather than assuming a constant. A policy that publishes K
- * (`policy.maxUnacknowledgedOutputs`) supplies it, and terms naming another K are refused.
+ * (`policy.maxUnacknowledgedOutputs`) supplies it, and terms naming another K are refused. `unfinishedTerms` names the
+ * rule for an unfinished answer; by default the decided one, which the stages accept (acceptSettlementTerms).
  */
 export async function signSettlementTerms({ signer, identity, reservationId, policy, maxOutputTokens, weights, notBefore, deadline,
-  unfinishedTerms = null, maxUnacknowledgedOutputs = policy?.maxUnacknowledgedOutputs, now = signer?.now ?? Date.now }) {
+  unfinishedTerms = UNFINISHED_ANSWER_TERMS_V2, maxUnacknowledgedOutputs = policy?.maxUnacknowledgedOutputs, now = signer?.now ?? Date.now }) {
   const binding = canonicalRouteAttemptBinding(identity);
   if (signer?.participantId !== binding.requesterId) throw Error('Settlement terms need the requester\'s own signing identity');
   if (policy?.maxUnacknowledgedOutputs !== undefined && maxUnacknowledgedOutputs !== policy.maxUnacknowledgedOutputs) {
@@ -133,10 +135,13 @@ export async function signSettlementTerms({ signer, identity, reservationId, pol
  * only the acknowledgment bound it enforces (`maxUnacknowledgedOutputs`, by default its receiver policy's K).
  */
 export async function acceptSettlementTerms({ signer, terms, partitionIndex, maxUnacknowledgedOutputs = MAX_UNACKNOWLEDGED_OUTPUTS,
-  now = signer?.now ?? Date.now }) {
+  unfinishedTerms = UNFINISHED_ANSWER_TERMS_V2, now = signer?.now ?? Date.now }) {
   const checked = await verifySettlementTerms(terms);
   if (!checked.ok) throw Error(`Settlement terms do not verify: ${checked.problem}`);
   if (checked.body.maxUnacknowledgedOutputs !== maxUnacknowledgedOutputs) throw Error('The terms name another acknowledgment bound than this stage enforces');
+  // A stage settles under one unfinished-answer rule, by default the decided one: terms that name another, such as the
+  // older provider-loss-free terms signed after the decision, get no acceptance and stay `unknown` in the replay.
+  if (checked.body.unfinishedTerms !== unfinishedTerms) throw Error('The terms name other unfinished-answer terms than this stage settles under');
   const share = checked.body.shares[partitionIndex];
   if (!share || share.participantId !== signer?.participantId) throw Error('A stage accepts only its own share');
   return signer.sign(SETTLEMENT_ACCEPTANCE_SCHEMA, {

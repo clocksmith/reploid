@@ -1,6 +1,6 @@
 {
   "schema": "reploid.settlement-attack-matrix/v1",
-  "generatedAt": "2026-11-25T10:55:15.234Z",
+  "generatedAt": "2026-11-25T12:42:52.498Z",
   "policy": {
     "schema": "reploid.service-credit-policy/v1",
     "unit": "noncash-service-credit",

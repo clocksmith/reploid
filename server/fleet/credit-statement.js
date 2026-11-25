@@ -21,7 +21,7 @@ import { verifyParticipantSignature } from '../../shared/vendor/reploid/artifact
 import { canonicalRouteAttemptBinding } from '../../shared/vendor/reploid/mesh/partitions/partition-contract.js';
 import { assert, creditPolicy, digest, enrollComputers, FLEET_SERVICE_REQUEST_SCHEMA, integer, same, text } from './contract.js';
 import { releaseWindowPassed, verifyCreditEvidence, verifyPartitionComponents } from './credit-evidence.js';
-import { accountSettlement, creditSettlementDeltas, settledCreditUnits, SETTLEMENT_RULE_SETS, UNFINISHED_ANSWER_TERMS } from './credit-shares.js';
+import { accountSettlement, creditSettlementDeltas, settledCreditUnits, UNFINISHED_ANSWER_TERMS, UNFINISHED_TERMS_OF_RULES } from './credit-shares.js';
 import { MAX_UNACKNOWLEDGED_OUTPUTS } from '../../shared/vendor/reploid/mesh/partitions/partition-attempt-evidence.js';
 
 export const FLEET_CREDIT_STATEMENT_SCHEMA = 'reploid.fleet-credit-statement/v1';
@@ -88,8 +88,11 @@ function verifyRequestBinding(request, requestId, enrollment, policy) {
   assert(Number.isSafeInteger(createdAt) && deadline === createdAt + policy.maxRequestMs
     && maximum === request.maxOutputTokens * policy.creditsPerOutputToken
     && (terminalCharge === null || request.mode === 'whole-model' && terminalCharge === 0)
-    && (request.unfinishedTerms === undefined || request.mode === 'partition' && request.unfinishedTerms === UNFINISHED_ANSWER_TERMS)
-    && (request.settlementRules === undefined || request.unfinishedTerms === UNFINISHED_ANSWER_TERMS && SETTLEMENT_RULE_SETS.includes(request.settlementRules)),
+    // Each rules id comes with the unfinished-answer terms it was reserved with; provider-loss-free terms also predate any rules id.
+    && (request.unfinishedTerms === undefined || request.mode === 'partition' && (request.settlementRules === undefined
+      ? request.unfinishedTerms === UNFINISHED_ANSWER_TERMS
+      : Object.hasOwn(UNFINISHED_TERMS_OF_RULES, request.settlementRules) && UNFINISHED_TERMS_OF_RULES[request.settlementRules] === request.unfinishedTerms))
+    && (request.settlementRules === undefined || request.unfinishedTerms !== undefined),
   'Request ceiling or deadline differs from policy terms');
 }
 

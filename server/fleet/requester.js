@@ -120,9 +120,9 @@ export function createFleetRequester({
       let reservation = null, dispatched = false, abandoned = false, acknowledgments = null, routeIdentity = null, observeOutput = null;
       let disclosedProviderId = null, disclosedProviderIdentity = null, deltaCount = 0, outputCharacters = 0, splitStop = null;
       // A split answer the person stops: the requester signs its stop and hands it to the ledger before the stages are
-      // told to stop, so the ledger has it before any stage closes. With it the ledger charges the acknowledged prefix;
-      // without it, an unfinished answer that a stage closed reads as the stage ending it, which is free (the
-      // settlement replay's rule, docs/settlement-replay.md step 9). A lost connection is not a stop and signs nothing.
+      // told to stop, so the ledger has it before any stage closes. With it the ledger charges the acknowledged prefix.
+      // A lost connection is not a stop and signs nothing; the stages then close an unfinished answer, which under the
+      // current rules is an unattributed disconnect and charges the same prefix (docs/settlement-replay.md step 9).
       const forwarded = partition ? new AbortController() : null;
       const forwardAbort = () => {
         const reason = controls.signal.reason;

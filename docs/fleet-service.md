@@ -166,19 +166,22 @@ requester's signed acknowledgments, by the settlement replay's charge rule
 its stages are told to stop (it waits at most 2 s for the ledger), then sends it
 again with the closing evidence. With that stop the acknowledged prefix is
 charged. Without it, an unfinished answer that the stages closed, with `settled`
-or `failed` receipts and no more than `K` outputs unacknowledged, also charges
-the acknowledged prefix, split by the signed weights, with reason
-`unfinished-answer-closed-without-requester-stop`. This is an interim rule
-(`settlementRules: reploid.settlement-replay/v1+acknowledged-prefix`) and the
-one case where the ledger and the settlement replay differ: the replay charges
-nothing, so a requester that had read what it wanted could stop asking and pay
-nothing, and no requester would ever sign a stop. The owner's decision is
-pending ([settlement-replay.md](settlement-replay.md#known-difference-pending-owner-decision)).
-Reservations accepted under `reploid.settlement-replay/v1` keep that rule: such
-an answer charged nothing, with reason `stage-ended-unfinished-answer`. The
-charge is zero when a stage owner vanished. Whether a voluntary Stop on a split route should
-cost anything is an open owner decision; as implemented it charges the
-acknowledged prefix. Outputs acknowledged past the reservation's output ceiling
+or `failed` receipts, is an unattributed disconnect and charges the same
+acknowledged prefix, capped at the signed output ceiling and split by the signed
+weights, with reason `unattributed-disconnect-acknowledged-prefix`. This is the
+owner's decided rule (`settlementRules: reploid.settlement-replay/v2`; settlement
+terms name it as `unfinishedTerms:
+reploid.unfinished-answer/acknowledged-prefix-provider-relief/v1`), and the
+ledger and the settlement replay agree on it
+([settlement-replay.md](settlement-replay.md#unfinished-answers)). A verified
+provider failure, a stage that never signed its close or a stage owner that
+vanished, charges the requester nothing and pays no stage. A requester's
+silence is never a provider failure. Reservations accepted under
+`reploid.settlement-replay/v1` keep that rule: such an answer charged nothing,
+with reason `stage-ended-unfinished-answer`. Reservations accepted under the
+interim `reploid.settlement-replay/v1+acknowledged-prefix` charged the
+acknowledged prefix, with reason `unfinished-answer-closed-without-requester-stop`.
+Outputs acknowledged past the reservation's output ceiling
 are accepted, never charged, and recorded as `beyondCeiling`. A reservation made
 before these rules (no `settlementRules` in its binding) keeps the rules it was
 accepted under.

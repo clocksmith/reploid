@@ -8,26 +8,46 @@
  */
 export const UNFINISHED_ANSWER_TERMS = 'reploid.unfinished-answer/provider-loss-free/v1';
 /**
+ * The unfinished-answer terms of reservations under SETTLEMENT_RULES (v2), signed into the requester's settlement
+ * terms so the replay applies the same rule from the records alone (docs/settlement-replay.md, step 9). An unfinished
+ * answer that every stage closed, with no signed stop, is an unattributed disconnect and charges the acknowledged
+ * prefix; a verified provider failure (a stage with no closing receipt, or a stage owner's interruption claim) charges
+ * nothing.
+ */
+export const UNFINISHED_ANSWER_TERMS_V2 = 'reploid.unfinished-answer/acknowledged-prefix-provider-relief/v1';
+/** Terms under which a stage owner's interruption claim settles the answer at zero. */
+export const PROVIDER_RELIEF_TERMS = Object.freeze([UNFINISHED_ANSWER_TERMS, UNFINISHED_ANSWER_TERMS_V2]);
+/**
  * A split reservation that names these rules settles as the settlement replay computes (docs/settlement-replay.md):
  * a stage ending an unfinished answer on its own costs nothing, a requester's signed stop charges the acknowledged
  * prefix, closes inside the release window count, and outputs past the signed ceiling are never charged. Reservations
- * made under them on 2026-11-25 keep them; new ones take SETTLEMENT_RULES.
+ * made under them on 2026-11-25 keep them.
  */
 export const SETTLEMENT_RULES_V1 = 'reploid.settlement-replay/v1';
 /**
- * The ledger's interim rules, pending the owner's decision (docs/settlement-replay.md, "Known difference, pending
- * owner decision"). The replay's rules, except that an unfinished split answer the stages closed with no requester
- * stop charges the requester's acknowledged-in-time prefix, as before SETTLEMENT_RULES_V1: free-on-unfinished would
- * let a requester that has read what it wants stop asking and pay nothing. A split answer is decided once the
- * clock passes deadline + release window + clock allowance, the last instant a closing receipt counts.
+ * The ledger's interim rules of 2026-11-25, kept for the reservations made under them: the first rules, except that
+ * an unfinished split answer the stages closed with no requester stop charges the acknowledged-in-time prefix. The
+ * replay then charged 0 there (the known difference of docs/settlement-replay.md, "Older rules").
  */
-export const SETTLEMENT_RULES = 'reploid.settlement-replay/v1+acknowledged-prefix';
-export const SETTLEMENT_RULE_SETS = Object.freeze([SETTLEMENT_RULES_V1, SETTLEMENT_RULES]);
+export const SETTLEMENT_RULES_INTERIM = 'reploid.settlement-replay/v1+acknowledged-prefix';
 /**
- * The one named case where the ledger under SETTLEMENT_RULES and the settlement replay post different amounts: an
- * unfinished split answer that the stages closed, with no in-time requester stop and no more than K acknowledgments
- * withheld. The replay charges 0; the ledger charges the acknowledged prefix. A replay row shows it as `settled` with
- * `outputs > 0` and `chargedOutputs: 0`, which no other settled row has (the ceiling is positive).
+ * The owner's decided rules (docs/settlement-replay.md, step 9), taken by every new split reservation together with
+ * UNFINISHED_ANSWER_TERMS_V2. An unfinished answer the stages closed with no signed stop charges the requester's
+ * acknowledged-in-time output, capped at the signed `maxOutputTokens` and split by the signed weights; a verified
+ * provider failure charges nothing; a signed stop charges the acknowledged prefix. The ledger and the replay agree on
+ * every case. A split answer is decided once the clock passes deadline + release window + clock allowance.
+ */
+export const SETTLEMENT_RULES = 'reploid.settlement-replay/v2';
+export const SETTLEMENT_RULE_SETS = Object.freeze([SETTLEMENT_RULES_V1, SETTLEMENT_RULES_INTERIM, SETTLEMENT_RULES]);
+/** The unfinished-answer terms each settlement-rules id was reserved with. */
+export const UNFINISHED_TERMS_OF_RULES = Object.freeze({ [SETTLEMENT_RULES_V1]: UNFINISHED_ANSWER_TERMS,
+  [SETTLEMENT_RULES_INTERIM]: UNFINISHED_ANSWER_TERMS, [SETTLEMENT_RULES]: UNFINISHED_ANSWER_TERMS_V2 });
+/**
+ * Older rules only: the one case where the ledger under SETTLEMENT_RULES_INTERIM and the replay over
+ * provider-loss-free terms post different amounts, an unfinished split answer that the stages closed with no in-time
+ * requester stop and no more than K acknowledgments withheld. The replay charges 0; the ledger charged the
+ * acknowledged prefix. A replay row shows it as `settled` with `outputs > 0` and `chargedOutputs: 0`, which no other
+ * settled row has (the ceiling is positive). It cannot arise under SETTLEMENT_RULES.
  */
 export const WALK_AWAY_DIFFERENCE = 'unfinished-split-answer-closed-without-stop';
 export const isWalkAwayRow = row => row?.status === 'settled' && Number.isSafeInteger(row.outputs) && row.outputs > 0 && row.chargedOutputs === 0;
@@ -40,8 +60,8 @@ export const isWalkAwayRow = row => row?.status === 'settled' && Number.isSafeIn
  */
 export function settledCreditUnits(request, observed, creditsPerOutputToken) {
   if (observed.fixedCharge !== null && observed.fixedCharge !== undefined) return observed.fixedCharge;
-  if (request.unfinishedTerms === UNFINISHED_ANSWER_TERMS && (observed.interruptedStages?.length
-    || observed.stageEnded === true && request.settlementRules === SETTLEMENT_RULES_V1)) return 0;
+  if (PROVIDER_RELIEF_TERMS.includes(request.unfinishedTerms) && observed.interruptedStages?.length) return 0;
+  if (request.unfinishedTerms === UNFINISHED_ANSWER_TERMS && observed.stageEnded === true && request.settlementRules === SETTLEMENT_RULES_V1) return 0;
   return observed.outputTokens * creditsPerOutputToken;
 }
 

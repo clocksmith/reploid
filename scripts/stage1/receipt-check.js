@@ -7,7 +7,8 @@
  * directory whose fingerprint is unchanged since (see SEARCH_EVIDENCE). What a stage process actually read is the stage
  * loader's own record (`loaded`), measured during the answer; the searches show what each machine held around it.
  */
-import { WALK_AWAY_DIFFERENCE, creditSettlementDeltas, isWalkAwayRow } from '../../server/fleet/credit-shares.js';
+import { UNFINISHED_ANSWER_TERMS, WALK_AWAY_DIFFERENCE, creditSettlementDeltas, isWalkAwayRow } from '../../server/fleet/credit-shares.js';
+import { SETTLEMENT_TERMS_SCHEMA } from '../../server/fleet/settlement-terms.js';
 import { WEIGHT_ROLES } from './stage-metadata.js';
 
 export const STAGE1_RECEIPT_SCHEMA = 'reploid.stage1-split-receipt/v1';
@@ -375,11 +376,15 @@ function checkReplay(receipt, name, expectations, fail) {
     return;
   }
   const amounts = (row.credits ?? []).map(credit => credit.amount), ledger = (trace.credits ?? []).map(credit => credit.amount);
-  // The known difference that moves credits (docs/settlement-replay.md, "Known difference, pending owner decision"): an unfinished
-  // answer the stages closed with no stop is free in the replay and charged its acknowledged prefix by the ledger. It
-  // is tolerated only when the receipt labels it for this reservation and the ledger charged exactly that prefix, capped
-  // at the signed ceiling, at the policy rate.
-  const labelled = (replay.knownDifferences ?? []).some(item => item?.case === WALK_AWAY_DIFFERENCE && item.reservationId === row.reservationId
+  // The old known difference that moved credits (docs/settlement-replay.md, "Older rules"): under provider-loss-free
+  // terms an unfinished answer the stages closed with no stop is free in the replay, and the interim ledger charged its
+  // acknowledged prefix. It is tolerated only for a receipt whose requester-signed terms for this reservation name those
+  // older terms, that labels it for this reservation, and whose ledger charged exactly that prefix, capped at the signed
+  // ceiling, at the policy rate. Under the decided terms the replay and the ledger must agree exactly.
+  const terms = (Array.isArray(replay.records) ? replay.records : []).find(item => item?.schema === SETTLEMENT_TERMS_SCHEMA
+    && item.reservationId === row.reservationId && (row.requesterId === undefined || item.requesterId === row.requesterId));
+  const oldRules = terms?.unfinishedTerms === UNFINISHED_ANSWER_TERMS;
+  const labelled = oldRules && (replay.knownDifferences ?? []).some(item => item?.case === WALK_AWAY_DIFFERENCE && item.reservationId === row.reservationId
     && item.acknowledgedOutputs === row.outputs);
   const prefix = Math.min(row.outputs, expectations.workload.maxOutputTokens);
   const knownDifference = labelled && isWalkAwayRow(row) && trace.outputTokens === prefix && prefix > 0

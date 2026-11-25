@@ -4,7 +4,7 @@
  */
 import { verifyStageTokenWitnesses } from '../../server/fleet/stage-token-witness.js';
 import { replaySettlement } from '../../server/fleet/settlement-replay.js';
-import { WALK_AWAY_DIFFERENCE, isWalkAwayRow } from '../../server/fleet/credit-shares.js';
+import { UNFINISHED_ANSWER_TERMS, WALK_AWAY_DIFFERENCE, isWalkAwayRow } from '../../server/fleet/credit-shares.js';
 import { policyDigest } from '../../server/fleet/settlement-terms.js';
 import { EXECUTION_RECEIPT_SCHEMA } from '../../packages/reploid/src/inference/contract.js';
 import { witnessDigest } from './expectations.js';
@@ -178,12 +178,16 @@ export async function collectSettlementReplay({ requester, stages, attemptId, po
     ...bundleRecords(own.acknowledgments),
     ...stageRecords.flatMap(row => (row?.error ? [] : [...bundleRecords(row?.closing), ...(row?.checkpoints ?? [])]))];
   const result = await replaySettlement({ records, policies: [policy], at: at(), computerOf });
-  // Rows in the one case that moves credits where the ledger's interim rule and the replay differ, labelled so the receipt check can
-  // tolerate exactly those (docs/settlement-replay.md, "Known difference, pending owner decision").
-  const knownDifferences = (result.reservations ?? []).filter(isWalkAwayRow).map(row => ({ case: WALK_AWAY_DIFFERENCE,
-    reservationId: row.reservationId, requesterId: row.requesterId, acknowledgedOutputs: row.outputs }));
-  return { termsCollectedBy: 'stage1-harness', termsSigned: own.termsSigned ?? null, acceptancesSigned, knownDifferences,
-    ledgerPolicyDigest: await policyDigest(policy), termsPolicyDigest: own.terms?.policyDigest ?? null,
+  // Under the decided rules the replay and the ledger agree on every case, so a receipt carries no known difference.
+  // Only terms signed under the older provider-loss-free rules can meet the old one, and only they are labelled
+  // (docs/settlement-replay.md, "Older rules").
+  const oldTerms = own.terms?.unfinishedTerms === UNFINISHED_ANSWER_TERMS;
+  const knownDifferences = oldTerms ? (result.reservations ?? []).filter(isWalkAwayRow).map(row => ({ case: WALK_AWAY_DIFFERENCE,
+    reservationId: row.reservationId, requesterId: row.requesterId, acknowledgedOutputs: row.outputs })) : null;
+  return { termsCollectedBy: 'stage1-harness', termsSigned: own.termsSigned ?? null, acceptancesSigned,
+    unfinishedTerms: own.terms?.unfinishedTerms ?? null, ...(knownDifferences ? { knownDifferences } : {}),
+    // The public policy itself, so an outside verifier can replay the records (docs/verify-a-trade.md).
+    policy: structuredClone(policy), ledgerPolicyDigest: await policyDigest(policy), termsPolicyDigest: own.terms?.policyDigest ?? null,
     stopSigned: Boolean(own.stop), requesterAttempts: { approvals: own.approvals ?? null, onThread: own.attemptsOnThread ?? null },
     problems, recordCount: records.length, records, result };
 }

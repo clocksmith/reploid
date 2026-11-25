@@ -10,7 +10,8 @@
  *             acknowledged in time, and each stage is credited its signed share of that debit (credit-shares.js, the
  *             ledger's own arithmetic)
  *   expired   the release window passed without every stage closing and without a delivered answer, including an
- *             attempt that never started; nobody is charged or paid (the provider-loss-free terms)
+ *             attempt that never started; nobody is charged or paid (a stage's missing close is a verified provider
+ *             failure)
  *   open      not every stage has closed and the release window has not passed (at <= deadline + releaseWindowMs +
  *             maxClockSkewMs); the outcome is not final yet
  *   conflict  some participant signed two incompatible statements; the conflicting records are listed
@@ -26,13 +27,13 @@ import { canonicalPartitionJson } from '../../shared/vendor/reploid/mesh/partiti
 import {
   MAX_UNACKNOWLEDGED_OUTPUTS, OUTPUT_ACKNOWLEDGMENT_SCHEMA, STAGE_RECEIPT_SCHEMA, outputChainGenesis, verifyOutputAcknowledgment, verifyStageReceipt
 } from '../../shared/vendor/reploid/mesh/partitions/partition-attempt-evidence.js';
-import { UNFINISHED_ANSWER_TERMS, creditSettlementDeltas } from './credit-shares.js';
+import { UNFINISHED_ANSWER_TERMS, UNFINISHED_ANSWER_TERMS_V2, creditSettlementDeltas } from './credit-shares.js';
 import {
   SETTLEMENT_ACCEPTANCE_SCHEMA, SETTLEMENT_STOP_SCHEMA, SETTLEMENT_TERMS_SCHEMA, policyDigest, termsDigest, verifySettlementAcceptance,
   verifySettlementStop, verifySettlementTerms
 } from './settlement-terms.js';
 
-export const SETTLEMENT_REPLAY_SCHEMA = 'reploid.settlement-replay/v1';
+export const SETTLEMENT_REPLAY_SCHEMA = 'reploid.settlement-replay/v2';
 const ms = value => Date.parse(value);
 const signedBody = record => { const { publicJwk: _key, signature: _signature, ...body } = record; return body; };
 
@@ -299,7 +300,7 @@ async function replayOne(reservationId, requesterId, group, { policies, at, comp
   } else if (unclosed.length) {
     if (windowOpen) return { ...base, status: 'open', outputs: acknowledged, reason: 'not every stage has closed and the release window is still open' };
     return { ...base, status: 'expired', debit: 0, credits: agreed.shares.map(row => ({ participantId: row.participantId, amount: 0 })),
-      outputs: acknowledged, reason: 'the release window passed without every stage closing; under these terms nobody is charged or paid' };
+      outputs: acknowledged, reason: 'the release window passed without every stage closing (a verified provider failure, or an attempt that never started); nobody is charged or paid' };
   }
   if (latest.some(row => row.steps < acknowledged)) {
     return { ...base, status: 'conflict', outputs: acknowledged, reason: 'the requester acknowledged outputs a stage says it never computed',
@@ -317,13 +318,16 @@ async function replayOne(reservationId, requesterId, group, { policies, at, comp
   // and the outputs it acknowledged in time are owed: withholding the last acknowledgments never makes it free.
   const finished = Boolean(delivered?.done);
   const fullyAcknowledged = finished && delivered.count === acknowledged;
-  // An unfinished answer under provider-loss-free terms is owed only when the requester ended it: by its own signed
-  // stop, or by withholding acknowledgments until a stage refused to go on (more than K outputs unacknowledged, K
-  // being the terms' signed `maxUnacknowledgedOutputs`). A stage that closes early on its own, even with a polite
-  // `failed` receipt, earns nothing and costs the requester nothing.
+  // Every stage closed (step 6), so no provider failure is verified: that would be a stage with no closing receipt,
+  // which step 6 already made `expired`. A `failed` close names no cause, and a stage signs it too when the
+  // requester's abort reaches a step in flight. An unfinished answer with no signed stop and no more than K
+  // outputs unacknowledged (K being the terms' signed `maxUnacknowledgedOutputs`) is therefore an unattributed
+  // disconnect. Under the decided terms (UNFINISHED_ANSWER_TERMS_V2) it charges the acknowledged prefix. Under the
+  // older provider-loss-free terms it is read as ended by a stage and costs nothing.
   const stoppedByRequester = stops.some(row => inTime(row.signedAt));
   const withheld = Boolean(delivered) && delivered.count - acknowledged > bound;
-  const providerEnded = !finished && agreed.unfinishedTerms === UNFINISHED_ANSWER_TERMS && !stoppedByRequester && !withheld;
+  const disconnected = !finished && !stoppedByRequester && !withheld;
+  const providerEnded = disconnected && agreed.unfinishedTerms === UNFINISHED_ANSWER_TERMS;
   const units = providerEnded ? 0 : chargeable * agreed.creditsPerOutputToken;
   const request = { providers: agreed.shares.map(row => ({ participantId: row.participantId, weight: row.weight })), computerId: computerOf(agreed.requesterId) };
   const split = creditSettlementDeltas(request, units, computerOf);
@@ -337,7 +341,10 @@ async function replayOne(reservationId, requesterId, group, { policies, at, comp
     : finished ? 'the answer was completed; the outputs the requester acknowledged in time are charged'
       : providerEnded ? 'a stage ended the answer before it finished; under these terms nobody is charged or paid'
         : stoppedByRequester ? 'the requester signed a stop; the outputs it acknowledged are charged'
-          : 'the requester stopped acknowledging; the outputs it acknowledged are charged';
+          : disconnected && agreed.unfinishedTerms === UNFINISHED_ANSWER_TERMS_V2
+            ? 'the stages closed an unfinished answer with no signed stop and no verified provider failure; the outputs the requester acknowledged are charged'
+            : disconnected ? 'the stages closed an unfinished answer; under these terms the outputs the requester acknowledged are charged'
+              : 'the requester stopped acknowledging; the outputs it acknowledged are charged';
   return { ...base, status: 'settled', debit: split.charge, credits,
     outputs: acknowledged, chargedOutputs: providerEnded ? 0 : chargeable, unacknowledgedOutputs: delivered ? delivered.count - acknowledged : null,
     beyondCeiling: Math.max(0, acknowledged - agreed.maxOutputTokens), closedAtLastStep, reason };

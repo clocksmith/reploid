@@ -127,12 +127,18 @@ describe('the settlement replay', () => {
     expect(codes(judged(change))).toEqual(expected);
   });
 
-  // The known difference (docs/settlement-replay.md): an unfinished split answer the stages closed with no stop is
-  // free in the replay and charged its acknowledged prefix by the ledger.
+  // The old known difference (docs/settlement-replay.md, "Older rules"): under provider-loss-free terms an unfinished
+  // split answer the stages closed with no stop is free in the replay, and the interim ledger charged its acknowledged
+  // prefix. A receipt from that time carries the requester's signed terms naming those terms among its records.
+  const signedTerms = (reservationId, unfinishedTerms) => ({ schema: 'reploid.settlement-terms/v1', reservationId, requesterId: 'peer:r', unfinishedTerms });
+  const OLD_TERMS = 'reploid.unfinished-answer/provider-loss-free/v1', NEW_TERMS = 'reploid.unfinished-answer/acknowledged-prefix-provider-relief/v1';
   const walkAway = r => Object.assign(r.split.settlementReplay.result.reservations[0], { debit: 0, outputs: 3, chargedOutputs: 0,
     credits: [{ participantId: 'peer:0', amount: 0 }, { participantId: 'peer:1', amount: 0 }] });
-  const label = (r, extra = {}) => { r.split.settlementReplay.knownDifferences = [{ case: 'unfinished-split-answer-closed-without-stop',
-    reservationId: 'split', requesterId: 'peer:r', acknowledgedOutputs: 3, ...extra }]; };
+  const label = (r, extra = {}, terms = OLD_TERMS) => {
+    r.split.settlementReplay.records = [signedTerms('split', terms)];
+    r.split.settlementReplay.knownDifferences = [{ case: 'unfinished-split-answer-closed-without-stop',
+      reservationId: 'split', requesterId: 'peer:r', acknowledgedOutputs: 3, ...extra }];
+  };
   it('tolerates the walk-away difference only when it is labelled for that reservation', () => {
     expect(codes(judged(r => { walkAway(r); label(r); }))).toEqual([]);
     expect(codes(judged(walkAway))).toEqual(['replay-differs-from-ledger']);
@@ -141,9 +147,21 @@ describe('the settlement replay', () => {
     // A label does not cover any other difference.
     expect(codes(judged(r => { label(r); r.split.settlementReplay.result.reservations[0].debit = 2; }))).toEqual(['replay-differs-from-ledger']);
     // Nor a cancel whose stop was not signed.
-    expect(codes(judged(r => { Object.assign(r.cancel.settlementReplay, { stopSigned: false, knownDifferences: [{ case: 'unfinished-split-answer-closed-without-stop',
-      reservationId: 'cancel', acknowledgedOutputs: 1 }] });
+    expect(codes(judged(r => { Object.assign(r.cancel.settlementReplay, { stopSigned: false, records: [signedTerms('cancel', OLD_TERMS)],
+      knownDifferences: [{ case: 'unfinished-split-answer-closed-without-stop', reservationId: 'cancel', acknowledgedOutputs: 1 }] });
     Object.assign(r.cancel.settlementReplay.result.reservations[0], { debit: 0, outputs: 1, chargedOutputs: 0 }); }))).toEqual(['replay-differs-from-ledger']);
+  });
+
+  it('tolerates no difference at all under the decided terms, labelled or not', () => {
+    // The same labelled walk-away under terms that name the decided rules: the replay and the ledger must agree.
+    expect(codes(judged(r => { walkAway(r); label(r, {}, NEW_TERMS); }))).toEqual(['replay-differs-from-ledger']);
+    // Nor when the signed terms are missing from the receipt's records.
+    expect(codes(judged(r => { walkAway(r); label(r); r.split.settlementReplay.records = []; }))).toEqual(['replay-differs-from-ledger']);
+    // Nor when the old terms belong to another reservation.
+    expect(codes(judged(r => { walkAway(r); label(r); r.split.settlementReplay.records = [signedTerms('cancel', OLD_TERMS)]; })))
+      .toEqual(['replay-differs-from-ledger']);
+    // An agreeing replay under the decided terms passes, with no label.
+    expect(codes(judged(r => { r.split.settlementReplay.records = [signedTerms('split', NEW_TERMS)]; }))).toEqual([]);
   });
 
   it('requires the labelled prefix at the policy rate, capped at the signed ceiling', () => {

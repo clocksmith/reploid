@@ -139,7 +139,7 @@ async function main() {
     rows.push({ kind: 'operator', goal: 'G4 fabricate a request', replay: { achieved: replay.reservations.some(r => r.reservationId === 'reservation-fake'), status: 'none' },
       operatorLog: { achieved: Boolean(b1) }, countersign: { achieved: Boolean(b2), accepted: Boolean(b2) } });
   }
-  // G5 charge an attempt whose stage vanished (provider-loss-free terms say nobody pays).
+  // G5 charge an attempt whose stage vanished (a verified provider failure: nobody pays).
   {
     const lost = await runAttempt(parties, { tag: 'lost', vanishStage: 0, vanishAfterStep: 1 });
     const t = await truthOf(lost.all(), lost.decidedAt);

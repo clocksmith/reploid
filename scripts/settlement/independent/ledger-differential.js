@@ -164,9 +164,12 @@ async function judge({ parties, base, variant, attempt }) {
   }
 }
 
-/** One named cause per difference in amounts; the README explains each. */
+/**
+ * One named cause per difference in amounts; the README explains each. Every case runs under the decided rules
+ * (reploid.settlement-replay/v2, signed as the terms' unfinished-answer terms), where the ledger and the replay must
+ * agree; the old known difference of the provider-loss-free terms cannot arise here.
+ */
 export const CAUSES = Object.freeze({
-  knownDifference: 'KNOWN DIFFERENCE, pending the owner\'s decision (docs/settlement-replay.md): the stages closed an unfinished answer with no signed stop. The ledger charges the acknowledged outputs; the replay charges nothing',
   failedClose: 'the stages closed as failed on their own: the ledger charges the acknowledged outputs, the replay charges nothing',
   lateInsideWindow: 'the last acknowledgment and the closes fall after the deadline, inside the release window: the ledger expires the hold, the replay charges the outputs acknowledged in time',
   pastCeiling: 'the answer ran past the signed output ceiling: the ledger refuses the receipts and expires the hold, the replay charges the ceiling'
@@ -174,7 +177,6 @@ export const CAUSES = Object.freeze({
 function causeOf(line) {
   if (line.amountsAgree) return null;
   if (LATEST_ONLY && line.base.startsWith('requester signs a stop')) return 'the ledger was not handed the requester\'s stop';
-  if (line.base.startsWith('stages close early on their own') && line.ledger.charge > 0 && line.replay.charge === 0) return CAUSES.knownDifference;
   if (line.base.startsWith('stages close early on their own')) return CAUSES.failedClose;
   if (line.base.startsWith('last acknowledgment and closes')) return CAUSES.lateInsideWindow;
   if (line.base.startsWith('output ceiling')) return CAUSES.pastCeiling;

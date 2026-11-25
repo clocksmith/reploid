@@ -1,6 +1,6 @@
 {
   "schema": "reploid.settlement-baseline-matrix/v1",
-  "generatedAt": "2026-11-25T11:03:52.780Z",
+  "generatedAt": "2026-11-25T12:42:53.617Z",
   "policy": {
     "schema": "reploid.service-credit-policy/v1",
     "unit": "noncash-service-credit",
@@ -25,12 +25,10 @@
   },
   "participantCases": 11,
   "participantCasesWithDifferentAmounts": [
-    "P6",
-    "P7"
+    "P6"
   ],
   "replayLoses": [
-    "P6",
-    "P7"
+    "P6"
   ],
   "witnessChangesTheReplayVerdict": [
     "L5"
@@ -227,7 +225,7 @@
           "stage0": 0,
           "stage1": 0
         },
-        "reason": "the release window passed without every stage closing; under these terms nobody is charged or paid"
+        "reason": "the release window passed without every stage closing (a verified provider failure, or an attempt that never started); nobody is charged or paid"
       },
       "debitNotes": {
         "status": "settled",
@@ -247,7 +245,7 @@
       },
       "sameAmounts": false,
       "replayLoses": true,
-      "note": "the replay's provider-loss-free rule: an abandoned answer is free, and B3 has no such rule. It is also what a requester that stops asking leaves behind when a stage then never closes: 10 acknowledged outputs unpaid."
+      "note": "a verified provider failure: a stage with no closing receipt gets the requester relief, and B3 has no such rule. Deliberate under the decided rules (docs/settlement-replay.md, \"Unfinished answers\"); a requester cannot cause it, because a stage closes when the requester stops asking. 10 acknowledged outputs go unpaid."
     },
     {
       "kind": "participant",
@@ -256,12 +254,12 @@
       "owedIfEveryDeliveredOutputWerePaid": 30,
       "replay": {
         "status": "settled",
-        "debit": 0,
+        "debit": 30,
         "paid": {
-          "stage0": 0,
-          "stage1": 0
+          "stage0": 7,
+          "stage1": 23
         },
-        "reason": "a stage ended the answer before it finished; under these terms nobody is charged or paid"
+        "reason": "the stages closed an unfinished answer with no signed stop and no verified provider failure; the outputs the requester acknowledged are charged"
       },
       "debitNotes": {
         "status": "settled",
@@ -273,15 +271,15 @@
       },
       "witnessed": {
         "status": "settled",
-        "debit": 0,
+        "debit": 30,
         "paid": {
-          "stage0": 0,
-          "stage1": 0
+          "stage0": 7,
+          "stage1": 23
         }
       },
-      "sameAmounts": false,
-      "replayLoses": true,
-      "note": "the requester asks for every step, so a requester that stops asking produces exactly these records: the stages close, no stop is signed. If the replay charges nothing here, any partial answer is free at the requester's option, and signing a stop only costs it. B3 charges what was acknowledged whoever ended the answer."
+      "sameAmounts": true,
+      "replayLoses": false,
+      "note": "the requester asks for every step, so a requester that stops asking produces exactly these records: the stages close, no stop is signed. Under the decided rules this is an unattributed disconnect and the replay, like B3, charges what was acknowledged; under the older provider-loss-free terms it was free at the requester's option."
     },
     {
       "kind": "participant",
@@ -314,7 +312,7 @@
         }
       },
       "sameAmounts": true,
-      "note": "if the replay charges here, the final stage alone defeats the provider-loss-free rule of P7: the gap reads as the requester withholding. B3 charges the prefix in both cases."
+      "note": "the gap reads as the requester withholding. Under the decided rules the replay charges the acknowledged prefix here as in P7, so faking the stall gains the final stage nothing; under the older provider-loss-free terms it turned a free P7 into a charged one. B3 charges the prefix in both cases."
     },
     {
       "kind": "participant",

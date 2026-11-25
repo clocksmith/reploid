@@ -14,7 +14,9 @@ import {
 import { openFleetCredits } from '../../server/fleet/credits.js';
 import { replaySettlement } from '../../server/fleet/settlement-replay.js';
 import { verifyCreditStatement } from '../../server/fleet/credit-statement.js';
-import { SETTLEMENT_RULES, SETTLEMENT_RULES_V1, UNFINISHED_ANSWER_TERMS, settledCreditUnits } from '../../server/fleet/credit-shares.js';
+import {
+  SETTLEMENT_RULES, SETTLEMENT_RULES_INTERIM, SETTLEMENT_RULES_V1, UNFINISHED_ANSWER_TERMS, UNFINISHED_ANSWER_TERMS_V2, settledCreditUnits
+} from '../../server/fleet/credit-shares.js';
 import {
   SETTLEMENT_STOP_SCHEMA, SETTLEMENT_TERMS_SCHEMA, acceptSettlementTerms, signSettlementTerms, termsDigest, verifySettlementAcceptance,
   verifySettlementStop, verifySettlementTerms
@@ -219,20 +221,31 @@ describe('settlement replay', () => {
     await expect(acceptSettlementTerms({ signer: createAttemptEvidenceSigner({ identity: parties.stages[0] }),
       terms: await signer.sign(SETTLEMENT_TERMS_SCHEMA, { ...missing, maxUnacknowledgedOutputs: MAX_UNACKNOWLEDGED_OUTPUTS + 1 }), partitionIndex: 0 }))
       .rejects.toThrow('acknowledgment bound');
+    // A stage settles under the decided unfinished-answer terms: terms naming the older provider-loss-free ones, signed
+    // after the decision, get no acceptance, so they cannot bring back a free walk-away.
+    const olderTerms = await signer.sign(SETTLEMENT_TERMS_SCHEMA, { ...bodyOf(a.terms), unfinishedTerms: UNFINISHED_ANSWER_TERMS });
+    await expect(acceptSettlementTerms({ signer: createAttemptEvidenceSigner({ identity: parties.stages[0] }), terms: olderTerms, partitionIndex: 0 }))
+      .rejects.toThrow('unfinished-answer terms');
+    expect(a.terms.unfinishedTerms).toBe(UNFINISHED_ANSWER_TERMS_V2);
     // A stage that stopped K + 1 outputs ahead of the requester: under the terms' K the requester withheld, so the
-    // acknowledged prefix is owed; under terms that signed a larger K the same gap reads as the stage ending early.
+    // acknowledged prefix is owed. Under the older provider-loss-free terms that signed a larger K the same gap reads
+    // as the stage ending early; under the decided terms it is charged either way.
     const outputs = Array.from({ length: 20 }, (_, i) => `t${i}`);
     const stall = await runAttempt(parties, { tag: 'k2', outputs, stopAckingAfter: 6 });
     expect((await replay(stall.all(), stall.decidedAt)).reservations[0]).toMatchObject({ debit: 18, chargedOutputs: 6 });
     // K reaches the verifier through the public policy the terms name: a policy that publishes K = 3 decides with 3,
     // whatever the verifier would assume for a policy that names none.
     const WIDE = { ...POLICY, version: 'wide-k', maxUnacknowledgedOutputs: MAX_UNACKNOWLEDGED_OUTPUTS + 1 };
-    const wide = await runAttempt(parties, { tag: 'k3', outputs, stopAckingAfter: 6, policy: WIDE, maxUnacknowledgedOutputs: WIDE.maxUnacknowledgedOutputs });
+    const wide = await runAttempt(parties, { tag: 'k3', outputs, stopAckingAfter: 6, policy: WIDE, maxUnacknowledgedOutputs: WIDE.maxUnacknowledgedOutputs,
+      unfinishedTerms: UNFINISHED_ANSWER_TERMS });
     expect(wide.terms.maxUnacknowledgedOutputs).toBe(MAX_UNACKNOWLEDGED_OUTPUTS + 1);
     for (const assumed of [MAX_UNACKNOWLEDGED_OUTPUTS, MAX_UNACKNOWLEDGED_OUTPUTS + 1]) {
       const underWideK = await replaySettlement({ records: wide.all(), policies: [WIDE], at: wide.decidedAt, maxUnacknowledgedOutputs: assumed });
       expect(underWideK.reservations[0]).toMatchObject({ status: 'settled', debit: 0, chargedOutputs: 0 });
     }
+    const wideV2 = await runAttempt(parties, { tag: 'k3-v2', outputs, stopAckingAfter: 6, policy: WIDE, maxUnacknowledgedOutputs: WIDE.maxUnacknowledgedOutputs });
+    expect((await replaySettlement({ records: wideV2.all(), policies: [WIDE], at: wideV2.decidedAt })).reservations[0])
+      .toMatchObject({ status: 'settled', debit: 18, chargedOutputs: 6 });
     // The signer refuses terms whose K differs from their policy's, and a verifier answers invalid for them.
     await expect(runAttempt(parties, { tag: 'k-mismatch', policy: WIDE })).rejects.toThrow('acknowledgment bound their policy publishes');
     const resigned = await signer.sign(SETTLEMENT_TERMS_SCHEMA, { ...bodyOf(stall.terms), maxUnacknowledgedOutputs: MAX_UNACKNOWLEDGED_OUTPUTS + 1 });
@@ -450,13 +463,39 @@ describe('settlement replay', () => {
     expect(r).toMatchObject({ status: 'settled', outputs: 5, chargedOutputs: 3, debit: 9, beyondCeiling: 2 });
   });
 
-  it('charges nothing when a stage closes a fully acknowledged, unfinished answer with a failed receipt', async () => {
-    const parties = await createParties(2);
-    const a = await runAttempt(parties, { outputs: Array.from({ length: 12 }, (_, i) => `t${i}`), stagesFailAfter: 6 });
-    expect(a.acknowledged).toBe(6);
-    const r = (await replay(a.all(), a.decidedAt)).reservations[0];
-    expect(r).toMatchObject({ status: 'settled', debit: 0, chargedOutputs: 0 });
-    expect(r.credits.every(c => c.amount === 0)).toBe(true);
+  it('charges the acknowledged prefix when the stages close an unfinished answer with no stop: an unattributed disconnect', async () => {
+    const parties = await createParties(2), outputs = Array.from({ length: 12 }, (_, i) => `t${i}`);
+    for (const [tag, options] of [['failed', { stagesFailAfter: 6 }], ['unsigned-stop', { requesterStopAfter: 6 }]]) {
+      const a = await runAttempt(parties, { tag, outputs, ...options });
+      expect(a.acknowledged).toBe(6);
+      // The stages closed (`failed` or `settled`); without a signed stop the records cannot say who ended the answer.
+      const records = a.all().filter(row => row.schema !== SETTLEMENT_STOP_SCHEMA);
+      const r = (await replay(records, a.decidedAt)).reservations[0];
+      expect(r).toMatchObject({ status: 'settled', debit: 18, outputs: 6, chargedOutputs: 6 });
+      expect(r.credits.map(c => c.amount)).toEqual([4, 14]);
+      expect(r.reason).toMatch('no verified provider failure');
+    }
+    // The prefix is capped at the signed ceiling.
+    const capped = await runAttempt(parties, { tag: 'capped', outputs, stagesFailAfter: 6, maxOutputTokens: 4 });
+    expect((await replay(capped.all(), capped.decidedAt)).reservations[0]).toMatchObject({ status: 'settled', debit: 12, chargedOutputs: 4, beyondCeiling: 2 });
+  });
+
+  it('gives relief for a verified provider failure: a stage with no closing receipt makes the unfinished answer cost nothing', async () => {
+    const parties = await createParties(2), outputs = Array.from({ length: 12 }, (_, i) => `t${i}`);
+    for (const vanishStage of [0, 1]) {
+      const a = await runAttempt(parties, { tag: `vanish-${vanishStage}`, outputs, vanishStage, vanishAfterStep: 4 });
+      expect(a.acknowledged).toBeGreaterThan(0);
+      const r = (await replay(a.all(), a.decidedAt)).reservations[0];
+      expect(r).toMatchObject({ status: 'expired', debit: 0 });
+      expect(r.credits.every(c => c.amount === 0)).toBe(true);
+    }
+    // A requester's silence is not a provider failure: the stages close, and the acknowledged prefix is owed.
+    const silent = await runAttempt(parties, { tag: 'silent', outputs, stopAckingAfter: 6 });
+    expect((await replay(silent.all(), silent.decidedAt)).reservations[0]).toMatchObject({ status: 'settled', debit: 18 });
+    // A stage withholding its closing receipt of an unfinished answer is the same verified failure; it also costs
+    // its partners their pay, so it is never in a stage's interest.
+    const ended = await runAttempt(parties, { tag: 'ended', outputs, stagesFailAfter: 6 });
+    expect((await replay(withoutClosing(ended, 1), ended.decidedAt)).reservations[0]).toMatchObject({ status: 'expired', debit: 0 });
   });
 
   it('charges the acknowledged prefix when the requester signed its own stop', async () => {
@@ -464,9 +503,12 @@ describe('settlement replay', () => {
     const a = await runAttempt(parties, { outputs: Array.from({ length: 12 }, (_, i) => `t${i}`), requesterStopAfter: 6 });
     const r = (await replay(a.all(), a.decidedAt)).reservations[0];
     expect(r).toMatchObject({ status: 'settled', debit: 18, chargedOutputs: 6 });
-    // Without the requester's stop the same records read as a stage ending the answer early.
-    const unsigned = a.all().filter(row => row.schema !== 'reploid.settlement-stop/v1');
-    expect((await replay(unsigned, a.decidedAt)).reservations[0].debit).toBe(0);
+    // Under the older provider-loss-free terms the same records without the stop read as a stage ending the answer.
+    const old = await runAttempt(parties, { tag: 'old', outputs: Array.from({ length: 12 }, (_, i) => `t${i}`), requesterStopAfter: 6,
+      unfinishedTerms: UNFINISHED_ANSWER_TERMS });
+    expect((await replay(old.all(), old.decidedAt)).reservations[0].debit).toBe(18);
+    const unsigned = old.all().filter(row => row.schema !== SETTLEMENT_STOP_SCHEMA);
+    expect((await replay(unsigned, old.decidedAt)).reservations[0]).toMatchObject({ debit: 0, chargedOutputs: 0 });
   });
 
   it('recovers the settled outcome when an operator shows each party a different subset (split-brain withholding)', async () => {
@@ -620,23 +662,24 @@ const SAME_DEADLINE = Object.freeze({ ...POLICY, maxRequestMs: 30000 });
 const amounts = rows => rows.map(row => [row.participantId, row.amount]);
 
 describe('the live ledger posts what the replay computes', () => {
-  // The known difference, pending the owner's decision (docs/settlement-replay.md): the replay makes an unfinished
-  // answer that the stages closed, with no requester stop, free; the ledger charges the acknowledged prefix, as it did
-  // before the replay's rules, so a requester cannot read what it wants, stop asking and pay nothing.
-  it('charges the acknowledged prefix when the stages close an unfinished answer and no stop was signed, where the replay charges nothing', async () => {
+  // The owner's decision (docs/settlement-replay.md, step 9): an unfinished answer that the stages closed, with no
+  // requester stop, charges the acknowledged prefix in both, so a requester cannot read what it wants, stop asking and
+  // pay nothing, and signing a stop costs no more than walking away.
+  it('charges the acknowledged prefix in both when the stages close an unfinished answer and no stop was signed', async () => {
     const parties = await createParties(2), live = await openLiveLedger(parties, SAME_DEADLINE);
     const outputs = Array.from({ length: 40 }, (_, i) => ` w${i}`);
     try {
-      // [tag, attempt options, records presented, the ledger's charge and credits, the replay's charge]
-      const cases = [['failed', { stagesFailAfter: 3 }, a => a.all(), 9, [2, 7], 0],
-        ['stopped', { requesterStopAfter: 3 }, a => a.all(), 9, [2, 7], 9],
+      // [tag, attempt options, records presented, the charge and credits both post, the ledger's reason]
+      const disconnect = 'unattributed-disconnect-acknowledged-prefix';
+      const cases = [['failed', { stagesFailAfter: 3 }, a => a.all(), 9, [2, 7], disconnect],
+        ['stopped', { requesterStopAfter: 3 }, a => a.all(), 9, [2, 7], undefined],
         // The same stopped answer without the requester's signed stop.
-        ['unsigned', { requesterStopAfter: 3 }, a => a.all().filter(row => row.schema !== SETTLEMENT_STOP_SCHEMA), 9, [2, 7], 0],
+        ['unsigned', { requesterStopAfter: 3 }, a => a.all().filter(row => row.schema !== SETTLEMENT_STOP_SCHEMA), 9, [2, 7], disconnect],
         // The walk-away: 39 of 40 outputs delivered and acknowledged, then the requester stops asking and the stages
-        // close as failed. Signing a stop would cost 117; walking away costs the same.
-        ['walk-away', { outputs, stagesFailAfter: 39 }, a => a.all(), 117, [29, 88], 0],
-        ['walk-away-stop', { outputs, requesterStopAfter: 39 }, a => a.all(), 117, [29, 88], 117]];
-      for (const [tag, options, recordsOf, charge, credits, replayed] of cases) {
+        // close as failed. Signing a stop costs 117; walking away costs the same.
+        ['walk-away', { outputs, stagesFailAfter: 39 }, a => a.all(), 117, [29, 88], disconnect],
+        ['walk-away-stop', { outputs, requesterStopAfter: 39 }, a => a.all(), 117, [29, 88], undefined]];
+      for (const [tag, options, recordsOf, charge, credits, reason] of cases) {
         const a = await runAttempt(parties, { tag: `ended-${tag}`, policy: SAME_DEADLINE, ...options }), records = recordsOf(a);
         expect(a.acknowledged).toBe(charge / 3);
         live.admit(a);
@@ -645,20 +688,27 @@ describe('the live ledger posts what the replay computes', () => {
         const outcome = await live.ledger.recover(a.reservationId), r = (await live.replay(records, a.decidedAt)).reservations[0];
         expect(outcome.charge).toBe(charge);
         expect(outcome.credits.map(row => row.amount)).toEqual(credits);
-        expect(r).toMatchObject({ status: 'settled', debit: replayed });
-        if (replayed === 0) {
-          expect(outcome.reason).toBe('unfinished-answer-closed-without-requester-stop');
-          expect(r).toMatchObject({ outputs: charge / 3, chargedOutputs: 0 });
-        } else expect(amounts(outcome.credits)).toEqual(amounts(r.credits));
+        expect(outcome.reason).toBe(reason);
+        expect(r).toMatchObject({ status: 'settled', debit: charge, outputs: charge / 3, chargedOutputs: charge / 3 });
+        expect(amounts(outcome.credits)).toEqual(amounts(r.credits));
       }
+      // New split reservations take the decided rules and terms.
+      expect(live.ledger.request('reservation-ended-failed').binding).toMatchObject({ settlementRules: SETTLEMENT_RULES,
+        unfinishedTerms: UNFINISHED_ANSWER_TERMS_V2 });
     } finally { await live.close(); }
   });
 
-  it('keeps charging nothing for a stage-ended answer reserved under the first replay rules', () => {
+  it('keeps each older reservation\'s rules: free under the first, the prefix under the interim ones', () => {
     const request = { mode: 'partition', unfinishedTerms: UNFINISHED_ANSWER_TERMS };
     const observed = { outputTokens: 39, stageEnded: true };
     expect(settledCreditUnits({ ...request, settlementRules: SETTLEMENT_RULES_V1 }, observed, 3)).toBe(0);
-    expect(settledCreditUnits({ ...request, settlementRules: SETTLEMENT_RULES }, observed, 3)).toBe(117);
+    expect(settledCreditUnits({ ...request, settlementRules: SETTLEMENT_RULES_INTERIM }, observed, 3)).toBe(117);
+    expect(settledCreditUnits({ mode: 'partition', unfinishedTerms: UNFINISHED_ANSWER_TERMS_V2, settlementRules: SETTLEMENT_RULES },
+      { outputTokens: 39, unattributedDisconnect: true }, 3)).toBe(117);
+    // A stage owner's interruption claim is relief under both the old and the decided terms.
+    for (const terms of [UNFINISHED_ANSWER_TERMS, UNFINISHED_ANSWER_TERMS_V2]) {
+      expect(settledCreditUnits({ mode: 'partition', unfinishedTerms: terms }, { outputTokens: 39, interruptedStages: [1] }, 3)).toBe(0);
+    }
   });
 
   it('charges the outputs acknowledged in time when the last output, its acknowledgment and the closes come inside the release window', async () => {

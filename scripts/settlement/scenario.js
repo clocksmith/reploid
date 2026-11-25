@@ -9,7 +9,7 @@ import {
   ACKNOWLEDGMENT_OVERDUE, MAX_UNACKNOWLEDGED_OUTPUTS, createAttemptEvidenceSigner, openOutputAcknowledgments, openStageReceipts
 } from '../../packages/reploid/src/mesh/partitions/partition-attempt-evidence.js';
 import { acceptSettlementTerms, signSettlementStop, signSettlementTerms } from '../../server/fleet/settlement-terms.js';
-import { UNFINISHED_ANSWER_TERMS } from '../../server/fleet/credit-shares.js';
+import { UNFINISHED_ANSWER_TERMS_V2 } from '../../server/fleet/credit-shares.js';
 
 export const POLICY = Object.freeze({
   schema: 'reploid.service-credit-policy/v1', unit: 'noncash-service-credit', version: 'settlement-replay-1',
@@ -48,13 +48,14 @@ const route = (parties, tag) => ({
  *  requesterStopAfter: the requester signs a stop after this many outputs and the stages close
  *  stagesFailAfter: the stages close with a failed receipt after this many outputs, the requester having acknowledged all
  *  maxOutputTokens: the ceiling in the requester's signed terms
+ *  unfinishedTerms: the signed unfinished-answer terms (by default the decided ones, UNFINISHED_ANSWER_TERMS_V2)
  *  maxUnacknowledgedOutputs: K in the signed terms and the stages' acceptances (the stages' tallies enforce the receiver policy's K)
  * Returns the records each party holds, the attempt's terms, and what was actually delivered.
  */
 export async function runAttempt(parties, { tag = 'r1', outputs = ['The', ' answer', ' is', ' 26', '.'], weights = [1, 3],
   stopAckingAfter = Infinity, vanishStage = null, vanishAfterStep = Infinity, lateAckDelayMs = null, clock = createClock(),
   requesterStopAfter = null, stagesFailAfter = null, maxOutputTokens = 64, maxUnacknowledgedOutputs = MAX_UNACKNOWLEDGED_OUTPUTS,
-  unfinishedTerms = UNFINISHED_ANSWER_TERMS, policy = POLICY } = {}) {
+  unfinishedTerms = UNFINISHED_ANSWER_TERMS_V2, policy = POLICY } = {}) {
   const r = route(parties, tag);
   const identity = { schema: 'reploid.partition-attempt/v2', threadId: `thread-${tag}`, attemptId: `attempt-${tag}`,
     requesterId: parties.requester.peerId, placementGeneration: 0, route: r };
@@ -64,8 +65,9 @@ export async function runAttempt(parties, { tag = 'r1', outputs = ['The', ' answ
   const notBefore = now(), deadline = notBefore + 30000;
   const terms = await signSettlementTerms({ signer: requesterSigner, identity, reservationId, policy, maxOutputTokens,
     weights, notBefore, deadline, unfinishedTerms, maxUnacknowledgedOutputs });
+  // The stages here settle under whatever unfinished-answer terms the scenario signs, so older rules can be replayed.
   const acceptances = await Promise.all(stageSigners.map((signer, index) => acceptSettlementTerms({ signer, terms, partitionIndex: index,
-    maxUnacknowledgedOutputs })));
+    maxUnacknowledgedOutputs, unfinishedTerms })));
   const acks = await openOutputAcknowledgments({ signer: requesterSigner, identity, reservationId });
   const tallies = await Promise.all(stageSigners.map((signer, index) => openStageReceipts({ signer, identity, partitionIndex: index, charge: acks.charge })));
   const held = { requester: [terms, acks.charge], stages: parties.stages.map((_, index) => [terms, acceptances[index], acks.charge]) };

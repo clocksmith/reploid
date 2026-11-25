@@ -244,12 +244,12 @@ async function main() {
   {
     const lost = await runAttempt(parties, { tag: 'drop', outputs: forty, vanishStage: 1, vanishAfterStep: 9 });
     add('P6 the final stage drops after 10 of 40 outputs and never closes', lost, await judge(lost.all(), lost),
-      { lossCandidate: true, note: 'the replay\'s provider-loss-free rule: an abandoned answer is free, and B3 has no such rule. It is also what a requester that stops asking leaves behind when a stage then never closes: 10 acknowledged outputs unpaid.' });
+      { lossCandidate: true, note: 'a verified provider failure: a stage with no closing receipt gets the requester relief, and B3 has no such rule. Deliberate under the decided rules (docs/settlement-replay.md, "Unfinished answers"); a requester cannot cause it, because a stage closes when the requester stops asking. 10 acknowledged outputs go unpaid.' });
   }
   {
     const early = await runAttempt(parties, { tag: 'early', outputs: forty, stagesFailAfter: 10 });
     add('P7 the stages end the answer themselves after 10 of 40 outputs and close as failed', early, await judge(early.all(), early),
-      { lossCandidate: true, note: 'the requester asks for every step, so a requester that stops asking produces exactly these records: the stages close, no stop is signed. If the replay charges nothing here, any partial answer is free at the requester\'s option, and signing a stop only costs it. B3 charges what was acknowledged whoever ended the answer.' });
+      { lossCandidate: true, note: 'the requester asks for every step, so a requester that stops asking produces exactly these records: the stages close, no stop is signed. Under the decided rules this is an unattributed disconnect and the replay, like B3, charges what was acknowledged; under the older provider-loss-free terms it was free at the requester\'s option.' });
     // The same final stage instead signs K + 1 further steps it never sent, then closes. Nothing else changes.
     const finals = early.all().filter(row => row.schema === STAGE_RECEIPT_SCHEMA && row.partitionIndex === 1).sort((a, b) => a.sequence - b.sequence);
     const closing = finals.find(row => row.status !== 'executing'), added = [];
@@ -264,7 +264,7 @@ async function main() {
     const records = [...new Set(early.all())].filter(row => row !== closing);
     add('L3 the same final stage signs K + 1 steps it never sent, then closes', early,
       await judge([...records, ...added, close], early, [...added, close].map(row => [row, ms(row.signedAt)])),
-      { note: 'if the replay charges here, the final stage alone defeats the provider-loss-free rule of P7: the gap reads as the requester withholding. B3 charges the prefix in both cases.' });
+      { note: 'the gap reads as the requester withholding. Under the decided rules the replay charges the acknowledged prefix here as in P7, so faking the stall gains the final stage nothing; under the older provider-loss-free terms it turned a free P7 into a charged one. B3 charges the prefix in both cases.' });
   }
   {
     const whole = await runAttempt(parties, { tag: 'veto', outputs: forty });

@@ -7,17 +7,19 @@ import { canonicalRouteAttemptBinding } from '../../shared/vendor/reploid/mesh/p
 import { normalizeParticipantPublicKey } from '../../shared/vendor/reploid/artifacts/participant-proofs.js';
 import { assert, same, integer } from './contract.js';
 import { SETTLEMENT_STOP_SCHEMA, verifySettlementStop } from './settlement-terms.js';
-import { SETTLEMENT_RULES, SETTLEMENT_RULE_SETS, UNFINISHED_ANSWER_TERMS } from './credit-shares.js';
+import { SETTLEMENT_RULES, SETTLEMENT_RULES_INTERIM, SETTLEMENT_RULE_SETS, UNFINISHED_ANSWER_TERMS } from './credit-shares.js';
 
 /** A split reservation made since the ledger applies the settlement replay's charge rules (docs/settlement-replay.md). */
 export const replayRules = request => request.mode === 'partition' && SETTLEMENT_RULE_SETS.includes(request.settlementRules);
 
 /**
  * Whether a split request's release window has passed at `now`, so that it can be decided without the missing
- * closes. Under the interim rules (SETTLEMENT_RULES) that is after deadline + window + clock allowance, the last
- * instant a closing receipt counts (docs/settlement-replay.md, step 6); earlier reservations keep deadline + window.
+ * closes. Under the interim rules (SETTLEMENT_RULES_INTERIM) and the decided ones (SETTLEMENT_RULES) that is after
+ * deadline + window + clock allowance, the last instant a closing receipt counts (docs/settlement-replay.md, step 6);
+ * earlier reservations keep deadline + window.
  */
-export const releaseWindowPassed = (request, now, releaseWindowMs, skew) => (request.mode === 'partition' && request.settlementRules === SETTLEMENT_RULES
+export const releaseWindowPassed = (request, now, releaseWindowMs, skew) => (request.mode === 'partition'
+  && [SETTLEMENT_RULES_INTERIM, SETTLEMENT_RULES].includes(request.settlementRules)
   ? now > request.deadline + releaseWindowMs + skew : now >= request.deadline + releaseWindowMs);
 
 /**
@@ -189,22 +191,24 @@ export async function verifyCreditEvidence(request, evidence, enrollment, now, s
       ...(interruptedStages.length ? { interruptedStages } : {}), ...(closedAtLastStep ? { closedAtLastStep } : {}) };
   }
   // The settlement replay's charge rule (docs/settlement-replay.md, step 9). The signed ceiling caps the charge: outputs
-  // past `maxOutputTokens` are recorded and never charged. `stageEnded` marks an unfinished answer the stages closed,
-  // `settled` or `failed`, with no in-time requester stop and no more than K acknowledgments withheld. Under
-  // SETTLEMENT_RULES_V1 it charges nothing, as the replay does; under the interim SETTLEMENT_RULES it charges the
-  // acknowledged prefix, because the requester drives every step and could otherwise stop asking and pay nothing
-  // (credit-shares.js settledCreditUnits; the known difference in docs/settlement-replay.md).
+  // past `maxOutputTokens` are recorded and never charged. An unfinished answer the stages closed, `settled` or
+  // `failed`, with no in-time requester stop and no more than K acknowledgments withheld is marked: under
+  // SETTLEMENT_RULES (v2) as `unattributedDisconnect`, which charges the acknowledged prefix exactly as the replay does;
+  // under the older provider-loss-free rules as `stageEnded`, free under SETTLEMENT_RULES_V1 and charged the prefix
+  // under SETTLEMENT_RULES_INTERIM (credit-shares.js settledCreditUnits). A closed stage's `failed` status is not a
+  // verified provider failure: a stage also signs it when the requester's abort reaches a step in flight.
   const stop = evidence.stop === undefined || evidence.stop === null ? null
     : await verifySplitStop(request, evidence.stop, enrollment, now, skew);
   const delivered = finalReceiptOf(request, proof)?.output ?? null;
   const finished = delivered?.done === true;
   const withheld = Boolean(delivered) && delivered.count - acknowledgment.count > maxUnacknowledgedOutputs;
-  const stageEnded = request.unfinishedTerms === UNFINISHED_ANSWER_TERMS && !finished && !stop && !withheld && acknowledgment.count > 0
-    && !interruptedStages.length;
+  const endedWithoutStop = !finished && !stop && !withheld && acknowledgment.count > 0 && !interruptedStages.length;
+  const stageEnded = endedWithoutStop && request.unfinishedTerms === UNFINISHED_ANSWER_TERMS && request.settlementRules !== SETTLEMENT_RULES;
+  const unattributedDisconnect = endedWithoutStop && request.settlementRules === SETTLEMENT_RULES;
   const beyondCeiling = Math.max(0, acknowledgment.count - request.maxOutputTokens);
   return { outputTokens: Math.min(acknowledgment.count, request.maxOutputTokens), outputIdentity: acknowledgment.chain, workIds,
     ...(interruptedStages.length ? { interruptedStages } : {}), ...(closedAtLastStep ? { closedAtLastStep } : {}),
-    ...(stageEnded ? { stageEnded: true } : {}), ...(beyondCeiling ? { beyondCeiling } : {}) };
+    ...(stageEnded ? { stageEnded: true } : {}), ...(unattributedDisconnect ? { unattributedDisconnect: true } : {}), ...(beyondCeiling ? { beyondCeiling } : {}) };
 }
 
 /** Validate independently submitted pieces before retaining them. A signed failure is a closing
