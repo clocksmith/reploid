@@ -1,9 +1,9 @@
 {
   "schema": "reploid.settlement-replay-differential/v1",
-  "generatedAt": "2026-11-25T17:57:33.981Z",
-  "finishedAt": "2026-11-25T17:57:44.261Z",
+  "generatedAt": "2026-11-25T19:04:39.625Z",
+  "finishedAt": "2026-11-25T19:04:58.912Z",
   "command": "node scripts/settlement/independent/differential.js --out scripts/settlement/independent/receipts/differential.json",
-  "commit": "0d59079239499295ff4df65a3a6288d2db3456ff",
+  "commit": "99e7840f5aef90a8eec1dba9f2d8a5cd6e2ee19f",
   "uncommittedChangesInComparedCode": false,
   "node": "v22.20.0",
   "note": "All parties are simulated identities on one machine. The second verifier was written from docs/settlement-replay.md alone by a second session under the same operator, so this is not a third-party replay. Both verifiers ran in one process on the same record sets. Keys are fresh on each run; counts are deterministic. Every documented row member except the sentence in `reason` is compared; list entries are compared without regard to order, and `counts` without its zero entries. Classifications: a = a reading of a sentence the document leaves open, b = a defect in the service verifier, c = a defect in the second verifier, d = the document and the service verifier say different things.",
@@ -46,30 +46,30 @@
     "finished 40-output answer, last three acknowledgments withheld"
   ],
   "totals": {
-    "recordSets": 1809,
-    "judgments": 2527,
-    "outcomeAgreed": 2527,
-    "amountsAgreed": 2527,
-    "outcomeAndAmountsAgreed": 2527,
-    "lateListSizeAgreed": 2527,
-    "foreignListSizeAgreed": 2527,
-    "conflictListedAgreed": 2527,
-    "everyRowMemberAgreed": 2527,
-    "everyRowMemberAgreedInOrder": 2525,
-    "rejectedListSizeAgreed": 2483,
-    "sameRecordsRejected": 2483,
-    "countsAgreed": 2483,
-    "balancesAgreed": 2483,
-    "rejectedListsCompared": 2483
+    "recordSets": 2653,
+    "judgments": 4833,
+    "outcomeAgreed": 4833,
+    "amountsAgreed": 4833,
+    "outcomeAndAmountsAgreed": 4833,
+    "lateListSizeAgreed": 4833,
+    "foreignListSizeAgreed": 4833,
+    "conflictListedAgreed": 4833,
+    "everyRowMemberAgreed": 4833,
+    "everyRowMemberAgreedInOrder": 4823,
+    "rejectedListSizeAgreed": 4751,
+    "sameRecordsRejected": 4751,
+    "countsAgreed": 4751,
+    "balancesAgreed": 4751,
+    "rejectedListsCompared": 4751
   },
   "outcomePairs": {
     "conflict / conflict": 93,
-    "expired / expired": 314,
+    "expired / expired": 411,
     "invalid / invalid": 157,
     "none / none": 3,
-    "open / open": 160,
-    "settled / settled": 1335,
-    "unknown / unknown": 465
+    "open / open": 756,
+    "settled / settled": 2910,
+    "unknown / unknown": 503
   },
   "families": {
     "unmutated, clock sweep": {
@@ -197,6 +197,11 @@
       "outcomeAgreed": 399,
       "amountsAgreed": 399
     },
+    "failed stages": {
+      "judgments": 2306,
+      "outcomeAgreed": 2306,
+      "amountsAgreed": 2306
+    },
     "final stage invents outputs nobody received": {
       "judgments": 4,
       "outcomeAgreed": 4,
@@ -230,7 +235,8 @@
     "late",
     "foreign",
     "unmatched",
-    "accounts"
+    "accounts",
+    "forfeited"
   ],
   "rowMemberDifferences": {},
   "noted": [

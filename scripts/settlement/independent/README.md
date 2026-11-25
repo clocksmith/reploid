@@ -42,18 +42,19 @@ does, and only from the document's text. A fix prompted by the service's code wo
 
 ## Result on main
 
-The document with the owner's decided unfinished-answer rule, the older terms shape and signed accounts, and both
-verifiers at 22570d1f1. 22 base attempts (two added for the older provider-loss-free terms), 27 mutation families, Ed25519 and P-256 keys, seven clock values
+The document with the owner's decided unfinished-answer rule, the older terms shape, signed accounts and the
+failed-stage terms, and both verifiers at 99e7840f5. 22 base attempts (two added for the older provider-loss-free
+terms), 28 mutation families, Ed25519 and P-256 keys, seven clock values
 around the deadline, the release window and the instant an attempt is decided. The document reports one row per
 reservation and requester, and the comparison is keyed the same way.
 
 | | Count |
 | --- | --- |
-| Record sets | 1,809 |
-| Judgments (one row at one clock value) | 2,527 |
-| Same outcome, same debit, same credit for every stage | 2,527 |
-| Every documented member of the row the same | 2,527 |
-| Same records rejected, same `counts` and same balances per account | 2,483 of 2,483 runs |
+| Record sets | 2,653 |
+| Judgments (one row at one clock value) | 4,833 |
+| Same outcome, same debit, same credit for every stage | 4,833 |
+| Every documented member of the row the same | 4,833 |
+| Same records rejected, same `counts` and same balances per account | 4,751 of 4,751 runs |
 | Disagreements | 0 |
 
 Read this as: on these record sets, a verifier written from the document's text alone returns what the service's
@@ -61,8 +62,8 @@ verifier returns, member for member. It is not a proof that the two agree on all
 
 Every documented row member except the sentence in `reason` is compared: `attemptId`, `status`, `debit`,
 `credits`, `outputs`, `chargedOutputs`, `unacknowledgedOutputs`, `beyondCeiling`, `closedAtLastStep`, `conflicts`,
-`late`, `foreign` and `unmatched`. List entries are compared without regard to order, which the document does not
-fix; two rows differ only in the order of their entries.
+`late`, `foreign`, `unmatched`, and `accounts` and `forfeited` on the rows that have them. List entries are compared
+without regard to order, which the document does not fix; ten rows differ only in the order of their entries.
 
 The last mutation family covers the rules the document gained since c29bc5d44. Both verifiers reject ten other
 forms of a time, reject a signature or key coordinate whose last character is changed without changing its bytes,
@@ -84,6 +85,16 @@ places a stage or the requester under another account, or places nobody. 399 jud
 compared like the others. Gap 89 of [DOC-GAPS.md](DOC-GAPS.md), found by the second verifier's author, is why the
 enrollment test exists: without it a signed account is only what its signer asked for.
 
+The family "failed stages" signs every base attempt again under the failed-stage terms
+(`reploid.unfinished-answer/acknowledged-prefix-failed-stage-forfeits/v1`) and then has stages sign a fault, keep
+back their close or their receipts, do both, or sign a fault late, before the attempt may start, on another route,
+for another stage, under another reservation or malformed; it repeats the main cases with a stage on the requester's
+own signed account. 2,306 judgments, at four clock values around the release window for most cases. The two verifiers
+agreed on all of them at the first comparison, before any change to either. The second verifier's author listed gaps
+94 to 114 before that comparison; items 111 to 114, and 115 to 117 from its second pass, were places where the
+document's failed-stage text contradicted its own steps, and the text was corrected each time with no change to
+either verifier. The author has not yet read the answers to 115 to 117.
+
 This verifier implements the replay, under the decided terms and under the older ones the document keeps. The
 ledger's interim rules of 2026-11-25 (the document's "Older rules") are a ledger rule and are not implemented here.
 
@@ -100,6 +111,7 @@ ledger's interim rules of 2026-11-25 (the document's "Older rules") are a ledger
 | 1281fdd47 | updated from the text with the decided unfinished-answer rule; result `schema` v2 | 2,052 of 2,052, every row member included | nothing; the amounts `replay.js` computes did not change, because it already charged the prefix under every value but the provider-loss-free one |
 | 9c7e04d77 | updated from the text with the older terms shape (terms signed before `K`) | 2,128 of 2,128 with the added family, every row member included | nothing |
 | 1f79a07e6 | updated from the text with signed accounts, in two rounds; the second added the enrollment test its author's gap 89 called for | 2,527 of 2,527 with the added family, every row member included | nothing |
+| 8c2d13bb7 | updated from the text with the failed-stage terms, in two passes; the second changed nothing in the verifier | 4,833 of 4,833 with the added family, every row member included, at the first comparison | nothing |
 
 Between those rounds the comparison and [../baseline-matrix.js](../baseline-matrix.js) also showed properties both
 verifiers shared because the document said so, and the document and the service's verifier were changed on each: a
