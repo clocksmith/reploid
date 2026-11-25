@@ -345,7 +345,19 @@ export async function runNorthStar({ config, transport, directory, fixtureFile, 
     const ownStages = config.stages.filter(stage => stage.role === 'requester').map(stage => stage.participantId);
     await step('open requester', () => s(config.requester.label).call('open', { ...shared, stageIndex: null, modelDirectory: config.requester.modelDirectory,
       stateDirectory: config.requester.stateDirectory, ownStages }));
-    await step('route ready', timeoutMs => until(async () => (await s(config.requester.label).call('state')).ready, { timeoutMs, label: 'a ready route', pollMs: 500 }), limits.phaseMs);
+    // While the route comes up, each participant's own state is logged every 20 s, so a stage that never joins is named.
+    let lastDiagnosis = 0;
+    const diagnose = async () => {
+      if (now() - lastDiagnosis < 20000) return;
+      lastDiagnosis = now();
+      for (const target of [...config.stages, config.requester]) {
+        const row = await s(target.label).call('diagnose', {}, { timeoutMs: 10000 }).catch(error => ({ error: String(error?.message ?? error) }));
+        log(`${stamp()} diagnose ${target.label} ${redactor.text(JSON.stringify(row))}`);
+        receipt.routeDiagnosis = [...(receipt.routeDiagnosis ?? []), { at: stamp(), label: target.label, state: row }].slice(-40);
+      }
+    };
+    await step('route ready', timeoutMs => until(async () => { const ready = (await s(config.requester.label).call('state')).ready; if (!ready) await diagnose(); return ready; },
+      { timeoutMs, label: 'a ready route', pollMs: 500 }), limits.routeReadyMs ?? limits.phaseMs);
 
     // 3. Spend: one request through reploid/inference with confidentiality 'requester-edges'.
     const accountId = `computer-${requesterAccount}`, before = balanceOfAccount(accountId);

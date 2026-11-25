@@ -310,6 +310,15 @@ export async function openStage1Participant({ stageIndex, identity, config, nati
   return {
     assignedLayers: () => participant.getState().descriptor?.layerRange ?? null,
     state: () => ({ ready: Boolean(readyRoute()), phase: participant.getState().phase ?? null }),
+    /** Scalars of the participant's own state, for a route that does not come up: phase, error, models and descriptor. */
+    diagnose() {
+      const state = participant.getState(), scalar = value => (['string', 'number', 'boolean'].includes(typeof value) || value === null ? value : undefined);
+      const flat = Object.fromEntries(Object.entries(state).map(([key, value]) => [key, scalar(value)]).filter(([, value]) => value !== undefined));
+      return { ...flat, keys: Object.keys(state), models: (state.models ?? []).map(row => ({ id: row.id, partition: Boolean(row.partition), availability: row.availability,
+        providers: row.providerIds?.length ?? null, stages: row.partition?.route?.stages?.length ?? null })),
+      descriptor: state.descriptor ? { ready: state.descriptor.ready ?? null, index: state.descriptor.index ?? null, layerRange: state.descriptor.layerRange ?? null } : null,
+      progress: state.progress ? JSON.stringify(state.progress).slice(0, 400) : null, partitions: state.partitions ? JSON.stringify(state.partitions).slice(0, 1200) : null };
+    },
     activity() {
       const state = participant.getState(), running = state.reservations?.active;
       // A missing counter must not read as "nothing active".
