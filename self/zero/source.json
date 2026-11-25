@@ -154,8 +154,8 @@
     },
     {
       "path": "vendor/reploid/config/defaults.json",
-      "bytes": 2465,
-      "sha256": "be33034450522fc660312d2f177286e58c50002ec40b193837f7be423d56b6f4"
+      "bytes": 2526,
+      "sha256": "09f103be72dd93160fa3d781ee01a7792d2a682c00f145fd965735ce1d45b6a5"
     },
     {
       "path": "vendor/reploid/config/index.js",
@@ -169,8 +169,8 @@
     },
     {
       "path": "vendor/reploid/config/schema.json",
-      "bytes": 11367,
-      "sha256": "03a1ba983579670c60a8a3bfa70e02b130f475f4b2f2e705ee148627da351e6c"
+      "bytes": 11692,
+      "sha256": "3cfca762ae68d722df21d55c0aaac71dbaa26217475448303a0997ef399f5bee"
     },
     {
       "path": "vendor/reploid/config/validate-schema.js",

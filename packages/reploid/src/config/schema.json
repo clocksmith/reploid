@@ -197,7 +197,9 @@
         "generationTimeoutMs",
         "maxPendingJobs",
         "maxInboundJobs",
-        "maxRetainedJobs"
+        "maxRetainedJobs",
+        "requestAckTimeoutMs",
+        "maxRequestResends"
       ],
       "properties": {
         "enabled": {
@@ -241,6 +243,17 @@
         "maxRetainedJobs": {
           "type": "integer",
           "default": 32
+        },
+        "requestAckTimeoutMs": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 1500
+        },
+        "maxRequestResends": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 8,
+          "default": 2
         }
       }
     },

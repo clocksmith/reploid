@@ -7,6 +7,14 @@ export function createRemoteGenerationRequests({ timeoutMs, maxPending, sendCanc
     requests.delete(pending.requestId);
     clearTimeout(pending.timer);
     pending.signal?.removeEventListener('abort', pending.abort);
+    // Same-recipient re-delivery ends with the request; what it did stays with the outcome.
+    if (pending.delivery) {
+      pending.delivery.stop();
+      const target = Object.hasOwn(outcome, 'error') ? outcome.error : outcome.response;
+      if (target && typeof target === 'object' && !Object.isFrozen(target)) {
+        try { target.delivery = pending.delivery.snapshot(); } catch { /* A sealed error keeps its own fields. */ }
+      }
+    }
     if (outcome.cancel) {
       // Transport teardown must not prevent local settlement.
       try { sendCancel(pending.providerPeerId, pending.requestId); } catch { /* Original failure remains authoritative. */ }

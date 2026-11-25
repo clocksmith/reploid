@@ -15,7 +15,7 @@ import { protectedEvidence, PROTECTED_PROTOCOL } from './protected.js';
 import {
   executionError, freezeDeep, validatePrepareRequest, validateRunRequest, describeRoute,
   routeDisclosures, assertLeakageAllowed, assertRouteWithinRequirements, admitRoute, admitLocalRoute,
-  readExecutorResult, executionReceipt
+  readExecutorResult, executionReceipt, deliveryTimeline
 } from './contract.js';
 
 export * from './contract.js';
@@ -190,7 +190,8 @@ export function createInference({ resolveRoute, execute, now = Date.now, planTtl
         // Partial text is never a successful result: it is dropped from the result.
         const value = freezeDeep({ requestId, attemptId, status, output: null, usage: null,
           settlement: structuredClone(error?.serviceCredit ?? null), error: errorRecord(error),
-          executionReceipt: await executionReceipt({ plan, requestId, attemptId, status, admitted }) });
+          executionReceipt: await executionReceipt({ plan, requestId, attemptId, status, admitted,
+            timeline: deliveryTimeline(cause?.delivery) }) });
         emit({ type: status, result: value });
         return value;
       } finally { channel.end(); plans.delete(planId); }

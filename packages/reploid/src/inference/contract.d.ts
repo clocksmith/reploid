@@ -34,9 +34,12 @@ export interface AdmittedRoute {
   id: string | null; planRouteId: string; policyId: string | null; shape: RouteShape; participants: string[]; backend: string; protocol: string | null;
 }
 export interface EvidenceClaim { claim: string; by: 'requester'; method: string; value?: unknown }
+export interface DeliveryEvent { event: 'sent' | 'resent' | 'received'; stage: 'admit' | 'request'; attempt: number; at: number }
 export interface ExecutionReceipt {
   schema: 'reploid.execution-receipt/v1'; api: 'reploid.inference/v1'; requestId: string; attemptId: string; planId: string;
   status: 'completed' | 'cancelled' | 'failed';
+  /** Requester-observed frame delivery to the recipient; present only when the route kept a record. */
+  timeline?: DeliveryEvent[];
   requested: { model: Required<ModelPin>; execution: ExecutionRequirements; policyId: string };
   route: { planRouteId: string; admittedRouteId: string | null; policyId: string | null; shape: RouteShape; participants: string[]; backend: string; protocol: string | null; planIdentity: string | null } | null;
   disclosures: Disclosures;
@@ -67,9 +70,11 @@ export declare function assertRouteWithinRequirements(route: InferenceRoute, exe
 export declare function admitRoute(plan: ExecutionPlan, policy: ExecutionPolicy, binding: unknown): AdmittedRoute;
 export declare function admitLocalRoute(plan: ExecutionPlan): AdmittedRoute;
 export declare function readExecutorResult(plan: ExecutionPlan & { generation: { maxOutputTokens: number | null } }, raw: unknown, streamed: string | null): {
-  output: InferenceOutput; usage: InferenceResult['usage']; settlement: unknown; providerReceipt: unknown;
+  output: InferenceOutput; usage: InferenceResult['usage']; settlement: unknown; providerReceipt: unknown; timeline: DeliveryEvent[] | null;
 };
+export declare function deliveryTimeline(delivery: unknown): DeliveryEvent[] | null;
 export declare function executionReceipt(input: { plan: ExecutionPlan & { execution: ExecutionRequirements; policyId: string }; requestId: string; attemptId: string;
-  status: ExecutionReceipt['status']; admitted: AdmittedRoute | null; read?: { providerReceipt: unknown } | null }): Promise<ExecutionReceipt>;
+  status: ExecutionReceipt['status']; admitted: AdmittedRoute | null; read?: { providerReceipt: unknown; timeline?: DeliveryEvent[] | null } | null;
+  timeline?: DeliveryEvent[] | null }): Promise<ExecutionReceipt>;
 export declare function freezeDeep<T>(value: T): T;
 export declare function metadataNames(): ExecutionMetadata[];

@@ -13,6 +13,8 @@ export const APPLICATION_MESSAGE_TYPES = Object.freeze([
   'reploid:peer-advertisement',
   'reploid:identity-challenge', 'reploid:identity-proof',
   'reploid:generation-admit', 'reploid:generation-admitted',
+  // Delivery protocol 1: a provider acknowledges a request frame on arrival (see mesh/request-delivery.js).
+  'reploid:request-received',
   'reploid:generation-request', 'reploid:generation-update',
   'reploid:generation-result', 'reploid:generation-error',
   'reploid:generation-cancel', 'reploid:generation-recover', 'reploid:generation-recovery',

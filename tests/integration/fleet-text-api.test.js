@@ -260,6 +260,57 @@ it('streams authenticated /v1/responses over whole-model fleet capacity and sett
   }
 });
 
+it('re-sends a dropped request to the same provider once, settles one charge and records the re-send in the receipt timeline', async () => {
+  const cleanup = [];
+  const admission = createFleetExecutionAdmission({ credits: providerCredits, model });
+  let wholeRequester, dropped = 0;
+  const mesh = await createRecoveryMesh(cleanup, {
+    identities: keys.slice(0, 2), modelId: model.id, modelIdentity: model.identity,
+    meshConfig: () => ({ requestAckTimeoutMs: 150 }),
+    // The link loses the first prompt-bearing frame, as a Wi-Fi stall on the requester's side would.
+    drop: (type, _payload, sender) => sender === 0 && type === 'reploid:generation-request' && dropped++ === 0,
+    authorize: async input => {
+      if (input.action === 'mesh.dispatch') return wholeRequester.authorize(input);
+      if (input.action === 'mesh.execute') return admission.whole({ request: input.request, consumer: keys[0].peerId });
+      return true;
+    },
+    execute: async (_messages, update) => {
+      update('{"ok":true}');
+      return { model: model.id, modelIdentity: model.identity, adapterIdentities: [], content: '{"ok":true}',
+        completion: { schema: 'doppler.generation-completion/v1', promptTokenCount: 11, generatedTokenCount: 4, stopReason: 'eos-token' } };
+    },
+    onGenerationTerminal: proof => admission.terminal(proof)
+  });
+  wholeRequester = createWholeModelRequester({ mesh: mesh.requesterMesh, models: [model] });
+  const api = await startFleetTextApi({ host: createHostAdapter(wholeRequester), token, allowedRecipients: [keys[1].peerId] });
+  cleanup.push(() => api.close());
+  try {
+    const response = await fetch(`${api.url}/responses`, {
+      method: 'POST',
+      headers: { authorization: `Bearer ${token}`, 'content-type': 'application/json', accept: 'text/event-stream' },
+      body: JSON.stringify({ model: model.id, store: false, stream: true, input: [{ role: 'user', content: 'Return JSON only: {"ok":true}' }],
+        max_output_tokens: 16, text: { format: { type: 'json_object' } }, reploid: extension([keys[1].peerId]) })
+    });
+    expect(response.status).toBe(200);
+    const final = parseSse(await response.text()).at(-1);
+    expect(final.type).toBe('response.completed');
+    expect(final.response.output[0].content[0].text).toBe('{"ok":true}');
+    const requests = mesh.wire.filter(item => item.type === 'reploid:generation-request');
+    expect(requests.map(item => item.payload.delivery.attempt)).toEqual([1, 2]);
+    expect(new Set(requests.map(item => item.payload.requestId)).size).toBe(1);
+    expect(mesh.executions).toBe(1);
+    expect(final.response.reploid.executionReceipt.timeline.map(({ event, stage, attempt }) => `${event}:${stage}:${attempt}`))
+      .toEqual(['sent:admit:1', 'received:admit:1', 'sent:request:1', 'resent:request:2', 'received:request:2']);
+    expect(final.response.reploid.execution.serviceCredit).toMatchObject({ charge: 4, outputTokens: 4 });
+    // One reservation, one admission, one settlement: the re-sent frame was not charged again.
+    expect(credits.snapshot().accounts.map(row => ({ balance: row.balance, held: row.held }))).toEqual([
+      { balance: -4, held: 0 }, { balance: 4, held: 0 }
+    ]);
+  } finally {
+    for (const close of cleanup.reverse()) await close();
+  }
+});
+
 it('propagates HTTP stream cancellation to the whole-model provider and releases credit holds after cleanup', async () => {
   const cleanup = [], entered = Promise.withResolvers(), release = Promise.withResolvers();
   const admission = createFleetExecutionAdmission({ credits: providerCredits, model });

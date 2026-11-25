@@ -291,7 +291,7 @@ it('plain chat requires admission without generation settings, rendering or a ma
     expect(response.status).toBe(200);
     expect((await response.json()).choices[0]).toEqual({ index: 0, message: { role: 'assistant', content: 'The sum is 5.', refusal: null },
       logprobs: null, finish_reason: 'stop' });
-    expect(Object.keys(f.sent('reploid:generation-request')[0]).sort()).toEqual(['adapterIdentities', 'admission', 'admissionProtocol', 'consumer', 'contextId', 'messages',
+    expect(Object.keys(f.sent('reploid:generation-request')[0]).sort()).toEqual(['adapterIdentities', 'admission', 'admissionProtocol', 'consumer', 'contextId', 'delivery', 'messages',
       'model', 'modelContract', 'modelIdentity', 'offerId', 'privacy', 'privacyBinding', 'provider', 'recoverable', 'requestId']);
     expect(f.executed).toEqual([{ messages: [user], settings: undefined }]);
     expect(f.seen[0].messages).toEqual([user]);

@@ -170,6 +170,9 @@ var EXECUTION_BACKENDS = freeze({
 });
 var plaintextBackends = Object.keys(EXECUTION_BACKENDS);
 
+// shared/vendor/reploid/mesh/request-delivery.js
+var DELIVERY_STAGES = Object.freeze(["admit", "request"]);
+
 // shared/vendor/reploid/rules/contribution.rules.json
 var contribution_rules_default = {
   outputPointsPer1k: 1,

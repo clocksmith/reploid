@@ -4369,7 +4369,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:19e852b3244e076e28370f14ff22aaf1ac396ad196e43db7b9ea72470ad0b100",
+      "sha256": "sha256:70a6dd262bf4f40e32d6bba07012b67301e01eafc0960c3e2a0135c756a252b3",
       "imports": []
     },
     {
@@ -19288,7 +19288,7 @@
     {
       "path": "vendor/reploid/inference/contract.js",
       "owner": "vendor",
-      "sha256": "sha256:8b980f979c9c08ff729a654602d76c0cefb4bce526bc84fbf6cf4578a081586c",
+      "sha256": "sha256:fc08611ffb8ef5228d7e551c5cea16a10d83e12d20a329fa34a65f39d2f555e4",
       "imports": [
         "../artifacts/signatures.js",
         "../chat/execution-policy.js",
@@ -19298,7 +19298,7 @@
     {
       "path": "vendor/reploid/inference/index.js",
       "owner": "vendor",
-      "sha256": "sha256:712552b05c651003517598cac1fb513492f9b8f0b9b99979a7b510593f2dc4bc",
+      "sha256": "sha256:64d6fe739752022163d074f94f1d7ac4db68dc0c1b797edc0f82de3e007406f9",
       "imports": [
         "../artifacts/signatures.js",
         "./contract.js",
@@ -19872,7 +19872,7 @@
     {
       "path": "vendor/reploid/mesh/peer-generation.js",
       "owner": "vendor",
-      "sha256": "sha256:6dd6537abb9b373c6f77543554f983b8c3d6561f46d1024238b7b0afeaceef6f",
+      "sha256": "sha256:ab4b368279696591a6d0cec351ea93370e0c0fe2baf8dc3878a9f18417a7da17",
       "imports": [
         "../artifacts/generation-terminal.js",
         "../artifacts/receipt.js",
@@ -19890,6 +19890,7 @@
         "./preparation-progress.js",
         "./provider-hardware.js",
         "./remote-generation-requests.js",
+        "./request-delivery.js",
         "./swarm-coordination.js"
       ]
     },
@@ -19937,7 +19938,13 @@
     {
       "path": "vendor/reploid/mesh/remote-generation-requests.js",
       "owner": "vendor",
-      "sha256": "sha256:4af2da6fcaae83e5968a7c568be206bc3b30ab23b743939d711901ca273ea797",
+      "sha256": "sha256:be87149411a012e9ba8a675fd7e47cc004cfa8d41580c33dfb916484a3e156d9",
+      "imports": []
+    },
+    {
+      "path": "vendor/reploid/mesh/request-delivery.js",
+      "owner": "vendor",
+      "sha256": "sha256:14e6a6df2c016601ed6e4a63073e632f0b7704dd3dbdc54d621b6b4cc3e39d8a",
       "imports": []
     },
     {
@@ -20255,7 +20262,7 @@
     {
       "path": "vendor/reploid/transport/message-types.js",
       "owner": "vendor",
-      "sha256": "sha256:060daacb6b7a3f1beaf30a1bc8d9df5d06d86a91470d10494eff9e142f1040e2",
+      "sha256": "sha256:1ee07390b209ebb75627183f6880e113e4cb72fd83cbe7c81b47a64c1468a215",
       "imports": [
         "./circle-join.js",
         "./introductions.js",
@@ -20312,7 +20319,7 @@
     {
       "path": "vendor/reploid/transport/swarm.js",
       "owner": "vendor",
-      "sha256": "sha256:220ecdc6aff8928340477a33ef29838c42eb42f3435a889cb18a3bbe1e7b832f",
+      "sha256": "sha256:a1e4300014dba0ed0fe926128cbf0c4e278a013ba43642c0623a8dbd78a69a90",
       "imports": [
         "../config/index.js",
         "./connection-path.js",

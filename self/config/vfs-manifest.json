@@ -2506,6 +2506,7 @@
     "vendor/reploid/mesh/protected-generation.js",
     "vendor/reploid/mesh/provider-hardware.js",
     "vendor/reploid/mesh/remote-generation-requests.js",
+    "vendor/reploid/mesh/request-delivery.js",
     "vendor/reploid/mesh/swarm-coordination.js",
     "vendor/reploid/mesh/target-scoring.js",
     "vendor/reploid/mesh/web-access-network.js",

@@ -5,6 +5,7 @@ import { publicProviderHardware } from './provider-hardware.js';
 import { identifyComputer } from './computer-identity.js';
 import computerPolicy from './computer-identity.policy.json' with { type: 'json' };
 import { createRemoteGenerationRequests } from './remote-generation-requests.js';
+import { DELIVERY_PROTOCOL, DELIVERY_STAGES, createRequestDelivery, readDelivery } from './request-delivery.js';
 import { createMeshPeerIdentity } from './peer-identity.js';
 import { requireResolvedConfig, snapshotJson } from '../config/index.js';
 import { createPeerAdvertisement, createSwarmController } from './swarm-coordination.js';
@@ -65,6 +66,12 @@ export function createPeerGenerationMesh({ config, ports }) {
   const validatingInbound = new Map();
   // Requests a provider admitted from their details alone and whose prompt has not arrived yet.
   const admitted = new Map(), admitting = new Set();
+  // Admission questions with delivery fields that arrived and are still being inspected, so a repeat waits on them.
+  const admitArrivals = new Set();
+  // Sent on arrival, before any check that awaits: it says the frame arrived, not that it was accepted.
+  const acknowledgeFrame = (remotePeerId, requestId, stage, delivery) => {
+    if (delivery) swarmTransport?.sendToPeer(remotePeerId, 'reploid:request-received', { requestId, stage, attempt: delivery.attempt });
+  };
   const admitsBeforeDisclosure = ports.admitsBeforeDisclosure === true;
   const consumerOrder = [], consumerBuckets = new Map();
   const inboundSettlements = new Set();
@@ -265,6 +272,9 @@ export function createPeerGenerationMesh({ config, ports }) {
     // This provider can decide on a request from its details before the prompt is sent. Advertised only
     // by a host that answers `mesh.admit`, so other advertisements are unchanged.
     if (admitsBeforeDisclosure) advertisement.admissionProtocol = 2;
+    // This provider acknowledges each request frame on arrival and ignores a repeated one, so a requester
+    // may send it again to this same computer. A requester never re-sends to one that does not say so.
+    if (policy.mesh.executeJobs) advertisement.deliveryProtocol = DELIVERY_PROTOCOL;
     // Advertised only by a host that enforces settings, so other advertisements are unchanged.
     const generationSettings = settingsCapability();
     if (generationSettings) advertisement.generationSettings = generationSettings;
@@ -365,6 +375,7 @@ export function createPeerGenerationMesh({ config, ports }) {
       next.modelContract = payload.modelContract || null;
       next.identityProtocol = payload.identityProtocol === 1 ? 1 : null;
       next.admissionProtocol = payload.admissionProtocol === 2 ? 2 : null;
+      next.deliveryProtocol = payload.deliveryProtocol === DELIVERY_PROTOCOL ? DELIVERY_PROTOCOL : null;
       const generationSettings = normalizeGenerationSettingsCapability(payload.generationSettings);
       if (generationSettings) next.generationSettings = generationSettings;
       else delete next.generationSettings;
@@ -406,9 +417,20 @@ export function createPeerGenerationMesh({ config, ports }) {
     return false;
   };
 
+  // The recipient's acknowledgement of a frame. It counts only from that computer on the connection the
+  // request was admitted on, and it settles nothing: it only stops re-sending of that stage.
+  const handleRequestReceived = (remotePeerId, payload = {}) => {
+    const pending = remoteRequests.get(payload?.requestId, remotePeerId);
+    if (!pending?.delivery || !DELIVERY_STAGES.includes(payload.stage)
+      || !pending.admission?.channel || pending.admission.channel !== canonicalConnection(remotePeerId)) return;
+    pending.delivery.acknowledge(payload.stage, Number.isSafeInteger(payload.attempt) ? payload.attempt : null);
+  };
+
   const handleGenerationUpdate = (remotePeerId, payload = {}) => {
     const pending = remoteRequests.get(payload.requestId, remotePeerId);
     if (!pending || pending.processing || pending.admission?.sent === false || !onAdmittedConnection(pending, remotePeerId)) return;
+    // Output also shows the request arrived, even if its acknowledgement did not.
+    pending.delivery?.acknowledge('request');
     const chunk = String(payload.chunk || '');
     try {
       if (chunk) { pending.streamed = true; pending.onUpdate?.(chunk); return; }
@@ -432,8 +454,10 @@ export function createPeerGenerationMesh({ config, ports }) {
       return;
     }
     admission.sent = true;
+    pending.delivery?.acknowledge('admit');
     try {
       if (!admission.send()) remoteRequests.settle(pending, { error: new Error('Failed to send swarm generation request') });
+      else pending.delivery?.sent('request');
     } catch (error) { remoteRequests.settle(pending, { error, cancel: true }); }
   };
 
@@ -441,6 +465,7 @@ export function createPeerGenerationMesh({ config, ports }) {
     const pending = remoteRequests.get(payload.requestId, remotePeerId);
     if (!pending || pending.processing || pending.admission?.sent === false || !onAdmittedConnection(pending, remotePeerId)) return;
     pending.processing = true;
+    pending.delivery?.acknowledge('request');
     const current = () => remoteRequests.get(pending.requestId, remotePeerId) === pending;
     try {
       payload = snapshotJson(payload);
@@ -448,8 +473,9 @@ export function createPeerGenerationMesh({ config, ports }) {
         ? payload.response
         : { content: String(payload.content || ''), raw: String(payload.raw || payload.content || ''),
             model: payload.model || null, provider: payload.provider || null, timestamp: payload.timestamp || Date.now() };
-      // Only this verifier may attach execution evidence to the returned result.
+      // Only this verifier may attach execution evidence or this requester's delivery record to the returned result.
       delete response.executionReceipt;
+      delete response.delivery;
       if (!matchesRequestedModel(response, modelBinding(pending.modelId, pending.modelIdentity))) {
         throw new Error('Remote response substituted the requested model');
       }
@@ -702,6 +728,29 @@ export function createPeerGenerationMesh({ config, ports }) {
     if (closed || !admitsBeforeDisclosure || !policy.mesh.executeJobs || !ready() || !swarmEnabled || !swarmTransport || !identityBundle) return;
     try { payload = snapshotJson(payload); } catch { return; }
     if (!payload || Array.isArray(payload) || typeof payload !== 'object') return;
+    // Delivery fields describe this frame, not the request: they are never decided on or digested.
+    const delivery = readDelivery(payload); delete payload.delivery;
+    let arrival = null;
+    if (delivery) {
+      const requestId = String(payload.requestId || '').trim();
+      if (!requestId || requestId.length > 512) return;
+      const key = `${remotePeerId}:${requestId}`;
+      acknowledgeFrame(remotePeerId, requestId, 'admit', delivery);
+      // A repeated question is answered from what this provider already decided, never decided twice.
+      if (admitArrivals.has(key) || admitting.has(key) || validatingInbound.has(key) || inbound.has(key) || inboundQueued.has(key) || completed.has(key)) return;
+      const entry = admitted.get(key);
+      if (entry) {
+        if (entry.commitment === payload.promptCommitment && entry.channel === canonicalConnection(remotePeerId)) {
+          swarmTransport.sendToPeer(remotePeerId, 'reploid:generation-admitted', { requestId, admissionProtocol: 2, promptCommitment: entry.commitment });
+        }
+        return;
+      }
+      arrival = key; admitArrivals.add(key);
+    }
+    try { await decideAdmission(remotePeerId, payload); }
+    finally { if (arrival) admitArrivals.delete(arrival); }
+  };
+  const decideAdmission = async (remotePeerId, payload) => {
     const request = await inspectRequest(remotePeerId, payload);
     if (!request) return;
     const { requestId, key, refuse } = request;
@@ -766,6 +815,14 @@ export function createPeerGenerationMesh({ config, ports }) {
     const requestId = String(payload.requestId || '').trim();
     if (!messages.length || !requestId || requestId.length > 512) return;
     const key = `${remotePeerId}:${requestId}`;
+    const delivery = readDelivery(payload); delete payload.delivery;
+    if (delivery) {
+      const repeated = validatingInbound.has(key) || inbound.has(key) || inboundQueued.has(key) || completed.has(key);
+      // Only an admitted request, or a repeat of one already received, is acknowledged.
+      if (repeated || admitted.has(key)) acknowledgeFrame(remotePeerId, requestId, 'request', delivery);
+      // A repeat of a request already received is dropped here: it runs and is charged once.
+      if (repeated) return;
+    }
     if (validatingInbound.has(key) || inbound.has(key) || inboundQueued.has(key)) return;
     if (validatingInbound.size >= policy.mesh.maxInboundJobs + policy.mesh.maxPendingJobs) {
       swarmTransport.sendToPeer(remotePeerId, 'reploid:generation-error', { requestId, error: 'Provider is busy' });
@@ -989,6 +1046,7 @@ export function createPeerGenerationMesh({ config, ports }) {
         swarmTransport.onMessage('reploid:generation-request', handleGenerationRequest);
         swarmTransport.onMessage('reploid:generation-admit', handleGenerationAdmit);
         swarmTransport.onMessage('reploid:generation-admitted', handleGenerationAdmitted);
+        swarmTransport.onMessage('reploid:request-received', handleRequestReceived);
         swarmTransport.onMessage('reploid:generation-update', handleGenerationUpdate);
         swarmTransport.onMessage('reploid:generation-result', handleGenerationResult);
         swarmTransport.onMessage('reploid:generation-error', handleGenerationError);
@@ -1198,17 +1256,34 @@ export function createPeerGenerationMesh({ config, ports }) {
       };
       verifyCurrentRecipient();
       admission.channel = canonicalConnection(provider.peerId);
+      const { messages: _messages, settings: _settings, admission: _admission, ...details } = requestPayload;
+      const admitPayload = { ...details, promptCommitment: admission.commitment };
+      const frame = (payload, attempt) => delivery ? { ...payload, delivery: { protocol: DELIVERY_PROTOCOL, attempt } } : payload;
+      // Re-sends go to this provider only, on the connection the request was admitted on, and only while it
+      // is still the computer proven above. Anything else ends the attempt through the existing checks;
+      // choosing another computer still needs an explicit Retry and its own approval.
+      const sameRecipient = () => !closed && !signal?.aborted && canonicalConnection(provider.peerId) === admission.channel
+        && peerIdentity?.getVerified(provider.peerId) === recipientIdentity
+        && JSON.stringify(swarmTransport.getPeerBinding?.(provider.peerId) || null) === connectionBinding;
+      // Only a provider that advertises the delivery protocol acknowledges frames and ignores repeats.
+      // An older provider is never sent a frame twice.
+      const delivery = provider.deliveryProtocol === DELIVERY_PROTOCOL ? createRequestDelivery({
+        ackTimeoutMs: policy.mesh.requestAckTimeoutMs, maxResends: policy.mesh.maxRequestResends,
+        resend: (stage, attempt) => sameRecipient() && swarmTransport.sendToPeer(provider.peerId,
+          stage === 'admit' ? 'reploid:generation-admit' : 'reploid:generation-request',
+          frame(stage === 'admit' ? admitPayload : requestPayload, attempt)) === true }) : null;
       const result = await remoteRequests.start({ requestId, modelId, modelIdentity, adapterIdentities,
         providerPeerId: provider.peerId, providerIdentity: recipientIdentity, messages, onUpdate, signal,
         ...(typeof onUsage === 'function' ? { onUsage } : {}),
-        ...(settings ? { settings, settingsDigest } : {}), admission }, () => {
+        ...(settings ? { settings, settingsDigest } : {}), admission, ...(delivery ? { delivery } : {}) }, () => {
         admission.send = () => {
           signal?.throwIfAborted();
           verifyCurrentRecipient();
-          return swarmTransport.sendToPeer(provider.peerId, 'reploid:generation-request', requestPayload);
+          return swarmTransport.sendToPeer(provider.peerId, 'reploid:generation-request', frame(requestPayload, 1));
         };
-        const { messages: _messages, settings: _settings, admission: _admission, ...details } = requestPayload;
-        return swarmTransport.sendToPeer(provider.peerId, 'reploid:generation-admit', { ...details, promptCommitment: admission.commitment });
+        const sent = swarmTransport.sendToPeer(provider.peerId, 'reploid:generation-admit', frame(admitPayload, 1));
+        if (sent) delivery?.sent('admit');
+        return sent;
       });
       if (affinityKey) {
         contextProviders.delete(affinityKey);

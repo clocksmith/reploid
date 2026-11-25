@@ -51,7 +51,9 @@
     "generationTimeoutMs": 45000,
     "maxPendingJobs": 8,
     "maxInboundJobs": 1,
-    "maxRetainedJobs": 32
+    "maxRetainedJobs": 32,
+    "requestAckTimeoutMs": 1500,
+    "maxRequestResends": 2
   },
   "webrtc": {
     "protocol": "assignment/v1",

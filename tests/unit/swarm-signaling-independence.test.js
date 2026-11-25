@@ -240,32 +240,135 @@ it('creates dedicated job channels with the existing reliable ordered delivery c
   } finally { f.swarm.disconnect(); }
 });
 
-it('rejoins discovery after terminal RTC failure and replaces only the failed channel', async () => {
+const pong = (connection, peerId, i) => connection.channel.onmessage({ data: JSON.stringify({ protocolVersion: 1, type: 'pong',
+  peerId, timestamp: i, payload: { ts: Date.now() }, payloadSize: 0 }) });
+const keepAlive = async (connection, peerId, ms) => {
+  for (let i = 0; i < ms / 100; i++) { pong(connection, peerId, i); await vi.advanceTimersByTimeAsync(100); }
+};
+
+it('recovers a failed channel by offering it again directly, without rejoining healthy discovery', async () => {
   vi.useFakeTimers();
-  const f = fixture();
+  // The lower peer ID re-offers; the higher one waits for it, so the two never cross offers.
+  const f = fixture({ peerId: 'alpha', peerTimeoutMs: 600000 });
   try {
     await f.open();
+    await f.sockets[0].receive({ type: 'peer-joined', peerId: 'healthy' });
     await f.sockets[0].receive({ type: 'offer', peerId: 'healthy', offer: { type: 'offer', sdp: '' } });
     const healthy = f.connections[1];
     healthy.ondatachannel({ channel: healthy.channel }); healthy.channel.onopen();
     f.connections[0].connectionState = 'failed'; f.connections[0].onconnectionstatechange();
     expect(f.connections[0].close).toHaveBeenCalledOnce();
-    for (let i = 0; i < 10; i++) {
-      healthy.channel.onmessage({ data: JSON.stringify({ protocolVersion: 1, type: 'pong',
-        peerId: 'healthy', timestamp: i, payload: { ts: Date.now() }, payloadSize: 0 }) });
-      await vi.advanceTimersByTimeAsync(100);
-    }
-    expect(f.sockets).toHaveLength(2);
-    expect(healthy.close).not.toHaveBeenCalled();
-    f.sockets[1].onopen();
-    await f.sockets[1].receive({ type: 'joined', peerId: 'local', roomId: 'test', peers: ['direct', 'healthy'] });
+    await keepAlive(healthy, 'healthy', 1100);
+    // The control: a dead connection is still recovered, through the discovery connection it already has.
+    expect(f.sockets).toHaveLength(1);
     expect(f.connections).toHaveLength(3);
+    expect(f.sockets[0].send.mock.calls.map(([data]) => JSON.parse(data)).filter(frame => frame.type === 'offer').map(frame => frame.targetPeer))
+      .toEqual(['direct', 'direct']);
     f.connections[2].channel.onopen();
-    expect(f.swarm.getConnectedPeers().map(peer => peer.id).sort()).toEqual(['direct', 'healthy']);
+    expect(f.swarm.getConnectedPeers().map(peer => peer.id).filter(id => id !== 'relay').sort()).toEqual(['direct', 'healthy']);
     expect(healthy.close).not.toHaveBeenCalled();
     // Recovery restores transport capacity, without replaying application requests.
-    expect(f.connections[2].channel.send.mock.calls.map(([message]) => JSON.parse(message).type)).toEqual(['sync-request']);
+    expect(f.connections[2].channel.send.mock.calls.map(([message]) => JSON.parse(message).type).filter(type => type !== 'ping')).toEqual(['sync-request']);
   } finally { f.swarm.disconnect(); }
+});
+
+it('rejoins discovery to recover a failed channel when discovery itself is down', async () => {
+  vi.useFakeTimers();
+  const f = fixture({ peerTimeoutMs: 600000 });
+  try {
+    await f.open();
+    f.sockets[0].close();
+    f.connections[0].connectionState = 'failed'; f.connections[0].onconnectionstatechange();
+    await vi.advanceTimersByTimeAsync(1100);
+    expect(f.sockets).toHaveLength(2);
+    f.sockets[1].onopen();
+    await f.sockets[1].receive({ type: 'joined', peerId: 'local', roomId: 'test', peers: ['direct'] });
+    expect(f.connections).toHaveLength(2);
+    f.connections[1].channel.onopen();
+    expect(f.swarm.getConnectedPeers().map(peer => peer.id)).toEqual(['direct']);
+  } finally { f.swarm.disconnect(); }
+});
+
+describe('healthy discovery is not rejoined', () => {
+  const offersTo = f => f.sockets[0].send.mock.calls.map(([data]) => JSON.parse(data)).filter(frame => frame.type === 'offer').map(frame => frame.targetPeer);
+
+  it('when a visitor offers and leaves before its channel opens', async () => {
+    vi.useFakeTimers();
+    const f = fixture({ peerTimeoutMs: 600000 });
+    try {
+      await f.open();
+      for (const visitor of ['visitor-1', 'visitor-2', 'visitor-3']) {
+        await f.sockets[0].receive({ type: 'peer-joined', peerId: visitor });
+        await f.sockets[0].receive({ type: 'offer', peerId: visitor, offer: { type: 'offer', sdp: '' } });
+        await f.sockets[0].receive({ type: 'peer-left', peerId: visitor });
+      }
+      // Its unfinished negotiation ends at once, so neither ICE failure nor the connect deadline can follow it.
+      expect(f.connections.slice(1).every(connection => connection.close.mock.calls.length === 1)).toBe(true);
+      expect(f.swarm.getPeerStates().filter(peer => peer.id.startsWith('visitor')).every(peer => peer.phase === 'disconnected')).toBe(true);
+      f.connections[1].connectionState = 'failed'; f.connections[1].onconnectionstatechange();
+      await keepAlive(f.connections[0], 'direct', 40000);
+      expect(f.sockets).toHaveLength(1);
+      expect(f.connections).toHaveLength(4);
+      expect(f.connections[0].close).not.toHaveBeenCalled();
+      expect(f.swarm.getConnectedPeers().map(peer => peer.id).filter(id => id !== 'relay')).toEqual(['direct']);
+    } finally { f.swarm.disconnect(); }
+  });
+
+  it('when a connected peer closes its page', async () => {
+    vi.useFakeTimers();
+    const f = fixture({ peerId: 'alpha', peerTimeoutMs: 600000 });
+    try {
+      await f.open();
+      await f.sockets[0].receive({ type: 'offer', peerId: 'leaving', offer: { type: 'offer', sdp: '' } });
+      const leaving = f.connections[1];
+      leaving.ondatachannel({ channel: leaving.channel }); leaving.channel.onopen();
+      await f.sockets[0].receive({ type: 'peer-joined', peerId: 'leaving' });
+      // The channel closes before the directory reports the departure, the order a page close produces.
+      leaving.channel.onclose();
+      await f.sockets[0].receive({ type: 'peer-left', peerId: 'leaving' });
+      await keepAlive(f.connections[0], 'direct', 40000);
+      expect(f.sockets).toHaveLength(1);
+      expect(offersTo(f)).toEqual(['direct']);
+      expect(f.connections).toHaveLength(2);
+    } finally { f.swarm.disconnect(); }
+  });
+
+  it('and the higher peer ID waits for the other side to offer again, keeping its other channels', async () => {
+    vi.useFakeTimers();
+    const f = fixture({ peerId: 'zulu', peerTimeoutMs: 600000 });
+    try {
+      await f.open();
+      f.connections[0].connectionState = 'failed'; f.connections[0].onconnectionstatechange();
+      await vi.advanceTimersByTimeAsync(40000);
+      expect(f.sockets).toHaveLength(1);
+      expect(offersTo(f)).toEqual(['direct']);
+      await f.sockets[0].receive({ type: 'offer', peerId: 'direct', offer: { type: 'offer', sdp: '' } });
+      f.connections[1].ondatachannel({ channel: f.connections[1].channel }); f.connections[1].channel.onopen();
+      expect(f.swarm.getConnectedPeers().map(peer => peer.id).filter(id => id !== 'relay')).toEqual(['direct']);
+    } finally { f.swarm.disconnect(); }
+  });
+
+  it('and gives up a direct reconnection after its bounded attempts', async () => {
+    vi.useFakeTimers();
+    const f = fixture({ peerId: 'alpha', peerTimeoutMs: 600000 });
+    try {
+      await f.open();
+      // Every attempt fails, as one to a computer that can never be reached would.
+      for (let i = 0; i < 8; i++) {
+        const latest = f.connections.at(-1);
+        latest.connectionState = 'failed'; latest.onconnectionstatechange();
+        await vi.advanceTimersByTimeAsync(40000);
+      }
+      expect(f.sockets).toHaveLength(1);
+      // The first offer, then five bounded re-offers with growing delays.
+      expect(offersTo(f)).toHaveLength(6);
+      // The directory reporting the peer again starts over: it offers itself, and this side accepts.
+      await f.sockets[0].receive({ type: 'peer-joined', peerId: 'direct' });
+      await f.sockets[0].receive({ type: 'offer', peerId: 'direct', offer: { type: 'offer', sdp: '' } });
+      f.connections.at(-1).ondatachannel({ channel: f.connections.at(-1).channel }); f.connections.at(-1).channel.onopen();
+      expect(f.swarm.getConnectedPeers().map(peer => peer.id).filter(id => id !== 'relay')).toEqual(['direct']);
+    } finally { f.swarm.disconnect(); }
+  });
 });
 
 it('cancels terminal peer recovery on explicit disconnect', async () => {
@@ -360,6 +463,8 @@ it('retains attempt identity through disconnect and ignores stale channel and au
     expect(first.authenticated).toBe(false);
     f.swarm.observePeerAuthentication('direct', first.attemptId);
     expect(f.swarm.getPeerStates().find(peer => peer.id === 'direct').authenticated).toBe(true);
+    // Discovery is down too, so recovery rejoins it and offers again from the fresh peer list.
+    f.sockets[0].close();
     stale.connectionState = 'failed'; stale.onconnectionstatechange();
     expect(f.swarm.getPeerStates().find(peer => peer.id === 'direct')).toMatchObject({ attemptId: first.attemptId, phase: 'failed' });
     await vi.advanceTimersByTimeAsync(1000); f.sockets[1].onopen();

@@ -15,6 +15,7 @@ export interface Configuration {
   mesh: { enabled: boolean; executeJobs: boolean; supplyArtifacts: boolean; shareCandidates: boolean;
     roomId: string | null; routing: 'local-only' | 'local-first' | 'remote-only';
     generationTimeoutMs: number; maxPendingJobs: number; maxInboundJobs: number; maxRetainedJobs: number;
+    requestAckTimeoutMs: number; maxRequestResends: number;
   };
   webrtc: { protocol: 'assignment/v1' | 'swarm/v1'; signalingUrl: string | null;
     rtcConfig: { iceServers: { urls: string | string[] }[]; iceTransportPolicy: 'all' | 'relay' };

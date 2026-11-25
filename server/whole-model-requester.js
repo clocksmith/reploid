@@ -34,7 +34,9 @@ function projectResult(request, result, providerId, providerIdentity) {
     adapterIdentities: partitionAdapterIdentities(model), content: result.content, ownerPolicyDigest: result.ownerPolicyDigest ?? null,
     usage: { schema: 'raw-model-tokens/v1', inputTokens: completion.promptTokenCount, outputTokens: completion.generatedTokenCount },
     execution: { placement: 'peer-whole-request', providerId, completion, providerIdentity: providerIdentity ?? null,
-      receipt: result.executionReceipt ?? null, stopReason: completion.stopReason, hardware: result.hardware ?? null, timing: result.timing ?? null } };
+      receipt: result.executionReceipt ?? null, stopReason: completion.stopReason, hardware: result.hardware ?? null, timing: result.timing ?? null,
+      // This requester's record of each request frame, re-send and acknowledgement (delivery protocol 1).
+      ...(result.delivery ? { delivery: structuredClone(result.delivery) } : {}) } };
 }
 
 export function createWholeModelRequester({ mesh, models }) {

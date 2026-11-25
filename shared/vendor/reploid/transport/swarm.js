@@ -71,6 +71,9 @@ const WebRTCSwarm = {
     let attemptSequence = 0;
     let _cancelConnect = null;
     let _peers = new Map(); // peerId -> { connection, dataChannel, metadata, status, lastSeen }
+    // Who the directory last said is in the room, and the bounded direct reconnections to them.
+    const _roomPeers = new Set(), _directRetries = new Map();
+    const MAX_DIRECT_RETRIES = 5;
     const auxiliaryHandlers = new Map(), auxiliaryChannels = new WeakMap();
     const retainAuxiliary = (peer, channel) => {
       let channels = auxiliaryChannels.get(peer);
@@ -548,6 +551,8 @@ const WebRTCSwarm = {
 
         case 'joined':
           logger.info(`[WebRTCSwarm] Joined room ${message.roomId}, existing peers: ${message.peers?.length || 0}`);
+          _roomPeers.clear(); cancelDirectRetries();
+          for (const remotePeerId of (message.peers || [])) _roomPeers.add(remotePeerId);
           // Connect to existing peers
           for (const remotePeerId of (message.peers || [])) {
             if (_manualStop) return;
@@ -557,6 +562,8 @@ const WebRTCSwarm = {
 
         case 'peer-joined':
           logger.info(`[WebRTCSwarm] Peer joined: ${message.peerId}`);
+          // A peer that joins offers to the room itself, so any pending reconnection to it gives way.
+          _roomPeers.add(message.peerId); cancelDirectRetries(message.peerId);
           if (message.metadata?.transport === 'signaling-relay') {
             registerRelayPeer(message.peerId, message.metadata);
           }
@@ -565,10 +572,16 @@ const WebRTCSwarm = {
 
         case 'peer-left':
           logger.info(`[WebRTCSwarm] Peer left: ${message.peerId}`);
+          _roomPeers.delete(message.peerId); cancelDirectRetries(message.peerId);
           // Directory presence does not determine direct channel liveness.
           if (_peers.get(message.peerId)?.transport === 'signaling-relay') {
             removePeer(message.peerId);
             EventBus.emit('swarm:peer-left', { peerId: message.peerId });
+          } else {
+            // A negotiation that never opened cannot finish once its peer has left the directory. End it now,
+            // with no recovery: nothing failed here, and waiting for ICE to give up would only end in a rejoin.
+            const pending = _peers.get(message.peerId);
+            if (pending && !pending.exchange && pending.dataChannel?.readyState !== 'open') removePeer(message.peerId);
           }
           break;
 
@@ -696,6 +709,9 @@ const WebRTCSwarm = {
     const handleOffer = async (remotePeerId, offer, exchange = null) => {
       if (_manualStop) return;
       if (_peers.get(remotePeerId)?.dataChannel?.readyState === 'open') return;
+      // Crossing offers on a reconnection: the lower peer ID keeps its own and the other side accepts it.
+      const pendingOffer = _peers.get(remotePeerId);
+      if (!exchange && !pendingOffer?.exchange && pendingOffer?.connection?.signalingState === 'have-local-offer' && _peerId < remotePeerId) return;
       if (_peers.has(remotePeerId)) removePeer(remotePeerId, Boolean(exchange));
       logger.info(`[WebRTCSwarm] Received offer from: ${remotePeerId}`);
 
@@ -751,6 +767,8 @@ const WebRTCSwarm = {
      */
     const handleAnswer = async (remotePeerId, answer) => {
       const peer = _peers.get(remotePeerId);
+      // An answer to an offer this side already withdrew is stale, not a signaling failure.
+      if (peer?.connection?.signalingState && peer.connection.signalingState !== 'have-local-offer') return;
       if (peer) {
         await peer.connection.setRemoteDescription(answer);
         await flushPendingIceCandidates(remotePeerId, peer.connection);
@@ -803,6 +821,7 @@ const WebRTCSwarm = {
         reportPeerProgress(peer, 'connected');
         refreshPeerPath(peer);
         clearTimeout(negotiationTimers.get(remotePeerId)); negotiationTimers.delete(remotePeerId);
+        cancelDirectRetries(remotePeerId);
         introductions?.settled(remotePeerId);
         startHeartbeat();
         if (!_signalingWs && !adapter) setConnectionState('connected');
@@ -886,16 +905,45 @@ const WebRTCSwarm = {
       _latencyByPeer.delete(remotePeerId);
     };
 
-    // A healthy rendezvous does not emit another peer-joined event after an ICE
-    // connection fails. Rejoin through its existing bounded backoff to obtain a
+    // Discovery is joined and its socket (or adapter) is up, so it can still carry a new offer.
+    const signalingHealthy = () => !_manualStop && !_reconnectTimer && _connectionState === 'connected'
+      && (!!adapter || !!_signalingWs && _signalingWs.readyState === WebSocket?.OPEN);
+    const cancelDirectRetries = (remotePeerId = null) => {
+      for (const [id, entry] of _directRetries) {
+        if (remotePeerId !== null && id !== remotePeerId) continue;
+        clearTimeout(entry.timer); _directRetries.delete(id);
+      }
+    };
+    // One peer reconnects to one peer through the discovery connection it already has, with its own bounded
+    // backoff. Only the lower peer ID offers, so the two sides never cross offers; the other waits for it.
+    const scheduleDirectRetry = (remotePeerId, retryAfterMs = 0) => {
+      if (!_roomPeers.has(remotePeerId) || !(_peerId < remotePeerId)) return;
+      const entry = _directRetries.get(remotePeerId) || { attempt: 0, timer: null };
+      if (entry.timer || entry.attempt >= MAX_DIRECT_RETRIES) return;
+      entry.attempt++;
+      const delay = Math.max(Math.min(CONFIG.reconnectBaseMs * 2 ** (entry.attempt - 1), MAX_BACKOFF_MS),
+        Number.isFinite(retryAfterMs) ? Math.min(Math.max(retryAfterMs, 0), 2147483647) : 0);
+      entry.timer = setTimeout(() => {
+        entry.timer = null;
+        if (_manualStop || !_roomPeers.has(remotePeerId) || _peers.has(remotePeerId) || !signalingHealthy()) return;
+        connectToPeer(remotePeerId).catch(error => logger.warn('[WebRTCSwarm] Direct reconnection failed:', error));
+      }, delay);
+      _directRetries.set(remotePeerId, entry);
+    };
+
+    // Recovering one failed or closed connection does not need a new discovery session while discovery
+    // itself is healthy: a peer that left the directory needs nothing, and one still in it is offered again
+    // directly. Only a discovery connection that is down rejoins, through its bounded backoff, to obtain a
     // fresh admitted peer list; connectToPeer preserves still-open channels.
     // This restores transport only. Retired requests are never replayed here.
     const recoverPeer = (remotePeerId, peer, phase = 'disconnected', failure = null, retryAfterMs = 0) => {
       if (_peers.get(remotePeerId) !== peer) return;
       peer.phase = phase; peer.failure = failure;
       removePeer(remotePeerId);
-      // A credential issuer's retry deadline still bounds the rejoin.
-      if (!peer.exchange && peer.transport !== 'signaling-relay') scheduleReconnect(retryAfterMs);
+      if (peer.exchange || peer.transport === 'signaling-relay') return;
+      // A credential issuer's retry deadline still bounds either path.
+      if (signalingHealthy()) scheduleDirectRetry(remotePeerId, retryAfterMs);
+      else scheduleReconnect(retryAfterMs);
     };
 
     /**
@@ -1133,6 +1181,7 @@ const WebRTCSwarm = {
         clearTimeout(_reconnectTimer);
         _reconnectTimer = null;
       }
+      cancelDirectRetries(); _roomPeers.clear();
       setConnectionState('stopping');
       stopHeartbeat();
 

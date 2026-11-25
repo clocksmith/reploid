@@ -209,17 +209,32 @@ export function readExecutorResult(plan, raw, streamed) {
       finishReason: stopReason === null ? 'unknown' : ['length', 'max-tokens', 'context-limit'].includes(stopReason) ? 'length' : 'stop' },
     usage,
     settlement: raw.serviceCredit ?? raw.execution?.serviceCredit ?? null,
-    providerReceipt: raw.execution?.executionReceipt ?? raw.execution?.receipt ?? null
+    providerReceipt: raw.execution?.executionReceipt ?? raw.execution?.receipt ?? null,
+    timeline: deliveryTimeline(raw.execution?.delivery)
   };
+}
+
+const DELIVERY_EVENTS = ['sent', 'resent', 'received'], DELIVERY_STAGES = ['admit', 'request'];
+/** This requester's own record of how its request frames reached the recipient: each send, each re-send to
+ * the same recipient, and each acknowledgement, in milliseconds from the first frame. Null when none was kept. */
+export function deliveryTimeline(delivery) {
+  if (!object(delivery) || delivery.protocol !== 1 || !Array.isArray(delivery.timeline) || delivery.timeline.length > 64) return null;
+  const rows = delivery.timeline.filter(row => object(row) && DELIVERY_EVENTS.includes(row.event) && DELIVERY_STAGES.includes(row.stage)
+    && Number.isSafeInteger(row.attempt) && row.attempt > 0 && Number.isFinite(row.at) && row.at >= 0)
+    .map(({ event, stage, attempt, at }) => ({ event, stage, attempt, at }));
+  return rows.length ? rows : null;
 }
 
 const NOT_CONFIDENTIAL = ['recipient-conduct', 'erasure', 'hardware-attestation', 'cryptographic-protection'];
 
 /** The receipt binds the requested policy, the actual route, backend and protocol identity, and the disclosures. */
-export async function executionReceipt({ plan, requestId, attemptId, status, admitted, read = null }) {
+export async function executionReceipt({ plan, requestId, attemptId, status, admitted, read = null, timeline = null }) {
   const local = admitted?.shape === 'local';
+  timeline = read?.timeline ?? timeline;
   return freezeDeep({
     schema: EXECUTION_RECEIPT_SCHEMA, api: INFERENCE_API_VERSION, requestId, attemptId, planId: plan.id, status,
+    // Observed by this requester and not signed by the provider. Present only when the route kept one.
+    ...(timeline ? { timeline: structuredClone(timeline) } : {}),
     requested: { model: structuredClone(plan.route.model), execution: structuredClone(plan.execution), policyId: plan.policyId },
     route: admitted ? { planRouteId: plan.route.id, admittedRouteId: admitted.id, policyId: admitted.policyId, shape: admitted.shape,
       participants: [...admitted.participants], backend: admitted.backend, protocol: admitted.protocol, planIdentity: plan.route.planIdentity } : null,

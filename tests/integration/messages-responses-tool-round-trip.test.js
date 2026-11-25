@@ -102,7 +102,7 @@ const whileHeld = async reading => {
   try { return await Promise.race([reading, new Promise((_, reject) => { timer = setTimeout(() => reject(Error('Nothing reached the client while the provider was held open')), 2000); })]); }
   finally { clearTimeout(timer); }
 };
-const requestKeys = ['adapterIdentities', 'admission', 'admissionProtocol', 'consumer', 'contextId', 'messages', 'model', 'modelContract', 'modelIdentity', 'offerId', 'privacy', 'privacyBinding', 'provider', 'recoverable', 'requestId'];
+const requestKeys = ['adapterIdentities', 'admission', 'admissionProtocol', 'consumer', 'contextId', 'delivery', 'messages', 'model', 'modelContract', 'modelIdentity', 'offerId', 'privacy', 'privacyBinding', 'provider', 'recoverable', 'requestId'];
 
 it('streams a Messages answer on a whole-model route while the provider is still generating, opening with its reported input count', async () => {
   // The scripted model stops before its third token until the test has read the first text from HTTP.

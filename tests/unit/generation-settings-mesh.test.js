@@ -182,9 +182,12 @@ it('binds the digest into replay admission, signed cleanup and recovery', async 
   await vi.waitFor(() => expect(f.wire.some(item => item.type === 'reploid:generation-result')).toBe(true));
   controller.abort(Error('disconnected')); await rejected;
   // The same request id with other settings, or none, is a different binding and is not executed.
-  await f.replay({ settings: normalizeGenerationSettings({ maxOutputTokens: 3 }) });
-  await f.replay({}, ['settings']);
+  // Without delivery fields the replay reaches the binding checks; with them it is a repeat of a request
+  // already received and is dropped before them. Neither runs again.
+  await f.replay({ settings: normalizeGenerationSettings({ maxOutputTokens: 3 }) }, ['delivery']);
+  await f.replay({}, ['settings', 'delivery']);
   expect(sent(f, 'reploid:generation-error').map(payload => payload.error)).toEqual(['Execution admission rejected', 'Execution admission rejected']);
+  await f.replay({ settings: normalizeGenerationSettings({ maxOutputTokens: 3 }) });
   expect(f.executions).toBe(1);
   await f.restartProvider();
   await expect(f.recover()).rejects.toThrow('Unverified recovered completion');
@@ -325,7 +328,7 @@ it('sends one early input count ahead of the text, drops any other report, and a
   expect(sent(f, 'reploid:generation-update').filter(update => update.requestId === second.requestId)).toEqual([
     { requestId: second.requestId, usage: { inputTokens: 7 } }, { requestId: second.requestId, chunk: 'actual ' }, { requestId: second.requestId, chunk: 'answer' }]);
   expect(Object.keys(second).sort()).toEqual(Object.keys(first).sort());
-  expect(Object.keys(second).sort()).toEqual(['adapterIdentities', 'admission', 'admissionProtocol', 'consumer', 'messages', 'model', 'modelContract', 'modelIdentity', 'offerId', 'privacy', 'privacyBinding', 'provider', 'requestId']);
+  expect(Object.keys(second).sort()).toEqual(['adapterIdentities', 'admission', 'admissionProtocol', 'consumer', 'delivery', 'messages', 'model', 'modelContract', 'modelIdentity', 'offerId', 'privacy', 'privacyBinding', 'provider', 'requestId']);
   expect(f.errors).toEqual([]);
 });
 

@@ -12,6 +12,8 @@ import { openNativeGenerationJournal } from '../../server/native-generation-jour
 export async function createRecoveryMesh(cleanup, { execute, settle = async () => true, identities: suppliedIdentities,
   modelId = 'model', modelIdentity = 'sha256:' + 'a'.repeat(64), messages = [{ role: 'user', content: 'original prompt' }],
   authorize = async () => true, onGenerationTerminal, result, ports = () => ({}), intercept = null,
+  // `drop(type, payload, senderIndex)` true loses that frame on the link; `wire` still records it was sent.
+  drop = () => false,
   // False models a provider host that predates admission: it does not advertise it and is never asked.
   admitsBeforeDisclosure = true,
   // Mesh settings for mesh `i` (0 requester, 1 provider), merged over the fixture's own.
@@ -26,6 +28,7 @@ export async function createRecoveryMesh(cleanup, { execute, settle = async () =
   const deliver = (i, type, payload) => {
     payload = structuredClone(payload); wire.push({ i, type, payload });
     if (dropResults && type === 'reploid:generation-result') return true;
+    if (drop(type, payload, i)) return true;
     // `intercept(type, payload, senderIndex)` may alter what is delivered; `wire` keeps what was sent.
     // It may return a promise (for example to sign a forged receipt): delivery then waits for it.
     let altering;
