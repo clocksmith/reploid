@@ -158,11 +158,14 @@ export async function scanHostWeights({ roots, allRanges, stageRanges, fullCopyD
  * owner permission, not a sandbox: root, or this user deliberately changing the mode back, is not stopped by it.
  * `mode` reads the current mode, `lock` sets 000, `unlock` restores the mode the caller recorded.
  */
-export async function lockDirectory({ directory, action, mode = null }) {
+export async function lockDirectory({ directory, action, mode = null }, { platform = process.platform, exec = run, canList = listable } = {}) {
   if (typeof directory !== 'string' || !path.isAbsolute(directory) || path.resolve(directory) !== directory) throw coded('lock-refused', 'not an exact absolute path');
+  // A directory Windows denies this user may not answer a stat either; its restore is checked by listing it instead.
+  if (platform === 'win32' && action === 'unlock') return windowsLock({ directory, action, current: mode }, { exec, canList });
   const stat = await fs.lstat(directory).catch(() => null);
   if (!stat?.isDirectory() || await fs.realpath(directory) !== directory) throw coded('lock-refused', 'not a real directory');
   const current = stat.mode & 0o7777;
+  if (platform === 'win32') return windowsLock({ directory, action, current }, { exec, canList });
   if (action === 'mode') return { mode: current };
   if (action === 'lock') { await fs.chmod(directory, 0o000); return { locked: true, previousMode: current }; }
   if (action === 'unlock') {
@@ -172,6 +175,34 @@ export async function lockDirectory({ directory, action, mode = null }) {
     return { restored: true, mode: (await fs.stat(directory)).mode & 0o7777 };
   }
   throw coded('lock-refused', 'unknown action');
+}
+
+const listable = directory => fs.readdir(directory).then(() => true, () => false);
+
+/**
+ * Windows has no owner mode that hides a directory: chmod there only toggles the read-only attribute. The same
+ * restriction is an access-control entry that denies this user read and list on the directory and, by inheritance,
+ * on everything in it; removing the entry restores it. As with the POSIX mode it is owner permission, not a sandbox.
+ * Each step is checked by trying to list the directory, and a lock that did not take is removed again.
+ * Not yet run on a Windows host.
+ */
+async function windowsLock({ directory, action, current }, { exec, canList }) {
+  if (action === 'mode') return { mode: current };
+  if (action !== 'lock' && action !== 'unlock') throw coded('lock-refused', 'unknown action');
+  const { stdout } = await exec('whoami.exe', ['/user', '/fo', 'csv', '/nh']);
+  const sid = /"(S-1-[0-9-]{5,180})"\s*$/.exec(String(stdout).trim())?.[1];
+  if (!sid) throw coded('lock-refused', 'no user identity to restrict');
+  if (action === 'lock') {
+    await exec('icacls.exe', [directory, '/deny', `*${sid}:(OI)(CI)(RX)`]);
+    if (await canList(directory)) {
+      await exec('icacls.exe', [directory, '/remove:d', `*${sid}`]).catch(() => {});
+      throw coded('lock-failed', 'the directory can still be listed');
+    }
+    return { locked: true, previousMode: current };
+  }
+  await exec('icacls.exe', [directory, '/remove:d', `*${sid}`]);
+  if (!await canList(directory)) throw coded('lock-refused', 'the directory is still not readable');
+  return { restored: true, mode: current };
 }
 
 /** Throws MISSING_WEIGHTS or WRONG_WEIGHTS unless the directory is this exact model with every shard at full size. */

@@ -179,6 +179,48 @@ describe('remote kill', () => {
 });
 
 describe('the standing service', () => {
+  // The Windows lock through an injected exec and listing probe. No Windows machine has run it.
+  describe('the full-copy lock on Windows', () => {
+    const SID = 'S-1-5-21-1111111111-2222222222-3333333333-1001';
+    const whoami = `"example\\operator","${SID}"\r\n`;
+    const ports = ({ lists }) => {
+      const answers = [...lists];
+      const exec = vi.fn(async command => ({ stdout: command === 'whoami.exe' ? whoami : 'processed file\r\n' }));
+      return { platform: 'win32', exec, canList: vi.fn(async () => answers.shift()) };
+    };
+
+    it('denies this user read and list, and checks that the directory can no longer be listed', async () => {
+      const options = ports({ lists: [false] });
+      expect(await lockDirectory({ directory: root, action: 'lock' }, options)).toMatchObject({ locked: true });
+      expect(options.exec.mock.calls.map(call => [call[0], call[1]])).toEqual([['whoami.exe', ['/user', '/fo', 'csv', '/nh']],
+        ['icacls.exe', [root, '/deny', `*${SID}:(OI)(CI)(RX)`]]]);
+    });
+
+    it('removes a lock that did not take, and says so', async () => {
+      const options = ports({ lists: [true] });
+      await expect(lockDirectory({ directory: root, action: 'lock' }, options)).rejects.toMatchObject({ code: 'lock-failed' });
+      expect(options.exec).toHaveBeenLastCalledWith('icacls.exe', [root, '/remove:d', `*${SID}`]);
+    });
+
+    it('restores by removing the denial, without needing to stat the locked directory, and checks it lists again', async () => {
+      const gone = path.join(root, 'not-statable');
+      const options = ports({ lists: [true] });
+      expect(await lockDirectory({ directory: gone, action: 'unlock', mode: 0o666 }, options)).toEqual({ restored: true, mode: 0o666 });
+      expect(options.exec).toHaveBeenLastCalledWith('icacls.exe', [gone, '/remove:d', `*${SID}`]);
+      await expect(lockDirectory({ directory: root, action: 'unlock', mode: 0o666 }, ports({ lists: [false] }))).rejects.toMatchObject({ code: 'lock-refused' });
+    });
+
+    it('reads the mode without changing anything, and refuses when it cannot name the user', async () => {
+      const options = ports({ lists: [] });
+      expect(await lockDirectory({ directory: root, action: 'mode' }, options)).toHaveProperty('mode');
+      expect(options.exec).not.toHaveBeenCalled();
+      const nameless = { platform: 'win32', exec: vi.fn(async () => ({ stdout: 'ERROR: access denied\r\n' })), canList: vi.fn() };
+      await expect(lockDirectory({ directory: root, action: 'lock' }, nameless)).rejects.toMatchObject({ code: 'lock-refused' });
+      expect(nameless.exec).toHaveBeenCalledTimes(1);
+      await expect(lockDirectory({ directory: root, action: 'erase' }, ports({ lists: [] }))).rejects.toMatchObject({ code: 'lock-refused' });
+    });
+  });
+
   it('acts only on the one named unit', async () => {
     const exec = vi.fn(async () => ({ stdout: 'active\n' }));
     expect(await serviceAction({ manager: 'systemd-user', unit: 'worker.service', action: 'is-active' }, exec)).toEqual({ state: 'active' });
