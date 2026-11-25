@@ -397,14 +397,6 @@ export async function runSecretShared({ config, directory, log = () => {}, now =
         ...(latest ? { acknowledgedReceipt: latest.receipt } : {}), ...(held.stop ? { stop: held.stop } : {}) };
       try { await credits.settle(reservationId, evidence); record.settleError = null; }
       catch (error) { record.settleError = String(error?.message ?? error); }
-      if (credits.request(reservationId)?.state !== 'settled' && record.closing.some(row => row.died)) {
-        // A share that died left no close: the ledger finalizes the attempt once the release window has passed.
-        const binding = credits.request(reservationId).binding;
-        const finalAt = binding.deadline + credits.policy.partitionUnclaimedReleaseMs + credits.policy.maxClockSkewMs + 1000;
-        record.finalization = { waitingUntil: new Date(finalAt).toISOString(), rule: 'verified provider failure: a stage without a counting close after the release window' };
-        while (now() < finalAt + 15000 && credits.request(reservationId)?.state !== 'settled') { credits.expire(); await delay(2000); }
-        record.finalization.finalizedAt = stamp();
-      }
       record.settlement = await ledgerTrace(credits, reservationId);
       const records = [held.terms, ...held.acceptances, ...(held.stop ? [held.stop] : []), ...held.acks, ...held.edge.in.filter(Boolean), ...held.edge.out.filter(Boolean),
         closingIn, closingOut, ...agentRecords.flatMap(row => row.records.filter(item => item.schema !== 'reploid.settlement-acceptance/v1'))].filter(Boolean);
