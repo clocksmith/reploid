@@ -63,6 +63,9 @@ export function buildFleetRequestOutcome({
   });
 }
 
+/** How long a stopped split answer waits for the ledger to take the requester's stop before the stages are stopped. */
+const STOP_HANDOFF_MS = 2000;
+
 /** Compose credit admission with the native requester's existing disclosure gate. */
 export function createFleetRequester({
   participant, identity, credits, maxOutputTokens,
@@ -79,8 +82,9 @@ export function createFleetRequester({
    * receipt countersigned before the stop would have had to reach the ledger first; the ledger refuses the later one.
    * A lost connection is not a stop: its answer stays recoverable until the deadline plus the release window.
    */
-  const settleStop = async binding => credits.settle(binding.id, await signSettlementStop({ signer: createAttemptEvidenceSigner({ identity }),
-    acknowledged: 0, terms: { requesterId: identity.peerId, reservationId: binding.id, attemptId: binding.executionId } }));
+  const signStop = (binding, acknowledged) => signSettlementStop({ signer: createAttemptEvidenceSigner({ identity }), acknowledged,
+    terms: { requesterId: identity.peerId, reservationId: binding.id, attemptId: binding.executionId } });
+  const settleStop = async binding => credits.settle(binding.id, await signStop(binding, 0));
   return Object.freeze({
     async generate(request, controls) {
       request = structuredClone(request);
@@ -114,8 +118,27 @@ export function createFleetRequester({
       const settingsDigest = settings ? await effectiveRequestDigest({ modelIdentity: request.model.identity,
         adapterIdentities: partitionAdapterIdentities(request.model), messages: request.messages, settings }) : null;
       let reservation = null, dispatched = false, abandoned = false, acknowledgments = null, routeIdentity = null, observeOutput = null;
-      let disclosedProviderId = null, disclosedProviderIdentity = null, deltaCount = 0, outputCharacters = 0;
-      const wrapped = { ...controls,
+      let disclosedProviderId = null, disclosedProviderIdentity = null, deltaCount = 0, outputCharacters = 0, splitStop = null;
+      // A split answer the person stops: the requester signs its stop and hands it to the ledger before the stages are
+      // told to stop, so the ledger has it before any stage closes. With it the ledger charges the acknowledged prefix;
+      // without it, an unfinished answer that a stage closed reads as the stage ending it, which is free (the
+      // settlement replay's rule, docs/settlement-replay.md step 9). A lost connection is not a stop and signs nothing.
+      const forwarded = partition ? new AbortController() : null;
+      const forwardAbort = () => {
+        const reason = controls.signal.reason;
+        if (!(reason?.requesterStop === true && reservation && dispatched && acknowledgments)) return forwarded.abort(reason);
+        const sent = (async () => {
+          splitStop = await signStop(reservation, acknowledgments.state().count);
+          await credits.collect(reservation.id, { identity: routeIdentity, receipts: [], stop: splitStop });
+        })().catch(() => {});
+        // Bounded: an unreachable ledger never holds the stop back; the closing evidence carries the stop again.
+        Promise.race([sent, new Promise(resolve => setTimeout(resolve, STOP_HANDOFF_MS).unref?.())]).then(() => forwarded.abort(reason));
+      };
+      if (forwarded) {
+        if (controls.signal.aborted) forwarded.abort(controls.signal.reason);
+        else controls.signal.addEventListener('abort', forwardAbort, { once: true });
+      }
+      const wrapped = { ...controls, ...(forwarded ? { signal: forwarded.signal } : {}),
         ...(controls.onDelta ? {
           onDelta(value) {
             const chunk = typeof value === 'string' ? value : typeof value?.text === 'string' ? value.text : '';
@@ -184,6 +207,7 @@ export function createFleetRequester({
       let result, failure;
       try { result = await participant.generate(request, wrapped); }
       catch (error) { failure = error; }
+      finally { if (forwarded) controls.signal.removeEventListener('abort', forwardAbort); }
       if (!reservation || !dispatched) {
         const recordedAt = Date.now();
         const outcome = buildFleetRequestOutcome({
@@ -221,7 +245,7 @@ export function createFleetRequester({
           const evidence = { identity: routeIdentity,
             receipts: (closing?.cleanup || []).flatMap(row => row?.receipt ? [row.receipt] : []),
             acknowledgment: pair?.acknowledgment ?? acknowledgments.charge,
-            ...(pair ? { acknowledgedReceipt: pair.receipt } : {}) };
+            ...(pair ? { acknowledgedReceipt: pair.receipt } : {}), ...(splitStop ? { stop: splitStop } : {}) };
           await credits.collect(reservation.id, evidence);
           if (result && evidence.receipts.length === routeIdentity.route.stages.length) {
             settlement = await credits.settle(reservation.id, evidence);
