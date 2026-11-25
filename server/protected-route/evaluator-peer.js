@@ -8,7 +8,8 @@
  *     --profile research-n16 --identity-file <path> [--listen 127.0.0.1:0] [--ready-file <path>] [--state-dir <dir>]
  *
  * Logs carry sizes, timings and digests only: the evaluator never has plaintext to log.
- * `--misbehave` is for tests and the negative runs of the two-machine script.
+ * `--misbehave` is for tests and the negative runs of the two-machine script; `vanish:<published trap set>` is the
+ * vanishing-perturbation attack on public traps.
  */
 import { readFile, writeFile } from 'node:fs/promises';
 import { parseArgs } from 'node:util';
@@ -32,7 +33,8 @@ async function loadIdentity(file) {
 
 export async function startProtectedEvaluatorPeer({ engine: binary, model, profile, identity, listen = '127.0.0.1:0', stateDir = null,
   misbehave = '', maxLanes = 8, keyEpochMaxTtlSeconds = 86400, log = () => {} }) {
-  if (misbehave && !ENGINE_MISBEHAVIOUR.includes(misbehave) && !SESSION_MISBEHAVIOUR.includes(misbehave) && !/^lie-lane=\d$/.test(misbehave)) {
+  if (misbehave && !ENGINE_MISBEHAVIOUR.includes(misbehave) && !SESSION_MISBEHAVIOUR.includes(misbehave) && !/^lie-lane=\d$/.test(misbehave)
+    && !/^vanish:\S+$/.test(misbehave)) {
     throw new Error(`Unknown misbehaviour ${misbehave}`);
   }
   const engineMisbehave = SESSION_MISBEHAVIOUR.includes(misbehave) ? '' : misbehave;

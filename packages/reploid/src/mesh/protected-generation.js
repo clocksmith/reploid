@@ -13,9 +13,11 @@
  *                   and expiry, signed by both sides before any key or ciphertext is uploaded.
  *   frames          every later frame carries the binding digest, a per-direction sequence number and the
  *                   digest of each blob, signed by its sender.
- *   traps           every session runs K lanes: one real, the rest known-answer traps from a publisher-signed
- *                   trap set. All lanes are fresh encryptions with the same schedule. Each step's trap results
- *                   are checked within the pinned tolerance BEFORE the real lane is decrypted.
+ *   traps (v2)      every session runs K lanes: one real, the rest secret known-answer traps fetched fresh for this
+ *                   session from a trap oracle the requester pins (signed, encrypted to a one-time key, bound to a
+ *                   nonce). All lanes are fresh encryptions with the same schedule. Each step's trap results are
+ *                   checked within the pinned tolerance BEFORE the real lane is decrypted. A public trap set (v1)
+ *                   is broken by a perturbation that vanishes on it, and is accepted only for comparison tests.
  *
  * See docs/confidential-execution.md for the threat model and the limits of trap verification.
  */
@@ -33,6 +35,11 @@ export const PROTECTED_ADVERTISEMENT_SCHEMA = 'reploid.protected-advertisement/v
 export const PROTECTED_BINDING_SCHEMA = 'reploid.protected-binding/v1';
 export const TRAP_SET_SCHEMA = 'doppler.protected-trapset/v1';
 export const TRAP_SET_ENVELOPE_SCHEMA = 'doppler.protected-trapset-envelope/v1';
+export const TRAP_REQUEST_SCHEMA = 'doppler.protected-trap-request/v1';
+export const TRAP_BATCH_SCHEMA = 'doppler.protected-trap-batch/v1';
+export const TRAP_BATCH_ENVELOPE_SCHEMA = 'doppler.protected-trap-batch-envelope/v1';
+/** v2 (oracle): secret fresh traps per session. v1 (public-set): broken by a vanishing perturbation; comparison only. */
+export const TRAP_SOURCES = Object.freeze(['oracle', 'public-set']);
 
 const FRAME_DOMAIN = 'reploid.protected-frame/v1';
 const ADVERTISEMENT_DOMAIN = 'reploid.protected-advertisement/v1';
@@ -136,6 +143,11 @@ export async function verifyProtectedAdvertisement(input) {
 // ---------------------------------------------------------------------------------------------------------------
 // Requester policy and eligibility
 
+const keyList = keys => Array.isArray(keys) && keys.length > 0 && keys.length <= 16 && keys.every(label);
+/** `{ source: 'oracle', endpoint, oracleKeys }` (v2) or `{ source: 'public-set', envelope, publisherKeys }` (v1, broken). */
+const validTrapSource = traps => traps?.source === 'oracle' ? exact(traps, ['source', 'endpoint', 'oracleKeys']) && label(traps.endpoint) && keyList(traps.oracleKeys)
+  : traps?.source === 'public-set' && exact(traps, ['source', 'envelope', 'publisherKeys']) && object(traps.envelope) && keyList(traps.publisherKeys);
+
 /**
  * The requester's own allowlist. Every field a descriptor states is checked against this, never trusted.
  * `parameterSets[].insecureDevelopment` is the requester's own knowledge of a parameter set, not the evaluator's.
@@ -146,12 +158,12 @@ export function validateProtectedPolicy(input) {
     && Array.isArray(value.engines) && value.engines.every(label)
     && Array.isArray(value.parameterSets) && value.parameterSets.length > 0 && value.parameterSets.every(item =>
       exact(item, ['id', 'digest', 'insecureDevelopment']) && label(item.id) && digest(item.digest) && typeof item.insecureDevelopment === 'boolean')
-    && typeof value.allowInsecureDevelopment === 'boolean'
+    && typeof value.allowInsecureDevelopment === 'boolean' && typeof value.allowPublicTrapSet === 'boolean'
     && Array.isArray(value.circuits) && value.circuits.length > 0 && value.circuits.every(item =>
-      exact(item, ['identity', 'modelIdentity', 'tokenizer', 'vocab', 'context', 'inputLevel', 'logSlots', 'rotations', 'trapSet', 'trapPublisherKeys'])
+      exact(item, ['identity', 'modelIdentity', 'tokenizer', 'vocab', 'context', 'inputLevel', 'logSlots', 'rotations', 'traps'])
       && digest(item.identity) && digest(item.modelIdentity) && exact(item.tokenizer, ['alphabet']) && label(item.tokenizer.alphabet)
       && [item.vocab, item.context, item.inputLevel, item.logSlots].every(Number.isSafeInteger) && Array.isArray(item.rotations)
-      && object(item.trapSet) && Array.isArray(item.trapPublisherKeys) && item.trapPublisherKeys.length > 0 && item.trapPublisherKeys.every(label))
+      && validTrapSource(item.traps))
     && Number.isSafeInteger(value.trapLanes) && value.trapLanes >= 1 && value.trapLanes < MAX_LANES
     && typeof value.maxTrapTolerance === 'number' && value.maxTrapTolerance > 0
     && Number.isSafeInteger(value.maxKeyEpochSeconds) && value.maxKeyEpochSeconds > 0;
@@ -180,13 +192,17 @@ export function protectedEligibility(policy, verified, model) {
   }
   if (model.adapterIdentities?.length) reasons.push('adapters are not supported');
   if (descriptor.lanes.max < policy.trapLanes + 1) reasons.push('too few lanes for the trap policy');
+  if (circuit?.traps.source === 'public-set' && !policy.allowPublicTrapSet) reasons.push('a public trap set does not verify results');
   return reasons.length ? { eligible: false, reasons } : { eligible: true, circuit, parameterSet };
 }
 
 // ---------------------------------------------------------------------------------------------------------------
 // Trap sets
 
-/** Verify a publisher-signed trap set against a pinned publisher key and a pinned circuit. */
+/**
+ * v1: verify a publisher-signed PUBLIC trap set. Broken as a guarantee: anyone who can read the set can add a
+ * perturbation that vanishes on every listed trap. Kept only for comparison tests behind `allowPublicTrapSet`.
+ */
 export async function verifyTrapSet(envelope, { publisherKeys, circuit, maxTolerance }) {
   const unverified = message => protectedError('EXECUTION_ROUTE_UNAVAILABLE', `Trap set: ${message}. Nothing was sent.`);
   if (!exact(envelope, ['schema', 'body', 'bodyDigest', 'publicKey', 'signature']) || envelope.schema !== TRAP_SET_ENVELOPE_SCHEMA
@@ -219,8 +235,83 @@ export async function verifyTrapSet(envelope, { publisherKeys, circuit, maxToler
     }
   }
   if (!traps.length) throw unverified('it has no traps');
-  return freeze({ digest: bodyDigest, publisherKey: envelope.publicKey, tolerance: { maxAbsLogitError: tolerance.maxAbsLogitError },
+  return freeze({ source: 'public-set', digest: bodyDigest, publisherKey: envelope.publicKey, tolerance: { maxAbsLogitError: tolerance.maxAbsLogitError },
     traps, circuit: circuit.identity });
+}
+
+// Trap verification v2: secret, fresh traps per session from a trap oracle the requester pins.
+
+/**
+ * Start a trap request for one session: a fresh 256-bit nonce and a one-time X25519 key. The request names only the
+ * circuit, the prompt length, the generated count and the number of traps; `secret` stays on this device.
+ */
+export async function createTrapRequest({ circuit, promptLength, generate, count }) {
+  const pair = await globalThis.crypto.subtle.generateKey({ name: 'X25519' }, true, ['deriveBits']);
+  const requesterNonce = randomHex(32);
+  const request = { schema: TRAP_REQUEST_SCHEMA, circuit, promptLength, generate, count, requesterNonce,
+    requesterKey: toBase64Url(new Uint8Array(await globalThis.crypto.subtle.exportKey('raw', pair.publicKey))) };
+  return { request: freeze(request), secret: { privateKey: pair.privateKey, requesterNonce } };
+}
+
+const hexBytes = value => Uint8Array.from(value.match(/../g), byte => parseInt(byte, 16));
+
+/**
+ * Verify and open a trap batch: the oracle's pinned Ed25519 signature over the exact header bytes, the header bound
+ * to this request's nonce and one-time key, an unexpired and unused batch id, the ciphertext digest, AES-GCM
+ * decryption under the ECDH-derived key, and every trap's shape for the pinned circuit. Any failure throws, and the
+ * session sends nothing to the evaluator.
+ */
+export async function openTrapBatch(envelope, { request, secret, oracleKeys, circuit, maxTolerance, now = Date.now, usedBatches = null }) {
+  const refused = message => protectedError('EXECUTION_ROUTE_UNAVAILABLE', `Trap batch refused: ${message}. Nothing was sent.`);
+  if (!exact(envelope, ['schema', 'header', 'ciphertext', 'oracleKey', 'signature']) || envelope.schema !== TRAP_BATCH_ENVELOPE_SCHEMA
+    || typeof envelope.header !== 'string' || typeof envelope.ciphertext !== 'string') throw refused('malformed envelope');
+  if (!oracleKeys.includes(envelope.oracleKey)) throw refused('oracle key is not pinned');
+  const headerBytes = encoder.encode(envelope.header);
+  let valid = false;
+  try {
+    const key = await globalThis.crypto.subtle.importKey('raw', fromBase64Url(envelope.oracleKey), { name: 'Ed25519' }, false, ['verify']);
+    valid = await globalThis.crypto.subtle.verify({ name: 'Ed25519' }, key, fromBase64Url(envelope.signature),
+      new Uint8Array([...encoder.encode(`${TRAP_BATCH_SCHEMA}\x00`), ...headerBytes]));
+  } catch { valid = false; }
+  if (!valid) throw refused('oracle signature does not verify');
+  let header;
+  try { header = JSON.parse(envelope.header); } catch { throw refused('header is not JSON'); }
+  const t = now();
+  if (header?.schema !== TRAP_BATCH_SCHEMA || header.circuit !== circuit.identity) throw refused('it is not for the pinned circuit');
+  if (header.requesterNonce !== secret.requesterNonce || header.requesterKey !== request.requesterKey) throw refused('it answers another request (stale or replayed)');
+  if (!(Number.isSafeInteger(header.expiresAt) && header.expiresAt > t && header.issuedAt <= t + 60000)) throw refused('it has expired');
+  if (!/^[a-f0-9]{32}$/.test(header.batchId ?? '') || usedBatches?.has(header.batchId)) throw refused('its batch id was already used');
+  const sealed = fromBase64Url(envelope.ciphertext);
+  if (await bytesDigest(sealed) !== header.ciphertextDigest) throw refused('ciphertext digest differs');
+  let body;
+  try {
+    const peer = await globalThis.crypto.subtle.importKey('raw', fromBase64Url(header.oracleEphemeralKey), { name: 'X25519' }, false, []);
+    const shared = await globalThis.crypto.subtle.deriveBits({ name: 'X25519', public: peer }, secret.privateKey, 256);
+    const ikm = await globalThis.crypto.subtle.importKey('raw', shared, 'HKDF', false, ['deriveKey']);
+    const aes = await globalThis.crypto.subtle.deriveKey({ name: 'HKDF', hash: 'SHA-256', salt: hexBytes(secret.requesterNonce), info: encoder.encode(TRAP_BATCH_SCHEMA) },
+      ikm, { name: 'AES-GCM', length: 256 }, false, ['decrypt']);
+    const plain = await globalThis.crypto.subtle.decrypt({ name: 'AES-GCM', iv: fromBase64Url(header.iv), additionalData: encoder.encode(header.batchId) }, aes, sealed);
+    body = JSON.parse(new TextDecoder().decode(plain));
+  } catch { throw refused('it does not decrypt under this request\'s key'); }
+  const tolerance = body?.tolerance;
+  if (body?.schema !== TRAP_BATCH_SCHEMA || body.batchId !== header.batchId || body.requesterNonce !== secret.requesterNonce
+    || body.circuit !== circuit.identity || body.model !== circuit.modelIdentity || body.promptLength !== request.promptLength
+    || body.generate !== request.generate) throw refused('its contents do not match its header and request');
+  if (!(typeof tolerance?.maxAbsLogitError === 'number' && tolerance.maxAbsLogitError > 0 && tolerance.maxAbsLogitError <= maxTolerance
+    && tolerance.requireArgmax === true)) throw refused('its tolerance exceeds this requester\'s limit');
+  const traps = Array.isArray(body.traps) ? body.traps : [];
+  const token = value => Number.isSafeInteger(value) && value >= 0 && value < circuit.vocab;
+  if (traps.length !== request.count || new Set(traps.map(trap => trap?.id)).size !== traps.length || !traps.every(trap => label(trap?.id)
+    && Array.isArray(trap.prompt) && trap.prompt.length === request.promptLength && trap.prompt.every(token)
+    && Array.isArray(trap.continuation) && trap.continuation.length === request.generate - 1 && trap.continuation.every(token)
+    && Array.isArray(trap.expectedLogits) && trap.expectedLogits.length === request.generate
+    && trap.expectedLogits.every(row => Array.isArray(row) && row.length === circuit.vocab && row.every(Number.isFinite)))) {
+    throw refused('a trap is malformed');
+  }
+  usedBatches?.set(header.batchId, header.expiresAt);
+  return freeze({ source: 'oracle', digest: header.ciphertextDigest, batchId: header.batchId, oracleKey: envelope.oracleKey, publisherKey: envelope.oracleKey,
+    distribution: typeof body.distribution === 'string' ? body.distribution : null, tolerance: { maxAbsLogitError: tolerance.maxAbsLogitError },
+    traps, circuit: circuit.identity, issuedAt: header.issuedAt });
 }
 
 /** Uniform integer in [0, n) from the platform CSPRNG (rejection sampling, no modulo bias). */
@@ -593,7 +684,8 @@ export async function runProtectedRequesterSession({
     return freeze({
       tokens,
       evidence: { session, bindingDigest: binding, descriptorDigest, evaluator: evaluator.participantId, keyEpoch: epoch.id, keysUploaded,
-        lanes: K, trapLanes, trapSet: trapSet.digest, publisherKey: trapSet.publisherKey, tolerance: trapSet.tolerance.maxAbsLogitError,
+        lanes: K, trapLanes, trapSource: trapSet.source ?? 'public-set', trapBatch: trapSet.batchId ?? null,
+        trapSet: trapSet.digest, publisherKey: trapSet.publisherKey, tolerance: trapSet.tolerance.maxAbsLogitError,
         trapChecks: trapChecks.length, trapsPassed: trapChecks.filter(check => check.pass).length, maxTrapError: maxAbsError,
         detectionProbability: trapDetectionProbability({ lanes: K, trapLanes }), decryptions: { ...stats.decryptions }, uploaded: { ...stats.uploaded },
         frames: { ...stats.frames }, bytes: { ...stats.bytes } }

@@ -7,6 +7,10 @@ export declare const PROTECTED_ADVERTISEMENT_SCHEMA: 'reploid.protected-advertis
 export declare const PROTECTED_BINDING_SCHEMA: 'reploid.protected-binding/v1';
 export declare const TRAP_SET_SCHEMA: 'doppler.protected-trapset/v1';
 export declare const TRAP_SET_ENVELOPE_SCHEMA: 'doppler.protected-trapset-envelope/v1';
+export declare const TRAP_REQUEST_SCHEMA: 'doppler.protected-trap-request/v1';
+export declare const TRAP_BATCH_SCHEMA: 'doppler.protected-trap-batch/v1';
+export declare const TRAP_BATCH_ENVELOPE_SCHEMA: 'doppler.protected-trap-batch-envelope/v1';
+export declare const TRAP_SOURCES: readonly ['oracle', 'public-set'];
 export declare const PROTECTED_FRAME_CEILINGS: Readonly<Record<string, number>>;
 export declare const PROTECTED_REQUESTER_FRAME_KINDS: string[];
 
@@ -26,16 +30,28 @@ export interface EngineManifest {
   vocab: number; context: number; inputLevel: number; logSlots: number; rotations: number[]; maxLanes?: number; [key: string]: unknown;
 }
 export interface TrapSetEnvelope { schema: 'doppler.protected-trapset-envelope/v1'; body: string; bodyDigest: string; publicKey: string; signature: string }
+/** v2: a pinned trap oracle. v1 (`public-set`) is broken by a vanishing perturbation and needs `allowPublicTrapSet`. */
+export type TrapSource =
+  | { source: 'oracle'; endpoint: string; oracleKeys: string[] }
+  | { source: 'public-set'; envelope: TrapSetEnvelope; publisherKeys: string[] };
 export interface PinnedCircuit {
   identity: string; modelIdentity: string; tokenizer: { alphabet: string }; vocab: number; context: number; inputLevel: number; logSlots: number;
-  rotations: number[]; trapSet: TrapSetEnvelope; trapPublisherKeys: string[];
+  rotations: number[]; traps: TrapSource;
 }
+export interface TrapRequest {
+  schema: 'doppler.protected-trap-request/v1'; circuit: string; promptLength: number; generate: number; count: number;
+  requesterNonce: string; requesterKey: string;
+}
+export interface TrapBatchEnvelope { schema: 'doppler.protected-trap-batch-envelope/v1'; header: string; ciphertext: string; oracleKey: string; signature: string }
 export interface ProtectedPolicy {
   protocols: string[]; engines: string[]; parameterSets: Array<{ id: string; digest: string; insecureDevelopment: boolean }>;
-  allowInsecureDevelopment: boolean; circuits: PinnedCircuit[]; trapLanes: number; maxTrapTolerance: number; maxKeyEpochSeconds: number;
+  allowInsecureDevelopment: boolean; allowPublicTrapSet: boolean; circuits: PinnedCircuit[]; trapLanes: number; maxTrapTolerance: number; maxKeyEpochSeconds: number;
 }
 export interface Trap { id: string; prompt: number[]; continuation: number[]; expectedLogits: number[][] }
-export interface VerifiedTrapSet { digest: string; publisherKey: string; tolerance: { maxAbsLogitError: number }; traps: Trap[]; circuit: string }
+export interface VerifiedTrapSet {
+  source: 'oracle' | 'public-set'; digest: string; publisherKey: string; tolerance: { maxAbsLogitError: number }; traps: Trap[]; circuit: string;
+  batchId?: string; oracleKey?: string; distribution?: string | null; issuedAt?: number;
+}
 export interface ProtectedFrame { header: Record<string, any>; blobs: Uint8Array[] }
 export interface FrameChannel {
   send(frame: ProtectedFrame): Promise<void>;
@@ -68,7 +84,7 @@ export interface ProtectedJournal {
 }
 export interface ProtectedSessionEvidence {
   session: string; bindingDigest: string; descriptorDigest: string; evaluator: string; keyEpoch: string; keysUploaded: boolean;
-  lanes: number; trapLanes: number; trapSet: string; publisherKey: string; tolerance: number; trapChecks: number; trapsPassed: number;
+  lanes: number; trapLanes: number; trapSource: 'oracle' | 'public-set'; trapBatch: string | null; trapSet: string; publisherKey: string; tolerance: number; trapChecks: number; trapsPassed: number;
   maxTrapError: number; detectionProbability: number; decryptions: { trap: number; real: number };
   uploaded: { keyFrames: number; stepFrames: number; bytes: number };
   frames: { sent: number; received: number }; bytes: { sent: number; received: number };
@@ -83,6 +99,10 @@ export declare function validateProtectedPolicy(input: unknown): ProtectedPolicy
 export declare function protectedEligibility(policy: ProtectedPolicy, verified: VerifiedAdvertisement, model: { identity: string; adapterIdentities?: string[] }):
   { eligible: true; circuit: PinnedCircuit; parameterSet: ProtectedPolicy['parameterSets'][number] } | { eligible: false; reasons: string[] };
 export declare function verifyTrapSet(envelope: unknown, options: { publisherKeys: string[]; circuit: PinnedCircuit; maxTolerance: number }): Promise<VerifiedTrapSet>;
+export declare function createTrapRequest(options: { circuit: string; promptLength: number; generate: number; count: number }):
+  Promise<{ request: TrapRequest; secret: { privateKey: CryptoKey; requesterNonce: string } }>;
+export declare function openTrapBatch(envelope: unknown, options: { request: TrapRequest; secret: { privateKey: CryptoKey; requesterNonce: string };
+  oracleKeys: string[]; circuit: PinnedCircuit; maxTolerance: number; now?: () => number; usedBatches?: Map<string, number> | null }): Promise<VerifiedTrapSet>;
 export declare function secureRandomInt(n: number): number;
 export declare function planProtectedLanes(options: { trapSet: { traps: Trap[] }; promptLength: number; generate: number; trapLanes: number;
   randomInt?: (n: number) => number }): Array<{ kind: 'real' | 'trap'; trap: Trap | null }>;

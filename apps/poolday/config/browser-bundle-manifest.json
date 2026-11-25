@@ -1416,7 +1416,7 @@
     {
       "path": "config/module-inventory.json",
       "byteLength": 699791,
-      "sha256": "sha256:1f288b5e9c84a51c5487cfff63478ba63a1eb8bdb184d84f4d484d27901b0e27"
+      "sha256": "sha256:83ecc8618e6783709c8f8b678a05a980ee0e1e3c013c8402e1baee3d1176e5a9"
     },
     {
       "path": "config/module-registry.json",
@@ -3830,8 +3830,8 @@
     },
     {
       "path": "ui/pool-home/app.bundle.js",
-      "byteLength": 2811041,
-      "sha256": "sha256:aeb02c3748ce1adf180d6b417a81a5afd06b9e20170130d929c3df5cdb1afc6f"
+      "byteLength": 2811282,
+      "sha256": "sha256:df3c48925561f7a2ccd4a6330b44fe996d349e203a17d3fde9e187377fe3ef05"
     },
     {
       "path": "ui/pool-home/auto-download.js",
@@ -12185,8 +12185,8 @@
     },
     {
       "path": "vendor/reploid/inference/protected.js",
-      "byteLength": 13615,
-      "sha256": "sha256:46352934514db37ebb0a010c884477abaecbbb733d1e2125040bd34f617b7b85"
+      "byteLength": 15580,
+      "sha256": "sha256:314cb5770542ccac5e931c1fa94575837f337b97689777fd44f3a7b8cea22383"
     },
     {
       "path": "vendor/reploid/measurement/capacity-utilization.js",
@@ -12515,8 +12515,8 @@
     },
     {
       "path": "vendor/reploid/mesh/protected-generation.js",
-      "byteLength": 46307,
-      "sha256": "sha256:8b8e37f49229a58686ed32ea57dcdc52a141adbf30c94913b262b97b7f06c8bc"
+      "byteLength": 53975,
+      "sha256": "sha256:b9e7ea6a2a8374a901f20eb56b93d42d551f258d14e76592c7b839d5e563f7f0"
     },
     {
       "path": "vendor/reploid/mesh/provider-hardware.js",
@@ -12560,8 +12560,8 @@
     },
     {
       "path": "vendor/reploid/package-assets.json",
-      "byteLength": 62742,
-      "sha256": "sha256:252547cf2cf7130f36bb4506f99567980c720b2b6ba17bf4ce05bcd8215e0f83"
+      "byteLength": 62743,
+      "sha256": "sha256:070532882bcd8aa6b54d27ca2be7eeba4933dc5af9699cfff34da01c9e47768b"
     },
     {
       "path": "vendor/reploid/plugins/index.js",
@@ -12849,5 +12849,5 @@
       "sha256": "sha256:abb6c18f6167d6afc8ee1b3adfcbbb89c0e93fb4fc4e98d7a12250f78aab206a"
     }
   ],
-  "bundleHash": "sha256:fd01a2983618f72108096d2729f70a988a2a5ebd51494f1ceee410f7cb175889"
+  "bundleHash": "sha256:3453465e2e29f5b5f8f5c829392b553be1a0c9492e8d537282cdbb4127f9936d"
 }
