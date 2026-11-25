@@ -35,6 +35,7 @@
  */
 import fs from 'node:fs/promises';
 import http from 'node:http';
+import os from 'node:os';
 import { parseArgs } from 'node:util';
 import { pathToFileURL } from 'node:url';
 import { PROMPTS, RULE, summarize } from './reliability.js';
@@ -148,10 +149,10 @@ async function measureOne(page, { prompt, timeoutMs, model = null, sheetWaitMs =
       record.sheet = true;
       await page.locator('[data-execution-choice=network]').click({ timeout: 5000 }).catch(() => {});
       if (model) await page.locator(`[data-model-picker] .chat-model-choices input[value="${model}"]`).filter({ visible: true }).click({ timeout: 15000 }).catch(() => {});
-      // Either the choice sends by itself and the sheet closes, or its button turns into Send.
+      // Either the choice sends by itself and the sheet closes, or its button turns into Send ("Send to contributors").
       const ready = await page.waitForFunction(() => {
         const picker = globalThis.document.querySelector('[data-model-picker]'), button = globalThis.document.querySelector('[data-change-model]');
-        return !picker?.open || (button && !button.disabled && button.textContent.trim() === 'Send');
+        return !picker?.open || (button && !button.disabled && /^Send\b/.test(button.textContent.trim()));
       }, null, { timeout: sheetWaitMs }).then(() => true, () => false);
       if (!ready) {
         const offered = await page.evaluate(() => [...globalThis.document.querySelectorAll('[data-execution-choice]')]
@@ -272,7 +273,7 @@ const empty = new URLSearchParams(location.search).has('empty');
 $('[data-model-picker-close]').onclick = () => $('[data-model-picker]').close();
 $('[data-execution-choice=network]').onclick = () => { const button = $('[data-change-model]');
   if (empty) { $('[data-next-model-status]').textContent = 'No contributor serves this model now.'; return; }
-  button.disabled = false; button.textContent = 'Send'; };
+  button.disabled = false; button.textContent = 'Send to contributors'; };
 $('[data-change-model]').onclick = () => { chosen = true; $('[data-model-picker]').close(); start(); };
 $('[data-remote-permission-allow]').onclick = () => { allowed = true; $('[data-remote-permission]').hidden = true; start(); };
 </script>`;
@@ -336,13 +337,16 @@ async function main() {
   const list = Array.from({ length: requests }, (_, index) => prompts[index % prompts.length]);
   const settings = { model: values.model ?? null, requests, intervalMs: number('interval-ms'), timeoutMs: number('timeout-ms'), promptSource };
   const startedAt = new Date().toISOString();
+  // The requester's own load: a busy machine can delay the page's clock and rendering, so the receipt keeps it.
+  const load = () => os.loadavg().map(value => Number(value.toFixed(2)));
+  const loadAtStart = load();
   const run = await runBrowserPilot({ url: values.url, prompts: list, model: settings.model, intervalMs: settings.intervalMs, timeoutMs: settings.timeoutMs,
     channel: values.channel ?? null, headed: values.headed,
     onResult: row => console.error(`${String(row.index + 1).padStart(3)} ${row.completed ? 'ok  ' : 'FAIL'} first character ${row.firstTokenMs ?? '-'} ms, end ${row.stages.endMs} ms${row.failure ? `, ${row.failure}: ${row.statusText.slice(0, 80)}` : ''}`) });
   const host = new URL(values.url).hostname;
   const receipt = { schema: 'reploid.pilot-reliability-browser/v1', startedAt, finishedAt: new Date().toISOString(), label: values.label, rule: RULE,
     page: ['127.0.0.1', 'localhost', '[::1]'].includes(host) ? 'local page' : 'deployed page (address not recorded)', answerOn: run.answerOn, settings,
-    node: process.version, setup: run.setup, notStarted: run.notStarted,
+    node: process.version, requesterLoad: { cpus: os.cpus().length, start: loadAtStart, end: load() }, setup: run.setup, notStarted: run.notStarted,
     summary: run.notStarted ? { requests: 0, verdict: `not started: ${run.notStarted}` } : summarize(run.results), results: run.results };
   const text = JSON.stringify(receipt, null, 2);
   if (values.out) await fs.writeFile(values.out, `${text}\n`);
