@@ -50,6 +50,42 @@ it('asks once where to run before a first visitor prompt can reach a network pro
   // The sheet was opened by Send, so its button says what pressing it does.
   expect(f.find('[data-change-model]').textContent).toBe('Send to contributors');
 });
+it('waits calmly when a first visitor picks contributors before discovery settles, then offers Send for the model they serve', async () => {
+  const f = fixture({ fresh: true });
+  const [first, second] = CANONICAL_CHAT_MODELS;
+  f.publish({ models: [first, second] });
+  const chosen = f.find('[data-active-model-select]').value;
+  const served = [first, second].find(model => (model.selectionId || model.id) !== chosen);
+  f.find('[data-composer-input]').value = 'First question';
+  f.find('[data-composer-form]').dispatchEvent(new Event('submit', { cancelable: true }));
+  expect(f.find('[data-picker-title]').textContent).toBe('Where should this run?');
+  f.find('[data-execution-choice=network]').click();
+  await vi.waitFor(() => expect(f.find('[data-execution-choice=network]').getAttribute('aria-checked')).toBe('true'));
+  // No contributor is known yet, and none is known absent: no download offer and no "No contributor serves" verdict.
+  const status = f.find('[data-next-model-status]'), primary = f.find('[data-change-model]');
+  expect(status.textContent).toMatch(/^Finding computers/);
+  expect(primary.textContent).toBe('Send to contributors');
+  expect(primary.disabled).toBe(true);
+  // A contributor appears serving a different model: the sheet follows the tapped computer to it.
+  f.publish({ models: [first, second].map(model => model === served ? { ...model, availability: 'ready', networkAvailability: 'ready',
+    providerIds: ['peer'], reachableProviderIds: ['peer'] } : model) });
+  expect(f.find('[data-next-model]').value).toBe(served.selectionId || served.id);
+  expect(primary.textContent).toBe('Send to contributors');
+  expect(primary.disabled).toBe(false);
+  expect(f.find('[data-answer-issue]').hidden).toBe(true);
+});
+it('offers the download only once discovery has settled with no contributor for the model', async () => {
+  const f = fixture({ fresh: true });
+  f.find('[data-composer-input]').value = 'First question';
+  f.find('[data-composer-form]').dispatchEvent(new Event('submit', { cancelable: true }));
+  f.find('[data-execution-choice=network]').click();
+  await vi.waitFor(() => expect(f.find('[data-execution-choice=network]').getAttribute('aria-checked')).toBe('true'));
+  expect(f.find('[data-change-model]').disabled).toBe(true);
+  f.publish(observedDiscovery);
+  expect(f.find('[data-next-model-status]').textContent).toMatch(/^No contributor serves this model now/);
+  expect(f.find('[data-change-model]').textContent).toMatch(/^Download /);
+  expect(f.find('[data-change-model]').disabled).toBe(false);
+});
 it('tells a first visitor a public computer can answer instead of reporting a dead end', () => {
   const f = fixture({ fresh: true }), status = f.find('[data-model-status]');
   f.publish(observedDiscovery);

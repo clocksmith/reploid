@@ -81,9 +81,11 @@ const blockText = model => model?.fleet
  * What the sheet's selection means, as one sentence beside the chosen model and the one action that fixes it.
  * `action` is 'commit', 'use-contributors', 'use-device', 'download' or null (nothing on this sheet can fix it).
  * The primary button always says what it does; it is disabled only while nothing can.
+ * `implied` marks a model that came with a Contributors tap rather than a model tap: while discovery runs it waits
+ * for a contributor instead of offering its download, since absence is not yet known.
  */
 export function describeAnswerChoice(model, location, { state = {}, block = null, canDownload = false, choice = null,
-  locked = null, sending = false } = {}) {
+  locked = null, sending = false, implied = false } = {}) {
   const side = sheetSide(location);
   const here = runsHere(model), there = runsOnNetwork(model);
   const downloadable = !!model && canDownloadModelHere(model, state, canDownload);
@@ -113,6 +115,10 @@ export function describeAnswerChoice(model, location, { state = {}, block = null
   if (block && there) return fix(blockText(model), 'use-contributors', useRemote);
   if (there || choice === 'desktop') return ready;
   if (here) return fix('No contributor serves this model now. It is on this device.', 'use-device', 'Use this device');
+  // Discovery is bounded (about 8 s); until it settles, absence is not yet known, so the sheet waits calmly.
+  if (implied && state.discoveryPhase === 'searching' && !['loading', 'preparing'].includes(model.networkAvailability)) {
+    return stuck('Finding computers… This model becomes Ready here when one shares it.');
+  }
   if (downloadable) return fix(acquiring?.phase === 'failed' ? acquiring.error : 'No contributor serves this model now. Download it to run it here; you see its size first.', 'download', downloadLabel);
   if (['loading', 'preparing'].includes(model.networkAvailability)) return stuck('A contributor is preparing this model. It becomes Ready here when it can answer.');
   if (state.discoveryPhase === 'searching') return stuck('Finding computers… This model becomes Ready here when one shares it.');
@@ -142,7 +148,7 @@ const stableGroups = state => ({ local: 'No model is stored on this device.',
 /** Renders the sheet for the caller's staged model and computer. Returns the staged model and what the primary does. */
 export function updateConversationModelPicker({ find, choices, state, model: pickerModel, location: pickerLocation,
   touched: pickerTouched, changing: changingModel, selectedId, canDownload, destination = null, locked = null,
-  block = null, sending = false, issue }) {
+  block = null, sending = false, implied = false, issue }) {
   const keyFor = model => model?.selectionId || model?.id;
   if (!pickerTouched) pickerModel = (state.models || []).find(model => keyFor(model) === selectedId) || pickerModel;
   const models = [...(state.models || [])];
@@ -178,7 +184,7 @@ export function updateConversationModelPicker({ find, choices, state, model: pic
     button.disabled = changingModel || !!state.activeThread?.closed || (state.runningIds || []).includes(state.selectedId);
   }
   const outcome = describeAnswerChoice(selected || (pickerModel ? unavailableModelChoice(pickerModel) : null), side,
-    { state, block, canDownload, choice: pressed === 'desktop' ? 'desktop' : null, locked, sending });
+    { state, block, canDownload, choice: pressed === 'desktop' ? 'desktop' : null, locked, sending, implied });
   // The reason is one muted line beneath the chosen model; its fix is the sheet's primary button, never a second link.
   const status = issue.querySelector('[data-next-model-status]');
   const host = choices.checkedChoice()?.closest('[data-choice-row]') || find('[data-model-picker] .chat-model-choices');

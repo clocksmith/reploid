@@ -56,6 +56,8 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   } });
   let archived = false, renameId = null, chosenModel = viewState.chosenModel || null, pickerModel = null, pickerLocation = 'auto';
   let changingModel = false, pickerTouched = false, recoverySelection = null, pickerRevision = 0;
+  // True while the staged model came from a computer tap rather than a model tap, so it may follow that computer.
+  let pickerModelImplied = false;
   let files = [], composerRevision = 0, queuedSend = null, queueHasText = false;
   const attachmentReader = createTextAttachmentReader({
     getFiles: () => files,
@@ -305,10 +307,16 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     else if (!pickerChoice || pickerChoice === 'device') pickerChoice = 'contributors';
     const labelled = snapshot.computerLabels ? snapshot : withComputerLabels(snapshot, session);
     const block = blockFor(snapshot), locked = lockedDestination(snapshot);
+    // Contributors tapped while computers are still being found: the model that tap implied follows discovery to
+    // one they serve, so the sheet offers Send instead of a download once a contributor appears.
+    if (pickerModelImplied && pickerLocation === 'network' && pickerChoice === 'contributors' && !block) {
+      const current = snapshot.models?.find(model => modelKey(model) === modelKey(pickerModel)) || pickerModel;
+      pickerModel = modelForLocation(snapshot.models, current, 'network', { state: snapshot, canDownload: !!inspector.downloadModel });
+    }
     ({ model: pickerModel } = updateConversationModelPicker({ find, choices: nextModelChoices, state: labelled,
       model: pickerModel, location: pickerLocation, touched: pickerTouched, changing: changingModel,
       selectedId: modelSelect.value, canDownload: !!inspector.downloadModel, destination: pickerChoice,
-      locked, block, sending: sendAfterDestination, issue: answerIssue }));
+      locked, block, sending: sendAfterDestination, implied: pickerModelImplied, issue: answerIssue }));
     // Who can read the prompt follows the staged computer, so a switch made by a model tap is never silent.
     const disclosure = find('[data-prompt-disclosure]');
     disclosure.textContent = pickerLocation === 'local' ? 'Nothing leaves this device.'
@@ -655,6 +663,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     queuedSend = null;
     recoverySelection = alternative;
     pickerTouched = !!alternative;
+    pickerModelImplied = false;
     const state = session.getState();
     inspector.close?.({ restoreFocus: false });
     pickerModel = alternative || (state.models || []).find(model => (model.selectionId || model.id) === modelSelect.value)
@@ -692,7 +701,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   on('[data-next-model]', 'change', () => {
     pickerRevision++;
     if (modelKey(recoverySelection) !== find('[data-next-model]').value) recoverySelection = null;
-    pickerTouched = true;
+    pickerTouched = true; pickerModelImplied = false;
     const state = session.getState();
     pickerModel = (state.models || []).find(model => (model.selectionId || model.id) === find('[data-next-model]').value) || pickerModel;
     // A model that runs only elsewhere moves the computer with it, when the preset allows. The move is staged and
@@ -742,7 +751,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
       const current = session.getState();
       const stored = current.models?.find(item => modelIdentity(item) === modelIdentity(model));
       if (!modelExecutionState(stored, 'local').usable) return;
-      pickerModel = stored; pickerTouched = true; pickerLocation = 'local'; stagedDestination = null; updatePicker(current);
+      pickerModel = stored; pickerTouched = true; pickerModelImplied = false; pickerLocation = 'local'; stagedDestination = null; updatePicker(current);
       find('[data-change-model]').focus();
     };
     const revision = ++pickerRevision, scope = queueScope(state, model);
@@ -772,6 +781,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
       pickerLocation = 'network'; pickerChoice = 'contributors'; stagedDestination = 'contributors';
     }
     pickerModel = modelForLocation(state.models, pickerModel, pickerLocation, { state, canDownload: !!inspector.downloadModel });
+    pickerModelImplied = true;
     updatePicker(state);
     commitPickerChoice();
   };
@@ -992,6 +1002,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     pickerChoice = choice === 'local' ? 'device' : choice === 'desktop' ? 'desktop' : 'contributors';
     stagedDestination = null;
     // Keep a model that runs on the tapped computer; a paired desktop reports its own models.
+    pickerModelImplied = choice !== 'desktop';
     if (choice !== 'desktop') pickerModel = modelForLocation(current.models, pickerModel, pickerLocation, { state: current, canDownload: !!inspector.downloadModel });
     // Under "Only your devices" a Contributors tap changes nothing: the sheet explains and offers Use contributors.
     if (choice === 'network' && blockFor(current)) { updatePicker(current); return; }

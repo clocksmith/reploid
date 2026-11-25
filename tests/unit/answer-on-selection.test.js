@@ -83,6 +83,11 @@ describe('Answer on selection', () => {
     expect(describeAnswerChoice(stored, 'network', { state })).toMatchObject({ action: 'use-device', label: 'Use this device' });
     expect(describeAnswerChoice(missing, 'local', { state }).issue).toMatch(/Choose a model marked Ready/);
     expect(describeAnswerChoice(missing, 'network', { state: { discoveryPhase: 'searching' } }).issue).toMatch(/^Finding computers/);
+    // Until discovery settles, a model implied by a Contributors tap waits instead of claiming no contributor serves it;
+    // a model the person tapped keeps its download.
+    expect(describeAnswerChoice(download, 'network', { state: { discoveryPhase: 'searching' }, canDownload: true }).action).toBe('download');
+    expect(describeAnswerChoice(download, 'network', { state: { discoveryPhase: 'searching' }, canDownload: true, sending: true, implied: true }))
+      .toEqual({ issue: 'Finding computers… This model becomes Ready here when one shares it.', action: null, label: 'Send to contributors' });
     expect(describeAnswerChoice(shared, 'network', { state, block: 'guest', locked: { label: 'Studio' } }).action).toBe('commit');
     expect(describeAnswerChoice(missing, 'network', { state, block: 'guest', locked: { label: 'Studio' } }).issue).toBe('Only Studio may read your messages. Choose a model it runs.');
     // Only a choice with no fix on this sheet disables the button, and it still says why.

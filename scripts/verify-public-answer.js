@@ -28,23 +28,26 @@ try {
   const send = page.locator('[data-composer-send]');
   await send.waitFor({ state: 'visible', timeout: 60000 });
   await page.locator('[data-composer-input]').fill(PROMPT);
-  // Send becomes available once discovery has settled one way or the other.
-  result.stage = 'discovery';
+  // A first visitor's Send is available at once; it opens "Where should this run?" when nothing runs here yet.
+  result.stage = 'send';
   await page.waitForFunction(() => !globalThis.document.querySelector('[data-composer-send]')?.disabled, null, { timeout: 60000 });
   await send.click();
   result.stage = 'choose-computer';
   const picker = page.locator('[data-model-picker]');
   if (await picker.evaluate(node => node.open)) {
+    // As a person would: tap Contributors, then wait for the sheet's primary button to offer Send. Discovery is
+    // bounded (about 8 s); the sheet says "Finding computers…" until then and follows the tap to a served model.
     const contributors = page.locator('[data-execution-choice=network]');
-    result.contributors = (await contributors.locator('[data-computer-state]').innerText()).trim();
-    await contributors.click();
+    if (await contributors.getAttribute('aria-checked') !== 'true') await contributors.click();
     const commit = page.locator('[data-change-model]');
-    await page.waitForFunction(() => {
+    const ready = await page.waitForFunction(() => {
       const button = globalThis.document.querySelector('[data-change-model]');
-      return button && !button.disabled && button.textContent.trim() === 'Send';
-    }, null, { timeout: 30000 }).catch(() => {});
-    if (await commit.isDisabled() || (await commit.innerText()).trim() !== 'Send') {
-      throw new Error('No public computer serves the default model: ' + (await page.locator('[data-next-model-status]').innerText()).trim());
+      return button && !button.disabled && /^Send\b/.test(button.textContent.trim());
+    }, null, { timeout: 30000 }).then(() => true, () => false);
+    result.contributors = (await contributors.locator('[data-computer-state]').innerText()).trim();
+    if (!ready) {
+      const status = (await page.locator('[data-next-model-status]').innerText().catch(() => '')).trim();
+      throw new Error(`No public computer serves the default model [${(await commit.innerText()).trim()}]: ${status}`);
     }
     await commit.click();
   }
