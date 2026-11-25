@@ -1,21 +1,21 @@
 import { escapeHtml as escape } from '../components/attachments.js';
 import { accountText, creditAccounts, creditActivity } from './service-credit-text.js';
 const gb = value => Number.isFinite(value) ? `${(value / 1024 ** 3).toFixed(1)} GiB` : 'Not reported';
-export const renderPrivateComputers = () => `<section class="pool-stack pool-gap-sm" data-private-computers>
-  <h3 class="pool-subheading">Your private computers</h3><p class="pool-small pool-muted" data-private-status>Not connected</p>
-  <details class="pool-disclosure" data-private-pair><summary>Connect a native host</summary><form class="pool-stack pool-gap-sm" data-private-connect>
-    <p class="pool-small pool-muted">Use the address and pairing secret from your local Reploid host. Private-model chats use its enrolled computers and service credits. Keys stay on the host; this tab remembers the connection.</p>
-    <label>Local address<input class="pool-input" name="address" type="url" placeholder="http://127.0.0.1:18784" required></label>
-    <label>Pairing secret<input class="pool-input" name="secret" type="password" autocomplete="off" required></label>
-    <button class="pool-button btn-primary" type="submit">Connect</button></form></details>
-  <ul class="pool-list pool-stack pool-gap-sm" data-private-list></ul>
-  <details class="pool-disclosure" data-private-account hidden><summary>Service credits</summary><div class="pool-stack pool-gap-sm">
+export const renderPrivateComputers = () => `<div class="pool-stack pool-gap-xs" data-private-computers>
+  <div class="pool-toggle-row"><span class="pool-row-text"><span class="pool-row-title">Your private computers</span><span class="pool-row-status" data-private-status>Not connected</span></span></div>
+  <details class="pool-disclosure pool-disclosure-quiet" data-private-pair><summary class="pool-small">Connect the Reploid host on your computers</summary><form class="pool-stack pool-gap-sm" data-private-connect>
+    <p class="pool-small pool-muted">The host shows its address and a pairing secret when it starts. Chats can then use your enrolled computers and service credits. Keys stay on the host; this tab remembers the connection.</p>
+    <label class="pool-stack pool-gap-xs pool-small">Host address<input class="pool-input" name="address" type="url" placeholder="http://127.0.0.1:18784" required></label>
+    <label class="pool-stack pool-gap-xs pool-small">Pairing secret<input class="pool-input" name="secret" type="password" autocomplete="off" required></label>
+    <div class="pool-row"><button class="pool-button" type="submit">Connect host</button></div></form></details>
+  <ul class="pool-list pool-stack pool-gap-xs" data-private-list></ul>
+  <details class="pool-disclosure pool-disclosure-quiet" data-private-account hidden><summary>Service credits</summary><div class="pool-stack pool-gap-sm">
     <p class="pool-caption pool-muted">Non-cash credits with no cash value. Your computers earn them by answering for others and spend them when you ask other computers. Before Send, each answer shows the most it can cost. Your host’s limit may allow a negative balance. Held credits stay pending until that answer is settled.</p>
     <p data-private-own-account></p><ul class="pool-list pool-stack pool-gap-sm pool-small" data-private-activity></ul>
     <p class="pool-caption pool-muted" data-private-balances></p>
     <button class="pool-button btn-ghost" type="button" data-private-statement>Save statement</button></div></details>
   <button class="pool-button btn-ghost" type="button" data-private-disconnect hidden>Disconnect private computers</button>
-  <p class="pool-small" role="alert" data-private-error hidden></p></section>`;
+  <p class="pool-small" role="alert" data-private-error hidden></p></div>`;
 
 export function bindPrivateComputers(root, session) {
   const find = selector => root.querySelector(selector), port = session.privateComputers;
@@ -39,7 +39,8 @@ export function bindPrivateComputers(root, session) {
       const residentUse = online && Number.isFinite(row.resident?.gpuBytes)
         ? `<dt>Resident GPU use</dt><dd>${gb(row.resident.gpuBytes)}${Number.isSafeInteger(row.resident?.cachedContexts) && row.resident.cachedContexts > 0 ? ` · ${row.resident.cachedContexts} cached ${row.resident.cachedContexts === 1 ? 'thread' : 'threads'}` : ''}</dd>`
         : '';
-      return `<li><details class="pool-disclosure"><summary>${escape(row.name)} <span class="pool-muted">${status}</span></summary>
+      const tone = !online ? 'pool-tone-unavailable' : row.preparing || row.preferences?.enabled === false ? 'pool-tone-pending' : 'pool-tone-ready';
+      return `<li><details class="pool-disclosure pool-disclosure-quiet"><summary><span class="pool-row-text"><span class="pool-row-title">${escape(row.name)}</span><span class="pool-row-status ${tone}">${status}</span></span></summary>
         <dl class="pool-facts"><dt>Model</dt><dd>${escape(online && row.resident ? model?.name || row.resident.modelIdentity : 'None reported')}</dd>
         <dt>Role</dt><dd>${online && row.resident ? row.resident.mode === 'partition' ? `Split model · stage ${row.resident.stageIndex + 1}` : 'Whole model' : row.requester ? 'Requester' : 'No active role'}</dd>
         <dt>Active work</dt><dd>${online ? row.queuedRequests > 0 ? `${row.activeRequests ?? 0} active · ${row.queuedRequests} queued` : row.activeRequests ?? 'Not reported' : 'Unknown'}</dd>

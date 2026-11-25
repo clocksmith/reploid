@@ -1,21 +1,24 @@
 import { escapeHtml as escape } from '../components/attachments.js';
 
 export const renderCircleInviteControls = () => `
-  <details class="pool-disclosure" data-circle-invites hidden>
-    <summary>Guest invites</summary>
-    <p class="pool-caption" data-circle-invite-policy>Revoking blocks new requests and removes queued turns before prompts are shared. Answers already running can finish with no duplicate settlement.</p>
+  <details class="pool-disclosure pool-disclosure-quiet" data-circle-invites hidden>
+    <summary>Invite a guest</summary>
     <form class="pool-stack pool-gap-sm" data-circle-invite-create>
-      <label>Expires in hours<input class="pool-input" name="hours" type="number" min="1" max="720" value="24" required></label>
-      <label>Requests per invite<input class="pool-input" name="maxRequests" type="number" min="1" max="1000" value="10" required></label>
-      <label>Output tokens per request<input class="pool-input" name="maxOutputTokens" type="number" min="1" max="32768" value="256" required></label>
-      <button class="pool-button btn-primary" type="submit">Create invite</button>
+      <p class="pool-small pool-muted">A guest link lets one person ask your computers a few questions. It ends on its own.</p>
+      <div class="pool-row"><button class="pool-button" type="submit">Create guest link</button></div>
+      <details class="pool-disclosure pool-disclosure-quiet"><summary class="pool-small">Link limits</summary><div class="pool-stack pool-gap-sm">
+        <label class="pool-stack pool-gap-xs pool-small">Ends after (hours)<input class="pool-input" name="hours" type="number" min="1" max="720" value="24" required></label>
+        <label class="pool-stack pool-gap-xs pool-small">Questions per link<input class="pool-input" name="maxRequests" type="number" min="1" max="1000" value="10" required></label>
+        <label class="pool-stack pool-gap-xs pool-small">Longest answer (tokens)<input class="pool-input" name="maxOutputTokens" type="number" min="1" max="32768" value="256" required></label>
+      </div></details>
+      <p class="pool-caption pool-muted" data-circle-invite-policy>Revoking blocks new requests and removes queued turns before prompts are shared. Answers already running can finish with no duplicate settlement.</p>
     </form>
     <div class="pool-stack pool-gap-sm" data-circle-invite-share hidden>
       <label>Guest link<input class="pool-input" data-circle-invite-link type="url" readonly></label>
       <button class="pool-button btn-ghost" type="button" data-circle-invite-copy>Copy link</button>
     </div>
     <ul class="pool-list pool-stack pool-gap-sm" data-circle-invite-list></ul>
-    <button class="pool-button btn-ghost" type="button" data-circle-invite-refresh>Refresh invite usage</button>
+    <button class="pool-button btn-ghost" type="button" data-circle-invite-refresh>Refresh usage</button>
     <p class="pool-caption" role="status" data-circle-invite-status></p>
   </details>`;
 

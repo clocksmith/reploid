@@ -11,7 +11,7 @@ export function bindOwnerPairingLink(root, port, url) {
   root.insertAdjacentHTML('beforeend', renderDialog({ titleId: 'owner-pairing-title', title: '', attrs: { 'data-owner-pairing-link': true },
     closeAttrs: { 'data-pairing-close': true },
     body: `<p class="pool-status-line pool-small" role="status" data-pairing-message hidden></p>
-      <details class="pool-disclosure"><summary>Details</summary><div class="pool-stack pool-gap-sm">
+      <details class="pool-disclosure pool-disclosure-quiet"><summary>Details</summary><div class="pool-stack pool-gap-sm">
         <p class="pool-caption pool-muted" data-pairing-identity></p>
         <p class="pool-caption pool-muted" data-pairing-connection hidden></p>
       </div></details>`,
@@ -76,26 +76,30 @@ export function bindOwnerPairingLink(root, port, url) {
   };
 }
 
+/**
+ * One path for people: scan the code your desktop shows, or paste its link. The raw fields the link carries
+ * (desktop ID, code, room) stay behind a quiet disclosure for experts.
+ */
 export const renderOwnerPairingControls = () => `
-  <details class="pool-disclosure" data-owner-pairing hidden>
-    <summary>Connect a desktop</summary>
-    <div class="pool-stack pool-gap-sm">
-      <p class="pool-small" data-owner-pairing-state>Not paired</p>
+  <details class="pool-disclosure pool-disclosure-quiet" data-owner-pairing hidden>
+    <summary><span class="pool-row-text"><span class="pool-row-title">Connect a desktop</span><span class="pool-row-status" data-owner-pairing-state>Not paired</span></span></summary>
+    <div class="pool-stack pool-gap-md">
+      <p class="pool-small pool-muted">Start Reploid on your desktop. Scan the code it shows with this device’s camera, or paste the pairing link here.</p>
       <form class="pool-stack pool-gap-sm" data-owner-pairing-form>
-        <label>Pairing link<input class="pool-input" name="link" type="url" placeholder="Paste from your desktop" autocomplete="off"></label>
-        <details class="pool-disclosure" data-pairing-manual>
-          <summary>Enter code manually</summary>
+        <label class="pool-stack pool-gap-xs pool-small">Pairing link<input class="pool-input" name="link" type="url" placeholder="Paste the link from your desktop" autocomplete="off"></label>
+        <div class="pool-row"><button class="pool-button btn-primary" type="submit">Connect</button></div>
+        <details class="pool-disclosure pool-disclosure-quiet" data-pairing-manual>
+          <summary class="pool-small">Enter the details by hand (for experts)</summary>
           <div class="pool-stack pool-gap-sm">
-            <label>Desktop ID<input class="pool-input" name="hostParticipantId" type="text" placeholder="peer:..." autocomplete="off" spellcheck="false"></label>
-            <label>Desktop name (optional)<input class="pool-input" name="hostLabel" type="text" placeholder="Alex's PC" autocomplete="off"></label>
-            <label>Desktop room hint (optional, routing only)<input class="pool-input" name="roomId" type="text" placeholder="reploid-swarm-..." autocomplete="off" spellcheck="false"></label>
-            <label>One-time pairing code<input class="pool-input" name="code" type="text" autocomplete="off" spellcheck="false"></label>
+            <label class="pool-stack pool-gap-xs pool-small">Desktop ID<input class="pool-input" name="hostParticipantId" type="text" placeholder="peer:…" autocomplete="off" spellcheck="false"></label>
+            <label class="pool-stack pool-gap-xs pool-small">Pairing code<input class="pool-input" name="code" type="text" autocomplete="off" spellcheck="false"></label>
+            <label class="pool-stack pool-gap-xs pool-small">Desktop name (optional)<input class="pool-input" name="hostLabel" type="text" placeholder="Alex’s PC" autocomplete="off"></label>
+            <label class="pool-stack pool-gap-xs pool-small">Network room (optional)<input class="pool-input" name="roomId" type="text" placeholder="reploid-swarm-…" autocomplete="off" spellcheck="false"></label>
           </div>
         </details>
-        <button class="pool-button btn-primary" type="submit">Connect</button>
       </form>
       <button class="pool-button btn-ghost" type="button" data-owner-pairing-unpair hidden>Forget computer</button>
-      <p class="pool-caption" role="status" data-owner-pairing-status></p>
+      <p class="pool-status-line pool-small" role="status" data-owner-pairing-status></p>
     </div>
   </details>`;
 
@@ -107,7 +111,7 @@ export function bindOwnerPairingControls(root, session, { initialUrl = '' } = {}
   const find = selector => panel.querySelector(selector);
   const stateNode = find('[data-owner-pairing-state]');
   const form = find('[data-owner-pairing-form]');
-  const submit = form.querySelector('button');
+  const submit = form.querySelector('button[type="submit"]');
   const unpairButton = find('[data-owner-pairing-unpair]');
   const statusNode = find('[data-owner-pairing-status]');
   const controller = new AbortController();
@@ -169,7 +173,7 @@ export function bindOwnerPairingControls(root, session, { initialUrl = '' } = {}
     const code = form.elements.code.value.trim();
     if (!hostParticipantId || !code) {
       find('[data-pairing-manual]').open = true;
-      statusNode.textContent = 'Enter the desktop ID and code, or paste a pairing link.';
+      statusNode.textContent = 'Paste the pairing link from your desktop, or enter its ID and code by hand.';
       form.elements[hostParticipantId ? 'code' : 'hostParticipantId'].focus();
       return;
     }
