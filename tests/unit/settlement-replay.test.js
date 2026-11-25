@@ -144,12 +144,16 @@ describe('settlement replay', () => {
       const r = out.reservations.find(row => row.requesterId === parties.requester.peerId);
       const theirs = out.reservations.find(row => row.requesterId === stranger.peerId);
       expect(r).toMatchObject({ status: 'settled', debit: 15, foreign: [], conflicts: [] });
-      // The stranger's terms form the stranger's own attempt, which sits on no route and settles nothing.
-      expect(theirs).toMatchObject({ reservationId: a.reservationId, status: 'unknown', debit: null });
-      expect(theirs.foreign.length).toBe(records.length - a.all().length);
+      // The stranger's terms form the stranger's own attempt. Terms on another route are foreign; terms that no
+      // receipt or acknowledgment contradicts describe an attempt that never started, which expires at no charge.
+      const foreign = records.includes(own) ? 1 : 0;
+      expect(theirs).toMatchObject({ reservationId: a.reservationId, ...(records.includes(copied)
+        ? { status: 'expired', debit: 0 } : { status: 'unknown', debit: null }) });
+      expect(theirs.foreign.length).toBe(foreign);
       expect(theirs.foreign.every(row => row.signer === stranger.peerId)).toBe(true);
+      expect((theirs.credits ?? []).every(c => c.amount === 0)).toBe(true);
       expect(out.balances[parties.requester.peerId]).toBe(-15);
-      expect(out.balances[stranger.peerId]).toBeUndefined();
+      expect(out.balances[stranger.peerId] ?? 0).toBe(0);
     }
   });
 
@@ -206,7 +210,11 @@ describe('settlement replay', () => {
     expect((await replay(stall.all(), stall.closesAt + 1)).reservations[0]).toMatchObject({ debit: 18, chargedOutputs: 6 });
     const wide = await runAttempt(parties, { tag: 'k3', outputs, stopAckingAfter: 6, maxUnacknowledgedOutputs: MAX_UNACKNOWLEDGED_OUTPUTS + 1 });
     expect(wide.terms.maxUnacknowledgedOutputs).toBe(MAX_UNACKNOWLEDGED_OUTPUTS + 1);
-    expect((await replay(wide.all(), wide.closesAt + 1)).reservations[0]).toMatchObject({ debit: 0, chargedOutputs: 0 });
+    const underWideK = await replaySettlement({ records: wide.all(), policies: [POLICY], at: wide.closesAt + 1,
+      maxUnacknowledgedOutputs: MAX_UNACKNOWLEDGED_OUTPUTS + 1 });
+    expect(underWideK.reservations[0]).toMatchObject({ debit: 0, chargedOutputs: 0 });
+    // Against the stages' receiver policy (K = 2) terms that sign another K are invalid, not a free answer.
+    expect((await replay(wide.all(), wide.closesAt + 1)).reservations[0]).toMatchObject({ status: 'invalid', debit: null });
   });
 
   it('reports a final stage that signed two output chains for one count as a conflict', async () => {
@@ -401,7 +409,9 @@ describe('settlement replay', () => {
     const parties = await createParties(2);
     const a = await runAttempt(parties, { lateAckDelayMs: 5000 });
     const r = (await replay(a.all(), a.closesAt + 1)).reservations[0];
-    expect(r.debit).toBe(0);
+    // The last acknowledgment is late, so only the four signed in time are charged; the stages' closes, also after
+    // the deadline but inside the release window, count.
+    expect(r).toMatchObject({ status: 'settled', debit: 12, outputs: 4 });
     expect(r.late.some(row => row.kind === 'acknowledgment' && row.count === 5)).toBe(true);
   });
 
@@ -519,7 +529,7 @@ describe('settlement replay', () => {
     const without = a.all().filter(row => !(row.schema === OUTPUT_ACKNOWLEDGMENT_SCHEMA && row.count === 40));
     const c = (await replay([...without, await resign(byCount(40))], a.closesAt + 1)).reservations[0];
     expect(c).toMatchObject({ status: 'conflict', debit: null });
-    expect(c.conflicts).toEqual([{ signer: null, signers: [parties.stages[1].peerId, parties.requester.peerId], kind: 'output-chain', count: 40 }]);
+    expect(c.conflicts).toEqual([{ signer: null, signers: [parties.stages[1].peerId, parties.requester.peerId], kind: 'output-chain', blocking: true, count: 40 }]);
   });
 
   it('matches the live ledger when the requester has signed a second acknowledgment with another chain', async () => {

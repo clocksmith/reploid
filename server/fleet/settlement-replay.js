@@ -5,15 +5,16 @@
  * acceptances, stage receipts, requester output acknowledgments). No operator journal, balance or enrollment table is
  * read. Each attempt comes out as exactly one of:
  *
- *   settled   every stage closed in time; the requester is debited for the outputs it acknowledged in time, and each
- *             stage is credited its signed share of that debit (credit-shares.js, the ledger's own arithmetic)
- *   expired   the release window passed without every stage closing and without a delivered answer; nobody is charged
- *             or paid (the provider-loss-free terms)
+ *   settled   every stage closed before the release window ended; the requester is debited for the outputs it
+ *             acknowledged in time, and each stage is credited its signed share of that debit (credit-shares.js, the
+ *             ledger's own arithmetic)
+ *   expired   the release window passed without every stage closing and without a delivered answer, including an
+ *             attempt that never started; nobody is charged or paid (the provider-loss-free terms)
  *   open      not every stage has closed and the release window has not passed; the outcome is not final yet
  *   conflict  some participant signed two incompatible statements; the conflicting records are listed
  *   unknown   the records presented cannot decide the outcome (for example a delivered answer with no receipt from
  *             one stage covering it); nothing is inferred
- *   invalid   the terms do not match a known public policy
+ *   invalid   the terms do not match a supplied public policy (or none was supplied)
  *
  * What this establishes: who signed what, and the amounts those signatures imply under the named policy. It does not
  * establish that any computation was correct, and it cannot see records a participant withholds; a withheld record
@@ -21,7 +22,7 @@
  */
 import { canonicalPartitionJson } from '../../shared/vendor/reploid/mesh/partitions/partition-contract.js';
 import {
-  OUTPUT_ACKNOWLEDGMENT_SCHEMA, STAGE_RECEIPT_SCHEMA, outputChainGenesis, verifyOutputAcknowledgment, verifyStageReceipt
+  MAX_UNACKNOWLEDGED_OUTPUTS, OUTPUT_ACKNOWLEDGMENT_SCHEMA, STAGE_RECEIPT_SCHEMA, outputChainGenesis, verifyOutputAcknowledgment, verifyStageReceipt
 } from '../../shared/vendor/reploid/mesh/partitions/partition-attempt-evidence.js';
 import { UNFINISHED_ANSWER_TERMS, creditSettlementDeltas } from './credit-shares.js';
 import {
@@ -78,7 +79,9 @@ const distinct = rows => {
  * The terms this requester's attempt settles on, or the outcome that stops it. Terms count only when they sit on the
  * attempt's route: the stage receipts carry their route hash (which binds the requester) and the acknowledgments
  * carry that route hash with their requester. Anything else is listed as `foreign` and can never cause a conflict.
- * Terms signed outside their own window are listed as `late` and ignored. When the requester signed more than one
+ * Terms with no receipt and no acknowledgment of their attemptId sit on no other route either, so they count: an
+ * attempt that never started is `open` and then `expired`, never undecidable. Terms signed outside their own window
+ * are listed as `late` and ignored. When the requester signed more than one
  * set, the set every stage's acceptance names is the agreed one and the equivocation is recorded for reputation;
  * only acceptances split across sets make a conflict.
  */
@@ -87,7 +90,7 @@ async function agreedTerms(group, base, policies) {
   const onRoute = row => {
     const own = receipts.filter(item => item.attemptId === row.attemptId && row.shares[item.partitionIndex]?.participantId === item.participantId);
     const acked = acknowledgments.filter(item => item.attemptId === row.attemptId);
-    return own.length + acked.length > 0 && (own.length === 0 || own.some(item => item.routeHash === row.routeHash))
+    return (own.length === 0 || own.some(item => item.routeHash === row.routeHash))
       && (acked.length === 0 || acked.some(item => item.routeHash === row.routeHash && item.requesterId === row.requesterId));
   };
   const candidates = [];
@@ -121,7 +124,9 @@ async function agreedTerms(group, base, policies) {
 /** `notBefore - skew <= signedAt <= deadline + skew` for these terms. */
 const within = (terms, skew) => value => ms(value) >= ms(terms.notBefore) - skew && ms(value) <= ms(terms.deadline) + skew;
 
-async function replayOne(reservationId, requesterId, group, { policies, at, computerOf }) {
+const closingReceipt = row => row.status !== 'executing' && row.timing.closedAt !== null;
+
+async function replayOne(reservationId, requesterId, group, { policies, at, computerOf, maxUnacknowledgedOutputs }) {
   const base = { reservationId, attemptId: null, requesterId, status: null, reason: null, debit: null, credits: null, outputs: null,
     unacknowledgedOutputs: null, conflicts: [], late: [], foreign: [], unmatched: [] };
   const chosen = await agreedTerms(group, base, policies);
@@ -133,11 +138,16 @@ async function replayOne(reservationId, requesterId, group, { policies, at, comp
   if (!policy) return { ...base, status: 'invalid', reason: 'the terms name a policy that was not supplied' };
   if (agreed.unit !== policy.unit || agreed.creditsPerOutputToken !== policy.creditsPerOutputToken
     || agreed.maxOutputTokens > policy.maxOutputTokens || agreed.releaseWindowMs !== policy.partitionUnclaimedReleaseMs
-    || ms(agreed.deadline) - ms(agreed.notBefore) > policy.maxRequestMs) {
+    || ms(agreed.deadline) - ms(agreed.notBefore) > policy.maxRequestMs || agreed.maxUnacknowledgedOutputs !== maxUnacknowledgedOutputs) {
     return { ...base, status: 'invalid', reason: 'the terms differ from the named policy' };
   }
   const skew = policy.maxClockSkewMs, closesAt = ms(agreed.deadline) + agreed.releaseWindowMs;
   const inTime = within(agreed, skew);
+  // A closing receipt counts when signed before the release window ends, even after the deadline: a stage that closes
+  // honestly late is then paid what one that backdates its close would be. The charge stays capped by the requester's
+  // in-time acknowledgments, and nothing signed after the window counts.
+  const closesInTime = value => ms(value) >= ms(agreed.notBefore) - skew && ms(value) < closesAt;
+  const counted = row => (closingReceipt(row) ? closesInTime(row.signedAt) : inTime(row.signedAt));
   const stages = agreed.shares.length, finalIndex = stages - 1;
   const matches = row => row.attemptId === agreed.attemptId;
   // Notes such as a requester's settled equivocation stay listed; only conflicts found from here on block settlement.
@@ -164,12 +174,12 @@ async function replayOne(reservationId, requesterId, group, { policies, at, comp
     for (let i = 1; i < rows.length; i++) {
       const [previous, current] = [rows[i - 1], rows[i]];
       if (previous.sequence === current.sequence || current.steps < previous.steps || previous.timing.closedAt !== null) {
-        base.conflicts.push({ signer: current.participantId, kind: 'stage-receipt', partitionIndex: index, sequences: [previous.sequence, current.sequence] });
+        base.conflicts.push({ signer: current.participantId, kind: 'stage-receipt', blocking: true, partitionIndex: index,
+          sequences: [previous.sequence, current.sequence] });
       }
     }
-    const timely = rows.filter(row => inTime(row.signedAt));
-    rows.filter(row => !inTime(row.signedAt)).forEach(row => base.late.push({ kind: 'stage-receipt', partitionIndex: index, sequence: row.sequence }));
-    latest[index] = timely.at(-1) ?? null;
+    rows.filter(row => !counted(row)).forEach(row => base.late.push({ kind: 'stage-receipt', partitionIndex: index, sequence: row.sequence }));
+    latest[index] = rows.filter(counted).at(-1) ?? null;
   }
 
   // Requester acknowledgments, checked against the final stage's committed chain at each count (at count 0, the
@@ -180,6 +190,9 @@ async function replayOne(reservationId, requesterId, group, { policies, at, comp
     && row.requesterId === agreed.requesterId);
   acknowledgments.filter(row => !inTime(row.signedAt)).forEach(row => base.late.push({ kind: 'acknowledgment', count: row.count }));
   const timelyAcknowledgments = acknowledgments.filter(row => inTime(row.signedAt));
+  // The requester's stops. A late one is listed and ignored, whatever the outcome.
+  const stops = distinct(group.stops).filter(row => matches(row) && row.requesterId === agreed.requesterId);
+  stops.filter(row => !inTime(row.signedAt)).forEach(row => base.late.push({ kind: 'stop', acknowledged: row.acknowledged }));
   const finalParticipant = agreed.shares[finalIndex].participantId;
   const committed = new Map([[0, await outputChainGenesis({ reservationId, routeHash: agreed.routeHash })]]);
   for (const row of perStage[finalIndex] ?? []) {
@@ -188,7 +201,7 @@ async function replayOne(reservationId, requesterId, group, { policies, at, comp
     if (held === undefined) committed.set(row.output.count, row.output.chain);
     else if (held !== row.output.chain && !base.conflicts.some(item => item.kind === 'output-chain' && item.count === row.output.count)) {
       // The final stage's own two chains for one count (or a starting value other than the computable one).
-      base.conflicts.push({ signer: row.participantId, kind: 'output-chain', count: row.output.count });
+      base.conflicts.push({ signer: row.participantId, kind: 'output-chain', blocking: true, count: row.output.count });
     }
   }
   const chainsAt = new Map();
@@ -204,11 +217,11 @@ async function replayOne(reservationId, requesterId, group, { policies, at, comp
       base.unmatched.push({ kind: 'acknowledgment', count });
       if (others.length > 1) base.conflicts.push({ signer: agreed.requesterId, kind: 'acknowledgment-equivocation', count, blocking: false, chains: others });
     } else if (count === 0) {
-      base.conflicts.push({ signer: agreed.requesterId, kind: 'charge-binding', count: 0 });
+      base.conflicts.push({ signer: agreed.requesterId, kind: 'charge-binding', blocking: true, count: 0 });
     } else {
       // Every chain the requester signed for this count differs from the final stage's: one of the two signed something
       // false, and the records cannot show which.
-      base.conflicts.push({ signer: null, signers: [finalParticipant, agreed.requesterId], kind: 'output-chain', count });
+      base.conflicts.push({ signer: null, signers: [finalParticipant, agreed.requesterId], kind: 'output-chain', blocking: true, count });
     }
   }
   if (base.conflicts.slice(noted).some(row => row.blocking !== false)) {
@@ -217,7 +230,7 @@ async function replayOne(reservationId, requesterId, group, { policies, at, comp
 
   const acknowledged = Math.max(0, ...matchedCounts);
   const final = latest[finalIndex], delivered = final?.output ?? null;
-  const closed = latest.map(row => Boolean(row && row.status !== 'executing' && row.timing.closedAt !== null));
+  const closed = latest.map(row => Boolean(row && closingReceipt(row)));
   const answerDelivered = Boolean(delivered?.done && acknowledged === delivered.count && acknowledged > 0);
   const unclosed = closed.flatMap((ok, index) => (ok ? [] : [index]));
   let closedAtLastStep = [];
@@ -244,7 +257,7 @@ async function replayOne(reservationId, requesterId, group, { policies, at, comp
   }
   if (latest.some(row => row.steps < acknowledged)) {
     return { ...base, status: 'conflict', reason: 'the requester acknowledged outputs a stage says it never computed',
-      conflicts: [...base.conflicts, ...latest.flatMap((row, index) => (row.steps < acknowledged ? [{ signer: row.participantId, kind: 'steps', partitionIndex: index }] : []))] };
+      conflicts: [...base.conflicts, ...latest.flatMap((row, index) => (row.steps < acknowledged ? [{ signer: row.participantId, kind: 'steps', blocking: true, partitionIndex: index }] : []))] };
   }
   const missingAcceptance = agreed.shares.flatMap((_, index) => (accepted.has(index) ? [] : [index]));
   if (missingAcceptance.length) {
@@ -262,8 +275,6 @@ async function replayOne(reservationId, requesterId, group, { policies, at, comp
   // stop, or by withholding acknowledgments until a stage refused to go on (more than K outputs unacknowledged, K
   // being the terms' signed `maxUnacknowledgedOutputs`). A stage that closes early on its own, even with a polite
   // `failed` receipt, earns nothing and costs the requester nothing.
-  const stops = distinct(group.stops).filter(row => matches(row) && row.requesterId === agreed.requesterId);
-  stops.filter(row => !inTime(row.signedAt)).forEach(row => base.late.push({ kind: 'stop', acknowledged: row.acknowledged }));
   const stoppedByRequester = stops.some(row => inTime(row.signedAt));
   const withheld = Boolean(delivered) && delivered.count - acknowledged > agreed.maxUnacknowledgedOutputs;
   const providerEnded = !finished && agreed.unfinishedTerms === UNFINISHED_ANSWER_TERMS && !stoppedByRequester && !withheld;
@@ -289,18 +300,21 @@ async function replayOne(reservationId, requesterId, group, { policies, at, comp
  * unfinished attempt is still `open`). `accountOf`: optional participant-to-account map (the enrolled owner, as the
  * ledger keeps balances): work a requester's own account did stays uncharged, and `balances` sums per account.
  * `computerOf` is the earlier map: it leaves the own-unit work uncharged but keeps `balances` per participant ID. By
- * default every participant ID is its own account.
+ * default every participant ID is its own account. `maxUnacknowledgedOutputs` is K as the stages' receiver policy
+ * fixes it (partition-receiver-policy.json); terms that sign another K are `invalid`. With no policy supplied, every
+ * attempt whose terms are agreed is `invalid`.
  */
-export async function replaySettlement({ records, policies, at, computerOf = id => id, accountOf = null }) {
-  if (!Array.isArray(policies) || policies.length === 0) throw Error('At least one public policy is required');
+export async function replaySettlement({ records, policies = [], at, computerOf = id => id, accountOf = null,
+  maxUnacknowledgedOutputs = MAX_UNACKNOWLEDGED_OUTPUTS }) {
   if (!Number.isFinite(at)) throw Error('A verification time is required');
   const byDigest = new Map();
-  for (const policy of policies) byDigest.set(await policyDigest(policy), policy);
+  for (const policy of Array.isArray(policies) ? policies : []) byDigest.set(await policyDigest(policy), policy);
   const { byReservation, rejected } = await classify(records);
   const reservations = [];
   for (const [reservationId, group] of [...byReservation.entries()].sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))) {
     for (const [requesterId, attempt] of byRequester(group)) {
-      reservations.push(await replayOne(reservationId, requesterId, attempt, { policies: byDigest, at, computerOf: accountOf ?? computerOf }));
+      reservations.push(await replayOne(reservationId, requesterId, attempt, { policies: byDigest, at, computerOf: accountOf ?? computerOf,
+        maxUnacknowledgedOutputs }));
     }
   }
   const balances = new Map();

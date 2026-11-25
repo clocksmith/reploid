@@ -1,6 +1,6 @@
 {
   "schema": "reploid.settlement-attack-matrix/v1",
-  "generatedAt": "2026-11-25T07:56:25.942Z",
+  "generatedAt": "2026-11-25T08:33:03.321Z",
   "policy": {
     "schema": "reploid.service-credit-policy/v1",
     "unit": "noncash-service-credit",
@@ -191,27 +191,17 @@
       "kind": "participant",
       "case": "P5 last acknowledgment signed after the deadline",
       "replay": {
-        "status": "expired",
-        "debit": 0,
+        "status": "settled",
+        "debit": 12,
         "acknowledgedInTime": 4,
         "delivered": 5,
         "late": [
-          {
-            "kind": "stage-receipt",
-            "partitionIndex": 0,
-            "sequence": 6
-          },
-          {
-            "kind": "stage-receipt",
-            "partitionIndex": 1,
-            "sequence": 6
-          },
           {
             "kind": "acknowledgment",
             "count": 5
           }
         ],
-        "note": "the attempt ran past its deadline, so the stages closed late too; under the terms nobody is charged or paid"
+        "note": "the stages closed after the deadline but inside the release window, so their closes count; the late acknowledgment does not, and only the outputs acknowledged in time are charged"
       },
       "countersign": {
         "status": "no time rule: whatever the parties sign later"

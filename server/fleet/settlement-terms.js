@@ -10,9 +10,11 @@
  * an enrollment table. Mapping participant IDs to people or accounts stays outside this module.
  */
 import { canonicalPartitionJson, canonicalRouteAttemptBinding } from '../../shared/vendor/reploid/mesh/partitions/partition-contract.js';
-import { MAX_UNACKNOWLEDGED_OUTPUTS, attemptRouteHash } from '../../shared/vendor/reploid/mesh/partitions/partition-attempt-evidence.js';
+import { MAX_UNACKNOWLEDGED_OUTPUTS, attemptRouteHash, isSignedTime } from '../../shared/vendor/reploid/mesh/partitions/partition-attempt-evidence.js';
 import { sha256Hex as digestText } from '../../shared/vendor/reploid/artifacts/signatures.js';
-import { normalizeParticipantPublicKey, participantIdFor, verifyParticipantSignature } from '../../shared/vendor/reploid/artifacts/participant-proofs.js';
+import {
+  isCanonicalParticipantProof, normalizeParticipantPublicKey, participantIdFor, verifyParticipantSignature
+} from '../../shared/vendor/reploid/artifacts/participant-proofs.js';
 import { canonicalize } from '../../shared/vendor/reploid/artifacts/canonical-json.js';
 
 export const SETTLEMENT_TERMS_SCHEMA = 'reploid.settlement-terms/v1';
@@ -30,7 +32,8 @@ const exact = (value, keys) => Boolean(value) && typeof value === 'object' && !A
   && Object.keys(value).length === keys.length && keys.every(key => Object.hasOwn(value, key));
 const text = (value, max = 256) => typeof value === 'string' && value.length > 0 && value.length <= max;
 const positive = value => Number.isSafeInteger(value) && value > 0;
-const time = value => typeof value === 'string' && value.length <= 40 && Number.isFinite(Date.parse(value));
+/** Exactly the `toISOString` form, in UTC: a zone-less time would be read as each verifier's local time. */
+const time = isSignedTime;
 
 /** The digest everyone signs against: the public policy object, canonical JSON. */
 export const policyDigest = policy => digestText(canonicalize(policy));
@@ -72,6 +75,8 @@ async function verifySelfCertified(record, { domain, problemOf, signerOf }) {
   // Exactly the key's coordinates, as stage receipts and acknowledgments require: the key is not signed, so a
   // relay must not be able to add members that one verifier ignores and another refuses.
   if (!key || !exact(carried, Object.keys(key)) || typeof signature !== 'string') return { ok: false, problem: problemOf(null) };
+  // One text per key and per signature (no padding, no unused bits): one key maps to exactly one participant ID.
+  if (!isCanonicalParticipantProof(carried, signature)) return { ok: false, problem: 'encoding_not_canonical' };
   if (await participantIdFor(key) !== signerOf(body)) return { ok: false, problem: 'signer_key_mismatch' };
   if (!await verifyParticipantSignature(key, domain, body, signature)) return { ok: false, problem: 'signature_invalid' };
   return { ok: true, body };

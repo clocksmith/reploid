@@ -1,6 +1,6 @@
 {
   "schema": "reploid.settlement-baseline-matrix/v1",
-  "generatedAt": "2026-11-25T07:56:27.007Z",
+  "generatedAt": "2026-11-25T08:33:04.398Z",
   "policy": {
     "schema": "reploid.service-credit-policy/v1",
     "unit": "noncash-service-credit",
@@ -25,8 +25,7 @@
   "participantCases": 11,
   "participantCasesWithDifferentAmounts": [
     "P6",
-    "P7",
-    "P5"
+    "P7"
   ],
   "replayLoses": [],
   "witnessChangesTheReplayVerdict": [
@@ -466,17 +465,17 @@
     },
     {
       "kind": "participant",
-      "case": "P5 the last step, its acknowledgment and the closes fall 5 s after the deadline; every clock is honest",
+      "case": "P5 the last acknowledgment and the closes fall 5 s after the deadline, inside the release window; every clock is honest",
       "delivered": 40,
       "owedIfEveryDeliveredOutputWerePaid": 120,
       "replay": {
-        "status": "expired",
-        "debit": 0,
+        "status": "settled",
+        "debit": 117,
         "paid": {
-          "stage0": 0,
-          "stage1": 0
+          "stage0": 29,
+          "stage1": 88
         },
-        "reason": "the release window passed without every stage closing; under these terms nobody is charged or paid"
+        "reason": "the answer was completed; the outputs the requester acknowledged in time are charged"
       },
       "debitNotes": {
         "status": "settled",
@@ -487,15 +486,15 @@
         }
       },
       "witnessed": {
-        "status": "expired",
-        "debit": 0,
+        "status": "settled",
+        "debit": 117,
         "paid": {
-          "stage0": 0,
-          "stage1": 0
+          "stage0": 29,
+          "stage1": 88
         }
       },
-      "sameAmounts": false,
-      "note": "under the replay nobody is charged or paid. B3 charges the 39 outputs acknowledged in time."
+      "sameAmounts": true,
+      "note": "the closes count because they were signed before the release window ended, so the replay, like B3, charges the 39 outputs acknowledged in time."
     },
     {
       "kind": "participant",
@@ -531,7 +530,7 @@
         }
       },
       "sameAmounts": true,
-      "note": "every signer writes its own signedAt. If the replay pays here and not in P5, the deadline rewards a stage for lying about time. The witness saw these receipts after the deadline."
+      "note": "every signer writes its own signedAt. The replay pays the same as in P5, so backdating gains a stage nothing. The witness saw these receipts after the deadline and refuses them, so under B4 backdating costs the stages their payment."
     }
   ]
 }

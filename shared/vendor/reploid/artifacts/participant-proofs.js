@@ -46,6 +46,27 @@ export function normalizeParticipantPublicKey(jwk) {
   return null;
 }
 
+/**
+ * Whether `text` is the one unpadded base64url form of exactly `bytes` bytes: no `=`, the exact length, and zero
+ * unused trailing bits. Decoders accept several texts for one byte string; a signed record allows only this one.
+ */
+export function isCanonicalBase64Url(text, bytes) {
+  if (typeof text !== 'string' || text.length !== Math.ceil(bytes * 4 / 3) || !/^[A-Za-z0-9_-]+$/.test(text)) return false;
+  const decoded = fromBase64Url(text);
+  return decoded.length === bytes && toBase64Url(decoded) === text;
+}
+
+/**
+ * Whether a carried key and signature have their one canonical form: each 32-byte coordinate and the 64-byte
+ * signature (Ed25519, or raw `r || s` for P-256) as canonical base64url. So one key gives one participant ID, and a
+ * relay cannot produce a second accepted text of a signature, since neither member is signed.
+ */
+export function isCanonicalParticipantProof(publicJwk, signature) {
+  const key = normalizeParticipantPublicKey(publicJwk);
+  return Boolean(key) && isCanonicalBase64Url(key.x, 32) && (key.y === undefined || isCanonicalBase64Url(key.y, 32))
+    && isCanonicalBase64Url(signature, 64);
+}
+
 /** The participant id every host derives from its identity public key. */
 export const participantIdFor = (publicJwk) => createPeerIdFromPublicJwk(publicJwk);
 

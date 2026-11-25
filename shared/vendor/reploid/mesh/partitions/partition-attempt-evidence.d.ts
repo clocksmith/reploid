@@ -41,6 +41,8 @@ export interface AttemptEvidenceSigner {
 }
 export type VerifiedRecord<Body> = { ok: true; body: Body } | { ok: false; problem: string };
 
+/** A signed time: exactly the `toISOString` form (`YYYY-MM-DDTHH:mm:ss.sssZ`). */
+export function isSignedTime(value: unknown): value is string;
 export function attemptRouteHash(identity: RouteAttemptBinding): Promise<string>;
 export function outputChainGenesis(binding: { reservationId: string; routeHash: string }): Promise<string>;
 export function extendOutputChain(previous: string, output: { step: number; delta: string }): Promise<string>;

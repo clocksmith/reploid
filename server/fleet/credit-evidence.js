@@ -98,7 +98,8 @@ export async function verifyCreditEvidence(request, evidence, enrollment, now, s
   }
   const proof = await verifyPartitionComponents(request, evidence, enrollment, now, skew);
   const { receipts, acknowledgment, acknowledgedReceipt } = proof;
-  assert(acknowledgment, 'Matching requester acknowledgment required');
+  assert(acknowledgment, proof.lateAcknowledgment ? 'Requester acknowledgment signed after the deadline is not charged'
+    : 'Matching requester acknowledgment required');
   const closedAtLastStep = evidence.closedAtLastStep ?? null;
   if (closedAtLastStep !== null) {
     assert(Number.isSafeInteger(releaseWindowMs) && now >= request.deadline + releaseWindowMs
@@ -162,6 +163,7 @@ export async function verifyPartitionComponents(request, evidence, enrollment, n
   assert(new Set(receipts.map(row => row.partitionIndex)).size === receipts.length, 'Duplicate stage receipt');
   const acknowledgment = evidence.acknowledgment ?? evidence.acknowledged?.acknowledgment ?? null;
   const acknowledgedReceipt = evidence.acknowledgedReceipt ?? evidence.acknowledged?.receipt ?? null;
+  let lateAcknowledgment = null;
   if (acknowledgment) {
     const ack = await verifyOutputAcknowledgment(acknowledgment, { publicJwk: enrollment.byPeer.get(request.consumer).publicJwk });
     assert(ack.ok && acknowledgment.requesterId === request.consumer && acknowledgment.reservationId === request.id
@@ -175,6 +177,10 @@ export async function verifyPartitionComponents(request, evidence, enrollment, n
         && acknowledgedReceipt.output.count === acknowledgment.count && acknowledgedReceipt.output.chain === acknowledgment.chain,
       'Acknowledged output prefix differs');
     }
+    // As in the settlement replay, only acknowledgments signed by the deadline (plus clock skew) are charged. A later
+    // one is verified and set aside: its receipts still count, and the requester's earlier acknowledgment still binds.
+    if (!executionTime(acknowledgment.signedAt)) lateAcknowledgment = acknowledgment;
   } else assert(!acknowledgedReceipt, 'Output prefix needs its acknowledgment');
+  if (lateAcknowledgment) return { identity: request.route, receipts, acknowledgment: null, acknowledgedReceipt: null, lateAcknowledgment };
   return { identity: request.route, receipts, acknowledgment, acknowledgedReceipt };
 }

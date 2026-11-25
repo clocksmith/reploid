@@ -511,8 +511,8 @@
     },
     {
       "path": "artifacts/participant-proofs.js",
-      "bytes": 7809,
-      "sha256": "af3e7303b3a513f584b70180e27dbaf72c52e58adf1af538d66adcad41fae985"
+      "bytes": 8949,
+      "sha256": "28c09d0fa96bb18057e6fe03ab13882e2eeb3d350fc6b3407e3594ce70630576"
     },
     {
       "path": "artifacts/receipt.d.ts",
@@ -1146,13 +1146,13 @@
     },
     {
       "path": "mesh/partitions/partition-attempt-evidence.d.ts",
-      "bytes": 6190,
-      "sha256": "7ad4660418e1ce5bb51bad0ecf1dccf21d9a30549860bfdaebc31c4b18597b19"
+      "bytes": 6336,
+      "sha256": "c9bb04b64be550f34a5abe80f0038d122ac9050e9e18b64a5ebaea16ac12c538"
     },
     {
       "path": "mesh/partitions/partition-attempt-evidence.js",
-      "bytes": 20225,
-      "sha256": "90fa946f333d42782614c3d5bc43103d6df6738eac6b478defa643ec83470d1e"
+      "bytes": 20945,
+      "sha256": "987ea07ae156a179bb908e6c788a76aaada38b5071f39a84f08260aabee6aa5e"
     },
     {
       "path": "mesh/partitions/partition-attempt-queue-policy.json",

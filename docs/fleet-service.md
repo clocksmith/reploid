@@ -117,7 +117,12 @@ rather than retried forever.
 
 Cancellation can settle an acknowledged prefix. All admitted stages must prove
 cleanup, and a signed final-stage receipt must match that prefix's output chain.
-Unacknowledged work is not billed. A signed `failed` receipt proves cleanup only
+Unacknowledged work is not billed, and neither is an acknowledgment signed after
+the request deadline plus clock skew: the ledger keeps the requester's earlier
+in-time acknowledgment and refuses to settle on the late one, as the
+[settlement replay](settlement-replay.md) does. A stage's closing receipt still
+counts when it arrives after the deadline but before the release window expires.
+A signed `failed` receipt proves cleanup only
 with its closing timestamp; it does not turn a failed answer into a completed one.
 Equivalent verified re-signatures retain the original economic outcome.
 

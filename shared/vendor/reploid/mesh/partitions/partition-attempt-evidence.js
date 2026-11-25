@@ -20,7 +20,9 @@
  */
 import { canonicalPartitionJson, canonicalRouteAttemptBinding } from './partition-contract.js';
 import { sha256Hex as digestText } from '../../artifacts/signatures.js';
-import { normalizeParticipantPublicKey, participantIdFor, signAsParticipant, verifyParticipantSignature } from '../../artifacts/participant-proofs.js';
+import {
+  isCanonicalParticipantProof, normalizeParticipantPublicKey, participantIdFor, signAsParticipant, verifyParticipantSignature
+} from '../../artifacts/participant-proofs.js';
 import receiverPolicy from './partition-receiver-policy.json' with { type: 'json' };
 
 export const STAGE_RECEIPT_SCHEMA = 'reploid.stage-receipt/v1';
@@ -51,7 +53,15 @@ const exact = (value, keys) => Boolean(value) && typeof value === 'object' && !A
   && Object.keys(value).length === keys.length && keys.every(key => Object.hasOwn(value, key));
 const text = (value, max) => typeof value === 'string' && value.length > 0 && value.length <= max;
 const count = value => Number.isSafeInteger(value) && value >= 0;
-const isoOrNull = value => value === null || typeof value === 'string' && value.length <= 40 && Number.isFinite(Date.parse(value));
+const ISO_TIME = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/;
+/**
+ * A signed time: exactly what `Date.prototype.toISOString` writes, in UTC. Any other form is malformed, because
+ * `Date.parse` reads a time without a zone as the verifier's local time and the same record would then be in time
+ * on one machine and late on another.
+ */
+export const isSignedTime = value => typeof value === 'string' && ISO_TIME.test(value) && Number.isFinite(Date.parse(value))
+  && new Date(Date.parse(value)).toISOString() === value;
+const isoOrNull = value => value === null || isSignedTime(value);
 const iso = ms => new Date(ms).toISOString();
 const sameJson = (a, b) => canonicalPartitionJson(a) === canonicalPartitionJson(b);
 
@@ -106,6 +116,8 @@ async function verifySigned(record, { domain, problemOf, signerOf, publicJwk }) 
   if (problem) return { ok: false, problem };
   const key = normalizeParticipantPublicKey(carried);
   if (!key || !exact(carried, Object.keys(key)) || typeof signature !== 'string') return { ok: false, problem: problemOf(null) };
+  // One text per key and per signature: neither member is signed, so a relay must not be able to make a second form.
+  if (!isCanonicalParticipantProof(carried, signature)) return { ok: false, problem: 'encoding_not_canonical' };
   if (publicJwk && !sameJson(normalizeParticipantPublicKey(publicJwk), key)) return { ok: false, problem: 'signer_key_mismatch' };
   if (await participantIdFor(key) !== signerOf(body)) return { ok: false, problem: 'signer_key_mismatch' };
   if (!await verifyParticipantSignature(key, domain, body, signature)) return { ok: false, problem: 'signature_invalid' };

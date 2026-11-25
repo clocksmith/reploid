@@ -296,8 +296,9 @@ async function main() {
 
   {
     const late = await runAttempt(parties, { tag: 'past', outputs: forty, lateAckDelayMs: 5000 });
-    add('P5 the last step, its acknowledgment and the closes fall 5 s after the deadline; every clock is honest', late, await judge(late.all(), late),
-      { note: 'under the replay nobody is charged or paid. B3 charges the 39 outputs acknowledged in time.' });
+    add('P5 the last acknowledgment and the closes fall 5 s after the deadline, inside the release window; every clock is honest', late,
+      await judge(late.all(), late),
+      { note: 'the closes count because they were signed before the release window ended, so the replay, like B3, charges the 39 outputs acknowledged in time.' });
     const deadline = ms(late.terms.deadline), early = iso(deadline - 1000), records = [], shown = [];
     for (const record of new Set(late.all())) {
       if (record.schema !== STAGE_RECEIPT_SCHEMA || ms(record.signedAt) <= deadline) { records.push(record); continue; }
@@ -308,7 +309,7 @@ async function main() {
       shown.push([signed, ms(record.signedAt)]);
     }
     add('L5 the same attempt, but each stage writes an in-time signedAt into the receipts it signed late', late, await judge(records, late, shown),
-      { note: 'every signer writes its own signedAt. If the replay pays here and not in P5, the deadline rewards a stage for lying about time. The witness saw these receipts after the deadline.' });
+      { note: 'every signer writes its own signedAt. The replay pays the same as in P5, so backdating gains a stage nothing. The witness saw these receipts after the deadline and refuses them, so under B4 backdating costs the stages their payment.' });
   }
 
   const operator = rows.filter(row => row.kind === 'operator');

@@ -213,7 +213,7 @@ async function main() {
     const a = await runAttempt(parties, { tag: 'late', lateAckDelayMs: 5000, clock: createClock() });
     const t = await truthOf(a.all(), a.closesAt + 1);
     rows.push({ kind: 'participant', case: 'P5 last acknowledgment signed after the deadline', replay: { status: t.r.status, debit: t.r.debit, acknowledgedInTime: t.r.outputs, delivered: a.delivered, late: t.r.late,
-        note: 'the attempt ran past its deadline, so the stages closed late too; under the terms nobody is charged or paid' },
+        note: 'the stages closed after the deadline but inside the release window, so their closes count; the late acknowledgment does not, and only the outputs acknowledged in time are charged' },
       countersign: { status: 'no time rule: whatever the parties sign later' } });
   }
 
