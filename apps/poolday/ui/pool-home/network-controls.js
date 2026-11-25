@@ -199,7 +199,7 @@ export function renderPeerRows(list, state, filter = null) {
     let row = existing.get(peer.id);
     if (!row) {
       row = list.ownerDocument.createElement('li'); row.className = 'network-peer-row'; row.dataset.computerId = peer.id;
-      row.innerHTML = '<div><div class="network-peer-heading"><span class="pool-row-title" data-computer-name></span><span class="network-status pool-badge" data-computer-status></span></div>'
+      row.innerHTML = '<div><div class="network-peer-heading"><strong class="pool-row-title" data-computer-name></strong><span class="network-status pool-badge" data-computer-status></span></div>'
         + '<dl class="pool-facts pool-caption network-peer-summary"><div><dt data-computer-model-label>Model</dt><dd data-computer-model></dd></div>'
         + '<div data-computer-hardware-row><dt>GPU <span class="pool-caption">(reported)</span></dt><dd data-computer-hardware></dd></div></dl>'
         + '<p class="pool-caption pool-muted" data-computer-detail></p><progress class="pool-progress" hidden></progress>'

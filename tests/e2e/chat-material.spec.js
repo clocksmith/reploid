@@ -1058,7 +1058,8 @@ test('a fresh mobile pairing link opens one action and both drawers have visible
   await page.goto('/#' + fragment);
   const pairing = page.getByRole('dialog', { name: 'Connect to Studio' });
   await expect(pairing).toBeVisible();
-  await expect(pairing.getByRole('button')).toHaveCount(1);
+  // One action in the footer; the header carries only Close.
+  await expect(pairing.locator('.pool-dialog-footer').getByRole('button')).toHaveCount(1);
   await expect(pairing.getByRole('button', { name: 'Connect' })).toBeFocused();
   await expect(pairing.getByText('Desktop ID:', { exact: false })).toBeHidden();
   await expect(page.locator('[data-threads-dialog]')).toBeHidden();

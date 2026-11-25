@@ -4369,7 +4369,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:44cecf7decfe03b4e8bee40f5681fbeccd3b8cf39fdec66b59e60076119a57f4",
+      "sha256": "sha256:66f204dec8a95bcf9cce4ceef6c82600158a4263601b235e9a7259a6edb3a26d",
       "imports": []
     },
     {
@@ -4765,7 +4765,7 @@
     {
       "path": "ui/pool-home/network-controls.js",
       "owner": "ui",
-      "sha256": "sha256:9953eb36c415cc943bdee38404d0c354778c7c3838c24471a49182cdea43f91d",
+      "sha256": "sha256:d6c2c02aed22e5f4a594f436c6474fbb7c422cfca7d9cdc12e9a58e18645340d",
       "imports": [
         "../../capabilities/communication/library-adapter.js",
         "../../vendor/reploid/mesh/preparation-progress.js",

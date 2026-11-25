@@ -302,7 +302,8 @@
 
 /* A quiet disclosure: a row with a trailing chevron; its content follows without another box. */
 .pool-home .pool-disclosure.pool-disclosure-quiet { border: 0; border-radius: 0; background: transparent; }
-.pool-home .pool-disclosure.pool-disclosure-quiet > summary { min-block-size: var(--pool-row-single); padding: 0; font-weight: var(--pool-weight-medium); }
+/* The rotated chevron needs a few pixels at the trailing edge so it never overflows the row. */
+.pool-home .pool-disclosure.pool-disclosure-quiet > summary { min-block-size: var(--pool-row-single); padding: 0 var(--pool-size-4) 0 0; font-weight: var(--pool-weight-medium); }
 .pool-home .pool-disclosure.pool-disclosure-quiet[open] > summary { border-block-end: 0; }
 .pool-home .pool-disclosure.pool-disclosure-quiet > :not(summary) { max-inline-size: 100%; margin: 0 0 var(--pool-space-row-gap); }
 .pool-home .pool-disclosure.pool-disclosure-quiet > summary:hover { color: var(--pool-color-ink); }
