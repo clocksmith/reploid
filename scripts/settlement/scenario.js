@@ -14,7 +14,9 @@ import { UNFINISHED_ANSWER_TERMS } from '../../server/fleet/credit-shares.js';
 export const POLICY = Object.freeze({
   schema: 'reploid.service-credit-policy/v1', unit: 'noncash-service-credit', version: 'settlement-replay-1',
   creditsPerOutputToken: 3, maxDebt: 1000, maxOutputTokens: 128, maxPendingPerComputer: 4, maxClockSkewMs: 1000,
-  maxRequestMs: 120000, allowSameOwner: false, partitionUnclaimedReleaseMs: 60000
+  maxRequestMs: 120000, allowSameOwner: false, partitionUnclaimedReleaseMs: 60000,
+  // K, published in the policy (and so in its digest), as the stages' receiver policy enforces it.
+  maxUnacknowledgedOutputs: MAX_UNACKNOWLEDGED_OUTPUTS
 });
 export const T0 = Date.parse('2026-11-24T12:00:00.000Z');
 

@@ -7,7 +7,10 @@ import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 
-import { participantIdFor } from '../../packages/reploid/src/artifacts/participant-proofs.js';
+import { createSigningIdentity } from '../../packages/reploid/src/artifacts/identity.js';
+import { fromBase64Url, toBase64Url } from '../../packages/reploid/src/artifacts/binary.js';
+import { isLowSP256Signature, participantIdFor, verifyParticipantSignature } from '../../packages/reploid/src/artifacts/participant-proofs.js';
+import { creditPolicy } from '../../server/fleet/contract.js';
 import {
   OUTPUT_ACKNOWLEDGMENT_SCHEMA, STAGE_RECEIPT_SCHEMA, createAttemptEvidenceSigner, isSignedTime, verifyOutputAcknowledgment, verifyStageReceipt
 } from '../../packages/reploid/src/mesh/partitions/partition-attempt-evidence.js';
@@ -182,8 +185,12 @@ describe('closing after the deadline (L5)', () => {
     expect(backdated).toMatchObject({ status: honest.status, debit: honest.debit, credits: honest.credits });
     // Only the requester's late acknowledgment is listed; the closes inside the window are not late.
     expect(honest.late).toEqual([{ kind: 'acknowledgment', count: 40 }]);
-    // Closes signed after the window do not count: the stages never closed, and the attempt expires.
-    const afterWindow = (await replay(await redate(parties, run, new Date(run.closesAt + 1000).toISOString()), run.closesAt + 2000)).reservations[0];
+    // The closing window carries the clock allowance at both ends, as the ordinary one does: a close dated up to the
+    // window's end plus the allowance counts, and one dated later does not, so the stages never closed and the attempt
+    // expires.
+    const skewed = (await replay(await redate(parties, run, new Date(run.closesAt + POLICY.maxClockSkewMs).toISOString()), run.closesAt + 2000)).reservations[0];
+    expect(skewed).toMatchObject({ status: 'settled', debit: honest.debit });
+    const afterWindow = (await replay(await redate(parties, run, new Date(run.closesAt + POLICY.maxClockSkewMs + 1).toISOString()), run.closesAt + 2000)).reservations[0];
     expect(afterWindow).toMatchObject({ status: 'expired', debit: 0 });
     expect(afterWindow.late.filter(row => row.kind === 'stage-receipt')).toHaveLength(2);
   });
@@ -227,5 +234,80 @@ describe('closing after the deadline (L5)', () => {
       ledger.close();
       await rm(directory, { recursive: true, force: true });
     }
+  });
+});
+
+/** `(r, n - s)` for a raw P-256 signature: the second form that verifies over the same bytes. */
+const P256_ORDER = 0xffffffff00000000ffffffffffffffffbce6faada7179e84f3b9cac2fc632551n;
+const otherS = signature => {
+  const bytes = fromBase64Url(signature), s = bytes.subarray(32).reduce((value, byte) => (value << 8n) | BigInt(byte), 0n);
+  let flipped = P256_ORDER - s;
+  const out = new Uint8Array(bytes);
+  for (let index = 63; index >= 32; index--) { out[index] = Number(flipped & 0xffn); flipped >>= 8n; }
+  return toBase64Url(out);
+};
+
+describe('settlement replay, round 4', () => {
+  it('signs P-256 records in low-S form and rejects the high-S form of every record kind', async () => {
+    const [requester, ...stages] = await Promise.all([0, 1, 2].map(() => createSigningIdentity({ algorithm: 'ECDSA' })));
+    const a = await runAttempt({ requester, stages }, { tag: 'low-s', outputs: Array.from({ length: 8 }, (_, i) => `t${i}`), requesterStopAfter: 4 });
+    const all = [...new Set(a.all())];
+    // Every signature the signers produced is low-S: WebCrypto alone picks high S about half the time.
+    expect(all.length).toBeGreaterThan(20);
+    expect(all.every(row => isLowSP256Signature(row.signature))).toBe(true);
+    for (const schema of Object.keys(VERIFY)) {
+      const record = all.find(row => row.schema === schema);
+      const high = { ...record, signature: otherS(record.signature) };
+      // The high-S form is a valid ECDSA signature over the same bytes, so only the low-S rule refuses it.
+      expect(await verifyParticipantSignature(record.publicJwk, schema, bodyOf(record), high.signature)).toBe(true);
+      expect(await VERIFY[schema](high), schema).toMatchObject({ ok: false, problem: 'encoding_not_canonical' });
+      expect(await VERIFY[schema](record), schema).toMatchObject({ ok: true });
+    }
+    const r = (await replay(all.map(row => (row.schema === STAGE_RECEIPT_SCHEMA ? { ...row, signature: otherS(row.signature) } : row)), a.closesAt + 1));
+    expect(r.rejected.length).toBe(all.filter(row => row.schema === STAGE_RECEIPT_SCHEMA).length);
+  });
+
+  it('requires the split release window to be longer than the clock allowance, in the ledger policy and the replay', async () => {
+    const parties = await createParties(2);
+    const tight = { ...POLICY, version: 'tight', partitionUnclaimedReleaseMs: POLICY.maxClockSkewMs };
+    expect(() => creditPolicy(tight)).toThrow('longer than the clock skew allowance');
+    expect(() => creditPolicy({ ...tight, partitionUnclaimedReleaseMs: POLICY.maxClockSkewMs + 1 })).not.toThrow();
+    const a = await runAttempt(parties, { tag: 'tight', policy: tight });
+    expect((await replaySettlement({ records: a.all(), policies: [tight], at: a.closesAt + 1 })).reservations[0])
+      .toMatchObject({ status: 'invalid', debit: null });
+  });
+
+  it('never charges a late acknowledgment but still uses it as evidence of a contradiction', async () => {
+    const parties = await createParties(2);
+    const a = await runAttempt(parties, { tag: 'late-evidence' });
+    const acks = ofSchema(a.all(), OUTPUT_ACKNOWLEDGMENT_SCHEMA).sort((x, y) => x.count - y.count), top = acks.at(-1);
+    const late = new Date(Date.parse(a.terms.deadline) + POLICY.maxClockSkewMs + 5000).toISOString(), fake = 'sha256:' + 'e'.repeat(64);
+    // A late acknowledgment of the final count with another chain than the final stage's: the requester and the stage
+    // signed incompatible statements, so the attempt is a conflict, as an in-time one would make it.
+    const lateFake = await resign(parties.requester, top, { ...bodyOf(top), chain: fake, signedAt: late });
+    const disputed = (await replay([...a.all().filter(row => row !== top), lateFake], a.closesAt + 1)).reservations[0];
+    expect(disputed.status).toBe('conflict');
+    expect(disputed.late).toContainEqual({ kind: 'acknowledgment', count: top.count });
+    expect(disputed.conflicts).toContainEqual(expect.objectContaining({ kind: 'output-chain', signer: null, count: top.count, blocking: true }));
+    // The requester's in-time wrong chain, then its late right one: the right one shows the requester contradicted
+    // itself, which does not block, and the late count is still not charged.
+    const timelyFake = await resign(parties.requester, top, { ...bodyOf(top), chain: fake });
+    const lateRight = await resign(parties.requester, top, { ...bodyOf(top), signedAt: late });
+    const resolved = (await replay([...a.all().filter(row => row !== top), timelyFake, lateRight], a.closesAt + 1)).reservations[0];
+    expect(resolved).toMatchObject({ status: 'settled', outputs: top.count - 1, debit: (top.count - 1) * POLICY.creditsPerOutputToken });
+    expect(resolved.conflicts).toContainEqual({ signer: parties.requester.peerId, kind: 'acknowledgment-equivocation', count: top.count,
+      blocking: false, chains: [fake] });
+  });
+
+  it('gives every row the same members, whatever its outcome', async () => {
+    const parties = await createParties(2);
+    const members = ['reservationId', 'attemptId', 'requesterId', 'status', 'reason', 'debit', 'credits', 'outputs', 'chargedOutputs',
+      'unacknowledgedOutputs', 'beyondCeiling', 'closedAtLastStep', 'conflicts', 'late', 'foreign', 'unmatched'].sort();
+    const settled = await runAttempt(parties, { tag: 'shape-settled' });
+    const lost = await runAttempt(parties, { tag: 'shape-lost', vanishStage: 0, vanishAfterStep: 1 });
+    const rows = [...(await replay([...settled.all(), ...lost.all()], settled.closesAt + 1)).reservations,
+      ...(await replay([settled.terms], settled.closesAt - 1)).reservations, ...(await replaySettlement({ records: settled.all(), at: 0 })).reservations];
+    expect(rows.map(row => row.status).sort()).toEqual(['expired', 'invalid', 'open', 'settled']);
+    for (const row of rows) expect(Object.keys(row).sort(), row.status).toEqual(members);
   });
 });

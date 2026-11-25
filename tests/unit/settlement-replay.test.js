@@ -221,13 +221,24 @@ describe('settlement replay', () => {
     const outputs = Array.from({ length: 20 }, (_, i) => `t${i}`);
     const stall = await runAttempt(parties, { tag: 'k2', outputs, stopAckingAfter: 6 });
     expect((await replay(stall.all(), stall.closesAt + 1)).reservations[0]).toMatchObject({ debit: 18, chargedOutputs: 6 });
-    const wide = await runAttempt(parties, { tag: 'k3', outputs, stopAckingAfter: 6, maxUnacknowledgedOutputs: MAX_UNACKNOWLEDGED_OUTPUTS + 1 });
+    // K reaches the verifier through the public policy the terms name: a policy that publishes K = 3 decides with 3,
+    // whatever the verifier would assume for a policy that names none.
+    const WIDE = { ...POLICY, version: 'wide-k', maxUnacknowledgedOutputs: MAX_UNACKNOWLEDGED_OUTPUTS + 1 };
+    const wide = await runAttempt(parties, { tag: 'k3', outputs, stopAckingAfter: 6, policy: WIDE, maxUnacknowledgedOutputs: WIDE.maxUnacknowledgedOutputs });
     expect(wide.terms.maxUnacknowledgedOutputs).toBe(MAX_UNACKNOWLEDGED_OUTPUTS + 1);
-    const underWideK = await replaySettlement({ records: wide.all(), policies: [POLICY], at: wide.closesAt + 1,
-      maxUnacknowledgedOutputs: MAX_UNACKNOWLEDGED_OUTPUTS + 1 });
-    expect(underWideK.reservations[0]).toMatchObject({ debit: 0, chargedOutputs: 0 });
-    // Against the stages' receiver policy (K = 2) terms that sign another K are invalid, not a free answer.
-    expect((await replay(wide.all(), wide.closesAt + 1)).reservations[0]).toMatchObject({ status: 'invalid', debit: null });
+    for (const assumed of [MAX_UNACKNOWLEDGED_OUTPUTS, MAX_UNACKNOWLEDGED_OUTPUTS + 1]) {
+      const underWideK = await replaySettlement({ records: wide.all(), policies: [WIDE], at: wide.closesAt + 1, maxUnacknowledgedOutputs: assumed });
+      expect(underWideK.reservations[0]).toMatchObject({ status: 'settled', debit: 0, chargedOutputs: 0 });
+    }
+    // The signer refuses terms whose K differs from their policy's, and a verifier answers invalid for them.
+    await expect(runAttempt(parties, { tag: 'k-mismatch', policy: WIDE })).rejects.toThrow('acknowledgment bound their policy publishes');
+    const resigned = await signer.sign(SETTLEMENT_TERMS_SCHEMA, { ...bodyOf(stall.terms), maxUnacknowledgedOutputs: MAX_UNACKNOWLEDGED_OUTPUTS + 1 });
+    const mismatched = [resigned, ...stall.all().filter(row => row.schema !== SETTLEMENT_TERMS_SCHEMA)];
+    expect((await replay(mismatched, stall.closesAt + 1)).reservations[0]).toMatchObject({ status: 'invalid', debit: null });
+    // A policy without K falls back to the stages' receiver policy's value, which the replay takes as an input.
+    const { maxUnacknowledgedOutputs: _published, ...older } = POLICY;
+    const legacy = await runAttempt(parties, { tag: 'k-legacy', outputs, stopAckingAfter: 6, policy: older });
+    expect((await replaySettlement({ records: legacy.all(), policies: [older], at: legacy.closesAt + 1 })).reservations[0]).toMatchObject({ debit: 18 });
   });
 
   it('reports a final stage that signed two output chains for one count as a conflict', async () => {

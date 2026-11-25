@@ -99,8 +99,15 @@ export function creditPolicy(source) {
     && (policy.partitionUnclaimedReleaseMs === undefined
       || integer(policy.partitionUnclaimedReleaseMs) && policy.partitionUnclaimedReleaseMs > 0)
     // Optional: the most all accounts together may owe, so new accounts' debt limits stay bounded in total.
-    && (policy.maxTotalDebt === undefined || integer(policy.maxTotalDebt)),
+    && (policy.maxTotalDebt === undefined || integer(policy.maxTotalDebt))
+    // Optional: K, the acknowledgment bound the stages enforce, published so a settlement verifier reads it from the
+    // policy (and its digest) rather than assuming one. Without it K is the stages' receiver policy's value.
+    && (policy.maxUnacknowledgedOutputs === undefined || integer(policy.maxUnacknowledgedOutputs)),
   'Explicit non-cash credit policy required');
+  // The release window must outlast the clock allowance: otherwise a record signed in time (by the deadline plus the
+  // allowance) could reach the ledger only after the window closed its hold (docs/settlement-replay.md).
+  assert(policy.partitionUnclaimedReleaseMs === undefined || policy.partitionUnclaimedReleaseMs > policy.maxClockSkewMs,
+    'The split release window must be longer than the clock skew allowance');
   assert(Number.isSafeInteger(policy.maxOutputTokens * policy.creditsPerOutputToken + policy.maxDebt), 'Credit policy exceeds integer precision');
   return Object.freeze(policy);
 }

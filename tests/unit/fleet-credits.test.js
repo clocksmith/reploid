@@ -352,6 +352,20 @@ describe('enrolled fleet service credits', () => {
     const checked = await verifyCreditStatement(ledger.statement('you'), { participantIds: [identities[0].peerId, identities[2].peerId] });
     expect(checked).toMatchObject({ ok: true, recomputedBalance: -10, expiredCount: 1, uncheckedCount: 0 });
   });
+  it('lets a migration publish K, the acknowledgment bound, in the policy, and never change it once published', async () => {
+    ledger.close(); ledger = null;
+    const file = path.join(directory, 'publish-k.sqlite');
+    (await openFleetCredits({ ...options, file })).close();
+    const published = { ...policy, version: 'test/2', maxUnacknowledgedOutputs: 2 };
+    await expect(openFleetCredits({ ...options, file, policy: published })).rejects.toThrow('explicit migration required');
+    expect((await migrateFleetCredits({ file, computers, policy: published })).policy).toMatchObject({ maxUnacknowledgedOutputs: 2 });
+    await expect(migrateFleetCredits({ file, computers, policy: { ...published, version: 'test/3', maxUnacknowledgedOutputs: 3 } }))
+      .rejects.toThrow('cannot change an existing maxUnacknowledgedOutputs');
+    ledger = await openFleetCredits({ ...options, file, policy: published });
+    expect(ledger.policy.maxUnacknowledgedOutputs).toBe(2);
+    await expect(openFleetCredits({ ...options, file: path.join(directory, 'bad-k.sqlite'), policy: { ...policy, maxUnacknowledgedOutputs: -1 } }))
+      .rejects.toThrow('Explicit non-cash credit policy required');
+  });
   it('expires only never-dispatched reservations and fences a late dispatch after restart', async () => {
     const input = request('crash-before-dispatch');
     ledger.reserve(input); ledger.close();

@@ -102,12 +102,16 @@ export async function signSettlementStop({ signer, terms, acknowledged, now = si
  * The requester's terms for one attempt, signed with its own identity (`signer` from createAttemptEvidenceSigner).
  * `weights` gives each stage's share in stage order; the policy supplies price, unit and the release window.
  * `maxUnacknowledgedOutputs` is K, the acknowledgment bound the stages enforce (MAX_UNACKNOWLEDGED_OUTPUTS); it is
- * signed so that a verifier reads it from the terms rather than assuming a constant.
+ * signed so that a verifier reads it from the terms rather than assuming a constant. A policy that publishes K
+ * (`policy.maxUnacknowledgedOutputs`) supplies it, and terms naming another K are refused.
  */
 export async function signSettlementTerms({ signer, identity, reservationId, policy, maxOutputTokens, weights, notBefore, deadline,
-  unfinishedTerms = null, maxUnacknowledgedOutputs, now = signer?.now ?? Date.now }) {
+  unfinishedTerms = null, maxUnacknowledgedOutputs = policy?.maxUnacknowledgedOutputs, now = signer?.now ?? Date.now }) {
   const binding = canonicalRouteAttemptBinding(identity);
   if (signer?.participantId !== binding.requesterId) throw Error('Settlement terms need the requester\'s own signing identity');
+  if (policy?.maxUnacknowledgedOutputs !== undefined && maxUnacknowledgedOutputs !== policy.maxUnacknowledgedOutputs) {
+    throw Error('Settlement terms must sign the acknowledgment bound their policy publishes');
+  }
   const stages = binding.route.stages;
   if (!Array.isArray(weights) || weights.length !== stages.length) throw Error('One weight per stage is required');
   const releaseWindowMs = policy.partitionUnclaimedReleaseMs;

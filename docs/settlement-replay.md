@@ -24,10 +24,12 @@ Participant IDs derive from public keys, so a signature names its signer without
 enrollment table. A stage does not compute step `s` (counting from 0) without the
 requester's acknowledgment of at least `s - K` outputs. `K` is
 `maxUnacknowledgedOutputs`: the stages enforce their receiver policy's value
-(`partition-receiver-policy.json`, currently 2), the requester signs it into the
-terms, a stage accepts only terms that name the value it enforces, and the replay
-answers `invalid` for terms that name another (step 3). A requester that stops
-acknowledging therefore receives at most `K + 1` unpaid outputs.
+(`partition-receiver-policy.json`, currently 2), the public credit policy
+publishes it under the same name (so it is covered by the policy digest the terms
+sign), the requester signs it into the terms, a stage accepts only terms that
+name the value it enforces, and the replay answers `invalid` for terms that name
+another than their policy's (step 3). A requester that stops acknowledging
+therefore receives at most `K + 1` unpaid outputs.
 
 An **attempt** here is always one (`reservationId`, `requesterId`) pair: the
 requester's attempt to have one answer computed under one reservation. Each
@@ -57,7 +59,14 @@ and is called `attemptId` wherever it is meant.
   anything else is rejected, whatever its kind.
 - **Signatures.** Ed25519, or ECDSA P-256 with SHA-256 whose signature is the raw
   `r || s` form WebCrypto produces. Either is 64 bytes, so 86 canonical base64url
-  characters; a padded or otherwise different text is rejected.
+  characters; a padded or otherwise different text is rejected. A P-256 signature
+  must also be **low-S**: `s`, read as a big-endian integer, satisfies
+  `1 <= s <= n / 2` (rounded down), where `n` is the order of the P-256 group,
+  `0xffffffff00000000ffffffffffffffffbce6faada7179e84f3b9cac2fc632551`. For a
+  valid `(r, s)`, `(r, n - s)` also verifies over the same bytes, so without this
+  rule a relay could make a second accepted form of any P-256 record. A record
+  whose signature has high S is rejected, whatever its kind. WebCrypto does not
+  choose low S, so the signers replace a high `s` with `n - s` when they sign.
 - **Participant ID.** `peer:` followed by the first 24 hex digits of SHA-256 over
   the canonical JSON of `{ kty, crv, x, y, n, e }`, where any member the key does
   not have is written as `null`. The signer field of each record (below) must
@@ -121,12 +130,19 @@ a safe integer `>= 0`; "positive" is a safe integer `> 0`.
   `signedAt` time.
 
 The policy fields the replay reads are `unit`, `creditsPerOutputToken`,
-`maxOutputTokens`, `maxRequestMs`, `maxClockSkewMs` and
-`partitionUnclaimedReleaseMs`. Terms repeat some of them: `unit` and
-`creditsPerOutputToken` under the same names, and
-`partitionUnclaimedReleaseMs` as `releaseWindowMs`. From the stages' receiver
-policy it reads `maxUnacknowledgedOutputs` (`K`, currently 2); a verifier may be
-given another value for stages that publish one.
+`maxOutputTokens`, `maxRequestMs`, `maxClockSkewMs`,
+`partitionUnclaimedReleaseMs` and `maxUnacknowledgedOutputs`. Terms repeat some
+of them: `unit`, `creditsPerOutputToken` and `maxUnacknowledgedOutputs` under the
+same names, and `partitionUnclaimedReleaseMs` as `releaseWindowMs`.
+`maxUnacknowledgedOutputs` is `K`. A policy published before it carried `K` has
+no such member; for such a policy `K` is the stages' receiver policy's value,
+which `replaySettlement` takes as its `maxUnacknowledgedOutputs` input (by
+default 2, from `partition-receiver-policy.json`). A policy that names `K` decides
+it, whatever that input says. A policy is usable only when
+`partitionUnclaimedReleaseMs` is greater than `maxClockSkewMs`: otherwise a record
+signed in time could reach the ledger only after the release window closed its
+hold. The ledger refuses to run under such a policy, and the replay answers
+`invalid` for terms that name one (step 3).
 
 ## Deciding an outcome
 
@@ -142,7 +158,11 @@ ID therefore makes a separate attempt that can charge only the stranger. Each
 attempt is decided in this order. `inTime(t)` means
 `notBefore - maxClockSkewMs <= t <= deadline + maxClockSkewMs`, using the agreed
 terms and the policy they name. `closesInTime(t)` means
-`notBefore - maxClockSkewMs <= t < deadline + releaseWindowMs`.
+`notBefore - maxClockSkewMs <= t <= deadline + releaseWindowMs + maxClockSkewMs`.
+Both windows carry the clock allowance at both ends, and because the policy's
+release window is longer than the allowance, the closing window ends at least
+`releaseWindowMs` after the ordinary one: a closing receipt is never late at an
+instant where the same receipt without `closedAt` would count.
 
 1. **Which terms.** Terms count unless another route contradicts them. Look at
    the records with the terms' `attemptId`. If any stage receipt from a
@@ -161,11 +181,13 @@ terms and the policy they name. `closesInTime(t)` means
    `conflicts` (below) with `blocking: false` and the agreed digest as
    `settledOn`. If acceptances name different sets, or none, the outcome is
    `conflict`.
-3. **Policy.** `invalid` unless the policy digest names a supplied policy and the
+3. **Policy.** `invalid` unless the policy digest names a supplied policy whose
+   `partitionUnclaimedReleaseMs` is greater than its `maxClockSkewMs`, and the
    terms repeat its `unit`, `creditsPerOutputToken` and `releaseWindowMs`, with
    `maxOutputTokens` at most the policy's, `deadline - notBefore` at most
-   `maxRequestMs`, and `maxUnacknowledgedOutputs` equal to the receiver policy's
-   `K`. With no policy supplied, every attempt that reaches this step is
+   `maxRequestMs`, and `maxUnacknowledgedOutputs` equal to `K`: the policy's
+   `maxUnacknowledgedOutputs`, or for a policy without one the receiver policy's
+   value. With no policy supplied, every attempt that reaches this step is
    `invalid`.
 4. **Records kept.** Acceptances, receipts, acknowledgments and stops are kept
    only when they name the agreed `attemptId`. Receipts must also carry the agreed
@@ -174,9 +196,15 @@ terms and the policy they name. `closesInTime(t)` means
    `requesterId`. An acceptance counts only for the agreed terms digest and its
    own share. A closing receipt (`settled` or `failed`, with `closedAt`) counts
    when signed `closesInTime`; every other kept record counts when signed
-   `inTime`. A kept record that does not count is listed as `late` and ignored,
-   whatever the outcome. Records that name another `attemptId` or come from a
-   non-party are dropped without being listed.
+   `inTime`. A kept record that does not count is **late**: it is listed in
+   `late`, whatever the outcome, and it is ignored for everything that decides an
+   amount or an outcome other than `conflict`. A late record never raises or
+   lowers the acknowledged count, never makes a stage's latest receipt, never
+   closes a stage, never delivers an answer, and a late acceptance or stop counts
+   for nothing. It is still its signer's signed statement, so step 5 uses kept
+   receipts and acknowledgments, late or not, in every contradiction test.
+   Records that name another `attemptId` or come from a non-party are dropped
+   without being listed.
 5. **Acknowledged count and contradictions.** Every kept receipt of the final
    stage with an `output` commits its `chain` at its `output.count`, whenever it
    was signed. The committed chain at count 0 is the starting value, which anyone
@@ -185,22 +213,26 @@ terms and the policy they name. `closesInTime(t)` means
    count (0 if none). This is the one charge rule: the requester owes the
    acknowledged count, up to `maxOutputTokens`, except where step 9 makes an
    unfinished answer free. Nothing else raises or lowers it.
-   - Another in-time acknowledgment of a matched count, with a different chain,
-     is the requester contradicting itself. It is listed as
-     `acknowledgment-equivocation`, not blocking. It never lowers the charge.
+   - Another acknowledgment, in time or late, of a count for which the requester
+     also signed the final stage's chain, with a different chain, is the
+     requester contradicting itself. It is listed as
+     `acknowledgment-equivocation`, not blocking, with `settledOn` when that
+     count is matched. It never lowers the charge.
    - An in-time acknowledgment of a count at which no final-stage receipt
      commits a chain is listed in `unmatched` and not charged.
 
-   The outcome is `conflict` if any of these hold, late receipts included:
+   The outcome is `conflict` if any of these hold, late receipts and late
+   acknowledgments included:
    - a stage's receipts repeat a sequence, have steps that go backwards, or
      continue after a closing receipt;
    - the final stage's receipts give two chains for one count, including a
      count-0 chain other than the starting value. This holds whether or not any
      acknowledgment names that count;
-   - the requester acknowledged a count in time, but none of its chains for that
-     count is the final stage's. The records cannot show which of the two lied;
-   - the charge binding's chain is not the starting value and no other in-time
-     binding has it.
+   - the requester acknowledged a count, in time or late, at which the final
+     stage commits a chain, but none of its chains for that count is the final
+     stage's. The records cannot show which of the two lied;
+   - the charge binding's chain is not the starting value and no other binding,
+     in time or late, has it.
 6. **Closing.** A stage's latest receipt is its highest-`sequence` receipt that
    counts (step 4). A stage has closed when that receipt is a closing receipt.
    The answer was delivered when the final stage's latest receipt has
@@ -284,9 +316,37 @@ ledger does, and `balances` sums per account.
 - **invalid:** the terms do not match a supplied policy, or no policy was
   supplied.
 
-Each row also lists `late` records (ignored), `foreign` terms (ignored),
-`unmatched` acknowledgments (not charged) and `requesterId`. Edited records fail
-their signatures and are listed as rejected.
+Edited records fail their signatures and are listed as rejected.
+
+### Rows
+
+`replaySettlement` returns `{ schema, at, counts, reservations, rejected, balances }`:
+`schema` is `reploid.settlement-replay/v1`, `at` the verification time as an
+ISO string, `counts` the number of rows per outcome, `rejected` one
+`{ index, schema, problem }` per record that failed its checks (`index` its
+position in the input, `schema` its schema or `null`), and `balances` the sum of
+debits (negative) and credits per account over `settled` and `expired` rows.
+`reservations` has one row per attempt, ordered by `reservationId` and then
+`requesterId`. Every row has exactly these members, whatever its outcome:
+
+| Member | Value |
+| --- | --- |
+| `reservationId` | the reservation |
+| `requesterId` | the attempt's requester; `null` when no record names one |
+| `attemptId` | the agreed terms' `attemptId`; `null` when no terms were agreed |
+| `status` | the outcome |
+| `reason` | a sentence for people; not part of the outcome |
+| `debit` | the requester's charge, for `settled` and `expired` rows; otherwise `null` |
+| `credits` | one `{ participantId, amount }` per stage in stage order (an own-account stage with `amount: 0`), for `settled` and `expired` rows; otherwise `null` |
+| `outputs` | the acknowledged count, for rows decided at step 6 or later; otherwise `null` |
+| `chargedOutputs` | the outputs charged, for `settled` rows; otherwise `null` |
+| `unacknowledgedOutputs` | `delivered.count - acknowledged`, for `settled` rows with a final-stage receipt; otherwise `null` |
+| `beyondCeiling` | acknowledged outputs past `maxOutputTokens` (0 when none), for `settled` rows; otherwise `null` |
+| `closedAtLastStep` | the partition indexes treated as closed at their last signed step (step 6); `[]` when none |
+| `conflicts` | the entries below, on any outcome |
+| `late` | the late records (step 4): `{ kind: 'terms', signer, digest }`, `{ kind: 'acceptance', partitionIndex }`, `{ kind: 'stage-receipt', partitionIndex, sequence }`, `{ kind: 'acknowledgment', count }` or `{ kind: 'stop', acknowledged }` |
+| `foreign` | terms on another route (step 1): `{ kind: 'terms', signer, attemptId, digest }` |
+| `unmatched` | in-time acknowledgments of a count no final-stage receipt commits (step 5): `{ kind: 'acknowledgment', count }` |
 
 ### Conflict entries
 

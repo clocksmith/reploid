@@ -63,9 +63,14 @@ the policy change in one SQLite transaction. Totals are conserved; nothing is
 issued, forgiven or converted. A request reserved before the migration settles
 with the per-computer arithmetic it was accepted under. The same migration adds
 the default release windows and debt limit below when the stored policy left
-them out; that needs a new policy `version`. It cannot change the enrollment, the
-unit, the rate, the output ceiling, the request deadline, the terminal charge or
-the same-owner rule. Repeating it returns the retained record.
+them out; that needs a new policy `version`. It can also add
+`maxUnacknowledgedOutputs`, the acknowledgment bound `K` the stages enforce
+(currently 2), which publishes it to settlement verifiers through the policy
+digest ([settlement-replay.md](settlement-replay.md)); once published it cannot
+change. It cannot change the enrollment, the unit, the rate, the output ceiling,
+the request deadline, the terminal charge or the same-owner rule. Repeating it
+returns the retained record. A policy whose `partitionUnclaimedReleaseMs` is not
+longer than its `maxClockSkewMs` is refused.
 
 ### First request and starter allowance
 

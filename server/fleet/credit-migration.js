@@ -9,7 +9,8 @@
  *   request reserved before the migration still settles with the per-computer arithmetic it was accepted under
  *   (credit-shares.js `accountSettlement`). Totals are conserved: nothing is issued, forgiven or converted.
  * - Default credit terms (contract.js `withCreditPolicyDefaults`): the two unclaimed-hold release windows and the
- *   starter debt limit, when the stored policy left them out. A new policy version is required whenever a term
+ *   starter debt limit, when the stored policy left them out, and the published acknowledgment bound
+ *   `maxUnacknowledgedOutputs` (K), which may be added but never changed. A new policy version is required whenever a term
  *   changes. No other term (unit, rate, output ceiling, request deadline, terminal charge, same-owner rule) can change
  *   here, and the enrollment must be exactly the stored one.
  *
@@ -27,7 +28,7 @@ import { FLEET_ACCOUNT_UNIT, ensureJournalAttribution, ownerAccounts } from './c
 
 export const FLEET_CREDIT_MIGRATION_SCHEMA = 'reploid.fleet-credit-migration/v1';
 /** The terms this migration may add or change. Anything else differing is refused. */
-const MIGRATABLE_TERMS = ['version', 'wholeModelUnclaimedReleaseMs', 'partitionUnclaimedReleaseMs', 'maxDebt'];
+const MIGRATABLE_TERMS = ['version', 'wholeModelUnclaimedReleaseMs', 'partitionUnclaimedReleaseMs', 'maxDebt', 'maxUnacknowledgedOutputs'];
 
 export async function migrateFleetCredits({ file, computers, policy: supplied, now = Date.now }) {
   const policy = creditPolicy(withCreditPolicyDefaults(supplied)), enrollment = await enrollComputers(computers, { allowEmpty: true });
@@ -51,7 +52,7 @@ export async function migrateFleetCredits({ file, computers, policy: supplied, n
     }
     const fixed = value => Object.fromEntries(Object.entries(value).filter(([key]) => !MIGRATABLE_TERMS.includes(key)));
     assert(same(fixed(previousPolicy), fixed(policy)), 'This migration can only add release windows or change the debt limit');
-    for (const key of ['wholeModelUnclaimedReleaseMs', 'partitionUnclaimedReleaseMs']) {
+    for (const key of ['wholeModelUnclaimedReleaseMs', 'partitionUnclaimedReleaseMs', 'maxUnacknowledgedOutputs']) {
       assert(previousPolicy[key] === undefined || previousPolicy[key] === policy[key], `Migration cannot change an existing ${key}`);
     }
     assert(!termsChanged || policy.version !== previousPolicy.version, 'Changed credit terms need a new policy version');
