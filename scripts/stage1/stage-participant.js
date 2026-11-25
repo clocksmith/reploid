@@ -219,7 +219,9 @@ export async function openStage1Participant({ stageIndex, identity, config, nati
     return signSettlementTerms({ signer, reservationId: `service:${identity.peerId}:${attemptId}`, policy,
       identity: { schema: 'reploid.partition-attempt/v2', threadId, attemptId, requesterId: identity.peerId, placementGeneration: 0, route: preview.route },
       maxOutputTokens: preview.serviceCreditQuote?.maxOutputTokens, weights, notBefore, deadline: notBefore + policy.maxRequestMs,
-      unfinishedTerms: UNFINISHED_ANSWER_TERMS_V2, maxUnacknowledgedOutputs: MAX_UNACKNOWLEDGED_OUTPUTS });
+      unfinishedTerms: UNFINISHED_ANSWER_TERMS_V2, maxUnacknowledgedOutputs: MAX_UNACKNOWLEDGED_OUTPUTS,
+      // The ledger account this requester is charged from, as its operator configured it (signed accounts).
+      ...(config.accountId ? { debitAccount: config.accountId } : {}) });
   }
 
   /**
@@ -389,7 +391,8 @@ export async function openStage1Participant({ stageIndex, identity, config, nati
     /** A stage's signed acceptance of the requester's terms at its own index, with its own key. */
     acceptTerms({ terms }) {
       if (stageIndex === null) throw Error('Only a stage accepts settlement terms');
-      return acceptSettlementTerms({ signer, terms, partitionIndex: stageIndex });
+      // The ledger account this stage's share is paid into, as its operator configured it (signed accounts).
+      return acceptSettlementTerms({ signer, terms, partitionIndex: stageIndex, ...(config.accountId ? { payoutAccount: config.accountId } : {}) });
     },
     /** What the stage loader served and refused. */
     loaded() { if (!loader) throw Error('The requester loads no pieces'); return loader.accounting(); },

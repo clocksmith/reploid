@@ -50,6 +50,43 @@ describe('verify-trade on a Stage 1 receipt', () => {
     expect(problems(verdict).join('\n')).toMatch(pattern);
   });
 
+  it('takes who is charged and who is paid from the accounts each party signed, not from the receipt\'s grouping', async () => {
+    const verdict = await judged();
+    for (const row of verdict.attempts) {
+      expect(row.facts.accounts).toEqual({ requester: 'owner-requester', stages: ['owner-stage0', 'owner-stage1'] });
+      expect(row.facts.ownAccountStages).toEqual([]);
+    }
+    // A receipt that lists stage 0 on the requester's computer changes nothing: that grouping is no longer consulted.
+    const regrouped = await judged(r => { r.hosts[0].computerId = r.requester.computerId; });
+    expect(problems(regrouped)).toEqual([]);
+    expect(regrouped.attempts[0].facts.debit).toBe(verdict.attempts[0].facts.debit);
+  });
+
+  it('compares the signed accounts with the enrollment a receipt publishes, and refuses a party listed under another account', async () => {
+    const enrol = stage0 => r => {
+      r.requester.accountId = 'owner-requester';
+      r.hosts[0].accountId = stage0;
+      r.hosts[1].accountId = 'owner-stage1';
+    };
+    const agreed = await judged(enrol('owner-stage0'));
+    expect(problems(agreed)).toEqual([]);
+    expect(agreed.attempts.every(row => row.facts.enrollmentChecked === true)).toBe(true);
+    // The publisher lists stage 0 under the requester's account; stage 0 signed its own.
+    const grouped = await judged(enrol('owner-requester'));
+    expect(grouped.ok).toBe(false);
+    expect(problems(grouped).join('\n')).toMatch(/not final: invalid \(a participant signed an account it is not enrolled under\)/);
+  });
+
+  it.each([
+    ['a share posted to an account its stage did not sign', r => { r.split.settlement.journalByAccount.find(row => row.accountId === 'owner-stage1').accountId = 'owner-someone-else'; }, /per account/],
+    ['a receipt with signed accounts and no per-account journal', r => { delete r.split.settlement.journalByAccount; }, /no per-account journal/],
+    ['a per-account journal that does not balance', r => { r.split.settlement.journalByAccount[0].delta -= 1; }, /does not sum to zero per account/]
+  ])('refuses %s', async (_name, change, pattern) => {
+    const verdict = await judged(change);
+    expect(verdict.ok).toBe(false);
+    expect(problems(verdict).join('\n')).toMatch(pattern);
+  });
+
   it('refuses an attempt still inside its release window, and a receipt with no public policy', async () => {
     const early = await verifyTrade({ ...trade, at: Date.parse(trade.receipt.split.settlementReplay.records[0].notBefore) });
     expect(problems(early).join('\n')).toMatch(/not final/);

@@ -257,13 +257,15 @@ export async function runNorthStar({ config, transport, directory, fixtureFile, 
     const witness = { threadId, requesterId: config.requester.participantId, stageParticipants: config.stages.map(stage => stage.participantId) };
     for (const [index, stage] of config.stages.entries()) {
       const edge = index === 0 || index === config.stages.length - 1;
+      // A requester-held edge stage signs the requester's own account as its payout account; an operator stage signs its own.
       await step(`open stage ${stage.label}`, () => s(stage.label).call('open', { ...shared, stageIndex: index, modelDirectory: stage.stageDirectory,
+        accountId: stage.role === 'requester' ? `owner-${requesterAccount}` : `owner-${stage.label}`,
         stateDirectory: stage.stateDirectory, assignedRanges: inventory.stages[index].ranges, capabilityRemap: stage.capabilityRemap === true,
         ...(stage.prefillTokenChunkSize ? { prefillTokenChunkSize: stage.prefillTokenChunkSize } : {}),
         ...(edge ? { fixtureBase64: fixtureBytes.toString('base64'), fixtureSha256, witness } : { witness: null }) }), limits.phaseMs);
     }
     const ownStages = config.stages.filter(stage => stage.role === 'requester').map(stage => stage.participantId);
-    await step('open requester', () => s(config.requester.label).call('open', { ...shared, stageIndex: null, modelDirectory: config.requester.modelDirectory,
+    await step('open requester', () => s(config.requester.label).call('open', { ...shared, accountId: `owner-${requesterAccount}`, stageIndex: null, modelDirectory: config.requester.modelDirectory,
       stateDirectory: config.requester.stateDirectory, ownStages }));
     // While the route comes up, each participant's own state is logged every 20 s, so a stage that never joins is named.
     let lastDiagnosis = 0;

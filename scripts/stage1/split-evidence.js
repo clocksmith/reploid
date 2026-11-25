@@ -38,6 +38,9 @@ export async function ledgerTrace(credits, reservationId) {
     // Each row names the computer its delta is attributed to: the receipt format's `accountId`, from when the ledger kept
     // one balance per computer. Every Stage 1 owner account holds one computer, so the two agree.
     journal: entries.map(entry => ({ accountId: entry.computer_id ?? entry.account_id, delta: entry.delta })),
+    // The same rows under the owner account each is posted to: what signed accounts are checked against
+    // (docs/settlement-replay.md, step 8; docs/verify-a-trade.md).
+    journalByAccount: entries.map(entry => ({ accountId: entry.account_id ?? null, computerId: entry.computer_id ?? null, delta: entry.delta })),
     heldAfter: before.accounts.reduce((sum, account) => sum + account.held, 0), replay };
 }
 

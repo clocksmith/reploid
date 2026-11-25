@@ -85,12 +85,16 @@ the debit and payouts the ledger posted, under the policy the requester signed.
 It does not show:
 - who owns a key, or that the stage keys belong to different people;
 - that any computation was correct;
-- that a stage the receipt places on the requester's own account belongs
-  there. Such a stage is neither charged nor paid, and that grouping is the
-  publisher's statement: no signed record carries it. The command prints the
-  stages it treated this way. A stage wrongly listed there would go unpaid and
-  this check would still pass; that stage owner's own statement check is what
-  catches it;
+- for a receipt without signed accounts, that a stage the receipt places on
+  the requester's own account belongs there. Such a stage is neither charged nor
+  paid, and that grouping is the publisher's statement: no signed record carries
+  it. The command prints the stages it treated this way. A stage wrongly listed
+  there would go unpaid and this check would still pass; that stage owner's own
+  statement check is what catches it. A receipt whose terms name the requester's
+  account and whose acceptances name each stage's (`accounts, each signed by its
+  own party` in the output) does not have this gap: the command takes who is
+  charged and who is paid from those signatures and compares the ledger's
+  journal per account;
 - that no party withheld a record. Withholding can only turn an outcome into
   `unknown`, `expired` or a smaller charge;
 - when a record was really signed. Every time is written by its own signer. A

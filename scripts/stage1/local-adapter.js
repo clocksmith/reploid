@@ -111,7 +111,8 @@ export function createLocalStage1Adapter({ directory, expectations, stageRanges,
       placementPolicy: { maxMeasurementAgeMs: 60000, maxObservationAgeMs: 10000, minResidencyMs: 1000, maxRouteCandidates: 100, queuedRequestsPerReplica: 2 } });
   }
 
-  const nodeConfig = role => ({ modelDirectory: path.join(directory, role, 'model'), stateDirectory: path.join(directory, role, 'state'),
+  // Each process is told the owner account it is enrolled under, and signs it into its terms or acceptance.
+  const nodeConfig = role => ({ accountId: `owner-${role}`, modelDirectory: path.join(directory, role, 'model'), stateDirectory: path.join(directory, role, 'state'),
     signalingUrl: `ws://127.0.0.1:${httpServer.address().port}/swarm`, roomId, roomToken, serviceUrl: service.url,
     maxOutputTokens: fixture.maxOutputTokens, reference: fixture.reference,
     ...(role === 'requester' ? {} : { fakeMemoryBytes: fakeMemoryBytes[HOSTS.find(host => host.role === role).label],
@@ -159,9 +160,9 @@ export function createLocalStage1Adapter({ directory, expectations, stageRanges,
       await node('requester').call('open', nodeConfig('requester'));
       await until(async () => (await node('requester').call('state')).ready, { timeoutMs: 30000, label: 'a ready split route', signal });
       return {
-        requester: { participantId: peers.requester.participantId, computerId: 'computer-requester', preflight: await node('requester').call('weights') },
+        requester: { participantId: peers.requester.participantId, computerId: 'computer-requester', accountId: 'owner-requester', preflight: await node('requester').call('weights') },
         hosts: HOSTS.map((host, index) => ({ label: host.label, stageIndex: index, participantId: peers[host.role].participantId,
-          machine: 'local-process', computerId: `computer-${host.role}`, assignedLayers: opened[host.role].assignedLayers, inventory: { preflight: hostInventory(index) } }))
+          machine: 'local-process', computerId: `computer-${host.role}`, accountId: `owner-${host.role}`, assignedLayers: opened[host.role].assignedLayers, inventory: { preflight: hostInventory(index) } }))
       };
     },
     soloControl(label) {

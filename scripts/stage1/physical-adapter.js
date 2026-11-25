@@ -232,11 +232,11 @@ export function createPhysicalStage1Adapter({ config, directory, expectations, s
     const shared = { signalingUrl: coordinator.signalingUrl, roomId: coordinator.roomId, roomToken: coordinator.roomToken,
       serviceUrl: coordinator.serviceUrl, serviceCa: coordinator.serviceCa, maxOutputTokens: fixture.maxOutputTokens, gateHoldMs: limits.phaseMs };
     if (index === null) {
-      await session('requester').call('open', { ...shared, stageIndex: null, modelDirectory: requesterTarget.modelDirectory, stateDirectory: requesterTarget.stateDirectory },
+      await session('requester').call('open', { ...shared, accountId: 'owner-requester', stageIndex: null, modelDirectory: requesterTarget.modelDirectory, stateDirectory: requesterTarget.stateDirectory },
         { timeoutMs });
       return null;
     }
-    const opened = await session(host.label).call('open', { ...shared, stageIndex: index, modelDirectory: host.stageDirectory, stateDirectory: host.stateDirectory,
+    const opened = await session(host.label).call('open', { ...shared, accountId: `owner-${host.label}`, stageIndex: index, modelDirectory: host.stageDirectory, stateDirectory: host.stateDirectory,
       assignedRanges: stageRanges[index],
       fixtureBase64: Buffer.from(fixtureBytes).toString('base64'), fixtureSha256,
       witness: { threadId: splitThread, requesterId: peers.requester.participantId, stageParticipants: hosts.map(row => peers[row.label].participantId) } }, { timeoutMs });
@@ -407,9 +407,9 @@ export function createPhysicalStage1Adapter({ config, directory, expectations, s
           .catch(error => { throw stopWith('host-stage-check-refused', `${host.label} stage directory record: ${error.code ?? error.message}`); })))) : null;
       const [inventories, requester] = await Promise.all([step('preflight stage directories', span, options => stageDirectories(options)),
         step('preflight requester weights', span, options => requesterWeights(options))]);
-      return { requester: { participantId: requesterTarget.participantId, computerId: 'computer-requester', machine: requesterTarget.machineId,
+      return { requester: { participantId: requesterTarget.participantId, computerId: 'computer-requester', accountId: 'owner-requester', machine: requesterTarget.machineId,
         preflight: requester },
-        hosts: hosts.map(host => ({ label: host.label, stageIndex: hosts.indexOf(host), participantId: host.participantId, machine: host.machineId, computerId: `computer-${host.label}`,
+        hosts: hosts.map(host => ({ label: host.label, stageIndex: hosts.indexOf(host), participantId: host.participantId, machine: host.machineId, computerId: `computer-${host.label}`, accountId: `owner-${host.label}`,
           assignedLayers: null, inventory: { preflight: inventories[host.label] }, ...(records ? { stageDirectoryRecord: records[hosts.indexOf(host)] } : {}) })) };
     },
     async soloControl(label, { signal }) {

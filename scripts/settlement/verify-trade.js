@@ -69,9 +69,18 @@ async function checkAttempt(name, attempt, { receipt, policy: suppliedPolicy, at
   facts.ownAccountStages = [...new Set(terms.flatMap(row => row.shares.map(share => share.participantId)))]
     .filter(id => id !== requesterId && accountOf(id) === accountOf(requesterId));
 
-  // Both verifiers replay the same signed records under the same public policy.
-  const service = await replaySettlement({ records, policies: [policy], at, accountOf });
-  const second = await docReplay({ records, policies: [policy], at, accountOf });
+  // Both verifiers replay the same signed records under the same public policy. With signed accounts the receipt's
+  // per-computer grouping is not an input; the enrollment the receipt publishes by owner account (`accountId` on its
+  // requester and hosts, or `participants.accounts`) is, and a party that signed an account it is not listed under
+  // makes the attempt `invalid`.
+  const signedAccounts = terms.some(row => Object.hasOwn(row, 'debitAccount'));
+  const listed = new Map([
+    ...[receipt.requester, ...(receipt.hosts ?? [])].filter(party => party?.participantId && party.accountId).map(party => [party.participantId, party.accountId]),
+    ...(receipt.participants?.accounts ?? []).flatMap(account => (account.participants ?? []).map(id => [id, account.accountId]))]);
+  const enrollment = signedAccounts ? (listed.size ? { accountOf: id => listed.get(id) ?? id } : {}) : { accountOf };
+  if (signedAccounts) facts.enrollmentChecked = listed.size > 0;
+  const service = await replaySettlement({ records, policies: [policy], at, ...enrollment });
+  const second = await docReplay({ records, policies: [policy], at, ...enrollment });
   if (service.rejected.length) fail(`${service.rejected.length} record(s) failed their signature or shape checks`);
   const row = service.reservations.find(item => item.reservationId === trace.reservationId);
   const other = second.reservations?.find(item => item.reservationId === trace.reservationId && item.requesterId === row?.requesterId);
@@ -87,6 +96,32 @@ async function checkAttempt(name, attempt, { receipt, policy: suppliedPolicy, at
   const stored = evidence.result?.reservations?.find(item => item.reservationId === trace.reservationId);
   if (stored && (stored.status !== row.status || stored.debit !== row.debit || !same(amountsBy(stored.credits, 'participantId'), facts.payouts))) {
     fail('the replay stored in the receipt differs from a fresh replay of its records');
+  }
+
+  const journal = Array.isArray(trace.journal) ? trace.journal : [];
+  if (journal.reduce((sum, entry) => sum + entry.delta, 0) !== 0) fail('the ledger journal for this reservation does not sum to zero');
+
+  // Signed accounts (docs/settlement-replay.md, step 8): the requester signed the account it is charged from and each
+  // stage the account it is paid into, so the ledger is compared per account and the receipt's own grouping is not used.
+  if (row.accounts) {
+    facts.accounts = row.accounts;
+    facts.ownAccountStages = [];
+    const charged = trace.charge ?? 0;
+    if ((row.debit ?? 0) !== charged) fail(`the ledger charged ${charged}, the signed records imply ${row.debit}`);
+    const implied = amountsBy([{ account: row.accounts.requester, amount: -(row.debit ?? 0) },
+      ...(row.credits ?? []).map((credit, index) => ({ account: row.accounts.stages[index] ?? credit.participantId, amount: credit.amount }))], 'account');
+    const rows = Array.isArray(trace.journalByAccount) ? trace.journalByAccount : null;
+    if (!rows) fail('the terms and acceptances sign their accounts, but the receipt has no per-account journal (settlement.journalByAccount)');
+    else {
+      if (rows.reduce((sum, entry) => sum + entry.delta, 0) !== 0) fail('the ledger journal for this reservation does not sum to zero per account');
+      const posted = amountsBy(rows.map(entry => ({ account: entry.accountId, amount: entry.delta })), 'account');
+      if (!same(posted, implied)) fail(`the ledger posted ${JSON.stringify(posted)} per account, the signed records and accounts imply ${JSON.stringify(implied)}`);
+      // The ledger's per-computer payout list must be its own journal's credits.
+      const paid = amountsBy(trace.credits, 'computerId');
+      const credited = amountsBy(rows.filter(entry => entry.delta > 0).map(entry => ({ computerId: entry.computerId, amount: entry.delta })), 'computerId');
+      if (!same(paid, credited)) fail(`the ledger paid ${JSON.stringify(paid)} but its journal credited ${JSON.stringify(credited)}`);
+    }
+    return { name, ok: problems.length === 0, problems, facts };
   }
 
   // The ledger's debit, payouts and journal against the replay.
@@ -112,8 +147,6 @@ async function checkAttempt(name, attempt, { receipt, policy: suppliedPolicy, at
     if ((row.debit ?? 0) !== charge) fail(`the ledger charged ${charge}, the signed records imply ${row.debit}`);
     if (!same(ledgerPayouts, replayPayouts)) fail(`the ledger paid ${JSON.stringify(ledgerPayouts)}, the signed records imply ${JSON.stringify(replayPayouts)}`);
   }
-  const journal = Array.isArray(trace.journal) ? trace.journal : [];
-  if (journal.reduce((sum, entry) => sum + entry.delta, 0) !== 0) fail('the ledger journal for this reservation does not sum to zero');
   const posted = Object.fromEntries(journal.filter(entry => entry.delta !== 0).map(entry => [entry.accountId, entry.delta]).sort());
   const expected = Object.fromEntries([...(charge ? [[requesterComputer, -charge]] : []), ...Object.entries(ledgerPayouts)].sort());
   if (!same(posted, expected)) fail(`the journal posted ${JSON.stringify(posted)}, the charge and payouts imply ${JSON.stringify(expected)}`);
@@ -142,6 +175,10 @@ async function main() {
       const f = row.facts;
       console.log(`${row.ok ? 'PASS' : 'FAIL'} ${row.name}: ${f.status ?? '-'} debit ${f.debit ?? '-'} payouts ${JSON.stringify(f.payouts ?? {})}`
         + ` policy ${f.policyDigest ?? '-'} terms ${f.unfinishedTerms ?? 'none'}${f.olderRulesDifference ? ' (older rules: known difference)' : ''}`);
+      if (f.accounts) {
+        console.log(`  accounts, each signed by its own party: requester ${f.accounts.requester}; stages ${f.accounts.stages.join(', ')}`
+          + (f.enrollmentChecked ? ' (each matches the enrollment the receipt publishes)' : ' (the receipt publishes no enrollment to compare them with)'));
+      }
       if (f.ownAccountStages?.length) {
         console.log(`  note: the receipt places ${f.ownAccountStages.join(', ')} on the requester's own account, so neither charged nor paid;`
           + ' no signed record confirms that grouping');
