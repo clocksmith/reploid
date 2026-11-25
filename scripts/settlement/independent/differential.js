@@ -23,11 +23,11 @@ import { policyDigest, termsDigest } from '../../../server/fleet/settlement-term
 import { createAttemptEvidenceSigner } from '../../../packages/reploid/src/mesh/partitions/partition-attempt-evidence.js';
 import { createSigningIdentity } from '../../../packages/reploid/src/artifacts/identity.js';
 import { POLICY, createParties, runAttempt } from '../scenario.js';
-import { UNFINISHED_ANSWER_TERMS } from '../../../server/fleet/credit-shares.js';
+import { UNFINISHED_ANSWER_TERMS, UNFINISHED_ANSWER_TERMS_V2, UNFINISHED_ANSWER_TERMS_V3 } from '../../../server/fleet/credit-shares.js';
 
 const SCHEMAS = Object.freeze({
   terms: 'reploid.settlement-terms/v1', acceptance: 'reploid.settlement-acceptance/v1', receipt: 'reploid.stage-receipt/v1',
-  acknowledgment: 'reploid.output-acknowledgment/v1', stop: 'reploid.settlement-stop/v1'
+  acknowledgment: 'reploid.output-acknowledgment/v1', stop: 'reploid.settlement-stop/v1', fault: 'reploid.settlement-stage-fault/v1'
 });
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(HERE, '../../..');
@@ -553,6 +553,83 @@ const MUTATIONS = {
       out.push({ name: 'stage 0 names its account and also accepts without one', records: [...own.records, await own.accept(first, undefined)] });
     }
     return out;
+  },
+
+  /**
+   * The failed-stage terms (docs/settlement-replay.md, "Failed stages"): the base attempt signed again under them, then
+   * stages that sign a fault, withhold their close or their receipts, do both, or sign a fault late, on another route,
+   * for another stage or malformed; and the same with a stage on the requester's own signed account.
+   */
+  async 'failed stages'(ctx) {
+    const SWEEP = ['at-deadline', 'window-end', 'decision-instant', 'after'], DECIDED = ['at-deadline', 'after'];
+    const skew = POLICY.maxClockSkewMs;
+    const records = await withTerms(ctx, { unfinishedTerms: UNFINISHED_ANSWER_TERMS_V3 });
+    const terms = records.find(record => record.schema === SCHEMAS.terms);
+    const stages = [...Array(ctx.stageCount).keys()];
+    const inTime = Math.min(ctx.lastSignedAt + 1, ctx.deadline - 1);
+    // A fault signed by `signer` (by default the stage itself) at `at`; any other member can be overridden.
+    const fault = (index, { at = inTime, signer = ctx.stageIdentity(index), ...changes } = {}) => sign(signer, { schema: SCHEMAS.fault,
+      reservationId: terms.reservationId, attemptId: terms.attemptId, routeHash: terms.routeHash, partitionIndex: index,
+      participantId: signer.peerId, signedAt: iso(at), ...changes });
+    const closesOf = index => ctx.receipts(index).filter(record => record.timing.closedAt !== null);
+    const out = [{ name: 'failed-stage terms, records as they are', records, clocks: Object.keys(CLOCKS) }];
+    for (const index of stages) {
+      const closes = closesOf(index), all = ctx.receipts(index), most = Math.max(0, ...all.map(record => record.steps));
+      out.push({ name: `stage ${index} signs a fault`, records: [...records, await fault(index)], clocks: SWEEP });
+      out.push({ name: `stage ${index} withholds its close`, records: without(records, ...closes), clocks: SWEEP });
+      out.push({ name: `stage ${index} withholds its close and signs a fault`, records: [...without(records, ...closes), await fault(index)], clocks: SWEEP });
+      out.push({ name: `stage ${index} presents no receipt`, records: without(records, ...all), clocks: SWEEP });
+      out.push({ name: `stage ${index} presents no receipt and signs a fault`, records: [...without(records, ...all), await fault(index)], clocks: DECIDED });
+      out.push({ name: `stage ${index} withholds its close and its receipts for its last step`,
+        records: without(records, ...all.filter(record => record.steps === most)), clocks: DECIDED });
+    }
+    const first = await fault(0);
+    out.push({ name: 'no stage closes', records: without(records, ...stages.flatMap(closesOf)), clocks: SWEEP });
+    out.push({ name: 'no stage closes and every stage signs a fault',
+      records: [...without(records, ...stages.flatMap(closesOf)), ...await Promise.all(stages.map(index => fault(index)))], clocks: DECIDED });
+    out.push({ name: 'every stage signs a fault', records: [...records, ...await Promise.all(stages.map(index => fault(index)))], clocks: DECIDED });
+    out.push({ name: 'the same fault twice', records: [...records, first, first], clocks: DECIDED });
+    out.push({ name: 'stage 0 signs two faults in time', records: [...records, first, await fault(0, { at: inTime - 1 })], clocks: DECIDED });
+    out.push({ name: 'stage 0 signs a fault inside the release window', records: [...records, await fault(0, { at: ctx.deadline + skew + 1 })], clocks: SWEEP });
+    out.push({ name: 'stage 0 signs a fault at the last instant a close counts', records: [...records, await fault(0, { at: ctx.closesAt + skew })],
+      clocks: ['window-end', 'decision-instant', 'after'] });
+    out.push({ name: 'stage 0 signs a fault after the release window', records: [...records, await fault(0, { at: ctx.closesAt + skew + 1 })], clocks: ['after', 'long-after'] });
+    out.push({ name: 'stage 0 signs two faults after the release window',
+      records: [...records, await fault(0, { at: ctx.closesAt + skew + 1 }), await fault(0, { at: ctx.closesAt + skew + 2 })], clocks: ['after'] });
+    out.push({ name: 'stage 0 signs a fault in time and another after the release window',
+      records: [...records, first, await fault(0, { at: ctx.closesAt + skew + 1 })], clocks: DECIDED });
+    out.push({ name: 'stage 0 signs a fault before the attempt may start',
+      records: [...records, await fault(0, { at: Date.parse(terms.notBefore) - skew - 1 })], clocks: DECIDED });
+    out.push({ name: 'stage 0 withholds its close and signs a fault after the release window',
+      records: [...without(records, ...closesOf(0)), await fault(0, { at: ctx.closesAt + skew + 1 })], clocks: ['after'] });
+    out.push({ name: 'a fault on another route', records: [...records, await fault(0, { routeHash: OTHER_DIGEST })], clocks: DECIDED });
+    out.push({ name: 'a fault for another attemptId', records: [...records, await fault(0, { attemptId: 'attempt-elsewhere' })], clocks: DECIDED });
+    out.push({ name: 'a fault under another reservation', records: [...records, await fault(0, { reservationId: 'reservation-elsewhere' })], clocks: DECIDED });
+    out.push({ name: 'a stranger signs a fault for stage 0', records: [...records, await fault(0, { signer: ctx.stranger })], clocks: DECIDED });
+    out.push({ name: 'the final stage signs a fault that names stage 0', records: [...records, await fault(0, { signer: ctx.stageIdentity(ctx.finalIndex) })], clocks: DECIDED });
+    out.push({ name: 'the requester signs a fault for stage 0', records: [...records, await fault(0, { signer: ctx.requester })], clocks: DECIDED });
+    out.push({ name: 'a fault that names a stage the terms do not have', records: [...records, await fault(ctx.stageCount, { signer: ctx.stageIdentity(0) })], clocks: DECIDED });
+    out.push({ name: 'a fault with a member too many', records: [...records, await fault(0, { cause: 'power' })], clocks: DECIDED });
+    out.push({ name: 'a fault whose stage index is not a count', records: [...records, await fault(-1, { signer: ctx.stageIdentity(0) })], clocks: DECIDED });
+    out.push({ name: 'a fault whose route hash is not a digest', records: [...records, await fault(0, { routeHash: 'route' })], clocks: DECIDED });
+    out.push({ name: 'a fault edited after signing', records: [...records, { ...first, signedAt: iso(inTime - 5) }], clocks: DECIDED });
+    out.push({ name: 'a fault with its signature removed', records: [...records, (({ signature: _gone, ...rest }) => rest)(first)], clocks: DECIDED });
+    out.push({ name: 'a fault under the terms as first signed', records: [...ctx.records, first], clocks: DECIDED });
+    out.push({ name: 'only the terms, their acceptances and a fault', records: [terms, ...records.filter(record => record.schema === SCHEMAS.acceptance), first], clocks: SWEEP });
+
+    // The same with signed accounts (step 8), stage 0 on the requester's own account.
+    const REQUESTER = 'account-requester', accountOfStage = index => (index === 0 ? REQUESTER : `account-stage-${index}`);
+    const own = await sign(ctx.requester, { ...bodyOf(terms), debitAccount: REQUESTER });
+    const ownDigest = await termsDigest(bodyOf(own));
+    const ownRecords = [...without(records, terms, ...records.filter(record => record.schema === SCHEMAS.acceptance)), own,
+      ...await Promise.all(ctx.acceptances.map(acceptance => sign(ctx.stageIdentity(acceptance.partitionIndex),
+        { ...bodyOf(acceptance), termsDigest: ownDigest, payoutAccount: accountOfStage(acceptance.partitionIndex) })))];
+    out.push({ name: 'stage 0 on the requester\'s own account', records: ownRecords, clocks: DECIDED });
+    for (const index of stages) {
+      out.push({ name: `own-account stage 0: stage ${index} signs a fault`, records: [...ownRecords, await fault(index)], clocks: DECIDED });
+      out.push({ name: `own-account stage 0: stage ${index} withholds its close`, records: without(ownRecords, ...closesOf(index)), clocks: SWEEP });
+    }
+    return out;
   }
 };
 
@@ -587,7 +664,7 @@ const BASES = [
   { name: 'finished 40-output answer, last two acknowledgments withheld', options: { outputs: FORTY, stopAckingAfter: 38 }, sweepOnly: true },
   { name: 'finished 40-output answer, last three acknowledgments withheld', options: { outputs: FORTY, stopAckingAfter: 37 }, sweepOnly: true }
 ];
-const REDUCED = ['withheld records', 'records signed after the deadline', 'stop statements', 'terms signed before K', 'signed accounts'];
+const REDUCED = ['withheld records', 'records signed after the deadline', 'stop statements', 'terms signed before K', 'signed accounts', 'failed stages'];
 
 // An attempt is decided once the deadline, the release window and the clock allowance have all passed.
 const decidedAt = ctx => ctx.closesAt + POLICY.maxClockSkewMs;
@@ -610,7 +687,7 @@ const EMPTY = shares => ({ reason: null, debit: 0, credits: shares.map(() => 0),
 // The document reports one row per reservation and requester, and names every member of a row.
 const rowKey = row => `${row.reservationId} / ${row.requesterId ?? 'no requester'}`;
 const MEMBERS = Object.freeze(['attemptId', 'status', 'debit', 'credits', 'outputs', 'chargedOutputs', 'unacknowledgedOutputs', 'beyondCeiling',
-  'closedAtLastStep', 'conflicts', 'late', 'foreign', 'unmatched', 'accounts']);
+  'closedAtLastStep', 'conflicts', 'late', 'foreign', 'unmatched', 'accounts', 'forfeited']);
 const sortKeys = value => (Array.isArray(value) ? value.map(sortKeys)
   : value && typeof value === 'object' ? Object.fromEntries(Object.keys(value).sort().map(key => [key, sortKeys(value[key])])) : value);
 const exact = value => JSON.stringify(sortKeys(value) ?? null);
@@ -707,7 +784,9 @@ async function main() {
   const contexts = [];
   for (const [index, base] of BASES.entries()) {
     const parties = base.curve ? curved : base.stages === 3 ? three : base.own ? { requester: two.requester, stages: [two.requester, two.stages[1]] } : two;
-    const attempt = await runAttempt(parties, { tag: base.tag ?? `b${index}`, ...base.options });
+    // Every base is signed under the provider-relief terms unless it names others, whatever scenario.js signs by
+    // default: the families were built on those terms, and the failed-stage family signs each base again under its own.
+    const attempt = await runAttempt(parties, { tag: base.tag ?? `b${index}`, unfinishedTerms: UNFINISHED_ANSWER_TERMS_V2, ...base.options });
     const ctx = contextOf(attempt, parties, stranger);
     contexts.push(ctx);
     add(base, 'unmutated, clock sweep', { name: 'all records', records: ctx.records, clocks: Object.keys(CLOCKS) }, ctx);

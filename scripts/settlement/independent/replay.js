@@ -9,10 +9,26 @@
 //
 // Follows the document's text with the decided unfinished-answer rule (the owner decision
 // of 2026-11-25) as amended for terms signed before terms carried K, then for signed accounts,
-// and then in answer to DOC-GAPS 83-89 (756 lines; the author had no commit hash for it, nor for
-// the 744-line text of signed accounts, the 713-line text before them or the 694-line text of
-// the decided rule that the versions before this one followed).
+// then in answer to DOC-GAPS 83-89, and then for failed stages (905 lines; the author had no
+// commit hash for it, nor for the 756-line text of those answers, the 744-line text of signed
+// accounts, the 713-line text before them or the 694-line text of the decided rule that the
+// versions before this one followed).
 // Earlier versions followed the text as of commit 955bd5f7a, before the decision.
+// From the amendment for failed stages: one more record is admitted, the stage fault
+// (`reploid.settlement-stage-fault/v1`, signed by a stage); one that fails its shape check is
+// rejected with problem `fault_malformed`. Faults name no requester and are offered to every
+// attempt under their reservation. They are read only when the agreed terms' `unfinishedTerms` is
+// `reploid.unfinished-answer/acknowledged-prefix-failed-stage-forfeits/v1`. Then: step 4 keeps a
+// fault on the same tests as a receipt and counts it when signed closesInTime, and late faults are
+// listed once per stage; a stage with a counting fault has faulted, and one that also closed gets
+// a non-blocking `fault-and-close` entry from step 4 on; step 6 answers `open` only while some
+// stage has neither closed nor faulted and the release window has not passed, then decides every
+// stage (treated as closed at its last signed step, or forfeiting with cause `fault`,
+// `fault-and-close` or `no-close`) and answers `expired` only when nothing was acknowledged and
+// some stage has not closed; step 7 does not test a forfeiting stage; the split credits a
+// forfeiting stage 0 and lowers the debit by exactly its share; and the row carries one more
+// member, `forfeited`, once step 3 has passed. Under every other `unfinishedTerms` value a fault
+// is dropped without being listed and every record is judged as before (DOC-GAPS 94-114).
 // From the two amendments for signed accounts: terms that sign K may carry one more member,
 // `debitAccount`, and an acceptance may carry `payoutAccount`. When the agreed terms carry
 // `debitAccount`: step 4 drops an acceptance without `payoutAccount`; step 8 answers `conflict`,
@@ -50,6 +66,7 @@ const ACCEPTANCE = 'reploid.settlement-acceptance/v1';
 const RECEIPT = 'reploid.stage-receipt/v1';
 const ACKNOWLEDGMENT = 'reploid.output-acknowledgment/v1';
 const STOP = 'reploid.settlement-stop/v1';
+const FAULT = 'reploid.settlement-stage-fault/v1';
 const OUTPUT_CHAIN = 'reploid.output-chain/v1';
 // The result's schema since the decided rules (it was `v1` before them; rows have the same
 // members). CHOICE (DOC-GAPS 78): this one value whatever `unfinishedTerms` each row's terms name.
@@ -57,6 +74,11 @@ const RESULT_SCHEMA = 'reploid.settlement-replay/v2';
 // The decided `unfinishedTerms`, and the older one kept for the reservations made under it.
 const ACKNOWLEDGED_PREFIX = 'reploid.unfinished-answer/acknowledged-prefix-provider-relief/v1';
 const PROVIDER_LOSS_FREE = 'reploid.unfinished-answer/provider-loss-free/v1';
+// The failed-stage terms: a stage that faulted, or that did not close, forfeits its own share
+// (step 6). Stage faults are read only when the agreed terms name exactly this value.
+const FAILED_STAGE = 'reploid.unfinished-answer/acknowledged-prefix-failed-stage-forfeits/v1';
+// The problem a record with the stage fault's schema is rejected with when it fails its shape check.
+const FAULT_MALFORMED = 'fault_malformed';
 const STATUSES = new Set(['executing', 'settled', 'failed']);
 const CLOSING = new Set(['settled', 'failed']);
 // The stages' receiver policy's K, used for a policy that does not name its own.
@@ -166,8 +188,9 @@ const isOutput = (v) => hasExactly(v, ['count', 'chain', 'done', 'stopReason']) 
 
 // One entry per record kind: the signer field, a rule per member (every listed member
 // is required and no other is allowed), rules that span members, for terms the one
-// older shape that is also accepted, and for terms and acceptances the one more member
-// they may carry (`optional`, with its rule).
+// older shape that is also accepted, for terms and acceptances the one more member
+// they may carry (`optional`, with its rule), and for the stage fault the problem a failed
+// shape check is rejected with (`malformed`; for the other kinds the problem texts are mine).
 // CHOICE: the document gives no type for attemptId, requesterId, participantId or
 // `maximum`. The IDs are read as text 256 and `maximum` as a safe integer.
 const KINDS = new Map([
@@ -236,6 +259,18 @@ const KINDS = new Map([
       count: isCount, chain: isDigest, signedAt: isTime,
     },
   }],
+  // The stage fault: signed by a stage that has failed and will sign no closing receipt.
+  // CHOICE (DOC-GAPS 94): the conventions of the other records extend to it. `attemptId` and
+  // `participantId` are text 256, `partitionIndex` is any count (step 4 decides whether the agreed
+  // terms name its signer there), and the signed bytes carry this schema as their `signatureDomain`.
+  [FAULT, {
+    signer: 'participantId',
+    malformed: FAULT_MALFORMED,
+    fields: {
+      schema: any, reservationId: text(160), attemptId: text(), routeHash: isDigest, partitionIndex: isCount,
+      participantId: text(), signedAt: isTime,
+    },
+  }],
 ]);
 
 /** The carried key rebuilt with exactly its allowed members, or null. Each coordinate is 32 bytes. */
@@ -280,28 +315,33 @@ function admit(records, index) {
   if (typeof copy.schema === 'string') schema = copy.schema;
   const kind = KINDS.get(copy.schema);
   if (!kind) return reject('unknown schema'); // CHOICE: rejected, not silently skipped
+  // The shape check. A record with the stage fault's schema that fails it is rejected with problem
+  // `fault_malformed`; for the other kinds the text is mine. CHOICE (DOC-GAPS 95): the shape check
+  // is the two unsigned members being there and the member rules below, and no more: a failed key
+  // or signature check keeps my text for a fault as for any record.
+  const malformed = (problem) => reject(kind.malformed ?? problem);
   if (!Object.hasOwn(copy, 'publicJwk') || !Object.hasOwn(copy, 'signature')) {
-    return reject('publicJwk or signature missing');
+    return malformed('publicJwk or signature missing');
   }
   const { publicJwk, signature, ...body } = copy;
   const optional = kind.optional ?? {}; // the one more member a kind may carry, with its rule
   if (Object.keys(body).some((name) => !Object.hasOwn(kind.fields, name) && !Object.hasOwn(optional, name))) {
-    return reject('member not allowed');
+    return malformed('member not allowed');
   }
   for (const name of Object.keys(kind.fields)) {
     if (!Object.hasOwn(body, name)) {
       // The one older shape of a kind has every member but one, and only under its own rule.
       if (name === kind.older?.without && kind.older.allowed(body)) continue;
-      return reject(`member missing: ${name}`);
+      return malformed(`member missing: ${name}`);
     }
-    if (!kind.fields[name](body[name])) return reject(`field rule: ${name}`);
+    if (!kind.fields[name](body[name])) return malformed(`field rule: ${name}`);
   }
   // A member a kind may carry need not be there; when it is, it obeys its rule.
   for (const name of Object.keys(optional)) {
-    if (Object.hasOwn(body, name) && !optional[name](body[name])) return reject(`field rule: ${name}`);
+    if (Object.hasOwn(body, name) && !optional[name](body[name])) return malformed(`field rule: ${name}`);
   }
-  const fault = kind.across ? kind.across(body) : null;
-  if (fault) return reject(`field rule: ${fault}`);
+  const broken = kind.across ? kind.across(body) : null;
+  if (broken) return malformed(`field rule: ${broken}`);
   const jwk = keyOf(publicJwk);
   if (!jwk) return reject('key shape');
   if (!isBase64url(signature, 64)) return reject('signature format');
@@ -318,14 +358,19 @@ function admit(records, index) {
 }
 
 // Groups into attempts: terms, acknowledgments and stops go to the attempt of the
-// reservationId and requesterId they name; acceptances and stage receipts name no
-// requester and are offered to every attempt under their reservationId.
+// reservationId and requesterId they name; acceptances, stage receipts and stage faults name
+// no requester and are offered to every attempt under their reservationId.
+// CHOICE (DOC-GAPS 97): a reservation that only faults name has a row, as one that only
+// acceptances or stage receipts name has.
 function place(byReservation, record) {
   const id = record.body.reservationId;
-  if (!byReservation.has(id)) byReservation.set(id, { attempts: new Map(), acceptances: [], receipts: [] });
+  if (!byReservation.has(id)) {
+    byReservation.set(id, { attempts: new Map(), acceptances: [], receipts: [], faults: [] });
+  }
   const reservation = byReservation.get(id);
   if (record.schema === ACCEPTANCE) return reservation.acceptances.push(record);
   if (record.schema === RECEIPT) return reservation.receipts.push(record);
+  if (record.schema === FAULT) return reservation.faults.push(record);
   const { requesterId } = record.body;
   if (!reservation.attempts.has(requesterId)) {
     reservation.attempts.set(requesterId, { terms: [], acknowledgments: [], stops: [] });
@@ -341,6 +386,8 @@ function place(byReservation, record) {
  * A row with exactly the members of the "Rows" table, as they stand before any step decides.
  * The one more member, `accounts`, is added in `decide`, when and only when the agreed terms
  * carry `debitAccount` and the attempt passed step 3 (a row decided at step 1, 2 or 3 never has it).
+ * So is the one more member, `forfeited`, when and only when the agreed terms name the failed-stage
+ * terms and the attempt passed step 3. CHOICE (DOC-GAPS 110): it stands before `accounts`.
  */
 const newRow = (reservationId, requesterId) => ({
   reservationId, requesterId, attemptId: null, status: 'unknown', reason: '', debit: null, credits: null,
@@ -354,6 +401,7 @@ function lateEntry({ schema, body, digest }) {
   if (schema === ACCEPTANCE) return { kind: 'acceptance', partitionIndex: body.partitionIndex };
   if (schema === RECEIPT) return { kind: 'stage-receipt', partitionIndex: body.partitionIndex, sequence: body.sequence };
   if (schema === ACKNOWLEDGMENT) return { kind: 'acknowledgment', count: body.count };
+  if (schema === FAULT) return { kind: 'fault', partitionIndex: body.partitionIndex };
   return { kind: 'stop', acknowledged: body.acknowledged };
 }
 
@@ -455,8 +503,8 @@ async function decide(reservationId, requesterId, attempt, { policyByDigest, rec
     }
     return { row: Object.assign(row, { status, reason }), postings };
   };
-  // Own terms, acknowledgments and stops; every acceptance and stage receipt of the reservation.
-  const { terms: everyTerms, acknowledgments, stops, acceptances, receipts } = attempt;
+  // Own terms, acknowledgments and stops; every acceptance, stage receipt and stage fault of the reservation.
+  const { terms: everyTerms, acknowledgments, stops, acceptances, receipts, faults } = attempt;
   // One entry of `conflicts`: kind, blocking and signer, plus the members of its kind.
   const conflict = (kind, blocking, signer, members) => row.conflicts.push({ kind, blocking, signer, ...members });
   const fromNamedStage = (terms, record) =>
@@ -515,32 +563,38 @@ async function decide(reservationId, requesterId, attempt, { policyByDigest, rec
 
   // Step 3. Policy: usable, repeated by the terms, and K.
   const policy = policyByDigest.get(terms.policyDigest);
-  const fault = policyFault(agreed, policy, receiverK);
-  if (fault) return done('invalid', `step 3: ${fault}`);
+  const mismatch = policyFault(agreed, policy, receiverK);
+  if (mismatch) return done('invalid', `step 3: ${mismatch}`);
   // K is what the terms sign, which step 3 found equal to their policy's K. Terms of the older
   // shape sign none and passed only under a policy that publishes none, so K for them is the
   // receiver policy's value. CHOICE (DOC-GAPS 81): that is the input; no signed record fixes it.
   const K = signsNoK(terms) ? receiverK : terms.maxUnacknowledgedOutputs;
   // Signed accounts (step 8): the agreed terms carry `debitAccount`, the requester's account.
   const signedAccounts = Object.hasOwn(terms, 'debitAccount');
+  // Failed stages (step 6): the agreed terms' `unfinishedTerms` is the failed-stage value, told by
+  // exact equality (DOC-GAPS 96). The row then carries one more member, `forfeited`, when and only
+  // when the attempt passed step 3: `[]` on a row decided before step 6. It is added here, before
+  // `accounts`, so the two stand in the order of the "Rows" table (DOC-GAPS 110).
+  const failedStageTerms = terms.unfinishedTerms === FAILED_STAGE;
+  if (failedStageTerms) row.forfeited = [];
 
-  // Step 4. Records kept. A closing receipt counts when signed closesInTime, every other kept
-  // record when signed inTime; both windows carry the clock allowance at both ends. A kept
+  // Step 4. Records kept. A closing receipt and a stage fault count when signed closesInTime, every
+  // other kept record when signed inTime; both windows carry the clock allowance at both ends. A kept
   // record that does not count is late: listed, and used only in step 5's contradiction tests.
   const skew = policy.maxClockSkewMs;
   const opens = agreed.notBefore - skew;
   const inTime = (t) => opens <= t && t <= agreed.deadline + skew;
   const closesInTime = (t) => opens <= t && t <= agreed.deadline + terms.releaseWindowMs + skew;
-  const keep = (records, belongs) => {
+  const keep = (records, belongs, listLate = (record) => list('late', record, lateEntry(record))) => {
     const kept = { all: [], counting: [] };
     for (const record of records) {
       // Another attemptId or a non-party: dropped without being listed. CHOICE: so is a
       // party's record with another route hash, and an acceptance of other terms.
       if (record.body.attemptId !== terms.attemptId || !belongs(record)) continue;
       kept.all.push(record);
-      const closing = record.schema === RECEIPT && isClosing(record);
-      if (closing ? closesInTime(record.signedAt) : inTime(record.signedAt)) kept.counting.push(record);
-      else list('late', record, lateEntry(record));
+      const untilClose = record.schema === FAULT || (record.schema === RECEIPT && isClosing(record));
+      if (untilClose ? closesInTime(record.signedAt) : inTime(record.signedAt)) kept.counting.push(record);
+      else listLate(record);
     }
     return kept;
   };
@@ -553,16 +607,50 @@ async function decide(reservationId, requesterId, attempt, { policyByDigest, rec
   const keptAcceptances = keep(acceptances, (acceptance) => accepts(acceptance, agreed)
     && (!signedAccounts || Object.hasOwn(acceptance.body, 'payoutAccount')));
   const keptStops = keep(stops, () => true);
+  // When the agreed terms' `unfinishedTerms` is the failed-stage value, a stage fault is kept on the
+  // same tests as a receipt: the agreed `attemptId` and `routeHash`, from the participant the terms
+  // name at its `partitionIndex`. Under any other value every stage fault is dropped without being
+  // listed. A late fault counts for nothing, and late faults are listed once per stage, however many
+  // that stage signed. CHOICE (DOC-GAPS 100): the one entry stands where the stage's first late
+  // fault was presented, and it is listed whether or not another fault of that stage counts.
+  const stagesWithLateFault = new Set();
+  const keptFaults = keep(
+    failedStageTerms ? faults : [],
+    (fault) => onAgreedRoute(fault) && fromNamedStage(agreed, fault),
+    (fault) => {
+      if (stagesWithLateFault.has(fault.body.partitionIndex)) return;
+      stagesWithLateFault.add(fault.body.partitionIndex);
+      list('late', fault, lateEntry(fault));
+    },
+  );
 
-  // A stage's latest receipt is its highest-sequence receipt that counts.
+  // A stage's latest receipt is its highest-sequence receipt that counts. A stage has closed when
+  // that receipt is a closing receipt, and has faulted when a stage fault of it counts (never
+  // under terms other than the failed-stage ones, where no fault is kept).
   const bySequence = (a, b) => a.body.sequence - b.body.sequence;
   const stages = terms.shares.map((share, position) => {
-    const mine = (receipt) => receipt.body.partitionIndex === position;
+    const mine = (record) => record.body.partitionIndex === position;
     const kept = keptReceipts.all.filter(mine).sort(bySequence); // late receipts included
-    return { share, position, kept, latest: keptReceipts.counting.filter(mine).sort(bySequence).at(-1) ?? null };
+    return {
+      share,
+      position,
+      kept,
+      latest: keptReceipts.counting.filter(mine).sort(bySequence).at(-1) ?? null,
+      faulted: keptFaults.counting.some(mine),
+    };
   });
+  const hasClosed = ({ latest }) => latest !== null && isClosing(latest);
   const finalStage = stages.at(-1);
   const finalStageId = finalStage.share.participantId;
+  // A stage that faulted and also closed contradicted itself: it gets one `fault-and-close` entry,
+  // not blocking. These entries are listed from step 4 on, whatever later decides the row.
+  // CHOICE (DOC-GAPS 102): "closed" is step 6's, the latest receipt being a closing receipt.
+  // CHOICE (DOC-GAPS 103): they stand here, before every entry of step 5, in ascending stage order.
+  for (const stage of stages) {
+    if (stage.faulted && hasClosed(stage)) {
+      conflict('fault-and-close', false, stage.share.participantId, { partitionIndex: stage.position });
+    }
+  }
   // With signed accounts, the accounts each stage named: a stage's account is the `payoutAccount`
   // of its in-time acceptances of the agreed terms. Only counting records name an account, so a
   // late acceptance names none, in step 8's contradiction test as well.
@@ -648,7 +736,12 @@ async function decide(reservationId, requesterId, attempt, { policyByDigest, rec
   // CHOICE (DOC-GAPS 87): so is a stage whose counting acceptances name more than one account;
   // and the signed account texts are keys of `balances` beside the accounts of other rows.
   // CHOICE (DOC-GAPS 93): an expired row never reached step 8, so its accounts are untested.
-  const post = async (units) => {
+  // `unpaid` holds the partition indexes of the stages step 6 forfeits (failed-stage terms only;
+  // empty otherwise). The amounts are split over every stage first; a forfeiting stage is then
+  // credited 0 and the debit falls by exactly the amount it would have been credited. No other
+  // stage's amount changes and the forfeited share is not redistributed. A forfeiting stage on
+  // the requester's own account changes nothing, because its share was never charged.
+  const post = async (units, unpaid = new Set()) => {
     const amounts = splitUnits(units, terms.shares.map((share) => BigInt(share.weight)));
     const requesterAccount = signedAccounts ? terms.debitAccount : await accountFor(accountOf, requesterId);
     let debit = units;
@@ -657,7 +750,8 @@ async function decide(reservationId, requesterId, attempt, { policyByDigest, rec
       const account = signedAccounts ? row.accounts.stages[position] ?? share.participantId
         : await accountFor(accountOf, share.participantId);
       // The requester's own account is neither charged nor credited: its stage shows amount 0.
-      const amount = account === requesterAccount ? 0n : amounts[position];
+      // So does a forfeiting stage (DOC-GAPS 109: it keeps its entry, and its account its posting of 0).
+      const amount = account === requesterAccount || unpaid.has(position) ? 0n : amounts[position];
       debit -= amounts[position] - amount;
       row.credits.push({ participantId: share.participantId, amount: Number(amount) });
       postings.push([account, amount]);
@@ -668,14 +762,47 @@ async function decide(reservationId, requesterId, attempt, { policyByDigest, rec
 
   // Step 6. Closing. A non-final stage's `output` is never read.
   row.outputs = acknowledged; // for rows decided at step 6 or later
-  const hasClosed = ({ latest }) => latest !== null && isClosing(latest);
   const delivered = finalStage.latest?.body.output ?? null; // the final stage's latest receipt's output
   const answerDelivered = delivered?.done === true && delivered.count > 0 && acknowledged === delivered.count;
   const unclosed = stages.filter((stage) => !hasClosed(stage));
-  if (unclosed.length > 0) {
-    // The release window has passed after the last instant at which closesInTime holds.
-    // CHOICE: `at` is milliseconds since the epoch; without a usable one the window has not passed.
-    const windowPassed = typeof at === 'number' && at > agreed.deadline + terms.releaseWindowMs + skew;
+  // The release window has passed after the last instant at which closesInTime holds.
+  // CHOICE: `at` is milliseconds since the epoch; without a usable one the window has not passed.
+  const windowPassed = typeof at === 'number' && at > agreed.deadline + terms.releaseWindowMs + skew;
+  const forfeiting = new Set(); // the partition indexes of the stages step 6 forfeits
+  if (failedStageTerms) {
+    // Failed stages. Under the failed-stage terms this rule replaces the two bullets below, and no
+    // attempt is `unknown` or `expired` because one stage withheld its close or its receipts.
+    const causeOf = (stage) => (!stage.faulted ? 'no-close' : hasClosed(stage) ? 'fault-and-close' : 'fault');
+    const entriesFor = (members) => members.map((stage) => ({ partitionIndex: stage.position, cause: causeOf(stage) }));
+    // If some stage has neither closed nor faulted and the release window has not passed, the
+    // outcome is `open`. On an open row `forfeited` holds the stages that faulted so far.
+    // CHOICE (DOC-GAPS 106): each with the cause it has now; no other stage is listed yet.
+    if (!windowPassed && unclosed.some((stage) => !stage.faulted)) {
+      row.forfeited = entriesFor(stages.filter((stage) => stage.faulted));
+      return done('open', 'step 6: failed-stage terms: a stage has neither closed nor faulted and the release window has not passed');
+    }
+    // Otherwise every stage is decided. A stage that has neither closed nor faulted is treated as
+    // closed at its last signed step, and listed in `closedAtLastStep`, when the answer was
+    // delivered and its latest receipt has steps >= N. Every stage that faulted, and every other
+    // stage that has not closed, forfeits, with a cause: `fault` for a stage that faulted and did
+    // not close, `fault-and-close` for one that did both, `no-close` for one that did neither.
+    // CHOICE (DOC-GAPS 104): a stage treated as closed does not forfeit: it is in
+    // `closedAtLastStep` only and is paid. A stage with no receipt that counts covers nothing.
+    const covers = (stage) => answerDelivered && stage.latest !== null && stage.latest.body.steps >= delivered.count;
+    const atLastStep = unclosed.filter((stage) => !stage.faulted && covers(stage));
+    const forfeits = stages.filter((stage) => stage.faulted || (!hasClosed(stage) && !covers(stage)));
+    row.closedAtLastStep = atLastStep.map((stage) => stage.position); // ascending; kept when step 7 or 8 decides
+    row.forfeited = entriesFor(forfeits); // ascending stage order; kept when step 7 or 8 decides
+    for (const stage of forfeits) forfeiting.add(stage.position);
+    // If the acknowledged count is 0 and some stage has not closed, the outcome is `expired`:
+    // nothing was acknowledged, so nobody is charged or paid. Terms with no receipts and no
+    // acknowledgments end here once the window has passed. Otherwise the attempt goes on to step 7.
+    // CHOICE (DOC-GAPS 105): also before the window has passed, when every stage has closed or faulted.
+    if (acknowledged === 0 && unclosed.length > 0) {
+      await post(0n);
+      return done('expired', 'step 6: failed-stage terms: nothing was acknowledged and a stage has not closed');
+    }
+  } else if (unclosed.length > 0) {
     if (!answerDelivered) {
       if (!windowPassed) return done('open', 'step 6: not every stage closed and the release window has not passed');
       // An expired attempt charges nobody and pays nobody, acknowledged outputs included. For an
@@ -694,8 +821,10 @@ async function decide(reservationId, requesterId, attempt, { policyByDigest, rec
     row.closedAtLastStep = unclosed.map((stage) => stage.position);
   }
 
-  // Step 7. Steps.
-  const behind = stages.filter((stage) => stage.latest.body.steps < acknowledged);
+  // Step 7. Steps. A stage that step 6 forfeits is not tested: its share is not paid whatever its
+  // receipts say, and it may have presented none. Every other stage has closed or is treated as
+  // closed at its last signed step, so it has a latest receipt.
+  const behind = stages.filter((stage) => !forfeiting.has(stage.position) && stage.latest.body.steps < acknowledged);
   if (behind.length > 0) {
     for (const stage of behind) conflict('steps', true, stage.share.participantId, { partitionIndex: stage.position });
     return done('conflict', 'step 7: a stage\'s latest receipt has fewer steps than the acknowledged count');
@@ -744,11 +873,13 @@ async function decide(reservationId, requesterId, attempt, { policyByDigest, rec
   }
   // Otherwise the outcome is `unknown` if any stage has no in-time acceptance of the agreed terms
   // that counts. Without signed accounts this is the whole step, as before.
+  // CHOICE (DOC-GAPS 107): step 8 tests every stage, a forfeiting one included.
   const unaccepted = stages.find((stage) => !keptAcceptances.counting.some((a) => a.body.partitionIndex === stage.position));
   if (unaccepted) return done('unknown', `step 8: stage ${unaccepted.position} has no in-time acceptance of the agreed terms`);
 
-  // Step 9. Settled. Every stage has closed or is treated as closed at its last step. The rule for
-  // an unfinished answer is the one the requester signed in the terms' `unfinishedTerms`.
+  // Step 9. Settled. Every stage has closed or is treated as closed at its last step, or, under
+  // the failed-stage terms, forfeits. The rule for an unfinished answer is the one the requester
+  // signed in the terms' `unfinishedTerms`.
   const finished = delivered?.done === true;
   const stopped = keptStops.counting.length > 0; // an in-time stop of its own; its `acknowledged` is not used
   // CHOICE (DOC-GAPS 13): with no output on the final stage's latest receipt, nothing is withheld.
@@ -761,6 +892,9 @@ async function decide(reservationId, requesterId, attempt, { policyByDigest, rec
   // charges the acknowledged prefix. Only under the older provider-loss-free terms was an
   // unattributed disconnect ended by a stage, at 0. CHOICE (DOC-GAPS 79): the signed value
   // decides, whatever the dates of the terms; nothing here checks it against the decision's date.
+  // Under the failed-stage terms the charge units are the same in every case, and each stage that
+  // step 6 forfeits loses its share of them in the split.
+  // CHOICE (DOC-GAPS 108): `chargedOutputs` is the same whatever is forfeited.
   const olderRules = terms.unfinishedTerms === PROVIDER_LOSS_FREE;
   const endedByStage = olderRules && unattributedDisconnect;
   // A row whose answer a stage ended is settled with `outputs > 0` and `chargedOutputs: 0`;
@@ -769,14 +903,19 @@ async function decide(reservationId, requesterId, attempt, { policyByDigest, rec
   row.chargedOutputs = endedByStage ? 0 : Math.min(acknowledged, terms.maxOutputTokens);
   row.unacknowledgedOutputs = delivered === null ? null : delivered.count - acknowledged;
   row.beyondCeiling = Math.max(0, acknowledged - terms.maxOutputTokens);
-  await post(BigInt(row.chargedOutputs) * BigInt(terms.creditsPerOutputToken));
-  const closing = unclosed.length > 0 ? `; step 6: ${unclosed.length} stage(s) closed at their last step` : '';
+  await post(BigInt(row.chargedOutputs) * BigInt(terms.creditsPerOutputToken), forfeiting);
+  // Under terms other than the failed-stage ones every unclosed stage that reaches here was treated
+  // as closed at its last step, so this is the same count as before; no stage forfeits there.
+  const treated = row.closedAtLastStep.length;
+  const closing = (treated > 0 ? `; step 6: ${treated} stage(s) closed at their last step` : '')
+    + (forfeiting.size > 0 ? `; step 6: ${forfeiting.size} stage(s) forfeit their share` : '');
   // CHOICE (DOC-GAPS 78): the reason, which is not part of the outcome, is the only place a row
   // says which unfinished-answer rule applied. When cases overlap (finished and stopped, say),
   // it names the first in step 9's order: finished, stopped, withheld, unattributed disconnect.
   const rule = olderRules ? 'older provider-loss-free terms'
     : terms.unfinishedTerms === ACKNOWLEDGED_PREFIX ? 'the decided acknowledged-prefix terms'
-      : terms.unfinishedTerms === null ? 'unfinishedTerms null (older terms)' : 'an unfinishedTerms value of no named rule';
+      : failedStageTerms ? 'the failed-stage terms'
+        : terms.unfinishedTerms === null ? 'unfinishedTerms null (older terms)' : 'an unfinishedTerms value of no named rule';
   if (endedByStage) {
     return done('settled', `step 9: unattributed disconnect under ${rule}, ended by a stage, charges 0${closing}`);
   }
@@ -830,14 +969,14 @@ export async function replaySettlement({
   const reservations = [];
   const totals = new Map(); // account -> BigInt, over settled and expired rows
   for (const reservationId of [...byReservation.keys()].sort()) {
-    const { attempts, acceptances, receipts } = byReservation.get(reservationId);
+    const { attempts, acceptances, receipts, faults } = byReservation.get(reservationId);
     if (attempts.size === 0) {
       // No record names a requester: one row with `requesterId: null`. It has no terms (step 2).
       const row = newRow(reservationId, null);
       reservations.push(Object.assign(row, { reason: 'step 2: no terms left; no record names a requester' }));
     }
     for (const requesterId of [...attempts.keys()].sort()) {
-      const attempt = { ...attempts.get(requesterId), acceptances, receipts };
+      const attempt = { ...attempts.get(requesterId), acceptances, receipts, faults };
       const { row, postings } = await decide(reservationId, requesterId, attempt, { policyByDigest, receiverK, at, accountOf });
       reservations.push(row);
       for (const [account, amount] of postings) totals.set(account, (totals.get(account) ?? 0n) + amount);
