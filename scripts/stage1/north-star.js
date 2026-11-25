@@ -153,7 +153,7 @@ export async function runNorthStar({ config, transport, directory, fixtureFile, 
       stages: inventory.stages.map(({ ranges: _ranges, ...row }) => row), referenceFixtureSha256: createHash('sha256').update(await fs.readFile(fixtureFile)).digest('hex'),
       runFixtureSha256: fixtureSha256, messagesDigest: await hashJson(fixtureSource.messages), maxOutputTokens: fixtureSource.maxOutputTokens,
       decoding: stage1Decoding(model.generation), reference: { outputCount: reference.outputIds.length, sampleDigest: reference.sampleDigest } },
-    participants: null, earn: null, split: null, privacy: null, cleanup: null, steps, error: null, verdict: null };
+    participants: null, requester: null, hosts: null, earn: null, split: null, privacy: null, cleanup: null, steps, error: null, verdict: null };
 
   const agent = (target, mode) => [target.node, `${target.releaseRoot}/scripts/stage1/host-agent.js`, mode];
   async function control(target, op, body = {}, timeoutMs = stepMs) {
@@ -217,6 +217,10 @@ export async function runNorthStar({ config, transport, directory, fixtureFile, 
       earner: config.earner ? { label: config.earner.label, participantId: config.earner.participantId, machineId: config.earner.machineId, account: `owner-${requesterAccount}`, modelId: earnModel.id } : null,
       buyer: buyer ? { participantId: buyer.peerId, account: 'owner-buyer', where: 'operator machine' } : null,
       sameOwner: 'One person owns every machine; the accounts are separate ledger accounts, not independent operators.' };
+    // Who signs for which ledger computer, in the Stage 1 shape the outsider kit (scripts/settlement/verify-trade.js) reads.
+    receipt.requester = { participantId: config.requester.participantId, computerId: `computer-${requesterAccount}` };
+    receipt.hosts = config.stages.map((stage, index) => ({ label: stage.label, stageIndex: index, participantId: stage.participantId,
+      computerId: stage.role === 'requester' ? `computer-${requesterAccount}` : `computer-${stage.label}` }));
 
     // 1. Earn: the requester's account serves a different account's whole-model requests.
     if (config.earner) {
