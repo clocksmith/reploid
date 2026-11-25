@@ -34,10 +34,15 @@ export function createChatExecution({ localExecution = true, service, swarm, par
   const runsHere = (model, sharingScope, location = 'auto') => localExecution && !model.partition && location !== 'network'
     && (location === 'local' || sharingScope === 'local' || isCached(model) || (local?.ready && local.modelIdentity === model.identity));
   const resolveAdapter = createWorkAdapterResolver({ models });
+  // Threads keep a model selection without its load options (chat/workspace.js); loading reads them from the catalog.
+  const withLoadOptions = model => {
+    const known = [...(getModels?.() || []), ...(models || [])].find(item => item.id === model.id && item.identity === model.identity && item.loadOptions);
+    return known && !model.loadOptions ? { ...model, loadOptions: structuredClone(known.loadOptions) } : model;
+  };
 
   const sessionScheduler = scheduler || createChatScheduler({
     open: async reqModel => {
-      const resident = createWorkResidentProvider({ service, model: reqModel,
+      const resident = createWorkResidentProvider({ service, model: withLoadOptions(reqModel),
         resolveAdapter, resolveSource: resolveLocalSource, generation: profile.generation, maxOutcomeCharacters: profile.maxOutcomeCharacters,
         onChange(state) { local = state; onChange(); } });
       await resident.prepare();

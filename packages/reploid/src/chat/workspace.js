@@ -21,6 +21,14 @@ const assert = (ok, message) => { if (!ok) throw new Error(message); };
 // interval, or twice the time the last notification took when that is longer, so a loaded page keeps time for
 // its other work. The first character, checkpoints, terminal states and every other change notify at once.
 const STREAM_NOTIFY_MS = 50;
+// A thread names the model it asks; how a host loads that model stays in the host's catalog. Large catalog entries
+// carry about 100 KB of load options, and a copy in every thread and attempt made each state copy, save and render
+// grow with the number of past threads: on replo.id, 2026-11-25, the 35B's first character slowed 147 ms per request.
+const modelSelection = model => {
+  if (!model || typeof model !== 'object' || Array.isArray(model)) return model;
+  const { loadOptions: _loadOptions, ...selection } = model;
+  return selection;
+};
 const activeStatuses = new Set(['queued', 'loading', 'executing', 'approval', 'cancelling']);
 // Disclosures whose durable output the requester's transaction owner publishes.
 const publishedDisclosures = new Set(['partition-activations-and-tokens', 'ordered-partition-activations-and-tokens']);
@@ -127,6 +135,9 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
       && Array.isArray(thread.members) && thread.messages.length <= limits.maxMessagesPerThread, 'Invalid stored conversation');
     assert(thread.automaticModel === undefined || typeof thread.automaticModel === 'boolean', 'Invalid stored model selection');
     thread.grants ??= [];
+    // Histories saved before load options left thread records shrink on their next save.
+    thread.model = modelSelection(thread.model);
+    for (const attempt of thread.attempts) if (attempt?.request?.model) attempt.request.model = modelSelection(attempt.request.model);
     resetUnrecognizedSecurity(thread);
     thread.systemContext = validateSystemContext(thread.systemContext);
     validateThreadGrants(thread.grants, thread.id, meshId, limits.maxThreadGrants, loadedRequester);
@@ -225,7 +236,7 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
       && /^sha256:[a-f0-9]{64}$/.test(value.identity), 'Select an identified model');
     assert(value.adapters === undefined || Array.isArray(value.adapters)
       && value.adapters.every(adapter => /^sha256:[a-f0-9]{64}$/.test(adapter.identity)), 'Select identified adapters');
-    return copy(value);
+    return copy(modelSelection(value));
   };
   // A conversation read from a host-supplied export file. It is checked like stored history, with two
   // differences: disclosure grants do not travel in a file, and unfinished attempts arrive interrupted.
@@ -259,6 +270,7 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
     thread.createdAt = Number.isSafeInteger(thread.createdAt) ? thread.createdAt : now();
     for (const attempt of thread.attempts) {
       attempt.threadId = thread.id;
+      if (attempt.request?.model) attempt.request.model = modelSelection(attempt.request.model);
       if (attempt.provenance === undefined) attempt.provenance = answerProvenance(thread, attempt, { localIds: localIds() });
       if (!activeStatuses.has(attempt.status)) continue;
       attempt.status = 'interrupted'; attempt.error = 'Imported unfinished. Retry starts a new attempt.';
