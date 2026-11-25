@@ -72,3 +72,40 @@ describe('north-star receipt check', () => {
       .toMatchObject({ steps: 1, tokenContext: ['withheld'], nonzeroTokenIdsReceived: 0, tokensOut: 0 });
   });
 });
+
+describe('north-star receipt check: stop and dropped stage', () => {
+  const blind = { 'host-b': { ...operatorRows }, 'host-c': { ...operatorRows } };
+  const withCases = () => {
+    const receipt = passing();
+    // A stop after 10 acknowledged outputs: units 0, 4, 4 and the remainder 2; the requester's own stages unbilled.
+    receipt.cancel = { stopSigned: true, stoppedBeforeCompletion: true, outputsReceived: 10, account: { accountId: 'computer-requester', before: 15, after: 7 },
+      settlement: settledTrace(8, 10, [{ accountId: 'computer-requester', delta: -8 }, { accountId: 'computer-host-b', delta: 4 }, { accountId: 'computer-host-c', delta: 4 }]),
+      settlementReplay: { problems: [], result: { reservations: [{ reservationId: 'r', status: 'settled', debit: 8,
+        credits: [{ participantId: ids[0], amount: 0 }, { participantId: ids[1], amount: 4 }, { participantId: ids[2], amount: 4 }, { participantId: ids[3], amount: 0 }] }] } },
+      visibility: structuredClone(blind) };
+    receipt.drop = { stopSigned: false, killed: { confirmedGone: true }, account: { accountId: 'computer-requester', before: 7, after: 7 },
+      settlement: settledTrace(0, 9, []), settlementReplay: { problems: [], result: { reservations: [{ reservationId: 'r', status: 'expired', debit: 0, credits: [] }] } },
+      visibility: structuredClone(blind) };
+    return receipt;
+  };
+  const caseCodes = receipt => checkNorthStar(receipt, { reference, weights, cases: ['stop', 'drop'] }).problems.map(row => row.code);
+  it('passes a signed stop charged its acknowledged prefix and a dropped stage relieved in full', () => {
+    expect(caseCodes(withCases())).toEqual([]);
+  });
+  it('fails a stop charged more than its prefix, an unsigned stop, and a stop whose replay pays differently', () => {
+    const over = withCases(); over.cancel.settlement.charge = 10;
+    expect(caseCodes(over)).toContain('settlement-charge');
+    const unsigned = withCases(); unsigned.cancel.stopSigned = false;
+    expect(caseCodes(unsigned)).toContain('stop-not-signed');
+    const replay = withCases(); replay.cancel.settlementReplay.result.reservations[0].credits[1].amount = 5;
+    expect(caseCodes(replay)).toContain('replay-differs-from-ledger');
+  });
+  it('fails a dropped stage that was charged, or whose replay charges, and an operator that saw content in either case', () => {
+    const charged = withCases(); charged.drop.settlement.charge = 3;
+    expect(caseCodes(charged)).toContain('drop-charged');
+    const replay = withCases(); Object.assign(replay.drop.settlementReplay.result.reservations[0], { status: 'settled', debit: 9 });
+    expect(caseCodes(replay)).toContain('replay-drop-charged');
+    const seen = withCases(); seen.drop.visibility['host-c'].deltaCharactersOut = 3;
+    expect(caseCodes(seen)).toContain('operator-saw-content');
+  });
+});

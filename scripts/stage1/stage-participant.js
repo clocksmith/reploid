@@ -277,7 +277,7 @@ export async function openStage1Participant({ stageIndex, identity, config, nati
    * be; otherwise nothing is prepared or sent. The plan's disclosures, the admitted route and the execution receipt are
    * returned with the answer.
    */
-  async function generateEdges({ messages, threadId, maxOutputTokens }) {
+  async function generateEdges({ messages, threadId, maxOutputTokens, keepPartial = false }) {
     if (stageIndex !== null) throw Error('Only the requester sends');
     const route = readyRoute();
     if (!route) throw Error('No ready split route');
@@ -294,9 +294,11 @@ export async function openStage1Participant({ stageIndex, identity, config, nati
       execute: async (job, controls) => {
         const privacyBinding = await bindExecutionRoute({ model: route, privacy: job.policy }, edgesExecutionRoute({ model: route }, { route: partitionRoute }));
         bound = privacyBinding;
-        answer = await generate({ messages: job.request.messages, threadId, edges: { policy: job.policy, privacyBinding,
+        answer = await generate({ messages: job.request.messages, threadId, keepPartial, edges: { policy: job.policy, privacyBinding,
           requestApproval: async preview => { const ok = await controls.requestApproval(preview); if (ok) admitted = preview.privacyBinding?.routeId ?? null; return ok; },
           onDelta: value => controls.onDelta({ text: value?.text ?? '' }) } });
+        // A stopped or failed answer is never a result: the inference API reports it as cancelled or failed.
+        if (!answer.completed) throw Object.assign(Error(answer.stopped ? 'Stopped by the requester' : answer.error ?? 'The answer did not finish'), { code: answer.stopped ? 'STOPPED' : null });
         return answer.raw;
       } });
     const plan = await inference.prepare({ model: { id: model.id, identity: model.identity }, generation: { maxOutputTokens },
@@ -307,6 +309,8 @@ export async function openStage1Participant({ stageIndex, identity, config, nati
     const events = [];
     for await (const event of run.events) events.push(event.type === 'output.delta' ? { type: event.type, sequence: event.sequence } : event.type === 'admitted' ? event : { type: event.type });
     const result = await run.result;
+    // A stopped or dropped answer returns its partial record (attempt, reservation, received text) with the API's outcome.
+    if (result.status !== 'completed' && answer && (answer.stopped || answer.failed)) return { ...answer, inference: { plan, events, result, admittedRouteId: admitted }, privacyBinding: bound };
     if (result.status !== 'completed' || !answer) {
       throw Object.assign(Error(`Edges request ${result.status}: ${result.error?.message ?? ''}`), { code: result.error?.code ?? null });
     }

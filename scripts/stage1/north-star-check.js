@@ -23,7 +23,7 @@ export function summarizeVisibility(rows) {
 }
 
 /** The checks, each named. `fail` collects; nothing short-circuits so the receipt shows every problem at once. */
-export function checkNorthStar(receipt, { reference, weights, creditsPerOutputToken = 1 }) {
+export function checkNorthStar(receipt, { reference, weights, creditsPerOutputToken = 1, cases = [] }) {
   const problems = [], fail = (code, detail) => problems.push({ code, detail: String(detail) });
   const earn = receipt.earn, split = receipt.split, privacy = receipt.privacy;
   // 1. Earn by serving someone else.
@@ -112,6 +112,64 @@ export function checkNorthStar(receipt, { reference, weights, creditsPerOutputTo
     if (operatorIds.some(id => privacy.contentRecipients.includes(id))) fail('operator-content-recipient', 'an operator stage is a content recipient');
     if (privacy.bindingHops.some(hop => operatorIds.includes(hop.recipient) && hop.disclosure !== 'activations')) fail('operator-hop', 'an operator hop reads plaintext content');
   } else fail('privacy-trace-missing', 'no visibility trace');
+  // 6. A requester-signed Stop partway: the acknowledged prefix, split by the ledger's rule, and the replay agrees.
+  const stages = receipt.participants?.stages ?? [];
+  const accountOf = (id, requesterAccount) => { const stage = stages.find(item => item.participantId === id); return stage?.role === 'operator' ? `computer-${stage.label}` : requesterAccount; };
+  const sameAsLedger = (name, ledgerTrace, row, requesterAccount) => {
+    const replayed = {}, ledger = {};
+    for (const credit of row.credits ?? []) replayed[credit.participantId] = (replayed[credit.participantId] ?? 0) + credit.amount;
+    for (const stage of stages) {
+      const computer = accountOf(stage.participantId, requesterAccount);
+      ledger[stage.participantId] = computer === requesterAccount ? 0 : (ledgerTrace.credits ?? []).filter(item => item.computerId === computer).reduce((sum, item) => sum + item.amount, 0);
+    }
+    const unknown = (row.credits ?? []).filter(credit => !stages.some(stage => stage.participantId === credit.participantId));
+    if ((row.debit ?? 0) !== ledgerTrace.charge || unknown.length || stages.some(stage => (replayed[stage.participantId] ?? 0) !== ledger[stage.participantId])) {
+      fail('replay-differs-from-ledger', `${name}: replay ${row.debit} ${JSON.stringify(replayed)} ledger ${ledgerTrace.charge} ${JSON.stringify(ledger)}`);
+    }
+  };
+  const operatorsBlind = (name, visibility) => {
+    for (const stage of stages.filter(item => item.role === 'operator')) {
+      const seen = visibility?.[stage.label];
+      if (!seen) { fail('privacy-trace-missing', `${name}: ${stage.label}`); continue; }
+      if (seen.nonzeroTokenIdsReceived !== 0 || seen.tokenizeCalls !== 0 || seen.tokensOut !== 0 || seen.deltaCharactersOut !== 0
+        || seen.tokenContext.some(value => value !== 'withheld')) fail('operator-saw-content', `${name}: ${stage.label} ${JSON.stringify(seen)}`);
+    }
+  };
+  if (cases.includes('stop')) {
+    const stop = receipt.cancel, ledgerTrace = stop?.settlement;
+    if (!ledgerTrace) fail('stop-missing', 'no stop case');
+    else {
+      if (ledgerTrace.state !== 'settled' || ledgerTrace.heldAfter !== 0) fail('stranded-hold', `stop ${ledgerTrace.state} held ${ledgerTrace.heldAfter}`);
+      if (stop.stopSigned !== true || stop.stoppedBeforeCompletion !== true) fail('stop-not-signed', JSON.stringify({ signed: stop.stopSigned, stopped: stop.stoppedBeforeCompletion }));
+      if (!(ledgerTrace.outputTokens > 0 && ledgerTrace.outputTokens <= (stop.outputsReceived ?? 0) && ledgerTrace.outputTokens < (receipt.split?.cap ?? Infinity))) {
+        fail('stop-charge', `charged ${ledgerTrace.outputTokens} outputs, received ${stop.outputsReceived}`);
+      }
+      const due = creditSettlementDeltas({ computerId: stop.account.accountId, providers: stages.map((stage, index) => ({ participantId: stage.participantId, weight: weights[index] })) },
+        ledgerTrace.outputTokens * creditsPerOutputToken, id => accountOf(id, stop.account.accountId));
+      if (ledgerTrace.charge !== due.charge) fail('settlement-charge', `stop: ${ledgerTrace.charge}, expected ${due.charge}`);
+      if (ledgerTrace.journal.reduce((sum, item) => sum + item.delta, 0) !== 0) fail('settlement-not-conserved', 'stop');
+      const row = stop.settlementReplay?.result?.reservations?.find(item => item.reservationId === ledgerTrace.reservationId);
+      if (!row || row.status !== 'settled') fail('replay-not-settled', `stop: ${row?.status}`);
+      else sameAsLedger('stop', ledgerTrace, row, stop.account.accountId);
+      if (stop.settlementReplay?.problems?.length) fail('replay-records', `stop: ${stop.settlementReplay.problems.join('; ')}`);
+      operatorsBlind('stop', stop.visibility);
+    }
+  }
+  // 7. A dropped stage host, no stop: verified-provider-failure relief. Nothing charged, nobody paid, nothing held.
+  if (cases.includes('drop')) {
+    const drop = receipt.drop, ledgerTrace = drop?.settlement;
+    if (!ledgerTrace) fail('drop-missing', 'no drop case');
+    else {
+      if (ledgerTrace.state !== 'settled' || ledgerTrace.heldAfter !== 0) fail('stranded-hold', `drop ${ledgerTrace.state} held ${ledgerTrace.heldAfter}`);
+      if (ledgerTrace.charge !== 0 || (ledgerTrace.credits ?? []).some(item => item.amount !== 0)) fail('drop-charged', `charge ${ledgerTrace.charge}`);
+      if (drop.account.after !== drop.account.before) fail('drop-charged', `balance ${drop.account.before} -> ${drop.account.after}`);
+      if (drop.stopSigned !== false || drop.killed?.confirmedGone !== true) fail('drop-shape', JSON.stringify({ stop: drop.stopSigned, killed: drop.killed }));
+      const row = drop.settlementReplay?.result?.reservations?.find(item => item.reservationId === ledgerTrace.reservationId);
+      if (!row || !(row.status === 'expired' || (row.status === 'settled' && (row.debit ?? 0) === 0))) fail('replay-drop-charged', `${row?.status} ${row?.debit}`);
+      else sameAsLedger('drop', ledgerTrace, row, drop.account.accountId);
+      operatorsBlind('drop', drop.visibility);
+    }
+  }
   if (receipt.cleanup?.processesExited !== true || receipt.cleanup?.openReservations !== 0 || receipt.cleanup?.heldCredits !== 0) {
     fail('cleanup', JSON.stringify(receipt.cleanup));
   }

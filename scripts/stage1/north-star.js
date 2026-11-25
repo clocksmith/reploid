@@ -333,6 +333,82 @@ export async function runNorthStar({ config, transport, directory, fixtureFile, 
         'Middle stages learn the prompt length and the answer length (token counts and step count).',
         'No independent security review has examined this tier.'] };
 
+    // 5. A requester-signed Stop partway. The final stage (requester-held) is held at `stopAtStep`; once the requester has
+    // output, it signs its stop at the count it acknowledged and stops. The ledger charges that acknowledged prefix.
+    const cases = config.cases ?? {};
+    const answerAttempt = async ({ name, gateLabel, gateStep, keepPartial }) => {
+      const thread = `northstar-${name}-${randomUUID()}`;
+      await s(gateLabel).call('arm-gate', { threadId: thread, step: gateStep });
+      const answering = { finished: false, result: null, error: null };
+      answering.promise = s(config.requester.label).call('generate-edges', { messages: fixtureSource.messages, threadId: thread,
+        maxOutputTokens: fixtureSource.maxOutputTokens, keepPartial }, { timeoutMs: limits.phaseMs })
+        .then(value => { answering.result = value; }, error => { answering.error = String(error?.message ?? error); })
+        .finally(() => { answering.finished = true; });
+      const progress = await until(async () => {
+        if (answering.finished) throw Error(`${name}: the answer ended before the gate held it (${answering.error ?? 'completed'})`);
+        const [gate, seen] = await Promise.all([s(gateLabel).call('gate-state', { threadId: thread }), s(config.requester.label).call('progress')]);
+        return gate.entered && seen.deltas >= 1 && seen.attemptId ? seen : null;
+      }, { timeoutMs: limits.phaseMs, label: `${name}: the gate`, pollMs: 250 });
+      return { thread, answering, progress };
+    };
+    const caseVisibility = async (attemptId, labels) => Object.fromEntries(await Promise.all(config.stages.filter(stage => labels.includes(stage.label))
+      .map(async stage => [stage.label, summarizeVisibility((await s(stage.label).call('visibility', { attemptId })).rows)])));
+    if (cases.stop !== false) {
+      const before = balanceOfAccount(accountId);
+      const held = await step('stop: answer to the gate', () => answerAttempt({ name: 'stop', gateLabel: config.stages.at(-1).label,
+        gateStep: cases.stopAtStep ?? 8 }), limits.phaseMs);
+      await step('stop: requester signs its stop', () => s(config.requester.label).call('cancel'));
+      await step('stop: answer returns', () => held.answering.promise);
+      const own = await s(config.requester.label).call('settlement-records', { attemptId: held.progress.attemptId });
+      const reservationId = own.reservationId ?? own.terms?.reservationId;
+      await step('stop: settlement', () => settled(reservationId));
+      const settlement = await step('stop: ledger trace', () => ledgerTrace(coordinator.credits, reservationId));
+      const replay = await step('stop: settlement replay', () => collectSettlementReplay({ requester: s(config.requester.label), stages: config.stages.map(stage => s(stage.label)),
+        attemptId: held.progress.attemptId, policy: coordinator.credits.policy, computerOf: id => accountOf(id) ?? id }));
+      receipt.cancel = { attemptId: held.progress.attemptId, gate: { stage: config.stages.at(-1).label, step: cases.stopAtStep ?? 8 },
+        stoppedBeforeCompletion: held.answering.result?.completed === false && held.answering.result?.stopped === true,
+        outputsReceived: own.received?.deltas ?? null, stopSigned: Boolean(own.stop), settlement, settlementReplay: { ...replay, policy: coordinator.credits.policy },
+        account: { accountId, before, after: balanceOfAccount(accountId) }, inferenceStatus: held.answering.result?.inference?.result?.status ?? null,
+        visibility: await caseVisibility(held.progress.attemptId, config.stages.map(stage => stage.label)) };
+    }
+
+    // 6. A dropped stage host partway, no stop. The named operator stage is held at `dropAtStep`; each stage signs its
+    // acceptance and the dropped stage hands over its step receipts; then its process is killed by exact PID. With no
+    // closing receipt from it, the ledger and the replay give verified-provider-failure relief after the release window.
+    if (cases.drop !== false) {
+      const target = config.stages.find(stage => stage.label === (cases.dropStage ?? 'host-c'));
+      if (!target || target.role !== 'operator') throw Error('The dropped stage must be an operator stage');
+      const before = balanceOfAccount(accountId), dropped = s(target.label), index = config.stages.indexOf(target);
+      const held = await step('drop: answer to the gate', () => answerAttempt({ name: 'drop', gateLabel: target.label, gateStep: cases.dropAtStep ?? 8, keepPartial: true }), limits.phaseMs);
+      const attemptId = held.progress.attemptId;
+      const { terms } = await s(config.requester.label).call('settlement-records', { attemptId });
+      const acceptances = await step('drop: acceptances', () => Promise.all(config.stages.map(stage => s(stage.label).call('accept-terms', { terms })
+        .catch(error => ({ error: String(error?.message ?? error) })))));
+      const droppedRecords = await step('drop: dropped stage records', () => dropped.call('settlement-records', { attemptId }));
+      const visibilityBefore = await caseVisibility(attemptId, [target.label]);
+      const exact = { pid: dropped.pid, startId: dropped.startId };
+      const killed = await step('drop: kill the stage process', async () => {
+        const result = await control(target, 'kill', exact);
+        await until(async () => !(await control(target, 'process-state', exact)).running, { timeoutMs: 20000, label: 'the killed process to be gone', pollMs: 250 });
+        return { host: target.label, how: 'exact-process-kill', signalled: result.killed === true, confirmedGone: true, at: stamp() };
+      });
+      sessions.delete(target.label);
+      const reservationId = terms?.reservationId ?? `service:${config.requester.participantId}:${attemptId}`;
+      const { maxRequestMs, partitionUnclaimedReleaseMs } = coordinator.credits.policy;
+      await step('drop: hold expiry', () => until(() => { coordinator.credits.snapshot(); return coordinator.credits.request(reservationId)?.state === 'settled'; },
+        { timeoutMs: maxRequestMs + partitionUnclaimedReleaseMs + 30000, label: 'the dropped hold to expire', pollMs: 1000 }), maxRequestMs + partitionUnclaimedReleaseMs + 60000);
+      const own = await s(config.requester.label).call('settlement-records', { attemptId });
+      const settlement = await step('drop: ledger trace', () => ledgerTrace(coordinator.credits, reservationId));
+      const replay = await step('drop: settlement replay', () => collectSettlementReplay({ requester: s(config.requester.label),
+        stages: config.stages.map(stage => (stage === target ? null : s(stage.label))), attemptId, policy: coordinator.credits.policy,
+        computerOf: id => accountOf(id) ?? id, acceptancesSigned: 'during-attempt',
+        prefetched: { acceptances, stageRecords: config.stages.map((_, position) => (position === index ? droppedRecords : null)) } }));
+      receipt.drop = { attemptId, gate: { stage: target.label, step: cases.dropAtStep ?? 8 }, killed, outputsBeforeKill: held.progress.deltas,
+        outputsReceived: own.received?.deltas ?? null, stopSigned: Boolean(own.stop), requesterOutcome: own.outcome, settlement,
+        settlementReplay: { ...replay, policy: coordinator.credits.policy }, account: { accountId, before, after: balanceOfAccount(accountId) },
+        visibility: { ...visibilityBefore, ...(await caseVisibility(attemptId, config.stages.filter(stage => stage !== target).map(stage => stage.label))) } };
+    }
+
     // 4. Close everything and confirm no hold is open.
     const closed = await step('close sessions', () => Promise.all([...sessions.values()].map(session => session.call('close', {}, { timeoutMs: 20000 }).then(() => true, () => false))));
     receipt.cleanup = { processesExited: closed.every(Boolean), heldCredits: coordinator.credits.snapshot().accounts.reduce((sum, row) => sum + row.held, 0),
@@ -344,7 +420,8 @@ export async function runNorthStar({ config, transport, directory, fixtureFile, 
     await coordinator?.close().catch(() => {});
     receipt.finishedAt = stamp();
   }
-  receipt.verdict = checkNorthStar(receipt, { reference, weights });
+  const cases = config.cases ?? {};
+  receipt.verdict = checkNorthStar(receipt, { reference, weights, cases: [...(cases.stop !== false ? ['stop'] : []), ...(cases.drop !== false ? ['drop'] : [])] });
   receipt.notEstablished = [
     'An independent security review of the requester-edges tier (a visibility trace is not one).',
     'Confidentiality from operators: they read plaintext activations; "nobody can read it" remains a target and requester-only still fails closed.',
