@@ -71,6 +71,19 @@ describe('attested execution is off by default and distinct', () => {
     expect(connect).not.toHaveBeenCalled();
   });
 
+  it('a plan without its pinned executor is refused, and the prompt never reaches the readable port', async () => {
+    const { attestedExecution } = setup();
+    const execute = vi.fn(async () => ({})), resolveRoute = vi.fn();
+    // A port that returns the route but not the executor it pinned (a host wrapper or a bug).
+    const unpinned = { ...attestedExecution, resolve: async (...args) => { const { pinned, ...rest } = await attestedExecution.resolve(...args); return rest; } };
+    const inference = createInference({ resolveRoute, execute, now: () => world.now, attestedExecution: unpinned, unreviewedAttestedExecution: true });
+    const plan = await inference.prepare({ model, generation: { maxOutputTokens: 8 }, execution: execution() });
+    await expect(inference.run({ planId: plan.id, requestId: 'req-unpinned', input: { messages: [{ role: 'user', content: 'SENSITIVE' }] } }))
+      .rejects.toMatchObject({ code: 'EXECUTION_PLAN_CHANGED' });
+    expect(execute).not.toHaveBeenCalled();
+    expect(resolveRoute).not.toHaveBeenCalled();
+  });
+
   it('never satisfies requester-only, even with the attested route enabled', async () => {
     const { inference, record } = setup();
     await expect(inference.prepare({ model, generation: { maxOutputTokens: 8 }, execution: execution({ confidentiality: 'requester-only', allowMetadata: ['model-id', 'timing', 'length'] }) }))
