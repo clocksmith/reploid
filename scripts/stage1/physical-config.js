@@ -90,7 +90,10 @@ function validateHost(host, index) {
     positive(host.memoryPressure.pollMs, `${field}.memoryPressure.pollMs`);
   }
   if (host.standingService !== null) {
-    object(host.standingService, `${field}.standingService`, ['manager', 'unit', 'approveStopForSolo']);
+    // A Windows task also names the file its service writes its process ID to: the task's own state does not say
+    // whether the service still holds the GPU (host-control.js).
+    object(host.standingService, `${field}.standingService`, ['manager', 'unit', 'approveStopForSolo', ...(platform === 'windows' ? ['pidFile'] : [])]);
+    if (platform === 'windows') directoryPath(host.standingService.pidFile, `${field}.standingService.pidFile`, platform);
     // A Windows host's standing service is a scheduled task in the root folder; every other host's is a systemd unit.
     const managers = platform === 'windows' ? ['windows-task'] : ['systemd-user', 'systemd-system'];
     if (!managers.includes(host.standingService.manager)) refuse(`${field}.standingService.manager`);

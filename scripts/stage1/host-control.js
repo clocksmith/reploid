@@ -292,28 +292,40 @@ export async function killExactProcess({ pid, startId, readStart = readProcessSt
 
 const UNIT = /^[A-Za-z0-9][A-Za-z0-9_.@-]{0,127}\.service$/;
 const TASK = /^[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$/;
+const readPidFile = async file => { const text = (await fs.readFile(file, 'utf8').catch(() => '')).trim(); return /^\d{1,9}$/.test(text) ? Number(text) : null; };
+
 /**
- * A Windows scheduled task in the root folder, as the standing service. The state is read as the task's State enum,
- * which is not translated; `Running` is reported as `active` and anything else as `inactive`, the two words the
- * adapter compares. Not yet run on a Windows host: whether ending a task also ends every process it started, and
- * whether a task set to restart comes back by itself, are still to be seen there.
+ * A Windows scheduled task in the root folder, as the standing service. Ending a task ends only the process the
+ * task started, and a task that wraps the real service in a script leaves that service running and holding the GPU.
+ * So the service is the node process whose PID the service writes to `pidFile`: it is `active` while that process
+ * is a running node.exe, a stop ends the task and then that process tree and succeeds only when the process is
+ * gone, and a start runs the task (the adapter then waits for `active`). A PID that is not node.exe is a stale
+ * file, never a process to kill. Not yet run on a Windows host.
  */
-async function windowsTaskAction({ unit, action }, exec) {
-  if (typeof unit !== 'string' || !TASK.test(unit) || !['stop', 'start', 'is-active'].includes(action)) throw coded('service-refused', 'unsupported service request');
+async function windowsTaskAction({ unit, action, pidFile }, exec, readPid) {
+  if (typeof unit !== 'string' || !TASK.test(unit) || !['stop', 'start', 'is-active'].includes(action)
+    || typeof pidFile !== 'string' || !path.win32.isAbsolute(pidFile)) throw coded('service-refused', 'unsupported service request');
+  const running = async () => {
+    const pid = await readPid(pidFile);
+    if (pid === null || pid <= 4) return null;
+    const { stdout } = await exec('tasklist.exe', ['/FI', `PID eq ${pid}`, '/FO', 'CSV', '/NH']);
+    return /^"node\.exe","\d+"/im.test(String(stdout).trim()) ? pid : null;
+  };
   try {
-    if (action === 'is-active') {
-      const { stdout } = await exec('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', `(Get-ScheduledTask -TaskName '${unit}' -ErrorAction Stop).State`]);
-      return { state: stdout.trim() === 'Running' ? 'active' : 'inactive' };
-    }
-    await exec('schtasks.exe', [action === 'stop' ? '/End' : '/Run', '/TN', unit]);
+    if (action === 'is-active') return { state: await running() === null ? 'inactive' : 'active' };
+    if (action === 'start') { await exec('schtasks.exe', ['/Run', '/TN', unit]); return { done: true }; }
+    await exec('schtasks.exe', ['/End', '/TN', unit]).catch(() => {});
+    const pid = await running();
+    if (pid !== null) await exec('taskkill.exe', ['/PID', String(pid), '/T', '/F']);
+    if (await running() !== null) throw Error('still running');
     return { done: true };
   } catch {
     throw coded('service-command-failed', `${action} did not succeed`);
   }
 }
 /** Acts only on the one named unit. `is-active` reports a state; the others throw if the manager refuses. */
-export async function serviceAction({ manager, unit, action }, exec = run) {
-  if (manager === 'windows-task') return windowsTaskAction({ unit, action }, exec);
+export async function serviceAction({ manager, unit, action, pidFile = null }, exec = run, { readPid = readPidFile } = {}) {
+  if (manager === 'windows-task') return windowsTaskAction({ unit, action, pidFile }, exec, readPid);
   if (!['systemd-user', 'systemd-system'].includes(manager) || !UNIT.test(unit) || !['stop', 'start', 'is-active'].includes(action)) {
     throw coded('service-refused', 'unsupported service request');
   }

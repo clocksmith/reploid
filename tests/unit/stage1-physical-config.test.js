@@ -275,18 +275,20 @@ describe('a Windows stage host', () => {
     ['a full copy inside the stage directory in another case', { fullCopyDirectory: 'd:\\DATA\\Stage\\full' }, 'fullCopyDirectory overlaps stageDirectory'],
     ['a weight root inside the full copy in another case', { weightRoots: { model: ['d:\\data\\FULL\\models'], cache: ['D:\\data\\cache'], temporary: ['D:\\data\\tmp'] } }, 'contains a weight root'],
     ['a memory guard', { memoryPressure: { maxAvg10: 10, pollMs: 1000 } }, 'memoryPressure is not available on a Windows host'],
-    ['a systemd unit as its standing service', { standingService: { manager: 'systemd-user', unit: 'private-worker.service', approveStopForSolo: false } }, 'standingService.manager'],
-    ['a task name with a space', { standingService: { manager: 'windows-task', unit: 'Private Worker', approveStopForSolo: false } }, 'standingService.unit'],
-    ['a task in a folder', { standingService: { manager: 'windows-task', unit: 'Vendor\\Worker', approveStopForSolo: false } }, 'standingService.unit']
+    ['a systemd unit as its standing service', { standingService: { manager: 'systemd-user', unit: 'private-worker.service', pidFile: 'C:\\stage1\\state\\host.pid', approveStopForSolo: false } }, 'standingService.manager'],
+    ['a task name with a space', { standingService: { manager: 'windows-task', unit: 'Private Worker', pidFile: 'C:\\stage1\\state\\host.pid', approveStopForSolo: false } }, 'standingService.unit'],
+    ['a task in a folder', { standingService: { manager: 'windows-task', unit: 'Vendor\\Worker', pidFile: 'C:\\stage1\\state\\host.pid', approveStopForSolo: false } }, 'standingService.unit'],
+    ['a task without its service\'s pid file', { standingService: { manager: 'windows-task', unit: 'PrivateWorker', approveStopForSolo: false } }, 'standingService.pidFile is required'],
+    ['a pid file that is not a Windows path', { standingService: { manager: 'windows-task', unit: 'PrivateWorker', pidFile: '/srv/host.pid', approveStopForSolo: false } }, 'standingService.pidFile']
   ])('refuses %s', (_name, extra, field) => {
     expect(() => validatePhysicalConfig(withWindows(extra))).toThrow(field);
   });
 
   it('takes a scheduled task as its standing service, which a POSIX host cannot', () => {
-    const task = { manager: 'windows-task', unit: 'PrivateWorker', approveStopForSolo: true };
+    const task = { manager: 'windows-task', unit: 'PrivateWorker', pidFile: 'C:\\stage1\\state\\host.pid', approveStopForSolo: true };
     expect(validatePhysicalConfig(withWindows({ standingService: task })).hosts[0].standingService.unit).toBe('PrivateWorker');
     const posix = config(); posix.hosts[1].standingService = task;
-    expect(() => validatePhysicalConfig(posix)).toThrow('standingService.manager');
+    expect(() => validatePhysicalConfig(posix)).toThrow('unknown field');
   });
 
   it('refuses a Windows path on a POSIX host and a platform on the requester', () => {

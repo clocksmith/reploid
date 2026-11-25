@@ -57,6 +57,8 @@ export function createPhysicalStage1Adapter({ config, directory, expectations, s
   const allRanges = stageRanges.flat();
   const splitThread = 'stage1-split-' + randomUUID(), cancelThread = 'stage1-cancel-' + randomUUID(), dropThread = 'stage1-drop-' + randomUUID();
   const locks = new Map();
+  // A Windows task's request also carries the file its service writes its process ID to (host-control.js).
+  const serviceRequest = (service, action) => ({ manager: service.manager, unit: service.unit, action, ...(service.pidFile ? { pidFile: service.pidFile } : {}) });
   let buyer = null;
   const fixtureSha256 = createHash('sha256').update(fixtureBytes).digest('hex');
   const sessions = new Map(), soloSessions = new Set(), peers = {};
@@ -186,12 +188,12 @@ export function createPhysicalStage1Adapter({ config, directory, expectations, s
     const row = serviceRows.get(host.label);
     if (!row?.stopped || row.restored) return Promise.resolve();
     if (restoring.has(host.label)) return restoring.get(host.label);
-    const { manager, unit } = host.standingService;
+    const service = host.standingService;
     const task = (async () => {
       try {
-        await control(host, 'service', { manager, unit, action: 'start' }, { timeoutMs: limits.serviceRestoreMs });
+        await control(host, 'service', serviceRequest(service, 'start'), { timeoutMs: limits.serviceRestoreMs });
         const deadline = Date.now() + limits.serviceRestoreMs;
-        await until(async () => (await control(host, 'service', { manager, unit, action: 'is-active' },
+        await until(async () => (await control(host, 'service', serviceRequest(service, 'is-active'),
           { timeoutMs: Math.max(1000, deadline - Date.now()) })).state === 'active',
         { timeoutMs: limits.serviceRestoreMs, label: 'the service to become active', pollMs: 100 });
         Object.assign(row, { restored: true, verifiedActive: true });
@@ -210,13 +212,13 @@ export function createPhysicalStage1Adapter({ config, directory, expectations, s
   async function stopServiceForSolo(host, signal) {
     const service = host.standingService;
     if (!service) return null;
-    const { state } = await control(host, 'service', { manager: service.manager, unit: service.unit, action: 'is-active' }, { signal, timeoutMs: limits.serviceRestoreMs });
+    const { state } = await control(host, 'service', serviceRequest(service, 'is-active'), { signal, timeoutMs: limits.serviceRestoreMs });
     if (state !== 'active') return null;
     if (service.approveStopForSolo !== true) return 'standing-service-not-approved';
     // Recorded first: if the stop half-succeeds, the restore still runs.
     serviceRows.set(host.label, { host: host.label, stopped: true, restored: false, verifiedActive: false });
-    await control(host, 'service', { manager: service.manager, unit: service.unit, action: 'stop' }, { timeoutMs: limits.serviceRestoreMs });
-    const after = await control(host, 'service', { manager: service.manager, unit: service.unit, action: 'is-active' }, { timeoutMs: limits.serviceRestoreMs });
+    await control(host, 'service', serviceRequest(service, 'stop'), { timeoutMs: limits.serviceRestoreMs });
+    const after = await control(host, 'service', serviceRequest(service, 'is-active'), { timeoutMs: limits.serviceRestoreMs });
     if (after.state === 'active') throw stopWith('service-did-not-stop', host.label);
     return null;
   }

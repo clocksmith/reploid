@@ -228,30 +228,62 @@ describe('the standing service', () => {
     await serviceAction({ manager: 'systemd-system', unit: 'worker.service', action: 'stop' }, exec);
     expect(exec).toHaveBeenLastCalledWith('systemctl', ['stop', '--', 'worker.service']);
   });
-  // The Windows scheduled-task manager through an injected exec. No Windows machine has run it.
-  it('acts on one Windows scheduled task and reports its state in the adapter\'s two words', async () => {
-    const exec = vi.fn(async command => ({ stdout: command === 'powershell.exe' ? 'Running\r\n' : 'SUCCESS\r\n' }));
-    expect(await serviceAction({ manager: 'windows-task', unit: 'PrivateWorker', action: 'is-active' }, exec)).toEqual({ state: 'active' });
-    expect(exec).toHaveBeenLastCalledWith('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', "(Get-ScheduledTask -TaskName 'PrivateWorker' -ErrorAction Stop).State"]);
-    expect(await serviceAction({ manager: 'windows-task', unit: 'PrivateWorker', action: 'stop' }, exec)).toEqual({ done: true });
-    expect(exec).toHaveBeenLastCalledWith('schtasks.exe', ['/End', '/TN', 'PrivateWorker']);
-    await serviceAction({ manager: 'windows-task', unit: 'PrivateWorker', action: 'start' }, exec);
-    expect(exec).toHaveBeenLastCalledWith('schtasks.exe', ['/Run', '/TN', 'PrivateWorker']);
-    for (const state of ['Ready', 'Disabled', 'Queued', '']) {
-      expect(await serviceAction({ manager: 'windows-task', unit: 'PrivateWorker', action: 'is-active' }, async () => ({ stdout: `${state}\r\n` }))).toEqual({ state: 'inactive' });
-    }
-    await expect(serviceAction({ manager: 'windows-task', unit: 'PrivateWorker', action: 'is-active' }, async () => { throw Error('no such task'); }))
-      .rejects.toMatchObject({ code: 'service-command-failed' });
-  });
-  it.each([
-    [{ manager: 'windows-task', unit: "x'; Stop-Computer; '", action: 'is-active' }],
-    [{ manager: 'windows-task', unit: 'Private Worker', action: 'stop' }],
-    [{ manager: 'windows-task', unit: 'Vendor\\Worker', action: 'stop' }],
-    [{ manager: 'windows-task', unit: 'PrivateWorker', action: 'delete' }]
-  ])('refuses %j', async request => {
-    const exec = vi.fn();
-    await expect(serviceAction(request, exec)).rejects.toMatchObject({ code: 'service-refused' });
-    expect(exec).not.toHaveBeenCalled();
+  // The Windows scheduled-task manager through an injected exec and pid reader. No Windows machine has run it.
+  describe('a Windows scheduled task as the standing service', () => {
+    const request = action => ({ manager: 'windows-task', unit: 'PrivateWorker', pidFile: 'C:\\stage1\\state\\host.pid', action });
+    const node = pid => `"node.exe","${pid}","Services","0","812,344 K"\r\n`;
+    const none = 'INFO: No tasks are running which match the specified criteria.\r\n';
+    /** `alive` is the set of PIDs that are running node.exe; taskkill removes one. */
+    const machine = ({ pid = 4242, alive = [4242], other = false } = {}) => {
+      const state = { alive: new Set(alive) };
+      const exec = vi.fn(async (command, args) => {
+        if (command === 'tasklist.exe') { const asked = Number(/PID eq (\d+)/.exec(args[1])[1]); return { stdout: other ? `"notepad.exe","${asked}","Console","1","9,000 K"\r\n` : state.alive.has(asked) ? node(asked) : none }; }
+        if (command === 'taskkill.exe') { state.alive.delete(Number(args[1])); return { stdout: 'SUCCESS\r\n' }; }
+        return { stdout: 'SUCCESS\r\n' };
+      });
+      return { exec, ports: { readPid: async () => pid }, state };
+    };
+
+    it('is active only while the process in the pid file is a running node.exe', async () => {
+      const up = machine();
+      expect(await serviceAction(request('is-active'), up.exec, up.ports)).toEqual({ state: 'active' });
+      expect(up.exec).toHaveBeenCalledWith('tasklist.exe', ['/FI', 'PID eq 4242', '/FO', 'CSV', '/NH']);
+      for (const down of [machine({ alive: [] }), machine({ other: true }), machine({ pid: null }), machine({ pid: 4 })]) {
+        expect(await serviceAction(request('is-active'), down.exec, down.ports)).toEqual({ state: 'inactive' });
+      }
+    });
+
+    it('stops by ending the task and then the service process, and succeeds only when that process is gone', async () => {
+      const up = machine();
+      expect(await serviceAction(request('stop'), up.exec, up.ports)).toEqual({ done: true });
+      expect(up.exec.mock.calls.map(call => call[0])).toEqual(['schtasks.exe', 'tasklist.exe', 'taskkill.exe', 'tasklist.exe']);
+      expect(up.exec).toHaveBeenCalledWith('schtasks.exe', ['/End', '/TN', 'PrivateWorker']);
+      expect(up.exec).toHaveBeenCalledWith('taskkill.exe', ['/PID', '4242', '/T', '/F']);
+      const stuck = machine();
+      stuck.exec.mockImplementation(async command => ({ stdout: command === 'tasklist.exe' ? node(4242) : 'SUCCESS\r\n' }));
+      await expect(serviceAction(request('stop'), stuck.exec, stuck.ports)).rejects.toMatchObject({ code: 'service-command-failed' });
+    });
+
+    it('never kills a PID that is not node.exe, and starts by running the task', async () => {
+      const stale = machine({ other: true });
+      expect(await serviceAction(request('stop'), stale.exec, stale.ports)).toEqual({ done: true });
+      expect(stale.exec.mock.calls.map(call => call[0])).not.toContain('taskkill.exe');
+      const down = machine({ alive: [] });
+      expect(await serviceAction(request('start'), down.exec, down.ports)).toEqual({ done: true });
+      expect(down.exec).toHaveBeenLastCalledWith('schtasks.exe', ['/Run', '/TN', 'PrivateWorker']);
+    });
+
+    it.each([
+      [{ manager: 'windows-task', unit: "x'; Stop-Computer; '", pidFile: 'C:\\s\\host.pid', action: 'is-active' }],
+      [{ manager: 'windows-task', unit: 'Private Worker', pidFile: 'C:\\s\\host.pid', action: 'stop' }],
+      [{ manager: 'windows-task', unit: 'PrivateWorker', pidFile: 'C:\\s\\host.pid', action: 'delete' }],
+      [{ manager: 'windows-task', unit: 'PrivateWorker', action: 'stop' }],
+      [{ manager: 'windows-task', unit: 'PrivateWorker', pidFile: 'host.pid', action: 'stop' }]
+    ])('refuses %j', async bad => {
+      const exec = vi.fn();
+      await expect(serviceAction(bad, exec)).rejects.toMatchObject({ code: 'service-refused' });
+      expect(exec).not.toHaveBeenCalled();
+    });
   });
   it('reads an inactive state from the exit of is-active', async () => {
     const exec = async () => { throw Object.assign(Error('exit 3'), { stdout: 'inactive\n' }); };
