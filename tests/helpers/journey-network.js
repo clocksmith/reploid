@@ -68,9 +68,11 @@ export function createJourneyModel({ shards = 2, piecesPerShard = 4, pieceBytes 
     pieces: index.flatMap(file => file.pieces.map(piece => ({ path: file.path, ...piece }))) };
 }
 
-/** In-memory transport shared by every node: counted, and able to stop a node or lose chosen messages. */
-function createHub() {
+/** In-memory transport shared by every node: counted, and able to stop a node or lose chosen messages.
+ * `latencyMs` delays every message by that one-way time, in order, like a link with that latency. */
+function createHub({ latencyMs = 0 } = {}) {
   const nodes = new Map(), traffic = [], rules = new Set();
+  const later = task => latencyMs > 0 ? setTimeout(task, latencyMs) : queueMicrotask(task);
   const live = id => nodes.get(id)?.alive === true;
   const connected = id => [...nodes.keys()].filter(other => other !== id && live(other) && live(id));
   function deliver(from, to, type, payload) {
@@ -79,7 +81,7 @@ function createHub() {
     const entry = { from, to, type, bytes: Buffer.byteLength(JSON.stringify(payload) ?? ''), at: Date.now() };
     for (const rule of rules) if (rule(entry, payload)) { traffic.push({ ...entry, lost: true }); return true; }
     traffic.push(entry);
-    queueMicrotask(() => {
+    later(() => {
       const target = nodes.get(to);
       if (!live(from) || !target?.alive) return;
       for (const handler of target.handlers.get(type) || []) {
@@ -95,7 +97,7 @@ function createHub() {
       send(data) {
         const bytes = typeof data === 'string' ? Buffer.byteLength(data) : data.byteLength ?? 0;
         traffic.push({ from: owners[side], to: owners[1 - side], type: 'data-channel:' + label, bytes, at: Date.now() });
-        queueMicrotask(() => {
+        later(() => {
           if (pair[1 - side].readyState === 'open') pair[1 - side].dispatchEvent(new MessageEvent('message', { data: structuredClone(data) }));
         });
       },
@@ -173,12 +175,14 @@ function events() {
 }
 
 /**
- * providers: [{ name, tokensPerSecond, holdsModel, appliesOutputLimit }] in connection-id order. The requester never has model files.
+ * providers: [{ name, tokensPerSecond, holdsModel, appliesOutputLimit, beforeToken }] in connection-id order. The requester never
+ * has model files. `beforeToken(index)`, when given, is awaited before the provider emits each token. `latencyMs` is the hub's
+ * one-way message latency.
  */
-export async function createJourneyNetwork({ providers, modelOptions = {}, maxOutputTokens = 16 }) {
+export async function createJourneyNetwork({ providers, modelOptions = {}, maxOutputTokens = 16, latencyMs = 0 }) {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'network-journey-')), cleanup = [];
   const fixture = createJourneyModel({ ...modelOptions, maxOutputTokens }), { model } = fixture;
-  const hub = createHub(), software = 'sha256:' + sha('journey-test-provider/1');
+  const hub = createHub({ latencyMs }), software = 'sha256:' + sha('journey-test-provider/1');
   const requesterIdentity = await createSigningIdentity({ algorithm: 'Ed25519' });
   const seats = await Promise.all(providers.map(async spec => ({ ...spec, identity: await createSigningIdentity({ algorithm: 'Ed25519' }),
     computerId: 'computer-' + spec.name, directory: path.join(root, spec.name, 'model'), cacheDirectory: path.join(root, spec.name, 'cache'),
@@ -235,6 +239,8 @@ export async function createJourneyNetwork({ providers, modelOptions = {}, maxOu
       reconciled.push({ requestId: binding.requestId, settlement: settled });
     }
     let mesh;
+    // As the native runtime does: the requester identity proven on this connection, proved again only if absent.
+    const provenPeer = async peer => mesh.getVerifiedPeerIdentity(peer) ?? await mesh.verifyPeerIdentity(peer);
     mesh = createPeerGenerationMesh({ config: config(), ports: {
       instanceId: 'journey:' + id, modelConfig: model, events: bus, eventBus: bus, utils: { generateId: () => randomUUID() },
       getExecutionState: () => ({ phase: seat.ready && !run.stopped ? 'ready' : 'idle', modelIdentity: model.identity, adapterIdentities: [] }),
@@ -251,16 +257,18 @@ export async function createJourneyNetwork({ providers, modelOptions = {}, maxOu
       admitsBeforeDisclosure: true,
       authorize: async input => !run.stopped && (input.action === 'mesh.connect'
         || input.action === 'mesh.admit' && seat.ready
-          && await admission.preadmit({ request: input.request, consumer: await mesh.verifyPeerIdentity(input.peerId) }) !== undefined
+          && await admission.preadmit({ request: input.request, consumer: await provenPeer(input.peerId) }) !== undefined
         || input.action === 'mesh.execute' && seat.ready
-          && await admission.whole({ request: input.request, consumer: await mesh.verifyPeerIdentity(input.peerId) })),
+          && await admission.whole({ request: input.request, consumer: await provenPeer(input.peerId) })),
       generate: async (messages, update, controls) => {
-        seat.executions += 1;
+        seat.executions += 1; seat.generateStartedAt = Date.now(); seat.firstTokenAt = null;
         const signal = AbortSignal.any([controls.signal, run.abort.signal]);
         const tokens = JOURNEY_ANSWER.slice(0, controls.settings?.maxOutputTokens ?? JOURNEY_ANSWER.length);
-        for (const token of tokens) {
+        for (const [index, token] of tokens.entries()) {
           await sleep(1000 / seat.tokensPerSecond, signal);
-          seat.tokensEmitted += 1; update(token);
+          if (seat.beforeToken) await seat.beforeToken(index);
+          signal.throwIfAborted();
+          seat.tokensEmitted += 1; seat.firstTokenAt ??= Date.now(); update(token);
         }
         return { model: model.id, modelIdentity: model.identity, adapterIdentities: [], content: tokens.join(''),
           completion: { schema: 'doppler.generation-completion/v1', promptTokenCount: promptTokens(messages),

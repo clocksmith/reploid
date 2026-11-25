@@ -139,6 +139,9 @@ export function createPrivateComputers({ storage = globalThis.sessionStorage, fe
       const recipients = privacyBinding.route.hops.map(hop => hop.recipient);
       const publicNames = Object.fromEntries(binding.computers.flatMap(row => row.participantIds.map(id => [id, row.name])));
       let placement = { privateDelegation: { poolIdentity: binding.poolIdentity, computers: publicNames }, serviceCredit: { status: 'pending' } };
+      // UTC step times from Send to the first character, so a slow first answer says which leg took the time.
+      const timeline = [{ step: 'route-checks', at: Date.now(), clock: 'browser' }];
+      const mark = step => timeline.push({ step, at: Date.now(), clock: 'browser' });
       let reader, dispatched = false;
       const cancel = () => {
         if (dispatched) void call('/cancel', { attemptId }, AbortSignal.timeout(10000), target).catch(() => {});
@@ -175,6 +178,7 @@ export function createPrivateComputers({ storage = globalThis.sessionStorage, fe
         controls.onState({ threadId, attemptId, status: 'queued', execution: structuredClone(placement) });
         assertCurrent();
         dispatched = true;
+        mark('sent-to-host');
         const response = await call('/generate', { privacy: input.privacy, privacyBinding, model: { id: model.id, identity: model.identity }, poolIdentity: binding.poolIdentity, threadId, attemptId, messages }, signal, target);
         assertCurrent();
         reader = response.body.getReader(); const decoder = new TextDecoder(); let buffer = '', sequence = 0, result = null;
@@ -188,6 +192,12 @@ export function createPrivateComputers({ storage = globalThis.sessionStorage, fe
             assertCurrent();
             const line = buffer.slice(0, end); buffer = buffer.slice(end + 1); if (!line) continue;
             const event = JSON.parse(line);
+            if (event.timing) {
+              // The host's clock for its own steps; this browser's clock for the rest. Diagnostic only.
+              if (typeof event.timing.step === 'string' && event.timing.step.length <= 64 && Number.isFinite(event.timing.at)
+                && timeline.length < 32) timeline.push({ step: event.timing.step, at: event.timing.at, clock: 'host' });
+              continue;
+            }
             if (event.execution) {
               placement = { ...placement, ...event.execution };
               controls.onState({ threadId, attemptId, status: event.status || 'queued', execution: structuredClone(placement) });
@@ -209,6 +219,7 @@ export function createPrivateComputers({ storage = globalThis.sessionStorage, fe
               assertCurrent();
               const text = typeof event.delta === 'string' ? event.delta : event.delta.text;
               assert(typeof text === 'string', 'Invalid private output');
+              if (sequence === 0) mark('first-delta-received');
               controls.onDelta({ threadId, attemptId, sequence: sequence++, text });
             }
             if (event.result) { assert(!result, 'Duplicate private completion'); result = event.result; }
@@ -222,10 +233,10 @@ export function createPrivateComputers({ storage = globalThis.sessionStorage, fe
           execution: { ...result.execution, provider: 'peer', peerId: result.execution?.providerIdentity || result.execution?.peerId,
             stopReason: result.execution?.stopReason ?? result.execution?.completion?.stopReason,
             ...(result.execution?.admission || placement.admission ? { admission: result.execution?.admission ?? placement.admission } : {}),
-            privateDelegation: placement.privateDelegation, serviceCredit: result.serviceCredit } };
+            privateDelegation: placement.privateDelegation, serviceCredit: result.serviceCredit, timeline: structuredClone(timeline) } };
       } catch (error) {
         if (dispatched && !closed && version === epoch) controls.onState({ threadId, attemptId, status: 'executing', execution: {
-          ...placement, serviceCredit: error.serviceCredit || placement.serviceCredit } });
+          ...placement, serviceCredit: error.serviceCredit || placement.serviceCredit, timeline: structuredClone(timeline) } });
         throw error;
       } finally {
         reader?.releaseLock(); signal.removeEventListener('abort', cancel); active.delete(attemptId); void refresh();

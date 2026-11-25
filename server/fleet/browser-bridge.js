@@ -62,6 +62,7 @@ export function createFleetBrowserBridgeHandler({ host, token, origins, basePath
       let length = 0; const chunks = [];
       for await (const chunk of request) { length += chunk.length; assert(length <= maxBodyBytes, 'Request exceeds browser bridge limit'); chunks.push(chunk); }
       const body = JSON.parse(Buffer.concat(chunks));
+      const receivedAt = Date.now();
       if (routePath === '/state') {
         response.setHeader('Content-Type', 'application/json'); response.end(JSON.stringify(await host.browserState())); return;
       }
@@ -151,12 +152,15 @@ export function createFleetBrowserBridgeHandler({ host, token, origins, basePath
       // Sources, adapters and generation settings remain native-owner decisions.
       response.writeHead(200, { 'Content-Type': 'application/x-ndjson; charset=utf-8', 'X-Accel-Buffering': 'no' });
       const emit = event => { if (!response.destroyed) response.write(JSON.stringify(event) + '\n'); };
+      // This host's clock at each step, so the browser can say where the time before the first character went.
+      const step = (name, at = Date.now()) => emit({ timing: { step: name, at } });
+      step('host-received', receivedAt); step('route-checked');
       response.on('close', () => { if (pending.has(attemptId)) host.cancel(attemptId); });
-      let lastAdmission = null;
+      let lastAdmission = null, firstDelta = true;
       const operation = host.generate(
         { threadId: body.threadId, attemptId, model: selectedModel, messages: body.messages,
           privacy, privacyBinding },
-        delta => emit({ delta }),
+        delta => { if (firstDelta) { firstDelta = false; step('first-delta'); } emit({ delta }); },
         disclosure => {
           const route = disclosure.route;
           emit({ status: 'executing', execution: { provider: 'peer', placement: route ? 'ordered-layer-partition' : 'peer-whole-request',
@@ -168,7 +172,8 @@ export function createFleetBrowserBridgeHandler({ host, token, origins, basePath
         admission => {
           lastAdmission = admission;
           if (admission?.status === 'queued') emit({ status: 'queued', execution: { admission } });
-        }
+        },
+        { onReservation: () => step('credit-reserved') }
       );
       pending.set(attemptId, operation);
       try { emit({ result: await operation }); }

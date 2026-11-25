@@ -546,7 +546,7 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
      * sends its execution binding) and the owner's `generate` command, which runs through reploid/inference here and
      * passes `approve`, the plan's own admission check, and `signal`. With `approve` the route is pinned: no fallback.
      */
-    async generate(request, onDelta = () => {}, onRoute = () => {}, onAdmission = () => {}, { signal = null, approve = null } = {}) {
+    async generate(request, onDelta = () => {}, onRoute = () => {}, onAdmission = () => {}, { signal = null, approve = null, onReservation = null } = {}) {
       assert(participant && !closed && !preparing && !requests.has(request.attemptId), 'Requester unavailable or attempt already active');
       request = structuredClone(request);
       request.privacy = assertAvailableExecutionPolicy(requestExecutionPolicy(request));
@@ -574,7 +574,7 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
           await recordPreDispatchFailure(request, error);
           throw error;
         }
-        const controls = { signal: controller.signal, onDelta,
+        const controls = { signal: controller.signal, onDelta, ...(onReservation ? { onReservation } : {}),
           requestApproval: async disclosure => {
             assert(same(disclosure.input?.messages, request.messages), 'Changed prompt disclosure');
             const workers = [...new Set(disclosure.route

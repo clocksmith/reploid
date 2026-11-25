@@ -832,8 +832,9 @@ export function createPeerGenerationMesh({ config, ports }) {
       }
       controller.signal.throwIfAborted();
       // An asserted consumer string cannot select somebody else's decoder memory.
+      // The proof made on this exact connection is enough; getVerified is empty once its certificates or attempt change.
       const verifiedConsumer = (contextId || payload.recoverable === true)
-        ? await peerIdentity.verify(remotePeerId, controller.signal) : null;
+        ? peerIdentity.getVerified(remotePeerId) ?? await peerIdentity.verify(remotePeerId, controller.signal) : null;
       if (contextId && (!verifiedConsumer || verifiedConsumer !== consumer)) throw Error('Generation context consumer identity changed');
       const contextOwner = contextId ? verifiedConsumer : null;
       if (payload.recoverable === true) {
@@ -1140,7 +1141,10 @@ export function createPeerGenerationMesh({ config, ports }) {
       assertSettingsSupported(provider.generationSettings, settings);
       const settingsDigest = settings ? await effectiveRequestDigest({ modelIdentity, adapterIdentities, messages, settings }) : null;
       const connectionBinding = JSON.stringify(swarmTransport.getPeerBinding?.(provider.peerId) || null);
-      const recipientIdentity = provider.identityProtocol === 1 ? await peerIdentity.verify(provider.peerId, signal) : null;
+      // A proof already made on this exact connection (same certificates and attempt) stands; getVerified
+      // returns nothing once either changes. Proving again would only add a round trip before dispatch.
+      const recipientIdentity = provider.identityProtocol === 1
+        ? peerIdentity.getVerified(provider.peerId) ?? await peerIdentity.verify(provider.peerId, signal) : null;
       // A blocked identity can return on a new connection before it is recognised. The proof above is
       // the first moment it is known, and nothing has been disclosed yet.
       if (isBlockedProvider(provider.peerId) || recipientIdentity && blockedComputers().has(recipientIdentity)) {

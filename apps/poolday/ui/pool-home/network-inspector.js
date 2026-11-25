@@ -29,6 +29,11 @@ import { DEFAULT_ROUTE_PREFERENCE, ROUTE_PREFERENCES } from '../../host/route-pr
 import { renderDialog, renderOptions, renderSegmented, updateOption } from '../components/choices.js';
 import { routePreferenceChoices, sharingOptionChoices } from './choice-availability.js';
 
+// Recorded steps of a paired private answer, from the route checks to the first character (private-computers.js).
+const TIMELINE_STEPS = Object.freeze({ 'route-checks': 'Route checks began', 'sent-to-host': 'Sent to your native host',
+  'host-received': 'Host received the request', 'route-checked': 'Host checked the route', 'credit-reserved': 'Credits reserved; provider asked to admit',
+  'first-delta': 'Host received the first output', 'first-delta-received': 'First output reached this browser' });
+
 export function renderInspectorNavigation({ workspace = false } = {}) {
   const tag = workspace ? 'a' : 'button';
   const destination = view => workspace ? `href="${escape(workspaceHref(view))}" data-workspace-view="${view}"` : 'type="button"';
@@ -299,6 +304,11 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
       find('[data-ribbon-facts]').innerHTML = detailMarkup(view);
       const events = [];
       if (Number.isFinite(view.attempt?.createdAt)) events.push(`Started ${new Date(view.attempt.createdAt).toLocaleTimeString()}`);
+      for (const { step, at, clock } of Array.isArray(view.execution?.timeline) ? view.execution.timeline : []) {
+        if (!TIMELINE_STEPS[step] || !Number.isFinite(at)) continue;
+        const since = Number.isFinite(view.attempt?.createdAt) ? ` (+${Math.max(0, at - view.attempt.createdAt).toLocaleString()} ms)` : '';
+        events.push(`${TIMELINE_STEPS[step]} ${new Date(at).toISOString().slice(11, 23)} UTC${since}${clock === 'host' ? ' · host clock' : ''}`);
+      }
       if (Number.isFinite(view.attempt?.finishedAt)) events.push(`${view.statusLabel} ${new Date(view.attempt.finishedAt).toLocaleTimeString()}`);
       find('[data-ribbon-timeline]').innerHTML = events.map(event => `<li>${escape(event)}</li>`).join('') || '<li>No recorded attempt events.</li>';
     }

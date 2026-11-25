@@ -114,8 +114,12 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
     fill: cacheDirectory ? ({ signal }) => files.fillWholeModel(model, { signal, onProgress: onModelFill }) : null,
     resolveAdapter: createModelAdapterResolver({ models: [model], ...(cacheDirectory ? { acquire: (artifact, controls) => files.acquireAdapter(artifact, controls) } : {}) }),
     onChange: state => { onChange(state); mesh.refreshAdvertisement(); } }) : null;
+  // The requester's identity as proven on this exact connection (getVerified is empty once its certificates or
+  // attempt change). The mesh proved it before handing over the request; a fresh proof at every admission
+  // step would only add round trips between dispatch and the first token.
+  const provenPeer = async peer => mesh.getVerifiedPeerIdentity(peer) ?? await mesh.verifyPeerIdentity(peer);
   // With owner pairing, this host serves its paired owner and guests holding a live invite (see guest-access.js).
-  const allowedOwner = createHostRequesterRule({ ownerPairing, guestAccess, verifyPeer: peer => mesh.verifyPeerIdentity(peer),
+  const allowedOwner = createHostRequesterRule({ ownerPairing, guestAccess, verifyPeer: provenPeer,
     isIdle: () => whole?.getExecutionState?.().phase === 'idle' });
 
   const mesh = createPeerGenerationMesh({ config, ports: {
@@ -145,11 +149,11 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
         && await allowedOwner(request)
         // With a credit ledger, the reservation is checked here too, against the request's commitment.
         && (!executionAdmission || typeof executionAdmission.preadmit === 'function' && await executionAdmission.preadmit({ request: request.request,
-          consumer: await mesh.verifyPeerIdentity(request.peerId) }) === true)
+          consumer: await provenPeer(request.peerId) }) === true)
       || request.action === 'mesh.execute' && whole?.getState().ready === true && wholeEarningReady
         && await allowedOwner(request, 'execute')
         && (!executionAdmission || await executionAdmission.whole({ request: request.request,
-          consumer: await mesh.verifyPeerIdentity(request.peerId) }))
+          consumer: await provenPeer(request.peerId) }))
       || request.action === 'mesh.dispatch' && await wholeRequester?.authorize(request) === true),
     generate: async (messages, onUpdate, controls) => {
       requireValue(!closed && whole, 'Native whole-model execution was not enabled');
