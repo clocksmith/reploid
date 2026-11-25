@@ -18,7 +18,7 @@
     "kernel/boot.js"
   ],
   "counts": {
-    "apps/poolday": 395,
+    "apps/poolday": 398,
     "self": 457,
     "shared": 2518
   },
@@ -4231,6 +4231,12 @@
       "basis": "Reached only from product entries."
     },
     {
+      "served": "styles/poolday/primitives/choices.css",
+      "source": "apps/poolday/styles/poolday/primitives/choices.css",
+      "owner": "apps/poolday",
+      "basis": "Reached only from product entries."
+    },
+    {
       "served": "styles/poolday/primitives/controls.css",
       "source": "apps/poolday/styles/poolday/primitives/controls.css",
       "owner": "apps/poolday",
@@ -4687,6 +4693,12 @@
       "basis": "Reached only from product entries."
     },
     {
+      "served": "ui/components/choices.js",
+      "source": "apps/poolday/ui/components/choices.js",
+      "owner": "apps/poolday",
+      "basis": "Reached only from product entries."
+    },
+    {
       "served": "ui/components/control-help.js",
       "source": "apps/poolday/ui/components/control-help.js",
       "owner": "apps/poolday",
@@ -4809,6 +4821,12 @@
     {
       "served": "ui/pool-home/capability-controls.js",
       "source": "apps/poolday/ui/pool-home/capability-controls.js",
+      "owner": "apps/poolday",
+      "basis": "Reached only from product entries."
+    },
+    {
+      "served": "ui/pool-home/choice-availability.js",
+      "source": "apps/poolday/ui/pool-home/choice-availability.js",
       "owner": "apps/poolday",
       "basis": "Reached only from product entries."
     },

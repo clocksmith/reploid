@@ -18,10 +18,10 @@ Product entries: `index.html`, `pool-entry.html`, `poolday-design.html`, `docume
 
 | Owner | Files |
 | --- | ---: |
-| apps/poolday | 395 |
+| apps/poolday | 398 |
 | self | 457 |
 | shared | 2518 |
-| total | 3370 |
+| total | 3373 |
 
 Every file lives in its owner's root.
 
@@ -738,6 +738,7 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `styles/poolday/compositions/screens.css` | `apps/poolday/styles/poolday/compositions/screens.css` | apps/poolday | Reached only from product entries. |
 | `styles/poolday/layers.json` | `apps/poolday/styles/poolday/layers.json` | apps/poolday | Reached only from product entries. |
 | `styles/poolday/primitives/base.css` | `apps/poolday/styles/poolday/primitives/base.css` | apps/poolday | Reached only from product entries. |
+| `styles/poolday/primitives/choices.css` | `apps/poolday/styles/poolday/primitives/choices.css` | apps/poolday | Reached only from product entries. |
 | `styles/poolday/primitives/controls.css` | `apps/poolday/styles/poolday/primitives/controls.css` | apps/poolday | Reached only from product entries. |
 | `styles/poolday/primitives/layout.css` | `apps/poolday/styles/poolday/primitives/layout.css` | apps/poolday | Reached only from product entries. |
 | `styles/poolday/primitives/optical.css` | `apps/poolday/styles/poolday/primitives/optical.css` | apps/poolday | Reached only from product entries. |
@@ -814,6 +815,7 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `ui/change-passport/styles.css` | `self/ui/change-passport/styles.css` | self | Reached only from substrate entries. |
 | `ui/components/attachments.js` | `apps/poolday/ui/components/attachments.js` | apps/poolday | Reached only from product entries. |
 | `ui/components/button-feedback.js` | `apps/poolday/ui/components/button-feedback.js` | apps/poolday | Reached only from product entries. |
+| `ui/components/choices.js` | `apps/poolday/ui/components/choices.js` | apps/poolday | Reached only from product entries. |
 | `ui/components/control-help.js` | `apps/poolday/ui/components/control-help.js` | apps/poolday | Reached only from product entries. |
 | `ui/components/dialog.js` | `apps/poolday/ui/components/dialog.js` | apps/poolday | Reached only from product entries. |
 | `ui/components/diamond-renderer.js` | `apps/poolday/ui/components/diamond-renderer.js` | apps/poolday | Reached only from product entries. |
@@ -835,6 +837,7 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `ui/pool-home/app.bundle.js` | `apps/poolday/ui/pool-home/app.bundle.js` | apps/poolday | Reached only from product entries. |
 | `ui/pool-home/auto-download.js` | `apps/poolday/ui/pool-home/auto-download.js` | apps/poolday | Poolday runtime, interface and earning code used by hosted services, scripts and tests. |
 | `ui/pool-home/capability-controls.js` | `apps/poolday/ui/pool-home/capability-controls.js` | apps/poolday | Reached only from product entries. |
+| `ui/pool-home/choice-availability.js` | `apps/poolday/ui/pool-home/choice-availability.js` | apps/poolday | Reached only from product entries. |
 | `ui/pool-home/circle-guest-view.js` | `apps/poolday/ui/pool-home/circle-guest-view.js` | apps/poolday | Poolday runtime, interface and earning code used by hosted services, scripts and tests. |
 | `ui/pool-home/circle-invites-view.js` | `apps/poolday/ui/pool-home/circle-invites-view.js` | apps/poolday | Reached only from product entries. |
 | `ui/pool-home/computer-labels.js` | `apps/poolday/ui/pool-home/computer-labels.js` | apps/poolday | Reached only from product entries. |
