@@ -75,6 +75,8 @@ export function useScrollSpy(items: ReadonlyArray<NavigatorItem>): {
       }
       const atEnd = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2;
       if (pinned.current && (atEnd || active === pinned.current)) active = pinned.current;
+      // Scrolled to the end, the last section is the one being read even though it cannot reach the threshold.
+      else if (atEnd && window.scrollY > 0) active = list.at(-1) ?? active;
       setCurrent(active);
     };
     const schedule = () => {

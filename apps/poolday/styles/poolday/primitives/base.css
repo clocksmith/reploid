@@ -23,6 +23,8 @@
   color: var(--pool-color-ink);
   font-family: var(--pool-font-ui);
 }
+/* A theme scope inside a page: the tokens of its theme, without the page material. */
+.pool-home.pool-theme-inline { display: inline-grid; padding: var(--pool-size-4); border-radius: var(--pool-radius-sm); background: var(--pool-color-page); }
 :where(.pool-home) {
   box-sizing: border-box;
   margin: 0;

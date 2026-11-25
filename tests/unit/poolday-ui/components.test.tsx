@@ -28,6 +28,7 @@ import {
   Notice,
   PooldayRoot,
   Progress,
+  Prose,
   Row,
   Section,
   Sheet,
@@ -66,7 +67,8 @@ describe('scope, text and layout', () => {
     expect(root.dataset.poolTheme).toBe('light');
     expect(root.hasAttribute('data-test-root')).toBe(true);
     expect(screen.getByRole('heading', { level: 1, name: 'Title' }).className).toBe('pool-title');
-    expect(screen.getByText('id').className).toBe('pool-body pool-muted pool-mono');
+    // Mono text also wraps anywhere: an identifier has no spaces to break at.
+    expect(screen.getByText('id').className).toBe('pool-body pool-muted pool-mono pool-break');
     expect(screen.getByText('Hidden name').className).toBe('pool-visually-hidden');
   });
 
@@ -353,6 +355,28 @@ describe('feedback', () => {
     expect(swatch.style.getPropertyValue('--pool-param-swatch')).toBe('var(--pool-color-ink)');
     const { container: bad } = render(<TokenSwatch name="red; color: blue" kind="color" />);
     expect((bad.firstElementChild as HTMLElement).getAttribute('style')).toBeNull();
+  });
+});
+
+describe('prose', () => {
+  it('renders bounded Markdown without evaluating HTML, and links only safe URLs and named sources', () => {
+    const { container } = render(
+      <Prose
+        label="Model output"
+        markdown={'# Title\n**bold** and `code` [1] [2]\n\n- one\n- two\n\n<img src=x onerror=alert(1)> [site](https://example.org) [bad](javascript:alert(1))'}
+        sources={new Map([['1', 'source-1']])}
+      />,
+    );
+    const prose = screen.getByLabelText('Model output');
+    expect(prose.className).toBe('pool-prose pool-prose-blocks pool-body');
+    expect(container.querySelector('img')).toBeNull();
+    expect(prose.textContent).toContain('<img src=x onerror=alert(1)>');
+    expect(screen.getByRole('link', { name: '[1]' }).getAttribute('href')).toBe('#source-1');
+    expect(screen.queryByRole('link', { name: '[2]' })).toBeNull();
+    expect(screen.getByRole('link', { name: 'site' }).getAttribute('rel')).toBe('noopener noreferrer');
+    expect(screen.queryByRole('link', { name: 'bad' })).toBeNull();
+    expect(screen.getAllByRole('listitem')).toHaveLength(2);
+    expect(container.querySelector('strong')?.textContent).toBe('bold');
   });
 });
 

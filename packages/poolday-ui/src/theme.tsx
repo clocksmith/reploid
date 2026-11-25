@@ -10,15 +10,18 @@ export type Theme = 'dark' | 'light';
  */
 export function PooldayRoot({
   theme = 'dark',
+  inline = false,
   children,
   data,
 }: {
   readonly theme?: Theme;
+  /** A theme scope inside a page: the tokens without the page material. */
+  readonly inline?: boolean;
   readonly children: ReactNode;
   readonly data?: DataAttributes;
 }) {
   return (
-    <div className="pool-home" data-pool-theme={theme} {...dataProps(data)}>
+    <div className={inline ? 'pool-home pool-theme-inline' : 'pool-home'} data-pool-theme={theme} {...dataProps(data)}>
       {children}
     </div>
   );

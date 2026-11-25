@@ -46,9 +46,12 @@ export const heavyTests = [
 export default defineConfig({
   root: repositoryRoot,
   plugins: [servedTreeTestImports],
+  // React screens (apps/poolday-react) compose @reploid/poolday-ui through its public entry.
+  esbuild: { jsx: 'automatic' },
+  resolve: { alias: { '@reploid/poolday-ui': resolve(repositoryRoot, 'packages/poolday-ui/src/index.ts') } },
   test: {
     reporters: process.env.CI ? ['default', 'github-actions', ['json', { outputFile: 'test-results/vitest-results.json' }]] : ['default'],
-    include: ['tests/**/*.test.js'],
+    include: ['tests/**/*.test.js', 'tests/**/*.test.tsx'],
     exclude: [...configDefaults.exclude, 'tests/scripts/**', ...heavyTests],
     environment: 'happy-dom',
     globals: true,

@@ -122,3 +122,10 @@
 .pool-home .pool-swatch-text { font-size: var(--pool-param-swatch); line-height: var(--pool-leading-solid); }
 .pool-home .pool-swatch-weight { font-size: var(--pool-text-lg); font-weight: var(--pool-param-swatch); }
 .pool-home .pool-swatch-family { font-size: var(--pool-text-lg); font-family: var(--pool-param-swatch); }
+/* Rendered Markdown blocks (the Prose component): spaced blocks, wrapped text, scrolling code. */
+.pool-home .pool-prose-blocks { display: grid; gap: var(--pool-size-8); min-inline-size: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.pool-home .pool-prose-blocks :is(ul, ol, table) { white-space: normal; }
+.pool-home .pool-prose-blocks :is(ul, ol) { padding-inline-start: var(--pool-size-24); }
+.pool-home .pool-prose-blocks pre { max-inline-size: 100%; padding: var(--pool-size-8); overflow-x: auto; white-space: pre; }
+.pool-home .pool-prose-blocks table { border-collapse: collapse; }
+.pool-home .pool-prose-blocks :is(th, td) { padding: var(--pool-size-8); text-align: start; }

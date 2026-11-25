@@ -14,4 +14,5 @@ export { SingleChoice, MultiChoice, Toggle, type ChoiceOption } from './choices.
 export { Section, List, ListItem, Disclosure } from './rows.js';
 export { Navigator, useScrollSpy, type NavigatorItem } from './navigator.js';
 export { Dialog, Sheet } from './dialog.js';
+export { Prose } from './prose.js';
 export { TokenSwatch, type SwatchKind } from './specimen.js';

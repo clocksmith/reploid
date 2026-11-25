@@ -36,7 +36,8 @@ export function Text({
   return (
     <Element
       id={id}
-      className={cx(VARIANT_CLASS[variant], muted && 'pool-muted', mono && 'pool-mono')}
+      // Mono text is identifiers and values, which have no spaces to wrap at.
+      className={cx(VARIANT_CLASS[variant], muted && 'pool-muted', mono && 'pool-mono', mono && 'pool-break')}
       {...dataProps(data)}
     >
       {children}
