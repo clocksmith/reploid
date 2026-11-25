@@ -14,8 +14,8 @@ implementation is `server/fleet/settlement-replay.js`; the signers are
 
 | Record | Signed by | When | Binds |
 | --- | --- | --- | --- |
-| Settlement terms (`reploid.settlement-terms/v1`) | requester | before any input leaves its device | reservation, `attemptId`, route hash, policy digest, price, output ceiling, each stage's weight, `K`, deadline, release window |
-| Settlement acceptance (`reploid.settlement-acceptance/v1`) | each stage | before it reserves | the digest of those exact terms and its own stage index |
+| Settlement terms (`reploid.settlement-terms/v1`) | requester | before any input leaves its device | reservation, `attemptId`, route hash, policy digest, price, output ceiling, each stage's weight, `K`, deadline, release window, and when present the ledger account the requester is charged from (`debitAccount`) |
+| Settlement acceptance (`reploid.settlement-acceptance/v1`) | each stage | before it reserves | the digest of those exact terms, its own stage index, and when present the ledger account its share is paid into (`payoutAccount`) |
 | Stage receipt (`reploid.stage-receipt/v1`) | each stage | after every step and at close | steps, tokens, timing, closing status; the final stage also commits a hash chain over its outputs |
 | Output acknowledgment (`reploid.output-acknowledgment/v1`) | requester | for each output it received | the output count and chain value |
 | Settlement stop (`reploid.settlement-stop/v1`) | requester | when it ends an answer early, before its stages are told to stop | the reservation, `attemptId` and its acknowledged count |
@@ -114,10 +114,14 @@ a safe integer `>= 0`; "positive" is a safe integer `> 0`.
   their `unfinishedTerms` must be `null` or
   `reploid.unfinished-answer/provider-loss-free/v1`. Terms without the member
   that name any other `unfinishedTerms` are malformed, so terms under the
-  decided rules always sign `K`.
+  decided rules always sign `K`. A newer shape is accepted as well: terms that
+  have every member above, `K` included, may carry one more, `debitAccount`
+  text 128, the ledger account the requester is charged from (see step 8).
 - **Acceptance** (signer: `participantId`): `schema`; `termsDigest` digest;
   `reservationId` text 160; `attemptId`; `participantId`; `partitionIndex` count;
-  `signedAt` time.
+  `signedAt` time. An acceptance has exactly these members, or these and
+  `payoutAccount` text 128, the ledger account this stage's share is paid into
+  (see step 8).
 - **Stop** (signer: `requesterId`): `schema`; `reservationId` text 160;
   `attemptId`; `requesterId`; `acknowledged` count; `signedAt` time.
 - **Stage receipt** (signer: `participantId`): `schema`; `reservationId` text 160;
@@ -159,7 +163,11 @@ terms, acknowledgments and stops go to the attempt of the `reservationId` and
 `requesterId` they name, and acceptances and stage receipts, which name no
 requester, are offered to every attempt under their `reservationId`. A stranger
 that signs its own terms, acceptance and charge binding under a known reservation
-ID therefore makes a separate attempt that can charge only the stranger. Each
+ID therefore makes a separate attempt that can charge only the stranger. With
+signed accounts (step 8) that holds only where the caller supplies the
+enrollment as `accountOf`: an account is then refused unless its signer is
+enrolled under it. Without `accountOf` a signed account is only what its signer
+asked for, and a stranger's terms can name any account text. Each
 attempt is decided in this order. `inTime(t)` means
 `notBefore - maxClockSkewMs <= t <= deadline + maxClockSkewMs`, using the agreed
 terms and the policy they name. `closesInTime(t)` means
@@ -205,7 +213,10 @@ signed in time can still be presented and change the outcome.
    `routeHash` and come from the participant the terms name at their
    `partitionIndex`. Acknowledgments must carry the agreed `routeHash` and
    `requesterId`. An acceptance counts only for the agreed terms digest and its
-   own share. A closing receipt (`settled` or `failed`, with `closedAt`) counts
+   own share. When the agreed terms carry `debitAccount`, an acceptance without
+   `payoutAccount` is dropped without being listed (step 2 has still counted it
+   for the set it names); when they do not, an acceptance's `payoutAccount` is
+   not used. A closing receipt (`settled` or `failed`, with `closedAt`) counts
    when signed `closesInTime`; every other kept record counts when signed
    `inTime`. A kept record that does not count is **late**: it is listed in
    `late`, whatever the outcome, and it is ignored for everything that decides an
@@ -272,7 +283,12 @@ signed in time can still be presented and change the outcome.
    full. The rule needs the final stage's signed `done` and the requester's
    acknowledgment of that exact count with the final stage's chain. An answer
    that did not finish never meets it: with a stage unclosed it stays `expired`,
-   which is the relief for a verified provider failure (step 9). The live ledger applies
+   which is the relief for a verified provider failure (step 9). A missing close
+   attributes nothing: the records cannot tell a destroyed host from a stage
+   that chose not to sign or from a closing receipt that was not presented. A
+   stage, or a supervisor that holds its key, therefore signs a closing receipt
+   whenever it can, a `failed` one when its process died; that close states how
+   far the stage got and lets the acknowledged outputs be charged and paid. The live ledger applies
    the same rule once the release window has passed (see
    [fleet-service.md](fleet-service.md#release-windows)).
 
@@ -282,8 +298,23 @@ signed in time can still be presented and change the outcome.
    honestly late is paid what one that backdates its close would be.
 7. **Steps.** The outcome is `conflict` if any stage's latest receipt has fewer
    `steps` than the acknowledged count.
-8. **Acceptances.** The outcome is `unknown` if any stage has no in-time
-   acceptance of the agreed terms.
+8. **Acceptances and accounts.** When the agreed terms carry `debitAccount`
+   the attempt has *signed accounts*: the requester's account is `debitAccount`,
+   and a stage's account is the `payoutAccount` of its in-time acceptances of
+   the agreed terms (step 4). Each participant has one account. The outcome is
+   `conflict` if a participant named more than one: a stage whose counting
+   acceptances carry different `payoutAccount`s, a participant that runs
+   several stages and named different ones, or a stage run by the requester's
+   own key whose `payoutAccount` is not `debitAccount`. Each such participant
+   gets one `payout-account` entry, in the order of the participants' first
+   stages. Otherwise, when the caller supplied `accountOf`, it is the enrollment
+   the caller trusts, and the outcome is `invalid` if the requester's
+   `debitAccount`, or the signed account of any stage that has one, differs from
+   `accountOf` of that participant (`accountOf` of a participant it does not
+   place is that participant's own ID). Otherwise the outcome is `unknown` if any
+   stage has no in-time acceptance of the agreed terms that counts. With signed
+   accounts, who is charged and who is paid comes from what the requester and
+   each stage signed; `accountOf` is used for nothing but the enrollment test.
 9. **Settled.** Let `acknowledged` be the acknowledged count from step 5 and
    `delivered` the final stage's latest receipt's `output`. Every stage has
    closed (step 6) or is treated as closed at its last step. The rule for an
@@ -322,7 +353,14 @@ stage receives what remains, so the credits sum to `U`. Work done by the
 requester's own account is neither charged nor credited. The debit is `U` minus
 those own-account shares. Without `accountOf`, every participant ID is its own
 account. With it, the replay groups participant IDs into owner accounts as the
-ledger does, and `balances` sums per account.
+ledger does, and `balances` sums per account. An attempt with signed accounts
+(step 8) uses those instead (for a `settled` row step 8 has already refused
+any that `accountOf` contradicts; an `expired` row is decided earlier and posts
+only zeros): a stage is the
+requester's own exactly when its `payoutAccount` equals the terms'
+`debitAccount`, and `balances` sums that row under the signed accounts (a stage
+with no signed account, possible only on an `expired` row where every amount is
+0, under its participant ID).
 
 ## Outcomes
 
@@ -344,7 +382,8 @@ ledger does, and `balances` sums per account.
 - **unknown:** the records cannot decide. Examples are a delivered answer where
   one stage presented no receipt covering it, or missing terms or acceptance.
 - **invalid:** the terms do not match a supplied policy, or no policy was
-  supplied.
+  supplied (step 3); or, with signed accounts, a party signed an account that
+  the `accountOf` the caller supplied does not place it under (step 8).
 
 Edited records fail their signatures and are listed as rejected.
 
@@ -359,7 +398,9 @@ at least one row has (an empty object when there are no rows), `rejected` one
 position in the input, `schema` its schema or `null`), and `balances` the sum of
 debits (negative) and credits per account over `settled` and `expired` rows.
 `reservations` has one row per attempt, ordered by `reservationId` and then
-`requesterId`. Every row has exactly these members, whatever its outcome:
+`requesterId`. Every row has exactly these members, whatever its outcome, and
+one more, `accounts`, when and only when the agreed terms carry `debitAccount`
+and the attempt passed step 3 (a row decided at step 1, 2 or 3 never has it):
 
 | Member | Value |
 | --- | --- |
@@ -379,6 +420,7 @@ debits (negative) and credits per account over `settled` and `expired` rows.
 | `late` | the late records (step 4): `{ kind: 'terms', signer, digest }`, `{ kind: 'acceptance', partitionIndex }`, `{ kind: 'stage-receipt', partitionIndex, sequence }`, `{ kind: 'acknowledgment', count }` or `{ kind: 'stop', acknowledged }` |
 | `foreign` | terms on another route (step 1): `{ kind: 'terms', signer, attemptId, digest }` |
 | `unmatched` | in-time acknowledgments of a count no final-stage receipt commits (step 5): `{ kind: 'acknowledgment', count }` |
+| `accounts` | only with signed accounts (step 8): `{ requester, stages }`, `requester` the terms' `debitAccount` and `stages` one entry per stage in stage order, the `payoutAccount` its counting acceptances (step 4) name, or `null` when they name none or more than one; the same on every row that has the member, whatever step decided it |
 
 ### Conflict entries
 
@@ -396,6 +438,7 @@ statements, plus the members of its kind. A blocking entry makes the outcome
 | `output-chain` | yes | `null` | `count`, `signers`: the final stage and the requester |
 | `charge-binding` | yes | requester | `count: 0` |
 | `steps` | yes | that stage | `partitionIndex` |
+| `payout-account` | yes | the participant that named more than one account | `accounts`: the distinct accounts it named in counting records (the `debitAccount` too when it is the requester's own key), sorted by UTF-16 code unit |
 
 A stage's `stage-receipt` entries come from its kept receipts, late ones
 included, taken in `sequence` order. Each distinct `[earlier, later]` pair is
@@ -442,7 +485,14 @@ It does not establish:
 - that any computation was correct;
 - that a participant did not withhold a record. Withholding can only produce
   `unknown`, `expired` or a smaller acknowledged count.
-- who owns a participant key.
+- who owns a participant key, or whether a key may speak for a ledger account.
+  With signed accounts (step 8) it does establish which account the requester
+  asked to be charged from and which account each stage asked to be paid into,
+  because each signed its own; whether a key is enrolled under the account it
+  names is checked only against the `accountOf` the caller supplies. Without
+  signed accounts the whole grouping is that input, supplied by whoever runs the
+  replay or publishes the receipt: a stage wrongly grouped with the requester
+  would go unpaid and the amounts would still agree.
 
 Known limits:
 - **Times are self-reported (L5).** Every signer writes its own `signedAt`, and

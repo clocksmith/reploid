@@ -33,7 +33,15 @@ const TERMS_KEYS = Object.freeze(['schema', 'reservationId', 'attemptId', 'route
  * "Record shapes").
  */
 const TERMS_KEYS_BEFORE_K = Object.freeze(TERMS_KEYS.filter(key => key !== 'maxUnacknowledgedOutputs'));
+/**
+ * Signed accounts (docs/settlement-replay.md, step 8). Terms may name the ledger account the requester is charged from
+ * (`debitAccount`); each stage's acceptance of such terms then names the account its share is paid into
+ * (`payoutAccount`). A verifier reads who is paid where from the parties' own signatures instead of from whoever
+ * publishes the receipt.
+ */
+const TERMS_KEYS_WITH_ACCOUNT = Object.freeze([...TERMS_KEYS, 'debitAccount']);
 const ACCEPTANCE_KEYS = Object.freeze(['schema', 'termsDigest', 'reservationId', 'attemptId', 'participantId', 'partitionIndex', 'signedAt']);
+const ACCEPTANCE_KEYS_WITH_ACCOUNT = Object.freeze([...ACCEPTANCE_KEYS, 'payoutAccount']);
 const STOP_KEYS = Object.freeze(['schema', 'reservationId', 'attemptId', 'requesterId', 'acknowledged', 'signedAt']);
 const DIGEST = /^sha256:[a-f0-9]{64}$/;
 const exact = (value, keys) => Boolean(value) && typeof value === 'object' && !Array.isArray(value)
@@ -50,7 +58,8 @@ export const termsDigest = body => digestText(canonicalPartitionJson(body));
 
 function termsProblem(body) {
   const beforeK = exact(body, TERMS_KEYS_BEFORE_K) && (body.unfinishedTerms === null || body.unfinishedTerms === UNFINISHED_ANSWER_TERMS);
-  if (!(beforeK || exact(body, TERMS_KEYS)) || body.schema !== SETTLEMENT_TERMS_SCHEMA || !text(body.reservationId, 160) || !text(body.attemptId)
+  const withAccount = exact(body, TERMS_KEYS_WITH_ACCOUNT) && text(body.debitAccount, 128);
+  if (!(beforeK || withAccount || exact(body, TERMS_KEYS)) || body.schema !== SETTLEMENT_TERMS_SCHEMA || !text(body.reservationId, 160) || !text(body.attemptId)
     || !DIGEST.test(body.routeHash) || !text(body.requesterId) || !DIGEST.test(body.policyDigest) || !text(body.unit, 64)
     || !positive(body.creditsPerOutputToken) || !positive(body.maxOutputTokens)
     || body.maximum !== body.maxOutputTokens * body.creditsPerOutputToken || !Number.isSafeInteger(body.maximum)
@@ -65,7 +74,8 @@ function termsProblem(body) {
 }
 
 function acceptanceProblem(body) {
-  return exact(body, ACCEPTANCE_KEYS) && body.schema === SETTLEMENT_ACCEPTANCE_SCHEMA && DIGEST.test(body.termsDigest)
+  const shape = exact(body, ACCEPTANCE_KEYS) || (exact(body, ACCEPTANCE_KEYS_WITH_ACCOUNT) && text(body.payoutAccount, 128));
+  return shape && body.schema === SETTLEMENT_ACCEPTANCE_SCHEMA && DIGEST.test(body.termsDigest)
     && text(body.reservationId, 160) && text(body.attemptId) && text(body.participantId)
     && Number.isSafeInteger(body.partitionIndex) && body.partitionIndex >= 0 && time(body.signedAt) ? null : 'acceptance_malformed';
 }
@@ -114,9 +124,11 @@ export async function signSettlementStop({ signer, terms, acknowledged, now = si
  * signed so that a verifier reads it from the terms rather than assuming a constant. A policy that publishes K
  * (`policy.maxUnacknowledgedOutputs`) supplies it, and terms naming another K are refused. `unfinishedTerms` names the
  * rule for an unfinished answer; by default the decided one, which the stages accept (acceptSettlementTerms).
+ * `debitAccount`, when given, is the ledger account the requester is charged from; the stages then sign theirs.
  */
 export async function signSettlementTerms({ signer, identity, reservationId, policy, maxOutputTokens, weights, notBefore, deadline,
-  unfinishedTerms = UNFINISHED_ANSWER_TERMS_V2, maxUnacknowledgedOutputs = policy?.maxUnacknowledgedOutputs, now = signer?.now ?? Date.now }) {
+  unfinishedTerms = UNFINISHED_ANSWER_TERMS_V2, maxUnacknowledgedOutputs = policy?.maxUnacknowledgedOutputs, debitAccount = undefined,
+  now = signer?.now ?? Date.now }) {
   const binding = canonicalRouteAttemptBinding(identity);
   if (signer?.participantId !== binding.requesterId) throw Error('Settlement terms need the requester\'s own signing identity');
   if (policy?.maxUnacknowledgedOutputs !== undefined && maxUnacknowledgedOutputs !== policy.maxUnacknowledgedOutputs) {
@@ -131,7 +143,7 @@ export async function signSettlementTerms({ signer, identity, reservationId, pol
     creditsPerOutputToken: policy.creditsPerOutputToken, maxOutputTokens, maximum: maxOutputTokens * policy.creditsPerOutputToken,
     shares: stages.map((stage, index) => ({ partitionIndex: index, participantId: stage.participantId, weight: weights[index] })),
     unfinishedTerms, maxUnacknowledgedOutputs, notBefore: new Date(notBefore).toISOString(), deadline: new Date(deadline).toISOString(),
-    releaseWindowMs, signedAt: new Date(now()).toISOString()
+    releaseWindowMs, signedAt: new Date(now()).toISOString(), ...(debitAccount === undefined ? {} : { debitAccount })
   };
   const problem = termsProblem(body);
   if (problem) throw Error(`Settlement terms are invalid: ${problem}`);
@@ -141,9 +153,11 @@ export async function signSettlementTerms({ signer, identity, reservationId, pol
 /**
  * A stage's signed acceptance of exactly these terms, at its own stage index, before it reserves. A stage accepts
  * only the acknowledgment bound it enforces (`maxUnacknowledgedOutputs`, by default its receiver policy's K).
+ * `payoutAccount` is the ledger account this stage's share is paid into; terms that name the requester's account
+ * are accepted only with it.
  */
 export async function acceptSettlementTerms({ signer, terms, partitionIndex, maxUnacknowledgedOutputs = MAX_UNACKNOWLEDGED_OUTPUTS,
-  unfinishedTerms = UNFINISHED_ANSWER_TERMS_V2, now = signer?.now ?? Date.now }) {
+  unfinishedTerms = UNFINISHED_ANSWER_TERMS_V2, payoutAccount = undefined, now = signer?.now ?? Date.now }) {
   const checked = await verifySettlementTerms(terms);
   if (!checked.ok) throw Error(`Settlement terms do not verify: ${checked.problem}`);
   if (checked.body.maxUnacknowledgedOutputs !== maxUnacknowledgedOutputs) throw Error('The terms name another acknowledgment bound than this stage enforces');
@@ -152,8 +166,14 @@ export async function acceptSettlementTerms({ signer, terms, partitionIndex, max
   if (checked.body.unfinishedTerms !== unfinishedTerms) throw Error('The terms name other unfinished-answer terms than this stage settles under');
   const share = checked.body.shares[partitionIndex];
   if (!share || share.participantId !== signer?.participantId) throw Error('A stage accepts only its own share');
-  return signer.sign(SETTLEMENT_ACCEPTANCE_SCHEMA, {
+  if (Object.hasOwn(checked.body, 'debitAccount') && payoutAccount === undefined) {
+    throw Error('Terms that name the requester\'s account are accepted only with this stage\'s payout account');
+  }
+  const body = {
     schema: SETTLEMENT_ACCEPTANCE_SCHEMA, termsDigest: await termsDigest(checked.body), reservationId: checked.body.reservationId,
-    attemptId: checked.body.attemptId, participantId: signer.participantId, partitionIndex, signedAt: new Date(now()).toISOString()
-  });
+    attemptId: checked.body.attemptId, participantId: signer.participantId, partitionIndex, signedAt: new Date(now()).toISOString(),
+    ...(payoutAccount === undefined ? {} : { payoutAccount })
+  };
+  if (acceptanceProblem(body)) throw Error('Settlement acceptance is invalid');
+  return signer.sign(SETTLEMENT_ACCEPTANCE_SCHEMA, body);
 }

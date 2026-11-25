@@ -50,12 +50,14 @@ const route = (parties, tag) => ({
  *  maxOutputTokens: the ceiling in the requester's signed terms
  *  unfinishedTerms: the signed unfinished-answer terms (by default the decided ones, UNFINISHED_ANSWER_TERMS_V2)
  *  maxUnacknowledgedOutputs: K in the signed terms and the stages' acceptances (the stages' tallies enforce the receiver policy's K)
+ *  accounts: `{ requester, stages: [...] }` signs the requester's `debitAccount` into the terms and each stage's
+ *    `payoutAccount` into its acceptance (signed accounts, docs/settlement-replay.md step 8); by default none are signed
  * Returns the records each party holds, the attempt's terms, and what was actually delivered.
  */
 export async function runAttempt(parties, { tag = 'r1', outputs = ['The', ' answer', ' is', ' 26', '.'], weights = [1, 3],
   stopAckingAfter = Infinity, vanishStage = null, vanishAfterStep = Infinity, lateAckDelayMs = null, clock = createClock(),
   requesterStopAfter = null, stagesFailAfter = null, maxOutputTokens = 64, maxUnacknowledgedOutputs = MAX_UNACKNOWLEDGED_OUTPUTS,
-  unfinishedTerms = UNFINISHED_ANSWER_TERMS_V2, policy = POLICY } = {}) {
+  unfinishedTerms = UNFINISHED_ANSWER_TERMS_V2, policy = POLICY, accounts = null } = {}) {
   const r = route(parties, tag);
   const identity = { schema: 'reploid.partition-attempt/v2', threadId: `thread-${tag}`, attemptId: `attempt-${tag}`,
     requesterId: parties.requester.peerId, placementGeneration: 0, route: r };
@@ -64,10 +66,10 @@ export async function runAttempt(parties, { tag = 'r1', outputs = ['The', ' answ
   const stageSigners = parties.stages.map(stage => createAttemptEvidenceSigner({ identity: stage, now }));
   const notBefore = now(), deadline = notBefore + 30000;
   const terms = await signSettlementTerms({ signer: requesterSigner, identity, reservationId, policy, maxOutputTokens,
-    weights, notBefore, deadline, unfinishedTerms, maxUnacknowledgedOutputs });
+    weights, notBefore, deadline, unfinishedTerms, maxUnacknowledgedOutputs, ...(accounts ? { debitAccount: accounts.requester } : {}) });
   // The stages here settle under whatever unfinished-answer terms the scenario signs, so older rules can be replayed.
   const acceptances = await Promise.all(stageSigners.map((signer, index) => acceptSettlementTerms({ signer, terms, partitionIndex: index,
-    maxUnacknowledgedOutputs, unfinishedTerms })));
+    maxUnacknowledgedOutputs, unfinishedTerms, ...(accounts ? { payoutAccount: accounts.stages[index] } : {}) })));
   const acks = await openOutputAcknowledgments({ signer: requesterSigner, identity, reservationId });
   const tallies = await Promise.all(stageSigners.map((signer, index) => openStageReceipts({ signer, identity, partitionIndex: index, charge: acks.charge })));
   const held = { requester: [terms, acks.charge], stages: parties.stages.map((_, index) => [terms, acceptances[index], acks.charge]) };

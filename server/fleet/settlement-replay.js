@@ -155,7 +155,7 @@ function receiptConflicts(rows) {
   return [...pairs.values()];
 }
 
-async function replayOne(reservationId, requesterId, group, { policies, at, computerOf, maxUnacknowledgedOutputs }) {
+async function replayOne(reservationId, requesterId, group, { policies, at, computerOf, enrolled = null, maxUnacknowledgedOutputs }) {
   // Every row has exactly these members (docs/settlement-replay.md, "Rows").
   const base = { reservationId, attemptId: null, requesterId, status: null, reason: null, debit: null, credits: null, outputs: null,
     chargedOutputs: null, unacknowledgedOutputs: null, beyondCeiling: null, closedAtLastStep: [], conflicts: [], late: [], foreign: [], unmatched: [] };
@@ -198,12 +198,16 @@ async function replayOne(reservationId, requesterId, group, { policies, at, comp
   const noted = base.conflicts.length;
 
   // Acceptances: each stage, its own share, these exact terms, signed in time.
-  const accepted = new Set();
+  // Signed accounts (step 8): terms that name the requester's account count only acceptances that name the stage's.
+  const signedAccounts = Object.hasOwn(agreed, 'debitAccount');
+  const accepted = new Set(), payout = Array.from({ length: stages }, () => new Set());
   for (const row of distinct(group.acceptances).filter(matches)) {
     if (row.termsDigest !== digest || agreed.shares[row.partitionIndex]?.participantId !== row.participantId) continue;
-    if (inTime(row.signedAt)) accepted.add(row.partitionIndex);
+    if (signedAccounts && !Object.hasOwn(row, 'payoutAccount')) continue;
+    if (inTime(row.signedAt)) { accepted.add(row.partitionIndex); if (signedAccounts) payout[row.partitionIndex].add(row.payoutAccount); }
     else base.late.push({ kind: 'acceptance', partitionIndex: row.partitionIndex });
   }
+  if (signedAccounts) base.accounts = { requester: agreed.debitAccount, stages: payout.map(named => (named.size === 1 ? [...named][0] : null)) };
 
   // Stage receipts: one tally per stage, cumulative by sequence. Two different bodies at one sequence, or steps that
   // go backwards, are the stage contradicting itself.
@@ -310,6 +314,33 @@ async function replayOne(reservationId, requesterId, group, { policies, at, comp
     return { ...base, status: 'conflict', outputs: acknowledged, reason: 'the requester acknowledged outputs a stage says it never computed',
       conflicts: [...base.conflicts, ...latest.flatMap((row, index) => (row.steps < acknowledged ? [{ signer: row.participantId, kind: 'steps', blocking: true, partitionIndex: index }] : []))] };
   }
+  // Signed accounts: each participant has one account, the requester's the terms' `debitAccount` and a stage's the
+  // `payoutAccount` it signed. A participant that named two contradicted itself. `computerOf` is then not consulted.
+  let accountFor = computerOf;
+  if (signedAccounts) {
+    // Listed in the order of the participants' first stages; the requester's own key starts from the terms' account.
+    const named = new Map();
+    agreed.shares.forEach((share, index) => {
+      const own = named.get(share.participantId) ?? new Set(share.participantId === agreed.requesterId ? [agreed.debitAccount] : []);
+      for (const account of payout[index]) own.add(account);
+      named.set(share.participantId, own);
+    });
+    const split = [...named].filter(([, own]) => own.size > 1);
+    if (split.length) {
+      return { ...base, status: 'conflict', outputs: acknowledged, reason: 'a participant named more than one account',
+        conflicts: [...base.conflicts, ...split.map(([signer, own]) => ({ signer, kind: 'payout-account', blocking: true, accounts: [...own].sort() }))] };
+    }
+    const accountOfParty = id => (id === agreed.requesterId ? agreed.debitAccount : [...(named.get(id) ?? [])][0]);
+    // The caller's enrollment, when it supplies one: a key cannot name an account it is not enrolled under.
+    if (enrolled) {
+      const parties = [agreed.requesterId, ...agreed.shares.map(share => share.participantId)];
+      // A participant the enrollment does not place is its own account.
+      if (parties.some(id => accountOfParty(id) !== undefined && (enrolled(id) ?? id) !== accountOfParty(id))) {
+        return { ...base, status: 'invalid', outputs: acknowledged, reason: 'a participant signed an account it is not enrolled under' };
+      }
+    }
+    accountFor = id => accountOfParty(id) ?? id;
+  }
   const missingAcceptance = agreed.shares.flatMap((_, index) => (accepted.has(index) ? [] : [index]));
   if (missingAcceptance.length) {
     return { ...base, status: 'unknown', outputs: acknowledged,
@@ -333,12 +364,12 @@ async function replayOne(reservationId, requesterId, group, { policies, at, comp
   const disconnected = !finished && !stoppedByRequester && !withheld;
   const providerEnded = disconnected && agreed.unfinishedTerms === UNFINISHED_ANSWER_TERMS;
   const units = providerEnded ? 0 : chargeable * agreed.creditsPerOutputToken;
-  const request = { providers: agreed.shares.map(row => ({ participantId: row.participantId, weight: row.weight })), computerId: computerOf(agreed.requesterId) };
-  const split = creditSettlementDeltas(request, units, computerOf);
+  const request = { providers: agreed.shares.map(row => ({ participantId: row.participantId, weight: row.weight })), computerId: accountFor(agreed.requesterId) };
+  const split = creditSettlementDeltas(request, units, accountFor);
   // One entry per stage in stage order; a stage on the requester's own account is listed with amount 0.
   const paid = split.credits[Symbol.iterator]();
   const credits = agreed.shares.map(row => ({ participantId: row.participantId,
-    amount: computerOf(row.participantId) === request.computerId ? 0 : paid.next().value.amount }));
+    amount: accountFor(row.participantId) === request.computerId ? 0 : paid.next().value.amount }));
   const reason = closedAtLastStep.length ? `the answer was completed and acknowledged; stage ${closedAtLastStep.join(', ')} signed no closing `
     + 'receipt and is treated as closed at its last signed step'
     : fullyAcknowledged ? 'the answer was completed and acknowledged'
@@ -375,14 +406,18 @@ export async function replaySettlement({ records, policies = [], at, computerOf 
   for (const [reservationId, group] of [...byReservation.entries()].sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))) {
     for (const [requesterId, attempt] of byRequester(group)) {
       reservations.push(await replayOne(reservationId, requesterId, attempt, { policies: byDigest, at, computerOf: accountOf ?? computerOf,
-        maxUnacknowledgedOutputs }));
+        enrolled: accountOf, maxUnacknowledgedOutputs }));
     }
   }
   const balances = new Map();
-  const add = (participantId, amount) => { const id = accountOf ? accountOf(participantId) : participantId; balances.set(id, (balances.get(id) ?? 0) + amount); };
+  const add = (id, amount) => { balances.set(id, (balances.get(id) ?? 0) + amount); };
   for (const row of reservations.filter(item => item.status === 'settled' || item.status === 'expired')) {
-    add(row.requesterId, -row.debit);
-    for (const credit of row.credits) add(credit.participantId, credit.amount);
+    // A row with signed accounts is summed under them (step 8 has refused any the enrollment contradicts).
+    const signed = row.accounts ? new Map([...row.credits.map((credit, index) => [credit.participantId, row.accounts.stages[index]]),
+      [row.requesterId, row.accounts.requester]]) : null;
+    const idOf = id => (signed ? signed.get(id) ?? id : accountOf ? accountOf(id) : id);
+    add(idOf(row.requesterId), -row.debit);
+    for (const credit of row.credits) add(idOf(credit.participantId), credit.amount);
   }
   const counts = {};
   for (const row of reservations) counts[row.status] = (counts[row.status] ?? 0) + 1;
