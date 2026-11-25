@@ -15,6 +15,15 @@ export const UNFINISHED_ANSWER_TERMS = 'reploid.unfinished-answer/provider-loss-
  * nothing.
  */
 export const UNFINISHED_ANSWER_TERMS_V2 = 'reploid.unfinished-answer/acknowledged-prefix-provider-relief/v1';
+/**
+ * The unfinished-answer terms the owner decided on 2026-11-25 after the relief of UNFINISHED_ANSWER_TERMS_V2 proved
+ * to be a way to take an answer for nothing (docs/settlement-replay.md, "Failed stages"). A stage that fails, by its
+ * own signed fault or by having no closing receipt once the release window has passed, forfeits its own share and
+ * nothing else: the stages that closed are paid for the outputs the requester acknowledged, and the requester pays
+ * exactly those shares. A stage on the requester's own account is never charged or paid, so its failure relieves
+ * nothing.
+ */
+export const UNFINISHED_ANSWER_TERMS_V3 = 'reploid.unfinished-answer/acknowledged-prefix-failed-stage-forfeits/v1';
 /** Terms under which a stage owner's interruption claim settles the answer at zero. */
 export const PROVIDER_RELIEF_TERMS = Object.freeze([UNFINISHED_ANSWER_TERMS, UNFINISHED_ANSWER_TERMS_V2]);
 /**

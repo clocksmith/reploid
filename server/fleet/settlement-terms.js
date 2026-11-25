@@ -22,6 +22,12 @@ export const SETTLEMENT_TERMS_SCHEMA = 'reploid.settlement-terms/v1';
 export const SETTLEMENT_ACCEPTANCE_SCHEMA = 'reploid.settlement-acceptance/v1';
 /** The requester's own signed stop: it ended the answer, so the outputs it acknowledged are owed. */
 export const SETTLEMENT_STOP_SCHEMA = 'reploid.settlement-stop/v1';
+/**
+ * A stage's own signed fault: it failed and gives up its share of this attempt (docs/settlement-replay.md, "Failed
+ * stages"). Read only under UNFINISHED_ANSWER_TERMS_V3. It lets the attempt settle without waiting out the release
+ * window for a closing receipt that will not come.
+ */
+export const SETTLEMENT_FAULT_SCHEMA = 'reploid.settlement-stage-fault/v1';
 
 const TERMS_KEYS = Object.freeze(['schema', 'reservationId', 'attemptId', 'routeHash', 'requesterId', 'policyDigest', 'unit',
   'creditsPerOutputToken', 'maxOutputTokens', 'maximum', 'shares', 'unfinishedTerms', 'maxUnacknowledgedOutputs', 'notBefore', 'deadline',
@@ -43,6 +49,7 @@ const TERMS_KEYS_WITH_ACCOUNT = Object.freeze([...TERMS_KEYS, 'debitAccount']);
 const ACCEPTANCE_KEYS = Object.freeze(['schema', 'termsDigest', 'reservationId', 'attemptId', 'participantId', 'partitionIndex', 'signedAt']);
 const ACCEPTANCE_KEYS_WITH_ACCOUNT = Object.freeze([...ACCEPTANCE_KEYS, 'payoutAccount']);
 const STOP_KEYS = Object.freeze(['schema', 'reservationId', 'attemptId', 'requesterId', 'acknowledged', 'signedAt']);
+const FAULT_KEYS = Object.freeze(['schema', 'reservationId', 'attemptId', 'routeHash', 'partitionIndex', 'participantId', 'signedAt']);
 const DIGEST = /^sha256:[a-f0-9]{64}$/;
 const exact = (value, keys) => Boolean(value) && typeof value === 'object' && !Array.isArray(value)
   && Object.keys(value).length === keys.length && keys.every(key => Object.hasOwn(value, key));
@@ -85,6 +92,12 @@ function stopProblem(body) {
     && text(body.requesterId) && Number.isSafeInteger(body.acknowledged) && body.acknowledged >= 0 && time(body.signedAt) ? null : 'stop_malformed';
 }
 
+function faultProblem(body) {
+  return exact(body, FAULT_KEYS) && body.schema === SETTLEMENT_FAULT_SCHEMA && text(body.reservationId, 160) && text(body.attemptId)
+    && DIGEST.test(body.routeHash) && Number.isSafeInteger(body.partitionIndex) && body.partitionIndex >= 0 && text(body.participantId)
+    && time(body.signedAt) ? null : 'fault_malformed';
+}
+
 async function verifySelfCertified(record, { domain, problemOf, signerOf }) {
   if (!record || typeof record !== 'object' || Array.isArray(record)) return { ok: false, problem: problemOf(null) };
   const { publicJwk: carried, signature, ...body } = record;
@@ -109,6 +122,23 @@ export const verifySettlementAcceptance = record => verifySelfCertified(record, 
 
 export const verifySettlementStop = record => verifySelfCertified(record, {
   domain: SETTLEMENT_STOP_SCHEMA, problemOf: body => (body ? stopProblem(body) : 'stop_malformed'), signerOf: body => body.requesterId });
+
+export const verifySettlementFault = record => verifySelfCertified(record, {
+  domain: SETTLEMENT_FAULT_SCHEMA, problemOf: body => (body ? faultProblem(body) : 'fault_malformed'), signerOf: body => body.participantId });
+
+/**
+ * A stage's signed fault for one attempt, at its own stage index: it failed, it will be paid nothing for this attempt,
+ * and nobody needs to wait for its closing receipt. Only the participant the terms name at that index can sign it.
+ */
+export async function signStageFault({ signer, terms, partitionIndex, now = signer?.now ?? Date.now }) {
+  const checked = await verifySettlementTerms(terms);
+  if (!checked.ok) throw Error(`Settlement terms do not verify: ${checked.problem}`);
+  if (checked.body.shares[partitionIndex]?.participantId !== signer?.participantId) throw Error('A stage signs a fault only for its own share');
+  const body = { schema: SETTLEMENT_FAULT_SCHEMA, reservationId: checked.body.reservationId, attemptId: checked.body.attemptId,
+    routeHash: checked.body.routeHash, partitionIndex, participantId: signer.participantId, signedAt: new Date(now()).toISOString() };
+  if (faultProblem(body)) throw Error('Stage fault is invalid');
+  return signer.sign(SETTLEMENT_FAULT_SCHEMA, body);
+}
 
 /** The requester's signed stop of one attempt after `acknowledged` outputs. */
 export async function signSettlementStop({ signer, terms, acknowledged, now = signer?.now ?? Date.now }) {
