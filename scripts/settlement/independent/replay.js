@@ -181,7 +181,7 @@ function policyMismatches(terms, policy) {
 
 const brief = entry => ({ id: entry.id, schema: entry.schema, signer: entry.signer ?? null });
 
-function judgeReservation(reservationId, entries, { policyByDigest, now, K }) {
+function judgeReservation(reservationId, entries, { policyByDigest, now, K, clockSkewMs }) {
   const result = { reservationId, outcome: null, reason: null, attemptId: null, requesterId: null, deadline: null, releaseEndsAt: null,
     finished: null, delivered: null, acknowledged: null, total: 0, requesterDebit: 0, ownComputeUnits: 0, credits: [], late: [], rejected: [] };
   const done = (outcome, reason) => Object.assign(result, { outcome, reason });
@@ -208,7 +208,10 @@ function judgeReservation(reservationId, entries, { policyByDigest, now, K }) {
   const mismatches = policyMismatches(terms, policy);
   if (mismatches.length) return done('invalid', `terms_do_not_match_policy:${mismatches.join(',')}`);
 
-  const isLate = entry => entry.signedAt > deadline;
+  // The document's rule is "signed after the deadline". `clockSkewMs` is off unless the caller supplies it; the
+  // service's verifier allows the policy's maxClockSkewMs on both sides of the attempt, which the document omits.
+  const skew = clockSkewMs ?? 0, notBefore = Date.parse(terms.notBefore);
+  const isLate = entry => entry.signedAt > deadline + skew || (clockSkewMs !== null && entry.signedAt < notBefore - skew);
   const conflicts = [];
   if (isLate(termsEntry)) result.late.push(brief(termsEntry));
 
@@ -326,9 +329,11 @@ function judgeReservation(reservationId, entries, { policyByDigest, now, K }) {
 /**
  * Replay any set of records under the public policies at clock value `now` (milliseconds or an ISO string).
  * Returns one judgment per reservation that has at least one validly signed record, and the records that failed
- * their own checks.
+ * their own checks. `clockSkewMs` (default null: the document's literal rule) was added after the first comparison
+ * with the service's verifier, to measure how much of the disagreement one unstated allowance explains.
  */
-export function replaySettlement({ policies = [], records = [], now = Date.now(), maxUnacknowledgedOutputs = DEFAULT_MAX_UNACKNOWLEDGED_OUTPUTS } = {}) {
+export function replaySettlement({ policies = [], records = [], now = Date.now(), maxUnacknowledgedOutputs = DEFAULT_MAX_UNACKNOWLEDGED_OUTPUTS,
+  clockSkewMs = null } = {}) {
   const clock = typeof now === 'string' ? Date.parse(now) : Number(now);
   if (!Number.isFinite(clock)) throw new TypeError('now must be a time');
   const policyByDigest = new Map(policies.map(policy => [digestOf(policy), policy]));
@@ -343,11 +348,11 @@ export function replaySettlement({ policies = [], records = [], now = Date.now()
     valid.get(checked.reservationId).push(checked);
   }
   const reservations = [...valid].map(([reservationId, entries]) => {
-    const judged = judgeReservation(reservationId, entries, { policyByDigest, now: clock, K: maxUnacknowledgedOutputs });
+    const judged = judgeReservation(reservationId, entries, { policyByDigest, now: clock, K: maxUnacknowledgedOutputs, clockSkewMs });
     for (const row of rejected) if (row.reservationId === reservationId) judged.rejected.push({ id: row.id, schema: row.schema, signer: null, reason: row.reason });
     return judged;
   });
-  return { now: new Date(clock).toISOString(), maxUnacknowledgedOutputs, duplicates, reservations, rejected };
+  return { now: new Date(clock).toISOString(), maxUnacknowledgedOutputs, clockSkewMs, duplicates, reservations, rejected };
 }
 
 // node scripts/settlement/independent/replay.js --policies policies.json --records records.json [--now 2026-01-01T00:00:00Z]
