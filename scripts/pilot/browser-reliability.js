@@ -212,9 +212,19 @@ async function sendAndWatch(page, record, { timeoutMs, model = null, expectModel
     if (state.sheetOpen && !record.sheet) {
       record.sheet = true;
       await page.locator('[data-execution-choice=network]').click({ timeout: 5000 }).catch(() => {});
-      if (model) await page.locator(`[data-model-picker] [data-model-choice="${model}"]`).waitFor({ timeout: sheetWaitMs }).catch(() => {});
+      // A person waits until the model is listed among the public network's ready models; tapping Contributors
+      // alone picks whatever model is ready first, so the sheet must never send before the model is chosen.
+      const listed = !model || await page.waitForFunction(id => Boolean(globalThis.document.querySelector(`[data-model-picker] [data-choice-group=shared] [data-model-choice="${id}"]`)),
+        model, { timeout: sheetWaitMs }).then(() => true, () => false);
       await learnModels(page);
-      if (model) await page.locator(`[data-model-picker] [data-model-choice="${model}"] label`).click({ timeout: 15000 }).catch(() => {});
+      if (listed && model) await page.locator(`[data-model-picker] [data-model-choice="${model}"] label`).click({ timeout: 15000 }).catch(() => {});
+      const chosen = !model || !await pickerOpen(page) || await selectedModel(page) === model;
+      if (!listed || !chosen) {
+        const row = await page.evaluate(id => (globalThis.document.querySelector(`[data-model-picker] [data-model-choice="${id}"]`)?.textContent ?? 'not listed').trim().replace(/\s+/g, ' '), model).catch(() => '');
+        sheetProblem = `${model} was not offered by a public computer (${row.slice(0, 120)}); nothing was sent`;
+        await closeSheet(page);
+        break;
+      }
       // Either the choice sends by itself and the sheet closes, or its button turns into Send ("Send to contributors").
       const ready = await page.waitForFunction(() => {
         const picker = globalThis.document.querySelector('[data-model-picker]'), button = globalThis.document.querySelector('[data-change-model]');
@@ -393,9 +403,9 @@ const MOCK_PAGE = `<!doctype html><meta charset="utf-8"><title>mock</title>
 <button data-new-thread>New thread</button>
 <div data-message-stream></div>
 <dialog data-model-picker><button data-model-picker-close>Close</button><button data-execution-choice="local">This device</button><button data-execution-choice="network">Contributors</button>
-<div data-model-choice="small"><input id="m-small" type="radio" name="model" value="small" aria-labelledby="t-small"><label for="m-small"><span id="t-small">Small Model</span> Ready</label></div>
+<div data-choice-group="shared"><div data-model-choice="small"><input id="m-small" type="radio" name="model" value="small" aria-labelledby="t-small"><label for="m-small"><span id="t-small">Small Model</span> Ready</label></div>
 <div data-model-choice="small/adapter"><input id="m-adapter" type="radio" name="model" value="small/adapter" aria-labelledby="t-adapter"><label for="m-adapter"><span id="t-adapter">Big Model</span> No computer serves it now</label></div>
-<div data-model-choice="big"><input id="m-big" type="radio" name="model" value="big" aria-labelledby="t-big"><label for="m-big"><span id="t-big">Big Model</span> Ready</label></div>
+<div data-model-choice="big"><input id="m-big" type="radio" name="model" value="big" aria-labelledby="t-big"><label for="m-big"><span id="t-big">Big Model</span> Ready</label></div></div>
 <span data-next-model-status></span><button data-change-model disabled>Choose</button></dialog>
 <button data-open-model aria-label="Answer on Contributors · Small Model, Ready"><span data-composer-model-name>Small Model</span></button>
 <div data-remote-permission hidden><button data-remote-permission-allow>Allow</button></div>
@@ -409,6 +419,8 @@ let chosen = false, allowed = false, timers = [], current = null, bySend = false
 const query = new URLSearchParams(location.search), TITLES = { small: 'Small Model', big: 'Big Model' };
 const setModel = value => { $('[data-composer-model-name]').textContent = TITLES[value]; $('[data-open-model]').setAttribute('aria-label', 'Answer on Contributors · ' + TITLES[value] + ', Ready'); };
 const later = (ms, run) => timers.push(setTimeout(run, ms));
+// ?nobig: the big model is listed, but not among the public network's ready models.
+if (query.has('nobig')) { const group = document.createElement('div'); group.dataset.choiceGroup = 'unavailable'; group.append($('[data-model-choice=big]')); $('[data-model-picker]').append(group); }
 // As the real page: the execution line carries the status and is data-active while running; the system line appears only for a failure.
 const line = (row, summary, active) => { row.querySelector('[data-execution-trigger]').setAttribute('aria-label', summary + '. Execution details'); row.querySelector('[data-execution-activity]').toggleAttribute('data-active', active); };
 const finish = (row, status, why = '') => { line(row, status + ' · 1 computer · Contributors', false); const system = row.querySelector('[data-system-status]'); system.hidden = !why; system.textContent = why ? 'System · ' + why : ''; send.hidden = false; stop.hidden = true; };
@@ -494,6 +506,11 @@ async function selfCheck() {
     expect('a thread that cannot be put on the chosen model stops the run before Send, naming the model it would have asked',
       lost.setup.completed && lost.results.length === 1 && lost.results[0].failure === 'wrong model' && lost.results[0].sendAt === null
       && lost.results[0].model === 'small' && /^request 1: This thread would ask small, not big/.test(lost.wrongModel));
+    const unready = await runBrowserPilot({ url: `http://127.0.0.1:${server.address().port}/?nobig`, model: 'big', intervalMs: 0, timeoutMs: 1500, sheetWaitMs: 800,
+      prompts: [{ id: 'm0', prompt: 'ok request' }] });
+    expect('a model no public computer offers is never sent to whatever model is ready instead',
+      unready.results.length === 0 && unready.setup.failure === 'unavailable' && unready.setup.outputChars === 0 && unready.setup.firstTokenMs === null
+      && /big was not offered by a public computer/.test(unready.notStarted));
     const unchecked = await runBrowserPilot({ url: `http://127.0.0.1:${server.address().port}/?forget`, intervalMs: 0, timeoutMs: 1500,
       prompts: [{ id: 'm0', prompt: 'ok request' }] });
     expect('without --model every request is held to the model the setup request asked', unchecked.setup.model === 'small'
