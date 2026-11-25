@@ -56,15 +56,42 @@ export function isCanonicalBase64Url(text, bytes) {
   return decoded.length === bytes && toBase64Url(decoded) === text;
 }
 
+/** The order `n` of the P-256 group, and `n / 2`: the largest `s` of a low-S signature. */
+const P256_ORDER = 0xffffffff00000000ffffffffffffffffbce6faada7179e84f3b9cac2fc632551n;
+const P256_HALF_ORDER = P256_ORDER >> 1n;
+const scalarOf = bytes => bytes.reduce((value, byte) => (value << 8n) | BigInt(byte), 0n);
+
+/**
+ * Whether a raw P-256 `r || s` signature has the low-S form, `1 <= s <= n / 2`. For a valid `(r, s)` the pair
+ * `(r, n - s)` also verifies over the same bytes, so without this rule a relay could make a second accepted form of
+ * a record whose signature is not signed. Exactly one of `s` and `n - s` is low.
+ */
+export function isLowSP256Signature(signature) {
+  const bytes = fromBase64Url(signature);
+  if (bytes.length !== 64) return false;
+  const s = scalarOf(bytes.subarray(32));
+  return s >= 1n && s <= P256_HALF_ORDER;
+}
+
+/** The low-S form of a raw P-256 signature: `(r, n - s)` when `s` is above `n / 2`, otherwise the same bytes. */
+function lowSP256(bytes) {
+  const s = scalarOf(bytes.subarray(32));
+  if (s <= P256_HALF_ORDER) return bytes;
+  const out = new Uint8Array(bytes);
+  let low = P256_ORDER - s;
+  for (let index = 63; index >= 32; index--) { out[index] = Number(low & 0xffn); low >>= 8n; }
+  return out;
+}
+
 /**
  * Whether a carried key and signature have their one canonical form: each 32-byte coordinate and the 64-byte
- * signature (Ed25519, or raw `r || s` for P-256) as canonical base64url. So one key gives one participant ID, and a
- * relay cannot produce a second accepted text of a signature, since neither member is signed.
+ * signature (Ed25519, or raw `r || s` for P-256 with low S) as canonical base64url. So one key gives one participant
+ * ID, and a relay cannot produce a second accepted text of a signature, since neither member is signed.
  */
 export function isCanonicalParticipantProof(publicJwk, signature) {
   const key = normalizeParticipantPublicKey(publicJwk);
   return Boolean(key) && isCanonicalBase64Url(key.x, 32) && (key.y === undefined || isCanonicalBase64Url(key.y, 32))
-    && isCanonicalBase64Url(signature, 64);
+    && isCanonicalBase64Url(signature, 64) && (key.kty !== 'EC' || isLowSP256Signature(signature));
 }
 
 /** The participant id every host derives from its identity public key. */
@@ -72,10 +99,14 @@ export const participantIdFor = (publicJwk) => createPeerIdFromPublicJwk(publicJ
 
 const signedBytes = (domain, body) => encodeBytes(canonicalize({ signatureDomain: domain, payload: body }));
 
-/** Sign `body` under `domain` with a participant identity bundle ({ publicJwk, privateJwk, algorithm? }). */
+/**
+ * Sign `body` under `domain` with a participant identity bundle ({ publicJwk, privateJwk, algorithm? }). WebCrypto's
+ * ECDSA does not choose low S, so a P-256 signature is normalized to it here; both forms verify.
+ */
 export async function signAsParticipant(identity, domain, body) {
-  const key = await importSigningKey(identity);
-  return toBase64Url(await crypto.subtle.sign(getIdentitySignAlgorithm(identity), key, signedBytes(domain, body)));
+  const key = await importSigningKey(identity), algorithm = getIdentitySignAlgorithm(identity);
+  const signature = new Uint8Array(await crypto.subtle.sign(algorithm, key, signedBytes(domain, body)));
+  return toBase64Url(algorithm.name === 'ECDSA' && signature.length === 64 ? lowSP256(signature) : signature);
 }
 
 /** Verify a participant signature; malformed keys or signatures fail closed. */
