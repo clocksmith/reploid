@@ -1,0 +1,326 @@
+{
+  "schema": "reploid.settlement-baseline-matrix/v1",
+  "generatedAt": "2026-11-25T07:37:22.677Z",
+  "policy": {
+    "schema": "reploid.service-credit-policy/v1",
+    "unit": "noncash-service-credit",
+    "version": "settlement-replay-1",
+    "creditsPerOutputToken": 3,
+    "maxDebt": 1000,
+    "maxOutputTokens": 128,
+    "maxPendingPerComputer": 4,
+    "maxClockSkewMs": 1000,
+    "maxRequestMs": 120000,
+    "allowSameOwner": false,
+    "partitionUnclaimedReleaseMs": 60000
+  },
+  "command": "node scripts/settlement/baseline-matrix.js --out scripts/settlement/receipts/baseline-matrix.json",
+  "note": "Every party is a simulated identity on one machine under one operator. B3 is this file's own 40-line rule over the replay's records, modelled on requester-accepted debit notes; it is not Golem's implementation. Keys are fresh on each run; the amounts are deterministic.",
+  "operatorGoals": 6,
+  "operatorGoalsAchieved": {
+    "replay": 0,
+    "debitNotes": 1
+  },
+  "participantCases": 8,
+  "participantCasesWithDifferentAmounts": [
+    "P6",
+    "P7",
+    "L1",
+    "L2",
+    "L4"
+  ],
+  "replayLoses": [
+    "L1",
+    "L2",
+    "L4"
+  ],
+  "rows": [
+    {
+      "kind": "operator",
+      "goal": "G1 overcharge the requester",
+      "replay": {
+        "achieved": false,
+        "status": "settled",
+        "debit": 12
+      },
+      "debitNotes": {
+        "achieved": false,
+        "status": "settled",
+        "debit": 12
+      },
+      "note": "the operator doubles the count in the top acknowledgment; its signature fails"
+    },
+    {
+      "kind": "operator",
+      "goal": "G2 shift credit between stages (one stage colludes)",
+      "replay": {
+        "achieved": false,
+        "status": "settled",
+        "debit": 15
+      },
+      "debitNotes": {
+        "achieved": false,
+        "status": "settled",
+        "debit": 15
+      },
+      "note": "stage1 signs the requester's terms with weights 1 and 99"
+    },
+    {
+      "kind": "operator",
+      "goal": "G3 drop one stage's credit",
+      "replay": {
+        "achieved": false,
+        "status": "settled",
+        "debit": 15
+      },
+      "debitNotes": {
+        "achieved": false,
+        "status": "settled",
+        "debit": 15
+      },
+      "note": "the operator withholds stage0's acceptance; stage0 presents its own records"
+    },
+    {
+      "kind": "operator",
+      "goal": "G4 fabricate a request",
+      "replay": {
+        "achieved": false
+      },
+      "debitNotes": {
+        "achieved": false
+      },
+      "note": "no record names a reservation its requester did not sign"
+    },
+    {
+      "kind": "operator",
+      "goal": "G5 charge an attempt a stage abandoned",
+      "replay": {
+        "achieved": false,
+        "status": "expired",
+        "debit": 0
+      },
+      "debitNotes": {
+        "achieved": true,
+        "status": "settled",
+        "debit": 6
+      },
+      "note": "stage0 vanished after 2 acknowledged outputs; the signed terms say nobody pays. B3 charges the accepted prefix by design."
+    },
+    {
+      "kind": "operator",
+      "goal": "G6 settle one reservation twice",
+      "replay": {
+        "achieved": false,
+        "status": "settled",
+        "debit": 15
+      },
+      "debitNotes": {
+        "achieved": false,
+        "status": "settled",
+        "debit": 15
+      },
+      "note": "every record presented twice"
+    },
+    {
+      "kind": "participant",
+      "case": "P1 requester stops acknowledging after 10 of 40 outputs",
+      "delivered": 13,
+      "owedIfEveryDeliveredOutputWerePaid": 39,
+      "replay": {
+        "status": "settled",
+        "debit": 30,
+        "paid": {
+          "stage0": 7,
+          "stage1": 23
+        },
+        "reason": "the requester stopped acknowledging; the outputs it acknowledged are charged"
+      },
+      "debitNotes": {
+        "status": "settled",
+        "debit": 30,
+        "paid": {
+          "stage0": 7,
+          "stage1": 23
+        }
+      },
+      "sameAmounts": true,
+      "note": "the stages stop at the signed allowance in both schemes, so the unpaid outputs are the same"
+    },
+    {
+      "kind": "participant",
+      "case": "P1b requester withholds the last acknowledgment of a finished 40-output answer",
+      "delivered": 40,
+      "owedIfEveryDeliveredOutputWerePaid": 120,
+      "replay": {
+        "status": "settled",
+        "debit": 117,
+        "paid": {
+          "stage0": 29,
+          "stage1": 88
+        },
+        "reason": "the answer was completed; the outputs the requester acknowledged in time are charged"
+      },
+      "debitNotes": {
+        "status": "settled",
+        "debit": 117,
+        "paid": {
+          "stage0": 29,
+          "stage1": 88
+        }
+      },
+      "sameAmounts": true
+    },
+    {
+      "kind": "participant",
+      "case": "P6 the final stage drops after 10 of 40 outputs and never closes",
+      "delivered": 10,
+      "owedIfEveryDeliveredOutputWerePaid": 30,
+      "replay": {
+        "status": "expired",
+        "debit": 0,
+        "paid": {
+          "stage0": 0,
+          "stage1": 0
+        },
+        "reason": "the release window passed without every stage closing; under these terms nobody is charged or paid"
+      },
+      "debitNotes": {
+        "status": "settled",
+        "debit": 30,
+        "paid": {
+          "stage0": 7,
+          "stage1": 23
+        }
+      },
+      "sameAmounts": false,
+      "note": "the replay's provider-loss-free rule: an abandoned answer is free. B3 has no such rule."
+    },
+    {
+      "kind": "participant",
+      "case": "P7 the stages end the answer themselves after 10 of 40 outputs and close as failed",
+      "delivered": 10,
+      "owedIfEveryDeliveredOutputWerePaid": 30,
+      "replay": {
+        "status": "settled",
+        "debit": 0,
+        "paid": {
+          "stage0": 0,
+          "stage1": 0
+        },
+        "reason": "a stage ended the answer before it finished; under these terms nobody is charged or paid"
+      },
+      "debitNotes": {
+        "status": "settled",
+        "debit": 30,
+        "paid": {
+          "stage0": 7,
+          "stage1": 23
+        }
+      },
+      "sameAmounts": false
+    },
+    {
+      "kind": "participant",
+      "case": "L3 the same final stage signs K + 1 steps it never sent, then closes",
+      "delivered": 10,
+      "owedIfEveryDeliveredOutputWerePaid": 30,
+      "replay": {
+        "status": "settled",
+        "debit": 30,
+        "paid": {
+          "stage0": 7,
+          "stage1": 23
+        },
+        "reason": "the requester stopped acknowledging; the outputs it acknowledged are charged"
+      },
+      "debitNotes": {
+        "status": "settled",
+        "debit": 30,
+        "paid": {
+          "stage0": 7,
+          "stage1": 23
+        }
+      },
+      "sameAmounts": true,
+      "replayLoses": false,
+      "note": "the provider-loss-free rule is defeated by the final stage alone: the gap reads as the requester withholding, so the abandoned answer is charged. Both schemes now charge the prefix."
+    },
+    {
+      "kind": "participant",
+      "case": "L1 stage0 withholds its closing receipt after the whole answer was delivered and acknowledged",
+      "delivered": 40,
+      "owedIfEveryDeliveredOutputWerePaid": 120,
+      "replay": {
+        "status": "unknown",
+        "debit": 0,
+        "paid": {},
+        "reason": "the answer was delivered and acknowledged, but no in-time closing receipt was presented for stage 0"
+      },
+      "debitNotes": {
+        "status": "settled",
+        "debit": 120,
+        "paid": {
+          "stage0": 30,
+          "stage1": 90
+        }
+      },
+      "sameAmounts": false,
+      "replayLoses": true,
+      "note": "one stage vetoes every stage's payment, and the requester keeps a free answer. Under B3 the accepted counts are owed without any closing receipt."
+    },
+    {
+      "kind": "participant",
+      "case": "L2 the requester acknowledges all 40 outputs, then signs a second acknowledgment of count 40 with another chain",
+      "delivered": 40,
+      "owedIfEveryDeliveredOutputWerePaid": 120,
+      "replay": {
+        "status": "conflict",
+        "debit": 0,
+        "paid": {},
+        "reason": "a participant signed incompatible statements",
+        "conflicts": [
+          "acknowledgment by requester",
+          "output-chain by stage1",
+          "output-chain by stage1"
+        ]
+      },
+      "debitNotes": {
+        "status": "settled",
+        "debit": 120,
+        "paid": {
+          "stage0": 30,
+          "stage1": 90
+        }
+      },
+      "sameAmounts": false,
+      "replayLoses": true,
+      "note": "the requester's own contradiction voids its charge. It can sign it afterwards: signers write their own signedAt. B3 takes the highest accepted count."
+    },
+    {
+      "kind": "participant",
+      "case": "L4 a stranger signs its own terms, acceptance and charge binding under this reservation ID",
+      "delivered": 40,
+      "owedIfEveryDeliveredOutputWerePaid": 120,
+      "replay": {
+        "status": "unknown",
+        "debit": 0,
+        "paid": {},
+        "reason": "terms signed by more than one requester name this route; nothing is inferred"
+      },
+      "debitNotes": {
+        "status": "settled",
+        "debit": 120,
+        "paid": {
+          "stage0": 30,
+          "stage1": 90
+        },
+        "otherAgreements": [
+          "stranger: settled, debit 0"
+        ]
+      },
+      "sameAmounts": false,
+      "replayLoses": true,
+      "note": "three signatures from a key that took no part make the real reservation undecidable. B3 keys an agreement by reservation and requester, so the stranger's agreement is a separate one that charges only the stranger."
+    }
+  ]
+}
