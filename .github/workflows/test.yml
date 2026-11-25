@@ -29,6 +29,8 @@ jobs:
         with:
           node-version: 22.x
           cache: npm
+      - name: JavaScript only (no Python or Go files or processes)
+        run: node scripts/verify-js-only.js
       - run: node --test tests/scripts/sync-reploid-library.test.js tests/scripts/retained-evidence.test.js
       - run: npm run verify:library
       - run: node scripts/restore-evidence.js --validate
