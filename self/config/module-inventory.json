@@ -19834,7 +19834,7 @@
     {
       "path": "vendor/reploid/mesh/protected-generation.js",
       "owner": "vendor",
-      "sha256": "sha256:3612b66019c24ae0cb81e55d1f3ef7abff7343cdca201b0399a8861a34d11564",
+      "sha256": "sha256:aa145c99b9c20e9ed3ed60caefa160855820cd7a70d2cf8efdf77cda69c0fa9b",
       "imports": [
         "../artifacts/canonical-json.js",
         "../artifacts/identity.js",

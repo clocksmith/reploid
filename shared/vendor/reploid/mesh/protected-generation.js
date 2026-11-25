@@ -755,8 +755,8 @@ export async function runProtectedRequesterSession({
 // Evaluator session
 
 /**
- * Serve one connection as an evaluator. `backend` computes on ciphertext (Doppler's Go evaluator today, a GPU
- * evaluator later): `open(schedule) -> { manifest, sendKey, keysHeld, ready, step, close }`. `seenNonces` is shared
+ * Serve one connection as an evaluator. `backend` computes on ciphertext (Doppler's JavaScript WebGPU evaluator,
+ * whole or split): `open(schedule) -> { manifest, sendKey, keysHeld, ready, step, close }`. `seenNonces` is shared
  * across sessions so a replayed offer is refused. `misbehave` is for tests only.
  */
 export async function serveProtectedEvaluatorSession({

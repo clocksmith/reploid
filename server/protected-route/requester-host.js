@@ -3,23 +3,25 @@
  * the protected wire over TCP, the caller's key holder, and trap batches from the pinned oracle. A browser host implements the same
  * ports with its own transport.
  *
- * The key holder used to be Doppler's Go `privacy-protected bridge` child process. Reploid runs JavaScript only, so
- * that bridge is removed; until a JavaScript key holder exists, `openKeyHolder` must be supplied or the route refuses.
+ * The key holder is Doppler's JavaScript `pp.js bridge` as a child Node process (doppler-key-holder.js) when the host names a
+ * Doppler checkout (`doppler`), or the host's own `openKeyHolder`. With neither, the route refuses: there is no default.
  */
 import { createProtectedExecution } from '../../shared/vendor/reploid/inference/index.js';
 import { requestProtectedAdvertisement } from '../../shared/vendor/reploid/mesh/protected-generation.js';
 import { connectFrameSocket } from './frame-socket.js';
+import { openDopplerKeyHolder } from './doppler-key-holder.js';
 
 export const PROTECTED_KEY_HOLDER_UNAVAILABLE = 'PROTECTED_KEY_HOLDER_UNAVAILABLE';
 
-/** The default key holder: refuses, because the Go bridge is removed and no JavaScript key holder exists yet. */
+/** The key holder without a Doppler checkout or a host port: refuses. */
 export async function refuseKeyHolder() {
-  throw Object.assign(new Error('No protected key holder: Doppler\'s Go privacy-protected bridge was removed (Reploid runs JavaScript only), '
-    + 'and no JavaScript key holder exists yet'), { code: PROTECTED_KEY_HOLDER_UNAVAILABLE });
+  throw Object.assign(new Error('No protected key holder: name a Doppler checkout (its JavaScript pp.js bridge) or pass openKeyHolder'),
+    { code: PROTECTED_KEY_HOLDER_UNAVAILABLE });
 }
 
-export function createNodeProtectedExecution({ endpoints, policy, openKeyHolder = refuseKeyHolder, stateDir = null, keyTtlSeconds = 86400,
+export function createNodeProtectedExecution({ endpoints, policy, doppler = null, openKeyHolder = null, stateDir = null, keyTtlSeconds = 86400,
   connectTimeoutMs = 30000, ...options }) {
+  openKeyHolder ??= doppler ? settings => openDopplerKeyHolder({ doppler, ...settings }) : refuseKeyHolder;
   return createProtectedExecution({
     policy,
     async discover({ signal }) {
