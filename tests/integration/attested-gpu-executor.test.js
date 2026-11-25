@@ -4,7 +4,7 @@
  * the pilot harness's requester flow (the same code the browser page runs), the loopback OpenAI-compatible runtime
  * adapter, and launch measurement. Evidence is SYNTHETIC; configfs-tsm and NVML are exercised only on real hardware.
  */
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
 import http from 'node:http';
 import { mkdtemp, writeFile, rm } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
@@ -61,11 +61,10 @@ describe('attested GPU executor on loopback', () => {
     expect(out.result).toMatchObject({ status: 'completed', output: { text: 'readSettings replaces loadSettings.', finishReason: 'stop' },
       usage: { outputTokens: 3 }, settlement: { charge: 3, unit: 'noncash-service-credit' } });
     expect(out.timing.firstUsefulOutputMs).toBeGreaterThanOrEqual(0);
-    await new Promise(resolve => setTimeout(resolve, 50));
-    const logged = JSON.stringify(logs);
-    expect(logged).toContain('completed');
-    expect(logged).not.toMatch(/readSettings|Build log|invoice/);
-  });
+    // The executor logs the outcome after the requester has its answer: wait for the record, not for a fixed delay.
+    await vi.waitFor(() => expect(JSON.stringify(logs)).toContain('completed'), { timeout: 15000, interval: 20 });
+    expect(JSON.stringify(logs)).not.toMatch(/readSettings|Build log|invoice/);
+  }, 20000);
 });
 
 describe('attested GPU executor: a requester that leaves', () => {
@@ -84,11 +83,10 @@ describe('attested GPU executor: a requester that leaves', () => {
       channel.close();
       await new Promise(resolve => setTimeout(resolve, 150));   // the executor sees the close before it has evidence to send
       release();
-      await new Promise(resolve => setTimeout(resolve, 150));
-      expect(seen.filter(record => record.session)).toEqual([{ session: 'closed', code: null }]);
+      await vi.waitFor(() => expect(seen.filter(record => record.session)).toEqual([{ session: 'closed', code: null }]), { timeout: 15000, interval: 20 });
       expect((await fetch(`${slow.url}/ready`)).status).toBe(200);
     } finally { release(); await slow.close(); }
-  });
+  }, 20000);
 });
 
 describe('executor host pieces', () => {
