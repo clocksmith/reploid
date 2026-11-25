@@ -191,6 +191,27 @@
   --pool-shadow-raised: 0 20px 50px -12px rgb(0 0 0 / 85%), -1px -1px 0 rgb(56 189 248 / 35%), 1px 1px 0 rgb(251 113 133 / 35%), inset 0 1px 1px rgb(255 255 255 / 14%);
   --pool-space-page-gap: var(--pool-size-24);
   --pool-space-page-gutter: var(--pool-size-32);
+  /* Alignment grid: icons sit in a centred box, rows keep fixed heights, one status line is reserved. */
+  --pool-icon-sm: var(--pool-size-16);
+  --pool-icon-md: var(--pool-size-20);
+  --pool-icon-box: var(--pool-size-24);
+  --pool-row-single: var(--pool-size-48);
+  --pool-row-double: var(--pool-size-56);
+  --pool-line-xs: calc(var(--pool-text-xs) * var(--pool-leading-snug));
+  --pool-line-sm: calc(var(--pool-text-sm) * var(--pool-leading-snug));
+  /* Spacing inside rows, lists and dialogs. */
+  --pool-space-row-text: var(--pool-size-2);
+  --pool-space-row-gap: var(--pool-size-12);
+  --pool-space-row-block: var(--pool-size-8);
+  --pool-space-row-inline: var(--pool-size-12);
+  --pool-space-row-mark: var(--pool-size-2);
+  --pool-space-option-gap: var(--pool-size-4);
+  --pool-space-dialog-edge: var(--pool-size-24);
+  --pool-space-dialog-edge-tight: var(--pool-size-8);
+  --pool-space-dialog-gap: var(--pool-size-16);
+  --pool-dialog-width: var(--pool-size-480);
+  --pool-dialog-width-wide: var(--pool-size-640);
+  --pool-dialog-height: var(--pool-size-640);
   --pool-surface-ambient-mesh: radial-gradient(ellipse at 12% 8%, rgb(56 189 248 / 7%), transparent 48%), radial-gradient(ellipse at 90% 84%, rgb(168 85 247 / 8%), transparent 52%);
   --pool-surface-marble: radial-gradient(circle at 30% 24%, var(--pool-gray-37), var(--pool-gray-19) 45%, var(--pool-gray-14) 85%);
   --pool-surface-optical-edge: linear-gradient(135deg, rgb(56 189 248 / 34%), rgb(192 132 252 / 29%) 45%, rgb(251 113 133 / 32%) 75%, rgb(52 211 153 / 27%));

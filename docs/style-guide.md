@@ -152,10 +152,78 @@ its root carries `class="pool-page"` so the page shell uses the same tokens.
 | Primitive | Classes |
 |-----------|---------|
 | Surfaces | `pool-surface` (material only), `pool-card` (with padding), `pool-well` (inset), `pool-divider`, `pool-list` |
-| Controls | `pool-button` with `btn-primary`, `btn-ghost`, `pool-icon`; `pool-input`, `pool-bare`, `pool-file`, `pool-switch`, `pool-segmented` + `pool-segment`, `pool-chip`, `pool-badge`, `pool-disclosure` |
+| Controls | `pool-button` with `btn-primary`, `btn-ghost`, `pool-icon`; `pool-input`, `pool-bare`, `pool-file`, `pool-switch`, `pool-chip`, `pool-disclosure` |
 | Layout | `pool-stack`, `pool-row` (`pool-row-between`, `pool-row-end`), `pool-columns`, `pool-gap-xs` to `pool-gap-xl`, `pool-grow` |
 | Text | `pool-title`, `pool-heading`, `pool-subheading`, `pool-body`, `pool-small`, `pool-caption`, `pool-label`, `pool-muted`, `pool-mono`, `pool-mark`, `pool-facts`, `pool-plain`, `pool-prose` |
 | Feedback | `pool-bar`, `pool-dot`, `pool-reveal` with `pool-reveal-host`, `pool-glass`, `pool-glass-focus`, `pool-activity-edge` |
+| Choices and rows | `pool-options` (+ `pool-options-multi`) of `pool-option`, `pool-option-mark`, `pool-option-fix`; `pool-segmented` of `label.pool-segment`; `pool-toggle-row`; `pool-action-row`; `pool-row-text`, `pool-row-title`, `pool-row-status`, `pool-row-segments`; `pool-icon-box` (`pool-icon-box-sm`) |
+| Status and space | `pool-status-line`, `pool-reserve`, `pool-badge`, `pool-visually-hidden` |
+| Dialog shell | `pool-dialog` (+ `pool-dialog-fixed`, `pool-dialog-wide`), `pool-dialog-header`, `pool-dialog-body`, `pool-dialog-footer` |
+
+### Choosing the right control
+
+Pick the control from the kind of decision, never from the look. The markup helpers
+in `apps/poolday/ui/components/choices.js` render each one; use them rather than
+writing the markup by hand.
+
+| Decision | Control | Semantics |
+|----------|---------|-----------|
+| Exactly one of 2 to 4 modes, short labels (Appearance, route preference) | `renderSegmented` | `role="radiogroup"` of native radios |
+| Exactly one of a list, or options that need a status line (Answer on, Who can read it, Files to share) | `renderOptions({ type: 'radio' })` | `role="radiogroup"` of native radios |
+| Any number of independent options (sharing choices) | `renderOptions({ type: 'checkbox' })` | `role="group"` of native checkboxes; add "select all" only when the options are alike and numerous |
+| On or off, taking effect immediately (network answers, Share model files) | `renderToggleRow` | `role="switch"` button with `aria-checked` |
+| Show or hide more detail | `pool-disclosure` | native `details` and `summary` |
+| Do something, or go somewhere (a model to share, an app shortcut) | `renderActionRow`, or a `pool-button` | a button for an action, a link with a trailing chevron for a destination |
+| A long, open-ended list (every catalog model) | a native `select` in `pool-input` | keep it only when the list is too long for rows |
+
+Buttons come in three weights: `btn-primary` for the one commitment on a surface,
+plain `pool-button` (secondary) for other actions that change something, and
+`btn-ghost` (quiet) for Cancel, Refresh, Retry and navigation. A dialog footer
+puts its reason or status first, then Cancel, then the primary at the end.
+
+### Rows and the alignment grid
+
+Every list row uses one grid: an icon slot (`pool-icon-box`, a centred
+`--pool-icon-box` square holding a `--pool-icon-md` icon), the text, and a
+trailing slot for the check, switch, fix or chevron. The text is a title
+(`pool-row-title`) over one status line (`pool-row-status`). Rows are at least
+`--pool-row-double` tall, and the status line keeps its height when it is empty,
+so rows in one list line up whatever their state. Icons are always centred in
+their box, never placed on a text baseline. Longer explanations go in a
+`pool-caption` after the row or in a disclosure, not in the row.
+
+Spacing inside rows, lists and dialogs uses the `--pool-space-row-*`,
+`--pool-space-option-gap` and `--pool-space-dialog-*` tokens.
+
+### Unavailable options: disabled with a reason
+
+An option that cannot work right now is either left out or shown disabled with
+its reason in its own status line, which stays visible (only the title dims). When
+something can fix it, the row shows the fix in its trailing slot: a button for an
+action, or a link to the Computers or Settings view, which closes the dialog. Never
+leave a primary button disabled without a reason beside it in the footer.
+
+Choices come from what is possible, not from static lists. The availability rules
+live in `apps/poolday/ui/pool-home/choice-availability.js`, and
+`tests/unit/choice-availability.test.js` checks them. Choices that depend on each
+other update together. A dependent choice may move to a stricter privacy preset
+on its own, but it never moves to a weaker one without the person choosing that
+preset.
+
+### Status text and layout stability
+
+Status that comes and goes uses `pool-status-line`: a hidden or empty status
+keeps its line, so the surrounding rows never move. Alternative texts for the
+same place (each preset's exposure statement) share one cell in `pool-reserve`,
+and the tallest one sets the height. Badges have a fixed height and never wrap.
+
+Dialogs use the shell from `renderDialog`: a fixed header (title and Close), a
+scrolling body and a pinned footer. A dialog whose body shows live data
+(discovery, download checks) adds `pool-dialog-fixed`, which sets its height at
+first paint. On narrow screens every dialog becomes a bottom sheet with the same
+structure. `tests/e2e/poolday-layout-stability.spec.js` checks that each dialog
+and panel keeps its box while data loads and while choices change, and that row
+icons and text are centred within 1 px.
 
 
 Use links for URL-backed destinations (Threads, Computers, Settings); use buttons
@@ -218,4 +286,4 @@ are editable in place and apply to every specimen. The Changes panel lists the l
 to paste back into `tokens.css`. When a layer file changes on disk, the page reloads
 it without a refresh.
 
-*Last updated: October 2026*
+*Last updated: November 2026*

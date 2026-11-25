@@ -81,6 +81,9 @@
   .pool-home :is(.pool-button, :where(.btn)) { transition: none; }
   .pool-home :is(.pool-button, :where(.btn))::before { transition: none; }
 }
+/* An icon beside a label is centred on the label's line, never on its baseline. */
+.pool-home .pool-button:not(.pool-icon):has(> svg) { display: inline-flex; align-items: center; gap: var(--pool-size-8); }
+.pool-home .pool-button > svg { display: block; flex: none; }
 /* A square icon button at the touch-target size. */
 .pool-home .pool-button.pool-icon { display: inline-grid; place-items: center; width: var(--pool-size-44); padding: 0; }
 .pool-home :is(.pool-button, :where(.btn)):not(.pool-icon) { text-align: start; }
@@ -184,8 +187,10 @@
 .pool-home .pool-badge {
   display: inline-flex;
   align-items: center;
-  min-height: var(--pool-size-20);
+  box-sizing: border-box;
+  block-size: var(--pool-size-20);
   padding: 0 var(--pool-size-8);
+  white-space: nowrap;
   border-radius: var(--pool-radius-pill);
   background: var(--pool-color-raised);
   color: var(--pool-color-muted);

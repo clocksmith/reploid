@@ -1,0 +1,261 @@
+/* Choice, row, status and dialog-shell primitives. One row grid serves every list:
+   [icon box] [title over one status line] [trailing mark, switch, fix or chevron].
+
+   Alignment grid
+   pool-icon-box       a centred square (--pool-icon-box) holding one icon at --pool-icon-md
+                       (pool-icon-box-sm: --pool-icon-sm); icons never sit on a text baseline
+   pool-row-text       title over one status line; both lines keep their height when empty
+   pool-row-title      row title: small text, medium weight
+   pool-row-status     one status line, reserved even when empty; carries the disabled reason
+
+   Choices
+   pool-options        a list of choices: role="radiogroup" (exactly one) or role="group" (several)
+   pool-option         one choice row around a native radio or checkbox input; the input
+                       covers the row, the label names it, the mark sits in the trailing box
+   pool-option-mark    trailing check (radio) or check box (checkbox, in pool-options-multi)
+   pool-option-fix     the fix action for a disabled option, in the trailing slot
+   pool-segmented      2 to 4 mutually exclusive modes: role="radiogroup" of label.pool-segment
+   pool-toggle-row     an on/off setting with immediate effect: text and a role="switch"
+   pool-action-row     an action or destination: icon, text and a trailing chevron
+   pool-status-line    status text whose line is reserved, so it never moves its neighbours
+   pool-reserve        alternatives in one cell; the tallest reserves the height
+
+   Dialog shell
+   pool-dialog         a dialog: fixed header, scrolling body, pinned footer
+   pool-dialog-fixed   a dialog whose body is live data: its height is fixed at first paint
+   pool-dialog-header, pool-dialog-body, pool-dialog-footer */
+
+.pool-home .pool-icon-box {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  inline-size: var(--pool-icon-box);
+  block-size: var(--pool-icon-box);
+}
+.pool-home .pool-icon-box > svg { display: block; inline-size: var(--pool-icon-md); block-size: var(--pool-icon-md); }
+.pool-home .pool-icon-box.pool-icon-box-sm > svg { inline-size: var(--pool-icon-sm); block-size: var(--pool-icon-sm); }
+
+.pool-home .pool-row-text { display: grid; align-content: center; row-gap: var(--pool-space-row-text); min-inline-size: 0; }
+.pool-home .pool-row-title {
+  margin: 0;
+  font-size: var(--pool-text-sm);
+  font-weight: var(--pool-weight-medium);
+  line-height: var(--pool-leading-snug);
+  overflow-wrap: anywhere;
+}
+.pool-home .pool-row-status {
+  display: block;
+  margin: 0;
+  min-block-size: var(--pool-line-xs);
+  color: var(--pool-color-muted);
+  font-size: var(--pool-text-xs);
+  font-weight: var(--pool-weight-regular);
+  line-height: var(--pool-leading-snug);
+  overflow-wrap: anywhere;
+}
+
+/* A status line of several facts: visible segments are separated by a middle dot. */
+.pool-home .pool-row-segments > :not([hidden]) ~ :not([hidden])::before { content: ' · '; }
+
+/* Every row: icon slot, text and trailing slot at fixed positions. */
+.pool-home :is(.pool-option, .pool-toggle-row, .pool-action-row) {
+  position: relative;
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: var(--pool-space-row-gap);
+  min-block-size: var(--pool-row-double);
+  margin: 0;
+  padding: var(--pool-space-row-block) var(--pool-space-row-inline);
+  border: var(--pool-border-hairline) solid transparent;
+  border-radius: var(--pool-radius-control);
+  color: var(--pool-color-ink);
+  text-align: start;
+  text-decoration: none;
+}
+.pool-home :is(.pool-option, .pool-toggle-row, .pool-action-row):has(> .pool-icon-box:first-child) {
+  grid-template-columns: var(--pool-icon-box) minmax(0, 1fr) auto;
+}
+.pool-home :is(.pool-option, .pool-toggle-row, .pool-action-row).pool-row-flush { padding-inline: 0; }
+
+/* Choice lists. The native input is the control; the row is its target and its look. */
+/* Named for assistive technology only; takes no space. */
+.pool-home .pool-visually-hidden { position: absolute; inline-size: var(--pool-size-1); block-size: var(--pool-size-1); margin: 0; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.pool-home .pool-options { display: grid; gap: var(--pool-space-option-gap); min-inline-size: 0; margin: 0; padding: 0; border: 0; }
+.pool-home .pool-options-label { margin: 0; padding: 0; color: var(--pool-color-muted); font-size: var(--pool-text-xs); line-height: var(--pool-leading-snug); }
+.pool-home .pool-option { cursor: pointer; transition: background-color var(--pool-transition-fast); }
+.pool-home .pool-option > input {
+  position: absolute;
+  inset: 0;
+  inline-size: 100%;
+  block-size: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: inherit;
+}
+.pool-home .pool-option > label { cursor: inherit; }
+.pool-home .pool-option:hover:not(:has(> input:disabled)) { background: var(--pool-color-inset); }
+.pool-home .pool-option:has(> input:checked) {
+  border-color: var(--pool-color-line);
+  background: var(--pool-color-inset);
+  box-shadow: var(--pool-shadow-inset);
+}
+.pool-home .pool-option:has(> input:focus-visible) { outline: var(--pool-border-thick) solid var(--pool-color-focus); outline-offset: var(--pool-border-thick); }
+.pool-home .pool-option:has(> input:disabled) { cursor: not-allowed; }
+.pool-home .pool-option:has(> input:disabled) .pool-row-title { color: var(--pool-color-muted); }
+/* The reason stays readable: a disabled row dims its title, never its reason. */
+.pool-home .pool-option:has(> input:disabled) .pool-row-status { color: var(--pool-color-ink); }
+.pool-home .pool-option-mark {
+  display: inline-grid;
+  place-items: center;
+  inline-size: var(--pool-icon-box);
+  block-size: var(--pool-icon-box);
+  color: var(--pool-color-ink);
+  pointer-events: none;
+}
+.pool-home .pool-option-mark > svg { display: block; inline-size: var(--pool-icon-md); block-size: var(--pool-icon-md); visibility: hidden; }
+.pool-home .pool-option:has(> input:checked) .pool-option-mark > svg { visibility: visible; }
+.pool-home .pool-options-multi .pool-option-mark {
+  box-sizing: border-box;
+  inline-size: var(--pool-icon-md);
+  block-size: var(--pool-icon-md);
+  margin-inline: var(--pool-space-row-mark);
+  border: var(--pool-border-thick) solid var(--pool-color-muted);
+  border-radius: var(--pool-radius-xs);
+}
+.pool-home .pool-options-multi .pool-option-mark > svg { inline-size: var(--pool-icon-sm); block-size: var(--pool-icon-sm); }
+.pool-home .pool-options-multi .pool-option:has(> input:checked) .pool-option-mark { border-color: var(--pool-color-ink); background: var(--pool-color-raised); }
+/* A disabled option shows its fix where the mark would be; the fix sits above the input. */
+.pool-home .pool-option-fix { position: relative; z-index: var(--pool-z-2); }
+.pool-home .pool-option:has(> .pool-option-fix:not([hidden])) .pool-option-mark { display: none; }
+
+/* Segmented control: equal segments, one selected; the selected segment is raised, focus is a ring. */
+.pool-home .pool-segmented[role='radiogroup'] { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(max-content, 1fr); }
+.pool-home label.pool-segment { white-space: nowrap; }
+.pool-home label.pool-segment { position: relative; cursor: pointer; }
+.pool-home label.pool-segment > input {
+  position: absolute;
+  inset: 0;
+  inline-size: 100%;
+  block-size: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: inherit;
+}
+.pool-home label.pool-segment:has(> input:checked) {
+  border-color: var(--pool-color-line);
+  background: var(--pool-color-raised);
+  color: var(--pool-color-ink);
+  box-shadow: var(--pool-shadow-raised);
+}
+.pool-home label.pool-segment:has(> input:focus-visible) { outline: var(--pool-border-thick) solid var(--pool-color-focus); outline-offset: var(--pool-border-thick); }
+.pool-home label.pool-segment:has(> input:disabled) { opacity: var(--pool-alpha-48); cursor: not-allowed; }
+.pool-home .pool-segmented:has(input:disabled):not(:has(input:enabled)) { opacity: var(--pool-alpha-64); }
+
+/* Toggle rows: the switch shares the row's centre line with the title. */
+.pool-home .pool-toggle-row { padding-inline: 0; border-width: 0; }
+.pool-home .pool-toggle-row > .pool-switch { justify-self: end; }
+
+/* A native checkbox drawn as the switch, for a toggle whose state a form reads as `checked`. */
+.pool-home input.pool-switch { appearance: none; margin: 0; }
+.pool-home input.pool-switch::after {
+  content: ''; position: absolute; top: 50%; left: var(--pool-size-4);
+  width: var(--pool-size-20); height: var(--pool-size-20); transform: translateY(-50%);
+  border-radius: var(--pool-radius-round); background: var(--pool-color-muted);
+  box-shadow: var(--pool-shadow-switch-thumb);
+  transition: left var(--pool-motion-time-240) ease-in-out, background var(--pool-transition-fast);
+}
+.pool-home input.pool-switch:checked::before { background: var(--pool-color-switch-on); }
+.pool-home input.pool-switch:checked::after { left: calc(100% - var(--pool-size-4) - var(--pool-size-20)); background: var(--pool-color-page); }
+@media (prefers-reduced-motion: reduce) { .pool-home input.pool-switch::after { transition: none; } }
+.pool-home label.pool-toggle-row { cursor: pointer; }
+
+/* Action rows: a whole-row button or link; destinations end in a chevron. */
+.pool-home .pool-action-row { cursor: pointer; background: transparent; font: inherit; inline-size: 100%; }
+.pool-home .pool-action-row:hover:not(:disabled) { background: var(--pool-color-inset); }
+.pool-home .pool-action-row:disabled { cursor: not-allowed; }
+.pool-home .pool-action-row:disabled .pool-row-title { color: var(--pool-color-muted); }
+.pool-home .pool-action-row:focus-visible { outline: var(--pool-border-thick) solid var(--pool-color-focus); outline-offset: calc(-1 * var(--pool-border-thick)); }
+.pool-home .pool-action-row > .pool-icon-box:last-child { color: var(--pool-color-muted); }
+
+/* Status text reserves its line: a hidden or empty status keeps its height. */
+.pool-home .pool-status-line {
+  display: block;
+  margin: 0;
+  min-block-size: var(--pool-line-sm);
+  font-size: var(--pool-text-sm);
+  line-height: var(--pool-leading-snug);
+  overflow-wrap: anywhere;
+}
+/* Surfaces hide [hidden] with !important; a reserved line and a reserved alternative keep their space. */
+.pool-home .pool-status-line[hidden] { display: block !important; visibility: hidden; }
+/* Alternatives that share one cell: the tallest reserves the space, only the shown one is visible. */
+.pool-home .pool-reserve { display: grid; }
+.pool-home .pool-reserve > * { grid-area: 1 / 1; margin: 0; }
+.pool-home .pool-reserve > [hidden] { display: block !important; visibility: hidden; }
+
+/* Dialog shell. The header and footer never scroll; the body does. */
+.pool-home .pool-dialog {
+  box-sizing: border-box;
+  inline-size: min(var(--pool-dialog-width), calc(100vw - var(--pool-space-page-gutter) * 2));
+  max-inline-size: none;
+  max-block-size: calc(100dvh - var(--pool-space-page-gap) * 2);
+  margin: auto;
+  padding: 0;
+  overflow: hidden;
+}
+.pool-home .pool-dialog[open] { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; }
+.pool-home .pool-dialog.pool-dialog-fixed { block-size: min(var(--pool-dialog-height), calc(100dvh - var(--pool-space-page-gap) * 2)); }
+.pool-home .pool-dialog.pool-dialog-wide { inline-size: min(var(--pool-dialog-width-wide), calc(100vw - var(--pool-space-page-gutter) * 2)); }
+.pool-home .pool-dialog-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: var(--pool-space-row-gap);
+  min-block-size: var(--pool-row-double);
+  padding: var(--pool-space-dialog-edge-tight) var(--pool-space-dialog-edge-tight) var(--pool-space-dialog-edge-tight) var(--pool-space-dialog-edge);
+  border-bottom: var(--pool-border-hairline) solid var(--pool-color-line);
+}
+.pool-home .pool-dialog-header > :is(h2, h3) { margin: 0; font-size: var(--pool-text-base); font-weight: var(--pool-weight-semibold); line-height: var(--pool-leading-snug); }
+.pool-home .pool-dialog-header:not(:has(> .pool-button)) { padding-inline-end: var(--pool-space-dialog-edge); }
+.pool-home .pool-dialog-body {
+  display: grid;
+  align-content: start;
+  gap: var(--pool-space-dialog-gap);
+  min-block-size: 0;
+  margin: 0;
+  padding: var(--pool-space-dialog-gap) var(--pool-space-dialog-edge);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.pool-home .pool-dialog-body > :is(p, h3, fieldset) { margin: 0; }
+.pool-home .pool-dialog-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--pool-space-row-gap);
+  padding: var(--pool-space-dialog-gap) var(--pool-space-dialog-edge);
+  border-top: var(--pool-border-hairline) solid var(--pool-color-line);
+}
+/* A footer reason or status sits at the start; the actions stay at the end. */
+.pool-home .pool-dialog-footer > .pool-status-line { flex: 1 1 var(--pool-size-160); min-inline-size: 0; color: var(--pool-color-muted); }
+@media (max-width: 760px) {
+  /* Narrow screens show every dialog as a bottom sheet of the same structure. */
+  .pool-home .pool-dialog {
+    inline-size: 100%;
+    max-block-size: calc(100dvh - var(--pool-space-page-gap));
+    margin-block-end: 0;
+    border-end-start-radius: 0;
+    border-end-end-radius: 0;
+  }
+  .pool-home .pool-dialog.pool-dialog-wide { inline-size: 100%; }
+  /* The footer's reason takes its own line above the actions, which stay together. */
+  .pool-home .pool-dialog-footer > .pool-status-line { flex-basis: 100%; }
+  .pool-home .pool-dialog.pool-dialog-fixed { block-size: min(var(--pool-dialog-height), calc(100dvh - var(--pool-space-page-gap))); }
+}
+@media (prefers-reduced-motion: reduce) { .pool-home .pool-option { transition: none; } }
+@media (forced-colors: active) {
+  .pool-home .pool-option:has(> input:checked), .pool-home label.pool-segment:has(> input:checked) { outline: var(--pool-border-thick) solid Highlight; }
+}

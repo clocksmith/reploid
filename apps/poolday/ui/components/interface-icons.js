@@ -4,6 +4,7 @@ export function interfaceIcon(name) {
     privacy: '<path d="m12 3 8 3v5c0 5-3.5 8-8 10-4.5-2-8-5-8-10V6l8-3Z"/>',
     help: '<circle cx="12" cy="12" r="9"/><path d="M9 9a3 3 0 1 1 4 3c-1 .5-1 1-1 2m0 3v.1"/>',
     chevron: '<path d="m7 10 5 5 5-5"/>',
+    next: '<path d="m10 7 5 5-5 5"/>',
     newThread: '<path d="M12 5v14M5 12h14"/>',
     plus: '<path d="M12 5v14M5 12h14"/>',
     attach: '<path d="m8 13 7-7a3 3 0 0 1 4 4L9 20a5 5 0 0 1-7-7L13 2m-7 13 8-8"/>',
