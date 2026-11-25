@@ -45,7 +45,7 @@ export async function probeStage({ stageIndex, directory, remap = false, prefill
   const report = { stageIndex, remap, prefillChunk: runtimeConfig.inference.session.prefillTokenChunkSize, promptTokens, decodeSteps, seed,
     opened: null, steps: [], error: null };
   const controller = new AbortController(), signal = controller.signal;
-  let session = null, source = null;
+  let session = null, source = null, identity = null;
   try {
     await gpu.open();
     await runtime.configureDeviceMemoryBudget({ maxBytes: model.partitionRuntime.maxGpuBufferBytes[stageIndex] });
@@ -60,7 +60,7 @@ export async function probeStage({ stageIndex, directory, remap = false, prefill
     session = await factory.openResidentPartition({ model: { id: model.id, identity: model.identity, generation, adapters: [] }, plan, planId,
       index: stageIndex, participantId, limits: policy.limits, signal });
     report.opened = { ms: Math.round(now() - started), descriptor: { ready: session.getDescriptor?.()?.ready ?? null } };
-    const identity = { schema: 'doppler.resident-partition-attempt/v2', modelId: model.id, modelIdentity: model.identity, planId,
+    identity = { schema: 'doppler.resident-partition-attempt/v2', modelId: model.id, modelIdentity: model.identity, planId,
       threadId: 'probe', attemptId: 'probe-attempt', requesterId: 'probe-requester', placementGeneration: 0,
       stages: plan.partitions.map((_, index) => ({ index, participantId: index === stageIndex ? participantId : `probe-other-${index}`,
         transportId: `t${index}`, residentId: `r${index}`, executionId: `e${index}` })) };
@@ -90,8 +90,8 @@ export async function probeStage({ stageIndex, directory, remap = false, prefill
   } catch (error) {
     report.error = String(error?.message ?? error);
   } finally {
-    await session?.closeAttempt?.({ identity: undefined }).catch(() => {});
-    await session?.close?.().catch(() => {});
+    if (session && identity) { try { await session.closeAttempt({ identity }); } catch (error) { report.closeError = String(error?.message ?? error); } }
+    try { await session?.close?.(); } catch (error) { report.closeError ??= String(error?.message ?? error); }
     await source?.storage?.close?.().catch(() => {});
     await gpu.close().catch(() => {});
   }
