@@ -19,6 +19,11 @@ export function askExecution({ participants = [], confidentiality = 'executor-re
     confidentiality, allowMetadata: metadata };
 }
 
+/** A route `ask` may use now: ready, without an adapter, and for a split outside a private room, released.
+ * `reploid peers` counts "ready to serve" with this same test. */
+export const askableRoute = (candidate, executionClass) => candidate.availability === 'ready' && !candidate.adapters?.length
+  && (!candidate.partition || executionClass === 'private-pool' || availablePartitionRoute(candidate));
+
 /** One prompt through `reploid/inference`, the same API the browser and the SDK use. */
 export async function askMesh(participant, model, prompt, { signal, report = console.error, discoveryMs = 45000, generationMs = 120000,
   execution = DEFAULT_ASK_EXECUTION } = {}) {
@@ -31,8 +36,7 @@ export async function askMesh(participant, model, prompt, { signal, report = con
     for (;;) {
       waiting.throwIfAborted();
       const eligible = (participant.getState().models || []).filter(candidate =>
-        candidate.id === model.id && candidate.identity === model.identity && candidate.availability === 'ready'
-        && !candidate.adapters?.length && (!candidate.partition || participant.executionClass === 'private-pool' || availablePartitionRoute(candidate)));
+        candidate.id === model.id && candidate.identity === model.identity && askableRoute(candidate, participant.executionClass));
       route = eligible.find(candidate => !candidate.partition) ?? eligible[0];
       if (route) break;
       await delay(200, undefined, { signal: waiting });
