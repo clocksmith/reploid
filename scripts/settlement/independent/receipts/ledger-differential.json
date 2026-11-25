@@ -1,0 +1,2912 @@
+{
+  "schema": "reploid.settlement-ledger-differential/v1",
+  "generatedAt": "2026-11-25T09:20:35.341Z",
+  "finishedAt": "2026-11-25T09:20:37.701Z",
+  "command": "node scripts/settlement/independent/ledger-differential.js --out scripts/settlement/independent/receipts/ledger-differential.json",
+  "commit": "19c28784843de60272f192434f26df8eff81482c",
+  "uncommittedChangesInComparedCode": false,
+  "node": "v22.20.0",
+  "note": "All parties are simulated identities on one machine under one operator. The ledger is given what a live route retains (latest records only) at the moment the last of them was signed, and asked again after the release window; the replay judges the same records after the window. Status pairs are ledger / replay.",
+  "policy": {
+    "schema": "reploid.service-credit-policy/v1",
+    "unit": "noncash-service-credit",
+    "version": "settlement-replay-1",
+    "creditsPerOutputToken": 3,
+    "maxDebt": 1000,
+    "maxOutputTokens": 128,
+    "maxPendingPerComputer": 4,
+    "maxClockSkewMs": 1000,
+    "maxRequestMs": 30000,
+    "allowSameOwner": false,
+    "partitionUnclaimedReleaseMs": 60000
+  },
+  "cases": 109,
+  "amountsAgreed": 102,
+  "statusPairs": {
+    "expired / expired": 49,
+    "expired / settled": 6,
+    "expired / unknown": 8,
+    "settled / settled": 46
+  },
+  "differences": {
+    "total": 7,
+    "byCause": {
+      "the stages closed as failed on their own: the ledger charges the acknowledged outputs, the replay charges nothing": {
+        "count": 2,
+        "cases": [
+          "stages close early on their own after 3 outputs | all records",
+          "stages close early on their own after 3 outputs | requester withholds its top acknowledgment"
+        ]
+      },
+      "the last acknowledgment and the closes fall after the deadline, inside the release window: the ledger expires the hold, the replay charges the outputs acknowledged in time": {
+        "count": 1,
+        "cases": [
+          "last acknowledgment and closes 5 s after the deadline | all records"
+        ]
+      },
+      "the answer ran past the signed output ceiling: the ledger refuses the receipts and expires the hold, the replay charges the ceiling": {
+        "count": 4,
+        "cases": [
+          "output ceiling 3 with 5 outputs | all records",
+          "output ceiling 3 with 5 outputs | stage0 withholds its closing receipt",
+          "output ceiling 3 with 5 outputs | stage1 withholds its closing receipt",
+          "output ceiling 3 with 5 outputs | requester withholds its top acknowledgment"
+        ]
+      }
+    }
+  },
+  "lines": [
+    {
+      "base": "complete answer",
+      "variant": "all records",
+      "ledger": {
+        "status": "settled",
+        "charge": 15,
+        "credits": [
+          3,
+          12
+        ],
+        "reason": null,
+        "atCollect": null,
+        "collectedAtMs": 2501
+      },
+      "replay": {
+        "status": "settled",
+        "charge": 15,
+        "credits": [
+          3,
+          12
+        ],
+        "reason": "the answer was completed and acknowledged"
+      },
+      "amountsAgree": true,
+      "cause": null
+    },
+    {
+      "base": "complete answer",
+      "variant": "stage0 withholds its closing receipt",
+      "ledger": {
+        "status": "settled",
+        "charge": 15,
+        "credits": [
+          3,
+          12
+        ],
+        "reason": "closed-at-last-signed-step-after-window",
+        "atCollect": "pending",
+        "collectedAtMs": 2501
+      },
+      "replay": {
+        "status": "settled",
+        "charge": 15,
+        "credits": [
+          3,
+          12
+        ],
+        "reason": "the answer was completed and acknowledged; stage 0 signed no closing receipt and is treated as closed at its last signed step"
+      },
+      "amountsAgree": true,
+      "cause": null
+    },
+    {
+      "base": "complete answer",
+      "variant": "stage0 presents no receipt",
+      "ledger": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "stage-unclaimed-after-window",
+        "atCollect": "pending",
+        "collectedAtMs": 2501
+      },
+      "replay": {
+        "status": "unknown",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "the answer was delivered and acknowledged, but no in-time receipt covering it was presented for stage 0"
+      },
+      "amountsAgree": true,
+      "cause": null
+    },
+    {
+      "base": "complete answer",
+      "variant": "stage1 withholds its closing receipt",
+      "ledger": {
+        "status": "settled",
+        "charge": 15,
+        "credits": [
+          3,
+          12
+        ],
+        "reason": "closed-at-last-signed-step-after-window",
+        "atCollect": "pending",
+        "collectedAtMs": 2501
+      },
+      "replay": {
+        "status": "settled",
+        "charge": 15,
+        "credits": [
+          3,
+          12
+        ],
+        "reason": "the answer was completed and acknowledged; stage 1 signed no closing receipt and is treated as closed at its last signed step"
+      },
+      "amountsAgree": true,
+      "cause": null
+    },
+    {
+      "base": "complete answer",
+      "variant": "stage1 presents no receipt",
+      "ledger": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "stage-unclaimed-after-window",
+        "atCollect": "threw: Acknowledgment needs its signed output prefix",
+        "collectedAtMs": 2501
+      },
+      "replay": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "the release window passed without every stage closing; under these terms nobody is charged or paid"
+      },
+      "amountsAgree": true,
+      "cause": null
+    },
+    {
+      "base": "complete answer",
+      "variant": "requester withholds its top acknowledgment",
+      "ledger": {
+        "status": "settled",
+        "charge": 12,
+        "credits": [
+          3,
+          9
+        ],
+        "reason": null,
+        "atCollect": null,
+        "collectedAtMs": 2501
+      },
+      "replay": {
+        "status": "settled",
+        "charge": 12,
+        "credits": [
+          3,
+          9
+        ],
+        "reason": "the answer was completed; the outputs the requester acknowledged in time are charged"
+      },
+      "amountsAgree": true,
+      "cause": null
+    },
+    {
+      "base": "complete answer",
+      "variant": "requester presents only its charge binding",
+      "ledger": {
+        "status": "settled",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": null,
+        "atCollect": null,
+        "collectedAtMs": 2501
+      },
+      "replay": {
+        "status": "settled",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "the answer was completed; the outputs the requester acknowledged in time are charged"
+      },
+      "amountsAgree": true,
+      "cause": null
+    },
+    {
+      "base": "finished 40-output answer",
+      "variant": "all records",
+      "ledger": {
+        "status": "settled",
+        "charge": 120,
+        "credits": [
+          30,
+          90
+        ],
+        "reason": null,
+        "atCollect": null,
+        "collectedAtMs": 20001
+      },
+      "replay": {
+        "status": "settled",
+        "charge": 120,
+        "credits": [
+          30,
+          90
+        ],
+        "reason": "the answer was completed and acknowledged"
+      },
+      "amountsAgree": true,
+      "cause": null
+    },
+    {
+      "base": "finished 40-output answer",
+      "variant": "stage0 withholds its closing receipt",
+      "ledger": {
+        "status": "settled",
+        "charge": 120,
+        "credits": [
+          30,
+          90
+        ],
+        "reason": "closed-at-last-signed-step-after-window",
+        "atCollect": "pending",
+        "collectedAtMs": 20001
+      },
+      "replay": {
+        "status": "settled",
+        "charge": 120,
+        "credits": [
+          30,
+          90
+        ],
+        "reason": "the answer was completed and acknowledged; stage 0 signed no closing receipt and is treated as closed at its last signed step"
+      },
+      "amountsAgree": true,
+      "cause": null
+    },
+    {
+      "base": "finished 40-output answer",
+      "variant": "stage0 presents no receipt",
+      "ledger": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "stage-unclaimed-after-window",
+        "atCollect": "pending",
+        "collectedAtMs": 20001
+      },
+      "replay": {
+        "status": "unknown",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "the answer was delivered and acknowledged, but no in-time receipt covering it was presented for stage 0"
+      },
+      "amountsAgree": true,
+      "cause": null
+    },
+    {
+      "base": "finished 40-output answer",
+      "variant": "stage1 withholds its closing receipt",
+      "ledger": {
+        "status": "settled",
+        "charge": 120,
+        "credits": [
+          30,
+          90
+        ],
+        "reason": "closed-at-last-signed-step-after-window",
+        "atCollect": "pending",
+        "collectedAtMs": 20001
+      },
+      "replay": {
+        "status": "settled",
+        "charge": 120,
+        "credits": [
+          30,
+          90
+        ],
+        "reason": "the answer was completed and acknowledged; stage 1 signed no closing receipt and is treated as closed at its last signed step"
+      },
+      "amountsAgree": true,
+      "cause": null
+    },
+    {
+      "base": "finished 40-output answer",
+      "variant": "stage1 presents no receipt",
+      "ledger": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "stage-unclaimed-after-window",
+        "atCollect": "threw: Acknowledgment needs its signed output prefix",
+        "collectedAtMs": 20001
+      },
+      "replay": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "the release window passed without every stage closing; under these terms nobody is charged or paid"
+      },
+      "amountsAgree": true,
+      "cause": null
+    },
+    {
+      "base": "finished 40-output answer",
+      "variant": "requester withholds its top acknowledgment",
+      "ledger": {
+        "status": "settled",
+        "charge": 117,
+        "credits": [
+          29,
+          88
+        ],
+        "reason": null,
+        "atCollect": null,
+        "collectedAtMs": 20001
+      },
+      "replay": {
+        "status": "settled",
+        "charge": 117,
+        "credits": [
+          29,
+          88
+        ],
+        "reason": "the answer was completed; the outputs the requester acknowledged in time are charged"
+      },
+      "amountsAgree": true,
+      "cause": null
+    },
+    {
+      "base": "finished 40-output answer",
+      "variant": "requester presents only its charge binding",
+      "ledger": {
+        "status": "settled",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": null,
+        "atCollect": null,
+        "collectedAtMs": 20001
+      },
+      "replay": {
+        "status": "settled",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "the answer was completed; the outputs the requester acknowledged in time are charged"
+      },
+      "amountsAgree": true,
+      "cause": null
+    },
+    {
+      "base": "finished 40-output answer, last acknowledgment withheld",
+      "variant": "all records",
+      "ledger": {
+        "status": "settled",
+        "charge": 117,
+        "credits": [
+          29,
+          88
+        ],
+        "reason": null,
+        "atCollect": null,
+        "collectedAtMs": 20001
+      },
+      "replay": {
+        "status": "settled",
+        "charge": 117,
+        "credits": [
+          29,
+          88
+        ],
+        "reason": "the answer was completed; the outputs the requester acknowledged in time are charged"
+      },
+      "amountsAgree": true,
+      "cause": null
+    },
+    {
+      "base": "finished 40-output answer, last acknowledgment withheld",
+      "variant": "stage0 withholds its closing receipt",
+      "ledger": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "stage-unclaimed-after-window",
+        "atCollect": "pending",
+        "collectedAtMs": 20001
+      },
+      "replay": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "the release window passed without every stage closing; under these terms nobody is charged or paid"
+      },
+      "amountsAgree": true,
+      "cause": null
+    },
+    {
+      "base": "finished 40-output answer, last acknowledgment withheld",
+      "variant": "stage0 presents no receipt",
+      "ledger": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "stage-unclaimed-after-window",
+        "atCollect": "pending",
+        "collectedAtMs": 20001
+      },
+      "replay": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "the release window passed without every stage closing; under these terms nobody is charged or paid"
+      },
+      "amountsAgree": true,
+      "cause": null
+    },
+    {
+      "base": "finished 40-output answer, last acknowledgment withheld",
+      "variant": "stage1 withholds its closing receipt",
+      "ledger": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "stage-unclaimed-after-window",
+        "atCollect": "pending",
+        "collectedAtMs": 20001
+      },
+      "replay": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "the release window passed without every stage closing; under these terms nobody is charged or paid"
+      },
+      "amountsAgree": true,
+      "cause": null
+    },
+    {
+      "base": "finished 40-output answer, last acknowledgment withheld",
+      "variant": "stage1 presents no receipt",
+      "ledger": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "stage-unclaimed-after-window",
+        "atCollect": "threw: Acknowledgment needs its signed output prefix",
+        "collectedAtMs": 20001
+      },
+      "replay": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "the release window passed without every stage closing; under these terms nobody is charged or paid"
+      },
+      "amountsAgree": true,
+      "cause": null
+    },
+    {
+      "base": "finished 40-output answer, last acknowledgment withheld",
+      "variant": "requester withholds its top acknowledgment",
+      "ledger": {
+        "status": "settled",
+        "charge": 114,
+        "credits": [
+          28,
+          86
+        ],
+        "reason": null,
+        "atCollect": null,
+        "collectedAtMs": 20001
+      },
+      "replay": {
+        "status": "settled",
+        "charge": 114,
+        "credits": [
+          28,
+          86
+        ],
+        "reason": "the answer was completed; the outputs the requester acknowledged in time are charged"
+      },
+      "amountsAgree": true,
+      "cause": null
+    },
+    {
+      "base": "finished 40-output answer, last acknowledgment withheld",
+      "variant": "requester presents only its charge binding",
+      "ledger": {
+        "status": "settled",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": null,
+        "atCollect": null,
+        "collectedAtMs": 20001
+      },
+      "replay": {
+        "status": "settled",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "the answer was completed; the outputs the requester acknowledged in time are charged"
+      },
+      "amountsAgree": true,
+      "cause": null
+    },
+    {
+      "base": "finished 40-output answer, last three acknowledgments withheld",
+      "variant": "all records",
+      "ledger": {
+        "status": "settled",
+        "charge": 111,
+        "credits": [
+          27,
+          84
+        ],
+        "reason": null,
+        "atCollect": null,
+        "collectedAtMs": 20001
+      },
+      "replay": {
+        "status": "settled",
+        "charge": 111,
+        "credits": [
+          27,
+          84
+        ],
+        "reason": "the answer was completed; the outputs the requester acknowledged in time are charged"
+      },
+      "amountsAgree": true,
+      "cause": null
+    },
+    {
+      "base": "finished 40-output answer, last three acknowledgments withheld",
+      "variant": "stage0 withholds its closing receipt",
+      "ledger": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "stage-unclaimed-after-window",
+        "atCollect": "pending",
+        "collectedAtMs": 20001
+      },
+      "replay": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "the release window passed without every stage closing; under these terms nobody is charged or paid"
+      },
+      "amountsAgree": true,
+      "cause": null
+    },
+    {
+      "base": "finished 40-output answer, last three acknowledgments withheld",
+      "variant": "stage0 presents no receipt",
+      "ledger": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "stage-unclaimed-after-window",
+        "atCollect": "pending",
+        "collectedAtMs": 20001
+      },
+      "replay": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "the release window passed without every stage closing; under these terms nobody is charged or paid"
+      },
+      "amountsAgree": true,
+      "cause": null
+    },
+    {
+      "base": "finished 40-output answer, last three acknowledgments withheld",
+      "variant": "stage1 withholds its closing receipt",
+      "ledger": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "stage-unclaimed-after-window",
+        "atCollect": "pending",
+        "collectedAtMs": 20001
+      },
+      "replay": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "the release window passed without every stage closing; under these terms nobody is charged or paid"
+      },
+      "amountsAgree": true,
+      "cause": null
+    },
+    {
+      "base": "finished 40-output answer, last three acknowledgments withheld",
+      "variant": "stage1 presents no receipt",
+      "ledger": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "stage-unclaimed-after-window",
+        "atCollect": "threw: Acknowledgment needs its signed output prefix",
+        "collectedAtMs": 20001
+      },
+      "replay": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "the release window passed without every stage closing; under these terms nobody is charged or paid"
+      },
+      "amountsAgree": true,
+      "cause": null
+    },
+    {
+      "base": "finished 40-output answer, last three acknowledgments withheld",
+      "variant": "requester withholds its top acknowledgment",
+      "ledger": {
+        "status": "settled",
+        "charge": 108,
+        "credits": [
+          27,
+          81
+        ],
+        "reason": null,
+        "atCollect": null,
+        "collectedAtMs": 20001
+      },
+      "replay": {
+        "status": "settled",
+        "charge": 108,
+        "credits": [
+          27,
+          81
+        ],
+        "reason": "the answer was completed; the outputs the requester acknowledged in time are charged"
+      },
+      "amountsAgree": true,
+      "cause": null
+    },
+    {
+      "base": "finished 40-output answer, last three acknowledgments withheld",
+      "variant": "requester presents only its charge binding",
+      "ledger": {
+        "status": "settled",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": null,
+        "atCollect": null,
+        "collectedAtMs": 20001
+      },
+      "replay": {
+        "status": "settled",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "the answer was completed; the outputs the requester acknowledged in time are charged"
+      },
+      "amountsAgree": true,
+      "cause": null
+    },
+    {
+      "base": "requester stops acknowledging after 2 of 8",
+      "variant": "all records",
+      "ledger": {
+        "status": "settled",
+        "charge": 6,
+        "credits": [
+          1,
+          5
+        ],
+        "reason": null,
+        "atCollect": null,
+        "collectedAtMs": 3001
+      },
+      "replay": {
+        "status": "settled",
+        "charge": 6,
+        "credits": [
+          1,
+          5
+        ],
+        "reason": "the requester stopped acknowledging; the outputs it acknowledged are charged"
+      },
+      "amountsAgree": true,
+      "cause": null
+    },
+    {
+      "base": "requester stops acknowledging after 2 of 8",
+      "variant": "stage0 withholds its closing receipt",
+      "ledger": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "stage-unclaimed-after-window",
+        "atCollect": "pending",
+        "collectedAtMs": 3001
+      },
+      "replay": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "the release window passed without every stage closing; under these terms nobody is charged or paid"
+      },
+      "amountsAgree": true,
+      "cause": null
+    },
+    {
+      "base": "requester stops acknowledging after 2 of 8",
+      "variant": "stage0 presents no receipt",
+      "ledger": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "stage-unclaimed-after-window",
+        "atCollect": "pending",
+        "collectedAtMs": 3001
+      },
+      "replay": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "the release window passed without every stage closing; under these terms nobody is charged or paid"
+      },
+      "amountsAgree": true,
+      "cause": null
+    },
+    {
+      "base": "requester stops acknowledging after 2 of 8",
+      "variant": "stage1 withholds its closing receipt",
+      "ledger": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "stage-unclaimed-after-window",
+        "atCollect": "pending",
+        "collectedAtMs": 3001
+      },
+      "replay": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "the release window passed without every stage closing; under these terms nobody is charged or paid"
+      },
+      "amountsAgree": true,
+      "cause": null
+    },
+    {
+      "base": "requester stops acknowledging after 2 of 8",
+      "variant": "stage1 presents no receipt",
+      "ledger": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "stage-unclaimed-after-window",
+        "atCollect": "threw: Acknowledgment needs its signed output prefix",
+        "collectedAtMs": 3001
+      },
+      "replay": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "the release window passed without every stage closing; under these terms nobody is charged or paid"
+      },
+      "amountsAgree": true,
+      "cause": null
+    },
+    {
+      "base": "requester stops acknowledging after 2 of 8",
+      "variant": "requester withholds its top acknowledgment",
+      "ledger": {
+        "status": "settled",
+        "charge": 3,
+        "credits": [
+          0,
+          3
+        ],
+        "reason": null,
+        "atCollect": null,
+        "collectedAtMs": 3001
+      },
+      "replay": {
+        "status": "settled",
+        "charge": 3,
+        "credits": [
+          0,
+          3
+        ],
+        "reason": "the requester stopped acknowledging; the outputs it acknowledged are charged"
+      },
+      "amountsAgree": true,
+      "cause": null
+    },
+    {
+      "base": "requester stops acknowledging after 2 of 8",
+      "variant": "requester presents only its charge binding",
+      "ledger": {
+        "status": "settled",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": null,
+        "atCollect": null,
+        "collectedAtMs": 3001
+      },
+      "replay": {
+        "status": "settled",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "the requester stopped acknowledging; the outputs it acknowledged are charged"
+      },
+      "amountsAgree": true,
+      "cause": null
+    },
+    {
+      "base": "requester signs a stop after 3 outputs",
+      "variant": "all records",
+      "ledger": {
+        "status": "settled",
+        "charge": 9,
+        "credits": [
+          2,
+          7
+        ],
+        "reason": null,
+        "atCollect": null,
+        "collectedAtMs": 1501
+      },
+      "replay": {
+        "status": "settled",
+        "charge": 9,
+        "credits": [
+          2,
+          7
+        ],
+        "reason": "the requester signed a stop; the outputs it acknowledged are charged"
+      },
+      "amountsAgree": true,
+      "cause": null
+    },
+    {
+      "base": "requester signs a stop after 3 outputs",
+      "variant": "stage0 withholds its closing receipt",
+      "ledger": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "stage-unclaimed-after-window",
+        "atCollect": "pending",
+        "collectedAtMs": 1501
+      },
+      "replay": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "the release window passed without every stage closing; under these terms nobody is charged or paid"
+      },
+      "amountsAgree": true,
+      "cause": null
+    },
+    {
+      "base": "requester signs a stop after 3 outputs",
+      "variant": "stage0 presents no receipt",
+      "ledger": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "stage-unclaimed-after-window",
+        "atCollect": "pending",
+        "collectedAtMs": 1501
+      },
+      "replay": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "the release window passed without every stage closing; under these terms nobody is charged or paid"
+      },
+      "amountsAgree": true,
+      "cause": null
+    },
+    {
+      "base": "requester signs a stop after 3 outputs",
+      "variant": "stage1 withholds its closing receipt",
+      "ledger": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "stage-unclaimed-after-window",
+        "atCollect": "pending",
+        "collectedAtMs": 1501
+      },
+      "replay": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "the release window passed without every stage closing; under these terms nobody is charged or paid"
+      },
+      "amountsAgree": true,
+      "cause": null
+    },
+    {
+      "base": "requester signs a stop after 3 outputs",
+      "variant": "stage1 presents no receipt",
+      "ledger": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "stage-unclaimed-after-window",
+        "atCollect": "threw: Acknowledgment needs its signed output prefix",
+        "collectedAtMs": 1501
+      },
+      "replay": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "the release window passed without every stage closing; under these terms nobody is charged or paid"
+      },
+      "amountsAgree": true,
+      "cause": null
+    },
+    {
+      "base": "requester signs a stop after 3 outputs",
+      "variant": "requester withholds its top acknowledgment",
+      "ledger": {
+        "status": "settled",
+        "charge": 6,
+        "credits": [
+          1,
+          5
+        ],
+        "reason": null,
+        "atCollect": null,
+        "collectedAtMs": 1501
+      },
+      "replay": {
+        "status": "settled",
+        "charge": 6,
+        "credits": [
+          1,
+          5
+        ],
+        "reason": "the requester signed a stop; the outputs it acknowledged are charged"
+      },
+      "amountsAgree": true,
+      "cause": null
+    },
+    {
+      "base": "requester signs a stop after 3 outputs",
+      "variant": "requester presents only its charge binding",
+      "ledger": {
+        "status": "settled",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": null,
+        "atCollect": null,
+        "collectedAtMs": 1501
+      },
+      "replay": {
+        "status": "settled",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "the requester signed a stop; the outputs it acknowledged are charged"
+      },
+      "amountsAgree": true,
+      "cause": null
+    },
+    {
+      "base": "requester signs a stop before any output",
+      "variant": "all records",
+      "ledger": {
+        "status": "settled",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": null,
+        "atCollect": null,
+        "collectedAtMs": 2
+      },
+      "replay": {
+        "status": "settled",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "the requester signed a stop; the outputs it acknowledged are charged"
+      },
+      "amountsAgree": true,
+      "cause": null
+    },
+    {
+      "base": "requester signs a stop before any output",
+      "variant": "stage0 withholds its closing receipt",
+      "ledger": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "stage-unclaimed-after-window",
+        "atCollect": "pending",
+        "collectedAtMs": 2
+      },
+      "replay": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "the release window passed without every stage closing; under these terms nobody is charged or paid"
+      },
+      "amountsAgree": true,
+      "cause": null
+    },
+    {
+      "base": "requester signs a stop before any output",
+      "variant": "stage0 presents no receipt",
+      "ledger": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "stage-unclaimed-after-window",
+        "atCollect": "pending",
+        "collectedAtMs": 2
+      },
+      "replay": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "the release window passed without every stage closing; under these terms nobody is charged or paid"
+      },
+      "amountsAgree": true,
+      "cause": null
+    },
+    {
+      "base": "requester signs a stop before any output",
+      "variant": "stage1 withholds its closing receipt",
+      "ledger": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "stage-unclaimed-after-window",
+        "atCollect": "pending",
+        "collectedAtMs": 2
+      },
+      "replay": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "the release window passed without every stage closing; under these terms nobody is charged or paid"
+      },
+      "amountsAgree": true,
+      "cause": null
+    },
+    {
+      "base": "requester signs a stop before any output",
+      "variant": "stage1 presents no receipt",
+      "ledger": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "stage-unclaimed-after-window",
+        "atCollect": "pending",
+        "collectedAtMs": 2
+      },
+      "replay": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "the release window passed without every stage closing; under these terms nobody is charged or paid"
+      },
+      "amountsAgree": true,
+      "cause": null
+    },
+    {
+      "base": "stages close early on their own after 3 outputs",
+      "variant": "all records",
+      "ledger": {
+        "status": "settled",
+        "charge": 9,
+        "credits": [
+          2,
+          7
+        ],
+        "reason": null,
+        "atCollect": null,
+        "collectedAtMs": 1501
+      },
+      "replay": {
+        "status": "settled",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "a stage ended the answer before it finished; under these terms nobody is charged or paid"
+      },
+      "amountsAgree": false,
+      "cause": "the stages closed as failed on their own: the ledger charges the acknowledged outputs, the replay charges nothing"
+    },
+    {
+      "base": "stages close early on their own after 3 outputs",
+      "variant": "stage0 withholds its closing receipt",
+      "ledger": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "stage-unclaimed-after-window",
+        "atCollect": "pending",
+        "collectedAtMs": 1501
+      },
+      "replay": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "the release window passed without every stage closing; under these terms nobody is charged or paid"
+      },
+      "amountsAgree": true,
+      "cause": null
+    },
+    {
+      "base": "stages close early on their own after 3 outputs",
+      "variant": "stage0 presents no receipt",
+      "ledger": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "stage-unclaimed-after-window",
+        "atCollect": "pending",
+        "collectedAtMs": 1501
+      },
+      "replay": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "the release window passed without every stage closing; under these terms nobody is charged or paid"
+      },
+      "amountsAgree": true,
+      "cause": null
+    },
+    {
+      "base": "stages close early on their own after 3 outputs",
+      "variant": "stage1 withholds its closing receipt",
+      "ledger": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "stage-unclaimed-after-window",
+        "atCollect": "pending",
+        "collectedAtMs": 1501
+      },
+      "replay": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "the release window passed without every stage closing; under these terms nobody is charged or paid"
+      },
+      "amountsAgree": true,
+      "cause": null
+    },
+    {
+      "base": "stages close early on their own after 3 outputs",
+      "variant": "stage1 presents no receipt",
+      "ledger": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "stage-unclaimed-after-window",
+        "atCollect": "threw: Acknowledgment needs its signed output prefix",
+        "collectedAtMs": 1501
+      },
+      "replay": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "the release window passed without every stage closing; under these terms nobody is charged or paid"
+      },
+      "amountsAgree": true,
+      "cause": null
+    },
+    {
+      "base": "stages close early on their own after 3 outputs",
+      "variant": "requester withholds its top acknowledgment",
+      "ledger": {
+        "status": "settled",
+        "charge": 6,
+        "credits": [
+          1,
+          5
+        ],
+        "reason": null,
+        "atCollect": null,
+        "collectedAtMs": 1501
+      },
+      "replay": {
+        "status": "settled",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "a stage ended the answer before it finished; under these terms nobody is charged or paid"
+      },
+      "amountsAgree": false,
+      "cause": "the stages closed as failed on their own: the ledger charges the acknowledged outputs, the replay charges nothing"
+    },
+    {
+      "base": "stages close early on their own after 3 outputs",
+      "variant": "requester presents only its charge binding",
+      "ledger": {
+        "status": "settled",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": null,
+        "atCollect": null,
+        "collectedAtMs": 1501
+      },
+      "replay": {
+        "status": "settled",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "the requester stopped acknowledging; the outputs it acknowledged are charged"
+      },
+      "amountsAgree": true,
+      "cause": null
+    },
+    {
+      "base": "stage0 drops after 3 steps and never closes",
+      "variant": "all records",
+      "ledger": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "stage-unclaimed-after-window",
+        "atCollect": "pending",
+        "collectedAtMs": 2001
+      },
+      "replay": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "the release window passed without every stage closing; under these terms nobody is charged or paid"
+      },
+      "amountsAgree": true,
+      "cause": null
+    },
+    {
+      "base": "stage0 drops after 3 steps and never closes",
+      "variant": "stage0 presents no receipt",
+      "ledger": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "stage-unclaimed-after-window",
+        "atCollect": "pending",
+        "collectedAtMs": 2001
+      },
+      "replay": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "the release window passed without every stage closing; under these terms nobody is charged or paid"
+      },
+      "amountsAgree": true,
+      "cause": null
+    },
+    {
+      "base": "stage0 drops after 3 steps and never closes",
+      "variant": "stage1 withholds its closing receipt",
+      "ledger": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "stage-unclaimed-after-window",
+        "atCollect": "pending",
+        "collectedAtMs": 1501
+      },
+      "replay": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "the release window passed without every stage closing; under these terms nobody is charged or paid"
+      },
+      "amountsAgree": true,
+      "cause": null
+    },
+    {
+      "base": "stage0 drops after 3 steps and never closes",
+      "variant": "stage1 presents no receipt",
+      "ledger": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "stage-unclaimed-after-window",
+        "atCollect": "threw: Acknowledgment needs its signed output prefix",
+        "collectedAtMs": 1501
+      },
+      "replay": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "the release window passed without every stage closing; under these terms nobody is charged or paid"
+      },
+      "amountsAgree": true,
+      "cause": null
+    },
+    {
+      "base": "stage0 drops after 3 steps and never closes",
+      "variant": "requester withholds its top acknowledgment",
+      "ledger": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "stage-unclaimed-after-window",
+        "atCollect": "pending",
+        "collectedAtMs": 2001
+      },
+      "replay": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "the release window passed without every stage closing; under these terms nobody is charged or paid"
+      },
+      "amountsAgree": true,
+      "cause": null
+    },
+    {
+      "base": "stage0 drops after 3 steps and never closes",
+      "variant": "requester presents only its charge binding",
+      "ledger": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "stage-unclaimed-after-window",
+        "atCollect": "pending",
+        "collectedAtMs": 2001
+      },
+      "replay": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "the release window passed without every stage closing; under these terms nobody is charged or paid"
+      },
+      "amountsAgree": true,
+      "cause": null
+    },
+    {
+      "base": "final stage drops after 3 steps and never closes",
+      "variant": "all records",
+      "ledger": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "stage-unclaimed-after-window",
+        "atCollect": "pending",
+        "collectedAtMs": 2001
+      },
+      "replay": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "the release window passed without every stage closing; under these terms nobody is charged or paid"
+      },
+      "amountsAgree": true,
+      "cause": null
+    },
+    {
+      "base": "final stage drops after 3 steps and never closes",
+      "variant": "stage0 withholds its closing receipt",
+      "ledger": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "stage-unclaimed-after-window",
+        "atCollect": "pending",
+        "collectedAtMs": 1501
+      },
+      "replay": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "the release window passed without every stage closing; under these terms nobody is charged or paid"
+      },
+      "amountsAgree": true,
+      "cause": null
+    },
+    {
+      "base": "final stage drops after 3 steps and never closes",
+      "variant": "stage0 presents no receipt",
+      "ledger": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "stage-unclaimed-after-window",
+        "atCollect": "pending",
+        "collectedAtMs": 1501
+      },
+      "replay": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "the release window passed without every stage closing; under these terms nobody is charged or paid"
+      },
+      "amountsAgree": true,
+      "cause": null
+    },
+    {
+      "base": "final stage drops after 3 steps and never closes",
+      "variant": "stage1 presents no receipt",
+      "ledger": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "stage-unclaimed-after-window",
+        "atCollect": "threw: Acknowledgment needs its signed output prefix",
+        "collectedAtMs": 2001
+      },
+      "replay": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "the release window passed without every stage closing; under these terms nobody is charged or paid"
+      },
+      "amountsAgree": true,
+      "cause": null
+    },
+    {
+      "base": "final stage drops after 3 steps and never closes",
+      "variant": "requester withholds its top acknowledgment",
+      "ledger": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "stage-unclaimed-after-window",
+        "atCollect": "pending",
+        "collectedAtMs": 2001
+      },
+      "replay": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "the release window passed without every stage closing; under these terms nobody is charged or paid"
+      },
+      "amountsAgree": true,
+      "cause": null
+    },
+    {
+      "base": "final stage drops after 3 steps and never closes",
+      "variant": "requester presents only its charge binding",
+      "ledger": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "stage-unclaimed-after-window",
+        "atCollect": "pending",
+        "collectedAtMs": 2001
+      },
+      "replay": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "the release window passed without every stage closing; under these terms nobody is charged or paid"
+      },
+      "amountsAgree": true,
+      "cause": null
+    },
+    {
+      "base": "answer delivered but stage0 never closes",
+      "variant": "all records",
+      "ledger": {
+        "status": "settled",
+        "charge": 15,
+        "credits": [
+          3,
+          12
+        ],
+        "reason": "closed-at-last-signed-step-after-window",
+        "atCollect": "pending",
+        "collectedAtMs": 2501
+      },
+      "replay": {
+        "status": "settled",
+        "charge": 15,
+        "credits": [
+          3,
+          12
+        ],
+        "reason": "the answer was completed and acknowledged; stage 0 signed no closing receipt and is treated as closed at its last signed step"
+      },
+      "amountsAgree": true,
+      "cause": null
+    },
+    {
+      "base": "answer delivered but stage0 never closes",
+      "variant": "stage0 presents no receipt",
+      "ledger": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "stage-unclaimed-after-window",
+        "atCollect": "pending",
+        "collectedAtMs": 2501
+      },
+      "replay": {
+        "status": "unknown",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "the answer was delivered and acknowledged, but no in-time receipt covering it was presented for stage 0"
+      },
+      "amountsAgree": true,
+      "cause": null
+    },
+    {
+      "base": "answer delivered but stage0 never closes",
+      "variant": "stage1 withholds its closing receipt",
+      "ledger": {
+        "status": "settled",
+        "charge": 15,
+        "credits": [
+          3,
+          12
+        ],
+        "reason": "closed-at-last-signed-step-after-window",
+        "atCollect": "pending",
+        "collectedAtMs": 2501
+      },
+      "replay": {
+        "status": "settled",
+        "charge": 15,
+        "credits": [
+          3,
+          12
+        ],
+        "reason": "the answer was completed and acknowledged; stage 0, 1 signed no closing receipt and is treated as closed at its last signed step"
+      },
+      "amountsAgree": true,
+      "cause": null
+    },
+    {
+      "base": "answer delivered but stage0 never closes",
+      "variant": "stage1 presents no receipt",
+      "ledger": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "stage-unclaimed-after-window",
+        "atCollect": "threw: Acknowledgment needs its signed output prefix",
+        "collectedAtMs": 2501
+      },
+      "replay": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "the release window passed without every stage closing; under these terms nobody is charged or paid"
+      },
+      "amountsAgree": true,
+      "cause": null
+    },
+    {
+      "base": "answer delivered but stage0 never closes",
+      "variant": "requester withholds its top acknowledgment",
+      "ledger": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "stage-unclaimed-after-window",
+        "atCollect": "pending",
+        "collectedAtMs": 2501
+      },
+      "replay": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "the release window passed without every stage closing; under these terms nobody is charged or paid"
+      },
+      "amountsAgree": true,
+      "cause": null
+    },
+    {
+      "base": "answer delivered but stage0 never closes",
+      "variant": "requester presents only its charge binding",
+      "ledger": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "stage-unclaimed-after-window",
+        "atCollect": "pending",
+        "collectedAtMs": 2501
+      },
+      "replay": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "the release window passed without every stage closing; under these terms nobody is charged or paid"
+      },
+      "amountsAgree": true,
+      "cause": null
+    },
+    {
+      "base": "last acknowledgment and closes 1 s after the deadline",
+      "variant": "all records",
+      "ledger": {
+        "status": "settled",
+        "charge": 15,
+        "credits": [
+          3,
+          12
+        ],
+        "reason": null,
+        "atCollect": null,
+        "collectedAtMs": 31001
+      },
+      "replay": {
+        "status": "settled",
+        "charge": 15,
+        "credits": [
+          3,
+          12
+        ],
+        "reason": "the answer was completed and acknowledged"
+      },
+      "amountsAgree": true,
+      "cause": null
+    },
+    {
+      "base": "last acknowledgment and closes 1 s after the deadline",
+      "variant": "stage0 withholds its closing receipt",
+      "ledger": {
+        "status": "settled",
+        "charge": 15,
+        "credits": [
+          3,
+          12
+        ],
+        "reason": "closed-at-last-signed-step-after-window",
+        "atCollect": "pending",
+        "collectedAtMs": 31001
+      },
+      "replay": {
+        "status": "settled",
+        "charge": 15,
+        "credits": [
+          3,
+          12
+        ],
+        "reason": "the answer was completed and acknowledged; stage 0 signed no closing receipt and is treated as closed at its last signed step"
+      },
+      "amountsAgree": true,
+      "cause": null
+    },
+    {
+      "base": "last acknowledgment and closes 1 s after the deadline",
+      "variant": "stage0 presents no receipt",
+      "ledger": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "stage-unclaimed-after-window",
+        "atCollect": "pending",
+        "collectedAtMs": 31001
+      },
+      "replay": {
+        "status": "unknown",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "the answer was delivered and acknowledged, but no in-time receipt covering it was presented for stage 0"
+      },
+      "amountsAgree": true,
+      "cause": null
+    },
+    {
+      "base": "last acknowledgment and closes 1 s after the deadline",
+      "variant": "stage1 withholds its closing receipt",
+      "ledger": {
+        "status": "settled",
+        "charge": 15,
+        "credits": [
+          3,
+          12
+        ],
+        "reason": "closed-at-last-signed-step-after-window",
+        "atCollect": "pending",
+        "collectedAtMs": 31001
+      },
+      "replay": {
+        "status": "settled",
+        "charge": 15,
+        "credits": [
+          3,
+          12
+        ],
+        "reason": "the answer was completed and acknowledged; stage 1 signed no closing receipt and is treated as closed at its last signed step"
+      },
+      "amountsAgree": true,
+      "cause": null
+    },
+    {
+      "base": "last acknowledgment and closes 1 s after the deadline",
+      "variant": "stage1 presents no receipt",
+      "ledger": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "stage-unclaimed-after-window",
+        "atCollect": "threw: Acknowledgment needs its signed output prefix",
+        "collectedAtMs": 31001
+      },
+      "replay": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "the release window passed without every stage closing; under these terms nobody is charged or paid"
+      },
+      "amountsAgree": true,
+      "cause": null
+    },
+    {
+      "base": "last acknowledgment and closes 1 s after the deadline",
+      "variant": "requester withholds its top acknowledgment",
+      "ledger": {
+        "status": "settled",
+        "charge": 12,
+        "credits": [
+          3,
+          9
+        ],
+        "reason": null,
+        "atCollect": null,
+        "collectedAtMs": 31001
+      },
+      "replay": {
+        "status": "settled",
+        "charge": 12,
+        "credits": [
+          3,
+          9
+        ],
+        "reason": "the answer was completed; the outputs the requester acknowledged in time are charged"
+      },
+      "amountsAgree": true,
+      "cause": null
+    },
+    {
+      "base": "last acknowledgment and closes 1 s after the deadline",
+      "variant": "requester presents only its charge binding",
+      "ledger": {
+        "status": "settled",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": null,
+        "atCollect": null,
+        "collectedAtMs": 31001
+      },
+      "replay": {
+        "status": "settled",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "the answer was completed; the outputs the requester acknowledged in time are charged"
+      },
+      "amountsAgree": true,
+      "cause": null
+    },
+    {
+      "base": "last acknowledgment and closes 5 s after the deadline",
+      "variant": "all records",
+      "ledger": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "stage-unclaimed-after-window",
+        "atCollect": "pending",
+        "collectedAtMs": 35001
+      },
+      "replay": {
+        "status": "settled",
+        "charge": 12,
+        "credits": [
+          3,
+          9
+        ],
+        "reason": "the answer was completed; the outputs the requester acknowledged in time are charged"
+      },
+      "amountsAgree": false,
+      "cause": "the last acknowledgment and the closes fall after the deadline, inside the release window: the ledger expires the hold, the replay charges the outputs acknowledged in time"
+    },
+    {
+      "base": "last acknowledgment and closes 5 s after the deadline",
+      "variant": "stage0 withholds its closing receipt",
+      "ledger": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "stage-unclaimed-after-window",
+        "atCollect": "pending",
+        "collectedAtMs": 35001
+      },
+      "replay": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "the release window passed without every stage closing; under these terms nobody is charged or paid"
+      },
+      "amountsAgree": true,
+      "cause": null
+    },
+    {
+      "base": "last acknowledgment and closes 5 s after the deadline",
+      "variant": "stage0 presents no receipt",
+      "ledger": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "stage-unclaimed-after-window",
+        "atCollect": "pending",
+        "collectedAtMs": 35001
+      },
+      "replay": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "the release window passed without every stage closing; under these terms nobody is charged or paid"
+      },
+      "amountsAgree": true,
+      "cause": null
+    },
+    {
+      "base": "last acknowledgment and closes 5 s after the deadline",
+      "variant": "stage1 withholds its closing receipt",
+      "ledger": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "stage-unclaimed-after-window",
+        "atCollect": "pending",
+        "collectedAtMs": 35001
+      },
+      "replay": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "the release window passed without every stage closing; under these terms nobody is charged or paid"
+      },
+      "amountsAgree": true,
+      "cause": null
+    },
+    {
+      "base": "last acknowledgment and closes 5 s after the deadline",
+      "variant": "stage1 presents no receipt",
+      "ledger": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "stage-unclaimed-after-window",
+        "atCollect": "pending",
+        "collectedAtMs": 35001
+      },
+      "replay": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "the release window passed without every stage closing; under these terms nobody is charged or paid"
+      },
+      "amountsAgree": true,
+      "cause": null
+    },
+    {
+      "base": "last acknowledgment and closes 5 s after the deadline",
+      "variant": "requester withholds its top acknowledgment",
+      "ledger": {
+        "status": "settled",
+        "charge": 12,
+        "credits": [
+          3,
+          9
+        ],
+        "reason": null,
+        "atCollect": null,
+        "collectedAtMs": 35001
+      },
+      "replay": {
+        "status": "settled",
+        "charge": 12,
+        "credits": [
+          3,
+          9
+        ],
+        "reason": "the answer was completed; the outputs the requester acknowledged in time are charged"
+      },
+      "amountsAgree": true,
+      "cause": null
+    },
+    {
+      "base": "last acknowledgment and closes 5 s after the deadline",
+      "variant": "requester presents only its charge binding",
+      "ledger": {
+        "status": "settled",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": null,
+        "atCollect": null,
+        "collectedAtMs": 35001
+      },
+      "replay": {
+        "status": "settled",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "the answer was completed; the outputs the requester acknowledged in time are charged"
+      },
+      "amountsAgree": true,
+      "cause": null
+    },
+    {
+      "base": "output ceiling 3 with 5 outputs",
+      "variant": "all records",
+      "ledger": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "stage-unclaimed-after-window",
+        "atCollect": "threw: Stage receipt does not match the admitted work",
+        "collectedAtMs": 2501
+      },
+      "replay": {
+        "status": "settled",
+        "charge": 9,
+        "credits": [
+          2,
+          7
+        ],
+        "reason": "the answer was completed and acknowledged"
+      },
+      "amountsAgree": false,
+      "cause": "the answer ran past the signed output ceiling: the ledger refuses the receipts and expires the hold, the replay charges the ceiling"
+    },
+    {
+      "base": "output ceiling 3 with 5 outputs",
+      "variant": "stage0 withholds its closing receipt",
+      "ledger": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "stage-unclaimed-after-window",
+        "atCollect": "threw: Stage receipt does not match the admitted work",
+        "collectedAtMs": 2501
+      },
+      "replay": {
+        "status": "settled",
+        "charge": 9,
+        "credits": [
+          2,
+          7
+        ],
+        "reason": "the answer was completed and acknowledged; stage 0 signed no closing receipt and is treated as closed at its last signed step"
+      },
+      "amountsAgree": false,
+      "cause": "the answer ran past the signed output ceiling: the ledger refuses the receipts and expires the hold, the replay charges the ceiling"
+    },
+    {
+      "base": "output ceiling 3 with 5 outputs",
+      "variant": "stage0 presents no receipt",
+      "ledger": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "stage-unclaimed-after-window",
+        "atCollect": "threw: Stage receipt does not match the admitted work",
+        "collectedAtMs": 2501
+      },
+      "replay": {
+        "status": "unknown",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "the answer was delivered and acknowledged, but no in-time receipt covering it was presented for stage 0"
+      },
+      "amountsAgree": true,
+      "cause": null
+    },
+    {
+      "base": "output ceiling 3 with 5 outputs",
+      "variant": "stage1 withholds its closing receipt",
+      "ledger": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "stage-unclaimed-after-window",
+        "atCollect": "threw: Stage receipt does not match the admitted work",
+        "collectedAtMs": 2501
+      },
+      "replay": {
+        "status": "settled",
+        "charge": 9,
+        "credits": [
+          2,
+          7
+        ],
+        "reason": "the answer was completed and acknowledged; stage 1 signed no closing receipt and is treated as closed at its last signed step"
+      },
+      "amountsAgree": false,
+      "cause": "the answer ran past the signed output ceiling: the ledger refuses the receipts and expires the hold, the replay charges the ceiling"
+    },
+    {
+      "base": "output ceiling 3 with 5 outputs",
+      "variant": "stage1 presents no receipt",
+      "ledger": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "stage-unclaimed-after-window",
+        "atCollect": "threw: Stage receipt does not match the admitted work",
+        "collectedAtMs": 2501
+      },
+      "replay": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "the release window passed without every stage closing; under these terms nobody is charged or paid"
+      },
+      "amountsAgree": true,
+      "cause": null
+    },
+    {
+      "base": "output ceiling 3 with 5 outputs",
+      "variant": "requester withholds its top acknowledgment",
+      "ledger": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "stage-unclaimed-after-window",
+        "atCollect": "threw: Stage receipt does not match the admitted work",
+        "collectedAtMs": 2501
+      },
+      "replay": {
+        "status": "settled",
+        "charge": 9,
+        "credits": [
+          2,
+          7
+        ],
+        "reason": "the answer was completed; the outputs the requester acknowledged in time are charged"
+      },
+      "amountsAgree": false,
+      "cause": "the answer ran past the signed output ceiling: the ledger refuses the receipts and expires the hold, the replay charges the ceiling"
+    },
+    {
+      "base": "output ceiling 3 with 5 outputs",
+      "variant": "requester presents only its charge binding",
+      "ledger": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "stage-unclaimed-after-window",
+        "atCollect": "threw: Stage receipt does not match the admitted work",
+        "collectedAtMs": 2501
+      },
+      "replay": {
+        "status": "settled",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "the answer was completed; the outputs the requester acknowledged in time are charged"
+      },
+      "amountsAgree": true,
+      "cause": null
+    },
+    {
+      "base": "three stages with equal weights",
+      "variant": "all records",
+      "ledger": {
+        "status": "settled",
+        "charge": 15,
+        "credits": [
+          5,
+          5,
+          5
+        ],
+        "reason": null,
+        "atCollect": null,
+        "collectedAtMs": 2501
+      },
+      "replay": {
+        "status": "settled",
+        "charge": 15,
+        "credits": [
+          5,
+          5,
+          5
+        ],
+        "reason": "the answer was completed and acknowledged"
+      },
+      "amountsAgree": true,
+      "cause": null
+    },
+    {
+      "base": "three stages with equal weights",
+      "variant": "stage0 withholds its closing receipt",
+      "ledger": {
+        "status": "settled",
+        "charge": 15,
+        "credits": [
+          5,
+          5,
+          5
+        ],
+        "reason": "closed-at-last-signed-step-after-window",
+        "atCollect": "pending",
+        "collectedAtMs": 2501
+      },
+      "replay": {
+        "status": "settled",
+        "charge": 15,
+        "credits": [
+          5,
+          5,
+          5
+        ],
+        "reason": "the answer was completed and acknowledged; stage 0 signed no closing receipt and is treated as closed at its last signed step"
+      },
+      "amountsAgree": true,
+      "cause": null
+    },
+    {
+      "base": "three stages with equal weights",
+      "variant": "stage0 presents no receipt",
+      "ledger": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0,
+          0
+        ],
+        "reason": "stage-unclaimed-after-window",
+        "atCollect": "pending",
+        "collectedAtMs": 2501
+      },
+      "replay": {
+        "status": "unknown",
+        "charge": 0,
+        "credits": [
+          0,
+          0,
+          0
+        ],
+        "reason": "the answer was delivered and acknowledged, but no in-time receipt covering it was presented for stage 0"
+      },
+      "amountsAgree": true,
+      "cause": null
+    },
+    {
+      "base": "three stages with equal weights",
+      "variant": "stage1 withholds its closing receipt",
+      "ledger": {
+        "status": "settled",
+        "charge": 15,
+        "credits": [
+          5,
+          5,
+          5
+        ],
+        "reason": "closed-at-last-signed-step-after-window",
+        "atCollect": "pending",
+        "collectedAtMs": 2501
+      },
+      "replay": {
+        "status": "settled",
+        "charge": 15,
+        "credits": [
+          5,
+          5,
+          5
+        ],
+        "reason": "the answer was completed and acknowledged; stage 1 signed no closing receipt and is treated as closed at its last signed step"
+      },
+      "amountsAgree": true,
+      "cause": null
+    },
+    {
+      "base": "three stages with equal weights",
+      "variant": "stage1 presents no receipt",
+      "ledger": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0,
+          0
+        ],
+        "reason": "stage-unclaimed-after-window",
+        "atCollect": "pending",
+        "collectedAtMs": 2501
+      },
+      "replay": {
+        "status": "unknown",
+        "charge": 0,
+        "credits": [
+          0,
+          0,
+          0
+        ],
+        "reason": "the answer was delivered and acknowledged, but no in-time receipt covering it was presented for stage 1"
+      },
+      "amountsAgree": true,
+      "cause": null
+    },
+    {
+      "base": "three stages with equal weights",
+      "variant": "stage2 withholds its closing receipt",
+      "ledger": {
+        "status": "settled",
+        "charge": 15,
+        "credits": [
+          5,
+          5,
+          5
+        ],
+        "reason": "closed-at-last-signed-step-after-window",
+        "atCollect": "pending",
+        "collectedAtMs": 2501
+      },
+      "replay": {
+        "status": "settled",
+        "charge": 15,
+        "credits": [
+          5,
+          5,
+          5
+        ],
+        "reason": "the answer was completed and acknowledged; stage 2 signed no closing receipt and is treated as closed at its last signed step"
+      },
+      "amountsAgree": true,
+      "cause": null
+    },
+    {
+      "base": "three stages with equal weights",
+      "variant": "stage2 presents no receipt",
+      "ledger": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0,
+          0
+        ],
+        "reason": "stage-unclaimed-after-window",
+        "atCollect": "threw: Acknowledgment needs its signed output prefix",
+        "collectedAtMs": 2501
+      },
+      "replay": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0,
+          0
+        ],
+        "reason": "the release window passed without every stage closing; under these terms nobody is charged or paid"
+      },
+      "amountsAgree": true,
+      "cause": null
+    },
+    {
+      "base": "three stages with equal weights",
+      "variant": "requester withholds its top acknowledgment",
+      "ledger": {
+        "status": "settled",
+        "charge": 12,
+        "credits": [
+          4,
+          4,
+          4
+        ],
+        "reason": null,
+        "atCollect": null,
+        "collectedAtMs": 2501
+      },
+      "replay": {
+        "status": "settled",
+        "charge": 12,
+        "credits": [
+          4,
+          4,
+          4
+        ],
+        "reason": "the answer was completed; the outputs the requester acknowledged in time are charged"
+      },
+      "amountsAgree": true,
+      "cause": null
+    },
+    {
+      "base": "three stages with equal weights",
+      "variant": "requester presents only its charge binding",
+      "ledger": {
+        "status": "settled",
+        "charge": 0,
+        "credits": [
+          0,
+          0,
+          0
+        ],
+        "reason": null,
+        "atCollect": null,
+        "collectedAtMs": 2501
+      },
+      "replay": {
+        "status": "settled",
+        "charge": 0,
+        "credits": [
+          0,
+          0,
+          0
+        ],
+        "reason": "the answer was completed; the outputs the requester acknowledged in time are charged"
+      },
+      "amountsAgree": true,
+      "cause": null
+    },
+    {
+      "base": "every party signs with P-256",
+      "variant": "all records",
+      "ledger": {
+        "status": "settled",
+        "charge": 15,
+        "credits": [
+          3,
+          12
+        ],
+        "reason": null,
+        "atCollect": null,
+        "collectedAtMs": 2501
+      },
+      "replay": {
+        "status": "settled",
+        "charge": 15,
+        "credits": [
+          3,
+          12
+        ],
+        "reason": "the answer was completed and acknowledged"
+      },
+      "amountsAgree": true,
+      "cause": null
+    },
+    {
+      "base": "every party signs with P-256",
+      "variant": "stage0 withholds its closing receipt",
+      "ledger": {
+        "status": "settled",
+        "charge": 15,
+        "credits": [
+          3,
+          12
+        ],
+        "reason": "closed-at-last-signed-step-after-window",
+        "atCollect": "pending",
+        "collectedAtMs": 2501
+      },
+      "replay": {
+        "status": "settled",
+        "charge": 15,
+        "credits": [
+          3,
+          12
+        ],
+        "reason": "the answer was completed and acknowledged; stage 0 signed no closing receipt and is treated as closed at its last signed step"
+      },
+      "amountsAgree": true,
+      "cause": null
+    },
+    {
+      "base": "every party signs with P-256",
+      "variant": "stage0 presents no receipt",
+      "ledger": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "stage-unclaimed-after-window",
+        "atCollect": "pending",
+        "collectedAtMs": 2501
+      },
+      "replay": {
+        "status": "unknown",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "the answer was delivered and acknowledged, but no in-time receipt covering it was presented for stage 0"
+      },
+      "amountsAgree": true,
+      "cause": null
+    },
+    {
+      "base": "every party signs with P-256",
+      "variant": "stage1 withholds its closing receipt",
+      "ledger": {
+        "status": "settled",
+        "charge": 15,
+        "credits": [
+          3,
+          12
+        ],
+        "reason": "closed-at-last-signed-step-after-window",
+        "atCollect": "pending",
+        "collectedAtMs": 2501
+      },
+      "replay": {
+        "status": "settled",
+        "charge": 15,
+        "credits": [
+          3,
+          12
+        ],
+        "reason": "the answer was completed and acknowledged; stage 1 signed no closing receipt and is treated as closed at its last signed step"
+      },
+      "amountsAgree": true,
+      "cause": null
+    },
+    {
+      "base": "every party signs with P-256",
+      "variant": "stage1 presents no receipt",
+      "ledger": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "stage-unclaimed-after-window",
+        "atCollect": "threw: Acknowledgment needs its signed output prefix",
+        "collectedAtMs": 2501
+      },
+      "replay": {
+        "status": "expired",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "the release window passed without every stage closing; under these terms nobody is charged or paid"
+      },
+      "amountsAgree": true,
+      "cause": null
+    },
+    {
+      "base": "every party signs with P-256",
+      "variant": "requester withholds its top acknowledgment",
+      "ledger": {
+        "status": "settled",
+        "charge": 12,
+        "credits": [
+          3,
+          9
+        ],
+        "reason": null,
+        "atCollect": null,
+        "collectedAtMs": 2501
+      },
+      "replay": {
+        "status": "settled",
+        "charge": 12,
+        "credits": [
+          3,
+          9
+        ],
+        "reason": "the answer was completed; the outputs the requester acknowledged in time are charged"
+      },
+      "amountsAgree": true,
+      "cause": null
+    },
+    {
+      "base": "every party signs with P-256",
+      "variant": "requester presents only its charge binding",
+      "ledger": {
+        "status": "settled",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": null,
+        "atCollect": null,
+        "collectedAtMs": 2501
+      },
+      "replay": {
+        "status": "settled",
+        "charge": 0,
+        "credits": [
+          0,
+          0
+        ],
+        "reason": "the answer was completed; the outputs the requester acknowledged in time are charged"
+      },
+      "amountsAgree": true,
+      "cause": null
+    }
+  ]
+}
