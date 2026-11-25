@@ -353,7 +353,7 @@ function checkDrop(receipt, expectations, fail) {
  * debit and credits, the stopped answer charged its acknowledged prefix, the dropped one charged nothing, and no
  * reservation came out in conflict, unknown or invalid. The terms must name the ledger's exact policy.
  */
-function checkReplay(receipt, name, fail) {
+function checkReplay(receipt, name, expectations, fail) {
   const attempt = receipt[name], trace = attempt?.settlement, replay = attempt?.settlementReplay;
   if (!replay) { fail('replay-missing', name); return; }
   if (replay.termsCollectedBy !== TERMS_COLLECTED_BY) fail('replay-label', `${name} ${replay.termsCollectedBy}`);
@@ -377,10 +377,13 @@ function checkReplay(receipt, name, fail) {
   const amounts = (row.credits ?? []).map(credit => credit.amount), ledger = (trace.credits ?? []).map(credit => credit.amount);
   // The known difference that moves credits (docs/settlement-replay.md, "Known difference, pending owner decision"): an unfinished
   // answer the stages closed with no stop is free in the replay and charged its acknowledged prefix by the ledger. It
-  // is tolerated only when the receipt labels it for this reservation and the ledger charged exactly that prefix.
+  // is tolerated only when the receipt labels it for this reservation and the ledger charged exactly that prefix, capped
+  // at the signed ceiling, at the policy rate.
   const labelled = (replay.knownDifferences ?? []).some(item => item?.case === WALK_AWAY_DIFFERENCE && item.reservationId === row.reservationId
     && item.acknowledgedOutputs === row.outputs);
-  const knownDifference = labelled && isWalkAwayRow(row) && trace.outputTokens === row.outputs && trace.charge > 0;
+  const prefix = Math.min(row.outputs, expectations.workload.maxOutputTokens);
+  const knownDifference = labelled && isWalkAwayRow(row) && trace.outputTokens === prefix && prefix > 0
+    && trace.charge === prefix * expectations.creditsPerOutputToken;
   if (!knownDifference && (row.debit !== trace.charge || !same(amounts, ledger))) {
     fail('replay-differs-from-ledger', `${name} replay ${row.debit} ${canonical(amounts)}, ledger ${trace.charge} ${canonical(ledger)}`);
   }
@@ -461,7 +464,7 @@ export function checkStage1Receipt(receipt, expectations) {
   checkEarn(record, expectations, fail);
   checkCancel(record, expectations, fail);
   checkDrop(record, expectations, fail);
-  for (const name of ['split', 'cancel', 'drop']) checkReplay(record, name, fail);
+  for (const name of ['split', 'cancel', 'drop']) checkReplay(record, name, expectations, fail);
   checkCleanup(record, fail);
   checkServices(record, expectations, fail);
   const { label, solo } = decideLabel(record, expectations, fail);

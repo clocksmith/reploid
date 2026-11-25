@@ -472,7 +472,8 @@ acknowledgedOutputs }` per `result.reservations` row that is `settled` with
 `outputs` (an empty list when there is none). A receipt passes with the
 difference only when such an entry names the reservation with the row's
 acknowledged count, and the ledger charged exactly that prefix: its output count
-equals `outputs` and its charge is that count at the policy rate. None of the
+equals the smaller of `outputs` and the workload's `maxOutputTokens`, and its
+charge is that count at the policy rate. None of the
 three phases should meet it: the split answer finishes, the cancelled one signs a stop (and the check
 still requires that stop), and the dropped one has a killed stage that never
 closes, so it expires in both.

@@ -146,6 +146,23 @@ describe('the settlement replay', () => {
     Object.assign(r.cancel.settlementReplay.result.reservations[0], { debit: 0, outputs: 1, chargedOutputs: 0 }); }))).toEqual(['replay-differs-from-ledger']);
   });
 
+  it('requires the labelled prefix at the policy rate, capped at the signed ceiling', () => {
+    const rate = expectations.creditsPerOutputToken, ceiling = expectations.workload.maxOutputTokens;
+    // The ledger charged the right count at the wrong rate.
+    expect(codes(judged(r => { walkAway(r); label(r); r.split.settlement.charge += 1; }))).toContain('replay-differs-from-ledger');
+    // Past the ceiling the ledger charges the ceiling, which is the labelled prefix capped.
+    const past = ceiling + 2;
+    expect(codes(judged(r => {
+      walkAway(r); Object.assign(r.split.settlementReplay.result.reservations[0], { outputs: past }); label(r, { acknowledgedOutputs: past });
+      Object.assign(r.split.settlement, { outputTokens: ceiling, charge: ceiling * rate });
+    })).filter(code => code === 'replay-differs-from-ledger')).toEqual([]);
+    // And charging every output past the ceiling is refused.
+    expect(codes(judged(r => {
+      walkAway(r); Object.assign(r.split.settlementReplay.result.reservations[0], { outputs: past }); label(r, { acknowledgedOutputs: past });
+      Object.assign(r.split.settlement, { outputTokens: past, charge: past * rate });
+    }))).toContain('replay-differs-from-ledger');
+  });
+
   it('accepts a dropped answer the replay settled at zero', () => {
     expect(checkStage1Receipt(goodReceipt(), expectations).ok).toBe(true);
     expect(codes(judged(r => { Object.assign(r.drop.settlementReplay.result.reservations[0], { status: 'settled', debit: 0 }); }))).toEqual([]);
