@@ -26,7 +26,7 @@ Plain Node, about 10 seconds, no model, no GPU, no network.
 - **Who wrote it.** A second agent session working for the same operator as the service's verifier. It is not an
   independent party, and this is not a third-party replay.
 - **What the author read.** Only `docs/settlement-replay.md`, first at commit 20121ae60 and again in full at
-  4ee9dd6b2 and at c29bc5d44 when the document changed. It was told not to open the service's verifier, the signers, the tests, the
+  4ee9dd6b2, c29bc5d44 and a25242bc3 when the document changed. It was told not to open the service's verifier, the signers, the tests, the
   scenario builder, the attack matrix, this directory's comparison or any diff, and it reported opening none of
   them. That boundary is self-reported.
 - **What the author could not test.** It had no signer, so before the comparison it could only check the verifier
@@ -40,29 +40,41 @@ does, and only from the document's text. A fix prompted by the service's code wo
 
 ## Result on main
 
-The document and the service's verifier at c29bc5d44 (the document's later commit, 9db60b49d, changes only its
-prior-work paragraph). 20 base attempts, 25 mutation families, Ed25519 and P-256 keys. The document reports one row
-per reservation and requester, and the comparison is keyed the same way.
+The document at a25242bc3 and the service's verifier at f74ddede9. 20 base attempts, 25 mutation families, Ed25519
+and P-256 keys. The document reports one row per reservation and requester, and the comparison is keyed the same way.
 
 | | Count |
 | --- | --- |
 | Record sets | 1,376 |
 | Judgments (one row at one clock value) | 1,904 |
 | Same outcome, same debit, same credit for every stage | 1,904 |
-| Disagreements | 0 |
-| Same outcome and amounts, but a late, foreign or rejected list differs | 0 |
+| Disagreements on outcome or amounts | 0 |
+| Same records rejected, and the same balances per account | 1,860 of 1,860 runs |
+| Every documented member of the row the same | 1,852 |
 
-Conflict entries are compared only by whether each verifier lists one. The document now names the conflict kinds,
-but the entries' details are among the open items in DOC-GAPS.md, and this comparison does not test them.
+Read this as: on these record sets, a verifier written from the document's text alone reaches every verdict and
+every amount the service's verifier reaches. It is not a proof that the two agree on all records.
 
-Read this as: on these record sets, a verifier written from the document's text alone reaches every verdict the
-service's verifier reaches. It is not a proof that the two agree on all records.
+Since a25242bc3 the document names every member of a result row, so the comparison now covers all of them except
+the sentence in `reason`: `attemptId`, `status`, `debit`, `credits`, `outputs`, `chargedOutputs`,
+`unacknowledgedOutputs`, `beyondCeiling`, `closedAtLastStep`, `conflicts`, `late`, `foreign` and `unmatched`. List
+entries are compared without regard to order, which the document does not fix (two rows differ only in order).
+The 52 rows with a differing member have three causes, none of which changes a verdict or an amount:
 
-The last family was added after the verifier's final update, for the rules the document gained at c29bc5d44. Both
-verifiers reject ten other forms of a time (no milliseconds, an offset, lower case, no zone, six fraction digits,
-30 February, hour 24, an expanded year, and two more), reject a signature or key coordinate whose last character is
-changed without changing its bytes, count a closing receipt signed up to the end of the release window, and list a
-later one as late. Both also accept the second valid form of a P-256 signature (see below).
+1. **`credits` for a stage on the requester's own account (40 rows).** The document says the stage is listed with
+   amount 0. The service's verifier leaves it out. One of the two should change.
+2. **`conflicts` entries for a stage's contradictory receipts (11 rows).** The document does not say which two
+   sequence numbers an entry carries or how many entries one stage gets, and the two verifiers chose differently.
+3. **`closedAtLastStep` on a row that ends `unknown` (1 row).** A stage was already treated as closed at its last
+   step when the row stopped for a missing acceptance. This verifier still lists it; the service's does not.
+
+`counts` is compared without its zero entries: this verifier lists all six outcomes, the service's only those with
+a row, and the document does not say which.
+
+The last mutation family covers the rules the document gained at c29bc5d44 and a25242bc3. Both verifiers reject ten
+other forms of a time, reject a signature or key coordinate whose last character is changed without changing its
+bytes, reject the second form of a P-256 signature (the document now requires the low-S form), and count a closing
+receipt signed up to the end of the release window plus the clock allowance.
 
 ### How the comparison got here
 
@@ -72,6 +84,7 @@ later one as late. Both also accept the second valid form of a P-256 signature (
 | 20121ae60 | rewritten by a fresh author from the text alone | 1,704 of 1,731 | a padded signature accepted; a run with no policy refused |
 | 4ee9dd6b2 | updated from the text | 1,749 of 1,774 | the same two |
 | c29bc5d44 | updated from the text | 1,774 of 1,774, then 1,904 of 1,904 with the added family | nothing |
+| a25242bc3 | updated from the text; the result shape now follows the document's member list | 1,904 of 1,904 | no verdict or amount; three small differences in other row members |
 
 Between those rounds the comparison and [../baseline-matrix.js](../baseline-matrix.js) also showed properties both
 verifiers shared because the document said so, and the document and the service's verifier were changed on each: a
@@ -133,22 +146,25 @@ difference between implementations.
 
 ## What the document still leaves open
 
-[DOC-GAPS.md](DOC-GAPS.md) lists 69 items, numbered across all three versions of the document. Against the current
-text 29 are settled, 7 partly settled and 22 still stand; 11 are new, of which 8 are places the text does not decide
-and 3 look wrong. Those most likely to matter to another implementer:
+[DOC-GAPS.md](DOC-GAPS.md) lists 74 items, numbered across all four versions of the document. Against the current
+text 39 are settled, 10 partly settled and 20 still stand; 5 are new, of which 3 are places the text does not decide
+and 2 look wrong. Those most likely to matter to another implementer:
 
+- **A late receipt and the acknowledged count.** One step says a late record never raises the acknowledged count;
+  the next says a receipt commits its chain "whenever it was signed", which lets a chain committed only by a late
+  receipt be charged.
+- **Two ends of the closing window.** A closing receipt counts up to the deadline plus the release window plus the
+  clock allowance, but a row is decided as soon as the deadline plus the release window has passed. In between, a
+  row is already `expired` or settled although an honest close signed then would still count and change it.
 - **Conflict entry details:** which sequences a `stage-receipt` entry carries, what `digests` holds, and the order
-  of entries.
-- **How `K` reaches a verifier.** The text checks the terms against the receiver policy's `K` but names no input
-  for it. This verifier takes an optional `receiverPolicy` and otherwise uses 2.
-- **Entry shapes and which rows exist:** `unmatched`, `closedAtLastStep`, an own-account stage's credit, and a
-  reservation with only acceptances and receipts.
-- **P-256 signatures have a second valid form** (`r` with `n - s`), so "one accepted signature text" does not hold
-  for that curve. Both verifiers accept a record re-encoded that way, and a whole record set re-encoded that way
-  settles at the same amounts. Outcomes do not change, because identical bodies count once.
-- **Two windows that can cross:** a closing receipt's window ends at the deadline plus the release window with no
-  clock allowance, an ordinary record's at the deadline plus the clock allowance.
-- **"Late records are ignored"** in one step, while the next uses late receipts in every conflict test.
+  of entries. The comparison above shows the two verifiers choosing differently on the first.
+- **Result details:** whether `counts` names every outcome, and what `chargedOutputs` is when a stage ended the
+  answer.
+- **Field types.** `attemptId`, `requesterId`, `participantId` and `maximum` have no stated type.
+
+Settled by the current text since the last version: the low-S form for P-256, where a verifier gets `K` (the
+policy's `maxUnacknowledgedOutputs`), the clock allowance on the closing window, late records as evidence of a
+contradiction, and the full list of a row's members.
 
 ## The first round
 
@@ -163,7 +179,7 @@ differential (745 record sets, 1,146 judgments, 808 full agreements) found that 
 
 Commit 20121ae60 fixed all four in the service's verifier, signed `K` into the terms and rewrote the document. The
 verifier here was then written again from the new document by an author who had seen neither the code nor the first
-verifier (commit 3bf842816), and updated from the document again at 4ee9dd6b2 and at c29bc5d44.
+verifier (commit 3bf842816), and updated from the document again at 4ee9dd6b2, c29bc5d44 and a25242bc3.
 
 ## Limits
 

@@ -537,18 +537,30 @@ const CLOCKS = {
 
 const byStage = (shares, credits) => shares.map(row => credits.filter(credit => credit.participantId === row.participantId).reduce((sum, credit) => sum + credit.amount, 0));
 const EMPTY = shares => ({ reason: null, debit: 0, credits: shares.map(() => 0), late: 0, foreign: 0, conflicts: 0, conflictKinds: [] });
-// The document reports one row per reservation and requester.
+// The document reports one row per reservation and requester, and names every member of a row.
 const rowKey = row => `${row.reservationId} / ${row.requesterId ?? 'no requester'}`;
-function independentView(result, shares) {
-  return new Map(result.reservations.map(row => [rowKey(row), { outcome: row.outcome, reason: row.reason, debit: row.debit,
-    credits: shares.map((share, index) => row.credits.filter(credit => credit.partitionIndex === index).reduce((sum, credit) => sum + credit.amount, 0)),
-    late: row.late.length, foreign: row.foreign.length, conflicts: row.conflicts.length, conflictKinds: [...new Set(row.conflicts.map(item => item.kind))].sort() }]));
-}
-function serviceView(result, shares) {
+const MEMBERS = Object.freeze(['attemptId', 'status', 'debit', 'credits', 'outputs', 'chargedOutputs', 'unacknowledgedOutputs', 'beyondCeiling',
+  'closedAtLastStep', 'conflicts', 'late', 'foreign', 'unmatched']);
+const sortKeys = value => (Array.isArray(value) ? value.map(sortKeys)
+  : value && typeof value === 'object' ? Object.fromEntries(Object.keys(value).sort().map(key => [key, sortKeys(value[key])])) : value);
+const exact = value => JSON.stringify(sortKeys(value) ?? null);
+// The same entries in another order: the document does not fix the order within a list.
+const unordered = value => (Array.isArray(value) ? JSON.stringify(value.map(item => exact(item)).sort()) : exact(value));
+/** Both verifiers return the documented shape, so one reading serves both. `reason` is a sentence for people and is not compared. */
+function view(result, shares) {
   return new Map(result.reservations.map(row => [rowKey(row), { outcome: row.status, reason: row.reason, debit: row.debit ?? 0,
     credits: byStage(shares, row.credits ?? []), late: (row.late ?? []).length, foreign: (row.foreign ?? []).length, conflicts: (row.conflicts ?? []).length,
-    conflictKinds: [...new Set((row.conflicts ?? []).map(item => item.kind))].sort() }]));
+    conflictKinds: [...new Set((row.conflicts ?? []).map(item => item.kind))].sort(), members: Object.fromEntries(MEMBERS.map(name => [name, row[name]])) }]));
 }
+const independentView = view, serviceView = view;
+const nonZero = counts => Object.fromEntries(Object.entries(counts ?? {}).filter(([, value]) => value !== 0));
+/** Why a row member differs. Each is a place where the document and the service's verifier differ (d) or the document leaves a choice (a). */
+export const MEMBER_CAUSES = Object.freeze({
+  credits: ['d', 'an own-account stage: the document lists it in `credits` with amount 0, the service\'s verifier leaves it out'],
+  conflicts: ['a', 'a `stage-receipt` conflict entry: which sequences it carries and how many entries one stage gets are not fixed by the document'],
+  closedAtLastStep: ['a', 'a row that ends `unknown` for a missing acceptance: whether a stage already treated as closed at its last step is still listed']
+});
+const membersDiffering = (a, b, same) => MEMBERS.filter(name => same(a.members?.[name]) !== same(b.members?.[name]));
 
 async function judge({ records, policies, at, shares }) {
   let independent, independentError = null, service, serviceError = null;
@@ -561,14 +573,22 @@ async function judge({ records, policies, at, shares }) {
     const a = mine.get(reservationId) ?? { outcome: independentError ? 'threw' : 'none', ...EMPTY(shares), reason: independentError };
     const b = theirs.get(reservationId) ?? { outcome: serviceError ? 'threw' : 'none', ...EMPTY(shares), reason: serviceError };
     rows.push({ reservationId, independent: a, service: b, outcomeAgrees: a.outcome === b.outcome,
-      amountsAgree: a.debit === b.debit && JSON.stringify(a.credits) === JSON.stringify(b.credits), lateAgrees: a.late === b.late, foreignAgrees: a.foreign === b.foreign });
+      amountsAgree: a.debit === b.debit && JSON.stringify(a.credits) === JSON.stringify(b.credits), lateAgrees: a.late === b.late, foreignAgrees: a.foreign === b.foreign,
+      membersDiffer: a.members && b.members ? membersDiffering(a, b, unordered) : ['row'], orderDiffers: a.members && b.members ? membersDiffering(a, b, exact) : [] });
   }
   if (rows.length === 0) rows.push({ reservationId: null, independent: { outcome: independentError ? 'threw' : 'none', ...EMPTY([]), reason: independentError },
     service: { outcome: serviceError ? 'threw' : 'none', ...EMPTY([]), reason: serviceError }, outcomeAgrees: !serviceError && !independentError,
-    amountsAgree: true, lateAgrees: true, foreignAgrees: true });
+    amountsAgree: true, lateAgrees: true, foreignAgrees: true, membersDiffer: independentError || serviceError ? ['row'] : [], orderDiffers: [] });
   const independentRejected = independentError ? null : independent.rejected.length;
   const serviceRejected = serviceError ? null : (service.rejected ?? []).length;
-  return { rows, rejected: { independent: independentRejected, service: serviceRejected, agrees: independentRejected === serviceRejected } };
+  // Which records were rejected (position and schema; the problem text is not specified), and the totals over all rows.
+  const which = result => JSON.stringify((result.rejected ?? []).map(row => `${row.index}:${row.schema}`).sort());
+  const both = !independentError && !serviceError;
+  return { rows, rejected: { independent: independentRejected, service: serviceRejected, agrees: independentRejected === serviceRejected,
+    sameRecords: both ? which(independent) === which(service) : independentError === null && serviceError === null },
+  // `counts` is compared without its zero entries: the document does not say whether an outcome with no row is listed.
+  totalsAgree: both ? { counts: exact(nonZero(independent.counts)) === exact(nonZero(service.counts)), balances: exact(independent.balances) === exact(service.balances) }
+    : { counts: false, balances: false } };
 }
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -633,16 +653,21 @@ async function main() {
 
   const families = new Map(), disagreements = [], all = [];
   const totals = { recordSets: cases.length, judgments: 0, outcomeAgreed: 0, amountsAgreed: 0, outcomeAndAmountsAgreed: 0,
-    lateListSizeAgreed: 0, foreignListSizeAgreed: 0, conflictListedAgreed: 0, rejectedListSizeAgreed: 0, rejectedListsCompared: 0 };
+    lateListSizeAgreed: 0, foreignListSizeAgreed: 0, conflictListedAgreed: 0, everyRowMemberAgreed: 0, everyRowMemberAgreedInOrder: 0,
+    rejectedListSizeAgreed: 0, sameRecordsRejected: 0, countsAgreed: 0, balancesAgreed: 0, rejectedListsCompared: 0 };
+  const memberDifferences = {};
   const listDifferences = [];
   const outcomePairs = {};
   for (const item of cases) {
     for (const clock of item.clocks) {
       const at = CLOCKS[clock](item.ctx);
       const shares = item.ctx.terms.shares;
-      const { rows, rejected } = await judge({ records: item.records, policies: item.policies, at, shares });
+      const { rows, rejected, totalsAgree } = await judge({ records: item.records, policies: item.policies, at, shares });
       totals.rejectedListsCompared += 1;
       if (rejected.agrees) totals.rejectedListSizeAgreed += 1;
+      if (rejected.sameRecords) totals.sameRecordsRejected += 1;
+      if (totalsAgree.counts) totals.countsAgreed += 1;
+      if (totalsAgree.balances) totals.balancesAgreed += 1;
       for (const row of rows) {
         totals.judgments += 1;
         const family = families.get(item.family) ?? { judgments: 0, outcomeAgreed: 0, amountsAgreed: 0 };
@@ -654,6 +679,13 @@ async function main() {
         if (row.foreignAgrees) totals.foreignListSizeAgreed += 1;
         const conflictListed = (row.independent.conflicts > 0) === (row.service.conflicts > 0);
         if (conflictListed) totals.conflictListedAgreed += 1;
+        if (row.membersDiffer.length === 0) totals.everyRowMemberAgreed += 1;
+        if (row.orderDiffers.length === 0) totals.everyRowMemberAgreedInOrder += 1;
+        for (const name of row.membersDiffer) {
+          const entry = memberDifferences[name] ??= { count: 0, classification: MEMBER_CAUSES[name]?.[0] ?? null, cause: MEMBER_CAUSES[name]?.[1] ?? 'unclassified', examples: [] };
+          entry.count += 1;
+          if (entry.examples.length < 3) entry.examples.push({ base: item.base, mutation: item.name, clock, independent: row.independent.members?.[name] ?? null, service: row.service.members?.[name] ?? null });
+        }
         families.set(item.family, family);
         const pair = `${row.independent.outcome} / ${row.service.outcome}`;
         outcomePairs[pair] = (outcomePairs[pair] ?? 0) + 1;
@@ -714,7 +746,7 @@ async function main() {
     finishedAt: new Date().toISOString(),
     command: 'node scripts/settlement/independent/differential.js --out scripts/settlement/independent/receipts/differential.json',
     commit, uncommittedChangesInComparedCode: dirty, node: process.version,
-    note: 'All parties are simulated identities on one machine. The second verifier was written from docs/settlement-replay.md alone by a second session under the same operator, so this is not a third-party replay. Both verifiers ran in one process on the same record sets. Keys are fresh on each run; counts are deterministic. Classifications: a = a reading of a sentence the document leaves open, b = a defect in the service verifier, c = a defect in the second verifier, d = the document and the service verifier say different things.',
+    note: 'All parties are simulated identities on one machine. The second verifier was written from docs/settlement-replay.md alone by a second session under the same operator, so this is not a third-party replay. Both verifiers ran in one process on the same record sets. Keys are fresh on each run; counts are deterministic. Every documented row member except the sentence in `reason` is compared; list entries are compared without regard to order, and `counts` without its zero entries. Classifications: a = a reading of a sentence the document leaves open, b = a defect in the service verifier, c = a defect in the second verifier, d = the document and the service verifier say different things.',
     policy: POLICY,
     baseAttempts: BASES.map(base => base.name),
     totals,
@@ -722,6 +754,7 @@ async function main() {
     families: Object.fromEntries(families),
     disagreements: { total: disagreements.length, byCause },
     sameOutcomeAndAmountsButListsDiffer: { total: listDifferences.length, byCause: listCauses },
+    rowMembersCompared: MEMBERS, rowMemberDifferences: memberDifferences,
     noted
   };
   const out = flag('out');
@@ -733,6 +766,11 @@ async function main() {
   if (flag('all')) for (const line of all) console.log(JSON.stringify(line));
   if (flag('lists')) for (const line of listDifferences) console.log(`${line.listCause} | ${line.base} | ${line.mutation} | ${line.clock} | ${line.independent.outcome} | late ${line.independent.late}/${line.service.late} foreign ${line.independent.foreign}/${line.service.foreign} rejected ${line.rejected.independent}/${line.rejected.service} conflicts ${line.independent.conflicts}/${line.service.conflicts}`);
   console.log(JSON.stringify({ totals, outcomePairs: receipt.outcomePairs }, null, 2));
+  console.log(`\nRow members that differ (entries compared without regard to order): ${Object.keys(memberDifferences).length ? '' : 'none'}`);
+  for (const [name, entry] of Object.entries(memberDifferences)) {
+    console.log(`  (${entry.classification ?? '?'}) ${String(entry.count).padStart(4)}  ${name}: ${entry.cause}`);
+    if (flag('verbose')) for (const example of entry.examples) console.log(`        ${example.base} | ${example.mutation} | ${example.clock} | ${JSON.stringify(example.independent)?.slice(0, 200)} vs ${JSON.stringify(example.service)?.slice(0, 200)}`);
+  }
   console.log(`\nSame outcome and amounts, a list differs: ${listDifferences.length}`);
   for (const [cause, entry] of Object.entries(listCauses)) console.log(`  ${String(entry.count).padStart(4)}  ${cause}`);
   console.log('\nDisagreements by cause (classification, count, of which amounts differ):');

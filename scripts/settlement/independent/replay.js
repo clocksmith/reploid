@@ -7,9 +7,11 @@
 // behaviour, the choice made here is marked CHOICE and may differ from the
 // reference. Node 22, built-in modules only.
 //
-// Follows the document's text as of commit c29bc5d44: canonical base64url and exact
-// ISO times, one row per (reservation, requester) attempt, the receiver policy's K in
-// step 3, closesInTime for closing receipts, and the conflict entries of its table.
+// Follows the document's text as of commit a25242bc3 (551 lines): canonical base64url,
+// low-S P-256 signatures and exact ISO times; one row per (reservation, requester)
+// attempt with exactly the members of its "Rows" table; K from the named policy, else
+// from the `maxUnacknowledgedOutputs` input; closesInTime for closing receipts; and late
+// records used only as evidence of a contradiction.
 
 import { createHash, createPublicKey, verify } from 'node:crypto';
 
@@ -19,12 +21,15 @@ const RECEIPT = 'reploid.stage-receipt/v1';
 const ACKNOWLEDGMENT = 'reploid.output-acknowledgment/v1';
 const STOP = 'reploid.settlement-stop/v1';
 const OUTPUT_CHAIN = 'reploid.output-chain/v1';
+const RESULT_SCHEMA = 'reploid.settlement-replay/v1';
 const PROVIDER_LOSS_FREE = 'reploid.unfinished-answer/provider-loss-free/v1';
+const OUTCOMES = ['settled', 'expired', 'open', 'conflict', 'unknown', 'invalid'];
 const STATUSES = new Set(['executing', 'settled', 'failed']);
 const CLOSING = new Set(['settled', 'failed']);
-// K of the stages' receiver policy: "currently 2" in the document, which is all a verifier
-// that may not read that policy has. See `receiverPolicy` on replaySettlement.
+// The stages' receiver policy's K, used for a policy that does not name its own.
 const RECEIVER_POLICY_K = 2;
+// The order of the P-256 group, for the low-S rule.
+const P256_ORDER = 0xffffffff00000000ffffffffffffffffbce6faada7179e84f3b9cac2fc632551n;
 
 // ---- Encoding ---------------------------------------------------------------
 
@@ -93,6 +98,11 @@ const isBase64url = (v, bytes) => {
   if (typeof v !== 'string' || !BASE64URL.test(v)) return false;
   const decoded = Buffer.from(v, 'base64url');
   return decoded.length === bytes && decoded.toString('base64url') === v;
+};
+// Low-S: s, the second half of r || s read big-endian, satisfies 1 <= s <= n / 2 (rounded down).
+const isLowS = (signature) => {
+  const s = BigInt(`0x${Buffer.from(signature, 'base64url').subarray(32).toString('hex')}`);
+  return s >= 1n && s <= P256_ORDER / 2n;
 };
 // Exactly what toISOString writes, in UTC, naming a real instant (writing it again gives the same text).
 const isTime = (v) => {
@@ -200,46 +210,52 @@ function signatureHolds(schema, body, jwk, signature) {
   }
 }
 
-/** Shape, key and signature checks. Returns { reason } to reject, or the admitted record. */
+/** Shape, key and signature checks. Returns { rejected } for the `rejected` list, or { record }. */
 function admit(records, index) {
-  let record;
+  // CHOICE: `schema` is the record's own schema text, known or not; null when it has none
+  // or the record cannot be read as JSON. The `problem` texts are mine.
+  let schema = null;
+  const reject = (problem) => ({ rejected: { index, schema, problem } });
+  let copy;
   try {
     const input = records[index];
-    if (input === null || typeof input !== 'object' || Array.isArray(input)) return { reason: 'not an object' };
-    record = plainCopy(input);
+    if (input === null || typeof input !== 'object' || Array.isArray(input)) return reject('not an object');
+    copy = plainCopy(input);
   } catch {
-    return { reason: 'not a plain finite JSON value' };
+    return reject('not a plain finite JSON value');
   }
-  const kind = KINDS.get(record.schema);
-  if (!kind) return { reason: 'unknown schema' }; // CHOICE: rejected, not silently skipped
-  if (!Object.hasOwn(record, 'publicJwk') || !Object.hasOwn(record, 'signature')) {
-    return { reason: 'publicJwk or signature missing' };
+  if (typeof copy.schema === 'string') schema = copy.schema;
+  const kind = KINDS.get(copy.schema);
+  if (!kind) return reject('unknown schema'); // CHOICE: rejected, not silently skipped
+  if (!Object.hasOwn(copy, 'publicJwk') || !Object.hasOwn(copy, 'signature')) {
+    return reject('publicJwk or signature missing');
   }
-  const { publicJwk, signature, ...body } = record;
-  if (Object.keys(body).some((name) => !Object.hasOwn(kind.fields, name))) return { reason: 'member not allowed' };
+  const { publicJwk, signature, ...body } = copy;
+  if (Object.keys(body).some((name) => !Object.hasOwn(kind.fields, name))) return reject('member not allowed');
   for (const name of Object.keys(kind.fields)) {
-    if (!Object.hasOwn(body, name)) return { reason: `member missing: ${name}` };
-    if (!kind.fields[name](body[name])) return { reason: `field rule: ${name}` };
+    if (!Object.hasOwn(body, name)) return reject(`member missing: ${name}`);
+    if (!kind.fields[name](body[name])) return reject(`field rule: ${name}`);
   }
   const fault = kind.across ? kind.across(body) : null;
-  if (fault) return { reason: `field rule: ${fault}` };
+  if (fault) return reject(`field rule: ${fault}`);
   const jwk = keyOf(publicJwk);
-  if (!jwk) return { reason: 'key shape' };
-  if (!isBase64url(signature, 64)) return { reason: 'signature format' };
-  if (body[kind.signer] !== participantIdOf(jwk)) return { reason: `${kind.signer} is not the ID of the carried key` };
-  if (!signatureHolds(record.schema, body, jwk, signature)) return { reason: 'signature does not verify' };
-  const admitted = { index, schema: record.schema, body, identity: canonicalJson(body), signedAt: Date.parse(body.signedAt) };
-  if (record.schema === TERMS) {
-    admitted.digest = digestOf(body);
-    admitted.notBefore = Date.parse(body.notBefore);
-    admitted.deadline = Date.parse(body.deadline);
+  if (!jwk) return reject('key shape');
+  if (!isBase64url(signature, 64)) return reject('signature format');
+  if (jwk.kty === 'EC' && !isLowS(signature)) return reject('P-256 signature is not low-S');
+  if (body[kind.signer] !== participantIdOf(jwk)) return reject(`${kind.signer} is not the ID of the carried key`);
+  if (!signatureHolds(schema, body, jwk, signature)) return reject('signature does not verify');
+  const record = { index, schema, body, identity: canonicalJson(body), signedAt: Date.parse(body.signedAt) };
+  if (schema === TERMS) {
+    record.digest = digestOf(body);
+    record.notBefore = Date.parse(body.notBefore);
+    record.deadline = Date.parse(body.deadline);
   }
-  return admitted;
+  return { record };
 }
 
-// Groups by reservationId and then by requester (one "attempt", one output row): terms,
-// acknowledgments and stops go to the requester they name; acceptances and stage receipts
-// name no requester and are offered to every attempt under the reservation.
+// Groups into attempts: terms, acknowledgments and stops go to the attempt of the
+// reservationId and requesterId they name; acceptances and stage receipts name no
+// requester and are offered to every attempt under their reservationId.
 function place(byReservation, record) {
   const id = record.body.reservationId;
   if (!byReservation.has(id)) byReservation.set(id, { attempts: new Map(), acceptances: [], receipts: [] });
@@ -255,13 +271,35 @@ function place(byReservation, record) {
   return (record.schema === ACKNOWLEDGMENT ? attempt.acknowledgments : attempt.stops).push(record);
 }
 
+// ---- Rows -------------------------------------------------------------------
+
+/** A row with exactly the members of the "Rows" table, as they stand before any step decides. */
+const newRow = (reservationId, requesterId) => ({
+  reservationId, requesterId, attemptId: null, status: 'unknown', reason: '', debit: null, credits: null,
+  outputs: null, chargedOutputs: null, unacknowledgedOutputs: null, beyondCeiling: null,
+  closedAtLastStep: [], conflicts: [], late: [], foreign: [], unmatched: [],
+});
+
+/** How a late record is listed in `late`. */
+function lateEntry({ schema, body, digest }) {
+  if (schema === TERMS) return { kind: 'terms', signer: body.requesterId, digest };
+  if (schema === ACCEPTANCE) return { kind: 'acceptance', partitionIndex: body.partitionIndex };
+  if (schema === RECEIPT) return { kind: 'stage-receipt', partitionIndex: body.partitionIndex, sequence: body.sequence };
+  if (schema === ACKNOWLEDGMENT) return { kind: 'acknowledgment', count: body.count };
+  return { kind: 'stop', acknowledged: body.acknowledged };
+}
+
 // ---- Deciding an outcome ----------------------------------------------------
 
-/** Step 3. Returns what is wrong between the agreed terms and the policies, or null. */
+/** Step 3. Returns what is wrong between the agreed terms and the policy they name, or null. */
 function policyFault(agreed, policy, receiverK) {
   const terms = agreed.body;
   if (!policy) return 'the policy digest names no supplied policy'; // also the case of no policy at all
-  if (terms.maxUnacknowledgedOutputs !== receiverK) return 'maxUnacknowledgedOutputs is not the receiver policy\'s K';
+  // CHOICE: the allowance must be a count; any other value cannot be compared and is unusable too.
+  if (!isCount(policy.maxClockSkewMs) || typeof policy.partitionUnclaimedReleaseMs !== 'number'
+    || !(policy.partitionUnclaimedReleaseMs > policy.maxClockSkewMs)) {
+    return 'the policy is not usable: partitionUnclaimedReleaseMs is not greater than maxClockSkewMs';
+  }
   if (policy.unit !== terms.unit) return 'unit is not the policy\'s';
   if (policy.creditsPerOutputToken !== terms.creditsPerOutputToken) return 'creditsPerOutputToken is not the policy\'s';
   if (policy.partitionUnclaimedReleaseMs !== terms.releaseWindowMs) return 'releaseWindowMs is not the policy\'s';
@@ -271,8 +309,9 @@ function policyFault(agreed, policy, receiverK) {
   if (typeof policy.maxRequestMs !== 'number' || !(agreed.deadline - agreed.notBefore <= policy.maxRequestMs)) {
     return 'deadline - notBefore is above maxRequestMs';
   }
-  // CHOICE: inTime cannot be computed without the allowance, so its absence is also invalid.
-  if (!isCount(policy.maxClockSkewMs)) return 'the policy has no usable maxClockSkewMs';
+  // A policy that names K decides it; one with no such member takes the receiver policy's value.
+  const K = policy.maxUnacknowledgedOutputs === undefined ? receiverK : policy.maxUnacknowledgedOutputs;
+  if (terms.maxUnacknowledgedOutputs !== K) return 'maxUnacknowledgedOutputs is not K';
   return null;
 }
 
@@ -320,22 +359,26 @@ async function accountFor(accountOf, participantId) {
   }
 }
 
-/** Decides one attempt, a (reservationId, requesterId) pair: one row of the output. */
+/**
+ * Decides one attempt, a (reservationId, requesterId) pair. Returns its row and, for a
+ * settled or expired row, the amounts it posts to accounts (for `balances`).
+ */
 async function decide(reservationId, requesterId, attempt, { policyByDigest, receiverK, at, accountOf }) {
-  const result = {
-    reservationId, outcome: 'unknown', reason: '', requesterId, termsDigest: null, units: 0, debit: 0,
-    credits: [], late: [], foreign: [], unmatched: [], closedAtLastStep: [], conflicts: [],
-  };
-  const done = (outcome, reason) => {
-    for (const list of [result.late, result.foreign, result.unmatched]) list.sort((a, b) => a.index - b.index);
-    return Object.assign(result, { outcome, reason });
+  const row = newRow(reservationId, requesterId);
+  const postings = []; // [account, BigInt amount]
+  const listed = { late: [], foreign: [], unmatched: [] };
+  // CHOICE: `late`, `foreign` and `unmatched` hold one entry per record, in input order.
+  const list = (name, record, entry) => listed[name].push({ index: record.index, entry });
+  const done = (status, reason) => {
+    for (const name of Object.keys(listed)) {
+      row[name] = listed[name].sort((a, b) => a.index - b.index).map(({ entry }) => entry);
+    }
+    return { row: Object.assign(row, { status, reason }), postings };
   };
   // Own terms, acknowledgments and stops; every acceptance and stage receipt of the reservation.
   const { terms: everyTerms, acknowledgments, stops, acceptances, receipts } = attempt;
-  const listLate = (record) => result.late.push({ index: record.index, schema: record.schema });
-  // One entry of `conflicts`: kind, blocking and signer, plus the members of its kind
-  // (the table under "Conflict entries").
-  const conflict = (kind, blocking, signer, members) => result.conflicts.push({ kind, blocking, signer, ...members });
+  // One entry of `conflicts`: kind, blocking and signer, plus the members of its kind.
+  const conflict = (kind, blocking, signer, members) => row.conflicts.push({ kind, blocking, signer, ...members });
   const fromNamedStage = (terms, record) =>
     terms.body.shares[record.body.partitionIndex]?.participantId === record.body.participantId;
   // "An acceptance counts only for the agreed terms digest and its own share" (and its attemptId).
@@ -362,8 +405,8 @@ async function decide(reservationId, requesterId, attempt, { policyByDigest, rec
       && fromNamedStage(candidate, receipt));
     const contradicted = (itsReceipts.length > 0 && !itsReceipts.some(onRoute))
       || (itsAcks.length > 0 && !itsAcks.some(onRoute));
-    if (contradicted) result.foreign.push({ index: candidate.index });
-    else if (!windowOf(candidate)(candidate.signedAt)) listLate(candidate);
+    if (contradicted) list('foreign', candidate, { kind: 'terms', signer: requesterId, attemptId, digest: candidate.digest });
+    else if (!windowOf(candidate)(candidate.signedAt)) list('late', candidate, lateEntry(candidate));
     else remaining.push(candidate);
   }
 
@@ -388,18 +431,20 @@ async function decide(reservationId, requesterId, attempt, { policyByDigest, rec
     conflict('terms-equivocation', false, requesterId, { digests, settledOn: agreed.digest });
   }
   const terms = agreed.body;
-  result.termsDigest = agreed.digest;
+  row.attemptId = terms.attemptId;
 
-  // Step 3. Policy, and the receiver policy's K.
+  // Step 3. Policy: usable, repeated by the terms, and K.
   const policy = policyByDigest.get(terms.policyDigest);
   const fault = policyFault(agreed, policy, receiverK);
   if (fault) return done('invalid', `step 3: ${fault}`);
 
   // Step 4. Records kept. A closing receipt counts when signed closesInTime, every other kept
-  // record when signed inTime; a kept record that does not count is listed as late.
-  const opens = agreed.notBefore - policy.maxClockSkewMs;
-  const inTime = (t) => opens <= t && t <= agreed.deadline + policy.maxClockSkewMs;
-  const closesInTime = (t) => opens <= t && t < agreed.deadline + terms.releaseWindowMs;
+  // record when signed inTime; both windows carry the clock allowance at both ends. A kept
+  // record that does not count is late: listed, and used only in step 5's contradiction tests.
+  const skew = policy.maxClockSkewMs;
+  const opens = agreed.notBefore - skew;
+  const inTime = (t) => opens <= t && t <= agreed.deadline + skew;
+  const closesInTime = (t) => opens <= t && t <= agreed.deadline + terms.releaseWindowMs + skew;
   const keep = (records, belongs) => {
     const kept = { all: [], counting: [] };
     for (const record of records) {
@@ -409,7 +454,7 @@ async function decide(reservationId, requesterId, attempt, { policyByDigest, rec
       kept.all.push(record);
       const closing = record.schema === RECEIPT && isClosing(record);
       if (closing ? closesInTime(record.signedAt) : inTime(record.signedAt)) kept.counting.push(record);
-      else listLate(record);
+      else list('late', record, lateEntry(record));
     }
     return kept;
   };
@@ -429,7 +474,8 @@ async function decide(reservationId, requesterId, attempt, { policyByDigest, rec
   const finalStage = stages.at(-1);
   const finalStageId = finalStage.share.participantId;
 
-  // Step 5. Acknowledged count and contradictions, late receipts included.
+  // Step 5. Acknowledged count and contradictions. Kept receipts and acknowledgments, late
+  // or not, are used in every contradiction test.
   for (const stage of stages) {
     for (const sequences of receiptConflicts(stage.kept)) {
       conflict('stage-receipt', true, stage.share.participantId, { partitionIndex: stage.position, sequences });
@@ -449,52 +495,74 @@ async function decide(reservationId, requesterId, attempt, { policyByDigest, rec
     if (committed.get(count).size > 1) conflict('output-chain', true, finalStageId, { count });
   }
   const committedAt = (count) => (count === 0 ? new Set([startingChain]) : committed.get(count) ?? null);
-  const ackedChains = new Map(); // count -> the chains of its in-time acknowledgments
-  for (const ack of keptAcks.counting) {
-    if (!ackedChains.has(ack.body.count)) ackedChains.set(ack.body.count, new Set());
-    ackedChains.get(ack.body.count).add(ack.body.chain);
+  // The requester's acknowledgments per count: every chain it signed (in time or late), and
+  // the ones signed in time, which alone can match and be charged.
+  const acked = new Map();
+  for (const ack of keptAcks.all) {
+    if (!acked.has(ack.body.count)) acked.set(ack.body.count, { chains: new Set(), timely: [] });
+    acked.get(ack.body.count).chains.add(ack.body.chain);
   }
+  for (const ack of keptAcks.counting) acked.get(ack.body.count).timely.push(ack);
+  // CHOICE: step 4 says a late record never raises the acknowledged count, step 5 that a
+  // receipt commits "whenever it was signed" and that an in-time acknowledgment carrying the
+  // committed chain matches. Step 5 is followed: a late receipt's chain can be matched.
   let acknowledged = 0; // the highest matched count, 0 if none
-  for (const count of [...ackedChains.keys()].sort(ascending)) {
-    const chains = [...ackedChains.get(count)].sort();
+  for (const count of [...acked.keys()].sort(ascending)) {
+    const { chains, timely } = acked.get(count);
     const finalChains = committedAt(count);
-    const matched = finalChains === null ? null : chains.find((chain) => finalChains.has(chain)) ?? null;
     if (finalChains === null) {
-      // No final-stage receipt commits a chain at this count: not charged. CHOICE: entries are { index, count }.
-      for (const ack of keptAcks.counting) {
-        if (ack.body.count === count) result.unmatched.push({ index: ack.index, count });
-      }
-    } else if (matched !== null) {
-      acknowledged = Math.max(acknowledged, count);
-    } else if (count === 0) {
-      // CHOICE: at count 0 only this entry, not the disputed-chain one as well.
-      conflict('charge-binding', true, requesterId, { count: 0 });
-    } else {
-      conflict('output-chain', true, null, { count, signers: [finalStageId, requesterId] });
+      // No final-stage receipt commits a chain at this count: in-time acknowledgments are unmatched.
+      for (const ack of timely) list('unmatched', ack, { kind: 'acknowledgment', count });
+      continue;
     }
-    if (chains.length > 1) {
-      // CHOICE: also listed when the count is not matched (the table gives `settledOn` only
-      // "when the count is matched"); `chains` then holds every chain. Chains are sorted.
-      const others = chains.filter((chain) => chain !== matched);
+    const matched = timely.map((ack) => ack.body.chain).sort().find((chain) => finalChains.has(chain)) ?? null;
+    if (matched !== null) acknowledged = Math.max(acknowledged, count);
+    const others = [...chains].filter((chain) => !finalChains.has(chain)).sort(); // CHOICE: sorted
+    if (others.length === chains.size) {
+      // None of its chains for this count, in time or late, is the final stage's.
+      // CHOICE: at count 0 only the charge-binding entry, not the disputed-chain one as well.
+      if (count === 0) conflict('charge-binding', true, requesterId, { count: 0 });
+      else conflict('output-chain', true, null, { count, signers: [finalStageId, requesterId] });
+    } else if (others.length > 0) {
+      // It also signed the final stage's chain: not blocking; `settledOn` when the count is matched.
       const members = matched === null ? { count, chains: others } : { count, chains: others, settledOn: matched };
       conflict('acknowledgment-equivocation', false, requesterId, members);
     }
   }
-  const blockingKinds = new Set(result.conflicts.filter((entry) => entry.blocking).map((entry) => entry.kind));
+  const blockingKinds = new Set(row.conflicts.filter((entry) => entry.blocking).map((entry) => entry.kind));
   if (blockingKinds.size > 0) return done('conflict', `step 5: ${[...blockingKinds].join(', ')}`);
 
+  // Debit and credits of a settled or expired row, and what they post to accounts.
+  const post = async (units) => {
+    const amounts = splitUnits(units, terms.shares.map((share) => BigInt(share.weight)));
+    const requesterAccount = await accountFor(accountOf, requesterId);
+    let debit = units;
+    row.credits = [];
+    for (const [position, share] of terms.shares.entries()) {
+      const account = await accountFor(accountOf, share.participantId);
+      // The requester's own account is neither charged nor credited: its stage shows amount 0.
+      const amount = account === requesterAccount ? 0n : amounts[position];
+      debit -= amounts[position] - amount;
+      row.credits.push({ participantId: share.participantId, amount: Number(amount) });
+      postings.push([account, amount]);
+    }
+    row.debit = Number(debit); // every amount is at most `maximum`, a safe integer
+    postings.push([requesterAccount, -debit]);
+  };
+
   // Step 6. Closing. A non-final stage's `output` is never read.
+  row.outputs = acknowledged; // for rows decided at step 6 or later
   const hasClosed = ({ latest }) => latest !== null && isClosing(latest);
   const delivered = finalStage.latest?.body.output ?? null; // the final stage's latest receipt's output
   const answerDelivered = delivered?.done === true && delivered.count > 0 && acknowledged === delivered.count;
   const unclosed = stages.filter((stage) => !hasClosed(stage));
   if (unclosed.length > 0) {
-    // CHOICE: without a usable verification time the release window has not passed.
+    // CHOICE: `at` is milliseconds since the epoch; without a usable one the window has not passed.
     const windowPassed = typeof at === 'number' && at >= agreed.deadline + terms.releaseWindowMs;
     if (!answerDelivered) {
-      return windowPassed
-        ? done('expired', 'step 6: not every stage closed, no delivered answer, and the release window passed')
-        : done('open', 'step 6: not every stage closed and the release window has not passed');
+      if (!windowPassed) return done('open', 'step 6: not every stage closed and the release window has not passed');
+      await post(0n); // an expired attempt charges nobody and pays nobody
+      return done('expired', 'step 6: not every stage closed, no delivered answer, and the release window passed');
     }
     // Whatever the time. A stage with no counting receipt at all has none that covers the answer.
     const uncovered = unclosed.find((stage) => stage.latest === null || stage.latest.body.steps < delivered.count);
@@ -502,11 +570,9 @@ async function decide(reservationId, requesterId, attempt, { policyByDigest, rec
       return done('unknown', `step 6: delivered, but stage ${uncovered.position} has no receipt covering the answer`);
     }
     if (!windowPassed) return done('open', 'step 6: delivered, a stage has not closed and the release window has not passed');
-    // Treated as closed at its last signed step. CHOICE: entries are { partitionIndex, participantId },
-    // and they stay listed if step 7 or 8 then decides the row.
-    for (const stage of unclosed) {
-      result.closedAtLastStep.push({ partitionIndex: stage.position, participantId: stage.share.participantId });
-    }
+    // Treated as closed at its last signed step. CHOICE: the indexes stay listed if step 7 or 8
+    // then decides the row.
+    row.closedAtLastStep = unclosed.map((stage) => stage.position);
   }
 
   // Step 7. Steps.
@@ -525,41 +591,29 @@ async function decide(reservationId, requesterId, attempt, { policyByDigest, rec
   const stopped = keptStops.counting.length > 0;
   const withheld = delivered !== null && delivered.count - acknowledged > terms.maxUnacknowledgedOutputs;
   const endedByStage = terms.unfinishedTerms === PROVIDER_LOSS_FREE && !finished && !stopped && !withheld;
-  const units = endedByStage ? 0n
-    : BigInt(Math.min(acknowledged, terms.maxOutputTokens)) * BigInt(terms.creditsPerOutputToken);
-
-  // Split arithmetic. Every amount is at most `maximum`, a safe integer, so Number() is exact.
-  const amounts = splitUnits(units, terms.shares.map((share) => BigInt(share.weight)));
-  const requesterAccount = await accountFor(accountOf, requesterId);
-  let debit = units;
-  for (const [position, share] of terms.shares.entries()) {
-    // The requester's own account is neither charged nor credited. CHOICE: its entry shows 0.
-    const own = (await accountFor(accountOf, share.participantId)) === requesterAccount;
-    if (own) debit -= amounts[position];
-    const amount = own ? 0 : Number(amounts[position]);
-    result.credits.push({ partitionIndex: position, participantId: share.participantId, amount });
-  }
-  result.units = Number(units);
-  result.debit = Number(debit);
+  // CHOICE: `chargedOutputs` is 0 when a stage ended the answer; `beyondCeiling` does not depend on that.
+  row.chargedOutputs = endedByStage ? 0 : Math.min(acknowledged, terms.maxOutputTokens);
+  row.unacknowledgedOutputs = delivered === null ? null : delivered.count - acknowledged;
+  row.beyondCeiling = Math.max(0, acknowledged - terms.maxOutputTokens);
+  await post(BigInt(row.chargedOutputs) * BigInt(terms.creditsPerOutputToken));
   const closing = unclosed.length > 0 ? `; step 6: ${unclosed.length} stage(s) closed at their last step` : '';
-  if (endedByStage) return done('settled', 'step 9: ended by a stage under provider-loss-free terms, charges 0');
+  if (endedByStage) return done('settled', `step 9: ended by a stage under provider-loss-free terms, charges 0${closing}`);
   const why = finished ? 'finished' : stopped ? 'stopped by the requester' : withheld ? 'acknowledgments withheld' : 'unfinished';
   return done('settled', `step 9: ${why}, the acknowledged prefix is charged${closing}`);
 }
 
 /**
  * Replays signed settlement records against public policies (possibly none) at verification
- * time `at` (milliseconds since the epoch). `reservations` holds one row per attempt, a
- * (reservationId, requesterId) pair. Never throws on bad records: they are listed as rejected.
+ * time `at`, and returns { schema, at, counts, reservations, rejected, balances } as the
+ * document's "Rows" section describes. Never throws on bad records: they are listed as rejected.
  *
- * CHOICE: the document says the replay reads K from the stages' receiver policy and that "a
- * verifier may be given another value", but names no input. Here it is the optional
- * `receiverPolicy`, an object with `maxUnacknowledgedOutputs`; without a usable one K is 2,
- * and one value serves every stage.
+ * `maxUnacknowledgedOutputs` is the stages' receiver policy's K (2 by default), used only for
+ * a policy that does not name its own. CHOICE: an unusable value here is read as 2.
  */
-export async function replaySettlement({ records, policies, at, accountOf = null, receiverPolicy = null } = {}) {
-  const given = isObject(receiverPolicy) ? receiverPolicy.maxUnacknowledgedOutputs : undefined;
-  const receiverK = isCount(given) ? given : RECEIVER_POLICY_K;
+export async function replaySettlement({
+  records, policies, at, accountOf = null, maxUnacknowledgedOutputs = RECEIVER_POLICY_K,
+} = {}) {
+  const receiverK = isCount(maxUnacknowledgedOutputs) ? maxUnacknowledgedOutputs : RECEIVER_POLICY_K;
   const policyByDigest = new Map();
   for (const policy of Array.isArray(policies) ? policies : []) {
     try {
@@ -575,23 +629,38 @@ export async function replaySettlement({ records, policies, at, accountOf = null
   const count = Array.isArray(records) ? records.length : 0;
   for (let index = 0; index < count; index += 1) {
     const admitted = admit(records, index);
-    if (admitted.reason) {
-      rejected.push({ index, reason: admitted.reason });
-    } else if (!seen.has(admitted.identity)) {
-      seen.add(admitted.identity);
-      place(byReservation, admitted);
+    if (admitted.rejected) {
+      rejected.push(admitted.rejected);
+    } else if (!seen.has(admitted.record.identity)) {
+      seen.add(admitted.record.identity);
+      place(byReservation, admitted.record);
     }
   }
 
-  // CHOICE: rows are ordered by reservationId, then requesterId. A reservation whose records
-  // name no requester (acceptances and stage receipts only) has no attempt, so no row.
+  // One row per attempt, ordered by reservationId and then requesterId.
   const reservations = [];
+  const totals = new Map(); // account -> BigInt, over settled and expired rows
   for (const reservationId of [...byReservation.keys()].sort()) {
     const { attempts, acceptances, receipts } = byReservation.get(reservationId);
+    if (attempts.size === 0) {
+      // No record names a requester: one row with `requesterId: null`. It has no terms (step 2).
+      const row = newRow(reservationId, null);
+      reservations.push(Object.assign(row, { reason: 'step 2: no terms left; no record names a requester' }));
+    }
     for (const requesterId of [...attempts.keys()].sort()) {
       const attempt = { ...attempts.get(requesterId), acceptances, receipts };
-      reservations.push(await decide(reservationId, requesterId, attempt, { policyByDigest, receiverK, at, accountOf }));
+      const { row, postings } = await decide(reservationId, requesterId, attempt, { policyByDigest, receiverK, at, accountOf });
+      reservations.push(row);
+      for (const [account, amount] of postings) totals.set(account, (totals.get(account) ?? 0n) + amount);
     }
   }
-  return { rejected, reservations };
+
+  // CHOICE: `counts` names every outcome, with 0 for those no row has. `balances` is an object
+  // keyed by account, debits negative, and names every account of a settled or expired row.
+  const counts = Object.fromEntries(OUTCOMES.map((outcome) => [outcome, 0]));
+  for (const row of reservations) counts[row.status] += 1;
+  const balances = Object.fromEntries([...totals].map(([account, total]) => [account, Number(total)]));
+  // CHOICE: `at` is read as milliseconds since the epoch; one that is not a valid time is reported as null.
+  const usable = typeof at === 'number' && Number.isFinite(at) && Math.abs(at) <= 8.64e15;
+  return { schema: RESULT_SCHEMA, at: usable ? new Date(at).toISOString() : null, counts, reservations, rejected, balances };
 }
