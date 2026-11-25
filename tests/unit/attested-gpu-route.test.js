@@ -10,7 +10,7 @@ import { compileExecutionRequirements, executionRequirementsFor } from '../../pa
 import { serveAttestedSession, createAttestedChannelPair } from '../../packages/reploid/src/inference/attested/session.js';
 import { createSyntheticWorld, syntheticHost, SYNTHETIC_MODEL } from '../helpers/attested-gpu-fixtures.js';
 import { parseExecutionExtension, EXECUTION_ERROR_STATUS } from '../../server/text-request-options.js';
-import { pilotLedger, taskMessages, scoreAnswer } from '../../scripts/attested-gpu-pilot.js';
+import { pilotLedger, taskMessages, scoreAnswer, libraryMediaType } from '../../scripts/attested-gpu-pilot.js';
 import task from '../fixtures/attested-gpu/build-diagnosis-task.json' with { type: 'json' };
 
 const ALL = ['model-id', 'timing', 'length', 'access-patterns'];
@@ -107,6 +107,14 @@ describe('attested execution is off by default and distinct', () => {
       await expect(setup({ offers }).inference.prepare({ model, generation: { maxOutputTokens: 8 }, execution: execution() }))
         .rejects.toMatchObject({ code: 'EXECUTION_ROUTE_UNAVAILABLE' });
     }
+  });
+});
+
+describe('the pilot requester page', () => {
+  it('serves the library\'s JSON modules as JSON, which a browser requires before it loads them', () => {
+    // inference/index.js reaches contracts/partition.js, which imports transport/partition-errors.json as a JSON module.
+    expect(libraryMediaType('/lib/transport/partition-errors.json')).toBe('application/json');
+    expect(libraryMediaType('/lib/inference/index.js')).toBe('text/javascript');
   });
 });
 

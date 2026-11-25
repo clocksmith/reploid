@@ -123,6 +123,12 @@ async function plainRequest({ runtimeUrl, model, messages }) {
   return { text, usage, timing: { firstUsefulOutputMs: firstUsefulAt && firstUsefulAt - started, totalMs: finished - started }, finishedAt: finished };
 }
 
+/**
+ * The media type the requester page's server gives a library file. The library imports JSON modules
+ * (`with { type: 'json' }`), and a browser refuses one that is not served as JSON, so the page would never load.
+ */
+export const libraryMediaType = file => file.endsWith('.json') ? 'application/json' : 'text/javascript';
+
 /** Serve shared/vendor/reploid and a page that runs the same requester flow in Chromium. */
 async function inBrowser({ executorUrl, policy, credits, messages }) {
   const vendor = path.join(root, 'shared/vendor/reploid');
@@ -148,7 +154,7 @@ async function inBrowser({ executorUrl, policy, credits, messages }) {
     if (url.pathname.startsWith('/vendor/reploid/')) {
       const file = path.join(vendor, path.normalize(url.pathname.slice('/vendor/reploid/'.length)));
       if (!file.startsWith(vendor)) { res.statusCode = 403; res.end(); return; }
-      try { res.setHeader('content-type', 'text/javascript'); res.end(await readFile(file)); } catch { res.statusCode = 404; res.end(); }
+      try { res.setHeader('content-type', libraryMediaType(file)); res.end(await readFile(file)); } catch { res.statusCode = 404; res.end(); }
       return;
     }
     res.statusCode = 404; res.end();

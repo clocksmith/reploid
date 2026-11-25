@@ -1168,6 +1168,10 @@ confidential split gate.
   streamed loopback runtime, a requester that leaves while evidence is being
   collected, launch measurement, the SNP certificate table and OCSP requests.
 
+`node scripts/attested-gpu-pilot.js dry-run` and `dry-run --browser` run the same
+requester flow against a synthetic executor on loopback, in Node and in
+Chromium. They spend nothing and must end `completed`.
+
 The configfs-tsm and NVML collectors have not run on real hardware. The first
 pilot is their first exercise.
 
