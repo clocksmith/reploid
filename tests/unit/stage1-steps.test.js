@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { createStepClock } from '../../scripts/stage1/steps.js';
 
 const pause = ms => new Promise(resolve => setTimeout(resolve, ms));
@@ -24,10 +24,18 @@ describe('bounded steps', () => {
   });
 
   it('shares one budget across the steps given it, and refuses to start a step once it is spent', async () => {
-    const clock = createStepClock(), span = clock.budget('split-before', 60);
-    await clock.step('first', span, () => pause(70).then(() => 'late')).catch(() => {});
-    await expect(clock.step('second', span, () => 'never')).rejects.toThrow('second did not start: the split-before budget of 60 ms was spent');
-    expect(clock.records().map(row => row.status)).toEqual(['timed-out', 'timed-out']);
+    // Fake timers and a fake clock: the 60 ms budget ends before the 70 ms pause however loaded the machine is.
+    vi.useFakeTimers();
+    try {
+      const clock = createStepClock(), span = clock.budget('split-before', 60);
+      const first = clock.step('first', span, () => pause(70).then(() => 'late')).then(() => null, error => error);
+      await vi.advanceTimersByTimeAsync(70);
+      expect(await first).toMatchObject({ code: 'step-timed-out', message: expect.stringContaining('the split-before budget of 60 ms') });
+      await expect(clock.step('second', span, () => 'never')).rejects.toThrow('second did not start: the split-before budget of 60 ms was spent');
+      expect(clock.records().map(row => row.status)).toEqual(['timed-out', 'timed-out']);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('applies a step cap below the budget, and passes the remaining time to work that takes a timeout', async () => {
