@@ -433,8 +433,8 @@ async function runSignedApiAndCancellation() {
   const credits = await openFleetCredits({
     file: path.join(root, 'credits.sqlite'),
     computers: [
-      { id: 'requester-node', name: 'External API Requester', ownerId: 'qual-owner', providers: [{ participantId: requesterKey.peerId, publicJwk: requesterKey.publicJwk }] },
-      { id: 'provider-node', name: 'Apple Metal Provider', ownerId: 'qual-owner', providers: [{ participantId: providerKey.peerId, publicJwk: providerKey.publicJwk }] },
+      { id: 'requester-node', name: 'External API Requester', ownerId: 'requester-node', providers: [{ participantId: requesterKey.peerId, publicJwk: requesterKey.publicJwk }] },
+      { id: 'provider-node', name: 'Apple Metal Provider', ownerId: 'provider-node', providers: [{ participantId: providerKey.peerId, publicJwk: providerKey.publicJwk }] },
     ],
     policy: {
       schema: 'reploid.service-credit-policy/v1',
@@ -559,8 +559,8 @@ async function runSignedApiAndCancellation() {
     assert.ok(t1Reply.length > 0, 'Turn 1 answer must be non-empty');
 
     const snapAfterT1 = credits.snapshot();
-    const reqAcctT1 = snapAfterT1.accounts.find((a) => a.id === 'requester-node');
-    const provAcctT1 = snapAfterT1.accounts.find((a) => a.id === 'provider-node');
+    const reqAcctT1 = snapAfterT1.accounts.find((a) => a.computerIds.includes('requester-node'));
+    const provAcctT1 = snapAfterT1.accounts.find((a) => a.computerIds.includes('provider-node'));
     assert.equal(reqAcctT1.held, 0, 'Hold must be 0 after Turn 1 settlement');
     assert.equal(reqAcctT1.balance, -provAcctT1.balance, 'Signed credit ledger must conserve balance');
     assert.ok(provAcctT1.balance > 0, 'Provider must earn positive credits for acknowledged tokens');
@@ -632,10 +632,10 @@ async function runSignedApiAndCancellation() {
     );
     await delay(500);
     const snapAfterCancel = credits.snapshot();
-    const cancelCharge = (-snapAfterCancel.accounts.find((a) => a.id === 'requester-node').balance)
-      - (-credits.snapshot().accounts.find((a) => a.id === 'requester-node').balance);
+    const cancelCharge = (-snapAfterCancel.accounts.find((a) => a.computerIds.includes('requester-node')).balance)
+      - (-credits.snapshot().accounts.find((a) => a.computerIds.includes('requester-node')).balance);
     void cancelCharge;
-    const totalChargedAfterCancel = -snapAfterCancel.accounts.find((a) => a.id === 'requester-node').balance;
+    const totalChargedAfterCancel = -snapAfterCancel.accounts.find((a) => a.computerIds.includes('requester-node')).balance;
 
     // Subsequent independent request via POST /v1/responses after cancellation!
     const postCancelRes = await fetch(`${v1Base}/responses`, {
@@ -703,7 +703,7 @@ async function runSignedApiAndCancellation() {
         httpStatus: postCancelRes.status,
         status: postCancelBody.status ?? 'completed',
         finalAccountsConserved: finalSnap.accounts[0].balance + finalSnap.accounts[1].balance === 0,
-        finalProviderEarnedCredits: finalSnap.accounts.find((a) => a.id === 'provider-node').balance,
+        finalProviderEarnedCredits: finalSnap.accounts.find((a) => a.computerIds.includes('provider-node')).balance,
         finalOpenHolds: finalSnap.accounts.reduce((s, a) => s + a.held, 0),
       },
     };

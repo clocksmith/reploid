@@ -14,7 +14,7 @@ import { createAttemptEvidenceSigner, attemptRouteHash, outputChainGenesis, STAG
 import { FLEET_SERVICE_REQUEST_SCHEMA } from '../../server/fleet/contract.js';
 import { openFleetCredits } from '../../server/fleet/credits.js';
 import { creditSettlementDeltas } from '../../server/fleet/credit-shares.js';
-import { FLEET_CREDIT_STATEMENT_SCHEMA, verifyCreditStatement } from '../../server/fleet/credit-statement.js';
+import { FLEET_CREDIT_STATEMENT_V2_SCHEMA, verifyCreditStatement } from '../../server/fleet/credit-statement.js';
 
 const runFile = promisify(execFile);
 const cliScript = fileURLToPath(new URL('../../server/fleet/credit-statement.js', import.meta.url));
@@ -44,7 +44,7 @@ describe('offline service-credit statement verification', () => {
     computers = identities.map((identity, index) => ({
       id: `computer-${index}`,
       name: `Computer ${index}`,
-      ownerId: 'same-owner',
+      ownerId: `computer-${index}`,
       providers: [{ participantId: identity.peerId, publicJwk: identity.publicJwk }],
     }));
     ledger = await openFleetCredits({ file: path.join(directory, 'credits.sqlite'), computers, policy, now: () => at });
@@ -210,7 +210,7 @@ describe('offline service-credit statement verification', () => {
     const expectedBalances = [-4, -4, 8];
     for (const [index, expected] of expectedBalances.entries()) {
       const statement = ledger.statement(`computer-${index}`);
-      expect(statement.schema).toBe(FLEET_CREDIT_STATEMENT_SCHEMA);
+      expect(statement.schema).toBe(FLEET_CREDIT_STATEMENT_V2_SCHEMA);
       expect(statement.balance).toBe(expected);
       const checked = await verifyCreditStatement(statement, {
         computers,
@@ -218,7 +218,8 @@ describe('offline service-credit statement verification', () => {
       });
       expect(checked).toMatchObject({
         ok: true,
-        computerId: `computer-${index}`,
+        accountId: `computer-${index}`,
+        computerIds: [`computer-${index}`],
         statedBalance: expected,
         recomputedBalance: expected,
         balanceMatches: true,

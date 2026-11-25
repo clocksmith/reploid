@@ -290,7 +290,7 @@ export async function runWireVisibilityVerification() {
     await provFleet.call('settle', { id: reservationId, evidence: fullySigned });
 
     const snap = credits.snapshot();
-    assert.equal(snap.accounts.find((a) => a.id === 'serving-pc').balance, 5);
+    assert.equal(snap.accounts.find((a) => a.computerIds.includes('serving-pc')).balance, 5);
     assert.equal(snap.accounts.every((a) => a.held === 0), true);
 
     // 4. Probe Coordinator HTTP endpoints (`/pool/peer/rooms` and `/pool/jobs` and `/pool/audits/canary`) with canary injection attempts!

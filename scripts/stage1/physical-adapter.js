@@ -242,8 +242,10 @@ export function createPhysicalStage1Adapter({ config, directory, expectations, s
   }
   const settled = (id, signal) => until(() => coordinator.credits.request(id)?.state === 'settled',
     { timeoutMs: Math.min(limits.phaseMs, config.credit.maxRequestMs), label: 'settlement', signal, pollMs: 250 });
-  const balance = id => coordinator.credits.snapshot().accounts.find(row => row.id === id)?.balance ?? null;
-  const computerOf = id => coordinator.credits.enrollment.byPeer.get(id)?.computerId ?? id;
+  // The balance of the owner account a computer belongs to.
+  const balance = id => coordinator.credits.snapshot().accounts.find(row => row.computerIds.includes(id))?.balance ?? null;
+  // The ledger's own unit: an owner account's own work is unbilled.
+  const computerOf = id => coordinator.credits.enrollment.byPeer.get(id)?.ownerId ?? id;
   const stageSessions = () => hosts.map(host => session(host.label));
   const replay = (attemptId, options = {}) => collectSettlementReplay({ requester: session('requester'), stages: stageSessions(), attemptId,
     policy: coordinator.credits.policy, computerOf, ...options });

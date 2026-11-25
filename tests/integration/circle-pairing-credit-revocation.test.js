@@ -50,7 +50,9 @@ it('revoking a queued guest behind a paid paired-owner turn sends zero guest pro
   const network = createPairingNetwork();
   const [desktop,owner,guest] = await Promise.all(['Ed25519','ECDSA','Ed25519'].map(algorithm => createSigningIdentity({algorithm})));
   const enrolled = [desktop,owner,guest].map((identity,index) => ({
-    id:['desktop','owner','guest'][index], name:['Desktop','Owner phone','Guest'][index], ownerId:'integration-owner',
+    id:['desktop','owner','guest'][index], name:['Desktop','Owner phone','Guest'][index],
+    // Separate accounts, so the paid turn moves credit between them; one owner's own computers would settle at zero.
+    ownerId:['desktop','owner','guest'][index],
     providers:[{participantId:identity.peerId,publicJwk:identity.publicJwk}]
   }));
   const releaseOwner = Promise.withResolvers();

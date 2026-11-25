@@ -32,6 +32,7 @@ export async function runNetworkJourney({ providers = PROVIDERS } = {}) {
   const name = value => network.seatOf(value)?.name ?? value;
   let peakRss = 0;
   const sampler = setInterval(() => { peakRss = Math.max(peakRss, process.memoryUsage().rss); }, 10);
+  // One balance per owner account; each account here holds one computer.
   const balances = () => Object.fromEntries(credits.snapshot().accounts.map(row => [row.id, { balance: row.balance, held: row.held }]));
   const journalEntries = () => credits.snapshot().journal.length;
   const routeDigest = route => route ? hashJson({ schema: 'reploid.whole-model-route/v1', modelIdentity: model.identity,
@@ -136,7 +137,7 @@ export async function runNetworkJourney({ providers = PROVIDERS } = {}) {
       } });
     interrupted.stoppedProvider = stoppedProvider;
     interrupted.requesterNoticedAfterMs = interrupted.completionMs - interrupted.timeToFirstTokenMs;
-    interrupted.holdAfterFailure = balances()['computer-requester'].held;
+    interrupted.holdAfterFailure = balances()['owner-requester'].held;
     receipt.interrupted = interrupted;
 
     // 5. Recovered outcome: a fresh attempt, with fresh approval, on another route.
@@ -148,9 +149,9 @@ export async function runNetworkJourney({ providers = PROVIDERS } = {}) {
     receipt.recovered = recovered;
 
     // 6. When the interrupted attempt's hold is released: not until its provider returns and signs.
-    const heldWhileProviderAway = balances()['computer-requester'].held, awayMs = Date.now() - stoppedAt;
+    const heldWhileProviderAway = balances()['owner-requester'].held, awayMs = Date.now() - stoppedAt;
     const restarted = await network.restart(stoppedProvider);
-    await waitFor(() => balances()['computer-requester'].held === 0, { label: 'hold release after provider restart' });
+    await waitFor(() => balances()['owner-requester'].held === 0, { label: 'hold release after provider restart' });
     const releasedAt = Date.now();
     await network.expectReady(3);
     const reconciled = await requester.recover({ reservationId: interrupted.reservationId, messages }, { signal: new AbortController().signal });
@@ -170,12 +171,12 @@ export async function runNetworkJourney({ providers = PROVIDERS } = {}) {
     abort.abort(Error('No result arrived; the connection is assumed lost'));
     const lost = await lostRun;
     restore();
-    lost.holdAfterFailure = balances()['computer-requester'].held;
+    lost.holdAfterFailure = balances()['owner-requester'].held;
     const entriesBeforeRecovery = journalEntries();
     const first = await requester.recover({ reservationId: lost.reservationId, messages }, { signal: new AbortController().signal });
     const entriesAfterFirst = journalEntries();
     const second = await requester.recover({ reservationId: lost.reservationId, messages }, { signal: new AbortController().signal });
-    await waitFor(() => balances()['computer-requester'].held === 0, { label: 'hold release after reconciliation' });
+    await waitFor(() => balances()['owner-requester'].held === 0, { label: 'hold release after reconciliation' });
     receipt.lostAcknowledgment = { ...lost,
       reconciliation: { queried: 'provider generation journal, by the original request identity',
         first: { status: first.status, content: first.content ?? null, correct: first.content === ANSWER, charge: first.serviceCredit?.charge ?? null },
@@ -191,9 +192,9 @@ export async function runNetworkJourney({ providers = PROVIDERS } = {}) {
     const abandoned = await attempt({ attemptId: 'provider-never-returns', threadId: 'thread-abandoned', ranked: true,
       onFirstDelta: async route => { abandonedProvider = name(route.providerIdentity); await network.stop(abandonedProvider); } });
     abandoned.stoppedProvider = abandonedProvider;
-    abandoned.holdBeforeWindow = balances()['computer-requester'].held;
+    abandoned.holdBeforeWindow = balances()['owner-requester'].held;
     const movedMs = network.passClaimWindow();
-    abandoned.holdAfterWindow = balances()['computer-requester'].held;
+    abandoned.holdAfterWindow = balances()['owner-requester'].held;
     const expired = await requester.recover({ reservationId: abandoned.reservationId, messages }, { signal: new AbortController().signal });
     abandoned.afterWindow = { ledgerClockMovedMs: movedMs, claimWindowMs: credits.policy.wholeModelUnclaimedReleaseMs,
       status: expired.status, charge: expired.serviceCredit?.charge ?? null, reason: expired.serviceCredit?.reason ?? null };

@@ -120,7 +120,7 @@ export function createToolRoundTrip({ ceiling = OUTPUT_CEILING } = {}) {
       keys = await Promise.all([0, 1].map(() => createSigningIdentity({ algorithm: 'Ed25519' })));
       credits = await openFleetCredits({
         file: path.join(root, 'credits.sqlite'),
-        computers: keys.map((key, index) => ({ id: `machine-${index}`, name: `Machine ${index}`, ownerId: 'owner',
+        computers: keys.map((key, index) => ({ id: `machine-${index}`, name: `Machine ${index}`, ownerId: `machine-${index}`,
           providers: [{ participantId: key.peerId, publicJwk: key.publicJwk }] })),
         policy: { schema: 'reploid.service-credit-policy/v1', version: 'test/1', unit: 'noncash-service-credit',
           creditsPerOutputToken: 1, maxDebt: 1000, maxOutputTokens: OUTPUT_CEILING, maxPendingPerComputer: 8,

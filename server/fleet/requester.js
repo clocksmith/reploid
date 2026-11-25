@@ -3,6 +3,7 @@ import { assert, fleetCreditQuote } from './contract.js';
 import { createAttemptEvidenceSigner, openOutputAcknowledgments } from '../../shared/vendor/reploid/mesh/partitions/partition-attempt-evidence.js';
 import { partitionAdapterIdentities } from '../../shared/vendor/reploid/mesh/partitions/partition-contract.js';
 import { effectiveRequestDigest, normalizeGenerationSettings } from '../../shared/vendor/reploid/mesh/generation-settings.js';
+import { signSettlementStop } from './settlement-terms.js';
 
 export function buildFleetRequestOutcome({
   attemptId = null, threadId = null, reservationId = null, executionId = null,
@@ -71,6 +72,15 @@ export function createFleetRequester({
     'Requester, signing identity and service-credit owner required');
   const readReservation = id => typeof credits.request === 'function' ? credits.request(id) : credits.call('request', { id });
   const recoverReservation = id => typeof credits.recover === 'function' ? credits.recover(id) : credits.call('recover', { id });
+  /**
+   * The person stopped a whole-model answer before this requester countersigned a receipt, including after the
+   * provider had already finished, when nobody signs a cancellation. The requester's own signed stop settles the hold
+   * now, at zero: whole-model output has no acknowledged count, and no receipt can be countersigned after it. A
+   * receipt countersigned before the stop would have had to reach the ledger first; the ledger refuses the later one.
+   * A lost connection is not a stop: its answer stays recoverable until the deadline plus the release window.
+   */
+  const settleStop = async binding => credits.settle(binding.id, await signSettlementStop({ signer: createAttemptEvidenceSigner({ identity }),
+    acknowledged: 0, terms: { requesterId: identity.peerId, reservationId: binding.id, attemptId: binding.executionId } }));
   return Object.freeze({
     async generate(request, controls) {
       request = structuredClone(request);
@@ -80,12 +90,18 @@ export function createFleetRequester({
       // Generation settings are quoted and reserved as part of the effective request: the hold is
       // sized by the caller's own limit (never above the model or policy ceiling), and the digest
       // of model identity, messages and settings is what the provider must present for admission.
-      const settings = normalizeGenerationSettings(request.settings);
+      let settings = normalizeGenerationSettings(request.settings);
       assert(!settings || !partition, 'Generation settings are not supported on a partition route');
       if (settings) request.settings = structuredClone(settings);
       const outputLimit = Math.min(maxOutputTokens, request.generationRequest?.maxOutputTokens ?? maxOutputTokens,
         request.model.generation?.maxTokens ?? maxOutputTokens, settings?.maxOutputTokens ?? maxOutputTokens);
       assert(Number.isSafeInteger(outputLimit) && outputLimit > 0, 'Explicit bounded output required');
+      // A whole-model provider admits for its prepared model ceiling unless the request names a smaller limit, so a
+      // requester whose own cap is below the model's would be refused. It sends that cap as the request's limit.
+      if (!partition && !settings && Number.isSafeInteger(request.model.generation?.maxTokens) && outputLimit < request.model.generation.maxTokens) {
+        settings = normalizeGenerationSettings({ maxOutputTokens: outputLimit });
+        request.settings = structuredClone(settings);
+      }
       // The provider is admitted for exactly the caller's limit, so a limit above the ceiling cannot be
       // quoted lower and still match: it is refused here, before a quote, a hold or any disclosure.
       if (settings && settings.maxOutputTokens !== null && settings.maxOutputTokens > outputLimit) {
@@ -212,6 +228,7 @@ export function createFleetRequester({
           } else settlement = await credits.fence(reservation.id, identity.peerId);
         } else if (result?.execution?.receipt) settlement = await credits.settle(reservation.id, result.execution.receipt);
         else if (failure?.generationTerminal) settlement = await credits.collect(reservation.id, { terminal: failure.generationTerminal });
+        else if (failure && controls.signal.reason?.requesterStop === true) settlement = await settleStop(reservation);
         else settlement = await credits.fence(reservation.id, identity.peerId);
       } catch (error) {
         settlement = { id: reservation.id, status: 'pending', error: error.message };
@@ -249,7 +266,7 @@ export function createFleetRequester({
       }
       return { ...result, serviceCredit: settlement };
     },
-    async recover({ reservationId, messages, providerId, settings: suppliedSettings }, controls, recoverExecution = participant.recoverGeneration) {
+    async recover({ reservationId, messages, providerId, settings: suppliedSettings, stop = false }, controls, recoverExecution = participant.recoverGeneration) {
       assert(typeof reservationId === 'string' && reservationId.length > 0 && Array.isArray(messages) && messages.length > 0
         && controls?.signal && typeof recoverExecution === 'function', 'Bound reservation, original messages and cancellation required');
       controls.signal.throwIfAborted();
@@ -319,6 +336,14 @@ export function createFleetRequester({
       if (row.state === 'settled') {
         const outcome = emit(true, row.outcome);
         return { status: row.outcome.status ?? 'completed', serviceCredit: row.outcome, outcome };
+      }
+      // `stop: true` ends an unsettled whole-model answer instead of recovering it: the signed stop settles it at zero.
+      if (stop === true && row.binding.mode === 'whole-model') {
+        let settled;
+        try { settled = await settleStop(row.binding); }
+        catch { settled = (await readReservation(reservationId))?.outcome ?? { id: reservationId, status: 'pending' }; }
+        const outcome = emit(true, settled, 0);
+        return { status: typeof settled?.settledAt === 'number' ? (settled.status ?? 'completed') : 'unresolved', serviceCredit: settled, outcome };
       }
       if (row.binding.mode === 'partition') {
         const settled = await recoverReservation(reservationId);

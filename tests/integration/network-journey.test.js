@@ -62,6 +62,6 @@ it('carries one request through distribution, ranked placement, streaming, provi
 
   // Four completed answers were charged, once each; no credit was created or destroyed and no hold is left open.
   expect(receipt.ledger).toMatchObject({ sumOfBalances: 0, openHolds: 0 });
-  expect(receipt.ledger.balances['computer-requester'].balance).toBe(-4 * JOURNEY_ANSWER.length);
+  expect(receipt.ledger.balances['owner-requester'].balance).toBe(-4 * JOURNEY_ANSWER.length);
   expect(receipt.outcome).toEqual({ wholeRequestAndRecoveryWorkTogether: true, recoveryMode: 'restarted-generation' });
 }, 30000);

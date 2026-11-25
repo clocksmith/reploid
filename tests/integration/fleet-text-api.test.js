@@ -30,7 +30,7 @@ beforeEach(async () => {
   credits = await openFleetCredits({
     file: path.join(root, 'credits.sqlite'),
     computers: keys.slice(0, 2).map((key, index) => ({
-      id: `machine-${index}`, name: `Machine ${index}`, ownerId: 'owner',
+      id: `machine-${index}`, name: `Machine ${index}`, ownerId: `machine-${index}`,
       providers: [{ participantId: key.peerId, publicJwk: key.publicJwk }]
     })),
     policy: {

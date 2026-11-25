@@ -80,7 +80,8 @@ export function createFleetBrowserBridgeHandler({ host, token, origins, basePath
       }
       if (routePath === '/cancel') {
         assert(pending.has(body.attemptId), 'No active bridge request');
-        host.cancel(body.attemptId); response.setHeader('Content-Type', 'application/json'); response.end(JSON.stringify({ status: 'stopping' })); return;
+        // The person's Stop: signed by the requester, so the hold settles now rather than at its release window.
+        host.cancel(body.attemptId, { stop: true }); response.setHeader('Content-Type', 'application/json'); response.end(JSON.stringify({ status: 'stopping' })); return;
       }
       if (routePath === '/recover') {
         assert(typeof host.recover === 'function', 'Recovery is not configured on this host');

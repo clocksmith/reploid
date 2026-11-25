@@ -54,8 +54,11 @@ try {
     assert.equal(report.cleanup, 'settled');
     assert.ok(Array.isArray(report.requests) && report.requests.length > 0, 'Signed requests are required');
     let now = 0;
+    // These receipts were recorded when the ledger kept one balance per computer, with every computer under one owner.
+    // Replaying them per owner account would settle each one at zero, so each computer is enrolled as its own account:
+    // the same keys and signatures, and the per-computer amounts they were settled for.
     const ledger = await openFleetCredits({ file: path.join(root, crypto.randomUUID() + '.sqlite'),
-      computers: report.computers, policy: report.policy, now: () => now });
+      computers: report.computers.map(computer => ({ ...computer, ownerId: computer.id })), policy: report.policy, now: () => now });
     try {
       for (const request of report.requests) {
         assert.equal(request.state, 'settled');
@@ -80,7 +83,9 @@ try {
           await assert.rejects(ledger.settle(input.id, corrupted), 'Corrupted signature was accepted');
         }
         const result = await ledger.settle(input.id, request.evidence);
-        assert.deepEqual(result, request.outcome);
+        // A credit now also names the account it is posted to; here every account is its computer.
+        for (const credit of result.credits) assert.equal(credit.accountId, credit.computerId);
+        assert.deepEqual({ ...result, credits: result.credits.map(({ accountId: _accountId, ...credit }) => credit) }, request.outcome);
         const before = ledger.snapshot();
         assert.deepEqual(await ledger.settle(input.id, request.evidence), result);
         assert.deepEqual(ledger.snapshot(), before, 'Idempotent duplicate settlement changed balances');

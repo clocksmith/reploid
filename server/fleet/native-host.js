@@ -237,6 +237,11 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
   async function select(index, contribute) {
     assert(!closed && !preparing && requests.size === 0, 'Computer is busy or closing');
     const entry = config.models[index]; assert(entry, 'Model is outside owner preferences');
+    // A whole-model entry loads the model to serve it; that process has no requester, so it can never ask other
+    // computers and would wait for providers it will never see.
+    assert(entry.mode !== 'whole-model' || contribute, `Model entry ${index} uses mode "whole-model", which serves this model and cannot ask other`
+      + ' computers for it. To ask for it, set that entry\'s mode to "partition" with "ordered": null (the requester role);'
+      + ' to serve it, select it with contribution on (initialContribution: true).');
     if (credits && participant?.getState()?.unknownAttempts?.length) {
       preparing = true;
       try { await stageHistory.refresh(participant.getState()); }
@@ -505,14 +510,16 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
       const configured = [...new Map(config.models.map(entry => [entry.model.id + entry.model.identity, entry.model])).values()];
       // What this requester's own account could hold right now: balance less holds, plus the policy's debt limit.
       // The ledger decides at reservation; this only lets the browser say before Send that an answer will be refused.
-      const ownAccount = await credits.call('snapshot', {}).then(value => value.accounts.find(row => row.id === config.computerId) ?? null, () => null);
+      // The account is this computer's owner account, shared by all of that owner's computers.
+      const ownAccount = await credits.call('snapshot', {}).then(value => value.accounts.find(row => row.computerIds?.includes(config.computerId)
+        ?? row.id === config.computerId) ?? null, () => null);
       // The most one answer can cost, from the same terms and limit the request will be quoted with.
       const creditCaps = await Promise.all(configured.map(async model => {
         try {
           const { policy } = await credits.call('terms', { id: model.id, identity: model.identity });
           const { maximum, unit } = fleetCreditQuote(policy, Math.min(config.maxOutputTokens, policy.maxOutputTokens,
             model.generation?.maxTokens ?? config.maxOutputTokens), 'whole-model');
-          return { maximum, unit, ...(ownAccount ? { spendable: ownAccount.balance - ownAccount.held + policy.maxDebt } : {}) };
+          return { maximum, unit, ...(ownAccount ? { spendable: ownAccount.balance - ownAccount.held + (ownAccount.debtLimit ?? policy.maxDebt) } : {}) };
         } catch { return null; } // No accepted terms: the browser states no price rather than a guessed one.
       }));
       const models = configured.map((model, index) => {
@@ -625,7 +632,11 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
         await publishDemand().catch(error => onChange({ warning: error.message }));
       }
     },
-    cancel(attemptId) { requests.get(attemptId)?.controller.abort(new DOMException('Stopped by owner', 'AbortError')); },
+    /** `stop: true` is the person's own Stop: the requester then signs its stop and the hold settles (requester.js).
+     * Without it (a closed stream, a lost pairing) the answer stays recoverable until its release window. */
+    cancel(attemptId, { stop = false } = {}) {
+      requests.get(attemptId)?.controller.abort(Object.assign(new DOMException('Stopped by owner', 'AbortError'), stop ? { requesterStop: true } : {}));
+    },
     async close() {
       closed = true;
       laneScheduler.close();
@@ -763,7 +774,7 @@ export async function runFleetNativeCommands({ host, config, input = process.std
                 // `admission` is present when the prompt waits for the named recipient's decision.
                 route: { requestId: route.requestId, providerId: route.providerId, recipientIdentity: route.recipientIdentity ?? null,
                   ...(route.admission ? { admission: route.admission } : {}) } })) });
-          } else if (command.op === 'cancel') result = host.cancel(command.attemptId) ?? { cancelled: true };
+          } else if (command.op === 'cancel') result = host.cancel(command.attemptId, { stop: true }) ?? { cancelled: true };
           else if (command.op === 'outcome') result = await host.inspectOutcome(command.targetId);
           else if (command.op === 'recover') result = await host.recover(command.input);
           else throw Error('Unknown native fleet command');

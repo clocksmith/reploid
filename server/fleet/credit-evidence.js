@@ -4,6 +4,25 @@ import { verifyStageReceipt, verifyOutputAcknowledgment, attemptRouteHash, outpu
 import { canonicalRouteAttemptBinding } from '../../shared/vendor/reploid/mesh/partitions/partition-contract.js';
 import { normalizeParticipantPublicKey } from '../../shared/vendor/reploid/artifacts/participant-proofs.js';
 import { assert, same, integer } from './contract.js';
+import { SETTLEMENT_STOP_SCHEMA, verifySettlementStop } from './settlement-terms.js';
+
+/**
+ * A whole-model answer the requester stopped before it countersigned a receipt. Whole-model output has no
+ * per-token acknowledgment, so the acknowledged count is zero and the stop settles as a cancellation: no charge, no
+ * credit, the same economic outcome as the provider's own signed `cancelled` cleanup under zero terminal terms. A
+ * countersigned receipt can only exist if the requester accepted the answer; whichever signed closing statement
+ * reaches the ledger first settles the request, and a conflicting one is refused.
+ */
+async function verifyWholeModelStop(request, evidence, enrollment, now, skew) {
+  const checked = await verifySettlementStop(evidence);
+  const signedAt = checked.ok ? Date.parse(checked.body.signedAt) : NaN;
+  assert(checked.ok && checked.body.reservationId === request.id && checked.body.attemptId === request.executionId
+    && checked.body.requesterId === request.consumer && checked.body.acknowledged === 0
+    && same(normalizeParticipantPublicKey(evidence.publicJwk), enrollment.byPeer.get(request.consumer)?.publicJwk)
+    && signedAt >= request.createdAt - skew && signedAt <= now + skew, 'Requester stop does not match the accepted request');
+  return { outputTokens: null, terminalStatus: 'cancelled', fixedCharge: 0, outputIdentity: null,
+    workIds: [`whole:${request.providers[0].participantId}:${request.consumer}:request:${request.executionId}`] };
+}
 
 /** Reuse execution signatures; the credit service never treats a completed counter as evidence. */
 export async function verifyCreditEvidence(request, evidence, enrollment, now, skew, { unadmitted = [], interrupted = [] } = {}) {
@@ -13,6 +32,7 @@ export async function verifyCreditEvidence(request, evidence, enrollment, now, s
     // A reservation made with generation settings accepts only evidence signed over the same
     // effective-request digest; one made without settings accepts only evidence that has none.
     const settingsBinding = request.settingsDigest === undefined ? {} : { settingsDigest: request.settingsDigest };
+    if (evidence?.schema === SETTLEMENT_STOP_SCHEMA) return verifyWholeModelStop(request, evidence, enrollment, now, skew);
     if (GENERATION_TERMINAL_SCHEMAS.includes(evidence?.schema)) {
       const provider = request.providers[0]?.participantId;
       assert(request.providers.length === 1 && await verifyGenerationTerminal(evidence, {

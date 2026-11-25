@@ -27,12 +27,12 @@ Outputs: durable balances, statements, work records, placement decisions.
 - Credit admission precedes disclosure/execution; completed work requires provider
   signatures and requester acknowledgment. A cancelled run may settle its proven
   acknowledged prefix. Replays have one economic effect.
-- Credits are non-cash and conserved. Explicit policy bounds debt and permits
-  same-owner transfers. A requester's local partition share is unbilled.
+- Credits are non-cash, conserved, per owner account (journal keeps the computer);
+  debt limits bound debt; own work is unbilled. Holds end by deadline+window.
 - Fence admission before release; retain signed proof across restarts.
 - Delegation requires pairing/TLS-or-loopback/origins (browser) or bearer/TLS/enrolled-recipient checks (HTTP); keys stay native.
 - Split settlement replays from signed records alone.
-- Unknown work stays pending; stopping does not prove GPU settlement.
+- Signed Stop settles, proving no GPU cleanup.
 - Busy providers retain work; placement changes at idle boundaries.
 - Observations and measured envelopes expire separately; envelopes bind the
   installed delivery. Performance and numerical qualification stay separate.

@@ -180,10 +180,12 @@ async function replayOne(reservationId, group, { policies, at, computerOf }) {
 /**
  * Replays settlement from signed records alone.
  * `policies`: the public policy objects any terms may name. `at`: the verifier's time in ms (decides only whether an
- * unfinished attempt is still `open`). `computerOf`: optional participant-to-computer map, used only to leave work a
- * requester's own computer did uncharged; by default every participant ID is its own computer.
+ * unfinished attempt is still `open`). `accountOf`: optional participant-to-account map (the enrolled owner, as the
+ * ledger keeps balances): work a requester's own account did stays uncharged, and `balances` sums per account.
+ * `computerOf` is the earlier map: it leaves the own-unit work uncharged but keeps `balances` per participant ID. By
+ * default every participant ID is its own account.
  */
-export async function replaySettlement({ records, policies, at, computerOf = id => id }) {
+export async function replaySettlement({ records, policies, at, computerOf = id => id, accountOf = null }) {
   if (!Array.isArray(policies) || policies.length === 0) throw Error('At least one public policy is required');
   if (!Number.isFinite(at)) throw Error('A verification time is required');
   const byDigest = new Map();
@@ -191,10 +193,10 @@ export async function replaySettlement({ records, policies, at, computerOf = id 
   const { byReservation, rejected } = await classify(records);
   const reservations = [];
   for (const [reservationId, group] of [...byReservation.entries()].sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))) {
-    reservations.push(await replayOne(reservationId, group, { policies: byDigest, at, computerOf }));
+    reservations.push(await replayOne(reservationId, group, { policies: byDigest, at, computerOf: accountOf ?? computerOf }));
   }
   const balances = new Map();
-  const add = (id, amount) => balances.set(id, (balances.get(id) ?? 0) + amount);
+  const add = (participantId, amount) => { const id = accountOf ? accountOf(participantId) : participantId; balances.set(id, (balances.get(id) ?? 0) + amount); };
   for (const row of reservations.filter(item => item.status === 'settled' || item.status === 'expired')) {
     const terms = byReservation.get(row.reservationId).terms[0];
     add(terms.requesterId, -row.debit);

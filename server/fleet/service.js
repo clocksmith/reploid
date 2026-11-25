@@ -5,7 +5,7 @@ import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { randomUUID } from 'node:crypto';
 import { signAsParticipant, verifyParticipantSignature } from '../../shared/vendor/reploid/artifacts/participant-proofs.js';
-import { assert, same, text, FLEET_SERVICE_REQUEST_SCHEMA as DOMAIN } from './contract.js';
+import { assert, same, text, FLEET_SERVICE_REQUEST_SCHEMA as DOMAIN, SERVICE_CREDIT_REFUSAL_STATUS } from './contract.js';
 import { planFleetPlacement } from './placement.js';
 import { createNativeEarningStorage } from '../native-earning.js';
 import { openFleetCredits } from './credits.js';
@@ -63,6 +63,11 @@ export function createFleetServiceHandler({ credits, models, placementPolicy, no
           && observation.preferences.models.some(model => model.id === payload.model?.id && model.identity === payload.model?.identity),
         'Provider owner no longer allows this model');
         const row = credits.request(payload.id), request = row?.binding;
+        // The commonest mismatch, named: this provider would generate past the limit the requester reserved.
+        assert(!(row?.state === 'dispatched' && request.providers.some(provider => provider.participantId === signer)
+          && Number.isSafeInteger(payload.outputLimit) && payload.outputLimit > request.maxOutputTokens),
+          `Provider output limit ${payload.outputLimit} exceeds the requester's reserved limit of ${request?.maxOutputTokens}: `
+          + 'the requester must send its smaller limit as the request\'s maxOutputTokens setting, or raise its own maxOutputTokens');
         assert(row?.state === 'dispatched' && now() <= request.deadline && request.consumer === payload.consumer
           && request.executionId === payload.executionId && request.mode === payload.mode
           && request.providers.some(provider => provider.participantId === signer)
@@ -114,14 +119,14 @@ export function createFleetServiceHandler({ credits, models, placementPolicy, no
       case 'recoverMine': return credits.recoverFor(signer);
       case 'providerOpenMine': return credits.providerOpenRequests(signer);
       case 'reconcileMine': return credits.reconcileConsumer(signer, payload?.activeIds ?? []);
-      case 'statementMine': return credits.statement(owner.computerId);
+      case 'statementMine': return credits.statement(owner.ownerId);
       case 'snapshot': {
         const snapshot = credits.snapshot();
         if (directory === 'full') return snapshot;
         // Conservation is still checked inside snapshot(); only the caller's own account and journal leave it.
-        return { unit: snapshot.unit, policyVersion: snapshot.policyVersion,
-          accounts: snapshot.accounts.filter(row => row.id === owner.computerId),
-          journal: snapshot.journal.filter(row => row.account_id === owner.computerId) };
+        return { unit: snapshot.unit, policyVersion: snapshot.policyVersion, accountUnit: snapshot.accountUnit,
+          accounts: snapshot.accounts.filter(row => row.id === owner.ownerId),
+          journal: snapshot.journal.filter(row => row.account_id === owner.ownerId) };
       }
       case 'computers': return { at: now(), computers: [...credits.enrollment.byId.values()].map(computer => {
         const observation = observations.get(computer.id);
@@ -214,7 +219,7 @@ export function createFleetServiceHandler({ credits, models, placementPolicy, no
       response.end(JSON.stringify({ result }));
     } catch (error) {
       response.writeHead(400, { 'content-type': 'application/json', 'cache-control': 'no-store' });
-      response.end(JSON.stringify({ error: error.message }));
+      response.end(JSON.stringify({ error: error.message, ...(error.creditRefusal ? { refusal: error.creditRefusal } : {}) }));
     }
   };
   return { handle, invoke };
@@ -278,8 +283,13 @@ export function createFleetClient({ url, identity, fetchImpl = null, ca = null, 
     const response = await send(url, { method: 'POST', headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ ...body, signature }), signal: AbortSignal.timeout(30000) });
     const answer = await response.json();
-    if (!response.ok || answer.error) throw Object.assign(Error(answer.error || 'Fleet request failed'),
-      { code: response.status === 400 ? 'FLEET_REJECTED' : 'FLEET_UNAVAILABLE' });
+    if (!response.ok || answer.error) {
+      // A credit refusal keeps its stable code and quote, and the HTTP status the text API answers with.
+      const refusal = Object.hasOwn(SERVICE_CREDIT_REFUSAL_STATUS, answer.refusal?.code ?? '') ? answer.refusal : null;
+      throw Object.assign(Error(answer.error || 'Fleet request failed'),
+        { code: response.status === 400 ? 'FLEET_REJECTED' : 'FLEET_UNAVAILABLE',
+          ...(refusal ? { creditRefusal: refusal, status: SERVICE_CREDIT_REFUSAL_STATUS[refusal.code] } : {}) });
+    }
     return answer.result;
   };
   const storage = outboxFile ? createNativeEarningStorage(outboxFile) : null;

@@ -3,7 +3,7 @@ import policy from '../apps/poolday/config/partition-policy.json' with { type: '
 import { canonicalTextRequest, parseTextChatCompletion, stripDescriptiveKeywords } from './chat-completions.js';
 import { createTextRequester } from './text-requester.js';
 import { fail, object, freeze } from './text-request-values.js';
-import { EXECUTION_ERROR_STATUS } from './text-request-options.js';
+import { EXECUTION_ERROR_STATUS, creditRefusalFields } from './text-request-options.js';
 
 const MAX_TOOL_USE_ID = 128, INPUT_FRAGMENT = 96;
 
@@ -99,7 +99,7 @@ export function parseTextMessage(body) {
 const errorBody = error => ({type:'error',error:{type: error.status===401?'authentication_error':error.status===403?'permission_error'
   :error.status===429?'rate_limit_error':error.status<500?'invalid_request_error':'api_error', message:String(error.message).slice(0,1024),
   // The stable inference refusal codes are the same on every protocol.
-  ...(Object.hasOwn(EXECUTION_ERROR_STATUS,error.code??'')?{code:error.code.toLowerCase()}:{})}});
+  ...(Object.hasOwn(EXECUTION_ERROR_STATUS,error.code??'')?{code:error.code.toLowerCase()}:{}), ...creditRefusalFields(error)}});
 export function createMessages(options) {
   // wholeModelUsage: a streamed request asks a whole-model provider for its input count before text.
   return createTextRequester(options,{path:'/v1/messages',idPrefix:'msg_',parse:parseTextMessage,errorBody,wholeModelUsage:true,

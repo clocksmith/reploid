@@ -18,7 +18,7 @@ it('after the named provider is lost mid-answer, a retry under the same policy d
   const named = fixture.seatOf('named'), other = fixture.seatOf('other');
   const messages = [{ role: 'user', content: 'Public fixture for privacy after provider loss.' }];
   const restricted = createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'named', ids: [named.identity.peerId] } });
-  const held = () => credits.snapshot().accounts.find(row => row.id === 'computer-requester').held;
+  const held = () => credits.snapshot().accounts.find(row => row.computerIds.includes('computer-requester')).held;
   // Everything the transport carries to the provider that is not named, from the first message on.
   const toOther = [];
   cleanup.push(hub.lose((entry, payload) => {
@@ -119,7 +119,7 @@ it('a provider checks the requester\'s credit from the commitment, and declines 
   expect(named.executions).toBe(1);
   // Nobody admitted the refused request, so its hold is released at once with no charge, and releasing it
   // again changes nothing.
-  const held = () => credits.snapshot().accounts.find(row => row.id === 'computer-requester').held;
+  const held = () => credits.snapshot().accounts.find(row => row.computerIds.includes('computer-requester')).held;
   expect(credits.request(refused.reservationId).state).toBe('settled');
   expect(credits.request(refused.reservationId).outcome.charge).toBe(0);
   expect(held()).toBe(0);

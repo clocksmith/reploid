@@ -8,6 +8,10 @@ import { createReceiptDraft, signReceiptDraft, countersignReceipt } from '../../
 import { acceptFleetTerminalPolicy } from '../../server/fleet/terminal-policy.js';
 import { signGenerationTerminal } from '../../packages/reploid/src/artifacts/generation-terminal.js';
 import { openFleetCredits } from '../../server/fleet/credits.js';
+import { DEFAULT_UNCLAIMED_RELEASE_MS } from '../../server/fleet/contract.js';
+import { migrateFleetCredits } from '../../server/fleet/credit-migration.js';
+import { verifyCreditStatement } from '../../server/fleet/credit-statement.js';
+import { signSettlementStop } from '../../server/fleet/settlement-terms.js';
 import { createAttemptEvidenceSigner, attemptRouteHash, STAGE_RECEIPT_SCHEMA, OUTPUT_ACKNOWLEDGMENT_SCHEMA } from '../../packages/reploid/src/mesh/partitions/partition-attempt-evidence.js';
 
 const hash = 'sha256:' + 'a'.repeat(64), other = 'sha256:' + 'b'.repeat(64);
@@ -16,11 +20,12 @@ const policy = { schema: 'reploid.service-credit-policy/v1', version: 'test/1', 
   maxClockSkewMs: 1000, maxRequestMs: 60000, allowSameOwner: true, wholeModelTerminalCharge: 0 };
 describe('enrolled fleet service credits', () => {
   let directory, ledger, identities, computers, options;
-  const at = 1794300000000;
+  // Signed cleanup carries the signer's real clock, so the ledger clock starts now: claim windows are measured from it.
+  const at = Date.now();
   beforeEach(async () => {
     directory = await mkdtemp(path.join(tmpdir(), 'reploid-fleet-credit-'));
     identities = await Promise.all([0, 1, 2].map(() => createSigningIdentity({ algorithm: 'Ed25519' })));
-    computers = identities.map((identity, index) => ({ id: `computer-${index}`, name: `Computer ${index}`, ownerId: 'same-owner',
+    computers = identities.map((identity, index) => ({ id: `computer-${index}`, name: `Computer ${index}`, ownerId: `computer-${index}`,
       providers: [{ participantId: identity.peerId, publicJwk: identity.publicJwk }] }));
     options = { file: path.join(directory, 'credits.sqlite'), computers, policy, now: () => at };
     ledger = await openFleetCredits(options);
@@ -75,11 +80,60 @@ describe('enrolled fleet service credits', () => {
     await expect(ledger.collect(input.id, { terminal: late })).rejects.toThrow('Claim window closed');
     expect(ledger.snapshot().accounts.every(row => row.balance === 0 && row.held === 0)).toBe(true);
   });
-  it('keeps an unclaimed whole-model hold open indefinitely when no claim window is set', async () => {
+  it('releases an unclaimed whole-model hold at deadline plus the default window when the policy names none', async () => {
+    expect(policy.wholeModelUnclaimedReleaseMs).toBeUndefined();
+    expect(ledger.policy.wholeModelUnclaimedReleaseMs).toBe(DEFAULT_UNCLAIMED_RELEASE_MS);
     const input = request('unbounded'); dispatch(input); ledger.admit(input.id, 0);
-    ledger.close(); ledger = await openFleetCredits({ ...options, now: () => at + policy.maxRequestMs * 1000 });
+    ledger.close(); ledger = await openFleetCredits({ ...options, now: () => at + policy.maxRequestMs + DEFAULT_UNCLAIMED_RELEASE_MS - 1 });
     expect(ledger.snapshot().accounts[0]).toMatchObject({ held: 10 });
     expect(ledger.request(input.id).state).toBe('closing');
+    ledger.close(); ledger = await openFleetCredits({ ...options, now: () => at + policy.maxRequestMs + DEFAULT_UNCLAIMED_RELEASE_MS });
+    expect(ledger.snapshot().accounts[0]).toMatchObject({ balance: 0, held: 0 });
+    expect(ledger.request(input.id).outcome).toMatchObject({ status: 'expired', charge: 0, reason: 'provider-unclaimed-after-window' });
+  });
+  const stopOf = (input, { by = 0, acknowledged = 0 } = {}) => signSettlementStop({ signer: createAttemptEvidenceSigner({ identity: identities[by] }),
+    acknowledged, terms: { requesterId: identities[by].peerId, reservationId: input.id, attemptId: input.executionId } });
+  it('settles a whole-model Stop after the provider finished on the requester’s signed stop, at zero, once', async () => {
+    const input = request('stopped'); dispatch(input); ledger.admit(input.id, 0);
+    // Only the requester's own stop of exactly this request, with nothing acknowledged, is accepted.
+    await expect(ledger.settle(input.id, await stopOf(input, { by: 2 }))).rejects.toThrow('Requester stop');
+    await expect(ledger.settle(input.id, await stopOf(input, { acknowledged: 1 }))).rejects.toThrow('Requester stop');
+    await expect(ledger.settle(input.id, await stopOf(request('another')))).rejects.toThrow('Requester stop');
+    const stop = await stopOf(input);
+    const outcome = await ledger.settle(input.id, stop);
+    expect(outcome).toMatchObject({ status: 'cancelled', charge: 0, outputTokens: null, usage: null, credits: [expect.objectContaining({ amount: 0 })] });
+    expect(ledger.snapshot().accounts.map(row => [row.balance, row.held])).toEqual([[0, 0], [0, 0], [0, 0]]);
+    const journal = ledger.snapshot().journal.length;
+    // The provider's own cancelled cleanup has the same effect and is accepted once; anything else conflicts.
+    expect(await ledger.collect(input.id, { terminal: await terminal(input) })).toEqual(outcome);
+    await expect(ledger.settle(input.id, await terminal(input, {}, 'failed'))).rejects.toThrow('Conflicting');
+    await expect(ledger.settle(input.id, await evidence(input))).rejects.toThrow('Conflicting');
+    expect(ledger.snapshot().journal).toHaveLength(journal);
+    // A countersigned receipt that arrived first wins; a later stop conflicts.
+    const paid = request('paid'); dispatch(paid); ledger.admit(paid.id, 0);
+    await ledger.settle(paid.id, await evidence(paid));
+    await expect(ledger.settle(paid.id, await stopOf(paid))).rejects.toThrow('Conflicting');
+    const checked = await verifyCreditStatement(ledger.statement('computer-0'), { participantIds: [identities[0].peerId] });
+    expect(checked).toMatchObject({ ok: true, recomputedBalance: -6, verifiedCount: 2, uncheckedCount: 0 });
+  });
+  it('lets no hold outlive its deadline plus the release window, whatever went missing', async () => {
+    ledger.close();
+    let clock = at;
+    ledger = await openFleetCredits({ ...options, file: path.join(directory, 'bounded-all.sqlite'), policy: { ...policy, maxPendingPerComputer: 8, maxDebt: 100 },
+      now: () => clock });
+    ledger.reserve(request('never-dispatched'));
+    dispatch(request('never-admitted'));
+    const admitted = request('admitted-silent'); dispatch(admitted); ledger.admit(admitted.id, 0);
+    const fenced = request('fenced-silent'); dispatch(fenced); ledger.admit(fenced.id, 0); await ledger.fence(fenced.id, fenced.consumer);
+    const cleaned = request('cleanup-without-terms'); dispatch(cleaned); ledger.admit(cleaned.id, 0);
+    const split = await splitRequest('split-silent', 3);
+    dispatch(split.input); ledger.admit(split.input.id, 0); ledger.admit(split.input.id, 1);
+    await ledger.collect(split.input.id, { identity: split.identity, receipts: [split.receipts[1]], acknowledgment: split.acknowledgment });
+    expect(ledger.snapshot().accounts[0].held).toBe(60);
+    clock = at + policy.maxRequestMs + DEFAULT_UNCLAIMED_RELEASE_MS - 1;
+    expect(ledger.snapshot().accounts[0].held).toBe(50);
+    clock = at + policy.maxRequestMs + DEFAULT_UNCLAIMED_RELEASE_MS;
+    expect(ledger.snapshot().accounts.map(row => [row.balance, row.held])).toEqual([[0, 0], [0, 0], [0, 0]]);
   });
   it.each(['cancelled', 'failed'])('settles signed %s cleanup without inventing token usage, even after the deadline', async status => {
     const input = request('terminal'); dispatch(input); ledger.admit(input.id, 0);
@@ -163,6 +217,140 @@ describe('enrolled fleet service credits', () => {
     expect(ledger.snapshot().accounts.every(row => row.balance === 0 && row.held === 0)).toBe(true);
     // A smaller output limit that fits is still refused at zero credit and no debt: nothing is spendable.
     expect(() => ledger.reserve({ ...request('smaller'), maxOutputTokens: 1 })).toThrow('can cost up to 1 and 0 can be spent now');
+    // The refusal carries a stable code and the quote it refused, for the HTTP API's 402.
+    let refusal = null;
+    try { ledger.reserve(request('coded')); } catch (error) { refusal = error.creditRefusal; }
+    expect(refusal).toEqual({ code: 'SERVICE_CREDIT_INSUFFICIENT', spendable: 0, accountId: 'computer-0',
+      quote: expect.objectContaining({ maximum: 10, maxOutputTokens: 10, unit: 'noncash-service-credit' }) });
+  });
+  it('lets a new account with a zero balance make its first answer under the default starter debt limit', async () => {
+    ledger.close();
+    const { maxDebt: _explicit, ...shipped } = policy;
+    ledger = await openFleetCredits({ ...options, file: path.join(directory, 'starter.sqlite'), policy: shipped });
+    // The default debt limit is one answer at the policy's output ceiling: non-cash, bounded, recorded in the policy.
+    expect(ledger.policy.maxDebt).toBe(policy.maxOutputTokens * policy.creditsPerOutputToken);
+    const first = { ...request('first'), maxOutputTokens: policy.maxOutputTokens }; dispatch(first);
+    expect(ledger.snapshot().accounts[0]).toMatchObject({ balance: 0, held: 20, available: -20 });
+    // A second answer needs earned credit first.
+    expect(() => ledger.reserve(request('second'))).toThrow('not enough service credits');
+    await ledger.settle(first.id, await evidence(first));
+    expect(ledger.snapshot().accounts.map(row => row.balance)).toEqual([-6, 6, 0]);
+    // An explicit zero stays zero.
+    ledger.close();
+    ledger = await openFleetCredits({ ...options, file: path.join(directory, 'explicit-zero.sqlite'), policy: { ...policy, maxDebt: 0 } });
+    expect(() => ledger.reserve(request('none'))).toThrow('not enough service credits');
+  });
+  it('keeps one balance per owner account: credit earned on one computer pays for asking from another', async () => {
+    ledger.close();
+    // Your laptop (0) asks; your desktop (2) serves; another person's computer (1) does both.
+    const yours = computers.map((row, index) => ({ ...row, ownerId: index === 1 ? 'them' : 'you' }));
+    ledger = await openFleetCredits({ ...options, file: path.join(directory, 'owners.sqlite'), computers: yours,
+      policy: { ...policy, maxDebt: 8 } });
+    expect(ledger.snapshot().accounts.map(({ id, computerIds, name }) => ({ id, computerIds, name }))).toEqual([
+      { id: 'them', computerIds: ['computer-1'], name: 'Computer 1' },
+      { id: 'you', computerIds: ['computer-0', 'computer-2'], name: 'Computer 0, Computer 2' }]);
+    // With nothing earned, the debt limit alone does not cover a 16-credit answer from your laptop.
+    expect(() => ledger.reserve({ ...request('too-early'), maxOutputTokens: 16 })).toThrow('can cost up to 16 and 8 can be spent now');
+    // The other person's computer asks your desktop and pays 8.
+    const earn = { ...request('earn', 1, 2), maxOutputTokens: 8 }; dispatch(earn);
+    await ledger.settle(earn.id, await evidence(earn, 8, 2, 1));
+    expect(ledger.snapshot().accounts.map(row => [row.id, row.balance])).toEqual([['them', -8], ['you', 8]]);
+    // Your laptop spends what your desktop earned: the same 16-credit answer now fits.
+    const spend = { ...request('spend', 0, 1), maxOutputTokens: 16 }; dispatch(spend);
+    expect(ledger.snapshot().accounts[1]).toMatchObject({ id: 'you', balance: 8, held: 16, available: -8 });
+    const paid = await ledger.settle(spend.id, await evidence(spend, 5, 1, 0));
+    expect(paid).toMatchObject({ charge: 5, credits: [{ participantId: identities[1].peerId, computerId: 'computer-1', accountId: 'them', amount: 5 }] });
+    expect(ledger.snapshot().accounts.map(row => [row.id, row.balance, row.held])).toEqual([['them', -3, 0], ['you', 3, 0]]);
+    // The journal keeps which computer each delta belongs to.
+    expect(ledger.snapshot().journal.map(row => [row.request_id, row.account_id, row.computer_id, row.delta])).toEqual([
+      ['earn', 'them', 'computer-1', -8], ['earn', 'you', 'computer-2', 8], ['spend', 'you', 'computer-0', -5], ['spend', 'them', 'computer-1', 5]]);
+    // Asking your own desktop moves nothing: the owner's own work is unbilled.
+    const own = { ...request('own', 0, 2), maxOutputTokens: 3 }; dispatch(own);
+    expect(await ledger.settle(own.id, await evidence(own, 3, 2, 0))).toMatchObject({ charge: 0, ownComputeUnits: 3, credits: [] });
+    expect(ledger.snapshot().accounts.map(row => row.balance)).toEqual([-3, 3]);
+    // The account's statement lists both computers and verifies offline.
+    const statement = ledger.statement('you');
+    expect(statement).toMatchObject({ schema: 'reploid.fleet-credit-statement/v2', accountId: 'you', computerIds: ['computer-0', 'computer-2'], balance: 3 });
+    expect(statement.entries.map(row => [row.requestId, row.delta, row.attribution.map(item => [item.computerId, item.delta])])).toEqual([
+      ['earn', 8, [['computer-2', 8]]], ['spend', -5, [['computer-0', -5]]], ['own', 0, [['computer-0', 0]]]]);
+    const checked = await verifyCreditStatement(statement, { participantIds: [identities[0].peerId, identities[2].peerId] });
+    expect(checked).toMatchObject({ ok: true, accountId: 'you', recomputedBalance: 3, uncheckedCount: 0 });
+    // A statement that moves a delta to another computer of the same account no longer verifies.
+    const moved = structuredClone(statement); moved.entries[0].attribution[0].computerId = 'computer-0';
+    expect((await verifyCreditStatement(moved)).unchecked[0].reason).toContain('attribution');
+    expect((await verifyCreditStatement(ledger.statement('them'))).ok).toBe(true);
+  });
+  it('migrates an open self-serve ledger written before owner accounts', async () => {
+    ledger.close();
+    const file = path.join(directory, 'open-legacy.sqlite');
+    ledger = await openFleetCredits({ file, computers: [], policy, now: () => at, openEnrollment: true });
+    await ledger.enrollAccount({ ...computers[0], id: 'acct-a', ownerId: 'acct-a' });
+    await ledger.enrollAccount({ ...computers[1], id: 'acct-b', ownerId: 'acct-b' });
+    ledger.close(); ledger = null;
+    const { DatabaseSync } = await import('node:sqlite');
+    const db = new DatabaseSync(file); db.exec("DELETE FROM fleet_metadata WHERE id='account-unit'"); db.close();
+    await expect(openFleetCredits({ file, computers: [], policy, openEnrollment: true })).rejects.toThrow('migrate it to owner accounts');
+    expect(await migrateFleetCredits({ file, computers: [], policy })).toMatchObject({ previousAccountUnit: 'computer',
+      accountsAfter: [{ id: 'acct-a', balance: 0, held: 0 }, { id: 'acct-b', balance: 0, held: 0 }] });
+    ledger = await openFleetCredits({ file, computers: [], policy, now: () => at, openEnrollment: true });
+    const input = request('after-migration'); dispatch(input);
+    await ledger.settle(input.id, await evidence(input));
+    expect(ledger.snapshot().accounts.map(row => [row.id, row.balance])).toEqual([['acct-a', -6], ['acct-b', 6]]);
+    expect((await verifyCreditStatement(ledger.statement('acct-a'))).ok).toBe(true);
+  });
+  it('migrates a per-computer ledger to owner accounts explicitly, keeping attribution and settling old holds as accepted', async () => {
+    ledger.close();
+    let clock = at;
+    const yours = computers.map((row, index) => ({ ...row, ownerId: index === 1 ? 'them' : 'you' }));
+    const { DatabaseSync } = await import('node:sqlite');
+    const file = path.join(directory, 'legacy.sqlite');
+    // Before owner accounts: no release windows, balances kept per computer.
+    const legacyPolicy = { ...policy, version: 'legacy/1', maxDebt: 40 };
+    ledger = await openFleetCredits({ ...options, file, computers: yours, policy: legacyPolicy, now: () => clock });
+    const settled = request('settled-before', 0, 1); dispatch(settled);
+    await ledger.settle(settled.id, await evidence(settled, 6, 1, 0));
+    const open = request('open-before', 2, 1); dispatch(open); ledger.admit(open.id, 0);
+    const lost = request('lost-before', 2, 1); dispatch(lost); ledger.admit(lost.id, 0);
+    ledger.close(); ledger = null;
+    // Rewrite it as the older code left it.
+    const db = new DatabaseSync(file);
+    db.exec("DELETE FROM fleet_metadata WHERE id='account-unit'");
+    const { wholeModelUnclaimedReleaseMs: _w, partitionUnclaimedReleaseMs: _p, ...storedPolicy } = JSON.parse(db.prepare("SELECT value FROM fleet_metadata WHERE id='policy'").get().value);
+    db.prepare("UPDATE fleet_metadata SET value=? WHERE id='policy'").run(JSON.stringify(Object.fromEntries(Object.entries(storedPolicy).sort())));
+    for (const row of db.prepare('SELECT id,binding,outcome FROM fleet_requests').all()) {
+      const { accountId: _accountId, ...binding } = JSON.parse(row.binding);
+      const outcome = row.outcome && JSON.parse(row.outcome);
+      if (outcome) outcome.credits = outcome.credits.map(({ accountId: _account, ...credit }) => credit);
+      db.prepare('UPDATE fleet_requests SET binding=?,outcome=? WHERE id=?').run(JSON.stringify(binding), outcome && JSON.stringify(outcome), row.id);
+    }
+    db.exec('DELETE FROM fleet_accounts');
+    for (const [id, balance, held] of [['computer-0', -6, 0], ['computer-1', 6, 0], ['computer-2', 0, 20]]) {
+      db.prepare('INSERT INTO fleet_accounts (id,balance,held) VALUES (?,?,?)').run(id, balance, held);
+    }
+    db.exec('UPDATE fleet_journal SET account_id=computer_id, computer_id=NULL');
+    db.close();
+    await expect(openFleetCredits({ ...options, file, computers: yours, policy: legacyPolicy })).rejects.toThrow('migrate it to owner accounts');
+    const { wholeModelUnclaimedReleaseMs: _a, partitionUnclaimedReleaseMs: _b, ...shipped } = legacyPolicy;
+    await expect(migrateFleetCredits({ file, computers: yours, policy: shipped })).rejects.toThrow('new policy version');
+    await expect(migrateFleetCredits({ file, computers: yours, policy: { ...shipped, version: 'legacy/2', creditsPerOutputToken: 2 } }))
+      .rejects.toThrow('only add release windows');
+    const migration = { file, computers: yours, policy: { ...shipped, version: 'legacy/2' }, now: () => clock };
+    const record = await migrateFleetCredits(migration);
+    expect(record).toMatchObject({ previousAccountUnit: 'computer', accountUnit: 'owner/v1',
+      accountsAfter: [{ id: 'them', balance: 6, held: 0 }, { id: 'you', balance: -6, held: 20 }],
+      policy: { version: 'legacy/2', wholeModelUnclaimedReleaseMs: DEFAULT_UNCLAIMED_RELEASE_MS } });
+    expect(await migrateFleetCredits(migration)).toEqual(record);
+    ledger = await openFleetCredits({ ...options, file, computers: yours, policy: migration.policy, now: () => clock });
+    expect(ledger.snapshot().journal.map(row => [row.account_id, row.computer_id, row.delta])).toEqual([['you', 'computer-0', -6], ['them', 'computer-1', 6]]);
+    // A hold reserved before the migration settles with the per-computer arithmetic it was accepted under.
+    await ledger.settle(open.id, await evidence(open, 4, 1, 2));
+    expect(ledger.snapshot().accounts.map(row => [row.id, row.balance, row.held])).toEqual([['them', 10, 0], ['you', -10, 10]]);
+    // An old hold nobody claims now clears at its deadline plus the release window.
+    clock = at + policy.maxRequestMs + DEFAULT_UNCLAIMED_RELEASE_MS;
+    expect(ledger.snapshot().accounts[1]).toMatchObject({ id: 'you', held: 0 });
+    expect(ledger.request(lost.id).outcome).toMatchObject({ status: 'expired', charge: 0 });
+    const checked = await verifyCreditStatement(ledger.statement('you'), { participantIds: [identities[0].peerId, identities[2].peerId] });
+    expect(checked).toMatchObject({ ok: true, recomputedBalance: -10, expiredCount: 1, uncheckedCount: 0 });
   });
   it('expires only never-dispatched reservations and fences a late dispatch after restart', async () => {
     const input = request('crash-before-dispatch');
@@ -218,7 +406,8 @@ describe('enrolled fleet service credits', () => {
   });
   it('respects same-owner opt-out and rejects self-paid work', async () => {
     expect(() => ledger.reserve(request('self', 0, 0))).toThrow('Ineligible');
-    ledger.close(); ledger = await openFleetCredits({ ...options, file: path.join(directory, 'unrelated.sqlite'), policy: { ...policy, allowSameOwner: false } });
+    ledger.close(); ledger = await openFleetCredits({ ...options, file: path.join(directory, 'unrelated.sqlite'),
+      computers: computers.map(row => ({ ...row, ownerId: 'same-owner' })), policy: { ...policy, allowSameOwner: false } });
     expect(() => ledger.reserve(request())).toThrow('Ineligible');
   });
   it('pays both settled stages by accepted shares and rejects an incomplete or mismatched chain', async () => {
@@ -364,18 +553,21 @@ describe('enrolled fleet service credits', () => {
     expect(paid.credits.map(row => row.amount)).toEqual([2, 5]);
     expect(balances()).toEqual([[-7, 0], [2, 0], [5, 0]]);
   });
-  it('keeps a split hold open indefinitely when no split claim window is set', async () => {
+  it('releases a split hold at deadline plus the default window when the policy names none', async () => {
     ledger.close();
     let clock = at;
     const unbounded = { ...options, file: path.join(directory, 'split-open.sqlite'), now: () => clock };
     ledger = await openFleetCredits(unbounded);
+    expect(ledger.policy.partitionUnclaimedReleaseMs).toBe(DEFAULT_UNCLAIMED_RELEASE_MS);
     const lost = await splitRequest('lost', 7);
     dispatch(lost.input); ledger.admit(lost.input.id, 0); ledger.admit(lost.input.id, 1);
     await ledger.fence(lost.input.id, lost.input.consumer);
     await ledger.collect(lost.input.id, { identity: lost.identity, receipts: [lost.receipts[1]], acknowledgment: lost.acknowledgment });
-    clock = at + policy.maxRequestMs + 10 * 86_400_000;
+    clock = at + policy.maxRequestMs + DEFAULT_UNCLAIMED_RELEASE_MS - 1;
     expect(await ledger.recover(lost.input.id)).toMatchObject({ status: 'pending', heldCredits: 10, awaitingStages: [0] });
-    expect(ledger.snapshot().accounts[0]).toMatchObject({ balance: 0, held: 10 });
+    clock = at + policy.maxRequestMs + DEFAULT_UNCLAIMED_RELEASE_MS;
+    expect(await ledger.recover(lost.input.id)).toMatchObject({ status: 'expired', charge: 0, reason: 'stage-unclaimed-after-window' });
+    expect(ledger.snapshot().accounts[0]).toMatchObject({ balance: 0, held: 0 });
   });
   it('reconciles orphaned requester reservations on process restart without touching active or unresolved admitted holds', async () => {
     ledger.close();

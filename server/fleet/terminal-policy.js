@@ -5,10 +5,10 @@ import path from 'node:path';
 import { constants } from 'node:fs';
 import { DatabaseSync } from 'node:sqlite';
 import { canonicalize } from '../../shared/vendor/reploid/artifacts/canonical-json.js';
-import { assert, creditPolicy, same, text } from './contract.js';
+import { assert, creditPolicy, same, text, withCreditPolicyDefaults } from './contract.js';
 
 export async function acceptFleetTerminalPolicy({ file, previousVersion, policy: supplied, requestIds, now = Date.now }) {
-  const policy = creditPolicy(supplied);
+  const policy = creditPolicy(withCreditPolicyDefaults(supplied));
   assert(path.isAbsolute(file) && text(previousVersion) && policy.version !== previousVersion
     && policy.wholeModelTerminalCharge === 0 && Array.isArray(requestIds)
     && requestIds.length <= 2048 && requestIds.every(text) && new Set(requestIds).size === requestIds.length,
@@ -49,7 +49,7 @@ export async function acceptFleetTerminalPolicy({ file, previousVersion, policy:
 }
 
 export async function acceptFleetOutputLimitPolicy({ file, previousVersion, policy: supplied, now = Date.now }) {
-  const policy = creditPolicy(supplied);
+  const policy = creditPolicy(withCreditPolicyDefaults(supplied));
   assert(path.isAbsolute(file) && text(previousVersion) && policy.version !== previousVersion,
     'Explicit output-limit policy version change required');
   const handle = await fs.open(file, constants.O_RDWR | constants.O_NOFOLLOW);

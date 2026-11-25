@@ -177,8 +177,8 @@ it('signs failed terminal cleanup on provider startup for orphaned whole-model a
   const inputDigest = 'sha256:' + 'd'.repeat(64);
   const models = [{ id: 'qwen-test', identity: modelIdentity }];
   const computers = [
-    { id: 'requester', name: 'Requester', ownerId: 'owner-1', providers: [{ participantId: reqIdentity.peerId, publicJwk: reqIdentity.publicJwk }] },
-    { id: 'provider', name: 'Provider', ownerId: 'owner-1', providers: [{ participantId: provIdentity.peerId, publicJwk: provIdentity.publicJwk }] }
+    { id: 'requester', name: 'Requester', ownerId: 'requester', providers: [{ participantId: reqIdentity.peerId, publicJwk: reqIdentity.publicJwk }] },
+    { id: 'provider', name: 'Provider', ownerId: 'provider', providers: [{ participantId: provIdentity.peerId, publicJwk: provIdentity.publicJwk }] }
   ];
   const policy = {
     schema: 'reploid.service-credit-policy/v1', version: 'test/restart-1', unit: 'noncash-service-credit',

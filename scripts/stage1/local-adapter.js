@@ -79,7 +79,8 @@ export function createLocalStage1Adapter({ directory, expectations, stageRanges,
   const witnessFile = role => path.join(directory, role, 'state', `witness-${splitThread}.json`);
   const inventorySource = 'fake-runtime-declared';
   let credits = null, service = null, signaling = null, httpServer = null, peers = null, earner = null, buyer = null;
-  const accountBalance = computerId => credits.snapshot().accounts.find(row => row.id === computerId)?.balance ?? null;
+  // The balance of the owner account a computer belongs to.
+  const accountBalance = computerId => credits.snapshot().accounts.find(row => row.computerIds.includes(computerId))?.balance ?? null;
 
   const node = role => nodes.get(role);
   // Declared by this fake: it reports each stage's own ranges, so its zero outside-stage count shows nothing.
@@ -117,7 +118,8 @@ export function createLocalStage1Adapter({ directory, expectations, stageRanges,
         requesterId: peers.requester.participantId, stageParticipants: [peers.stage0.participantId, peers.stage1.participantId] } }) });
 
   const settled = (id, signal) => until(() => credits.request(id)?.state === 'settled', { timeoutMs: 20000, label: 'settlement', signal });
-  const computerOf = id => credits.enrollment.byPeer.get(id)?.computerId ?? id;
+  // The ledger's own unit: an owner account's own work is unbilled.
+  const computerOf = id => credits.enrollment.byPeer.get(id)?.ownerId ?? id;
   const stageNodes = () => HOSTS.map(host => node(host.role));
   const replay = (attemptId, options = {}) => collectSettlementReplay({ requester: node('requester'), stages: stageNodes(), attemptId,
     policy: credits.policy, computerOf, ...options });

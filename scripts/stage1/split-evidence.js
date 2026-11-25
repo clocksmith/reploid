@@ -34,7 +34,9 @@ export async function ledgerTrace(credits, reservationId) {
   }
   return { reservationId, state: row?.state ?? 'missing', status: row?.outcome?.status ?? null, charge: row?.outcome?.charge ?? null, outputTokens: row?.outcome?.outputTokens ?? null,
     credits: (row?.outcome?.credits ?? []).map(credit => ({ computerId: credit.computerId, amount: credit.amount })),
-    journal: entries.map(entry => ({ accountId: entry.account_id, delta: entry.delta })),
+    // Each row names the computer its delta is attributed to: the receipt format's `accountId`, from when the ledger kept
+    // one balance per computer. Every Stage 1 owner account holds one computer, so the two agree.
+    journal: entries.map(entry => ({ accountId: entry.computer_id ?? entry.account_id, delta: entry.delta })),
     heldAfter: before.accounts.reduce((sum, account) => sum + account.held, 0), replay };
 }
 

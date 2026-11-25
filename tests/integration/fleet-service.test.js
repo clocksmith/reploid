@@ -31,7 +31,7 @@ beforeEach(async () => {
   root = await mkdtemp(path.join(os.tmpdir(), 'fleet-service-'));
   keys = await Promise.all([0, 1, 2].map(() => createSigningIdentity({ algorithm: 'Ed25519' })));
   credits = await openFleetCredits({ file: path.join(root, 'credits.sqlite'),
-    computers: keys.map((key, index) => ({ id: `machine-${index}`, name: `Machine ${index}`, ownerId: 'owner',
+    computers: keys.map((key, index) => ({ id: `machine-${index}`, name: `Machine ${index}`, ownerId: `machine-${index}`,
       providers: [{ participantId: key.peerId, publicJwk: key.publicJwk }] })),
     policy: { schema: 'reploid.service-credit-policy/v1', version: 'test/1', unit: 'noncash-service-credit',
       creditsPerOutputToken: 1, maxDebt: 100, maxOutputTokens: 20, maxPendingPerComputer: 2,
@@ -75,9 +75,9 @@ it('meters a request through signed HTTP admission, disclosure and countersigned
   const providerClient = createFleetClient({ url: service.url, identity: keys[1] });
   const providerStatement = await providerClient.statement();
   expect(await verifyCreditStatement(consumerStatement, { participantIds: [keys[0].peerId] }))
-    .toMatchObject({ ok: true, computerId: 'machine-0', statedBalance: -3, recomputedBalance: -3, uncheckedCount: 0 });
+    .toMatchObject({ ok: true, accountId: 'machine-0', statedBalance: -3, recomputedBalance: -3, uncheckedCount: 0 });
   expect(await verifyCreditStatement(providerStatement, { participantIds: [keys[1].peerId] }))
-    .toMatchObject({ ok: true, computerId: 'machine-1', statedBalance: 3, recomputedBalance: 3, uncheckedCount: 0 });
+    .toMatchObject({ ok: true, accountId: 'machine-1', statedBalance: 3, recomputedBalance: 3, uncheckedCount: 0 });
 });
 
 it('rejects a changed accepted credit ceiling before reserving or dispatching', async () => {
@@ -92,6 +92,63 @@ it('rejects a changed accepted credit ceiling before reserving or dispatching', 
   await expect(client.reserve(binding)).rejects.toThrow('quote changed');
   expect(credits.request(binding.id)).toBeNull();
   expect(credits.snapshot().accounts.every(row => row.held === 0)).toBe(true);
+});
+
+it('sends a requester cap below the provider’s model limit as the request limit, and names the mismatch otherwise', async () => {
+  const provider = createFleetClient({ url: service.url, identity: keys[1] });
+  const admission = createFleetExecutionAdmission({ credits: provider, model: { ...model, generation: { maxTokens: 10 } } });
+  const messages = [{ role: 'user', content: 'Test.' }], consumer = keys[0].peerId;
+  let sent = null;
+  const participant = { async generate(request, controls) {
+    sent = request.settings;
+    expect(await controls.requestApproval({ requestId: 'capped-1', recipientIdentity: keys[1].peerId, input: { messages } })).toBe(true);
+    // Without the requester's limit the provider admits for its own ceiling of 10, past the 4 reserved.
+    await expect(admission.whole({ consumer, request: { consumer, requestId: 'capped-1', messages } }))
+      .rejects.toThrow('exceeds the requester\'s reserved limit of 4');
+    expect(await admission.whole({ consumer, request: { consumer, requestId: 'capped-1', messages, settings: request.settings,
+      modelIdentity: model.identity, adapterIdentities: [] } })).toBe(true);
+    throw Error('Provider admitted; the answer is not needed here');
+  } };
+  const requester = createFleetRequester({ participant, identity: keys[0], credits: client, maxOutputTokens: 4 });
+  await expect(requester.generate({ model: { ...model, generation: { maxTokens: 10 } }, messages },
+    { signal: new AbortController().signal, requestApproval: async () => true })).rejects.toThrow('not needed');
+  expect(sent).toMatchObject({ maxOutputTokens: 4 });
+  expect(credits.request(`service:${consumer}:capped-1`).binding).toMatchObject({ maxOutputTokens: 4, settingsDigest: expect.stringMatching(/^sha256:/) });
+});
+
+it('settles the person’s Stop after the provider finished on the requester’s signed stop; a lost connection stays recoverable', async () => {
+  const messages = [{ role: 'user', content: 'Test.' }];
+  // The provider has finished; nothing more arrives, and this requester never countersigns a receipt.
+  const finishedThenStopped = requestId => ({ async generate(request, controls) {
+    expect(await controls.requestApproval({ requestId, recipientIdentity: keys[1].peerId, input: { messages: request.messages } })).toBe(true);
+    credits.admit(`service:${keys[0].peerId}:${requestId}`, 0);
+    await new Promise(resolve => controls.signal.addEventListener('abort', resolve, { once: true }));
+    throw controls.signal.reason;
+  }, recoverGeneration() { throw Error('A stop never asks the provider again'); } });
+  const held = () => credits.snapshot().accounts[0].held;
+  const stopper = createFleetRequester({ participant: finishedThenStopped('stopped-1'), identity: keys[0], credits: client, maxOutputTokens: 10 });
+  const stop = new AbortController();
+  const stopped = stopper.generate({ model, messages }, { signal: stop.signal, requestApproval: async () => true }).catch(error => error);
+  await vi.waitFor(() => expect(held()).toBe(10));
+  stop.abort(Object.assign(new DOMException('Stopped by owner', 'AbortError'), { requesterStop: true }));
+  expect((await stopped).serviceCredit).toMatchObject({ status: 'cancelled', charge: 0, outputTokens: null });
+  expect(held()).toBe(0);
+  expect(credits.request(`service:${keys[0].peerId}:stopped-1`).evidence).toMatchObject({ schema: 'reploid.settlement-stop/v1', acknowledged: 0 });
+  // A lost connection is not a Stop: the hold stays so the answer can still be recovered and paid for ...
+  const lost = createFleetRequester({ participant: finishedThenStopped('lost-1'), identity: keys[0], credits: client, maxOutputTokens: 10 });
+  const drop = new AbortController();
+  const dropped = lost.generate({ model, messages }, { signal: drop.signal, requestApproval: async () => true }).catch(error => error);
+  await vi.waitFor(() => expect(held()).toBe(10));
+  drop.abort(Error('Connection lost'));
+  expect((await dropped).serviceCredit).toMatchObject({ status: 'pending' });
+  expect(held()).toBe(10);
+  // ... or stopped later through recovery, which signs the same stop.
+  const reservationId = `service:${keys[0].peerId}:lost-1`;
+  await expect(lost.recover({ reservationId, messages: [{ role: 'user', content: 'Other.' }], stop: true }, { signal: AbortSignal.timeout(5000) }))
+    .rejects.toThrow('Recovery input differs');
+  expect(await lost.recover({ reservationId, messages, stop: true }, { signal: AbortSignal.timeout(5000) }))
+    .toMatchObject({ status: 'cancelled', serviceCredit: { charge: 0, status: 'cancelled' } });
+  expect(held()).toBe(0);
 });
 
 it.each([false, true])('settles cancellation after cleanup, retaining lost HTTP replies for recovery (%s)', async loseReply => {
@@ -669,7 +726,7 @@ it('recovers credited work from durable provider outboxes after the requester an
     await service.close(); credits.close();
     const policy = credits.policy;
     credits = await openFleetCredits({ file: path.join(root, 'credits.sqlite'), policy,
-      computers: keys.map((key, index) => ({ id: `machine-${index}`, name: `Machine ${index}`, ownerId: 'owner',
+      computers: keys.map((key, index) => ({ id: `machine-${index}`, name: `Machine ${index}`, ownerId: `machine-${index}`,
         providers: [{ participantId: key.peerId, publicJwk: key.publicJwk }] })), now: () => Date.now() + policy.maxRequestMs + 1 });
     service = await startFleetService({ credits, models: [route.model],
       placementPolicy: { maxMeasurementAgeMs: 60000, maxObservationAgeMs: 10000, minResidencyMs: 1000, maxRouteCandidates: 100, queuedRequestsPerReplica: 2 } });
@@ -735,7 +792,7 @@ it('replays a zero-output fenced partition settlement without inventing stage re
 
 it('migrates maxOutputTokens only when all reservations and holds are settled and rate terms are unchanged', async () => {
   const file = path.join(root, 'credits.sqlite');
-  const computers = keys.map((key, index) => ({ id: `machine-${index}`, name: `Machine ${index}`, ownerId: 'owner',
+  const computers = keys.map((key, index) => ({ id: `machine-${index}`, name: `Machine ${index}`, ownerId: `machine-${index}`,
     providers: [{ participantId: key.peerId, publicJwk: key.publicJwk }] }));
   const nextPolicy = { ...credits.policy, version: 'test/2-max512', maxOutputTokens: 512 };
   await client.reserve({ id: 'service:open-hold', executionId: 'open-hold', consumer: keys[0].peerId, mode: 'whole-model',
@@ -1042,7 +1099,7 @@ it.each([
     expect(await client.call('recover', { id })).toEqual(result);
     expect(await client.call('snapshot', {})).toEqual(snapshot);
     expect(await verifyCreditStatement(await client.statement(), { participantIds: [keys[0].peerId] }))
-      .toMatchObject({ ok: true, computerId: 'machine-0', statedBalance: spent, recomputedBalance: spent, uncheckedCount: 0 });
+      .toMatchObject({ ok: true, accountId: 'machine-0', statedBalance: spent, recomputedBalance: spent, uncheckedCount: 0 });
   } finally {
     if (child.exitCode === null && child.signalCode === null) { const dead = once(child, 'exit'); child.kill('SIGKILL'); await dead; }
     await api?.close(); await requesterHost?.close(); await host?.close(); await route.close();

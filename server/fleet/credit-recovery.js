@@ -6,7 +6,7 @@ import { verifyCreditEvidence, verifyPartitionComponents } from './credit-eviden
 
 /** Durable admission fences and independently verified proof components. No timeout asserts
  * remote cleanup. Deadline expiry only closes admission; an admitted owner must still sign. */
-export function createCreditRecovery({ db, transaction, read, settle, enrollment, policy, now }) {
+export function createCreditRecovery({ db, transaction, read, settle, enrollment, policy, now, holdAccount }) {
   db.exec(`CREATE TABLE IF NOT EXISTS fleet_admissions (request_id TEXT NOT NULL, stage INTEGER NOT NULL, PRIMARY KEY(request_id,stage));
     CREATE TABLE IF NOT EXISTS fleet_stage_owners (request_id TEXT NOT NULL, stage INTEGER NOT NULL, owner TEXT NOT NULL, closure TEXT, PRIMARY KEY(request_id,stage));
     CREATE TABLE IF NOT EXISTS fleet_components (request_id TEXT NOT NULL, kind TEXT NOT NULL, payload TEXT NOT NULL, PRIMARY KEY(request_id,kind));`);
@@ -43,15 +43,16 @@ export function createCreditRecovery({ db, transaction, read, settle, enrollment
       const request = read(row.id);
       if (now() < request.binding.deadline) continue;
       if (request.state === 'reserved') {
-        db.prepare('UPDATE fleet_accounts SET held=held-? WHERE id=?').run(request.binding.maximum, request.binding.computerId);
+        db.prepare('UPDATE fleet_accounts SET held=held-? WHERE id=?').run(request.binding.maximum, holdAccount(request.binding));
         db.prepare("UPDATE fleet_requests SET state='abandoned' WHERE id=?").run(row.id);
       } else db.prepare("UPDATE fleet_requests SET state='closing' WHERE id=?").run(row.id);
     }
-    // Opt-in bound on a whole-model hold whose provider never returned. The provider has the request deadline
-    // plus this window to sign completion or cleanup evidence; after it the unused hold is released with no
-    // charge and no credit, and a later claim for this request is refused. Absent, such a hold stays open.
+    // Bound on a whole-model hold whose provider never returned. The provider has the request deadline plus this
+    // window to sign completion or cleanup evidence; after it the unused hold is released with no charge and no
+    // credit, and a later claim for this request is refused. A ledger always runs with this window
+    // (withCreditPolicyDefaults); a historical statement whose policy lacks it leaves such holds open.
     //
-    // `partitionUnclaimedReleaseMs` is the same opt-in bound for a split request. A stage host that disappears
+    // `partitionUnclaimedReleaseMs` is the same bound for a split request. A stage host that disappears
     // for good would otherwise strand the hold forever, because settlement needs every stage's signed closure.
     // After the window the request reaches one final outcome: expired, no charge, no credit to any stage. The
     // outcome names the stages that never signed and reports their cleanup as unverified: nothing here asserts
@@ -71,7 +72,7 @@ export function createCreditRecovery({ db, transaction, read, settle, enrollment
           unclaimedStages: unsigned.map(stage => ({ stage, participantId: request.binding.providers[stage].participantId,
             cleanup: progress.missing.includes(stage) ? 'never-admitted' : 'unverified' })) };
       }
-      db.prepare('UPDATE fleet_accounts SET held=held-? WHERE id=?').run(request.binding.maximum, request.binding.computerId);
+      db.prepare('UPDATE fleet_accounts SET held=held-? WHERE id=?').run(request.binding.maximum, holdAccount(request.binding));
       db.prepare("UPDATE fleet_requests SET state='settled',outcome=? WHERE id=?").run(JSON.stringify(outcome), row.id);
     }
   });
@@ -216,7 +217,7 @@ export function createCreditRecovery({ db, transaction, read, settle, enrollment
           const current = read(id);
           if (!current || current.binding.consumer !== consumer) continue;
           if (current.state === 'reserved') {
-            db.prepare('UPDATE fleet_accounts SET held=held-? WHERE id=?').run(current.binding.maximum, current.binding.computerId);
+            db.prepare('UPDATE fleet_accounts SET held=held-? WHERE id=?').run(current.binding.maximum, holdAccount(current.binding));
             db.prepare("UPDATE fleet_requests SET state='abandoned' WHERE id=?").run(id);
             abandonedResults.push({ id, status: 'abandoned', charge: 0, outputTokens: 0, settledAt: now() });
             continue;
@@ -250,7 +251,7 @@ export function createCreditRecovery({ db, transaction, read, settle, enrollment
           const current = read(id); if (current.state === 'settled') return current.outcome;
           const outcome = { id, unit: policy.unit, charge: 0, ownComputeUnits: 0, outputTokens: 0, credits: [],
             evidenceHash: createHash('sha256').update(canonicalize({ id, unadmitted: missing })).digest('hex'), settledAt: now() };
-          db.prepare('UPDATE fleet_accounts SET held=held-? WHERE id=?').run(request.maximum, request.computerId);
+          db.prepare('UPDATE fleet_accounts SET held=held-? WHERE id=?').run(request.maximum, holdAccount(request));
           db.prepare("UPDATE fleet_requests SET state='settled',outcome=? WHERE id=?").run(JSON.stringify(outcome), id);
           return outcome;
         });

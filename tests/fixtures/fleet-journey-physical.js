@@ -352,7 +352,7 @@ try {
   const startedEmpty = fillerSpec?.requireColdFill === true ? await emptyDirectories(fillerSpec) : null;
   for (const spec of config.providers) { const node = await launch(spec, 'provider'); providers.push(node); byIdentity.set(node.identity.participantId, spec.computerId); }
   await startRequester(false);
-  const enrolled = [requester, ...providers].map(node => ({ id: node.spec.computerId, name: node.spec.name, ownerId: 'owner',
+  const enrolled = [requester, ...providers].map(node => ({ id: node.spec.computerId, name: node.spec.name, ownerId: node.spec.computerId,
     providers: [{ participantId: node.identity.participantId, publicJwk: node.identity.publicJwk }] }));
   const policy = { schema: 'reploid.service-credit-policy/v1', version: 'fleet-journey/1', unit: 'noncash-service-credit', creditsPerOutputToken: 1,
     maxDebt: 100000, maxOutputTokens: model.generation.maxTokens, maxPendingPerComputer: 8, maxClockSkewMs: 30000, allowSameOwner: true,

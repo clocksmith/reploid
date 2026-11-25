@@ -1,7 +1,8 @@
 /**
  * Offline service-credit statement verifier.
  *
- * Recomputes one enrolled computer's balance directly from signed execution
+ * Recomputes one owner account's balance (statement v2) or, for a statement
+ * issued before owner accounts, one enrolled computer's balance (v1) directly from signed execution
  * receipts, output acknowledgments, terminal cleanup proofs and accepted
  * request bindings, without trusting the operator's running total or SQLite
  * tables. Verifies expired unclaimed holds, enforces policy claim-release
@@ -19,9 +20,10 @@ import { verifyParticipantSignature } from '../../shared/vendor/reploid/artifact
 import { canonicalRouteAttemptBinding } from '../../shared/vendor/reploid/mesh/partitions/partition-contract.js';
 import { assert, creditPolicy, digest, enrollComputers, FLEET_SERVICE_REQUEST_SCHEMA, integer, same, text } from './contract.js';
 import { verifyCreditEvidence, verifyPartitionComponents } from './credit-evidence.js';
-import { creditSettlementDeltas, settledCreditUnits, UNFINISHED_ANSWER_TERMS } from './credit-shares.js';
+import { accountSettlement, creditSettlementDeltas, settledCreditUnits, UNFINISHED_ANSWER_TERMS } from './credit-shares.js';
 
 export const FLEET_CREDIT_STATEMENT_SCHEMA = 'reploid.fleet-credit-statement/v1';
+export const FLEET_CREDIT_STATEMENT_V2_SCHEMA = 'reploid.fleet-credit-statement/v2';
 
 const releaseWindowFor = (request, policy) => (
   request.mode === 'whole-model' ? policy.wholeModelUnclaimedReleaseMs : policy.partitionUnclaimedReleaseMs
@@ -50,6 +52,7 @@ function verifyRequestBinding(request, requestId, enrollment, policy) {
   'Malformed request binding');
   const consumer = enrollment.byPeer.get(request.consumer);
   assert(consumer && consumer.computerId === request.computerId, 'Request consumer differs from enrolled computer');
+  assert(request.accountId === undefined || request.accountId === consumer.ownerId, 'Request account differs from the enrolled owner');
   let totalWeight = 0;
   for (const provider of request.providers) {
     const owner = enrollment.byPeer.get(provider?.participantId);
@@ -71,7 +74,7 @@ function verifyRequestBinding(request, requestId, enrollment, policy) {
       && canonicalRoute.route.modelIdentity === request.model.identity, 'Partition credit recipients or model differ');
   }
   const {
-    requestHash, computerId: _computerId, maximum, policyVersion: _policyVersion,
+    requestHash, computerId: _computerId, accountId: _accountId, maximum, policyVersion: _policyVersion,
     terminalCharge, terminalPolicyVersion: _terminalPolicyVersion, admissionVersion: _admissionVersion,
     createdAt, deadline, ...reservedValue
   } = request;
@@ -125,8 +128,11 @@ async function verifyInterruptedOwners(request, evidence, enrollment, settledAt,
  * the stated journal delta are reported in `unchecked`.
  */
 export async function verifyCreditStatement(statement, { computers, participantIds, lateClaims } = {}) {
-  assert(statement?.schema === FLEET_CREDIT_STATEMENT_SCHEMA, 'Explicit fleet credit statement required');
-  assert(text(statement.computerId), 'Explicit statement computer ID required');
+  assert([FLEET_CREDIT_STATEMENT_SCHEMA, FLEET_CREDIT_STATEMENT_V2_SCHEMA].includes(statement?.schema), 'Explicit fleet credit statement required');
+  // v2: the balance belongs to an owner account across all its computers. v1: to one computer.
+  const perAccount = statement.schema === FLEET_CREDIT_STATEMENT_V2_SCHEMA;
+  const holder = perAccount ? statement.accountId : statement.computerId;
+  assert(text(holder), perAccount ? 'Explicit statement account ID required' : 'Explicit statement computer ID required');
   const policy = creditPolicy(statement.policy);
   assert(statement.unit === policy.unit, 'Statement credit unit differs from policy');
   assert(Number.isSafeInteger(statement.balance) && integer(statement.held) && Number.isSafeInteger(statement.issuedAt),
@@ -139,15 +145,35 @@ export async function verifyCreditStatement(statement, { computers, participantI
   if (computers !== undefined && statement.computers !== undefined) {
     assert(same(computers, statement.computers), 'Statement enrollment differs from trusted computer enrollment');
   }
-  const account = enrollment.byId.get(statement.computerId);
-  assert(account, 'Statement account is absent from enrollment');
+  const owned = perAccount ? [...enrollment.byId.values()].filter(computer => computer.ownerId === holder)
+    : [enrollment.byId.get(holder)].filter(Boolean);
+  assert(owned.length > 0, 'Statement account is absent from enrollment');
+  if (perAccount) {
+    assert(same(statement.computerIds, owned.map(computer => computer.id)), 'Statement computers differ from the enrolled owner account');
+  }
   if (participantIds !== undefined) {
     assert(Array.isArray(participantIds) && participantIds.length > 0 && participantIds.every(text),
       'Explicit participant IDs required');
     const expectedPeers = [...new Set(participantIds)].sort();
-    const actualPeers = account.providers.map(provider => provider.participantId).sort();
+    const actualPeers = owned.flatMap(computer => computer.providers.map(provider => provider.participantId)).sort();
     assert(same(actualPeers, expectedPeers), 'Statement account keys differ from expected participant identities');
   }
+  // The unit a participant's share is posted to, and the unit a reservation's hold sits on.
+  const unitOfPeer = peer => { const enrolled = enrollment.byPeer.get(peer); return perAccount ? enrolled?.ownerId : enrolled?.computerId; };
+  const holdUnit = request => (perAccount ? request.accountId ?? enrollment.byId.get(request.computerId)?.ownerId : request.computerId);
+  const placeOf = peer => { const { computerId, ownerId } = enrollment.byPeer.get(peer); return { computerId, accountId: ownerId }; };
+  /** This statement's share of one settled request: its delta, and for v2 the computers that delta is attributed to. */
+  const shareOf = (request, totalUnits) => {
+    if (!perAccount) {
+      const split = creditSettlementDeltas(request, totalUnits, peer => enrollment.byPeer.get(peer).computerId);
+      assert(split.deltas.has(holder), 'Journal entry account did not participate in settled request');
+      return { split, delta: split.deltas.get(holder), attribution: null };
+    }
+    const split = accountSettlement(request, totalUnits, placeOf);
+    assert(split.deltas.has(holder), 'Journal entry account did not participate in settled request');
+    return { split, delta: split.deltas.get(holder),
+      attribution: split.entries.filter(row => row.accountId === holder).map(row => ({ computerId: row.computerId, delta: row.delta })) };
+  };
 
   const expiredRequests = new Set(), expiredWorkIds = new Set(), expiredById = new Map();
   const seenRequests = new Set(), seenWorkIds = new Set();
@@ -159,8 +185,8 @@ export async function verifyCreditStatement(statement, { computers, participantI
     try {
       assert(text(requestId) && !expiredRequests.has(requestId), 'Duplicate or invalid expired request ID');
       verifyRequestBinding(item.request, requestId, enrollment, policy);
-      const participates = item.request.computerId === statement.computerId
-        || item.request.providers.some(provider => enrollment.byPeer.get(provider.participantId)?.computerId === statement.computerId);
+      const participates = holdUnit(item.request) === holder
+        || item.request.providers.some(provider => unitOfPeer(provider.participantId) === holder);
       assert(participates, 'Statement account did not participate in expired request');
       const window = releaseWindowFor(item.request, policy);
       assert(Number.isSafeInteger(window) && window > 0, 'Expired unclaimed hold requires an explicit policy release window');
@@ -208,9 +234,13 @@ export async function verifyCreditStatement(statement, { computers, participantI
         assert(!seenWorkIds.has(workId), 'Duplicate settled work evidence');
       }
       const totalUnits = settledCreditUnits(entry.request, observed, policy.creditsPerOutputToken);
-      const split = creditSettlementDeltas(entry.request, totalUnits, peer => enrollment.byPeer.get(peer).computerId);
-      assert(split.deltas.has(statement.computerId), 'Journal entry account did not participate in settled request');
-      recomputedDelta = split.deltas.get(statement.computerId);
+      const { split, delta, attribution } = shareOf(entry.request, totalUnits);
+      recomputedDelta = delta;
+      if (attribution) {
+        const stated = Array.isArray(entry.attribution) ? entry.attribution.map(row => ({ computerId: row?.computerId, delta: row?.delta })) : null;
+        const order = rows => [...rows].sort((a, b) => (a.computerId < b.computerId ? -1 : a.computerId > b.computerId ? 1 : 0));
+        assert(stated && same(order(stated), order(attribution)), 'Stated per-computer attribution differs from recomputed shares');
+      }
       assert(Number.isSafeInteger(recomputedBalance + recomputedDelta), 'Recomputed credit balance exceeds integer precision');
       seenRequests.add(requestId);
       for (const workId of observed.workIds) seenWorkIds.add(workId);
@@ -227,6 +257,7 @@ export async function verifyCreditStatement(statement, { computers, participantI
         outputTokens: observed.outputTokens,
         charge: split.charge,
         ownComputeUnits: split.ownComputeUnits,
+        ...(attribution ? { attribution } : {}),
       });
     } catch (error) {
       unchecked.push({
@@ -275,7 +306,7 @@ export async function verifyCreditStatement(statement, { computers, participantI
   const lateClaimsBlocked = lateClaimResults ? lateClaimResults.every(row => row.reopenAllowed === false) : true;
   return {
     ok: unchecked.length === 0 && balanceMatches && lateClaimsBlocked,
-    computerId: statement.computerId,
+    ...(perAccount ? { accountId: holder, computerIds: owned.map(computer => computer.id) } : { computerId: holder }),
     unit: policy.unit,
     statedBalance: statement.balance,
     recomputedBalance,

@@ -18,7 +18,7 @@ async function network() {
     { name: 'slower', tokensPerSecond: 40, holdsModel: true, appliesOutputLimit: true }
   ] });
   cleanup.push(() => fixture.close());
-  const account = id => fixture.credits.snapshot().accounts.find(row => row.id === id);
+  const account = id => fixture.credits.snapshot().accounts.find(row => row.computerIds.includes(id));
   const send = (attemptId, controls) => fixture.requester.generate({ model: fixture.model, messages, threadId: 'order', attemptId,
     settings: normalizeGenerationSettings({ maxOutputTokens: LIMIT }),
     privacy: createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'open', ids: [] } }) }, controls);

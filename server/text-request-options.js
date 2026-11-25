@@ -1,11 +1,25 @@
 import { fail, object, freeze } from './text-request-values.js';
 import { compileExecutionRequirements, EXECUTION_BACKENDS } from '../shared/vendor/reploid/chat/execution-policy.js';
+import { SERVICE_CREDIT_REFUSAL_STATUS } from './fleet/contract.js';
 
 /** HTTP status for each stable inference refusal code. The body's error.code is the code in lower case. */
 export const EXECUTION_ERROR_STATUS = Object.freeze({
   EXECUTION_REQUEST_INVALID: 400, CONFIDENTIAL_EXECUTION_UNAVAILABLE: 422, LEAKAGE_NOT_ALLOWED: 422,
   EXECUTION_ROUTE_UNAVAILABLE: 503, EXECUTION_PLAN_EXPIRED: 409, EXECUTION_PLAN_CHANGED: 409, RESULT_UNVERIFIED: 502
 });
+/**
+ * A service-credit refusal (server/fleet/contract.js `creditRefusal`) made before any hold or disclosure: 402 when
+ * the account cannot cover the quote, 409 when it has too many unfinished answers. Every protocol returns the stable
+ * lower-case code and the refused quote in `service_credit`.
+ */
+export const CREDIT_REFUSAL_STATUS = SERVICE_CREDIT_REFUSAL_STATUS;
+export const creditRefusalOf = error => (Object.hasOwn(CREDIT_REFUSAL_STATUS, error?.creditRefusal?.code ?? '') ? error.creditRefusal : null);
+export const creditRefusalFields = error => {
+  const refusal = creditRefusalOf(error);
+  if (!refusal) return {};
+  const { code, ...details } = refusal;
+  return { code: code.toLowerCase(), service_credit: structuredClone(details) };
+};
 // Only refusals of the caller's own extension point at the `reploid` parameter.
 const EXTENSION_CODES = ['EXECUTION_REQUEST_INVALID', 'CONFIDENTIAL_EXECUTION_UNAVAILABLE', 'LEAKAGE_NOT_ALLOWED'];
 export const executionFailure = error => Object.hasOwn(EXECUTION_ERROR_STATUS, error?.code)

@@ -1,7 +1,8 @@
 import { createInference } from '../shared/vendor/reploid/inference/index.js';
 import { createHttpRequestOwner } from './http-request-owner.js';
 import { fail, assert, object, freeze } from './text-request-values.js';
-import { parseExecutionExtension, executionFailure, STANDARD_HTTP_EXECUTION, EXECUTION_ERROR_STATUS } from './text-request-options.js';
+import { parseExecutionExtension, executionFailure, STANDARD_HTTP_EXECUTION, EXECUTION_ERROR_STATUS, CREDIT_REFUSAL_STATUS, creditRefusalOf,
+  creditRefusalFields } from './text-request-options.js';
 import { canonicalPartitionJson, partitionAdapterIdentities } from '../shared/vendor/reploid/mesh/partitions/partition-contract.js';
 import { requireGenerationCapability, tokenUsage } from '../shared/vendor/reploid/mesh/partitions/partition-generation-request.js';
 import { assertSettingsSupported, normalizeGenerationSettings } from '../shared/vendor/reploid/mesh/generation-settings.js';
@@ -36,7 +37,7 @@ const errorBody = (error, model) => ({ error: { message: error.message, type: er
   param: error.param || null, code: Object.hasOwn(EXECUTION_ERROR_STATUS, error.code ?? '') ? error.code.toLowerCase()
     : error.status === 401 ? 'unauthorized' : error.status === 403 ? 'permission_denied'
     : error.code === 'CONTEXT_LENGTH_EXCEEDED' ? 'context_length_exceeded'
-      : model?.partition && Object.hasOwn(partitionFailures, error.code) ? error.code.toLowerCase() : null } });
+      : model?.partition && Object.hasOwn(partitionFailures, error.code) ? error.code.toLowerCase() : null, ...creditRefusalFields(error) } });
 // Protocol adapters borrowing the same requester share its HTTP admission budget.
 // Each adapter still owns only its own request cancellation/settlement.
 const requesterAdmission = new WeakMap();
@@ -403,6 +404,8 @@ export function createTextRequester({ participant, authenticate, authorize, stat
       output.complete(answer.text, finishReason, reason, usage, evidence, answer.toolCalls, providerTiming);
     } catch (cause) {
       const error = cause instanceof Error ? cause : fail(502, 'Requester failed');
+      const refusal = creditRefusalOf(error);
+      if (refusal) error.status = CREDIT_REFUSAL_STATUS[refusal.code];
       controller.abort(error);
       if (!res.destroyed && !res.writableEnded) {
         const body = formatError(error, model);

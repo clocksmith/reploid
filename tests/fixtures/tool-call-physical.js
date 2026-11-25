@@ -122,7 +122,7 @@ try {
     + '      if (requestPayload.settings) requestPayload.settings = { ...requestPayload.settings, maxOutputTokens: requestPayload.settings.maxOutputTokens + 1 };\n'));
   const tampered = await requesterHost({ ...config.tamperedRequester, codeRoot: altered }); nodes.push(tampered);
 
-  const enrolled = nodes.map(node => ({ id: node.spec.computerId, name: node.spec.name, ownerId: 'owner',
+  const enrolled = nodes.map(node => ({ id: node.spec.computerId, name: node.spec.name, ownerId: node.spec.computerId,
     providers: [{ participantId: node.identity.participantId, publicJwk: node.identity.publicJwk }] }));
   credits = await openFleetCredits({ file: path.join(root, `tool-credits-${randomUUID()}.sqlite`), computers: enrolled,
     policy: { schema: 'reploid.service-credit-policy/v1', version: 'tool-call-physical/1', unit: 'noncash-service-credit', creditsPerOutputToken: 1,
