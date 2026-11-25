@@ -98,7 +98,7 @@ function agentSession(command, { log = () => {} } = {}) {
 /** Removes every host-file string that could name a machine, path, alias or address, and every run secret. */
 function createRedactor(config) {
   const secrets = new Set();
-  const keep = ['schema', 'label', 'machineId', 'participantId', 'role', 'modelId', 'weights', 'name', 'prompt', 'stage', 'id', 'identity', 'profile', 'cutLayer'];
+  const keep = ['schema', 'label', 'machineId', 'participantId', 'role', 'modelId', 'weights', 'name', 'prompt', 'stage', 'id', 'identity', 'profile', 'cutLayer', 'gpu', 'programIdentities'];
   const collect = value => {
     if (typeof value === 'string') { if (value.length >= 4 && (value.includes('/') || value.includes('\\') || /\d+\.\d+\.\d+\.\d+/.test(value) || /[A-Za-z]/.test(value))) secrets.add(value); return; }
     if (value && typeof value === 'object') Object.entries(value).forEach(([key, item]) => { if (!keep.includes(key)) collect(item); });
@@ -175,7 +175,7 @@ export async function runHeSplit({ config, directory, log = () => {}, now = Date
     workload: { modelId: model.id, modelIdentity: model.identity, catalogued: false, planId, plan,
       note: 'Doppler\'s tiny d=16 one-block GPT-2-shaped research fixture, not a catalogued model' },
     participants: null, requester: null, hosts: null, earn: null, quote: null, split: null, stop: null, failure: null,
-    privacy: null, integrity: null, cost: null, cleanup: null, steps, error: null, verdict: null };
+    transport: config.transport ?? null, privacy: null, integrity: null, cost: null, cleanup: null, steps, error: null, verdict: null };
 
   const buyer = config.earner ? await createSigningIdentity({ algorithm: 'Ed25519' }) : null;
   const accounts = [{ label: 'requester', participants: [participants.requester, participants.edgeIn, participants.edgeOut] },
