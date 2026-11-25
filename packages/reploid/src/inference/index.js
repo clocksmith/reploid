@@ -60,8 +60,8 @@ const errorRecord = error => ({ code: typeof error?.code === 'string' ? error.co
 /**
  * `protectedExecution` (from createProtectedExecution) is used only together with `unreviewedProtectedExecution:
  * true`. Both are off by default; without them requester-only is CONFIDENTIAL_EXECUTION_UNAVAILABLE, unchanged.
- * `attestedExecution` (from createAttestedExecution) likewise needs `unreviewedAttestedExecution: true`; without
- * both, attested-execution is ATTESTED_EXECUTION_UNAVAILABLE.
+ * `attestedExecution` (from createAttestedExecution, itself built with `unreviewedAttestedExecution: true`) likewise
+ * needs `unreviewedAttestedExecution: true` here; otherwise attested-execution is ATTESTED_EXECUTION_UNAVAILABLE.
  */
 export function createInference({ resolveRoute, execute, now = Date.now, planTtlMs = DEFAULT_PLAN_TTL_MS,
   randomId = () => globalThis.crypto.randomUUID(), protectedExecution = null, unreviewedProtectedExecution = false,

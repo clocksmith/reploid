@@ -931,13 +931,13 @@
     },
     {
       "path": "inference/attested/execution.d.ts",
-      "bytes": 3344,
-      "sha256": "831d0848ebc1796604f3eb43d0b8868736f81a753a800c71ce978529f90980a9"
+      "bytes": 3489,
+      "sha256": "bd8d4185cfe9f5c54cfe75580ec1c6cfa83c2ccfb7b9f4db3c6ef753b10ba54a"
     },
     {
       "path": "inference/attested/execution.js",
-      "bytes": 13469,
-      "sha256": "26d61708c579f2180c07a0555d541729bfe7ce5fea5894402e49904b1fb2eee1"
+      "bytes": 14093,
+      "sha256": "e151c5252dea33cc0aa060cb31a8ae155a2002537781fdd941a552b17d54d72c"
     },
     {
       "path": "inference/attested/hpke.js",
@@ -1001,8 +1001,8 @@
     },
     {
       "path": "inference/index.js",
-      "bytes": 17716,
-      "sha256": "c934ebc8f36ad659335586dc7a02de0ed4ab8df21087e44b68a99ea5b0a94a91"
+      "bytes": 17772,
+      "sha256": "b1694e9464f694bae1bae62d8bc10678ee646aa34cad91ae1208cbf1e97d4277"
     },
     {
       "path": "inference/protected.d.ts",

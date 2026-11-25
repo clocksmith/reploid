@@ -864,12 +864,16 @@ claimed until it is measured.
 ```js
 import { createInference, createAttestedExecution, connectWebSocketFrames } from 'reploid/inference';
 
-const attestedExecution = createAttestedExecution({ policy, discover, connect: url => connectWebSocketFrames(url), credits, hooks });
+const attestedExecution = createAttestedExecution({ policy, discover, connect: url => connectWebSocketFrames(url), credits, hooks,
+  unreviewedAttestedExecution: true });
 const inference = createInference({ resolveRoute, execute, attestedExecution, unreviewedAttestedExecution: true });
 ```
 
-Without both arguments, `prepare` refuses `attested-execution` with
-`ATTESTED_EXECUTION_UNAVAILABLE` before discovery, and `ATTESTED_EXECUTION_STATUS`
+The flag is needed in both places. Without the port and the flag on
+`createInference`, `prepare` refuses `attested-execution` with
+`ATTESTED_EXECUTION_UNAVAILABLE` before discovery. A port built without its own
+flag refuses the same way from `resolve` and `execute`, before it discovers or
+connects, so calling it directly does not open the route. `ATTESTED_EXECUTION_STATUS`
 is `{ available: false, reason: "awaiting a measured pilot on attested hardware
 and independent security review" }`. The peer policy compiler, the HTTP adapters,
 the CLI and the chat never pass the flag. `requester-only` keeps its meaning and
@@ -1154,7 +1158,8 @@ confidential split gate.
   - unknown GPU measurements, a bad report signature, another model;
   - a missing revocation hook.
 - [`tests/unit/attested-gpu-route.test.js`](../tests/unit/attested-gpu-route.test.js)
-  checks the API end to end: off by default everywhere, distinct from
+  checks the API end to end: off by default everywhere, including the port
+  called directly without its own flag, distinct from
   requester-only, the disclosures, the receipt with model and credit charge, and
   the credit hold released or never placed.
 - [`tests/integration/attested-gpu-executor.test.js`](../tests/integration/attested-gpu-executor.test.js)

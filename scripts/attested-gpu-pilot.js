@@ -77,7 +77,7 @@ export function pilotLedger(balance) {
 export async function runAttestedRequest({ inferenceModule, attestedModule, wsModule, executorUrl, policy, credits, messages, now = Date.now }) {
   const offerUrl = new URL('/offer', executorUrl).href;
   const wsUrl = new URL('/attested', executorUrl.replace(/^http/, 'ws')).href;
-  const attestedExecution = attestedModule.createAttestedExecution({ policy, credits,
+  const attestedExecution = attestedModule.createAttestedExecution({ policy, credits, unreviewedAttestedExecution: true,
     discover: async ({ signal }) => [{ endpoint: wsUrl, offer: await (await fetch(offerUrl, { signal })).json() }],
     connect: endpoint => wsModule.connectWebSocketFrames(endpoint) });
   const refuse = () => { throw new Error('Only the attested route is enabled in this harness'); };

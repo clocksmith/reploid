@@ -31,6 +31,8 @@ export interface AttestedExecutionPorts {
   discover(options: { signal?: AbortSignal; model: unknown }): Promise<Array<{ endpoint: unknown; offer: AttestedOffer }>>;
   connect(endpoint: unknown, options: { signal?: AbortSignal }): Promise<FrameChannel>;
   hooks?: VerifierHooks; credits?: AttestedCredits | null; now?: () => number; timeoutMs?: number; generationTimeoutMs?: number;
+  /** Off by default. Without it `resolve` and `execute` refuse with ATTESTED_EXECUTION_UNAVAILABLE. */
+  unreviewedAttestedExecution?: boolean;
 }
 export interface AttestedExecution {
   kind: 'reploid.attested-execution/v1'; protocol: string; policyDigest(): Promise<string>;

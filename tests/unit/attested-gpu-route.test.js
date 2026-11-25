@@ -4,7 +4,7 @@
  * distinct from requester-only, verified before disclosure, and answered with the same result and receipt shape as
  * ordinary answers (model identity and a charge in Reploid credits).
  */
-import { describe, it, expect, beforeAll } from 'vitest';
+import { describe, it, expect, beforeAll, vi } from 'vitest';
 import { createInference, ATTESTED_EXECUTION_STATUS, createAttestedExecution } from '../../packages/reploid/src/inference/index.js';
 import { compileExecutionRequirements, executionRequirementsFor } from '../../packages/reploid/src/chat/execution-policy.js';
 import { serveAttestedSession, createAttestedChannelPair } from '../../packages/reploid/src/inference/attested/session.js';
@@ -26,7 +26,7 @@ function setup({ faults = {}, platform = 'intel-tdx', credits = null, price = 2,
   const offer = { schema: 'reploid.attested-gpu-offer/v1', participantId: 'peer:attested-synthetic', platform,
     launchId: platform === 'intel-tdx' ? 'synthetic-tdx-27b' : 'synthetic-snp-27b', model: SYNTHETIC_MODEL, operator: 'synthetic cloud (test only)',
     price: { unit: 'noncash-service-credit', creditsPerOutputToken: price } };
-  const attestedExecution = createAttestedExecution({ policy: world.policy, now: () => world.now, credits,
+  const attestedExecution = createAttestedExecution({ policy: world.policy, now: () => world.now, credits, unreviewedAttestedExecution: true,
     discover: async () => offers ?? [{ endpoint: 'memory', offer }],
     connect: async () => {
       const [requester, host] = createAttestedChannelPair();
@@ -55,6 +55,20 @@ describe('attested execution is off by default and distinct', () => {
     await expect(halfOn.prepare({ model, generation: { maxOutputTokens: 8 }, execution: execution() })).rejects.toMatchObject({ code: 'ATTESTED_EXECUTION_UNAVAILABLE' });
     expect(() => parseExecutionExtension({ execution: execution() })).toThrow(expect.objectContaining({ code: 'ATTESTED_EXECUTION_UNAVAILABLE', status: 422 }));
     expect(EXECUTION_ERROR_STATUS.ATTESTATION_REJECTED).toBe(422);
+  });
+
+  it('the port itself refuses without its own flag, before discovery or a connection', async () => {
+    const discover = vi.fn(async () => []), connect = vi.fn();
+    const port = createAttestedExecution({ policy: world.policy, discover, connect });
+    const request = { model, generation: { maxOutputTokens: 8 }, execution: execution() };
+    await expect(port.resolve(request)).rejects.toMatchObject({ code: 'ATTESTED_EXECUTION_UNAVAILABLE' });
+    await expect(port.execute({ plan: {}, pinned: {}, requestId: 'r', messages: [{ role: 'user', content: 'SENSITIVE' }] }))
+      .rejects.toMatchObject({ code: 'ATTESTED_EXECUTION_UNAVAILABLE' });
+    // The inference flag alone does not open a port that was built without its own.
+    const inference = createInference({ resolveRoute: unused, execute: unused, attestedExecution: port, unreviewedAttestedExecution: true });
+    await expect(inference.prepare(request)).rejects.toMatchObject({ code: 'ATTESTED_EXECUTION_UNAVAILABLE' });
+    expect(discover).not.toHaveBeenCalled();
+    expect(connect).not.toHaveBeenCalled();
   });
 
   it('never satisfies requester-only, even with the attested route enabled', async () => {

@@ -1,8 +1,9 @@
 /**
  * Attested execution (`confidentiality: "attested-execution"`) for `reploid/inference`, over `reploid.attested-gpu/v1`.
- * UNAVAILABLE BY DEFAULT: a host must pass both `attestedExecution` (from createAttestedExecution) and
- * `unreviewedAttestedExecution: true` to `createInference`. Without both, attested-execution is
- * ATTESTED_EXECUTION_UNAVAILABLE and nothing is sent. `requester-only` keeps its own meaning and never runs here.
+ * UNAVAILABLE BY DEFAULT: a host must pass `unreviewedAttestedExecution: true` to createAttestedExecution, and both
+ * that port (`attestedExecution`) and `unreviewedAttestedExecution: true` to `createInference`. Otherwise
+ * attested-execution is ATTESTED_EXECUTION_UNAVAILABLE and nothing is sent. `requester-only` keeps its own meaning
+ * and never runs here.
  *
  * Host ports:
  *   discover({ signal, model })    -> [{ endpoint, offer }]   unsigned offers; they only help choose, attestation decides
@@ -67,8 +68,19 @@ const offerShape = offer => offer && typeof offer === 'object' && offer.schema =
   && typeof offer.operator === 'string' && offer.operator.length <= 128 && offer.price?.unit === CREDIT_UNIT
   && Number.isSafeInteger(offer.price.creditsPerOutputToken) && offer.price.creditsPerOutputToken >= 0;
 
+/**
+ * The attested execution port. Gated like `createInference` and the protected port: without
+ * `unreviewedAttestedExecution: true` its `resolve` and `execute` refuse with ATTESTED_EXECUTION_UNAVAILABLE before
+ * any host port is called.
+ */
 export function createAttestedExecution({ policy: inputPolicy, discover, connect, hooks = {}, credits = null, now = Date.now,
-  timeoutMs = 120000, generationTimeoutMs = 30 * 60 * 1000 }) {
+  timeoutMs = 120000, generationTimeoutMs = 30 * 60 * 1000, unreviewedAttestedExecution = false }) {
+  const gate = () => {
+    if (unreviewedAttestedExecution !== true) {
+      throw Object.assign(executionError('ATTESTED_EXECUTION_UNAVAILABLE', 'The attested route is not enabled. Nothing was sent.'),
+        { reason: ATTESTED_EXECUTION_REVIEW_REASON });
+    }
+  };
   for (const [name, port] of Object.entries({ discover, connect })) {
     if (typeof port !== 'function') throw new TypeError(`Attested execution port ${name} is required`);
   }
@@ -80,6 +92,7 @@ export function createAttestedExecution({ policy: inputPolicy, discover, connect
 
   /** Find an approved offer for `prepare`. It sends no content and no prompt length. */
   async function resolve(request, { signal } = {}) {
+    gate();
     signal?.throwIfAborted();
     const limit = request.generation.maxOutputTokens;
     if (!Number.isSafeInteger(limit)) throw executionError('EXECUTION_REQUEST_INVALID', 'Attested execution needs generation.maxOutputTokens so the charge has a ceiling');
@@ -110,6 +123,7 @@ export function createAttestedExecution({ policy: inputPolicy, discover, connect
    * reserved after verification and before the prompt is sealed, settled on a complete answer, released otherwise.
    */
   async function execute({ plan, pinned, requestId, messages, signal, onAdmitted, onToken }) {
+    gate();
     const started = now();
     const { participantId } = pinned.offer;
     const rate = plan.route.attested.price.creditsPerOutputToken;
