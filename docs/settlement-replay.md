@@ -452,9 +452,23 @@ Two differences from the countersigned log come from this design:
   acknowledgment bound does.
 
 These are differences in how the parts are combined, not a new cryptographic
-primitive. Signed accountability logs (PeerReview), requester-accepted
-incremental billing (Golem debit notes) and expiring holds (HTLCs) each cover
-part of it. The mesh-llm pull requests on signed inference receipts (#2851,
+primitive, and most of the parts are prior work. A payer that signs a rising
+cumulative amount while the provider meters delivery is the payment-channel
+voucher: Storj's bandwidth allocations (2018), Filecoin retrieval vouchers with
+a payment interval (2020) and, for streamed model output, the session payments
+of the Machine Payments Protocol (Tempo and Stripe, announced 2026-03-18), where
+the payer signs a voucher with a rising cumulative amount on each stream tick.
+The replay's cumulative acknowledgments and its bound on unpaid delivery are
+that pattern. Signed accountability logs (PeerReview), requester-accepted
+incremental billing (Golem debit notes) and expiring holds (HTLCs) cover other
+parts. Those systems settle through a chain, a coordinator or witnesses.
+
+A public search on 2026-11-25 found no earlier system for three narrower
+things: one charge divided among sequential stages by weights signed before
+dispatch; recomputing it from the signed records with no chain, coordinator or
+witness; and an abandoned answer being free. The search was short, so a closer
+system may exist, and the third is weak on its own terms because the final
+stage can defeat it (L3). The mesh-llm pull requests on signed inference receipts (#2851,
 closed unmerged on 2026-11-10; #2981, open and last updated on 2026-11-24) audit
 which model a peer served and gate payment on those audits. They are
 complementary prior art, not a scheme for settlement amounts, and Reploid has
