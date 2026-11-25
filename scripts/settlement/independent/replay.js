@@ -8,8 +8,15 @@
 // reference. Node 22, built-in modules only.
 //
 // Follows the document's text with the decided unfinished-answer rule (the owner decision
-// of 2026-11-25; 694 lines; the author had no commit hash for it). Earlier versions of this
-// file followed the text as of commit 955bd5f7a, before the decision. From that text:
+// of 2026-11-25) as amended for terms signed before terms carried K (713 lines; the author had
+// no commit hash for it, nor for the 694-line text of the decided rule that the version before
+// this one followed). Earlier versions followed the text as of commit 955bd5f7a, before the
+// decision. From the amendment: one older shape of terms is also accepted, with every member
+// but `maxUnacknowledgedOutputs` and with `unfinishedTerms` null or the provider-loss-free
+// value; step 3 passes such terms only against a policy that has no `maxUnacknowledgedOutputs`
+// either and answers `invalid` against one that publishes K; and K for them is the receiver
+// policy's value, the `maxUnacknowledgedOutputs` input, which step 9 then uses (DOC-GAPS 80-82).
+// From the decided rule:
 // the result's `schema` is `reploid.settlement-replay/v2`; in step 9 an unfinished answer
 // whose stages all closed charges the acknowledged prefix, capped at maxOutputTokens, under
 // `unfinishedTerms` equal to `reploid.unfinished-answer/acknowledged-prefix-provider-relief/v1`
@@ -147,7 +154,8 @@ const isOutput = (v) => hasExactly(v, ['count', 'chain', 'done', 'stopReason']) 
   && isDigest(v.chain) && typeof v.done === 'boolean' && nullOr(text(64))(v.stopReason);
 
 // One entry per record kind: the signer field, a rule per member (every listed member
-// is required and no other is allowed), and rules that span members.
+// is required and no other is allowed), rules that span members, and for terms the one
+// older shape that is also accepted.
 // CHOICE: the document gives no type for attemptId, requesterId, participantId or
 // `maximum`. The IDs are read as text 256 and `maximum` as a safe integer.
 const KINDS = new Map([
@@ -158,6 +166,14 @@ const KINDS = new Map([
       policyDigest: isDigest, unit: text(64), creditsPerOutputToken: isPositive, maxOutputTokens: isPositive,
       maximum: isCount, shares: isShares, unfinishedTerms: nullOr(text(128)), maxUnacknowledgedOutputs: isCount,
       notBefore: isTime, deadline: isTime, releaseWindowMs: isPositive, signedAt: isTime,
+    },
+    // One older shape is also accepted: terms signed before terms carried K have every member
+    // above except `maxUnacknowledgedOutputs`, and their `unfinishedTerms` must be null or the
+    // provider-loss-free value. Terms without the member that name any other value are malformed.
+    // CHOICE (DOC-GAPS 80): the shape is told by the missing member alone; no date is checked.
+    older: {
+      without: 'maxUnacknowledgedOutputs',
+      allowed: (body) => body.unfinishedTerms === null || body.unfinishedTerms === PROVIDER_LOSS_FREE,
     },
     across(body) {
       const product = BigInt(body.maxOutputTokens) * BigInt(body.creditsPerOutputToken);
@@ -248,7 +264,11 @@ function admit(records, index) {
   const { publicJwk, signature, ...body } = copy;
   if (Object.keys(body).some((name) => !Object.hasOwn(kind.fields, name))) return reject('member not allowed');
   for (const name of Object.keys(kind.fields)) {
-    if (!Object.hasOwn(body, name)) return reject(`member missing: ${name}`);
+    if (!Object.hasOwn(body, name)) {
+      // The one older shape of a kind has every member but one, and only under its own rule.
+      if (name === kind.older?.without && kind.older.allowed(body)) continue;
+      return reject(`member missing: ${name}`);
+    }
     if (!kind.fields[name](body[name])) return reject(`field rule: ${name}`);
   }
   const fault = kind.across ? kind.across(body) : null;
@@ -306,6 +326,9 @@ function lateEntry({ schema, body, digest }) {
 
 // ---- Deciding an outcome ----------------------------------------------------
 
+/** Terms of the older shape, signed before terms carried K: their body has no such member. */
+const signsNoK = (terms) => !Object.hasOwn(terms, 'maxUnacknowledgedOutputs');
+
 /** Step 3. Returns what is wrong between the agreed terms and the policy they name, or null. */
 function policyFault(agreed, policy, receiverK) {
   const terms = agreed.body;
@@ -325,7 +348,13 @@ function policyFault(agreed, policy, receiverK) {
     return 'deadline - notBefore is above maxRequestMs';
   }
   // A policy that names K decides it; one with no such member takes the receiver policy's value.
-  const K = policy.maxUnacknowledgedOutputs === undefined ? receiverK : policy.maxUnacknowledgedOutputs;
+  const publishesK = policy.maxUnacknowledgedOutputs !== undefined;
+  // Terms of the older shape pass this last check only against a policy that has no
+  // `maxUnacknowledgedOutputs` either; against a policy that publishes K they are invalid.
+  if (signsNoK(terms)) {
+    return publishesK ? 'terms of the older shape, without maxUnacknowledgedOutputs, name a policy that publishes K' : null;
+  }
+  const K = publishesK ? policy.maxUnacknowledgedOutputs : receiverK;
   if (terms.maxUnacknowledgedOutputs !== K) return 'maxUnacknowledgedOutputs is not K';
   return null;
 }
@@ -453,6 +482,10 @@ async function decide(reservationId, requesterId, attempt, { policyByDigest, rec
   const policy = policyByDigest.get(terms.policyDigest);
   const fault = policyFault(agreed, policy, receiverK);
   if (fault) return done('invalid', `step 3: ${fault}`);
+  // K is what the terms sign, which step 3 found equal to their policy's K. Terms of the older
+  // shape sign none and passed only under a policy that publishes none, so K for them is the
+  // receiver policy's value. CHOICE (DOC-GAPS 81): that is the input; no signed record fixes it.
+  const K = signsNoK(terms) ? receiverK : terms.maxUnacknowledgedOutputs;
 
   // Step 4. Records kept. A closing receipt counts when signed closesInTime, every other kept
   // record when signed inTime; both windows carry the clock allowance at both ends. A kept
@@ -609,7 +642,9 @@ async function decide(reservationId, requesterId, attempt, { policyByDigest, rec
   const finished = delivered?.done === true;
   const stopped = keptStops.counting.length > 0; // an in-time stop of its own; its `acknowledged` is not used
   // CHOICE (DOC-GAPS 13): with no output on the final stage's latest receipt, nothing is withheld.
-  const withheld = delivered !== null && delivered.count - acknowledged > terms.maxUnacknowledgedOutputs;
+  // CHOICE (DOC-GAPS 82): "the terms' maxUnacknowledgedOutputs" is K, which terms of the older
+  // shape do not sign; for every other set of terms it is the same number as before.
+  const withheld = delivered !== null && delivered.count - acknowledged > K;
   // Every stage closed, so no provider failure is verified, and the records cannot show who ended it.
   const unattributedDisconnect = !finished && !stopped && !withheld;
   // Under the decided value, under `null` (older terms) and under any other value, every case
@@ -646,7 +681,8 @@ async function decide(reservationId, requesterId, attempt, { policyByDigest, rec
  * document's "Rows" section describes. Never throws on bad records: they are listed as rejected.
  *
  * `maxUnacknowledgedOutputs` is the stages' receiver policy's K (2 by default), used only for
- * a policy that does not name its own. CHOICE: an unusable value here is read as 2.
+ * a policy that does not name its own. CHOICE: an unusable value here is read as 2. For terms
+ * of the older shape, which sign no K and pass only under such a policy, it is K itself.
  */
 export async function replaySettlement({
   records, policies, at, accountOf = null, maxUnacknowledgedOutputs = RECEIVER_POLICY_K,

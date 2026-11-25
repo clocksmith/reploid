@@ -42,6 +42,8 @@ const bodyOf = ({ publicJwk: _key, signature: _signature, ...body }) => structur
 const iso = ms => new Date(ms).toISOString();
 const sign = (identity, body, at = Date.parse(body.signedAt)) => createAttemptEvidenceSigner({ identity, now: () => at }).sign(body.schema, body);
 const FAKE_CHAIN = `sha256:${'e'.repeat(64)}`, OTHER_DIGEST = `sha256:${'d'.repeat(64)}`;
+// A policy of the time before policies published K: K is then the stages' receiver policy's value.
+const { maxUnacknowledgedOutputs: _publishedK, ...POLICY_BEFORE_K } = POLICY;
 const short = schema => schema.replace('reploid.', '').replace('/v1', '');
 const describe = record => {
   const label = short(record.schema);
@@ -493,6 +495,22 @@ const MUTATIONS = {
     out.push({ name: 'a record of an unknown schema is present', records: [...ctx.records, { schema: 'reploid.something-else/v1', reservationId: ctx.terms.reservationId }] });
     out.push({ name: 'non-record values are present', records: [...ctx.records, null, 'text', 7, []] });
     return out;
+  },
+  /** Terms as the first split trades signed them, with no K member (docs/settlement-replay.md, record shapes and step 3). */
+  async 'terms signed before K'(ctx) {
+    const olderDigest = await policyDigest(POLICY_BEFORE_K);
+    const older = (change = () => {}) => body => { delete body.maxUnacknowledgedOutputs; change(body); };
+    const underOlderPolicy = unfinishedTerms => older(body => { body.policyDigest = olderDigest; body.unfinishedTerms = unfinishedTerms; });
+    return [
+      { name: 'no K, provider-loss-free terms, policy that publishes no K', records: await withTerms(ctx, underOlderPolicy(UNFINISHED_ANSWER_TERMS)),
+        policies: [POLICY_BEFORE_K] },
+      { name: 'no K, null unfinished-answer terms, policy that publishes no K', records: await withTerms(ctx, underOlderPolicy(null)),
+        policies: [POLICY_BEFORE_K] },
+      { name: 'no K, provider-loss-free terms, policy that publishes K',
+        records: await withTerms(ctx, older(body => { body.unfinishedTerms = UNFINISHED_ANSWER_TERMS; })) },
+      { name: 'no K, the base attempt\'s own unfinished-answer terms, policy that publishes no K',
+        records: await withTerms(ctx, older(body => { body.policyDigest = olderDigest; })), policies: [POLICY_BEFORE_K] }
+    ];
   }
 };
 
@@ -527,7 +545,7 @@ const BASES = [
   { name: 'finished 40-output answer, last two acknowledgments withheld', options: { outputs: FORTY, stopAckingAfter: 38 }, sweepOnly: true },
   { name: 'finished 40-output answer, last three acknowledgments withheld', options: { outputs: FORTY, stopAckingAfter: 37 }, sweepOnly: true }
 ];
-const REDUCED = ['withheld records', 'records signed after the deadline', 'stop statements'];
+const REDUCED = ['withheld records', 'records signed after the deadline', 'stop statements', 'terms signed before K'];
 
 // An attempt is decided once the deadline, the release window and the clock allowance have all passed.
 const decidedAt = ctx => ctx.closesAt + POLICY.maxClockSkewMs;
