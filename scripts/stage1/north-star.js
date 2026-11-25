@@ -39,6 +39,8 @@ import { startPhysicalCoordinator } from './physical-coordinator.js';
 import { collectSettlementReplay, ledgerTrace, openReservationCount, until, verifySplitTokens } from './split-evidence.js';
 import { EDGES_ROLES, EDGES_SPLIT_LAYERS, edgesInventory, edgesInventorySha256, loadEdgesModel } from './edges-plan.js';
 import { witnessDigest, stage1Decoding } from './expectations.js';
+import { checkNorthStar, summarizeVisibility } from './north-star-check.js';
+export { checkNorthStar, summarizeVisibility };
 
 export const NORTH_STAR_HOSTS_SCHEMA = 'reploid.north-star-hosts/v1';
 export const NORTH_STAR_RECEIPT_SCHEMA = 'reploid.north-star-receipt/v1';
@@ -100,94 +102,6 @@ export function createNorthStarRedactor(config) {
   const text = value => ordered().reduce((out, secret) => out.split(secret).join('<redacted>'), String(value));
   return { add: value => { if (typeof value === 'string' && value) secrets.add(value); }, text,
     receipt: value => JSON.parse(text(JSON.stringify(value))) };
-}
-
-/** Per stage: what its resident was handed over the whole answer, from its own visibility rows. */
-export function summarizeVisibility(rows) {
-  const steps = rows.filter(row => row.op === 'step');
-  return { tokenizeCalls: rows.filter(row => row.op === 'tokenize').length, steps: steps.length,
-    tokenContext: [...new Set(steps.map(row => row.tokenContext))],
-    tokenIdsReceived: steps.reduce((sum, row) => sum + (row.tokenIds?.count ?? 0), 0),
-    nonzeroTokenIdsReceived: steps.reduce((sum, row) => sum + (row.tokenIds?.nonzero ?? 0), 0),
-    activationBytesIn: steps.reduce((sum, row) => sum + row.activationInBytes, 0),
-    activationBytesOut: steps.reduce((sum, row) => sum + row.activationOutBytes, 0),
-    tokensOut: steps.filter(row => row.output === 'token').length,
-    deltaCharactersOut: steps.reduce((sum, row) => sum + row.deltaCharacters, 0) };
-}
-
-/** The checks, each named. `fail` collects; nothing short-circuits so the receipt shows every problem at once. */
-export function checkNorthStar(receipt, { reference, weights, creditsPerOutputToken = 1 }) {
-  const problems = [], fail = (code, detail) => problems.push({ code, detail: String(detail) });
-  const earn = receipt.earn, split = receipt.split, privacy = receipt.privacy;
-  // 1. Earn by serving someone else.
-  if (!earn) fail('earn-missing', 'no earning');
-  else {
-    if (earn.accountBefore !== 0) fail('earn-seeded-balance', earn.accountBefore);
-    let earned = 0;
-    for (const [index, trace] of (earn.settlements ?? []).entries()) {
-      if (trace.state !== 'settled' || trace.heldAfter !== 0) fail('earn-not-settled', `earn-${index} ${trace.state}`);
-      if (trace.journal.reduce((sum, row) => sum + row.delta, 0) !== 0) fail('settlement-not-conserved', `earn-${index}`);
-      const credited = trace.journal.filter(row => row.accountId === earn.accountId).reduce((sum, row) => sum + row.delta, 0);
-      if (credited !== trace.charge || trace.charge !== trace.outputTokens * creditsPerOutputToken) fail('earn-not-credited', `earn-${index}`);
-      if (trace.replay?.attempted !== true || trace.replay.balancesUnchanged !== true) fail('double-settlement', `earn-${index}`);
-      earned += credited;
-    }
-    if (earned <= 0) fail('earn-nothing', earned);
-    if (earn.buyerAccountId === earn.accountId) fail('earn-self-served', earn.buyerAccountId);
-  }
-  // 2. Spend those credits on the split, within the cap.
-  const trace = split?.settlement;
-  if (!trace) fail('split-settlement-missing', 'no ledger trace');
-  else {
-    if (trace.state !== 'settled' || trace.heldAfter !== 0) fail('stranded-hold', `${trace.state} held ${trace.heldAfter}`);
-    if (trace.journal.reduce((sum, row) => sum + row.delta, 0) !== 0) fail('settlement-not-conserved', 'split');
-    const debits = trace.journal.filter(row => row.delta < 0);
-    if (debits.length !== 1 || debits[0].accountId !== split.account.accountId) fail('double-settlement', JSON.stringify(debits));
-    if (trace.charge !== trace.outputTokens * creditsPerOutputToken || trace.charge > split.cap) fail('settlement-charge', `${trace.charge} for ${trace.outputTokens}, cap ${split.cap}`);
-    if (!(split.account.before >= trace.charge)) fail('spend-before-earning', `balance ${split.account.before}, charge ${trace.charge}`);
-    const net = trace.journal.filter(row => row.accountId === split.account.accountId).reduce((sum, row) => sum + row.delta, 0);
-    if (split.account.after !== split.account.before + net) fail('spend-mismatch', `${split.account.before} + ${net} != ${split.account.after}`);
-    const total = weights.reduce((sum, value) => sum + value, 0);
-    if (trace.credits.length !== weights.length) fail('settlement-shares', JSON.stringify(trace.credits));
-    if (trace.replay?.attempted !== true || trace.replay.balancesUnchanged !== true || trace.replay.outcomeUnchanged !== true) fail('double-settlement', 'split replay changed the ledger');
-    if (!(total > 0)) fail('settlement-shares', 'weights');
-  }
-  // 3. The independent replay from signed records equals the ledger.
-  const replay = split?.settlementReplay, row = replay?.result?.reservations?.find(item => item.reservationId === trace?.reservationId);
-  if (!row) fail('replay-reservation-missing', 'split');
-  else {
-    if (row.status !== 'settled') fail('replay-not-settled', row.status);
-    if (row.debit !== trace.charge || JSON.stringify((row.credits ?? []).map(item => item.amount)) !== JSON.stringify(trace.credits.map(item => item.amount))) {
-      fail('replay-differs-from-ledger', `replay ${row.debit} ${JSON.stringify(row.credits)} ledger ${trace.charge} ${JSON.stringify(trace.credits)}`);
-    }
-    if (replay.problems?.length) fail('replay-records', replay.problems.join('; '));
-    if (!replay.ledgerPolicyDigest || replay.termsPolicyDigest !== replay.ledgerPolicyDigest) fail('replay-policy-mismatch', replay.termsPolicyDigest);
-  }
-  // 4. The answer matches the frozen single-host reference, token for token.
-  if (!split?.tokens || witnessDigest(split.tokens.outputIds) !== reference.sampleDigest) fail('answer-tokens-differ', 'output tokens differ from the reference');
-  if (split?.parityExact !== true) fail('answer-witness', 'the stage witnesses do not verify');
-  if (split?.text !== reference.outputText) fail('answer-text-differs', 'answer text differs from the reference text');
-  // 5. The privacy tier: named, bound before disclosure, and observed at every stage.
-  const evidence = split?.inference?.result?.executionReceipt?.evidence?.confidentiality;
-  if (evidence?.mode !== 'requester-edges') fail('tier-not-named', evidence?.mode);
-  if (privacy) {
-    for (const stage of privacy.stages) {
-      const seen = stage.visibility;
-      if (stage.role === 'operator') {
-        if (seen.nonzeroTokenIdsReceived !== 0 || seen.tokenizeCalls !== 0 || seen.tokensOut !== 0 || seen.deltaCharactersOut !== 0
-          || seen.tokenContext.some(value => value !== 'withheld')) fail('operator-saw-content', `${stage.label} ${JSON.stringify(seen)}`);
-        if (!(seen.steps > 0 && seen.activationBytesIn > 0)) fail('operator-did-not-run', stage.label);
-        if (stage.hostWeights?.servedOutsideStage) fail('stage-weights', stage.label);
-      }
-    }
-    const operatorIds = privacy.stages.filter(stage => stage.role === 'operator').map(stage => stage.participantId);
-    if (operatorIds.some(id => privacy.contentRecipients.includes(id))) fail('operator-content-recipient', 'an operator stage is a content recipient');
-    if (privacy.bindingHops.some(hop => operatorIds.includes(hop.recipient) && hop.disclosure !== 'activations')) fail('operator-hop', 'an operator hop reads plaintext content');
-  } else fail('privacy-trace-missing', 'no visibility trace');
-  if (receipt.cleanup?.processesExited !== true || receipt.cleanup?.openReservations !== 0 || receipt.cleanup?.heldCredits !== 0) {
-    fail('cleanup', JSON.stringify(receipt.cleanup));
-  }
-  return { passed: problems.length === 0, problems };
 }
 
 export async function runNorthStar({ config, transport, directory, fixtureFile, windowUntil, log = () => {}, now = Date.now,
@@ -388,7 +302,9 @@ export async function runNorthStar({ config, transport, directory, fixtureFile, 
     const settlementReplay = await step('split settlement replay', () => collectSettlementReplay({ requester: s(config.requester.label), stages: stageSessions,
       attemptId: answer.attemptId, policy: coordinator.credits.policy, computerOf: id => accountOf(id) ?? id }));
     receipt.split = { attemptId: answer.attemptId, text: answer.text, cap: fixtureSource.maxOutputTokens, parityExact: tokens.parityExact, tokens: tokens.tokens,
-      route: answer.route, settlement, settlementReplay, account: { accountId, before, after: balanceOfAccount(accountId) },
+      // The public ledger policy travels with the replay (verify-trade.js reads it), and the route's own step summary
+      // with the answer, for per-stage timings.
+      route: answer.route, execution: answer.execution ?? null, settlement, settlementReplay: { ...settlementReplay, policy: coordinator.credits.policy }, account: { accountId, before, after: balanceOfAccount(accountId) },
       payouts: settlement.journal.map(row => ({ account: row.accountId, delta: row.delta })),
       inference: { plan: answer.inference.plan, events: answer.inference.events, result: answer.inference.result, admittedRouteId: answer.inference.admittedRouteId } };
     const disclosure = answer.inference.plan.disclosures;
