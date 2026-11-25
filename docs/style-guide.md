@@ -135,7 +135,7 @@ catalog is `/design`.
 
 
 - **Tokens** (`apps/poolday/styles/poolday/tokens.css`) are every value: one neutral gray
-  ramp named by lightness (`--pool-gray-13` is `#202020`), the prism palette (obsidian
+  ramp named by lightness (`--pool-gray-44` is `#717171`), the prism palette (obsidian
   void for dark, silica for light, one spectrum), alpha steps, and scales for
   size, radius, border, text, line height, weight and tracking. Semantic tokens
   (`--pool-color-page`, `--pool-color-ink-48`, `--pool-shadow-raised`) map them per

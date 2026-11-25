@@ -15,22 +15,9 @@
   --pool-charcoal-page: #141619;
   --pool-charcoal-inset: #101215;
   --pool-charcoal-raised: rgb(28 30 34 / 82%);
-  --pool-gray-11: #1b1b1b;
-  --pool-gray-13: #202020;
-  --pool-gray-14: #242424;
-  --pool-gray-19: #303030;
-  --pool-gray-37: #5e5e5e;
   --pool-gray-44: #717171;
-  --pool-gray-71: #b4b4b4;
-  --pool-gray-80: #cccccc;
-  --pool-gray-87: #dedede;
-  --pool-gray-88: #e1e1e1;
-  --pool-gray-91: #e7e7e7;
-  --pool-gray-96: #f4f4f4;
   --pool-gray-100: #ffffff;
   /* Prism palette: obsidian void and silica for the page; one spectrum per theme. */
-  --pool-void-2: #05060b;
-  --pool-void-4: #0a0d16;
   --pool-void-ink: #f8fafc;
   --pool-void-muted: #94a3b8;
   --pool-silica-95: #eef2f9;
@@ -42,19 +29,16 @@
   --pool-spectrum-rose: #fb7185;
   --pool-spectrum-green: #34d399;
   --pool-spectrum-indigo: #4f46e5;
-  --pool-spectrum-teal: #0891b2;
   --pool-spectrum-on-light: #030712;
   --pool-spectrum-amber: #fbbf24;
   --pool-spectrum-amber-deep: #b45309;
   --pool-spectrum-rose-deep: #be123c;
   --pool-spectrum-green-deep: #047857;
   --pool-alpha-4: 4%;
-  --pool-alpha-8: 8%;
   --pool-alpha-12: 12%;
   --pool-alpha-32: 32%;
   --pool-alpha-48: 48%;
   --pool-alpha-64: 64%;
-  --pool-alpha-80: 80%;
 
   /* Scales */
   --pool-size-1: 1px;
@@ -134,14 +118,12 @@
   --pool-color-group: color-mix(in srgb, var(--pool-color-ink) var(--pool-alpha-4), transparent);
   --pool-color-on-primary: var(--pool-spectrum-on-light);
   --pool-surface-primary: linear-gradient(135deg, var(--pool-spectrum-cyan), var(--pool-spectrum-violet));
-  --pool-surface-primary-pressed: linear-gradient(135deg, color-mix(in srgb, var(--pool-spectrum-cyan) 96%, black), color-mix(in srgb, var(--pool-spectrum-violet) 96%, black));
   --pool-shadow-primary: 0 3px 10px rgb(0 0 0 / 24%), inset 0 1px 0 rgb(255 255 255 / 24%), inset 0 -1px 0 rgb(0 0 0 / 12%);
   --pool-shadow-primary-hover: 0 5px 14px rgb(0 0 0 / 28%), inset 0 1px 0 rgb(255 255 255 / 40%), inset 0 -1px 0 rgb(0 0 0 / 12%);
   --pool-shadow-primary-pressed: inset 0 2px 4px rgb(0 0 0 / 25%), inset 0 -1px 0 rgb(255 255 255 / 16%);
   --pool-color-button-fill: rgb(255 255 255 / 12%);
   --pool-color-button-fill-edge: rgb(56 189 248 / 5%);
   --pool-percent-center: 50%;
-  --pool-radius-button-fill: 150%;
   --pool-surface-button-ripple: radial-gradient(circle, transparent 38%, rgb(255 255 255 / 25%) 42%, rgb(192 132 252 / 20%) 45%, transparent 49%), radial-gradient(circle at 35% 32%, rgb(255 255 255 / 65%) 0.7%, transparent 1.8%), radial-gradient(circle at 67% 38%, rgb(56 189 248 / 65%) 0.6%, transparent 1.5%), radial-gradient(circle at 56% 69%, rgb(192 132 252 / 60%) 0.8%, transparent 1.8%);
   --pool-surface-backdrop: blur(20px) saturate(180%);
 
@@ -150,12 +132,9 @@
   --pool-angle-225: 225deg;
   --pool-angle-360: 360deg;
   --pool-angle-n3: -3deg;
-  --pool-depth: 0.64;
-  --pool-depth-light: 0.48;
   --pool-font-display: 'Avenir Next', Inter, 'Segoe UI', system-ui, -apple-system, sans-serif;
   --pool-font-mono: 'SF Mono', Menlo, Consolas, 'DejaVu Sans Mono', monospace;
   --pool-font-ui: Inter, 'Avenir Next', 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-  --pool-shadow-switch-track: inset 2px 2px 4px var(--pool-color-ink-12), inset -2px -2px 4px var(--pool-color-raised);
   --pool-shadow-switch-thumb: 0 2px 4px var(--pool-color-ink-12), inset 0 1px 0 var(--pool-color-page);
   --pool-metric-action: var(--pool-size-48);
   --pool-metric-hero-width: var(--pool-size-1120);
@@ -225,7 +204,6 @@
   --pool-dialog-width-wide: var(--pool-size-640);
   --pool-dialog-height: var(--pool-size-640);
   --pool-surface-ambient-mesh: radial-gradient(ellipse at 12% 8%, rgb(56 189 248 / 7%), transparent 48%), radial-gradient(ellipse at 90% 84%, rgb(168 85 247 / 8%), transparent 52%);
-  --pool-surface-marble: radial-gradient(circle at 30% 24%, var(--pool-gray-37), var(--pool-gray-19) 45%, var(--pool-gray-14) 85%);
   --pool-surface-optical-edge: linear-gradient(135deg, rgb(56 189 248 / 34%), rgb(192 132 252 / 29%) 45%, rgb(251 113 133 / 32%) 75%, rgb(52 211 153 / 27%));
   --pool-surface-optical-focus: linear-gradient(135deg, rgb(56 189 248 / 75%), rgb(192 132 252 / 65%) 45%, rgb(251 113 133 / 70%) 75%, rgb(52 211 153 / 60%));
   --pool-surface-optical-signal: linear-gradient(90deg, transparent, rgb(56 189 248 / 80%), rgb(192 132 252 / 75%), rgb(251 113 133 / 70%), transparent);
@@ -270,7 +248,6 @@
   --pool-shadow-inset: inset 0 1px 3px rgb(15 23 42 / 10%), inset 0 0 0 1px rgb(15 23 42 / 6%);
   --pool-shadow-raised: 0 18px 40px -15px rgb(30 41 59 / 16%), -1.5px -1.5px 0 rgb(56 189 248 / 55%), 1.5px 1.5px 0 rgb(244 114 182 / 55%), inset 0 1px 2px rgb(255 255 255 / 95%);
   --pool-surface-ambient-mesh: radial-gradient(circle at 15% 15%, rgb(99 102 241 / 14%), transparent 45%), radial-gradient(circle at 85% 25%, rgb(6 182 212 / 16%), transparent 45%), radial-gradient(circle at 60% 85%, rgb(236 72 153 / 11%), transparent 50%);
-  --pool-surface-marble: radial-gradient(circle at 30% 24%, var(--pool-gray-80), var(--pool-gray-71) 45%, var(--pool-gray-44) 85%);
   --pool-surface-optical-edge: linear-gradient(125deg, rgb(56 189 248 / 55%), rgb(129 140 248 / 50%) 32%, rgb(244 114 182 / 50%) 66%, rgb(45 212 191 / 50%));
   --pool-surface-optical-focus: linear-gradient(125deg, var(--pool-spectrum-cyan), rgb(129 140 248) 32%, rgb(244 114 182) 66%, rgb(45 212 191));
   --pool-surface-optical-signal: linear-gradient(90deg, transparent, rgb(79 70 229 / 70%), rgb(8 145 178 / 65%), rgb(219 39 119 / 55%), transparent);

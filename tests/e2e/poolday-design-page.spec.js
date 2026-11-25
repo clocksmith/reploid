@@ -13,7 +13,7 @@ const openDesign = async page => {
   await page.goto('/design');
   await expect(page.locator('[data-design-page]')).toBeVisible();
   // Token values arrive from the served tokens.css.
-  await expect(page.locator('[data-token="--pool-gray-13"]')).toContainText('#202020');
+  await expect(page.locator('[data-token="--pool-gray-44"]')).toContainText('#717171');
 };
 
 for (const [width, height] of [[1280, 800], [390, 844]]) {

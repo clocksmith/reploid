@@ -114,8 +114,30 @@ function readStyles() {
     const { declarations } = parseCss(readFileSync(path.join(STYLES, file), 'utf8'));
     count(declarations.flatMap(({ value }) => varRefs(value)));
   }
+  // A script that reads a token by name (getComputedStyle(node).getPropertyValue('--pool-…')) uses it as well: a
+  // token no stylesheet references can still drive behaviour, so it must not be reported as unused.
+  for (const file of scriptSources()) count(scriptTokenNames(readFileSync(file, 'utf8')).filter((name) => tokens.has(name)));
   return { tokens, uses, primitiveRules };
 }
+
+/** Hand-written Poolday scripts: the vanilla UI, the host, the React app and the design system. Built bundles are skipped. */
+const SCRIPT_ROOTS = ['apps/poolday/ui', 'apps/poolday/host', 'apps/poolday-react/src', 'packages/poolday-ui/src'];
+const BUILT = [/\/ui\/react\//, /\.bundle\.js$/, /\.generated\.ts$/];
+function scriptSources() {
+  const found = [];
+  const visit = (directory) => {
+    if (!existsSync(directory)) return;
+    for (const entry of readdirSync(directory, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
+      const file = path.join(directory, entry.name);
+      if (entry.isDirectory()) visit(file);
+      else if (/\.(js|mjs|ts|tsx)$/.test(entry.name) && !BUILT.some((pattern) => pattern.test(file))) found.push(file);
+    }
+  };
+  for (const root of SCRIPT_ROOTS) visit(path.join(ROOT, root));
+  return found;
+}
+/** Token names a script names in a string literal, each counted once per file. */
+const scriptTokenNames = (source) => [...new Set([...source.matchAll(/['"`](--pool-[a-z0-9-]+)['"`]/g)].map((m) => m[1]))];
 
 /** Top-level declarations and named imports of one module. */
 function readModule(file) {

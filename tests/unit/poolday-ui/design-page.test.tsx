@@ -38,7 +38,7 @@ describe('design index', () => {
 
   it('reads declared values per theme from tokens.css', () => {
     const values = parseTokenValues(tokensCss);
-    expect(values.get('--pool-gray-13')).toEqual({ dark: '#202020', light: null });
+    expect(values.get('--pool-gray-44')).toEqual({ dark: '#717171', light: null });
     expect(values.get('--pool-color-ink')).toEqual({ dark: 'var(--pool-void-ink)', light: 'var(--pool-silica-ink)' });
   });
 });
