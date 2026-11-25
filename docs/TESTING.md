@@ -80,9 +80,9 @@ standalone controllers or exported qualification harnesses. For example,
 `tests/contracts/doppler-partition-session.js` exports a caller-configured
 qualification function. They are not Playwright specs to rename mechanically.
 Physical controllers require their explicit model/device/environment inputs;
-default software tests do not select or run them. The Python answer reference
-and JavaScript runtime controller retain independent arithmetic/orchestration
-roles rather than pretending to be interchangeable regression runners.
+default software tests do not select or run them. Reploid tests and tools are
+JavaScript only (`npm run verify:js-only`); a former Python reference stays only
+as retained evidence, never as a runner.
 
 Tests live under `tests/` and import the library, application or substrate owners.
 A source directory without colocated tests does not imply that its code is
