@@ -1,6 +1,6 @@
 {
   "schema": "reploid.settlement-baseline-matrix/v1",
-  "generatedAt": "2026-11-25T10:55:16.316Z",
+  "generatedAt": "2026-11-25T11:03:52.780Z",
   "policy": {
     "schema": "reploid.service-credit-policy/v1",
     "unit": "noncash-service-credit",
@@ -28,7 +28,10 @@
     "P6",
     "P7"
   ],
-  "replayLoses": [],
+  "replayLoses": [
+    "P6",
+    "P7"
+  ],
   "witnessChangesTheReplayVerdict": [
     "L5"
   ],
@@ -243,7 +246,8 @@
         }
       },
       "sameAmounts": false,
-      "note": "the replay's provider-loss-free rule: an abandoned answer is free. B3 has no such rule."
+      "replayLoses": true,
+      "note": "the replay's provider-loss-free rule: an abandoned answer is free, and B3 has no such rule. It is also what a requester that stops asking leaves behind when a stage then never closes: 10 acknowledged outputs unpaid."
     },
     {
       "kind": "participant",
@@ -275,7 +279,9 @@
           "stage1": 0
         }
       },
-      "sameAmounts": false
+      "sameAmounts": false,
+      "replayLoses": true,
+      "note": "the requester asks for every step, so a requester that stops asking produces exactly these records: the stages close, no stop is signed. If the replay charges nothing here, any partial answer is free at the requester's option, and signing a stop only costs it. B3 charges what was acknowledged whoever ended the answer."
     },
     {
       "kind": "participant",

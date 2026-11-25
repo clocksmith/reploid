@@ -244,11 +244,12 @@ async function main() {
   {
     const lost = await runAttempt(parties, { tag: 'drop', outputs: forty, vanishStage: 1, vanishAfterStep: 9 });
     add('P6 the final stage drops after 10 of 40 outputs and never closes', lost, await judge(lost.all(), lost),
-      { note: 'the replay\'s provider-loss-free rule: an abandoned answer is free. B3 has no such rule.' });
+      { lossCandidate: true, note: 'the replay\'s provider-loss-free rule: an abandoned answer is free, and B3 has no such rule. It is also what a requester that stops asking leaves behind when a stage then never closes: 10 acknowledged outputs unpaid.' });
   }
   {
     const early = await runAttempt(parties, { tag: 'early', outputs: forty, stagesFailAfter: 10 });
-    add('P7 the stages end the answer themselves after 10 of 40 outputs and close as failed', early, await judge(early.all(), early));
+    add('P7 the stages end the answer themselves after 10 of 40 outputs and close as failed', early, await judge(early.all(), early),
+      { lossCandidate: true, note: 'the requester asks for every step, so a requester that stops asking produces exactly these records: the stages close, no stop is signed. If the replay charges nothing here, any partial answer is free at the requester\'s option, and signing a stop only costs it. B3 charges what was acknowledged whoever ended the answer.' });
     // The same final stage instead signs K + 1 further steps it never sent, then closes. Nothing else changes.
     const finals = early.all().filter(row => row.schema === STAGE_RECEIPT_SCHEMA && row.partitionIndex === 1).sort((a, b) => a.sequence - b.sequence);
     const closing = finals.find(row => row.status !== 'executing'), added = [];
