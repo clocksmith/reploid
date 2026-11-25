@@ -7,14 +7,23 @@
 // behaviour, the choice made here is marked CHOICE and may differ from the
 // reference. Node 22, built-in modules only.
 //
-// Follows the document's text as of commit 955bd5f7a (621 lines): canonical base64url,
-// low-S P-256 signatures and exact ISO times; one row per (reservation, requester)
-// attempt with exactly the members of its "Rows" table; K from the named policy, else
-// from the `maxUnacknowledgedOutputs` input; closesInTime for closing receipts; the
-// release window passing only after the last instant a close can count; and late records
-// used only as evidence of a contradiction, except that a late final-stage receipt still
-// commits its chain. This is the replay's rule set: the ledger's interim rule that the
-// document's "Known difference" section describes is not implemented here.
+// Follows the document's text with the decided unfinished-answer rule (the owner decision
+// of 2026-11-25; 694 lines; the author had no commit hash for it). Earlier versions of this
+// file followed the text as of commit 955bd5f7a, before the decision. From that text:
+// the result's `schema` is `reploid.settlement-replay/v2`; in step 9 an unfinished answer
+// whose stages all closed charges the acknowledged prefix, capped at maxOutputTokens, under
+// `unfinishedTerms` equal to `reploid.unfinished-answer/acknowledged-prefix-provider-relief/v1`
+// (the decided rules), `null` or any other value, an unattributed disconnect included; only
+// under the older `reploid.unfinished-answer/provider-loss-free/v1` is an unattributed
+// disconnect charged 0; relief for a verified provider failure stays step 6's `expired`.
+// Unchanged from before: canonical base64url, low-S P-256 signatures and exact ISO times;
+// one row per (reservation, requester) attempt with exactly the members of its "Rows" table;
+// K from the named policy, else from the `maxUnacknowledgedOutputs` input; closesInTime for
+// closing receipts; the release window passing only after the last instant a close can count;
+// and late records used only as evidence of a contradiction, except that a late final-stage
+// receipt still commits its chain. The ledger's interim rules (`v1+acknowledged-prefix` in
+// the document's "Older rules") are a ledger rule and are not implemented here: over
+// provider-loss-free terms this replay charges an unattributed disconnect 0.
 
 import { createHash, createPublicKey, verify } from 'node:crypto';
 
@@ -24,7 +33,11 @@ const RECEIPT = 'reploid.stage-receipt/v1';
 const ACKNOWLEDGMENT = 'reploid.output-acknowledgment/v1';
 const STOP = 'reploid.settlement-stop/v1';
 const OUTPUT_CHAIN = 'reploid.output-chain/v1';
-const RESULT_SCHEMA = 'reploid.settlement-replay/v1';
+// The result's schema since the decided rules (it was `v1` before them; rows have the same
+// members). CHOICE (DOC-GAPS 78): this one value whatever `unfinishedTerms` each row's terms name.
+const RESULT_SCHEMA = 'reploid.settlement-replay/v2';
+// The decided `unfinishedTerms`, and the older one kept for the reservations made under it.
+const ACKNOWLEDGED_PREFIX = 'reploid.unfinished-answer/acknowledged-prefix-provider-relief/v1';
 const PROVIDER_LOSS_FREE = 'reploid.unfinished-answer/provider-loss-free/v1';
 const STATUSES = new Set(['executing', 'settled', 'failed']);
 const CLOSING = new Set(['settled', 'failed']);
@@ -564,7 +577,9 @@ async function decide(reservationId, requesterId, attempt, { policyByDigest, rec
     const windowPassed = typeof at === 'number' && at > agreed.deadline + terms.releaseWindowMs + skew;
     if (!answerDelivered) {
       if (!windowPassed) return done('open', 'step 6: not every stage closed and the release window has not passed');
-      await post(0n); // an expired attempt charges nobody and pays nobody
+      // An expired attempt charges nobody and pays nobody, acknowledged outputs included. For an
+      // attempt that started, this is the relief for a verified provider failure.
+      await post(0n);
       return done('expired', 'step 6: not every stage closed, no delivered answer, and the release window passed');
     }
     // Whatever the time. A stage with no counting receipt at all has none that covers the answer.
@@ -589,21 +604,40 @@ async function decide(reservationId, requesterId, attempt, { policyByDigest, rec
   const unaccepted = stages.find((stage) => !keptAcceptances.counting.some((a) => a.body.partitionIndex === stage.position));
   if (unaccepted) return done('unknown', `step 8: stage ${unaccepted.position} has no in-time acceptance of the agreed terms`);
 
-  // Step 9. Settled.
+  // Step 9. Settled. Every stage has closed or is treated as closed at its last step. The rule for
+  // an unfinished answer is the one the requester signed in the terms' `unfinishedTerms`.
   const finished = delivered?.done === true;
-  const stopped = keptStops.counting.length > 0;
+  const stopped = keptStops.counting.length > 0; // an in-time stop of its own; its `acknowledged` is not used
+  // CHOICE (DOC-GAPS 13): with no output on the final stage's latest receipt, nothing is withheld.
   const withheld = delivered !== null && delivered.count - acknowledged > terms.maxUnacknowledgedOutputs;
-  const endedByStage = terms.unfinishedTerms === PROVIDER_LOSS_FREE && !finished && !stopped && !withheld;
-  // A row whose answer a stage ended is settled with `outputs > 0` and `chargedOutputs: 0`.
-  // CHOICE: `beyondCeiling` does not depend on whether anything is charged.
+  // Every stage closed, so no provider failure is verified, and the records cannot show who ended it.
+  const unattributedDisconnect = !finished && !stopped && !withheld;
+  // Under the decided value, under `null` (older terms) and under any other value, every case
+  // charges the acknowledged prefix. Only under the older provider-loss-free terms was an
+  // unattributed disconnect ended by a stage, at 0. CHOICE (DOC-GAPS 79): the signed value
+  // decides, whatever the dates of the terms; nothing here checks it against the decision's date.
+  const olderRules = terms.unfinishedTerms === PROVIDER_LOSS_FREE;
+  const endedByStage = olderRules && unattributedDisconnect;
+  // A row whose answer a stage ended is settled with `outputs > 0` and `chargedOutputs: 0`;
+  // no other settled row has that pair. CHOICE: `beyondCeiling` does not depend on whether
+  // anything is charged.
   row.chargedOutputs = endedByStage ? 0 : Math.min(acknowledged, terms.maxOutputTokens);
   row.unacknowledgedOutputs = delivered === null ? null : delivered.count - acknowledged;
   row.beyondCeiling = Math.max(0, acknowledged - terms.maxOutputTokens);
   await post(BigInt(row.chargedOutputs) * BigInt(terms.creditsPerOutputToken));
   const closing = unclosed.length > 0 ? `; step 6: ${unclosed.length} stage(s) closed at their last step` : '';
-  if (endedByStage) return done('settled', `step 9: ended by a stage under provider-loss-free terms, charges 0${closing}`);
-  const why = finished ? 'finished' : stopped ? 'stopped by the requester' : withheld ? 'acknowledgments withheld' : 'unfinished';
-  return done('settled', `step 9: ${why}, the acknowledged prefix is charged${closing}`);
+  // CHOICE (DOC-GAPS 78): the reason, which is not part of the outcome, is the only place a row
+  // says which unfinished-answer rule applied. When cases overlap (finished and stopped, say),
+  // it names the first in step 9's order: finished, stopped, withheld, unattributed disconnect.
+  const rule = olderRules ? 'older provider-loss-free terms'
+    : terms.unfinishedTerms === ACKNOWLEDGED_PREFIX ? 'the decided acknowledged-prefix terms'
+      : terms.unfinishedTerms === null ? 'unfinishedTerms null (older terms)' : 'an unfinishedTerms value of no named rule';
+  if (endedByStage) {
+    return done('settled', `step 9: unattributed disconnect under ${rule}, ended by a stage, charges 0${closing}`);
+  }
+  const why = finished ? 'finished' : stopped ? 'stopped by the requester'
+    : withheld ? 'acknowledgments withheld' : 'unattributed disconnect';
+  return done('settled', `step 9: ${why} under ${rule}, the acknowledged prefix is charged${closing}`);
 }
 
 /**
