@@ -723,7 +723,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     input.dispatchEvent(new Event('input', { bubbles: true }));
     input.focus();
   });
-  const newThread = () => after(saveDraft(), () => after(session.select(null), () => { inspector.close?.({ restoreFocus: false }); chosenModel = null; viewState.chosenModel = null; archived = false; find('[data-show-archived]').setAttribute('aria-pressed', 'false'); find('[data-show-active]').setAttribute('aria-pressed', 'true'); setThreads(false); render(session.getState()); input.focus(); }));
+  const newThread = () => after(saveDraft(), () => after(session.select(null), () => { inspector.close?.({ restoreFocus: false }); chosenModel = null; viewState.chosenModel = null; archived = false; find('[data-show-archived]').checked = false; find('[data-show-active]').checked = true; setThreads(false); render(session.getState()); input.focus(); }));
   on('[data-new-thread]', 'click', () => { queuedSend = null; try { observe(newThread()); } catch (cause) { error(cause); } });
   on('[data-active-model-select]', 'change', () => { chosenModel = (session.getState().models || []).find(model => (model.selectionId || model.id) === modelSelect.value); viewState.chosenModel = chosenModel; render(session.getState()); input.focus(); });
   // Download to this device from the sheet. From Contributors the sheet stays open and moves to this device when stored;
@@ -857,8 +857,8 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   });
   on('[data-cancel-download]', 'click', () => session.cancelModelDownload());
   const showThreads = showArchived => {
-    archived = showArchived; find('[data-show-archived]').setAttribute('aria-pressed', String(archived));
-    find('[data-show-active]').setAttribute('aria-pressed', String(!archived));
+    archived = showArchived; find('[data-show-archived]').checked = archived;
+    find('[data-show-active]').checked = !archived;
     render(session.getState());
     setThreads(true);
     (find('[data-thread-item-id]') || find('[data-new-thread]')).focus();
@@ -877,7 +877,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     const archive = event.target.closest('[data-archive-thread]');
     if (archive) {
       void act(async () => { await saveDraft();
-        if (archived) { archived = false; find('[data-show-archived]').setAttribute('aria-pressed', 'false'); find('[data-show-active]').setAttribute('aria-pressed', 'true'); await session.restoreThread(archive.dataset.threadId); }
+        if (archived) { archived = false; find('[data-show-archived]').checked = false; find('[data-show-active]').checked = true; await session.restoreThread(archive.dataset.threadId); }
         else await session.archiveThread(archive.dataset.threadId);
         (find('[data-thread-item-id][aria-current="true"]') || find('[data-new-thread]')).focus();
       }); return;
@@ -970,9 +970,17 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
       notice.hidden = false;
     } finally { applyingPrivacy = apply.disabled = false; }
   });
+  on('[data-execution-location]', 'keydown', event => {
+    const step = { ArrowDown: 1, ArrowRight: 1, ArrowUp: -1, ArrowLeft: -1 }[event.key];
+    if (!step || !event.target.matches('[data-execution-choice]')) return;
+    const radios = [...find('[data-execution-location]').querySelectorAll('[data-execution-choice]')].filter(node => !node.hidden && !node.disabled);
+    const next = radios[(radios.indexOf(event.target) + step + radios.length) % radios.length];
+    if (!next) return;
+    event.preventDefault(); next.focus(); next.click();
+  });
   on('[data-execution-location]', 'click' , event => {
     const button = event.target.closest('[data-execution-choice]');
-    if (!button || button.disabled || button.getAttribute('aria-pressed') === 'true') return;
+    if (!button || button.disabled || button.getAttribute('aria-checked') === 'true') return;
     const choice = button.dataset.executionChoice;
     if (choice === 'desktop' && !desktopRecipient(session.getState())) { error('That desktop is no longer available. Nothing was changed.'); return; }
     pickerTouched = true;

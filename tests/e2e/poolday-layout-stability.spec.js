@@ -106,6 +106,27 @@ for (const [name, viewport] of Object.entries(VIEWPORTS)) {
       });
     }
 
+    test('Answer on: every computer and model is one single-select row, and nothing floats beside a row', async ({ page, baseURL }) => {
+      await open(page, baseURL);
+      await page.locator('[data-open-model]').click();
+      const picker = page.locator('[data-model-picker]');
+      await expect(picker).toBeVisible();
+      await watchBox(picker);
+      await expect(picker.locator('[data-execution-location]')).toHaveAttribute('role', 'radiogroup');
+      await expect(picker.locator('[data-execution-choice]').first()).toHaveAttribute('role', 'radio');
+      await picker.locator('[data-execution-choice=network]').click();
+      await picker.locator('[data-execution-choice=local]').click();
+      await page.waitForTimeout(1500);
+      expect(await boxChange(page)).toBe(0);
+      expect(await misalignedRows(picker)).toEqual([]);
+      // A model's computer count is part of its status line; the only thing beside a row is its trailing chevron.
+      const floating = await picker.locator('[data-inspect-model-providers]:not([hidden])').evaluateAll(nodes => nodes.filter(node => {
+        const row = node.closest('[data-choice-row]').querySelector('.chat-model-choice').getBoundingClientRect(), box = node.getBoundingClientRect();
+        return box.right > row.right + 1 || box.left < row.left || box.top < row.top - 1 || box.bottom > row.bottom + 1;
+      }).length);
+      expect(floating).toBe(0);
+    });
+
     test('"Who can read it" keeps its box while presets are compared, and says why confidential execution is unavailable', async ({ page, baseURL }) => {
       await open(page, baseURL);
       await page.locator('[data-open-model]').click();

@@ -62,7 +62,7 @@ describe('Paired desktop default', () => {
       // The row as it was drawn before the desktop's state changed.
       const row = root.querySelector('[data-execution-choice="desktop"]');
       row.disabled = false;
-      row.setAttribute('aria-pressed', 'false');
+      row.setAttribute('aria-checked', 'false');
       row.click();
     };
     const online = () => ({ status: 'online', paired: true, canSend: true, hostParticipantId: host, hostLabel: 'Studio',

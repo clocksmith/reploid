@@ -181,9 +181,11 @@ export function bindModelChoices(select, { onInspectProviders } = {}) {
           if (!row) {
             row = document.createElement('div');
             row.dataset.choiceRow = entry.key;
-            row.innerHTML = `<label class="chat-model-choice pool-button btn-ghost pool-choice"><input type="radio"><span><span data-choice-name></span><small class="pool-muted" data-choice-status></small><small class="pool-muted" data-choice-facts hidden></small><small class="pool-muted" data-choice-note hidden></small></span><span class="pool-choice-mark">${interfaceIcon('check')}</span></label>`;
+            // The single-select row: title, one status line (with its computer count), a trailing check. Who serves it
+            // is one step deeper, through a trailing chevron beside the row, never a link floating beside it.
+            row.innerHTML = `<label class="pool-option chat-model-choice"><input type="radio"><span class="pool-row-text"><span class="pool-row-title" data-choice-name></span><span class="pool-row-status" data-choice-status></span><small class="pool-caption pool-muted" data-choice-facts hidden></small><small class="pool-caption pool-muted" data-choice-note hidden></small></span><span class="pool-option-mark" aria-hidden="true">${interfaceIcon('check')}</span></label>`;
             row.querySelector('input').name = name;
-            if (onInspectProviders) row.insertAdjacentHTML('beforeend', '<button type="button" class="pool-button btn-ghost pool-caption pool-underline" data-inspect-model-providers hidden></button>');
+            if (onInspectProviders) row.insertAdjacentHTML('beforeend', `<button type="button" class="pool-button btn-ghost pool-icon chat-model-providers" data-inspect-model-providers hidden><span class="pool-visually-hidden" data-provider-count></span>${interfaceIcon('next')}</button>`);
           }
           const label = row.querySelector('label');
           label.dataset.choiceKey = entry.key;
@@ -203,12 +205,11 @@ export function bindModelChoices(select, { onInspectProviders } = {}) {
             providerButton.hidden = !count;
             providerButton.disabled = select.disabled;
             providerButton.dataset.inspectModelProviders = input.value;
-            providerButton.textContent = count ? `${status} · ${computerCountLabel(count)}` : '';
+            providerButton.querySelector('[data-provider-count]').textContent = count ? `${status} · ${computerCountLabel(count)}` : '';
             providerButton.setAttribute('aria-label', `View ${computerCountLabel(count)} serving ${modelVariantLabel(model)}`);
           }
           const statusNode = label.querySelector('[data-choice-status]');
-          statusNode.textContent = status;
-          statusNode.classList.toggle('chat-visually-hidden', !!providerButton && count > 0);
+          statusNode.textContent = providerButton && count ? `${status} · ${computerCountLabel(count)}` : status;
           const facts = compact ? '' : described.facts ?? modelFacts(model), factsNode = label.querySelector('[data-choice-facts]');
           factsNode.textContent = facts; factsNode.hidden = !facts;
           const noteNode = label.querySelector('[data-choice-note]');

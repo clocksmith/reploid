@@ -104,8 +104,14 @@
   cursor: inherit;
 }
 .pool-home .pool-option > label { cursor: inherit; }
-.pool-home .pool-option:hover:not(:has(> input:disabled)) { background: var(--pool-color-inset); }
-.pool-home .pool-option:has(> input:checked) {
+.pool-home .pool-option:hover:not(:has(> input:disabled), :disabled) { background: var(--pool-color-inset); }
+/* A row can also be a role="radio" button with aria-checked, where a caller owns the choice logic. */
+.pool-home button.pool-option { inline-size: 100%; background: transparent; font: inherit; cursor: pointer; }
+.pool-home button.pool-option[aria-checked='true'] .pool-option-mark > svg { visibility: visible; }
+.pool-home button.pool-option:focus-visible { outline: var(--pool-border-thick) solid var(--pool-color-focus); outline-offset: var(--pool-border-thick); }
+.pool-home button.pool-option:disabled { cursor: not-allowed; }
+.pool-home button.pool-option:disabled .pool-row-title { color: var(--pool-color-muted); }
+.pool-home .pool-option:is(:has(> input:checked), button[aria-checked='true']) {
   border-color: var(--pool-color-line);
   background: var(--pool-color-inset);
   box-shadow: var(--pool-shadow-inset);

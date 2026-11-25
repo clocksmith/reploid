@@ -15,7 +15,7 @@ async function chooseComputer(page, choice) {
   await page.locator('[data-open-model]').click();
   await expect(page.locator('[data-picker-title]')).toHaveText('Answer on');
   await page.locator(`[data-execution-choice=${choice}]`).click();
-  await expect(page.locator(`[data-execution-choice=${choice}]`)).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.locator(`[data-execution-choice=${choice}]`)).toHaveAttribute('aria-checked', 'true');
   await page.locator('[data-model-picker-close]').click();
   await expect(page.locator('[data-model-picker]')).toBeHidden();
 }
@@ -115,9 +115,9 @@ test('queues Send while public computers are found and cancels back to an editab
   await send.click();
   await expect(page.locator('[data-model-picker]')).toBeVisible();
   await expect(page.locator('[data-picker-title]')).toHaveText('Where should this run?');
-  await expect(page.locator('[data-execution-choice=local]')).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.locator('[data-execution-choice=local]')).toHaveAttribute('aria-checked', 'true');
   await page.locator('[data-execution-choice=network]').click();
-  await expect(page.locator('[data-execution-choice=network]')).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.locator('[data-execution-choice=network]')).toHaveAttribute('aria-checked', 'true');
   await page.locator('[data-model-picker-close]').click();
   await expect(status).toContainText('Finding computers');
   await expect(cancel).toBeHidden();

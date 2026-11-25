@@ -663,7 +663,7 @@ for (const width of [1280, 390, 320]) test(`two drawers preserve conversation an
   const input = page.locator('[data-composer-input]'), left = page.locator('[data-threads-dialog]'), right = page.locator('[data-chat-inspector-slot]');
   await input.fill('Preserve this draft'); await input.evaluate(node => { window.originalComposer = node; node.setSelectionRange(3, 7); });
   await page.locator('[data-toggle-thread-rail]').click(); await expect(left).toBeVisible();
-  await expect(page.locator('[data-show-active]')).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.locator('[data-show-active]')).toBeChecked();
   await page.locator('[data-inspector-section="settings"]').click(); await expect(right).toBeVisible();
   if (width >= 1200) { await expect(left).toBeVisible(); await expect(page).toHaveURL(/view=settings&threads=open/); }
   else { await expect(left).toBeHidden(); await expect(page).toHaveURL(/view=settings$/); }
@@ -929,7 +929,7 @@ for (const width of [1280, 390, 320]) test(`model source, selection and composer
   expect(await page.locator('[data-composer-field]').boundingBox()).toEqual(field);
   await page.screenshot({ path: info.outputPath(`shared-departed-${width}.png`) });
   await openModel();
-  await expect(page.locator('[data-execution-choice=network]')).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.locator('[data-execution-choice=network]')).toHaveAttribute('aria-checked', 'true');
   // The list keeps its order; the stored model says why Contributors cannot answer and offers this device instead.
   await expect(page.locator('[data-choice-group="local"]')).toContainText('Qwen 3.5 0.8B');
   await expect(page.locator('[data-model-picker] [data-next-model-status]')).toContainText('It is on this device');
@@ -1033,7 +1033,7 @@ test('model preview and inference privacy commit independently', async ({ page }
   await picker.locator('label[data-choice-key]').nth(1).click();
   await expect(picker).toBeVisible();
   await expect(picker.locator('[data-execution-location]')).toBeVisible();
-  await expect(picker.locator('label[data-choice-key]').nth(1).locator('.pool-choice-mark')).toBeVisible();
+  await expect(picker.locator('label[data-choice-key]').nth(1).locator('.pool-option-mark')).toBeVisible();
   await expect(picker.locator('label[data-choice-key]').nth(1).locator('input')).toHaveCSS('opacity', '0');
   await expect(picker.locator('[data-privacy-controls]')).toHaveCount(0);
   await picker.screenshot({ path: info.outputPath('model-picker.png') });
@@ -1042,7 +1042,7 @@ test('model preview and inference privacy commit independently', async ({ page }
   expect(await opener.innerText()).toBe(original);
   // One sheet chooses the computer and model; the execution presets are under "Who can read it".
   await page.locator('[data-open-model]').click();
-  await expect(picker.locator('[data-execution-choice=local]')).toHaveAttribute('aria-pressed', 'true');
+  await expect(picker.locator('[data-execution-choice=local]')).toHaveAttribute('aria-checked', 'true');
   await picker.screenshot({ path: info.outputPath('answer-on-sheet.png') });
   await picker.locator('[data-open-privacy]').click();
   const privacy = page.locator('[data-privacy-dialog]');

@@ -32,10 +32,12 @@
 .chat-thread-info { min-width: 0; flex: 1; display: grid; gap: var(--pool-size-4); }
 .pool-home .chat-model-value { display: none !important; }
 .chat-model-choices { display: grid; gap: var(--pool-size-8); min-width: 0; margin: 0; padding: 0; }
-.chat-model-choice { display: flex; align-items: center; gap: var(--pool-size-12); min-height: var(--pool-size-56); padding: var(--pool-size-12) var(--pool-size-16); }
-.chat-model-choices [data-choice-row]:has(> [data-inspect-model-providers]:not([hidden])) { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: var(--pool-size-4); }
-.chat-model-choices [data-inspect-model-providers] { padding-inline: var(--pool-size-4); }
-.chat-model-choice > span { display: grid; gap: var(--pool-size-4); min-width: 0; overflow-wrap: anywhere; }
+/* A model row and its "who serves it" chevron share one cell: the chevron sits in the row's trailing edge,
+   after the check, and the row leaves room for it. Nothing floats beside the row. */
+.chat-model-choices [data-choice-row] { display: grid; grid-template-columns: minmax(0, 1fr); }
+.chat-model-choices [data-choice-row] > :is(.chat-model-choice, [data-inspect-model-providers]) { grid-area: 1 / 1; }
+.chat-model-choices [data-choice-row]:has(> [data-inspect-model-providers]:not([hidden])) > .chat-model-choice { padding-inline-end: calc(var(--pool-size-44) + var(--pool-size-8)); }
+.chat-model-choices [data-inspect-model-providers] { position: relative; z-index: var(--pool-z-2); justify-self: end; align-self: start; margin-block-start: calc((var(--pool-row-double) - var(--pool-size-44)) / 2); }
 .chat-thread-header [data-toggle-inspector] { flex: none; }
 .chat-execution-state:empty { display: none; }
 .chat-thread-list { display: grid; align-content: start; gap: var(--pool-size-8); }
@@ -92,9 +94,10 @@
 .chat-composer-feedback { display: grid; gap: var(--pool-size-8); min-width: 0; min-height: 0; overflow-y: auto; }
 .chat-composer-feedback p { margin: 0; }
 .chat-composer-status-line { display: flex; flex-wrap: wrap; align-items: center; gap: var(--pool-size-8); min-height: var(--pool-size-44); min-width: 0; }
-.chat-composer-status-line > :is([data-model-status], [data-acquisition-status]) { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+/* The status and its action read as one line: the action follows the status it answers, never parked at the far edge. */
+.chat-composer-status-line > :is([data-model-status], [data-acquisition-status]) { flex: 0 1 auto; min-width: 0; overflow-wrap: anywhere; }
 .chat-composer-status-line > [data-acquisition-progress] { flex: 1; min-width: var(--pool-size-80); height: var(--pool-size-8); }
-.chat-composer-status-line > .chat-composer-notices { flex: none; margin-left: auto; }
+.chat-composer-status-line > .chat-composer-notices { flex: none; }
 .chat-composer-field { display: flex; flex-direction: column; min-width: 0; gap: var(--pool-size-8); position: relative; padding: var(--pool-size-8); }
 .pool-home .chat-composer-area textarea {
   display: block; box-sizing: border-box; width: 100%; height: var(--pool-param-composer-height, auto); min-height: var(--pool-size-44); max-height: 22dvh; min-width: 0;

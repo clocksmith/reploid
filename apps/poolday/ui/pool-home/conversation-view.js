@@ -14,9 +14,10 @@ import { renderAdapterDetails } from './model-adapters.js';
 
 const renderModelControl = () => '<span data-model-control hidden><select class="pool-input pool-glass chat-model-value" id="chat-model" data-active-model-select aria-label="Model"></select></span>';
 
-const computerRow = (choice, name) => `<button class="pool-button btn-ghost pool-choice chat-model-choice" type="button" data-execution-choice="${choice}" aria-pressed="false"><span class="pool-stack"><span${name}</span><small class="pool-muted" data-computer-state></small></span><span class="pool-choice-mark" aria-hidden="true">${interfaceIcon('check')}</span></button>`;
+// One row anatomy for every choice in the sheet: title, one status line, a trailing check (the single-select list primitive).
+const computerRow = (choice, name) => `<button class="pool-option chat-model-choice" type="button" role="radio" data-execution-choice="${choice}" aria-checked="false"><span class="pool-row-text"><span class="pool-row-title"${name}</span><span class="pool-row-status" data-computer-state></span></span><span class="pool-option-mark" aria-hidden="true">${interfaceIcon('check')}</span></button>`;
 // Computer and model are one consistent choice: a model tap moves the computer to where that model runs, and a computer tap keeps a model that runs there.
-const renderLocationControl = () => `<div class="pool-stack pool-gap-xs" data-execution-location role="group" aria-labelledby="chat-computer-label"><span class="pool-caption pool-muted" id="chat-computer-label">Computer</span>${computerRow('local', '>This device')}${computerRow('desktop', ' data-computer-desktop-name>Your desktop')}${computerRow('network', '>Contributors')}<p class="pool-caption pool-muted" id="chat-prompt-disclosure" data-prompt-disclosure></p></div>`;
+const renderLocationControl = () => `<div class="pool-options" data-execution-location role="radiogroup" aria-labelledby="chat-computer-label"><span class="pool-options-label" id="chat-computer-label">Computer</span>${computerRow('local', '>This device')}${computerRow('desktop', ' data-computer-desktop-name>Your desktop')}${computerRow('network', '>Contributors')}<p class="pool-caption pool-muted" id="chat-prompt-disclosure" data-prompt-disclosure></p></div>`;
 
 const renderModelSelectionDetails = () => `<details class="pool-disclosure" data-model-details><summary>Model details</summary><div class="pool-stack pool-gap-xs" data-model-selection-details><p class="pool-small pool-muted" data-model-facts></p><p class="pool-small pool-muted" data-local-fit hidden></p><div class="chat-model-variant pool-stack pool-gap-xs" data-model-variant-details>${renderAdapterDetails()}${renderModelProviders()}</div><p class="pool-small pool-muted" data-answer-limit hidden></p></div></details>`;
 
@@ -31,9 +32,9 @@ export function renderConversationWorkspace({ inspector = true, compact = false 
       </div>
     </aside>
     <section id="chat-threads-panel" class="chat-threads-dialog pool-surface" hidden data-drawer-side="left" data-threads-dialog aria-labelledby="chat-threads-title">
-      <header class="chat-network-heading"><h2 class="pool-subheading" id="chat-threads-title" tabindex="-1">Threads</h2><button class="pool-button btn-ghost pool-icon" type="button" data-close-threads aria-label="Close">${interfaceIcon('close')}</button></header>
+      <header class="chat-network-heading"><h2 class="pool-heading" id="chat-threads-title" tabindex="-1">Threads</h2><button class="pool-button btn-ghost pool-icon" type="button" data-close-threads aria-label="Close">${interfaceIcon('close')}</button></header>
       <div class="pool-row"><button class="pool-button btn-ghost" type="button" data-new-thread>${interfaceIcon('plus')}<span>New thread</span></button></div>
-      <div class="pool-segmented" role="group" aria-label="Thread history"><button class="pool-segment" type="button" data-show-active aria-pressed="true">Active</button><button class="pool-segment" type="button" data-show-archived aria-pressed="false">Archived</button></div>
+      <div class="pool-segmented" role="radiogroup" aria-label="Thread history"><label class="pool-segment"><input type="radio" name="thread-history" value="active" data-show-active checked>Active</label><label class="pool-segment"><input type="radio" name="thread-history" value="archived" data-show-archived>Archived</label></div>
       <section class="chat-thread-panel" data-thread-panel aria-label="Thread history">
       <p class="pool-small pool-muted" data-thread-empty>No threads yet.</p><div class="chat-thread-list" data-thread-list></div>
       </section>

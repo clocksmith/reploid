@@ -168,7 +168,9 @@ export function updateConversationModelPicker({ find, choices, state, model: pic
     }
     if (choice === 'network') button.hidden = !!locked?.guest;
     button.querySelector('[data-computer-state]').textContent = computerState(choice, { state, selected, locked, canDownload, block });
-    button.setAttribute('aria-pressed', String(choice === pressed));
+    button.setAttribute('aria-checked', String(choice === pressed));
+    // A radio group is one tab stop: the chosen computer takes focus, arrows move between the others.
+    button.tabIndex = choice === pressed ? 0 : -1;
     button.disabled = changingModel || !!state.activeThread?.closed || (state.runningIds || []).includes(state.selectedId);
   }
   const outcome = describeAnswerChoice(selected || (pickerModel ? unavailableModelChoice(pickerModel) : null), side,

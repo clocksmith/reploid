@@ -39,14 +39,14 @@ it('asks once where to run before a first visitor prompt can reach a network pro
   f.find('[data-composer-form]').dispatchEvent(new Event('submit', { cancelable: true }));
   expect(f.find('[data-model-picker]').open).toBe(true);
   expect(f.find('[data-picker-title]').textContent).toBe('Where should this run?');
-  expect(f.find('[data-execution-choice=local]').getAttribute('aria-pressed')).toBe('true');
+  expect(f.find('[data-execution-choice=local]').getAttribute('aria-checked')).toBe('true');
   // The shared model cannot run here: the sheet says so beside it and offers the fix, never a dead button.
   expect(f.find('[data-next-model-status]').textContent).toMatch(/runs on contributors’ computers/);
   expect(f.find('[data-answer-action]').textContent).toBe('Use contributors');
   expect(f.find('[data-change-model]').disabled).toBe(false);
   expect(f.api.connect).not.toHaveBeenCalled();
   f.find('[data-execution-choice=network]').click();
-  await vi.waitFor(() => expect(f.find('[data-execution-choice=network]').getAttribute('aria-pressed')).toBe('true'));
+  await vi.waitFor(() => expect(f.find('[data-execution-choice=network]').getAttribute('aria-checked')).toBe('true'));
   // The sheet was opened by Send, so its button says what pressing it does.
   expect(f.find('[data-change-model]').textContent).toBe('Send to contributors');
 });
