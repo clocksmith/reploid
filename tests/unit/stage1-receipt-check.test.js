@@ -150,6 +150,33 @@ describe('what a stage process loaded', () => {
   });
 });
 
+describe('task correctness is independent of numerical agreement', () => {
+  const withTask = { ...expectations, task: { expectedText: '26' } };
+
+  it('passes exact reference agreement on 22 and records the task miss against 26', () => {
+    const result = checkStage1Receipt(goodReceipt(), withTask);
+    expect(result.ok).toBe(true);
+    expect(result.taskCorrectness).toEqual({ status: 'mismatch', expectedText: '26', actualText: '22' });
+  });
+
+  it('scores 26 as correct without passing it off as agreement with the frozen reference', () => {
+    const receipt = goodReceipt();
+    receipt.split.text = '26';
+    receipt.split.tokens.outputIds = [17, 21, 248046];
+    const result = checkStage1Receipt(receipt, withTask);
+    expect(result.ok).toBe(false);
+    expect(codes(result)).toEqual(expect.arrayContaining(['tokens-differ', 'text-differs']));
+    expect(result.taskCorrectness).toEqual({ status: 'match', expectedText: '26', actualText: '26' });
+  });
+
+  it('does not score incomplete output or a fixture with no task answer', () => {
+    const receipt = goodReceipt();
+    receipt.phases.split.status = 'failed';
+    expect(checkStage1Receipt(receipt, withTask).taskCorrectness).toEqual({ status: 'not-observed', expectedText: '26' });
+    expect(checkStage1Receipt(goodReceipt(), expectations).taskCorrectness).toEqual({ status: 'not-configured' });
+  });
+});
+
 describe('a good receipt', () => {
   it('passes as pooled capacity when both solo controls ran out of device memory at identical settings', () => {
     expect(checkStage1Receipt(goodReceipt(), expectations)).toMatchObject({ ok: true, label: LABEL_POOLED, reasons: [] });

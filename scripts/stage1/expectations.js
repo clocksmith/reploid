@@ -65,6 +65,7 @@ export async function loadStage1Expectations({ runtimeClass = 'physical', fixtur
       promptDigest: witnessDigest(reference.inputIds), promptCount: reference.inputIds.length,
       maxOutputTokens: fixture.maxOutputTokens, decoding: decodingOf(model.generation) },
     reference: { outputIds, sampleDigest: witnessDigest(outputIds), outputText: reference.outputText, stopReasons: ['eos-token', 'stop-token'] },
+    ...(typeof reference.correctTaskAnswer === 'string' ? { task: { expectedText: reference.correctTaskAnswer } } : {}),
     stages,
     totalWeight: { rangeCount: stages.reduce((sum, stage) => sum + stage.rangeCount, 0), bytes: stages.reduce((sum, stage) => sum + stage.bytes, 0) }
   };

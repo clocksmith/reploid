@@ -394,7 +394,18 @@ function decideLabel(receipt, expectations, fail) {
   return { label, solo };
 }
 
-/** Returns `{ ok, label, solo, reasons }`. `label` is meaningful only when `ok`; a failed receipt claims nothing. */
+/** Score the observed answer independently of token parity and settlement. No completed split means no score. */
+function scoreTaskAnswer(receipt, expectations) {
+  const expectedText = expectations.task?.expectedText;
+  if (typeof expectedText !== 'string') return { status: 'not-configured' };
+  const actualText = receipt.split?.text;
+  if (receipt.phases?.split?.status !== 'completed' || typeof actualText !== 'string') {
+    return { status: 'not-observed', expectedText };
+  }
+  return { status: actualText === expectedText ? 'match' : 'mismatch', expectedText, actualText };
+}
+
+/** Returns `{ ok, label, solo, reasons, taskCorrectness }`. The task score never affects the receipt verdict. */
 export function checkStage1Receipt(receipt, expectations) {
   const reasons = [];
   const fail = (code, detail) => { reasons.push({ code, detail }); };
@@ -418,5 +429,5 @@ export function checkStage1Receipt(receipt, expectations) {
   checkServices(record, expectations, fail);
   const { label, solo } = decideLabel(record, expectations, fail);
   const ok = reasons.length === 0;
-  return { ok, label: ok ? label : null, solo, reasons };
+  return { ok, label: ok ? label : null, solo, reasons, taskCorrectness: scoreTaskAnswer(record, expectations) };
 }
