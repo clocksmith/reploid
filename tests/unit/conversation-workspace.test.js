@@ -1158,7 +1158,7 @@ describe('Conversation workspace', () => {
     expect(find('[data-thread-sidebar] [data-conversation-actions]')).toBeNull();
   });
 
-  it('opens archived threads in the Chats drawer without losing the draft', () => {
+  it('opens archived threads in the Threads drawer without losing the draft', () => {
     const previous = globalThis.innerWidth;
     Object.defineProperty(globalThis, 'innerWidth', { value: 390, configurable: true });
     try {

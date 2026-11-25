@@ -7,7 +7,7 @@ for (const [width, height] of [[1440, 900], [1280, 720], [390, 844], [320, 740]]
     const input = page.locator('[data-composer-input]');
     await expect(input).toBeVisible();
 
-    // Stable destination bar: Chats, Conversation details, Computers, Settings (all icon + label, no shift).
+    // Stable destination bar: Threads, Conversation details, Computers, Settings (all icon + label, no shift).
     const toolbar = page.locator('[data-chat-rail-toolbar]');
     const initialPositions = await toolbar.locator('[data-workspace-view]').evaluateAll(nodes => nodes.map(node => {
       const rect = node.getBoundingClientRect();
@@ -30,8 +30,8 @@ for (const [width, height] of [[1440, 900], [1280, 720], [390, 844], [320, 740]]
     await input.fill('Keep my draft');
     await page.evaluate(() => { window.originalComposer = document.querySelector('[data-composer-input]'); });
 
-    // 1. Open a chat (Chats drawer) & 5. Close without losing the draft.
-    const chatsLink = toolbar.getByRole('link', { name: 'Chats', exact: true });
+    // 1. Open a chat (Threads drawer) & 5. Close without losing the draft.
+    const chatsLink = toolbar.getByRole('link', { name: 'Threads', exact: true });
     await chatsLink.click();
     await expect(page).toHaveURL(/view=threads/);
     await expect(page.locator('[data-threads-dialog]')).toBeVisible();

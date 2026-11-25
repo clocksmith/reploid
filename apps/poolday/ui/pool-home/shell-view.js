@@ -36,11 +36,11 @@ export const renderPowerTower = (inverse = false) => `<span class="pool-power-to
 // inspector's Settings pane. They render no app bar.
 export const INSPECTOR_SETTINGS_ROUTES = Object.freeze(['home', 'network']);
 
-/** The home link with the brand mark, or the Chats destination in the workspace bar. */
+/** The home link with the brand mark, or the Threads destination in the workspace bar. */
 export const renderBrandLink = ({ toolbar = false, drawer = false, href = null } = {}) => {
   const home = escapeHtml(href || roomHref('/', getPeerRoomId()));
   if (drawer) {
-    return `<a class="pool-primary-brand pool-button btn-ghost chat-rail-icon pool-plain" href="${home}" data-workspace-view="threads" data-toggle-thread-rail aria-controls="chat-threads-panel" aria-expanded="false">${interfaceIcon('threads')}<span class="chat-rail-label pool-nav-label">Chats</span></a>`;
+    return `<a class="pool-primary-brand pool-button btn-ghost chat-rail-icon pool-plain" href="${home}" data-workspace-view="threads" data-toggle-thread-rail aria-controls="chat-threads-panel" aria-expanded="false">${interfaceIcon('threads')}<span class="chat-rail-label pool-nav-label">Threads</span></a>`;
   }
   return `<a class="pool-primary-brand${toolbar ? ' pool-button btn-ghost' : ''} pool-heading pool-plain" aria-label="${escapeHtml(POOLDAY_NAME)} home" href="${home}" data-pool-route-link="${home}">${renderPowerTower()}<span class="pool-primary-wordmark">${escapeHtml(POOLDAY_NAME)}</span></a>`;
 };

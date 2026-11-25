@@ -91,7 +91,7 @@ describe('poolday home navigation', () => {
   it('uses Reploid publicly and keeps model evidence out of the main form', () => {
     // The workspace brand opens the left Threads drawer (owner clarification, November 6, 2026);
     // focused routes keep the brand as their way home.
-    for (const [route, brandLabel] of [['home', 'Chats'], ['compute', 'Reploid home'], ['records', 'Reploid home']]) {
+    for (const [route, brandLabel] of [['home', 'Threads'], ['compute', 'Reploid home'], ['records', 'Reploid home']]) {
       const host = document.createElement('div');
       host.innerHTML = renderNav(route) + renderRoutePanel(route) + renderRouteDetail(route);
       // The workspace toggle is named by its visible label; the focused routes' icon-only brand by aria-label.
@@ -209,12 +209,12 @@ describe('poolday home navigation', () => {
     expect(host.querySelector('[data-chat-workspace]')).not.toBeNull();
     // The brand is the Threads drawer toggle: one URL-backed link to the left drawer.
     const brand = host.querySelector('[data-chat-rail-toolbar] .pool-primary-brand');
-    expect(brand.textContent.trim()).toBe('Chats');
+    expect(brand.textContent.trim()).toBe('Threads');
     expect(new URL(brand.href).searchParams.get('view')).toBe('threads');
     expect(host.querySelectorAll('[data-toggle-thread-rail]')).toHaveLength(1);
     expect(host.querySelector('[data-toggle-thread-rail]')).toBe(brand);
     const threads = host.querySelector('[data-threads-dialog]');
-    expect(host.querySelector(`#${threads.getAttribute('aria-labelledby')}`).textContent).toBe('Chats');
+    expect(host.querySelector(`#${threads.getAttribute('aria-labelledby')}`).textContent).toBe('Threads');
     expect(host.querySelector('[data-inspector-section="settings"]')).not.toBeNull();
   });
 

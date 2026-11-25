@@ -510,7 +510,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     threads.update(state.threads || [], state.selectedId, { archived, models: state.models });
     const emptyList = find('[data-thread-empty]');
     emptyList.hidden = !!find('[data-thread-list] [data-thread-item-id]');
-    emptyList.textContent = archived ? 'No archived chats.' : 'No chats yet.';
+    emptyList.textContent = archived ? 'No archived threads.' : 'No threads yet.';
     refreshStartingPrompts();
     const productionSurface = find('[data-production-surface]');
     if (productionSurface) productionSurface.hidden = container.hasAttribute('data-compact');

@@ -31,11 +31,11 @@ export function renderConversationWorkspace({ inspector = true, compact = false 
       </div>
     </aside>
     <section id="chat-threads-panel" class="chat-threads-dialog pool-surface" hidden data-drawer-side="left" data-threads-dialog aria-labelledby="chat-threads-title">
-      <header class="chat-network-heading"><h2 class="pool-subheading" id="chat-threads-title" tabindex="-1">Chats</h2><button class="pool-button btn-ghost pool-icon" type="button" data-close-threads aria-label="Close">${interfaceIcon('close')}</button></header>
-      <div class="pool-row"><button class="pool-button btn-ghost" type="button" data-new-thread>${interfaceIcon('plus')}<span>New chat</span></button></div>
-      <div class="pool-segmented" role="group" aria-label="Chat history"><button class="pool-segment" type="button" data-show-active aria-pressed="true">Active</button><button class="pool-segment" type="button" data-show-archived aria-pressed="false">Archived</button></div>
-      <section class="chat-thread-panel" data-thread-panel aria-label="Chat history">
-      <p class="pool-small pool-muted" data-thread-empty>No chats yet.</p><div class="chat-thread-list" data-thread-list></div>
+      <header class="chat-network-heading"><h2 class="pool-subheading" id="chat-threads-title" tabindex="-1">Threads</h2><button class="pool-button btn-ghost pool-icon" type="button" data-close-threads aria-label="Close">${interfaceIcon('close')}</button></header>
+      <div class="pool-row"><button class="pool-button btn-ghost" type="button" data-new-thread>${interfaceIcon('plus')}<span>New thread</span></button></div>
+      <div class="pool-segmented" role="group" aria-label="Thread history"><button class="pool-segment" type="button" data-show-active aria-pressed="true">Active</button><button class="pool-segment" type="button" data-show-archived aria-pressed="false">Archived</button></div>
+      <section class="chat-thread-panel" data-thread-panel aria-label="Thread history">
+      <p class="pool-small pool-muted" data-thread-empty>No threads yet.</p><div class="chat-thread-list" data-thread-list></div>
       </section>
     </section>
     <aside class="chat-inspector-slot pool-surface" hidden data-drawer-side="right" data-chat-inspector-slot aria-label="Inspector">${inspector ? renderInspectorRail({ mounted: true, contribution: renderProductionContribution() }) : ''}</aside>

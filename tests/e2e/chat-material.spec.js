@@ -317,7 +317,7 @@ test('reading and phone controls retain long answers, code, sources and a saved 
   await expect(page.locator('[data-composer-input]')).toBeInViewport();
   await expect(page.locator('[data-thread-sidebar]')).toBeVisible();
   await expect(page.locator('[data-thread-list]')).toBeHidden();
-  // Chats opens as a full-width sheet on phones; conversation export lives in Conversation details.
+  // Threads opens as a full-width sheet on phones; conversation export lives in Conversation details.
   await page.locator('[data-toggle-thread-rail]').click();
   await expect(page.locator('[data-threads-dialog]')).toBeVisible();
   await expect(page.locator('[data-composer-input]')).toHaveValue('Keep this draft while I read.');
@@ -1094,9 +1094,9 @@ test('a fresh mobile pairing link opens one action and both drawers have visible
   await expect(page).not.toHaveURL(/#pair=/);
 
   const toolbar = page.locator('[data-chat-rail-toolbar]');
-  const chats = toolbar.getByRole('link', { name: 'Chats', exact: true });
+  const chats = toolbar.getByRole('link', { name: 'Threads', exact: true });
   const computers = toolbar.getByRole('link', { name: /^Computers/ });
-  await expect(chats.getByText('Chats', { exact: true })).toBeVisible();
+  await expect(chats.getByText('Threads', { exact: true })).toBeVisible();
   await expect(chats).not.toHaveAttribute('href', /#pair=/);
   await expect(computers.getByText('Computers', { exact: true })).toBeVisible();
   await chats.click();

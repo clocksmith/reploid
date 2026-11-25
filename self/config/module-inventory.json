@@ -4319,7 +4319,7 @@
     {
       "path": "ui/components/model-select.js",
       "owner": "ui",
-      "sha256": "sha256:7bf578cd05ddbb446db555e84c09ef7d01057cb9c973967afe31e6672c9c4628",
+      "sha256": "sha256:95b4b89f62bc5b53cfa156b2cbda53fb334a709d9673a2406ba85cca39d03469",
       "imports": [
         "./attachments.js",
         "./interface-icons.js"
@@ -4369,7 +4369,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:97eaf5e3bdc7d9cb5d0eb0d8f89412458b025d18f997eb87b00deed976db65dd",
+      "sha256": "sha256:d930339db6cc7dfb5d4819fa5205cab0be1b49dad115bf023cbbc0ab4ee1739d",
       "imports": []
     },
     {
@@ -4519,7 +4519,7 @@
     {
       "path": "ui/pool-home/conversation-model-picker.js",
       "owner": "ui",
-      "sha256": "sha256:6b3e7b68b2096d6abbc918a33f5280f7b5e9837296c63d5d7d63c3ac2f81ce63",
+      "sha256": "sha256:9646866d521b45ed5de71f61d0f369230172b1d82bc7ced2494af72be7fd2de9",
       "imports": [
         "../components/model-select.js",
         "./model-adapters.js",
@@ -4530,7 +4530,7 @@
     {
       "path": "ui/pool-home/conversation-view.js",
       "owner": "ui",
-      "sha256": "sha256:a530760e4fa28a706242bf5c9558569dbe17cdf8ab5e14a08a6289cd709e06a7",
+      "sha256": "sha256:2372debcd15fd2df58cfd44436fef1e897b33dd192e4298c56b2f942621fbe78",
       "imports": [
         "../../config/chat-prompts.json",
         "../../config/work-profile.json",
@@ -4549,7 +4549,7 @@
     {
       "path": "ui/pool-home/conversation-workspace.js",
       "owner": "ui",
-      "sha256": "sha256:04da134485c56ea48dbbe1ef824491935f880a3b5b80e7c8d96ceea843d7b979",
+      "sha256": "sha256:4964202e917f948ffef06646c11b8fdc2dfaaf8cf9d6ef2fa8d67ae3ab6515f0",
       "imports": [
         "../../config/work-profile.json",
         "../../host/circle-invites.js",
@@ -5421,7 +5421,7 @@
     {
       "path": "ui/pool-home/shell-view.js",
       "owner": "ui",
-      "sha256": "sha256:8eb5d48e026accfc02efd3b71bad407e3d7b90a958a8ac501b755d9f1d415aef",
+      "sha256": "sha256:39e9176eb5f351b2f8c4c0ebeeaf37a632c330166f6209e65aadd4afe5b81f21",
       "imports": [
         "../../host/product-context.js",
         "../../pool/peer-room.js",
