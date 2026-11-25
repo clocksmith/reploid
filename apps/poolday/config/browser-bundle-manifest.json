@@ -1415,8 +1415,8 @@
     },
     {
       "path": "config/module-inventory.json",
-      "byteLength": 698868,
-      "sha256": "sha256:624aad3a7743c5cc2568437734d061b1deae49eeb70dd7545e2b384c6c30dc43"
+      "byteLength": 699516,
+      "sha256": "sha256:14c46311606820c42e0e953db45bd5cf2569d4cf00b2ac0f346db8384d13b2d7"
     },
     {
       "path": "config/module-registry.json",
@@ -1510,8 +1510,8 @@
     },
     {
       "path": "config/vfs-manifest.json",
-      "byteLength": 149878,
-      "sha256": "sha256:0510db1bfb19a6bca59dc4c82dff4f8c18999c0a40e73741fe31f2f6d9b1f422"
+      "byteLength": 149954,
+      "sha256": "sha256:c5102a64820a014753dd0d084792aa5b01fd3d49f3ce2916eee280203ea8bd38"
     },
     {
       "path": "config/vfs-policy.js",
@@ -1870,8 +1870,8 @@
     },
     {
       "path": "host/chat-session.js",
-      "byteLength": 49018,
-      "sha256": "sha256:f465a2ad823e61b3a84c1ad8091f05695c117ce65d6d254ed0c9e0a9da8631fc"
+      "byteLength": 49385,
+      "sha256": "sha256:c5d97711ef508040173504a5741cfc992cd0b09e65f1993813f000a7192748d4"
     },
     {
       "path": "host/chat-view.js",
@@ -1962,6 +1962,11 @@
       "path": "host/file-access.js",
       "byteLength": 3070,
       "sha256": "sha256:f2488b5a4d1ca6b294c4bc108ee171802699dc695d246b45ff24ac244e4c1212"
+    },
+    {
+      "path": "host/fleet-account.js",
+      "byteLength": 7695,
+      "sha256": "sha256:1aecfd72ff5a4a9655fcd0e998c1c0a16992c2a788c0c4a450fba608e55da0c3"
     },
     {
       "path": "host/guest-join.js",
@@ -2830,8 +2835,8 @@
     },
     {
       "path": "pool/firebase-auth.js",
-      "byteLength": 2804,
-      "sha256": "sha256:3f3d61667a929450ef1e6ef3b0c1daf8d240ec751595b88950bca74a7ecd3b82"
+      "byteLength": 3278,
+      "sha256": "sha256:feeafcc760ab2ceb4b71d7a072845666ddbbfc36f058b5141173c5e1b2051b65"
     },
     {
       "path": "pool/forecast-workload.js",
@@ -3825,8 +3830,8 @@
     },
     {
       "path": "ui/pool-home/app.bundle.js",
-      "byteLength": 2772328,
-      "sha256": "sha256:2560871490cbc3775d3799870021037e3c2c0c654cc0614a0b8f8ae40f627f4b"
+      "byteLength": 2785368,
+      "sha256": "sha256:3a02b62679ff9deeb9e4ca0b465b26d5c2174853822d14f963605634f6779bdd"
     },
     {
       "path": "ui/pool-home/auto-download.js",
@@ -3944,6 +3949,11 @@
       "sha256": "sha256:1bde6bc843b9a8e315bab13ffb89993f17d9783b825f34756fc78daa0eabb899"
     },
     {
+      "path": "ui/pool-home/fleet-account-view.js",
+      "byteLength": 11485,
+      "sha256": "sha256:f56da7c9d38c42460acd3ebca6c19e1b861519b05f41d141838bc48620fdc6cc"
+    },
+    {
       "path": "ui/pool-home/history-handover-view.js",
       "byteLength": 1877,
       "sha256": "sha256:a1cfa837762f2ecd388c875ee59ccdb2b0ac36b5e3e0a97a6258251a3a5edb7f"
@@ -4010,8 +4020,8 @@
     },
     {
       "path": "ui/pool-home/network-inspector.js",
-      "byteLength": 37904,
-      "sha256": "sha256:7ce03d57c4c4cdd2236c3511012901db7acbf57b729760bf36c621abc8b35f30"
+      "byteLength": 38166,
+      "sha256": "sha256:78a1d2089c180722b11600490cfe872c2af8cfedf8d95ef6cdbd2257190a2873"
     },
     {
       "path": "ui/pool-home/network-projection.js",
@@ -12834,5 +12844,5 @@
       "sha256": "sha256:abb6c18f6167d6afc8ee1b3adfcbbb89c0e93fb4fc4e98d7a12250f78aab206a"
     }
   ],
-  "bundleHash": "sha256:763b2550fd232c35cfa07bf129617c383810eb60143c6e788ea2e429edc2fcb8"
+  "bundleHash": "sha256:bf0d095ebd00b7033b28c88651aa9893361feb8e530c577b1218647eb3228157"
 }

@@ -1,4 +1,5 @@
 import { createPrivateComputers } from './private-computers.js';
+import { createFleetAccount } from './fleet-account.js';
 import { createCircleInviteOwner } from './circle-invites.js';
 import { createBrowserOwnerPairing } from './owner-pairing.js';
 import { createBrowserGuestJoin } from './guest-join.js';
@@ -87,6 +88,8 @@ export function createChatSession({
   // Spending for partition attempts (earning/attempts.js); none unless the host configures an earning client.
   earning = null,
   privateComputers = null,
+  // The hosted self-serve credit account (fleet-account.js); its view loads it when Computers opens.
+  fleetAccount = null,
   // The person's answer preference (route-preference.js). It orders eligible computers and nothing else.
   routePreference = null,
   getCircleOwnerRequest = () => null,
@@ -169,6 +172,7 @@ export function createChatSession({
   };
 
   const fleet = privateComputers || createPrivateComputers({ onChange: () => notifyAll() });
+  const selfServeAccount = fleetAccount || createFleetAccount({ privateComputers: fleet, onChange: () => notifyAll() });
   const ownerPairing = createBrowserOwnerPairing({
     storage,
     getChannel: () => swarm?.getOwnerPairingChannel?.() || null,
@@ -495,6 +499,7 @@ export function createChatSession({
     },
     getModelDownload,
     privateComputers: fleet,
+    fleetAccount: selfServeAccount,
     ownerPairing,
     guestJoin,
     get circleInvites() {
@@ -786,7 +791,7 @@ export function createChatSession({
     },
     close() {
       if (closing) return closing;
-      closed = true; fleet.close(); ownerPairing.close(); guestJoin.close(); clearTimeout(observationTimer); acquisition.cancel(); adapterEvidence.close();
+      closed = true; fleet.close(); selfServeAccount.close?.(); ownerPairing.close(); guestJoin.close(); clearTimeout(observationTimer); acquisition.cancel(); adapterEvidence.close();
       for (const operation of comparisons.values()) operation.controller.abort();
       discovering = false;
       closing = Promise.resolve().then(async () => {

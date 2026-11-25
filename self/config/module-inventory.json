@@ -1866,7 +1866,7 @@
     {
       "path": "pool/firebase-auth.js",
       "owner": "pool",
-      "sha256": "sha256:3f3d61667a929450ef1e6ef3b0c1daf8d240ec751595b88950bca74a7ecd3b82",
+      "sha256": "sha256:feeafcc760ab2ceb4b71d7a072845666ddbbfc36f058b5141173c5e1b2051b65",
       "imports": [
         "../config/firebase-public.json"
       ]
@@ -2879,7 +2879,7 @@
     {
       "path": "self/host/chat-session.js",
       "owner": "self",
-      "sha256": "sha256:f465a2ad823e61b3a84c1ad8091f05695c117ce65d6d254ed0c9e0a9da8631fc",
+      "sha256": "sha256:c5d97711ef508040173504a5741cfc992cd0b09e65f1993813f000a7192748d4",
       "imports": [
         "../config/doppler-local-models.js",
         "../config/requester-weights.json",
@@ -2898,6 +2898,7 @@
         "./circle-invites.js",
         "./contribution-history.js",
         "./document-comparison.js",
+        "./fleet-account.js",
         "./guest-join.js",
         "./model-acquisition.js",
         "./owner-pairing.js",
@@ -3048,6 +3049,14 @@
       "sha256": "sha256:f2488b5a4d1ca6b294c4bc108ee171802699dc695d246b45ff24ac244e4c1212",
       "imports": [
         "../config/vfs-policy.js"
+      ]
+    },
+    {
+      "path": "self/host/fleet-account.js",
+      "owner": "self",
+      "sha256": "sha256:1aecfd72ff5a4a9655fcd0e998c1c0a16992c2a788c0c4a450fba608e55da0c3",
+      "imports": [
+        "../pool/firebase-auth.js"
       ]
     },
     {
@@ -4360,7 +4369,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:2560871490cbc3775d3799870021037e3c2c0c654cc0614a0b8f8ae40f627f4b",
+      "sha256": "sha256:3a02b62679ff9deeb9e4ca0b465b26d5c2174853822d14f963605634f6779bdd",
       "imports": []
     },
     {
@@ -4621,6 +4630,17 @@
       ]
     },
     {
+      "path": "ui/pool-home/fleet-account-view.js",
+      "owner": "ui",
+      "sha256": "sha256:f56da7c9d38c42460acd3ebca6c19e1b861519b05f41d141838bc48620fdc6cc",
+      "imports": [
+        "../components/attachments.js",
+        "../components/choices.js",
+        "../components/dialog.js",
+        "./service-credit-text.js"
+      ]
+    },
+    {
       "path": "ui/pool-home/history-handover-view.js",
       "owner": "ui",
       "sha256": "sha256:a1cfa837762f2ecd388c875ee59ccdb2b0ac36b5e3e0a97a6258251a3a5edb7f",
@@ -4762,7 +4782,7 @@
     {
       "path": "ui/pool-home/network-inspector.js",
       "owner": "ui",
-      "sha256": "sha256:7ce03d57c4c4cdd2236c3511012901db7acbf57b729760bf36c621abc8b35f30",
+      "sha256": "sha256:78a1d2089c180722b11600490cfe872c2af8cfedf8d95ef6cdbd2257190a2873",
       "imports": [
         "../../config/chat-context-policy.json",
         "../../host/route-preference.js",
@@ -4781,6 +4801,7 @@
         "./conversation-model-picker.js",
         "./execution-activity.js",
         "./execution-ribbon.js",
+        "./fleet-account-view.js",
         "./local-data-view.js",
         "./model-providers.js",
         "./model-storage-view.js",

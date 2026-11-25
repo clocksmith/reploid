@@ -18,7 +18,7 @@
     "kernel/boot.js"
   ],
   "counts": {
-    "apps/poolday": 399,
+    "apps/poolday": 401,
     "self": 457,
     "shared": 2518
   },
@@ -2393,6 +2393,12 @@
       "source": "self/host/file-access.js",
       "owner": "self",
       "basis": "Reached only from substrate entries."
+    },
+    {
+      "served": "host/fleet-account.js",
+      "source": "apps/poolday/host/fleet-account.js",
+      "owner": "apps/poolday",
+      "basis": "Reached only from product entries."
     },
     {
       "served": "host/guest-join.js",
@@ -4947,6 +4953,12 @@
     {
       "served": "ui/pool-home/execution-ribbon.js",
       "source": "apps/poolday/ui/pool-home/execution-ribbon.js",
+      "owner": "apps/poolday",
+      "basis": "Reached only from product entries."
+    },
+    {
+      "served": "ui/pool-home/fleet-account-view.js",
+      "source": "apps/poolday/ui/pool-home/fleet-account-view.js",
       "owner": "apps/poolday",
       "basis": "Reached only from product entries."
     },

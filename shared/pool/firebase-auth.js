@@ -60,6 +60,13 @@ export async function bootstrapPoolFirebaseAuth() {
       globalThis.REPLOID_POOL_FIREBASE_APP = app;
       globalThis.REPLOID_POOL_FIREBASE_AUTH = auth;
       globalThis.REPLOID_FIREBASE_SIGN_IN_ANONYMOUSLY = async (nextAuth = auth) => authModule.signInAnonymously(nextAuth);
+      // A verified provider for the self-serve credit account. An anonymous user keeps its account by linking.
+      globalThis.REPLOID_FIREBASE_SIGN_IN_WITH_GOOGLE = async (nextAuth = auth) => {
+        const provider = new authModule.GoogleAuthProvider();
+        return nextAuth.currentUser?.isAnonymous && authModule.linkWithPopup
+          ? authModule.linkWithPopup(nextAuth.currentUser, provider)
+          : authModule.signInWithPopup(nextAuth, provider);
+      };
       return auth;
     })().catch((error) => {
       globalThis.REPLOID_POOL_FIREBASE_BOOT_ERROR = error;

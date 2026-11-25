@@ -1,6 +1,7 @@
 import { sameModelVariant } from './model-providers.js';
 import { localFitText } from './conversation-model-picker.js';
 import { renderPrivateComputers, bindPrivateComputers } from './private-computers-view.js';
+import { renderFleetAccount, bindFleetAccount } from './fleet-account-view.js';
 import { renderOwnerPairingControls, bindOwnerPairingControls } from './owner-pairing-view.js';
 import { renderCircleInviteControls, bindCircleInviteControls } from './circle-invites-view.js';
 import contextPolicy from '../../config/chat-context-policy.json' with { type: 'json' };
@@ -71,6 +72,7 @@ export function renderInspectorRail({ mounted = false, navigation = !mounted, ap
       <button class="pool-button btn-ghost" type="button" data-conversation-download hidden>Download conversation</button>
     </section>
     <section class="pool-stack pool-gap-lg" data-inspector-pane="participants" aria-label="Computers" hidden>
+      ${renderFleetAccount()}
       ${renderOwnerPairingControls()}
       ${renderPrivateComputers()}
       ${renderCircleInviteControls()}
@@ -200,6 +202,8 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
   const error = cause => { const node = find('[data-inspector-error]'); node.textContent = cause?.message || ''; node.hidden = !cause; };
   const act = operation => Promise.resolve().then(operation).catch(error);
   const privateComputers = bindPrivateComputers(panel, session);
+  const fleetAccount = bindFleetAccount(panel, session);
+  void session.fleetAccount?.load?.();
   const ownerPairingView = bindOwnerPairingControls(panel, session);
   const circleInvites = bindCircleInviteControls(panel, () => session.circleInvites);
   const storagePanel = bindModelStorage(panel, modelStorage);
@@ -270,6 +274,7 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
     find('[data-route-preference-reason]').textContent = routing.reason;
     find('[data-route-preference-fix]').hidden = !routing.fix;
     privateComputers.update(state);
+    fleetAccount.update(state);
     ownerPairingView.update(state);
     circleInvites.update();
     if (inspected?.threadId !== state.selectedId) inspected = null;
@@ -461,6 +466,6 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
     },
     open(section = 'participants', opener) { clearModelFilter(); if (section === 'conversation') { inspected = null; render(session.getState()); } select(section); dialog.open(opener || navigation.querySelector(`[data-inspector-section="${section}"]`)); },
     close: options => dialog.close(options),
-    dispose() { disposed = true; storagePanel.dispose(); localData.dispose(); disposeWebSearch(); disposeAccount(); metadataController?.abort(); controller.abort(); privateComputers.dispose(); ownerPairingView.dispose(); circleInvites.dispose(); unsubscribe(); network(); modelDialog.dispose(); dialog.dispose(); if (typeof specialized === 'function') specialized(); }
+    dispose() { disposed = true; storagePanel.dispose(); localData.dispose(); disposeWebSearch(); disposeAccount(); metadataController?.abort(); controller.abort(); privateComputers.dispose(); fleetAccount.dispose(); ownerPairingView.dispose(); circleInvites.dispose(); unsubscribe(); network(); modelDialog.dispose(); dialog.dispose(); if (typeof specialized === 'function') specialized(); }
   };
 }
