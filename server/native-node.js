@@ -10,7 +10,8 @@ import { participantOptions } from './native-participant-options.js';
 import { existsSync, realpathSync } from 'node:fs';
 import { askMesh } from './native-node-ask.js';
 import { runDoctor } from './native-node-doctor.js';
-import { nativeCommand } from './native-node-commands.js';
+import { nativeCommand, shortNames } from './native-node-commands.js';
+import { observePeers, peersText, PEERS_GRACE_MS } from './native-node-peers.js';
 import { supersededIds } from './native-model-names.js';
 import catalog from '../shared/config/chat-models.json' with { type: 'json' };
 import os from 'node:os';
@@ -55,6 +56,32 @@ export function participantProcessArgv(processArgv, args) {
   return [processArgv[0], processArgv[1], ...args];
 }
 
+/** `reploid peers`: print the roster while the participant is still open. The participant's own start and
+ * close are not bounded by --wait-ms, so two unreferenced timers bound them and the command always exits. */
+async function runPeers(options, runParticipant) {
+  let reported = false;
+  const fail = message => {
+    if (reported) return;
+    reported = true; console.error('reploid: ' + message); process.exitCode = 1;
+  };
+  const starting = setTimeout(() => {
+    fail(`Could not join discovery within ${Math.round((options.waitMs + PEERS_GRACE_MS) / 1000)} s. Run reploid doctor to check the connection.`);
+    process.exit();
+  }, options.waitMs + PEERS_GRACE_MS);
+  starting.unref();
+  try {
+    // peers states the outcome itself, so the transport's per-connection warnings stay off standard error.
+    await runParticipant({ quiet: true, runOnce: async (participant, _model, signal) => {
+      clearTimeout(starting);
+      try {
+        const roster = await observePeers(participant, { ...options, shortNames, signal });
+        reported = true; console.log(options.json ? JSON.stringify(roster) : peersText(roster));
+      } catch (error) { fail(error.message); }
+      setTimeout(() => process.exit(), PEERS_GRACE_MS).unref();
+    } });
+  } finally { clearTimeout(starting); }
+}
+
 async function main() {
   let command;
   try { command = nativeCommand(process.argv.slice(2)); }
@@ -77,7 +104,7 @@ async function main() {
     return;
   }
   const node = nodeArguments(command.args, { home: os.homedir() });
-  if (command.prompt === undefined) console.log(JSON.stringify({ event: 'reploid-node', model: node.model, chosen: node.chosen }));
+  if (command.prompt === undefined && !command.peers) console.log(JSON.stringify({ event: 'reploid-node', model: node.model, chosen: node.chosen }));
   const { mkdir } = await import('node:fs/promises');
   // The participant reads weights from an existing directory; it creates the identity's.
   const directory = parseArgs({ args: node.args, options: participantOptions }).values['model-directory'];
@@ -87,6 +114,7 @@ async function main() {
   }
   process.argv = participantProcessArgv(process.argv, node.args);
   const { main: runParticipant } = await import('./native-participant.js');
+  if (command.peers) { await runPeers(command.peers, runParticipant); return; }
   if (command.prompt !== undefined) {
     const response = await runParticipant({ runOnce: (participant, model, signal) => askMesh(participant, model, command.prompt,
       { signal, ...(command.execution ? { execution: command.execution } : {}) }) });

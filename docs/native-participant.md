@@ -22,6 +22,7 @@ npx reploid ask 2b "Count to five"   # send one plaintext request to an approved
 npx reploid doctor                   # check local prerequisites and signaling
 npx reploid serve 2b                 # contribute this GPU to the public room
 npx reploid connect                  # discover peers
+npx reploid peers                    # list who is in the room now and who is ready to serve
 npx reploid share 2b --weights ./weights
 npx reploid help split               # see stage and private-room options
 npx reploid help options             # full participant reference
@@ -40,6 +41,41 @@ selected room can read the request. The default is 2B in the public room; use
 `--room`, `--room-token-file` and `--signaling-url` to use a private room.
 `doctor` enumerates a GPU adapter and checks the installed Doppler package version
 and signaling handshake. A successful diagnostic does not establish model fit.
+
+`peers [model] [--json] [--wait-ms MILLISECONDS]` joins discovery as `connect`
+does, offers nothing, and prints one summary line and one row per connected
+computer, then exits. It waits until the room has been quiet for two partition
+polls (4 s), for at most 8 s by default (`--wait-ms`, 1000 to 30000). A model
+name, in any form `ask` accepts, keeps only that model's rows. The exit code is
+0 when signaling was joined, including when nobody else is there, and 1 with a
+message when it was not. It sends no request and downloads no weights.
+
+Each row gives the role, the catalog model with its short name, `whole` or
+`stage N`, a state, free slots, the hardware the computer reports, how long ago
+its advertisement was stamped (by the sender's clock) and the first eight
+digits of its proven identity (`(unproven)` until the proof arrives):
+
+| State | Meaning |
+| --- | --- |
+| `ready` (ready to serve) | `ask` would use this computer now: the same model id and files as the catalog, an open channel, a free slot. A split stage is ready only as part of a route `ask` could use, which in the public room needs a reviewed release. |
+| `busy` | A whole model is loaded and selectable, with no free slot or no slot count. |
+| `loading` | Weights or pipelines are being prepared. |
+| `stage-ready` | A split stage is prepared, with no route `ask` could use. |
+| `not-usable` | The computer reports ready and `ask` would still pass it over. The row says why, for example an earlier release of the model or no open channel. |
+| `not-serving` | The computer names a model or a stage and is idle, stopping, failed or unavailable. |
+| `files-only` | The computer offers files and no compute. |
+| `connected` | A requester or a connect-only node. |
+
+A whole model is named in the computer's advertisement. A split stage is read
+from the stage description that partition discovery requests from a bounded
+number of connected computers (`maxPeers` in the partition policy); a stage that
+has not been described yet is listed as `connected`. Discovery does not report
+which computers offer files, so today a computer that only shares files is also
+listed as `connected` and `files-only` does not appear. `--json` prints one
+`reploid.peers/v1` object and nothing else on standard output: `capturedAt`, the
+room, the `summary` (`computers`, `visible`, `ready`, `pending` for connections
+that had not advertised yet, and per-model `models`) and the `rows` with the
+state names above.
 
 The original positional form still works:
 

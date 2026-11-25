@@ -37,7 +37,8 @@ import { createGuestAccess } from './circles/guest-access.js';
 import { createOwnerPairingTerminal, ownerPairingDisplayName, ownerPairingPrompt } from './circles/owner-pairing-terminal.js';
 import { ownerPairingRoomId, ownerPairingRoomMarker } from '../shared/vendor/reploid/transport/index.js';
 
-export async function main({ argv, runOnce } = {}) {
+/** `quiet` is for a one-shot caller that reports the outcome itself: transport warnings are dropped, errors still print. */
+export async function main({ argv, runOnce, quiet = false } = {}) {
   const { values } = parseArgs({ ...(argv === undefined ? {} : { args: argv }), options: participantOptions });
   if (values.help) {
     console.log(participantHelp);
@@ -204,7 +205,7 @@ export async function main({ argv, runOnce } = {}) {
       ? ownerPairingRoomMarker(values.room) : bootstrap.publicJoinMarker),
     maxSupplyBytes, supplyTo, cacheDirectory: sourceRuntime ? null : values['cache-directory'] || path.join(path.dirname(identityFile), 'model-cache'),
     sourceRuntime, getRtcConfig,
-    ...(runOnce ? { logger: { log() {}, debug() {}, info() {}, warn: console.warn, error: console.error } } : {}),
+    ...(runOnce ? { logger: { log() {}, debug() {}, info() {}, warn: quiet ? () => {} : console.warn, error: console.error } } : {}),
     executionMode: values['execution-mode'] || 'partition',
     onModelFill: (() => {
       // Piece lines at most every 5 s; every other fill event is logged.

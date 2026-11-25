@@ -2,6 +2,7 @@ import { readHostMemory } from './native-node-doctor.js';
 import { readFileSync } from 'node:fs';
 import { resolveServedFile } from './browser-roots.js';
 import { sha256Digest } from './hashing.js';
+import path from 'node:path';
 import { parseArgs } from 'node:util';
 import catalog from '../shared/config/chat-models.json' with { type: 'json' };
 import { resolvePinnedOrigin } from './native-model-origin.js';
@@ -9,19 +10,21 @@ import { findCatalogModel } from './native-model-names.js';
 import { participantHelp, participantOptions } from './native-participant-options.js';
 import { shellCompletion } from './native-node-completion.js';
 import { askExecution } from './native-node-ask.js';
+import { PEERS_MAX_WAIT_MS, PEERS_MIN_WAIT_MS, PEERS_WAIT_MS } from './native-node-peers.js';
 
 const commands = {
   ask: 'Send one prompt to a ready mesh provider',
   serve: 'Serve a whole model on this GPU',
   split: 'Serve one stage of a model with another computer',
   connect: 'Join discovery without offering compute or files',
+  peers: 'List the computers in the room and which can answer now',
   share: 'Supply verified model files without running inference',
   models: 'List models included in this installation',
   doctor: 'Check this computer and signaling',
   completion: 'Print tab completion for Bash, Zsh or Fish',
   join: 'Pair this computer with your replo.id account by code',
 };
-const shortNames = {
+export const shortNames = {
   'qwen-3-5-0-8b-q4k-ef16-af32-vf16': '0.8b',
   'qwen-3-5-2b-q4k-ef16-af32': '2b',
   'qwen-3-8-27b-text-q4k-ef16-af32': '27b',
@@ -34,6 +37,11 @@ const askOptions = ['model', 'model-config', 'ordered-config', 'room', 'room-tok
 // Execution requirements for ask. They configure the inference request, never the participant process.
 const askExecutionOptions = { participant: { type: 'string', multiple: true }, confidentiality: { type: 'string' }, 'allow-metadata': { type: 'string' } };
 const doctorOptions = ['origin', 'signaling-url'];
+// peers joins discovery as connect does; --json and --wait-ms are its own and never reach the participant.
+const peersOptions = ['model', 'room', 'room-token-file', 'rtc-config-file', 'signaling-url', 'origin', 'identity-file'];
+const peersOwnOptions = { json: { type: 'boolean' }, 'wait-ms': { type: 'string' } };
+// The names ask accepts: a catalog id, its shortcut, or an id the catalog lists as replaced.
+const resolveModel = name => catalog.find(m => m.id === name || shortNames[m.id] === name) ?? findCatalogModel(catalog, name);
 const subset = names => Object.fromEntries(names.map(name => [name, participantOptions[name]]));
 const commandNames = [...Object.keys(commands), 'help'];
 const help = `Reploid · share this computer with an inference network
@@ -61,6 +69,12 @@ For a private room, pass these options on both computers and the requester:
   --room reploid-swarm-NAME --signaling-url URL --room-token-file /absolute/path/to/token
 Use a token file owned by you with mode 0600. Both stages and a requester are needed to answer.`,
   connect: 'npx reploid connect [model] [--room reploid-swarm-NAME]\nJoin discovery without starting a GPU or sharing files.',
+  peers: `npx reploid peers [model] [--json] [--wait-ms MILLISECONDS]
+List the computers in the room now, one row each: what it serves (a whole model or a split stage), whether it is
+ready to serve, loading, or only connected, its free slots, its hardware and when it was last seen.
+Joins discovery as connect does and offers nothing. Waits up to ${PEERS_WAIT_MS / 1000} s for the room to settle (--wait-ms, ${PEERS_MIN_WAIT_MS} to ${PEERS_MAX_WAIT_MS}), prints and exits.
+A model name keeps only that model's rows. --json prints one reploid.peers/v1 object instead of the table.
+Private room options: --room reploid-swarm-NAME --room-token-file PATH --signaling-url URL.`,
   share: 'npx reploid share [model] [--weights DIRECTORY] [--supply-limit-gib GiB] [--supply-to COMPUTER_ID]\nOffer verified files to room peers. Repeat --supply-to to restrict uploads to named computers.',
   models: 'npx reploid models\nList the bundled model IDs, shortcuts, supported modes and whole-model weight sources.',
   join: `npx reploid join ABCD-EFGH [--service https://replo.id] [--name "My laptop"] [--state DIR] [--bridge-port 18784] [--weights DIR]
@@ -130,7 +144,8 @@ export function nativeCommand(argv) {
   if (command === 'completion') {
     if (rest.length !== 1 || !['bash', 'zsh', 'fish'].includes(rest[0])) throw Error(details.completion);
     return { text: shellCompletion(rest[0], { askFlags: [...askOptions, ...Object.keys(askExecutionOptions)].map(k => '--' + k).concat('--help'),
-      doctorFlags: [...doctorOptions.map(k => '--' + k), '--help'], commands: commandNames, models: modelNames(catalog),
+      doctorFlags: [...doctorOptions.map(k => '--' + k), '--help'],
+      peersFlags: [...peersOptions, ...Object.keys(peersOwnOptions)].map(k => '--' + k).concat('--help'), commands: commandNames, models: modelNames(catalog),
       splitModels: modelNames(catalog.filter(canSplit)), flags: Object.keys(participantOptions).map(k => '--' + k) }) };
   }
   if (command === 'join') return { join: rest };
@@ -138,13 +153,29 @@ export function nativeCommand(argv) {
     const { values } = parseArgs({ args: rest, options: subset(doctorOptions) });
     return { doctor: { signalingUrl: values['signaling-url'], origin: values.origin } };
   }
+  if (command === 'peers') {
+    const { values, positionals } = parseArgs({ args: rest, allowPositionals: true, options: { ...subset(peersOptions), ...peersOwnOptions } });
+    if (positionals.length > 1 || (positionals.length && values.model)) throw Error('Choose one model. Run reploid models for available names.');
+    const name = positionals[0] ?? values.model;
+    const model = name === undefined ? undefined : resolveModel(name);
+    if (name !== undefined && !model) throw Error(`Unknown model "${name}". Run reploid models for this installation.`);
+    const waitMs = values['wait-ms'] === undefined ? PEERS_WAIT_MS : Number(values['wait-ms']);
+    if (!/^[1-9][0-9]*$/.test(String(values['wait-ms'] ?? PEERS_WAIT_MS)) || waitMs < PEERS_MIN_WAIT_MS || waitMs > PEERS_MAX_WAIT_MS) {
+      throw Error(`--wait-ms takes ${PEERS_MIN_WAIT_MS} to ${PEERS_MAX_WAIT_MS} milliseconds.`);
+    }
+    const args = model ? [model.id, '--connect-only'] : ['--connect-only'];
+    for (const key of peersOptions) if (key !== 'model' && values[key] !== undefined) args.push('--' + key, values[key]);
+    // peers reads no weights. With its own identity file, the empty model directory the participant opens stays beside it.
+    if (values['identity-file'] !== undefined) args.push('--model-directory', path.join(path.dirname(values['identity-file']), 'weights'));
+    return { args, peers: { model: model?.id ?? null, json: values.json === true, waitMs } };
+  }
   const { values, positionals, tokens } = parseArgs({ args: command ? rest : argv, allowPositionals: true, tokens: true,
     options: command === 'ask' ? { ...subset(askOptions), ...askExecutionOptions } : { ...participantOptions, weights: { type: 'string' }, stage: { type: 'string' } } });
   const prompt = command === 'ask' ? positionals.pop() : undefined;
   if (command === 'ask' && !prompt?.trim()) throw Error(details.ask);
   if (positionals.length > 1 || (positionals.length && values.model)) throw Error('Choose one model. Run reploid models for available names.');
   const name = positionals[0] ?? values.model;
-  const model = name === undefined ? undefined : catalog.find(m => m.id === name || shortNames[m.id] === name) ?? findCatalogModel(catalog, name);
+  const model = name === undefined ? undefined : resolveModel(name);
   if (name !== undefined && !model && !values['model-config']) throw Error(`Unknown model or command "${name}". Run reploid models for this installation.`);
   if (values.weights !== undefined && values['model-directory'] !== undefined) throw Error('Choose --weights or --model-directory once.');
   if (values.stage !== undefined && (command !== 'split' || values['partition-index'] !== undefined)) throw Error('Use --stage with split, in place of --partition-index.');
