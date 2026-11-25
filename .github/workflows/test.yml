@@ -93,11 +93,14 @@ jobs:
         with:
           node-version: 22.x
           cache: npm
-      - run: npm ci --omit=optional --ignore-scripts --no-audit --no-fund
+      # Installed as the smoke job installs: esbuild's own install step fetches this runner's binary when
+      # optional packages are omitted, so scripts must run here.
+      - run: npm ci --omit=optional --no-audit --no-fund
       - name: Install test parser
         run: |
           ROLLUP_VERSION=$(node -p "require('./package-lock.json').packages['node_modules/@rollup/rollup-linux-x64-gnu'].version")
           npm install --no-save --ignore-scripts --omit=optional --no-audit --no-fund "@rollup/rollup-linux-x64-gnu@$ROLLUP_VERSION"
+          git diff --exit-code -- package.json package-lock.json
       - run: npm run verify:poolday-ui
       - run: npm run verify:pool:css
       - run: npm run test:poolday-ui
