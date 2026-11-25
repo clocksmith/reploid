@@ -13,10 +13,13 @@ const expectations = { schema: 'reploid.stage1-expectations/v1', runtimeClass: '
     { stageIndex: 1, layerRange: [1, 63], rangeCount: 4461, bytes: 14235183680, rangesDigest: digest('2') }],
   totalWeight: { rangeCount: 5512, bytes: 16994352128 }, minimumSoloLoadBytes: 16941875200 };
 
+/** Hashed in the window-free preparation, unchanged since: the evidence a physical search records in a window. */
+const STARTED_AT = '2026-11-24T23:27:31.000Z';
+const searched = { evidence: 'unchanged-since-hash', hashedAt: '2026-11-24T22:51:00.000Z' };
 const inventory = stage => ({ source: 'hashed-on-host', scope: 'stage-directory', scannedRanges: 5512, rangeCount: stage.rangeCount, bytes: stage.bytes,
-  rangesDigest: stage.rangesDigest, outsideStageRanges: 0, outsideStageBytes: 0 });
-const hostWeights = stage => ({ scope: 'host-weight-directories', scannedRanges: 5512, heldRanges: 5512, outsideStageRanges: 5512 - stage.rangeCount,
-  outsideInFullCopy: 5512 - stage.rangeCount, outsideElsewhere: 0, fullCopy: 'searched' });
+  rangesDigest: stage.rangesDigest, outsideStageRanges: 0, outsideStageBytes: 0, ...searched, buildRecordDigest: digest('9') });
+const hostWeights = stage => ({ scope: 'host-weight-directories', scannedRanges: 5512, heldRanges: stage.rangeCount, outsideStageRanges: 0,
+  outsideElsewhere: 0, fullCopy: 'declared-not-searched', ...searched });
 const loaded = stage => ({ source: 'stage-loader', rangeCount: stage.rangeCount, bytes: stage.bytes, rangesDigest: stage.rangesDigest, outsideStageRanges: 0, outsideStageBytes: 0 });
 const POLICY = 'sha256:' + '7'.repeat(64);
 const replayOf = (trace, status = 'settled', extra = {}) => ({ termsCollectedBy: 'stage1-harness', termsSigned: 'in-approval-before-dispatch',
@@ -36,16 +39,16 @@ const outOfMemory = (extra = {}) => ({ outcome: 'failed', settings: soloSettings
 
 /** A physical requester's measurement: no pinned piece of the requested model, other files recorded apart. */
 const requesterHolds = (pieces = 0, extra = {}) => ({ weightBytes: pieces * 16, otherModelBytes: 0, fileCount: 0, scope: 'requester-weight-directories', scannedRoots: 4,
-  heldRanges: { rangeCount: pieces, bytes: pieces * 16, scannedRanges: 5512 }, ...extra });
+  heldRanges: { rangeCount: pieces, bytes: pieces * 16, scannedRanges: 5512 }, ...searched, ...extra });
 
 function goodReceipt() {
-  const receipt = { schema: STAGE1_RECEIPT_SCHEMA, runtimeClass: 'physical', hardStop: null, claim: null,
+  const receipt = { schema: STAGE1_RECEIPT_SCHEMA, runtimeClass: 'physical', startedAt: STARTED_AT, hardStop: null, claim: null,
     phases: Object.fromEntries(STAGE1_PHASES.map(name => [name, { status: 'completed' }])), workload: structuredClone(workload),
     serviceRestores: [], requester: { participantId: 'peer:r', computerId: 'computer-requester', machine: 'machine-r', preflight: requesterHolds(), afterSplit: requesterHolds() },
     hosts: expectations.stages.map((stage, index) => ({ label: ['host-a', 'host-b'][index], stageIndex: index, participantId: `peer:${index}`,
       machine: `machine-${index}`, computerId: ['computer-a', 'computer-b'][index], assignedLayers: [...stage.layerRange],
       inventory: { preflight: inventory(stage), beforeSplit: inventory(stage), afterSplit: inventory(stage) },
-      hostWeights: { beforeSplit: hostWeights(stage), afterSplit: { ...hostWeights(stage), outsideInFullCopy: 0, fullCopy: 'locked-not-entered' } },
+      hostWeights: { beforeSplit: hostWeights(stage), afterSplit: { ...hostWeights(stage), fullCopy: 'locked-not-searched' } },
       loaded: loaded(stage) })),
     soloControls: { 'host-a': outOfMemory(), 'host-b': outOfMemory() },
     earn: { earner: { participantId: 'peer:earner', computerId: 'computer-requester', machine: 'machine-r' }, accountBefore: 0,
@@ -422,6 +425,19 @@ describe('rejects', () => {
 
   it('two stages on one physical machine', () => {
     expect(codes(judged(receipt => { receipt.hosts[1].machine = receipt.hosts[0].machine; }))).toEqual(['hosts-not-physically-distinct']);
+  });
+
+  it('a search with no stated evidence, or one resting on a hash taken after the run started', () => {
+    expect(codes(judged(receipt => { delete receipt.hosts[0].inventory.afterSplit.evidence; }))).toEqual(['search-evidence']);
+    expect(codes(judged(receipt => { receipt.hosts[1].hostWeights.beforeSplit.hashedAt = '2026-11-24T23:30:00.000Z'; }))).toEqual(['search-evidence']);
+    expect(codes(judged(receipt => { delete receipt.requester.afterSplit.hashedAt; }))).toEqual(['search-evidence']);
+    // A directory hashed again inside the run is evidence of its own, whatever its time.
+    expect(codes(judged(receipt => { Object.assign(receipt.hosts[0].hostWeights.afterSplit, { evidence: 'hashed-now', hashedAt: '2026-11-24T23:45:00.000Z' }); })))
+      .toEqual([]);
+  });
+
+  it('a stage directory whose build record changed between preflight and the split', () => {
+    expect(codes(judged(receipt => { receipt.hosts[1].inventory.afterSplit.buildRecordDigest = digest('8'); }))).toEqual(['stage-directory-record-changed']);
   });
 
   it('a fake-runtime receipt against physical expectations', () => {

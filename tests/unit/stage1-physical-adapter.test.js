@@ -7,12 +7,13 @@ import os from 'node:os';
 import path from 'node:path';
 import { PassThrough } from 'node:stream';
 import { createSigningIdentity } from '../../packages/reploid/src/artifacts/identity.js';
-import { createPhysicalStage1Adapter } from '../../scripts/stage1/physical-adapter.js';
+import { createPhysicalStage1Adapter, DEFAULT_BOOKKEEPING_MS } from '../../scripts/stage1/physical-adapter.js';
 import { runStage1Phases } from '../../scripts/stage1/runner.js';
 import { checkStage1Receipt } from '../../scripts/stage1/receipt-check.js';
 import { observeInventory, summarizeRanges } from '../../scripts/stage1/inventory.js';
 
 const DIGEST = 'sha256:' + 'd'.repeat(64);
+const searched = { evidence: 'unchanged-since-hash', hashedAt: '2026-01-01T00:00:00.000Z' };
 const range = (file, offset) => ({ path: file, offset, size: 16, identity: 'sha256:' + String(offset).padStart(64, '0') });
 const stageRanges = [[range('s0', 0), range('s0', 16)], [range('s1', 0), range('s1', 16), range('s1', 32)]];
 const decoding = { temperature: 0, topK: 1, topP: 1, repetitionPenalty: 1, repetitionPenaltyWindow: 1 };
@@ -47,7 +48,7 @@ function configuration(change = () => {}) {
 
 /** Scripted machines. `holds` is what each host's search finds; a service is a state the commands really move. */
 function mockHosts(config, scripted = {}) {
-  const log = [], services = {}, holds = {}, running = new Map(), bodies = [];
+  const log = [], services = {}, holds = {}, running = new Map(), bodies = [], scans = [];
   let nextPid = 4000;
   config.hosts.forEach(host => {
     holds[host.label] = { stage: true, fullCopy: true, elsewhere: false, ...(scripted.holds?.[host.label] ?? {}) };
@@ -57,16 +58,18 @@ function mockHosts(config, scripted = {}) {
     const state = holds[label], other = stageRanges.flat().filter(row => !assigned.includes(assigned.find(item => item.path === row.path && item.offset === row.offset)));
     const inCopy = scope !== 'stage-directory' && state.fullCopy ? other : [], elsewhere = state.elsewhere ? other : [];
     const held = [...(state.stage ? assigned : []), ...new Set([...inCopy, ...elsewhere])];
-    return { inventory: observeInventory({ held, stageRanges: assigned, source: 'hashed-on-host', scope, scannedRanges: stageRanges.flat().length }),
+    return { inventory: { ...observeInventory({ held, stageRanges: assigned, source: 'hashed-on-host', scope, scannedRanges: stageRanges.flat().length }), ...searched },
       outsideInFullCopy: inCopy.length, outsideElsewhere: elsewhere.length };
   };
   const controlOps = {
     'scan-weights': (label, body) => {
+      scans.push({ label, ...body });
+      if (scripted.hangScan?.[label] === body.scope) return new Promise(() => {});
       if (label !== 'requester') return scan(label, body);
       log.push(`requester-roots:${body.roots.join(',')}`);
       const held = scripted.requesterHolds ? stageRanges[0] : [];
-      return { inventory: observeInventory({ held, stageRanges: body.stageRanges, source: 'hashed-on-host', scope: body.scope, scannedRanges: body.allRanges.length }),
-        outsideInFullCopy: 0, outsideElsewhere: held.length };
+      return { inventory: { ...observeInventory({ held, stageRanges: body.stageRanges, source: 'hashed-on-host', scope: body.scope, scannedRanges: body.allRanges.length }),
+        ...searched }, outsideInFullCopy: 0, outsideElsewhere: held.length };
     },
     'directory-bytes': label => (label === 'requester' && scripted.requesterOtherBytes ? { weightBytes: scripted.requesterOtherBytes + (scripted.requesterHolds ? 32 : 0), fileCount: 2 }
       : { weightBytes: scripted.requesterHolds ? 32 : 0, fileCount: scripted.requesterHolds ? 1 : 0 }),
@@ -137,13 +140,13 @@ function mockHosts(config, scripted = {}) {
       return child;
     }
   };
-  return { transport, log, services, holds, running, bodies };
+  return { transport, log, services, holds, running, bodies, scans };
 }
 
 let directory;
 beforeEach(async () => { directory = await fs.mkdtemp(path.join(os.tmpdir(), 'stage1-physical-')); });
 
-async function runAdapter({ config = configuration(), scripted = {}, limits = {}, options = {} } = {}) {
+async function runAdapter({ config = configuration(), scripted = {}, limits = {}, options = {}, runnerLog = null } = {}) {
   // An empty ledger file, so cleanup can count open reservations the way it does on a real run.
   const ledgerFile = path.join(directory, 'credits.sqlite'), { DatabaseSync } = await import('node:sqlite');
   const ledger = new DatabaseSync(ledgerFile);
@@ -153,7 +156,7 @@ async function runAdapter({ config = configuration(), scripted = {}, limits = {}
     credits: { snapshot: () => ({ accounts: [{ held: 0 }], journal: [] }) } };
   const adapter = createPhysicalStage1Adapter({ config, directory, expectations, stageRanges, model, fixture, fixtureBytes: Buffer.from(JSON.stringify(fixture)),
     transport: hosts.transport, localDigest: async () => DIGEST, startCoordinator: async () => coordinator, ...options });
-  const receipt = await runStage1Phases({ adapter, expectations, limits: { maxRunMs: 8000, phaseMs: 2000, abortGraceMs: 200, hardStopMs: 1500, ...limits } });
+  const receipt = await runStage1Phases({ adapter, expectations, log: runnerLog, limits: { maxRunMs: 8000, phaseMs: 2000, abortGraceMs: 200, hardStopMs: 1500, ...limits } });
   await fs.rm(directory, { recursive: true, force: true });
   return { ...hosts, receipt, coordinator, verdict: checkStage1Receipt(receipt, expectations) };
 }
@@ -230,7 +233,7 @@ describe('the zero-weight requester', () => {
     // These mocks never open a participant, so the after-split measurement (the same call) is covered by the integration run.
     expect(result.log.filter(row => row.startsWith('requester-roots:'))).toEqual(['requester-roots:/srv/r/empty,/srv/r/models,/srv/r/cache,/srv/r/tmp']);
     expect(result.receipt.requester.preflight).toEqual({ weightBytes: 0, otherModelBytes: 0, fileCount: 0, scope: 'requester-weight-directories', scannedRoots: 4,
-      heldRanges: { rangeCount: 0, bytes: 0, scannedRanges: 5 } });
+      heldRanges: { rangeCount: 0, bytes: 0, scannedRanges: 5 }, ...searched });
     expect(result.log.filter(row => row.startsWith('control:requester:directory-bytes'))).toHaveLength(1);
     expect(result.verdict.reasons.filter(reason => reason.code === 'requester-holds-weights')).toEqual([]);
   });
@@ -337,6 +340,63 @@ describe('a standing service', () => {
     expect(result.receipt.serviceRestores).toEqual([{ host: 'host-a', stopped: true, restored: true, verifiedActive: true }]);
     expect(result.verdict.ok).toBe(false);
     noProcessLeft(result);
+  });
+});
+
+describe('window time spent on proof', () => {
+  it('searches in the window against the preparation\'s fingerprints, never the full copy, with each machine\'s own baseline file', async () => {
+    const result = await runAdapter({ scripted: { solo: () => memoryFailure } });
+    const hostScans = result.scans.filter(row => row.label === 'host-a');
+    expect(hostScans.length).toBeGreaterThan(0);
+    for (const row of result.scans) expect(row.baseline.action).toBe('compare');
+    expect(hostScans.find(row => row.scope === 'stage-directory')).toMatchObject({ roots: ['/data/host-a/stage'], skipDirectories: [],
+      baseline: { file: '/srv/host-a/state/weight-baseline-stage-directory.json' } });
+    const elsewhere = hostScans.find(row => row.scope === 'host-weight-directories');
+    expect(elsewhere.skipDirectories).toEqual(['/data/host-a/tmp/full']);
+    expect(elsewhere.roots).not.toContain('/data/host-a/tmp/full');
+    expect(result.scans.find(row => row.label === 'requester').baseline.file).toBe('/srv/r/state/weight-baseline-requester-weight-directories.json');
+  });
+
+  it('records the baselines outside a window, per host and scope and for the requester', async () => {
+    const config = configuration(), hosts = mockHosts(config);
+    const adapter = createPhysicalStage1Adapter({ config, directory, expectations, stageRanges, model, fixture, fixtureBytes: Buffer.from(JSON.stringify(fixture)),
+      transport: hosts.transport, localDigest: async () => DIGEST });
+    const results = await adapter.recordWeightBaselines({ timeoutMs: 1000 });
+    expect(Object.keys(results)).toEqual(['host-a:stage-directory', 'host-a:host-weight-directories', 'host-b:stage-directory', 'host-b:host-weight-directories', 'requester']);
+    expect(Object.values(results).every(row => row.ok)).toBe(true);
+    expect(hosts.scans.every(row => row.baseline.action === 'record')).toBe(true);
+    expect(adapter.phaseBudgetMs('split')).toBe(config.limits.phaseMs + 2 * DEFAULT_BOOKKEEPING_MS);
+    expect(adapter.phaseBudgetMs('cancel')).toBe(config.limits.phaseMs);
+  });
+
+  it('stops the split when its bookkeeping outlives its own budget, naming the step, long before the generation budget', async () => {
+    const config = configuration(c => { c.limits.bookkeepingMs = 120; });
+    const started = Date.now();
+    const result = await runAdapter({ config, limits: { phaseMs: 2000 }, scripted: { solo: () => memoryFailure, hangScan: { 'host-b': 'host-weight-directories' } } });
+    expect(result.receipt.phases.split).toEqual({ status: 'failed',
+      reason: 'step-timed-out: split host weights before exceeded the split-before budget of 120 ms' });
+    expect(result.receipt.phaseTimings.split.boundMs).toBe(2000 + 2 * 120);
+    expect(result.receipt.phaseTimings.split.ms).toBeLessThan(1000);
+    expect(result.receipt.steps.find(row => row.step === 'split host weights before')).toMatchObject({ budget: 'split-before', status: 'timed-out' });
+    expect(result.receipt.steps.find(row => row.step === 'split stage directories before')).toMatchObject({ status: 'done' });
+    // Nothing was locked or opened, and cleanup still ran.
+    expect(result.log.filter(row => row.endsWith(':lock-directory'))).toEqual([]);
+    expect(result.receipt.phases.cleanup.status).toBe('completed');
+    expect(Date.now() - started).toBeLessThan(6000);
+  });
+
+  it('logs every phase and step with UTC times and durations', async () => {
+    const lines = [];
+    const result = await runAdapter({ scripted: { solo: () => memoryFailure }, options: { log: line => lines.push(line) }, runnerLog: line => lines.push(line) });
+    const stamp = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z /;
+    expect(lines.every(line => stamp.test(line))).toBe(true);
+    expect(lines.some(line => /phase preflight start \(bound \d+ ms\)/.test(line))).toBe(true);
+    expect(lines.some(line => /phase preflight completed after \d+ ms/.test(line))).toBe(true);
+    for (const name of ['preflight open host-a', 'preflight stage directories', 'preflight requester weights', 'split stage directories before', 'split lock full copies']) {
+      expect(lines.some(line => line.includes(`step ${name} start`))).toBe(true);
+    }
+    expect(lines.some(line => /step split open host-a failed after \d+ ms: mock-participant-opened/.test(line))).toBe(true);
+    expect(result.receipt.phaseTimings.preflight).toMatchObject({ startedAt: expect.any(String), ms: expect.any(Number) });
   });
 });
 

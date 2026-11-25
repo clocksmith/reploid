@@ -2,7 +2,7 @@
  * The real Stage 1 host agent with its machine-facing ports replaced: no GPU, no weights and no system services.
  * Inventory comes from the directory's role, the runtime is the harness fake, and the device refusal is scripted.
  * The stage loader's allowlist and record are the real harness code; only its byte reader is replaced (no weight bytes
- * exist). The earning machine's whole-model answer is FAKE: a fixed text and a declared token count, no model loads.
+ * exist). The build record check is scripted; the weight searches and their fingerprints are the real code. The earning machine's whole-model answer is FAKE: a fixed text and a declared token count, no model loads.
  */
 import fs from 'node:fs/promises';
 import path from 'node:path';
@@ -25,6 +25,11 @@ const ports = {
     return [];
   },
   readPressure: async () => 'some avg10=0.50 avg60=0.10 avg300=0.00 total=1',
+  /** The build record check, without a built directory: the pinned counts for the stage, as a verified record would give. */
+  async stageDirectory({ action, hash, stageIndex, stageRanges, rangesDigest }) {
+    if (action !== 'verify') throw Error('The mock host only verifies stage directories');
+    return { verified: hash ? 'hashed' : 'record', stageIndex, rangeCount: stageRanges.length, bytes: stageRanges.reduce((sum, row) => sum + row.size, 0), rangesDigest };
+  },
   assertCopy: async () => {},
   async service({ action }) {
     if (action === 'is-active') return { state: await fs.readFile(serviceFile(), 'utf8').catch(() => 'inactive') };

@@ -2,6 +2,10 @@
  * Judges one retained Stage 1 split receipt against frozen expectations. Pure: no clock, file, network or
  * crypto. Every digest was computed by whoever produced the receipt, so this answers "does the record meet
  * the bar", never "is the record honest". Hosts are trusted to report what they measured.
+ *
+ * A physical weight search inside a window usually rests on a hash taken in the window-free preparation, for each
+ * directory whose fingerprint is unchanged since (see SEARCH_EVIDENCE). What a stage process actually read is the stage
+ * loader's own record (`loaded`), measured during the answer; the searches show what each machine held around it.
  */
 import { creditSettlementDeltas } from '../../server/fleet/credit-shares.js';
 import { WEIGHT_ROLES } from './stage-metadata.js';
@@ -97,11 +101,29 @@ function checkTokens(receipt, expectations, fail) {
   if (receipt.split?.parityExact !== true) fail('tokens-parity-unverified', 'the stage token witnesses were not verified');
 }
 
+/**
+ * How a physical search knows what a directory holds: `hashed-now` read every candidate range in this run;
+ * `unchanged-since-hash` rests on a hash of every candidate range taken at `hashedAt`, before the run, for each
+ * directory whose fingerprint (each file's inode, size, modification and status-change times, and the build record's
+ * bytes) is unchanged since, and on a hash in this run for any other. The second does not re-read weight bytes: a change
+ * that leaves every one of those values as it was (one made beneath the file system) is not shown.
+ */
+const SEARCH_EVIDENCE = Object.freeze(['hashed-now', 'unchanged-since-hash']);
+function checkSearchEvidence(receipt, observed, name, fail) {
+  if (!SEARCH_EVIDENCE.includes(observed?.evidence)) { fail('search-evidence', `${name} ${observed?.evidence}`); return; }
+  const at = Date.parse(observed.hashedAt ?? '');
+  if (!Number.isFinite(at)) fail('search-evidence', `${name} has no hash time`);
+  else if (observed.evidence === 'unchanged-since-hash' && !(at <= Date.parse(receipt.startedAt ?? ''))) {
+    fail('search-evidence', `${name} rests on a hash taken at ${observed.hashedAt}, after the run started`);
+  }
+}
+
 /** The stage directory a stage process opens from holds exactly its stage, searched for every range of the model. */
-function checkInventory(host, when, stage, expectations, fail) {
+function checkInventory(receipt, host, when, stage, expectations, fail) {
   const observed = host.inventory?.[when], name = `${host.label}:${when}`;
   if (!observed) { fail('inventory-missing', name); return; }
   if (observed.source !== expectations.inventorySource) fail('inventory-source', `${name} ${observed.source}`);
+  if (expectations.runtimeClass === 'physical') checkSearchEvidence(receipt, observed, name, fail);
   if (expectations.runtimeClass === 'physical' && observed.scope !== 'stage-directory') fail('inventory-scope', `${name} ${observed.scope}`);
   if (expectations.runtimeClass === 'physical' && observed.scannedRanges !== expectations.totalWeight.rangeCount) {
     fail('inventory-not-exhaustive', `${name} scanned ${observed.scannedRanges} of ${expectations.totalWeight.rangeCount} ranges`);
@@ -115,13 +137,14 @@ function checkInventory(host, when, stage, expectations, fail) {
 }
 
 /**
- * Around the split a real host is searched everywhere it keeps weights. A full copy at the declared directory is
- * allowed and recorded (the solo controls need it); a range of another stage anywhere else is not.
+ * Around the split a real host is searched everywhere it keeps weights except the declared full copy, which is allowed
+ * (the solo controls need it) and not searched; a range of another stage anywhere else is refused.
  */
-function checkHostWeights(host, expectations, fail) {
+function checkHostWeights(receipt, host, expectations, fail) {
   for (const when of ['beforeSplit', 'afterSplit']) {
     const observed = host.hostWeights?.[when], name = `${host.label}:${when}`;
     if (!observed) { fail('host-weights-unmeasured', name); continue; }
+    checkSearchEvidence(receipt, observed, `host-weights ${name}`, fail);
     if (observed.scope !== 'host-weight-directories') fail('inventory-scope', `${name} ${observed.scope}`);
     if (observed.scannedRanges !== expectations.totalWeight.rangeCount) {
       fail('inventory-not-exhaustive', `${name} scanned ${observed.scannedRanges} of ${expectations.totalWeight.rangeCount} ranges`);
@@ -156,8 +179,13 @@ function checkHosts(receipt, expectations, fail) {
     if (host.label !== HOST_LABELS[index] || host.stageIndex !== stage.stageIndex) fail('host-stage', `${host.label} ${host.stageIndex}`);
     if (!same(host.assignedLayers, stage.layerRange)) fail('host-layers', `${host.label} ${canonical(host.assignedLayers)}`);
     // Solo controls run between preflight and the split, so the holding is measured again right before it.
-    for (const when of ['preflight', 'beforeSplit', 'afterSplit']) checkInventory(host, when, stage, expectations, fail);
-    if (expectations.runtimeClass === 'physical') checkHostWeights(host, expectations, fail);
+    for (const when of ['preflight', 'beforeSplit', 'afterSplit']) checkInventory(receipt, host, when, stage, expectations, fail);
+    if (expectations.runtimeClass === 'physical') {
+      // One build record throughout: the stage directory the stages opened is the one that was checked around them.
+      const records = ['preflight', 'beforeSplit', 'afterSplit'].map(when => host.inventory?.[when]?.buildRecordDigest).filter(value => value !== undefined);
+      if (new Set(records).size > 1) fail('stage-directory-record-changed', host.label);
+      checkHostWeights(receipt, host, expectations, fail);
+    }
     checkLoaded(host, stage, expectations, fail);
   });
   if (new Set(hosts.map(host => host.participantId)).size !== hosts.length) fail('hosts-not-distinct', 'participant');
@@ -186,8 +214,11 @@ function checkRequester(receipt, expectations, fail) {
       const held = observed?.heldRanges;
       if (!observed || !count(observed.weightBytes) || !count(observed.otherModelBytes) || !count(held?.rangeCount) || !count(held?.bytes)
         || !(held.scannedRanges > 0)) fail('requester-weights-unmeasured', when);
-      else if (observed.weightBytes !== 0 || held.rangeCount !== 0 || held.bytes !== 0) {
-        fail('requester-holds-weights', `${when} ${held.rangeCount} pieces, ${held.bytes} bytes of the requested model`);
+      else {
+        checkSearchEvidence(receipt, observed, `requester:${when}`, fail);
+        if (observed.weightBytes !== 0 || held.rangeCount !== 0 || held.bytes !== 0) {
+          fail('requester-holds-weights', `${when} ${held.rangeCount} pieces, ${held.bytes} bytes of the requested model`);
+        }
       }
     } else if (!observed || !count(observed.weightBytes) || !count(observed.fileCount)) fail('requester-weights-unmeasured', when);
     else if (observed.weightBytes !== 0 || observed.fileCount !== 0) {

@@ -110,7 +110,9 @@ export function validatePhysicalConfig(config) {
   credit.weights.forEach((weight, index) => positive(weight, `credit.weights[${index}]`));
   positive(credit.maxDebt, 'credit.maxDebt'); positive(credit.maxRequestMs, 'credit.maxRequestMs');
   positive(credit.partitionUnclaimedReleaseMs, 'credit.partitionUnclaimedReleaseMs');
-  const limits = object(config.limits, 'limits', ['phaseMs', 'abortGraceMs', 'hardStopMs', 'stopMarginMs', 'serviceRestoreMs']);
+  // `bookkeepingMs` (optional) bounds each of the split's checks before and after its answer, apart from the generation.
+  const limits = object(config.limits, 'limits', ['phaseMs', 'abortGraceMs', 'hardStopMs', 'stopMarginMs', 'serviceRestoreMs',
+    ...(config.limits && typeof config.limits === 'object' && Object.hasOwn(config.limits, 'bookkeepingMs') ? ['bookkeepingMs'] : [])]);
   for (const key of Object.keys(limits)) positive(limits[key], `limits.${key}`);
   if (limits.stopMarginMs < limits.hardStopMs) refuse('limits.stopMarginMs must cover limits.hardStopMs');
   // A hard stop confirms each process is gone, then restores a service, and must finish before the margin runs out.
@@ -214,6 +216,7 @@ export function createRedactor(config) {
       for (const phase of Object.values(receipt.phases ?? {})) scrub(phase, 'reason');
       scrub(receipt.hardStop, 'reason'); scrub(receipt.hardStop, 'error');
       for (const control of Object.values(receipt.soloControls ?? {})) scrub(control, 'reason');
+      for (const row of receipt.steps ?? []) scrub(row, 'detail');
       return receipt;
     }
   };

@@ -17,7 +17,8 @@ import { createSshTransport } from '../../scripts/stage1/command-transport.js';
 import { loadStage1Expectations, STAGE1_FIXTURE_FILE, STAGE1_MODEL_ID } from '../../scripts/stage1/expectations.js';
 import { LABEL_POOLED } from '../../scripts/stage1/receipt-check.js';
 import { verifyCoordinatorTls } from '../../scripts/stage1/physical-coordinator.js';
-import { runPhysicalStage1 } from '../../scripts/stage1/run.js';
+import { DEFAULT_BOOKKEEPING_MS } from '../../scripts/stage1/physical-adapter.js';
+import { prepareStageDirectories, runPhysicalStage1 } from '../../scripts/stage1/run.js';
 
 const EARN_NOT_CONFIGURED = ['phase-not-completed:earn', 'earn-missing'];
 const EARN_MODEL_ID = 'qwen-3-5-0-8b-q4k-ef16-af32-vf16';
@@ -117,8 +118,16 @@ describe.runIf(wrtc)('the physical adapter against mocked hosts', () => {
     spawned = [];
     return { config, scenarioFile, scenarioRoot, directory: path.join(base, 'work') };
   }
-  const run = (setup, options = {}) => runPhysicalStage1({ config: setup.config, transport: mockTransport(setup.scenarioFile),
-    windowUntil: new Date(Date.now() + 240000).toISOString(), directory: setup.directory, ...options });
+  /** The window-free preparation first, as on real hosts: it records the fingerprints the window's searches compare to. */
+  const prepare = setup => prepareStageDirectories({ config: setup.config, transport: mockTransport(setup.scenarioFile), action: 'verify', hash: true, timeoutMs: 30000 });
+  const run = async (setup, { prepared = true, ...options } = {}) => {
+    if (prepared) {
+      const results = await prepare(setup);
+      expect(Object.values(results.weights).every(row => row.ok)).toBe(true);
+    }
+    return runPhysicalStage1({ config: setup.config, transport: mockTransport(setup.scenarioFile),
+      windowUntil: new Date(Date.now() + 240000).toISOString(), directory: setup.directory, ...options });
+  };
   const exists = file => fs.stat(file).then(() => true, () => false);
 
   it('produces a passing pooled capacity receipt, keeps both full copies locked during the stages and restores them and both services', async () => {
@@ -137,12 +146,15 @@ describe.runIf(wrtc)('the physical adapter against mocked hosts', () => {
     for (const host of setup.config.hosts) expect(await fs.readdir(host.fullCopyDirectory)).toContain('manifest.json');
     expect(receipt.cleanup.fullCopyLocks).toEqual(['host-a', 'host-b'].map(host => ({ host, locked: true, restored: true })));
     for (const [index, host] of receipt.hosts.entries()) {
+      // In the window nothing is re-hashed: every search rests on the preparation's hash and unchanged fingerprints.
       for (const when of ['preflight', 'beforeSplit', 'afterSplit']) {
-        expect(host.inventory[when]).toMatchObject({ source: 'hashed-on-host', scope: 'stage-directory', scannedRanges: 5512, outsideStageRanges: 0 });
+        expect(host.inventory[when]).toMatchObject({ source: 'hashed-on-host', scope: 'stage-directory', scannedRanges: 5512, outsideStageRanges: 0,
+          evidence: 'unchanged-since-hash', baseline: { action: 'compare', unchangedDirectories: 1, hashedDirectories: 0 } });
+        expect(Date.parse(host.inventory[when].hashedAt)).toBeLessThan(Date.parse(receipt.startedAt));
       }
-      expect(host.hostWeights.beforeSplit).toMatchObject({ scope: 'host-weight-directories', outsideInFullCopy: 5512 - loaded.expectations.stages[index].rangeCount,
-        outsideElsewhere: 0, fullCopy: 'searched' });
-      expect(host.hostWeights.afterSplit).toMatchObject({ outsideInFullCopy: 0, outsideElsewhere: 0, fullCopy: 'locked-not-entered' });
+      expect(host.hostWeights.beforeSplit).toMatchObject({ scope: 'host-weight-directories', heldRanges: loaded.expectations.stages[index].rangeCount,
+        outsideElsewhere: 0, fullCopy: 'declared-not-searched', evidence: 'unchanged-since-hash', baseline: { hashedDirectories: 0 } });
+      expect(host.hostWeights.afterSplit).toMatchObject({ outsideElsewhere: 0, fullCopy: 'locked-not-searched', evidence: 'unchanged-since-hash' });
       const stage = loaded.expectations.stages[index];
       // The tokenizer came through the loader as metadata; the loaded weight ranges are exactly the stage's.
       expect(host.loaded).toEqual({ source: 'stage-loader', rangeCount: stage.rangeCount, bytes: stage.bytes, rangesDigest: stage.rangesDigest,
@@ -169,9 +181,24 @@ describe.runIf(wrtc)('the physical adapter against mocked hosts', () => {
     expect(receipt.serviceRestores).toEqual(['host-a', 'host-b'].map(host => ({ host, stopped: true, restored: true, verifiedActive: true })));
     for (const label of ['host-a', 'host-b']) expect(await fs.readFile(path.join(setup.scenarioRoot, `${label}-service-state`), 'utf8')).toBe('active');
     expect(spawned.every(row => LABELS[row.alias])).toBe(true);
+    // Every step is timed; the split's bookkeeping ran under its own budgets, apart from the generation's.
+    const steps = Object.fromEntries(receipt.steps.map(row => [row.step, row]));
+    expect(receipt.steps.every(row => row.status === 'done' && Number.isSafeInteger(row.ms))).toBe(true);
+    expect(steps['split host weights after']).toMatchObject({ budget: 'split-after' });
+    expect(steps['split generate']).toMatchObject({ budget: 'split-answer' });
+    expect(steps['split requester weights after']).toMatchObject({ budget: 'split-after' });
+    expect(receipt.phaseTimings.split.boundMs).toBe(setup.config.limits.phaseMs + 2 * DEFAULT_BOOKKEEPING_MS);
     const text = JSON.stringify(receipt);
     for (const value of [root, os.homedir(), 'mock-host-a', 'mock-earner', 'mock-worker.service', '127.0.0.1', 'access_token']) expect(text).not.toContain(value);
   }, 180000);
+
+  it('stops in preflight, before any solo control, when the window-free preparation was not run', async () => {
+    const { receipt, verdict } = await run(await setUp('unprepared'), { prepared: false });
+    expect(receipt.phases.preflight.status).toBe('failed');
+    expect(receipt.phases.preflight.reason).toContain('weight-baseline-missing');
+    expect(receipt.phases['solo-a'].status).toBe('skipped');
+    expect(verdict.ok).toBe(false);
+  }, 90000);
 
   it('refuses the earn phase, and so the receipt, when no earning machine is configured', async () => {
     const { receipt, verdict } = await run(await setUp('no-earner', { earner: false }));

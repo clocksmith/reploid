@@ -49,6 +49,52 @@ describe('the on-host weight search', () => {
     expect(full).toMatchObject({ outsideElsewhere: 2, inventory: { rangeCount: 4, outsideStageRanges: 2, outsideStageBytes: 64 } });
   });
 
+  it('hashes once outside the window, then re-reads only what changed: same file, new file, rewrite with its times set back', async () => {
+    const model = await smallModel(), stage = await model.write(path.join(root, 'stage'), ['s0.bin']);
+    await fs.writeFile(path.join(stage, 'stage-directory.json'), '{"stageIndex":0}');
+    const file = path.join(root, 'state', 'weight-baseline-stage-directory.json');
+    const reads = [], measure = async args => { reads.push(args.directory); return (await import('../../scripts/stage1/inventory.js')).measureHeldRanges(args); };
+    const search = action => scanHostWeights({ roots: [stage], allRanges: model.allRanges, stageRanges: model.stageRanges[0], scope: 'stage-directory',
+      measure, baseline: { action, file }, now: () => Date.parse(action === 'record' ? '2026-11-24T22:00:00Z' : '2026-11-24T23:00:00Z') });
+    await expect(search('compare')).rejects.toMatchObject({ code: 'weight-baseline-missing' });
+    const recorded = await search('record');
+    expect(recorded.inventory).toMatchObject({ rangeCount: 2, evidence: 'hashed-now', hashedAt: '2026-11-24T22:00:00.000Z', buildRecordDigest: sha('{"stageIndex":0}') });
+    expect((await fs.stat(file)).mode & 0o077).toBe(0);
+    reads.length = 0;
+    const unchanged = await search('compare');
+    expect(reads).toEqual([]);
+    expect(unchanged.inventory).toMatchObject({ rangeCount: 2, outsideStageRanges: 0, evidence: 'unchanged-since-hash', hashedAt: '2026-11-24T22:00:00.000Z' });
+    expect(unchanged.baseline).toMatchObject({ action: 'compare', directories: 1, unchangedDirectories: 1, hashedDirectories: 0 });
+    // The other stage's shard lands in the directory: it is re-read and seen.
+    await model.write(stage, ['s1.bin']);
+    const grown = await search('compare');
+    expect(reads).toEqual([stage]);
+    expect(grown.inventory).toMatchObject({ rangeCount: 4, outsideStageRanges: 2, evidence: 'hashed-now' });
+    // Same size, times set back: the status-change time still moves, so the bytes are read again.
+    await search('record');
+    const shard = path.join(stage, 's0.bin'), before = await fs.stat(shard);
+    await new Promise(resolve => setTimeout(resolve, 20));
+    const bytes = await fs.readFile(shard); bytes[0] ^= 0xff;
+    await fs.writeFile(shard, bytes);
+    await fs.utimes(shard, before.atime, before.mtime);
+    reads.length = 0;
+    const tampered = await search('compare');
+    expect(reads).toEqual([stage]);
+    expect(tampered.inventory.rangeCount).toBe(3);
+  });
+
+  it('refuses a baseline recorded for other roots, skips or ranges', async () => {
+    const model = await smallModel(), stage = await model.write(path.join(root, 'stage'), ['s0.bin']), file = path.join(root, 'baseline.json');
+    const search = (action, extra = {}) => scanHostWeights({ roots: [stage], allRanges: model.allRanges, stageRanges: model.stageRanges[0],
+      scope: 'host-weight-directories', baseline: { action, file }, ...extra });
+    await search('record');
+    await expect(search('compare', { roots: [stage, root] })).rejects.toMatchObject({ code: 'weight-baseline-mismatch' });
+    await expect(search('compare', { allRanges: model.stageRanges[0] })).rejects.toMatchObject({ code: 'weight-baseline-mismatch' });
+    await expect(search('compare', { scope: 'stage-directory' })).rejects.toMatchObject({ code: 'weight-baseline-mismatch' });
+    await expect(scanHostWeights({ roots: [stage], allRanges: model.allRanges, stageRanges: [], scope: 'x', baseline: { action: 'compare', file: 'relative.json' } }))
+      .rejects.toMatchObject({ code: 'weight-baseline-refused' });
+  });
+
   it('finds a full copy left anywhere under the model, cache or temporary roots', async () => {
     const model = await smallModel(), stage = await model.write(path.join(root, 'stage'), ['s0.bin']);
     for (const place of ['models/old', 'cache/a/b', 'tmp/run-1/full']) {

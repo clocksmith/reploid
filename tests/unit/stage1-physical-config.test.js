@@ -53,10 +53,18 @@ describe('the private host file', () => {
     ['a margin shorter than the hard stop', c => { c.limits.stopMarginMs = 1000; }, 'stopMarginMs'],
     ['a hard stop shorter than a restore', c => { c.limits.hardStopMs = 1000; }, 'hardStopMs'],
     ['no release window for a dropped answer', c => { delete c.credit.partitionUnclaimedReleaseMs; }, 'partitionUnclaimedReleaseMs'],
-    ['a phase too short for a dropped hold to expire', c => { c.limits.phaseMs = 360000; }, 'limits.phaseMs must cover']
+    ['a phase too short for a dropped hold to expire', c => { c.limits.phaseMs = 360000; }, 'limits.phaseMs must cover'],
+    ['a zero bookkeeping budget', c => { c.limits.bookkeepingMs = 0; }, 'limits.bookkeepingMs'],
+    ['an unknown limit', c => { c.limits.splitMs = 1000; }, 'limits has an unknown field']
   ])('refuses %s', (_name, change, field) => {
     const value = config(); change(value);
     expect(() => validatePhysicalConfig(value)).toThrow(field);
+  });
+
+  it('accepts a host file with or without a bookkeeping budget for the split', () => {
+    expect(validatePhysicalConfig(config()).limits.bookkeepingMs).toBeUndefined();
+    const value = config(); value.limits.bookkeepingMs = 300000;
+    expect(validatePhysicalConfig(value).limits.bookkeepingMs).toBe(300000);
   });
 
   it('accepts an earning machine distinct from the requester and the stage hosts', () => {

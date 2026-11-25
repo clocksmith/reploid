@@ -40,25 +40,106 @@ export async function findWeightDirectories(roots, shardNames, skip = []) {
   return found;
 }
 
+export const WEIGHT_BASELINE_SCHEMA = 'reploid.stage1-weight-baseline/v1';
+/** The build record a stage directory carries; its bytes are part of that directory's fingerprint. */
+const BUILD_RECORD = 'stage-directory.json';
+const sha256Hex = value => createHash('sha256').update(value).digest('hex');
+const statRow = stat => [String(stat.dev), String(stat.ino), String(stat.size), String(stat.mtimeNs), String(stat.ctimeNs)];
+
+/**
+ * What one directory holds, read without its weight bytes: each regular file's name, device, inode, size, modification
+ * and status-change times (a link's own and its target's), plus the bytes of the build record if there is one. Writing
+ * through the file system, replacing, truncating, adding or removing a file, or setting its times back changes at least
+ * one of these: a user cannot set the status-change time. Not seen: a change made beneath the file system, such as
+ * root writing the block device, or a file system that does not keep status-change times.
+ */
+export async function fingerprintDirectory(directory) {
+  const rows = [];
+  const entries = (await fs.readdir(directory, { withFileTypes: true })).sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
+  for (const entry of entries) {
+    if (!entry.isFile() && !entry.isSymbolicLink()) continue;
+    const file = path.join(directory, entry.name);
+    const own = await fs.lstat(file, { bigint: true });
+    const target = entry.isSymbolicLink() ? await fs.stat(file, { bigint: true }).catch(() => null) : null;
+    rows.push([entry.name, ...statRow(own), ...(entry.isSymbolicLink() ? [await fs.readlink(file), ...(target ? statRow(target) : ['dangling'])] : [])]);
+  }
+  const record = rows.some(row => row[0] === BUILD_RECORD) ? 'sha256:' + sha256Hex(await fs.readFile(path.join(directory, BUILD_RECORD))) : null;
+  return { digest: 'sha256:' + sha256Hex(JSON.stringify({ rows, record })), fileCount: rows.length, buildRecordDigest: record };
+}
+
+const rangesIdentity = ranges => 'sha256:' + sha256Hex(JSON.stringify(ranges.map(range => [range.path, range.offset, range.size, range.identity])));
+
+async function readBaseline(file) {
+  try { return JSON.parse(await fs.readFile(file, 'utf8')); }
+  catch (error) {
+    if (error.code === 'ENOENT') throw coded('weight-baseline-missing', 'no window-free hash of these weight directories; run the preparation first');
+    throw coded('weight-baseline-invalid', 'the weight baseline is unreadable');
+  }
+}
+
 /**
  * Hashes all of the model's ranges wherever the host keeps weights, so a range from the other stage cannot go unseen.
  * `outsideInFullCopy` is what removing the configured copy would clear; `outsideElsewhere` is what it would not.
+ *
+ * `baseline` moves that hashing out of a timed window. `{ action: 'record', file }` hashes every directory and keeps,
+ * per directory, its fingerprint (fingerprintDirectory) and the ranges it held. `{ action: 'compare', file }` reads no
+ * weight bytes from a directory whose fingerprint is unchanged since then and takes the ranges recorded for it; a
+ * directory that is new or changed is hashed now, and one that is gone holds nothing. The inventory's `evidence` says
+ * which (`hashed-now` or `unchanged-since-hash`) and `hashedAt` when the oldest hash it rests on was taken.
  */
-export async function scanHostWeights({ roots, allRanges, stageRanges, fullCopyDirectory = null, skipDirectories = [], scope, measure = measureHeldRanges, signal }) {
+export async function scanHostWeights({ roots, allRanges, stageRanges, fullCopyDirectory = null, skipDirectories = [], scope, measure = measureHeldRanges,
+  baseline = null, now = Date.now, signal }) {
+  if (baseline !== null && (!['record', 'compare'].includes(baseline?.action) || typeof baseline.file !== 'string' || !path.isAbsolute(baseline.file))) {
+    throw coded('weight-baseline-refused', 'a baseline needs an action and an absolute file');
+  }
   const skip = (await Promise.all(skipDirectories.map(realOrNull))).filter(Boolean);
+  const identity = { scope, roots: [...roots].sort(), skip: [...skip].sort(), ranges: rangesIdentity(allRanges) };
+  let previous = null;
+  if (baseline?.action === 'compare') {
+    previous = await readBaseline(baseline.file);
+    if (previous?.schema !== WEIGHT_BASELINE_SCHEMA || JSON.stringify(previous.identity) !== JSON.stringify(identity)) {
+      throw coded('weight-baseline-mismatch', 'the baseline was recorded for other roots, skips, scope or ranges; run the preparation again');
+    }
+  }
   const directories = await findWeightDirectories(roots, new Set(allRanges.map(range => range.path)), skip);
   const fullCopy = fullCopyDirectory ? await realOrNull(fullCopyDirectory) : null;
-  const assigned = new Set(stageRanges.map(rangeKey)), held = new Map(), elsewhere = new Set(), inCopy = new Set();
+  const byKey = new Map(allRanges.map(range => [rangeKey(range), range]));
+  const assigned = new Set(stageRanges.map(rangeKey)), held = new Map(), elsewhere = new Set(), inCopy = new Set(), recorded = {};
+  let unchanged = 0, hashed = 0, buildRecordDigest = null;
   for (const directory of directories) {
+    signal?.throwIfAborted();
     const copy = fullCopy !== null && inside(directory, fullCopy);
-    for (const range of await measure({ directory, ranges: allRanges, signal })) {
+    const fingerprint = baseline ? await fingerprintDirectory(directory) : null;
+    buildRecordDigest ??= fingerprint?.buildRecordDigest ?? null;
+    const before = previous?.directories?.[directory];
+    let found;
+    if (before && before.fingerprint === fingerprint.digest) {
+      found = before.held.map(key => byKey.get(key)).filter(Boolean);
+      unchanged += 1;
+    } else {
+      found = await measure({ directory, ranges: allRanges, signal });
+      hashed += 1;
+    }
+    if (fingerprint) recorded[directory] = { fingerprint: fingerprint.digest, held: found.map(rangeKey) };
+    for (const range of found) {
       const key = rangeKey(range);
       held.set(key, range);
       if (!assigned.has(key)) (copy ? inCopy : elsewhere).add(key);
     }
   }
-  return { inventory: observeInventory({ held: [...held.values()], stageRanges, source: 'hashed-on-host', scope, scannedRanges: allRanges.length }),
-    outsideInFullCopy: inCopy.size, outsideElsewhere: elsewhere.size, skippedDirectories: skip.length };
+  const at = new Date(now()).toISOString();
+  if (baseline?.action === 'record') {
+    await fs.mkdir(path.dirname(baseline.file), { recursive: true, mode: 0o700 });
+    const temporary = `${baseline.file}.${process.pid}.tmp`;
+    await fs.writeFile(temporary, JSON.stringify({ schema: WEIGHT_BASELINE_SCHEMA, recordedAt: at, identity, directories: recorded }), { mode: 0o600 });
+    await fs.rename(temporary, baseline.file);
+  }
+  const evidence = previous && unchanged > 0 ? 'unchanged-since-hash' : 'hashed-now';
+  return { inventory: { ...observeInventory({ held: [...held.values()], stageRanges, source: 'hashed-on-host', scope, scannedRanges: allRanges.length }),
+    evidence, hashedAt: evidence === 'hashed-now' ? at : previous.recordedAt, ...(buildRecordDigest ? { buildRecordDigest } : {}) },
+    outsideInFullCopy: inCopy.size, outsideElsewhere: elsewhere.size, skippedDirectories: skip.length,
+    ...(baseline ? { baseline: { action: baseline.action, recordedAt: previous?.recordedAt ?? at,
+      directories: directories.length, unchangedDirectories: unchanged, hashedDirectories: hashed } } : {}) };
 }
 
 /**

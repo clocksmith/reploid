@@ -6,8 +6,9 @@
  * Adapter: describe(), preflight(ctx), soloControl(label, ctx), splitAnswer(ctx), cancelAnswer(ctx), dropAnswer(ctx) (a stage
  * process killed mid-answer), cleanup(ctx),
  * hardStop(reason), optionally earnCredits(ctx) (the whole-model control that earns the credits the split spends; an
- * adapter without it records the phase as skipped, which the checker refuses), and optionally guard(phase), which throws to stop the run before that phase starts, and
- * evidence(), whose service-restore record joins the receipt however the run ended.
+ * adapter without it records the phase as skipped, which the checker refuses), and optionally guard(phase), which throws to stop the run before that phase starts,
+ * phaseBudgetMs(phase), a phase's own bound in place of `limits.phaseMs`, and evidence(), whose service-restore record and
+ * step timings join the receipt however the run ended. `log` receives one line per phase start and end, with UTC times.
  */
 import { STAGE1_PHASES, STAGE1_RECEIPT_SCHEMA } from './receipt-check.js';
 
@@ -38,7 +39,7 @@ async function bounded(work, { ms, graceMs, stopSignal }) {
   } finally { clearTimeout(timer); clearTimeout(grace); }
 }
 
-export async function runStage1Phases({ adapter, expectations, limits = {}, signal = null, now = Date.now }) {
+export async function runStage1Phases({ adapter, expectations, limits = {}, signal = null, now = Date.now, log = null }) {
   for (const method of ['describe', 'preflight', 'soloControl', 'splitAnswer', 'cancelAnswer', 'dropAnswer', 'cleanup', 'hardStop']) {
     if (typeof adapter?.[method] !== 'function') throw Error(`Stage 1 adapter is missing ${method}`);
   }
@@ -52,7 +53,9 @@ export async function runStage1Phases({ adapter, expectations, limits = {}, sign
 
   const receipt = { schema: STAGE1_RECEIPT_SCHEMA, runtimeClass: description.runtimeClass, startedAt: new Date(now()).toISOString(),
     finishedAt: null, hardStop: null, phases: Object.fromEntries(STAGE1_PHASES.map(name => [name, { status: 'skipped', reason: 'not reached' }])),
-    workload: null, requester: null, hosts: null, soloControls: {}, earn: null, split: null, cancel: null, drop: null, cleanup: null, claim: null };
+    workload: null, requester: null, hosts: null, soloControls: {}, earn: null, split: null, cancel: null, drop: null, cleanup: null, claim: null,
+    phaseTimings: {} };
+  const write = line => { try { log?.(`${new Date(now()).toISOString()} ${line}`); } catch { /* logging never stops a run */ } };
   const context = phaseSignal => ({ signal: phaseSignal, expectations });
   const apply = {
     preflight: value => { receipt.requester = { ...value.requester }; receipt.hosts = value.hosts; },
@@ -85,9 +88,13 @@ export async function runStage1Phases({ adapter, expectations, limits = {}, sign
 
   /** Returns false when the run cannot continue to the next phase. */
   async function runPhase(name) {
-    const host = SOLO_HOSTS[name];
+    const host = SOLO_HOSTS[name], ms = adapter.phaseBudgetMs?.(name) ?? bounds.phaseMs, startedAt = now();
+    write(`phase ${name} start (bound ${ms} ms)`);
     const outcome = await bounded(host ? phaseSignal => adapter.soloControl(host, context(phaseSignal)) : work[name],
-      { ms: bounds.phaseMs, graceMs: bounds.abortGraceMs, stopSignal: stop.signal });
+      { ms, graceMs: bounds.abortGraceMs, stopSignal: stop.signal });
+    const status = outcome.stopped || outcome.abandoned ? 'stopped' : outcome.timedOut ? 'timed-out' : outcome.error ? 'failed' : 'completed';
+    receipt.phaseTimings[name] = { startedAt: new Date(startedAt).toISOString(), ms: now() - startedAt, boundMs: ms };
+    write(`phase ${name} ${status} after ${now() - startedAt} ms${outcome.error ? `: ${message(outcome.error)}` : ''}`);
     if (outcome.abandoned) requestStop(`Phase ${name} did not stop within its abort grace`);
     if (outcome.stopped || outcome.abandoned) {
       receipt.phases[name] = { status: 'stopped', reason: message(stop.signal.reason) };
@@ -99,7 +106,7 @@ export async function runStage1Phases({ adapter, expectations, limits = {}, sign
       receipt.phases[name] = { status: 'completed', result: 'inconclusive' };
       return true;
     }
-    if (outcome.timedOut) { receipt.phases[name] = { status: 'timed-out', reason: `Exceeded ${bounds.phaseMs} ms` }; return false; }
+    if (outcome.timedOut) { receipt.phases[name] = { status: 'timed-out', reason: `Exceeded ${ms} ms` }; return false; }
     if (outcome.error) { receipt.phases[name] = { status: 'failed', reason: message(outcome.error) }; return false; }
     try {
       if (host) receipt.soloControls[host] = outcome.value;
@@ -147,7 +154,9 @@ export async function runStage1Phases({ adapter, expectations, limits = {}, sign
     clearTimeout(deadline);
     signal?.removeEventListener('abort', outside);
   }
-  receipt.serviceRestores = adapter.evidence?.().serviceRestores ?? [];
+  const evidence = adapter.evidence?.() ?? {};
+  receipt.serviceRestores = evidence.serviceRestores ?? [];
+  if (evidence.steps) receipt.steps = evidence.steps;
   receipt.finishedAt = new Date(now()).toISOString();
   return receipt;
 }
