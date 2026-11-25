@@ -1,6 +1,6 @@
 {
   "schema": "reploid.settlement-baseline-matrix/v1",
-  "generatedAt": "2026-11-25T07:37:22.677Z",
+  "generatedAt": "2026-11-25T07:52:18.837Z",
   "policy": {
     "schema": "reploid.service-credit-policy/v1",
     "unit": "noncash-service-credit",
@@ -242,8 +242,7 @@
         }
       },
       "sameAmounts": true,
-      "replayLoses": false,
-      "note": "the provider-loss-free rule is defeated by the final stage alone: the gap reads as the requester withholding, so the abandoned answer is charged. Both schemes now charge the prefix."
+      "note": "if the replay charges here, the final stage alone defeats the provider-loss-free rule of P7: the gap reads as the requester withholding. B3 charges the prefix in both cases."
     },
     {
       "kind": "participant",
@@ -266,7 +265,7 @@
       },
       "sameAmounts": false,
       "replayLoses": true,
-      "note": "one stage vetoes every stage's payment, and the requester keeps a free answer. Under B3 the accepted counts are owed without any closing receipt."
+      "note": "a replay that needs every closing receipt lets one stage veto every stage's payment, and the requester keeps a free answer. Under B3 the accepted counts are owed without any closing receipt."
     },
     {
       "kind": "participant",
@@ -294,7 +293,7 @@
       },
       "sameAmounts": false,
       "replayLoses": true,
-      "note": "the requester's own contradiction voids its charge. It can sign it afterwards: signers write their own signedAt. B3 takes the highest accepted count."
+      "note": "a replay that answers conflict lets the requester void its own charge, and it can sign the second acknowledgment afterwards: signers write their own signedAt. B3 takes the highest accepted count."
     },
     {
       "kind": "participant",
@@ -320,7 +319,7 @@
       },
       "sameAmounts": false,
       "replayLoses": true,
-      "note": "three signatures from a key that took no part make the real reservation undecidable. B3 keys an agreement by reservation and requester, so the stranger's agreement is a separate one that charges only the stranger."
+      "note": "a replay that keys a reservation by its ID alone lets three signatures from a key that took no part make it undecidable. B3 keys an agreement by reservation and requester, so the stranger's agreement is a separate one that charges only the stranger."
     }
   ]
 }

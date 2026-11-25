@@ -153,9 +153,12 @@ async function main() {
 
   // ---- Participant cases. `delivered` is what the requester received; `owed` is delivered outputs times the price.
   const cases = [];
-  const add = (label, attempt, verdicts, extra = {}) => cases.push({ kind: 'participant', case: label, delivered: attempt.delivered,
+  // `lossCandidate` rows are attacks on the replay's extra rules. Whether the replay loses is computed on each run:
+  // it loses when it charges less than B3 for outputs the requester acknowledged.
+  const add = (label, attempt, verdicts, { lossCandidate = false, ...extra } = {}) => cases.push({ kind: 'participant', case: label, delivered: attempt.delivered,
     owedIfEveryDeliveredOutputWerePaid: Math.min(attempt.delivered, attempt.terms.maxOutputTokens) * price, ...verdicts,
-    sameAmounts: amounts(verdicts.replay) === amounts(verdicts.debitNotes), ...extra });
+    sameAmounts: amounts(verdicts.replay) === amounts(verdicts.debitNotes),
+    ...(lossCandidate ? { replayLoses: verdicts.replay.debit < verdicts.debitNotes.debit } : {}), ...extra });
 
   {
     const stall = await runAttempt(parties, { tag: 'stall', outputs: forty, stopAckingAfter: 10 });
@@ -187,13 +190,13 @@ async function main() {
     const close = await sign(parties.stages[1], { ...bodyOf(previous), sequence: previous.sequence + 1, status: closing.status, timing: closing.timing });
     const records = [...new Set(early.all())].filter(row => row !== closing);
     add('L3 the same final stage signs K + 1 steps it never sent, then closes', early, await judge([...records, ...added, close], early),
-      { replayLoses: false, note: 'the provider-loss-free rule is defeated by the final stage alone: the gap reads as the requester withholding, so the abandoned answer is charged. Both schemes now charge the prefix.' });
+      { note: 'if the replay charges here, the final stage alone defeats the provider-loss-free rule of P7: the gap reads as the requester withholding. B3 charges the prefix in both cases.' });
   }
   {
     const whole = await runAttempt(parties, { tag: 'veto', outputs: forty });
     const records = whole.all().filter(row => !(row.schema === STAGE_RECEIPT_SCHEMA && row.partitionIndex === 0 && row.status !== 'executing'));
     add('L1 stage0 withholds its closing receipt after the whole answer was delivered and acknowledged', whole, await judge(records, whole),
-      { replayLoses: true, note: 'one stage vetoes every stage\'s payment, and the requester keeps a free answer. Under B3 the accepted counts are owed without any closing receipt.' });
+      { lossCandidate: true, note: 'a replay that needs every closing receipt lets one stage veto every stage\'s payment, and the requester keeps a free answer. Under B3 the accepted counts are owed without any closing receipt.' });
   }
   {
     const whole = await runAttempt(parties, { tag: 'self', outputs: forty });
@@ -201,7 +204,7 @@ async function main() {
     const second = await sign(parties.requester, { ...bodyOf(top), chain: `sha256:${'e'.repeat(64)}` });
     add('L2 the requester acknowledges all 40 outputs, then signs a second acknowledgment of count 40 with another chain', whole,
       await judge([...whole.all(), second], whole),
-      { replayLoses: true, note: 'the requester\'s own contradiction voids its charge. It can sign it afterwards: signers write their own signedAt. B3 takes the highest accepted count.' });
+      { lossCandidate: true, note: 'a replay that answers conflict lets the requester void its own charge, and it can sign the second acknowledgment afterwards: signers write their own signedAt. B3 takes the highest accepted count.' });
   }
   {
     const whole = await runAttempt(parties, { tag: 'squat', outputs: forty });
@@ -212,7 +215,7 @@ async function main() {
     const binding = await sign(stranger, { ...bodyOf(top), requesterId: stranger.peerId });
     add('L4 a stranger signs its own terms, acceptance and charge binding under this reservation ID', whole,
       await judge([...whole.all(), terms, acceptance, binding], whole),
-      { replayLoses: true, note: 'three signatures from a key that took no part make the real reservation undecidable. B3 keys an agreement by reservation and requester, so the stranger\'s agreement is a separate one that charges only the stranger.' });
+      { lossCandidate: true, note: 'a replay that keys a reservation by its ID alone lets three signatures from a key that took no part make it undecidable. B3 keys an agreement by reservation and requester, so the stranger\'s agreement is a separate one that charges only the stranger.' });
   }
 
   const operator = rows.filter(row => row.kind === 'operator');
