@@ -137,6 +137,13 @@ const loaderSource = loader => async ({ model, modelDirectory, signal }) => {
 export async function openStage1Participant({ stageIndex, identity, config, nativeGpu, sourceRuntime = null, readBytes = readPieceBytes }) {
   // `config.edges`: the north-star run's four-stage plan of the same catalogued model (edges-plan.js).
   const model = config.edges ? (await loadEdgesModel()).model : catalog.find(row => row.id === STAGE1_MODEL_ID);
+  // A stage whose GPU lacks a feature the manifest's kernels need (shader-f16) may run Doppler's own declared capability
+  // transforms instead of refusing: the host file opts in per stage, and the receipt records it.
+  if (config.capabilityRemap === true) {
+    const policy = model.partitionRuntime?.runtimeConfig?.inference?.kernelPathPolicy;
+    if (!policy) throw Error('This model has no kernel path policy to remap');
+    policy.onIncompatible = 'remap';
+  }
   const models = catalog.map(row => (row.id === model.id ? model : row));
   await fs.mkdir(config.modelDirectory, { recursive: true, mode: 0o700 });
   await fs.mkdir(config.stateDirectory, { recursive: true, mode: 0o700 });
