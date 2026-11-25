@@ -4360,7 +4360,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:1082824faa8c9f720b2a3d5b4bf2c0c7f87d671d4b0a6a9a7231e17e43b134e7",
+      "sha256": "sha256:7302e475bbcfeb6c04b3cf5e2a6190ee1204932d93b2af0a866fae815a2860c7",
       "imports": []
     },
     {
@@ -4540,7 +4540,7 @@
     {
       "path": "ui/pool-home/conversation-workspace.js",
       "owner": "ui",
-      "sha256": "sha256:ab51ae553ceee96ea24dd7765a160012b7918168c78ba14cef83d49bc542d428",
+      "sha256": "sha256:04da134485c56ea48dbbe1ef824491935f880a3b5b80e7c8d96ceea843d7b979",
       "imports": [
         "../../config/work-profile.json",
         "../../host/circle-invites.js",

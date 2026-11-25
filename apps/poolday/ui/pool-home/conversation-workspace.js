@@ -415,7 +415,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
       else if (thread?.closed) statusText = 'Restore this thread to continue.';
       else if (usable) {
         if (execution.source === 'network') {
-          statusText = execution.status === 'busy' ? 'Waiting for capacity.' : creditCapText(current);
+          statusText = execution.status === 'busy' ? 'Waiting for capacity.' : creditCapText(selectedModel);
         } else if (execution.status === 'cached') statusText = 'Model downloaded.';
       } else if (preparing) statusText = state.localModel?.progress?.message || 'Model preparing…';
       // A paired desktop that cannot be reached: name it and say what brings it back. Nothing here can wake it.
@@ -678,9 +678,18 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     if (modelKey(recoverySelection) !== find('[data-next-model]').value) recoverySelection = null;
     pickerTouched = true;
     pickerModel = (session.getState().models || []).find(model => (model.selectionId || model.id) === find('[data-next-model]').value) || pickerModel;
+    // A private-pool model runs only on its paired computers, never on this device. Choosing it leaves This device,
+    // as choosing Contributors would; the paired route still binds only the enrolled computers it names.
+    const leaveDevice = !!pickerModel?.fleet && (pickerLocation === 'local' || pickerChoice === 'device');
+    if (leaveDevice) {
+      pickerLocation = 'network'; pickerChoice = 'contributors';
+      if (!session.getState().activeThread) applyDraftDestination(pickerChoice);
+    }
     updatePicker(session.getState());
     render(session.getState());
-    if (!arrowBrowsing && pickerModel && modelExecutionState(pickerModel, pickerLocation).usable && !recoverySelection) commitPickerChoice();
+    const commit = () => { if (!arrowBrowsing && pickerModel && modelExecutionState(pickerModel, pickerLocation).usable && !recoverySelection) commitPickerChoice(); };
+    if (leaveDevice && session.getState().activeThread) void act(async () => { await applyDestination(pickerChoice); commit(); });
+    else commit();
   });
   // Arrow keys move through models without committing; a tap, click or Enter applies the highlighted one.
   let arrowBrowsing = false;
