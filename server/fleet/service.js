@@ -14,13 +14,33 @@ import { canonicalRouteAttemptBinding } from '../../shared/vendor/reploid/mesh/p
 
 /** Private to enrolled signers, using TLS outside loopback. */
 export async function startFleetService({ credits, models, placementPolicy, port = 0, listenHost = '127.0.0.1', tls = null,
-  now = Date.now, maxBodyBytes = 1048576 }) {
+  now = Date.now, maxBodyBytes = 1048576, directory = 'full' }) {
   assert(['127.0.0.1', '::1', 'localhost'].includes(listenHost) || tls?.key && tls?.cert,
     'Non-loopback fleet service requires TLS');
+  const fleet = createFleetServiceHandler({ credits, models, placementPolicy, now, maxBodyBytes, directory });
+  const handle = (request, response) => {
+    if (request.method === 'POST' && request.url === '/v1/fleet') return fleet.handle(request, response);
+    response.writeHead(400, { 'content-type': 'application/json', 'cache-control': 'no-store' });
+    response.end(JSON.stringify({ error: 'Unknown fleet endpoint' }));
+  };
+  const server = tls ? https.createServer(tls, handle) : http.createServer(handle);
+  await new Promise((resolve, reject) => { server.once('error', reject); server.listen(port, listenHost, resolve); });
+  return { url: `${tls ? 'https' : 'http'}://${listenHost.includes(':') ? '[' + listenHost + ']' : listenHost}:${server.address().port}/v1/fleet`,
+    close: () => new Promise((resolve, reject) => { server.close(error => error ? reject(error) : resolve()); server.closeIdleConnections(); }) };
+}
+
+/**
+ * The signed fleet operations as one request handler, for its own server or a hosted mount at `POST /v1/fleet`.
+ * `directory: 'own'` is for a self-serve ledger: `snapshot` returns only the caller's account and `computers`
+ * lists accounts by their public labels, so one person cannot read every other account's balance.
+ */
+export function createFleetServiceHandler({ credits, models, placementPolicy, now = Date.now, maxBodyBytes = 1048576, directory = 'full' }) {
+  assert(['full', 'own'].includes(directory), 'Fleet directory must be full or own');
   const observations = new Map(), demand = new Map(), links = new Map();
   const invoke = async (signer, operation, payload, envelope) => {
     const owner = credits.enrollment.byPeer.get(signer);
     assert(owner, 'Unenrolled computer');
+    assert(owner.revokedAt === undefined, 'This computer key was removed from its account');
     switch (operation) {
       case 'reserve': {
         assert(payload.consumer === signer, 'Cannot reserve another computer’s credit');
@@ -95,16 +115,26 @@ export async function startFleetService({ credits, models, placementPolicy, port
       case 'providerOpenMine': return credits.providerOpenRequests(signer);
       case 'reconcileMine': return credits.reconcileConsumer(signer, payload?.activeIds ?? []);
       case 'statementMine': return credits.statement(owner.computerId);
-      case 'snapshot': return credits.snapshot();
+      case 'snapshot': {
+        const snapshot = credits.snapshot();
+        if (directory === 'full') return snapshot;
+        // Conservation is still checked inside snapshot(); only the caller's own account and journal leave it.
+        return { unit: snapshot.unit, policyVersion: snapshot.policyVersion,
+          accounts: snapshot.accounts.filter(row => row.id === owner.computerId),
+          journal: snapshot.journal.filter(row => row.account_id === owner.computerId) };
+      }
       case 'computers': return { at: now(), computers: [...credits.enrollment.byId.values()].map(computer => {
         const observation = observations.get(computer.id);
         const online = !!observation && now() - observation.observedAt <= placementPolicy.maxObservationAgeMs;
-        return { id: computer.id, name: computer.name, participantIds: computer.providers.map(provider => provider.participantId),
+        // A self-serve directory lists the caller's own account and accounts serving now, never the whole enrollment.
+        if (directory === 'own' && computer.id !== owner.computerId && !online) return null;
+        return { id: computer.id, name: computer.name, participantIds: computer.providers
+          .filter(provider => directory === 'full' || provider.revokedAt === undefined).map(provider => provider.participantId),
           online, observedAt: observation?.observedAt ?? null,
           ...(online ? { activeRequests: observation.activeRequests, preparing: observation.preparing === true, resident: observation.resident,
             preferences: observation.preferences, freeGpuBytes: observation.freeGpuBytes, freeHostBytes: observation.freeHostBytes,
             maxStorageBufferBindingSize: observation.maxStorageBufferBindingSize } : {}) };
-      }) };
+      }).filter(Boolean) };
       case 'terms': {
         const model = models.find(row => row.id === payload.id && row.identity === payload.identity);
         assert(model, 'Model is not enabled for this service');
@@ -169,7 +199,7 @@ export async function startFleetService({ credits, models, placementPolicy, port
   };
   const handle = async (request, response) => {
     try {
-      assert(request.method === 'POST' && request.url === '/v1/fleet', 'Unknown fleet endpoint');
+      assert(request.method === 'POST', 'Unknown fleet endpoint');
       const chunks = []; let length = 0;
       for await (const chunk of request) { length += chunk.length; assert(length <= maxBodyBytes, 'Fleet request too large'); chunks.push(chunk); }
       const envelope = JSON.parse(Buffer.concat(chunks));
@@ -187,10 +217,7 @@ export async function startFleetService({ credits, models, placementPolicy, port
       response.end(JSON.stringify({ error: error.message }));
     }
   };
-  const server = tls ? https.createServer(tls, handle) : http.createServer(handle);
-  await new Promise((resolve, reject) => { server.once('error', reject); server.listen(port, listenHost, resolve); });
-  return { url: `${tls ? 'https' : 'http'}://${listenHost.includes(':') ? '[' + listenHost + ']' : listenHost}:${server.address().port}/v1/fleet`,
-    close: () => new Promise((resolve, reject) => { server.close(error => error ? reject(error) : resolve()); server.closeIdleConnections(); }) };
+  return { handle, invoke };
 }
 
 if (process.argv[1] && pathToFileURL(path.resolve(process.argv[1])).href === import.meta.url) {
