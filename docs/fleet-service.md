@@ -7,7 +7,9 @@ model arithmetic or qualification rules.
 
 This is an operator-configured private fleet. A paired browser can use it from the
 normal chat workspace; unpaired public-network chats do not use this coordinator.
-Purchased credits and payouts are separate.
+Purchased credits and payouts are separate. The same ledger can also run with open
+enrollment behind replo.id's accounts, where people pair their own computers by code:
+see [self-serve accounts](self-serve-credits.md).
 
 ## Computer identity
 

@@ -7,8 +7,8 @@ Serve exact models within owner preferences and measured capacity; credit acknow
 
 ## Authority
 - Owns computer/provider associations, observations, placement, native reconciliation
-  and non-cash credit admission/settlement. Membership uses the operator's
-  registry, never a second inventory.
+  and non-cash credit admission/settlement. Membership: operator registry or
+  [confirmed pairings](../../docs/self-serve-credits.md).
 - Excludes purchased balances, cash conversion, payouts, numerical qualification,
   cryptographic identity design and operating-system access policy.
 
@@ -22,7 +22,7 @@ execution evidence.
 Outputs: durable balances, statements, work records, placement decisions.
 
 ## Invariants
-- Identity denotes enrollment, not hardware attestation.
+- Identity denotes enrollment (pairing: a confirmed fingerprint), not hardware attestation.
 - Permission, exact artifacts and resource limits precede ranking.
 - Credit admission precedes disclosure/execution; completed work requires provider
   signatures and requester acknowledgment. A cancelled run may settle its proven

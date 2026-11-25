@@ -8,7 +8,7 @@ lists its contracts first, then designs, then evidence.
 | [Start here](#start-here) | [Glossary and code map](glossary.md), [quick start](QUICK-START.md) |
 | [Product](#product) | [Product contract](product-specification.md), [GOALS.md](../GOALS.md) |
 | [Mesh and partitions](#mesh-and-partitions) | [Open mesh architecture](open-mesh-architecture.md), [RD-CANON/1](roadmap/rd-canon-1.md) |
-| [Fleet and credits](#fleet-and-credits) | [Fleet service](fleet-service.md), [native participant](native-participant.md) |
+| [Fleet and credits](#fleet-and-credits) | [Fleet service](fleet-service.md), [self-serve accounts](self-serve-credits.md), [native participant](native-participant.md) |
 | [Settlement replay](#settlement-replay) | [Settlement replay](settlement-replay.md) |
 | [Poolday](#poolday) | [Browser inference pool](browser-inference-pool.md), [Poolday claims](poolday/claims-and-nonclaims.md) |
 | [Zero / X](#zero--x) | [X/Zero setup](zero-x-quick-start.md), [agent and VFS architecture](system-architecture.md) |
@@ -107,6 +107,8 @@ Proposed receipt retention, authorized peer replication and verifiable usage vie
 ## Fleet and credits
 
 Native computer identity, non-cash credits and placement: [Fleet service](fleet-service.md).
+
+- **[Self-serve accounts and service credits](./self-serve-credits.md)** - Create an account on replo.id, pair a computer by code, earn by serving and spend in the browser
 
 - **[Run a native Reploid participant](./native-participant.md)** - The browser's application host and participant protocol as a native process
 - **[GOVERNANCE.md](../GOVERNANCE.md)** - Who controls the credit ledger and the non-cash mutual service credit terms
