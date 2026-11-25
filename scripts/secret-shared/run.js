@@ -16,6 +16,11 @@
  *
  *   node scripts/secret-shared/run.js --hosts PRIVATE_FILE --work DIRECTORY --out RECEIPT_DIRECTORY
  *
+ * The requester and share operators it starts are JavaScript under this Node binary: the requester (`jsRequester.script`, Doppler's JS
+ * secret-shared requester) and each share operator (`operatorScript`, e.g. Doppler's `tools/secret-shared/gpu/operator-gpu.js`).
+ * Reploid runs JavaScript only: the former Python requester and Go operator are refused. Until Doppler's JS requester
+ * lands (branch secret-shared-2party), the host file cannot name one and the harness refuses.
+ *
  * Operator processes are started per attempt and stopped after it; standing services are not touched. The receipt
  * carries no host path, SSH alias or address from the host file. A pass is not a security review, a separate-operator
  * result or a capacity claim: see `notEstablished`.
@@ -51,6 +56,7 @@ import { verifyTrade } from '../settlement/verify-trade.js';
 export const SECRET_SHARED_HOSTS_SCHEMA = 'reploid.secret-shared-hosts/v1';
 export const SECRET_SHARED_RECEIPT_SCHEMA = 'reploid.secret-shared-receipt/v1';
 const EARN_MAX_REQUESTS = 6;
+const JS_SCRIPT = /\.m?js$/;
 const sha256 = bytes => createHash('sha256').update(bytes).digest('hex');
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -103,7 +109,7 @@ function createRedactor(config) {
       if (!['schema', 'label', 'machineId', 'participantId', 'role', 'modelId', 'weights', 'name', 'prompt', 'stage', 'share'].includes(key)) collect(item);
     });
   };
-  collect({ requester: config.requester, operators: config.operators, python: config.python, coordinator: config.coordinator, earner: config.earner });
+  collect({ requester: config.requester, operators: config.operators, jsRequester: config.jsRequester, coordinator: config.coordinator, earner: config.earner });
   for (const home of ['/Users/', '/home/', '/mnt/', 'C:\\Users\\']) secrets.add(home);
   const ordered = () => [...secrets].sort((a, b) => b.length - a.length);
   const text = value => ordered().reduce((out, secret) => out.split(secret).join('<redacted>'), String(value));
@@ -113,10 +119,15 @@ function createRedactor(config) {
 export function validateSecretSharedConfig(config) {
   const refuse = message => { throw Error(`secret-shared-config: ${message}`); };
   if (config?.schema !== SECRET_SHARED_HOSTS_SCHEMA) refuse('schema');
+  if (config.python !== undefined) refuse('python: the Python requester was removed (Reploid runs JavaScript only); name Doppler\'s JS requester in jsRequester.script');
+  if (!JS_SCRIPT.test(config.jsRequester?.script ?? '') || typeof config.jsRequester?.model !== 'string') {
+    refuse('jsRequester: needs { script, model } with a .js/.mjs script; Doppler\'s JS secret-shared requester (branch secret-shared-2party) has not landed, so this harness refuses until it does');
+  }
   if (!Array.isArray(config.operators) || config.operators.length < 2) refuse('operators');
   const stages = new Map();
   for (const op of config.operators) {
-    for (const key of ['label', 'machineId', 'stage', 'share', 'agent', 'identityFile', 'binary', 'modelDirectory', 'listen', 'endpoint', 'workDirectory']) if (op[key] === undefined) refuse(`operator.${key}`);
+    for (const key of ['label', 'machineId', 'stage', 'share', 'agent', 'identityFile', 'operatorScript', 'modelDirectory', 'listen', 'endpoint', 'workDirectory']) if (op[key] === undefined) refuse(`operator.${key}`);
+    if (!JS_SCRIPT.test(op.operatorScript)) refuse(`operator.operatorScript: ${op.label} must be a JavaScript operator (.js/.mjs); the Go operator is refused`);
     stages.set(op.stage, [...(stages.get(op.stage) ?? []), op]);
   }
   for (const [stage, pair] of stages) {
@@ -130,6 +141,7 @@ export function validateSecretSharedConfig(config) {
 
 export async function runSecretShared({ config, directory, log = () => {}, now = Date.now, transport = createSshTransport() }) {
   validateSecretSharedConfig(config);
+  await fs.access(config.jsRequester.script).catch(() => { throw Error('secret-shared-config: jsRequester.script does not exist; Doppler\'s JS requester has not landed'); });
   const redactor = createRedactor(config);
   const stamp = () => new Date(now()).toISOString();
   const steps = [];
@@ -262,7 +274,7 @@ export async function runSecretShared({ config, directory, log = () => {}, now =
       const messages = [{ role: 'user', content: kase.prompt }];
       const record = { case: kase.name, attemptId, reservationId, prompt: kase.prompt, maxOutputTokens: kase.maxTokens, events: [], tokens: [], text: '', streamed: '' };
       const agents = [], held = { terms: null, acceptances: [], acks: [], stop: null, edge: { in: [], out: [] } };
-      let edgeInReceipts = null, edgeOutReceipts = null, acks = null, python = null, beforeBalance = null;
+      let edgeInReceipts = null, edgeOutReceipts = null, acks = null, requesterChild = null, beforeBalance = null;
 
       const secretShared = createSecretSharedExecution({
         resolve: async () => ({ route: { id: `ss-route-${planId.slice(7, 23)}`, shape: 'split', selection: 'all', backend: SECRET_SHARED_BACKEND, protocol: SECRET_SHARED_PROTOCOL,
@@ -300,7 +312,7 @@ export async function runSecretShared({ config, directory, log = () => {}, now =
             agents.push(session);
             await session.hello;
             await session.call('identity', { file: op.identityFile });
-            await session.call('open', { binary: op.binary, plan: planBytes.toString('utf8'), modelDirectory: op.modelDirectory, stage: op.stage, share: op.share,
+            await session.call('open', { operatorScript: op.operatorScript, plan: planBytes.toString('utf8'), modelDirectory: op.modelDirectory, stage: op.stage, share: op.share,
               listen: op.listen, threads: op.threads ?? 0, token, workDirectory: op.workDirectory });
             held.acceptances.push(await session.call('accept', { terms: held.terms, partitionIndex: index + 1 }));
           }
@@ -320,13 +332,13 @@ export async function runSecretShared({ config, directory, log = () => {}, now =
           const opsFile = path.join(work, 'operators.json'), requestFile = path.join(work, 'request.json'), reportFile = path.join(work, 'requester-report.json');
           await fs.writeFile(opsFile, JSON.stringify({ token, stages: plan.stages.map(stage => [0, 1].map(share => proven.find(op => op.stage === stage.index && op.share === share).endpoint)) }), { mode: 0o600 });
           await fs.writeFile(requestFile, JSON.stringify({ messages, maxTokens: kase.maxTokens }));
-          python = spawn(config.python.command[0], [...config.python.command.slice(1), config.python.script, 'run', '--model', config.python.model, '--plan', config.plan,
-            '--operators', opsFile, '--request', requestFile, '--out', reportFile, '--threads', String(config.python.threads ?? 4)], { stdio: ['pipe', 'pipe', 'pipe'] });
+          requesterChild = spawn(process.execPath, [config.jsRequester.script, 'run', '--model', config.jsRequester.model, '--plan', config.plan,
+            '--operators', opsFile, '--request', requestFile, '--out', reportFile, '--threads', String(config.jsRequester.threads ?? 4)], { stdio: ['pipe', 'pipe', 'pipe'] });
           const stderr = [];
-          readline.createInterface({ input: python.stderr }).on('line', line => { if (stderr.length < 50 && !/fast path/.test(line)) stderr.push(line.slice(0, 300)); });
-          signal.addEventListener('abort', () => python.stdin.write('stop\n'), { once: true });
+          readline.createInterface({ input: requesterChild.stderr }).on('line', line => { if (stderr.length < 50 && !/fast path/.test(line)) stderr.push(line.slice(0, 300)); });
+          signal.addEventListener('abort', () => requesterChild.stdin.write('stop\n'), { once: true });
           let ended = null, failed = null, stopSent = false;
-          for await (const line of readline.createInterface({ input: python.stdout })) {
+          for await (const line of readline.createInterface({ input: requesterChild.stdout })) {
             const event = JSON.parse(line);
             record.events.push({ at: stamp(), ...Object.fromEntries(Object.entries(event).filter(([key]) => key !== 'delta')) });
             if (event.event === 'token') {
@@ -348,7 +360,7 @@ export async function runSecretShared({ config, directory, log = () => {}, now =
               if (kase.stopAfter && record.tokens.length === kase.stopAfter && !stopSent) {
                 // The requester signs its stop at its acknowledged count before it tells anyone to stop.
                 held.stop = await signSettlementStop({ signer: signers.requester, terms: held.terms, acknowledged: acks.state().count });
-                python.stdin.write('stop\n'); stopSent = true;
+                requesterChild.stdin.write('stop\n'); stopSent = true;
               }
               if (kase.killOperator && record.tokens.length === kase.afterTokens) {
                 const victim = proven.findIndex(op => op.label === kase.killOperator);
@@ -358,7 +370,7 @@ export async function runSecretShared({ config, directory, log = () => {}, now =
             else if (event.event === 'end') ended = event;
             else if (event.event === 'failed') failed = event;
           }
-          await new Promise(resolve => python.exitCode !== null ? resolve() : python.once('exit', resolve));
+          await new Promise(resolve => requesterChild.exitCode !== null ? resolve() : requesterChild.once('exit', resolve));
           record.requesterStderr = stderr.slice(-10);
           record.requesterReport = JSON.parse(await fs.readFile(reportFile, 'utf8').catch(() => 'null'));
           if (failed || !ended) throw Object.assign(Error(`the secret-shared requester failed: ${failed?.error ?? 'no end event'}`), { secretShared: { freshness: null } });
