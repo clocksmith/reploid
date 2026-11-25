@@ -57,6 +57,8 @@
 .pool-home .pool-frame-narrow { inline-size: 100%; max-inline-size: var(--pool-size-360); }
 @media (max-width: 760px) {
   .pool-home .pool-sidebar-layout { grid-template-columns: minmax(0, 1fr); padding-block-start: 0; }
+  /* The navigator is pinned as a bar here: a section it jumps to stops below the bar, not under it. */
+  .pool-home .pool-sidebar-main [id] { scroll-margin-block-start: var(--pool-metric-app-bar); }
   .pool-home .pool-sidebar-nav {
     top: 0;
     z-index: var(--pool-z-10);
