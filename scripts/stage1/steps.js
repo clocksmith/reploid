@@ -50,7 +50,10 @@ export function createStepClock({ log = null, now = Date.now, redact = text => t
       finish('done');
       return value;
     } catch (error) {
-      finish(controller.signal.aborted ? 'timed-out' : of.signal?.aborted ? 'stopped' : 'failed', String(error?.message ?? error));
+      let status = 'failed';
+      if (controller.signal.aborted) status = 'timed-out';
+      else if (of.signal?.aborted) status = 'stopped';
+      finish(status, String(error?.message ?? error));
       throw error;
     } finally {
       clearTimeout(timer);
