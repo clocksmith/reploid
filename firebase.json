@@ -371,6 +371,16 @@
       ],
       "redirects": [
         {
+          "source": "/design/poolday",
+          "destination": "/design",
+          "type": 301
+        },
+        {
+          "source": "/poolday-design.html",
+          "destination": "/design",
+          "type": 301
+        },
+        {
           "source": "/model-files/qwen-3-5-0-8b-q4k-ef16-af32-vf16/manifest.json",
           "destination": "/config/model-manifests/cdda7ddc748f581e3c79b5067fc8647a20d43c7030644e0c48b1560a1ac30d7d.json",
           "type": 302
