@@ -10,6 +10,7 @@ import { checkStage1Receipt, LABEL_POOLED, LABEL_SPLIT } from '../../scripts/sta
 import { loadStage1Expectations, STAGE1_FIXTURE_FILE } from '../../scripts/stage1/expectations.js';
 import { createLocalStage1Adapter } from '../../scripts/stage1/local-adapter.js';
 import { runStage1Phases } from '../../scripts/stage1/runner.js';
+import { verifyTrade } from '../../scripts/settlement/verify-trade.js';
 
 let wrtc;
 try {
@@ -80,9 +81,19 @@ describe.runIf(wrtc)('Stage 1 harness on three local processes', () => {
       const replay = good.receipt[name].settlementReplay;
       expect(replay).toMatchObject({ termsCollectedBy: 'stage1-harness', termsSigned: 'in-approval-before-dispatch', problems: [] });
       expect(replay.termsPolicyDigest).toBe(replay.ledgerPolicyDigest);
+      // Signed under the decided rules, so the receipt carries no known difference to tolerate.
+      expect(replay.unfinishedTerms).toBe('reploid.unfinished-answer/acknowledged-prefix-provider-relief/v1');
+      expect(replay.knownDifferences).toBeUndefined();
     }
     expect(good.receipt.drop.settlementReplay.acceptancesSigned).toBe('during-attempt');
     expect(good.receipt.cancel.settlementReplay.stopSigned).toBe(true);
+  });
+
+  it('passes the outsider\'s trade check (docs/verify-a-trade.md) from the receipt alone', async () => {
+    const verdict = await verifyTrade({ receipt: structuredClone(good.receipt), at: Date.now() + 24 * 3600 * 1000 });
+    expect(verdict.attempts.flatMap(row => row.problems)).toEqual([]);
+    expect(verdict).toMatchObject({ ok: true });
+    expect(verdict.attempts.map(row => row.name)).toEqual(['split', 'cancel', 'drop']);
   });
 
   it('records what each stage process loaded through its loader: its assigned ranges, and the tokenizer apart as metadata', () => {

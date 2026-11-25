@@ -119,6 +119,7 @@ Native computer identity, non-cash credits and placement: [Fleet service](fleet-
 ## Settlement replay
 
 Recomputing split charges and stage credits from signed records: [Settlement replay](settlement-replay.md).
+Checking one published trade receipt from outside the project: [Verify a trade](verify-a-trade.md).
 
 ---
 
