@@ -63,6 +63,11 @@ async function checkAttempt(name, attempt, { receipt, policy: suppliedPolicy, at
   const computerOf = new Map([[receipt.requester?.participantId, receipt.requester?.computerId],
     ...(receipt.hosts ?? []).map(host => [host.participantId, host.computerId])].filter(([id, computer]) => id && computer));
   const accountOf = id => computerOf.get(id) ?? id;
+  // Stages the receipt places on the requester's own computer are neither charged nor paid. No signed record carries
+  // that grouping: it is the publisher's statement, so it is reported with the verdict rather than verified.
+  const requesterId = terms[0]?.requesterId ?? receipt.requester?.participantId;
+  facts.ownAccountStages = [...new Set(terms.flatMap(row => row.shares.map(share => share.participantId)))]
+    .filter(id => id !== requesterId && accountOf(id) === accountOf(requesterId));
 
   // Both verifiers replay the same signed records under the same public policy.
   const service = await replaySettlement({ records, policies: [policy], at, accountOf });
@@ -137,6 +142,10 @@ async function main() {
       const f = row.facts;
       console.log(`${row.ok ? 'PASS' : 'FAIL'} ${row.name}: ${f.status ?? '-'} debit ${f.debit ?? '-'} payouts ${JSON.stringify(f.payouts ?? {})}`
         + ` policy ${f.policyDigest ?? '-'} terms ${f.unfinishedTerms ?? 'none'}${f.olderRulesDifference ? ' (older rules: known difference)' : ''}`);
+      if (f.ownAccountStages?.length) {
+        console.log(`  note: the receipt places ${f.ownAccountStages.join(', ')} on the requester's own account, so neither charged nor paid;`
+          + ' no signed record confirms that grouping');
+      }
       for (const problem of row.problems) console.log(`  - ${problem}`);
     }
     for (const problem of verdict.problems ?? []) console.log(`FAIL ${problem}`);

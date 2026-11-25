@@ -91,3 +91,32 @@ describe('verify-trade on a receipt under the older rules', () => {
     expect(problems(await older(8, [2, 6])).join('\n')).toMatch(/the ledger charged 8, the signed records imply 0/);
   });
 });
+
+describe('verify-trade and stages on the requester\'s own account', () => {
+  // Five outputs at 3 credits, weights 1:3: stage 0's share is 3 and stage 1's is 12. With stage 0 on the requester's own
+  // computer the ledger charges 12 and pays only stage 1.
+  const ownStage = async ownComputer => {
+    const parties = await createParties(2);
+    const a = await runAttempt(parties, { weights: [1, 3] });
+    const receipt = {
+      requester: { participantId: parties.requester.peerId, computerId: 'computer-requester' },
+      hosts: [{ participantId: parties.stages[0].peerId, computerId: ownComputer }, { participantId: parties.stages[1].peerId, computerId: 'computer-stage1' }],
+      split: { settlementReplay: { records: a.all(), policy: POLICY }, settlement: { reservationId: a.reservationId, charge: 12,
+        credits: [{ computerId: 'computer-stage1', amount: 12 }],
+        journal: [{ accountId: 'computer-requester', delta: -12 }, { accountId: 'computer-stage1', delta: 12 }] } }
+    };
+    return { verdict: await verifyTrade({ receipt, at: a.decidedAt }), stage0: parties.stages[0].peerId };
+  };
+
+  it('passes, and names the stage it treated as the requester\'s own', async () => {
+    const { verdict, stage0 } = await ownStage('computer-requester');
+    expect(problems(verdict)).toEqual([]);
+    expect(verdict.attempts[0].facts).toMatchObject({ status: 'settled', debit: 12, ownAccountStages: [stage0] });
+  });
+
+  it('fails the same ledger amounts when the receipt gives that stage its own computer: the grouping decides, and it is not signed', async () => {
+    const { verdict } = await ownStage('computer-stage0');
+    expect(verdict.attempts[0].facts.ownAccountStages).toEqual([]);
+    expect(problems(verdict).join('\n')).toMatch(/the ledger charged 12, the signed records imply 15/);
+  });
+});
