@@ -4,14 +4,16 @@ import { constants } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { canonicalize } from '../../shared/vendor/reploid/artifacts/canonical-json.js';
 import { canonicalRouteAttemptBinding } from '../../shared/vendor/reploid/mesh/partitions/partition-contract.js';
-import { assert, creditPolicy, digest, enrollComputers, fleetCreditQuote, integer, same, text } from './contract.js';
+import { assert, creditPolicy, digest, enrollComputer, enrollComputers, enrollmentKey, fleetCreditQuote, integer, same, text } from './contract.js';
 import { createCreditRecovery } from './credit-recovery.js';
 import { verifyCreditEvidence } from './credit-evidence.js';
 import { creditSettlementDeltas, settledCreditUnits, UNFINISHED_ANSWER_TERMS } from './credit-shares.js';
 
-/** Non-redeemable mutual service credit. No purchased lots, issuance, or payout path. */
-export async function openFleetCredits({ file, computers, policy: supplied, now = Date.now }) {
-  const policy = creditPolicy(supplied), enrollment = await enrollComputers(computers);
+/** Non-redeemable mutual service credit. No purchased lots, issuance, or payout path.
+ * `openEnrollment` lets the ledger start from an empty operator enrollment and append accounts and keys
+ * through its own journal (self-serve.js); every appended record is checked as an enrollment file is. */
+export async function openFleetCredits({ file, computers, policy: supplied, now = Date.now, openEnrollment = false }) {
+  const policy = creditPolicy(supplied), enrollment = await enrollComputers(computers, { allowEmpty: openEnrollment === true });
   assert(path.isAbsolute(file), 'Absolute service-credit database path required');
   await fs.mkdir(path.dirname(file), { recursive: true, mode: 0o700 });
   const handle = await fs.open(file, constants.O_CREAT | constants.O_RDWR | constants.O_NOFOLLOW, 0o600);
@@ -24,7 +26,8 @@ export async function openFleetCredits({ file, computers, policy: supplied, now 
     CREATE TABLE IF NOT EXISTS fleet_work (id TEXT PRIMARY KEY, request_id TEXT NOT NULL);
     CREATE TABLE IF NOT EXISTS fleet_evidence (request_id TEXT PRIMARY KEY, payload TEXT NOT NULL);
     CREATE TABLE IF NOT EXISTS fleet_journal (sequence INTEGER PRIMARY KEY, request_id TEXT NOT NULL, account_id TEXT NOT NULL, delta INTEGER NOT NULL, at INTEGER NOT NULL);
-    CREATE TABLE IF NOT EXISTS fleet_metadata (id TEXT PRIMARY KEY, value TEXT NOT NULL);`);
+    CREATE TABLE IF NOT EXISTS fleet_metadata (id TEXT PRIMARY KEY, value TEXT NOT NULL);
+    CREATE TABLE IF NOT EXISTS fleet_enrollment_log (sequence INTEGER PRIMARY KEY, computer_id TEXT NOT NULL, kind TEXT NOT NULL, entry TEXT NOT NULL, at INTEGER NOT NULL);`);
   const transaction = work => {
     db.exec('BEGIN IMMEDIATE');
     try { const result = work(); db.exec('COMMIT'); return result; }
@@ -33,15 +36,41 @@ export async function openFleetCredits({ file, computers, policy: supplied, now 
   try {
     transaction(() => {
       // Existing balances cannot be reinterpreted using another unit, rate or enrolled owner.
-      for (const [id, value] of [['policy', policy], ['enrollment', computers]]) {
+      const existing = db.prepare("SELECT value FROM fleet_metadata WHERE id='policy'").get();
+      const priorMode = db.prepare("SELECT value FROM fleet_metadata WHERE id='enrollmentMode'").get();
+      assert(!existing || !priorMode === (openEnrollment !== true), 'Credit enrollment mode changed; explicit migration required');
+      for (const [id, value] of [['policy', policy], ['enrollment', computers], ...(openEnrollment === true ? [['enrollmentMode', 'open']] : [])]) {
         const encoded = canonicalize(value), prior = db.prepare('SELECT value FROM fleet_metadata WHERE id=?').get(id);
         assert(!prior || prior.value === encoded, 'Credit policy or enrollment changed; explicit migration required');
         db.prepare('INSERT OR IGNORE INTO fleet_metadata VALUES (?,?)').run(id, encoded);
       }
       for (const id of enrollment.byId.keys()) db.prepare('INSERT OR IGNORE INTO fleet_accounts (id) VALUES (?)').run(id);
     });
+    // Appended enrollment replays in journal order, checked exactly as when it was first written.
+    for (const row of db.prepare('SELECT * FROM fleet_enrollment_log ORDER BY sequence').all()) await applyEnrollment(enrollment, row.kind, row.computer_id, JSON.parse(row.entry));
   } catch (error) { db.close(); throw error; }
   const accountFor = peer => { const account = enrollment.byPeer.get(peer); assert(account, 'Unenrolled participant'); return account; };
+  const activeAccountFor = peer => { const account = accountFor(peer); assert(account.revokedAt === undefined, 'This computer key was removed from its account'); return account; };
+  /** Record one enrollment change, then apply it. A record that fails its checks changes nothing. */
+  // One enrollment change at a time, so each is checked against every change committed before it.
+  let enrollmentWrites = Promise.resolve();
+  const appendEnrollment = (kind, computerId, entry) => {
+    const run = enrollmentWrites.then(() => writeEnrollment(kind, computerId, entry));
+    enrollmentWrites = run.catch(() => {});
+    return run;
+  };
+  const writeEnrollment = async (kind, computerId, entry) => {
+    assert(openEnrollment === true, 'This ledger uses a fixed operator enrollment; explicit migration required');
+    const trial = { byId: new Map([...enrollment.byId].map(([id, row]) => [id, structuredClone(row)])), byPeer: new Map(enrollment.byPeer) };
+    await applyEnrollment(trial, kind, computerId, entry);
+    const at = now();
+    transaction(() => {
+      db.prepare('INSERT INTO fleet_enrollment_log (computer_id, kind, entry, at) VALUES (?,?,?,?)').run(computerId, kind, JSON.stringify(entry), at);
+      if (kind === 'computer') db.prepare('INSERT INTO fleet_accounts (id) VALUES (?)').run(computerId);
+    });
+    await applyEnrollment(enrollment, kind, computerId, entry);
+    return structuredClone(enrollment.byId.get(computerId));
+  };
   const read = id => {
     const row = db.prepare('SELECT * FROM fleet_requests WHERE id=?').get(id);
     const evidence = row && db.prepare('SELECT payload FROM fleet_evidence WHERE request_id=?').get(id);
@@ -50,11 +79,24 @@ export async function openFleetCredits({ file, computers, policy: supplied, now 
   };
   let ledger;
   const recovery = createCreditRecovery({ db, transaction, read, settle: (id, evidence) => ledger.settle(id, evidence), enrollment, policy, now });
+  const debtLimitFor = computerId => Math.min(policy.maxDebt, enrollment.byId.get(computerId)?.debtLimit ?? policy.maxDebt);
   ledger = Object.freeze({
-    enrollment, policy, ...recovery,
+    enrollment, policy, ...recovery, openEnrollment: openEnrollment === true, debtLimitFor,
+    /** Open enrollment only: a new account with its first key. */
+    enrollAccount: computer => appendEnrollment('computer', computer?.id, computer),
+    /** Open enrollment only: another key for an existing account (a further paired computer). */
+    enrollKey: (computerId, provider) => appendEnrollment('key', computerId, provider),
+    /** Open enrollment only: refuse a key's later requests. Its earlier signatures still verify. */
+    revokeKey: (computerId, participantId) => appendEnrollment('revoke', computerId, { participantId, revokedAt: now() }),
+    /** Open enrollment only: change one account's debt limit, never above the policy's. */
+    setDebtLimit: (computerId, debtLimit) => appendEnrollment('debt-limit', computerId, { debtLimit }),
+    enrollmentLog(computerId) {
+      return db.prepare('SELECT * FROM fleet_enrollment_log WHERE computer_id=? ORDER BY sequence').all(computerId)
+        .map(row => ({ sequence: row.sequence, kind: row.kind, at: row.at, entry: JSON.parse(row.entry) }));
+    },
     reserve(input) {
       recovery.expire();
-      const value = structuredClone(input), consumer = accountFor(value.consumer);
+      const value = structuredClone(input), consumer = activeAccountFor(value.consumer);
       assert(text(value.id) && text(value.executionId) && ['whole-model', 'partition'].includes(value.mode)
         && text(value.model?.id) && digest(value.model.identity) && Array.isArray(value.model.adapterIdentities)
         && value.model.adapterIdentities.every(digest) && digest(value.inputDigest)
@@ -67,7 +109,7 @@ export async function openFleetCredits({ file, computers, policy: supplied, now 
       'Invalid credit reservation');
       let weight = 0;
       for (const provider of value.providers) {
-        const owner = accountFor(provider.participantId);
+        const owner = activeAccountFor(provider.participantId);
         assert(integer(provider.weight) && provider.weight > 0 && (value.mode === 'partition' || owner.computerId !== consumer.computerId)
           && (policy.allowSameOwner || owner.ownerId !== consumer.ownerId), 'Ineligible credited provider');
         weight += provider.weight;
@@ -99,9 +141,16 @@ export async function openFleetCredits({ file, computers, policy: supplied, now 
         // Refused before any hold or disclosure: the requester sends the prompt only after this reservation exists.
         assert(pending < policy.maxPendingPerComputer,
           `Service-credit admission limit reached: ${pending} unfinished answers on this account. Nothing was sent.`);
-        const spendable = account.balance - account.held + policy.maxDebt;
+        const spendable = account.balance - account.held + debtLimitFor(consumer.computerId);
         assert(spendable >= maximum,
           `Service-credit admission limit reached: not enough service credits. This answer can cost up to ${maximum} and ${Math.max(0, spendable)} can be spent now. Nothing was sent.`);
+        if (policy.maxTotalDebt !== undefined) {
+          // Owed now across every account, counting holds as spent, plus what this hold could add.
+          const owed = db.prepare('SELECT COALESCE(SUM(MAX(0, held - balance)), 0) AS owed FROM fleet_accounts').get().owed;
+          const added = Math.max(0, account.held + maximum - account.balance) - Math.max(0, account.held - account.balance);
+          assert(owed + added <= policy.maxTotalDebt,
+            'Service-credit admission limit reached: the network has lent all the starter credit it allows right now. Serving answers earns credits you can spend. Nothing was sent.');
+        }
         const createdAt = now();
         const binding = { ...value, requestHash, computerId: consumer.computerId, maximum,
           policyVersion: policy.version, terminalCharge: value.mode === 'whole-model' ? policy.wholeModelTerminalCharge ?? null : null,
@@ -193,8 +242,16 @@ export async function openFleetCredits({ file, computers, policy: supplied, now 
           && (row.binding.computerId === computerId
             || row.binding.providers.some(provider => accountFor(provider.participantId).computerId === computerId)))
         .map(row => ({ requestId: row.id, request: row.binding, outcome: row.outcome }));
+      // An open ledger states only the accounts this one dealt with, not every enrolled account.
+      const involved = new Set([computerId]);
+      for (const row of [...entries, ...expired]) {
+        involved.add(row.request.computerId);
+        for (const provider of row.request.providers) involved.add(accountFor(provider.participantId).computerId);
+      }
+      const stated = openEnrollment === true ? [...involved].map(id => structuredClone(enrollment.byId.get(id))) : structuredClone(computers);
       return { schema: 'reploid.fleet-credit-statement/v1', computerId, unit: policy.unit, policy: structuredClone(policy),
-        computers: structuredClone(computers), balance: account.balance, held: account.held, issuedAt: now(), entries, expired };
+        computers: stated, balance: account.balance, held: account.held, issuedAt: now(), entries, expired,
+        ...(openEnrollment === true ? { debtLimit: debtLimitFor(computerId), enrollment: ledger.enrollmentLog(computerId) } : {}) };
     },
     snapshot() {
       recovery.expire();
@@ -207,4 +264,29 @@ export async function openFleetCredits({ file, computers, policy: supplied, now 
     close() { db.close(); }
   });
   return ledger;
+}
+
+/** One enrollment journal record applied to the in-memory enrollment, with the same checks as an enrollment file. */
+async function applyEnrollment(enrollment, kind, computerId, entry) {
+  if (kind === 'computer') {
+    assert(entry?.id === computerId, 'Enrollment record names another account');
+    await enrollComputer(enrollment, entry);
+    return;
+  }
+  const computer = enrollment.byId.get(computerId);
+  assert(computer, 'Unknown service-credit account');
+  if (kind === 'key') {
+    const key = await enrollmentKey(entry, enrollment.byPeer);
+    assert(key.revokedAt === undefined, 'A new key cannot arrive revoked');
+    computer.providers.push(structuredClone(entry));
+    enrollment.byPeer.set(key.participantId, { computerId, ownerId: computer.ownerId, publicJwk: key.publicJwk });
+  } else if (kind === 'revoke') {
+    const provider = computer.providers.find(row => row.participantId === entry?.participantId);
+    assert(provider && provider.revokedAt === undefined && integer(entry.revokedAt), 'No active key to remove from this account');
+    provider.revokedAt = entry.revokedAt;
+    enrollment.byPeer.set(provider.participantId, { ...enrollment.byPeer.get(provider.participantId), revokedAt: entry.revokedAt });
+  } else if (kind === 'debt-limit') {
+    assert(integer(entry?.debtLimit), 'Invalid account debt limit');
+    computer.debtLimit = entry.debtLimit;
+  } else throw Error('Unknown enrollment change');
 }
