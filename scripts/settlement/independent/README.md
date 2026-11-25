@@ -26,7 +26,9 @@ Plain Node, about 10 seconds, no model, no GPU, no network.
 - **Who wrote it.** A second agent session working for the same operator as the service's verifier. It is not an
   independent party, and this is not a third-party replay.
 - **What the author read.** Only `docs/settlement-replay.md`, first at commit 20121ae60 and again in full at
-  4ee9dd6b2, c29bc5d44, a25242bc3 and 955bd5f7a when the document changed. It was told not to open the service's verifier, the signers, the tests, the
+  4ee9dd6b2, c29bc5d44, a25242bc3 and 955bd5f7a when the document changed. For the owner's decided
+  unfinished-answer rule (61cea0a88) a fresh session read only the document, `replay.js` and `DOC-GAPS.md`, with no
+  git and no code search. It was told not to open the service's verifier, the signers, the tests, the
   scenario builder, the attack matrix, this directory's comparison or any diff, and it reported opening none of
   them. That boundary is self-reported.
 - **What the author could not test.** It had no signer, so before the comparison it could only check the verifier
@@ -40,18 +42,18 @@ does, and only from the document's text. A fix prompted by the service's code wo
 
 ## Result on main
 
-The document at f1b3f0754 and the service's verifier at 955bd5f7a (the later commit changes only the document's
-wording about Stage 1 and the ledger; the author re-read it and left the verifier as it was). 20 base attempts, 25 mutation families, Ed25519 and P-256
-keys, seven clock values around the deadline, the release window and the instant an attempt is decided. The
-document reports one row per reservation and requester, and the comparison is keyed the same way.
+The document with the owner's decided unfinished-answer rule and both verifiers at 61cea0a88. 22 base attempts
+(two added for the older provider-loss-free terms), 25 mutation families, Ed25519 and P-256 keys, seven clock values
+around the deadline, the release window and the instant an attempt is decided. The document reports one row per
+reservation and requester, and the comparison is keyed the same way.
 
 | | Count |
 | --- | --- |
-| Record sets | 1,388 |
-| Judgments (one row at one clock value) | 1,936 |
-| Same outcome, same debit, same credit for every stage | 1,936 |
-| Every documented member of the row the same | 1,936 |
-| Same records rejected, same `counts` and same balances per account | 1,892 of 1,892 runs |
+| Record sets | 1,448 |
+| Judgments (one row at one clock value) | 2,052 |
+| Same outcome, same debit, same credit for every stage | 2,052 |
+| Every documented member of the row the same | 2,052 |
+| Same records rejected, same `counts` and same balances per account | 2,008 of 2,008 runs |
 | Disagreements | 0 |
 
 Read this as: on these record sets, a verifier written from the document's text alone returns what the service's
@@ -68,8 +70,8 @@ reject the second form of a P-256 signature, count a closing receipt signed up t
 plus the clock allowance and list a later one as late, and keep a row `open` up to and including the instant the
 deadline, the release window and the clock allowance have passed.
 
-This verifier implements the replay. The document also describes the live ledger's interim rule for one case (its
-"Known difference" section); that rule is the ledger's and is compared in the next section, not here.
+This verifier implements the replay, under the decided terms and under the older ones the document keeps. The
+ledger's interim rules of 2026-11-25 (the document's "Older rules") are a ledger rule and are not implemented here.
 
 ### How the comparison got here
 
@@ -81,6 +83,7 @@ This verifier implements the replay. The document also describes the live ledger
 | c29bc5d44 | updated from the text | 1,774 of 1,774, then 1,904 of 1,904 with the added family | nothing |
 | a25242bc3 | updated from the text; the result shape now follows the document's member list | 1,904 of 1,904 | no verdict or amount; three small differences in other row members (an own-account stage in `credits`, conflict entry details, `closedAtLastStep`) |
 | 955bd5f7a | updated from the text | 1,936 of 1,936, every row member included | nothing |
+| 61cea0a88 | updated from the text with the decided unfinished-answer rule; result `schema` v2 | 2,052 of 2,052, every row member included | nothing; the amounts `replay.js` computes did not change, because it already charged the prefix under every value but the provider-loss-free one |
 
 Between those rounds the comparison and [../baseline-matrix.js](../baseline-matrix.js) also showed properties both
 verifiers shared because the document said so, and the document and the service's verifier were changed on each: a
@@ -100,30 +103,25 @@ judges the same records at that time. The policy sets the request limit to the s
 deadline and the signed one are the same instant.
 
 16 base attempts, each with all its records and with a stage's closing receipt or every receipt withheld, and with
-the requester's top acknowledgment or all but its charge binding withheld.
+the requester's top acknowledgment or all but its charge binding withheld. Every attempt is signed under the decided
+rules, which every new reservation takes.
 
 | | Count |
 | --- | --- |
 | Cases | 109 |
-| Same debit and same credit for every stage | 107 |
-| Different amounts | 2, both the one known difference below |
+| Same debit and same credit for every stage | 109 |
+| Different amounts | 0 |
 
 Where the amounts agree the words can still differ: when a stage presents no receipt at all for a delivered answer,
 the ledger reports the hold expired and the replay reports `unknown` (8 cases). Both move nothing.
 
-### The one known difference
+### The decided rule
 
-**The stages close an unfinished answer and no requester stop was signed.** The requester acknowledged 3 outputs;
-the ledger charges them (9, or 6 when the top acknowledgment is withheld) and the replay charges nothing. This is
-deliberate and labelled in [docs/settlement-replay.md](../../../docs/settlement-replay.md) as a known difference
-pending the owner's decision.
-
-Why it is open: the requester asks for every step of a split answer, so a requester that has read enough can stop
-asking. The stages then close, and the records look the same as stages that gave up. Under the replay's rule that
-costs nothing, while signing a stop costs the acknowledged outputs, so no requester would sign one: with 39 of 40
-outputs acknowledged, walking away is 0 and a signed stop is 117. Under the ledger's rule the requester owes what
-it acknowledged whoever ended the answer, and an answer a provider abandons is no longer free. Which of the two is
-meant is not a question a comparison can answer.
+**The stages close an unfinished answer and no requester stop was signed.** This was the one known difference: the
+replay charged nothing and the ledger the acknowledged outputs. The owner decided it on 2026-11-25: such an answer is
+an unattributed disconnect and both charge the outputs acknowledged in time, capped at the signed ceiling. With 39
+of 40 outputs acknowledged, walking away and a signed stop now both cost 117. A verified provider failure, a stage
+that never closes, still costs the requester nothing in both. Reservations made under the older rules keep them.
 
 ### How it got here
 
@@ -131,7 +129,8 @@ meant is not a question a comparison can answer.
 | --- | --- |
 | 560f7440b (first run, final `collect` only, no stop) | 102 of 109. Three causes: the case above; closes 5 s after the deadline inside the release window (ledger 0, replay 12); an answer past the signed ceiling (ledger refused the receipts, replay charged the ceiling). |
 | 4d845320a, fd2ece824 | The ledger was moved to the replay on all three, and the live route began handing over each acknowledgment as signed and the requester's stop: 109 of 109. |
-| 955bd5f7a | The first case was moved back in the ledger, once it was clear that the replay's rule makes every partial answer free at the requester's option: 107 of 109, the two cases above. |
+| 955bd5f7a | The first case was moved back in the ledger, once it was clear that the replay's rule makes every partial answer free at the requester's option: 107 of 109, the two walk-away cases. |
+| 4016e5281 | The owner's decision: the replay takes the ledger's charge for an unattributed disconnect under new terms, and the ledger keeps provider-failure relief: 109 of 109. |
 
 `--latest-only` runs the comparison with only the final `collect` and no stop: what a route that kept less would
 hand over. It shows what the agreement on the other cases depends on.
@@ -141,30 +140,32 @@ hand over. It shows what the agreement on the other cases depends on.
 The two verifiers agree on the following, because the document says so. Each is a property of the rules, not a
 difference between implementations.
 
-- **An unfinished answer with no signed stop costs nothing.** The requester asks for every step, so a requester
-  that stops asking leaves exactly these records and pays nothing, while signing a stop would cost it the
-  acknowledged outputs. Both verifiers agree, because that is the replay's rule. The live ledger charges the
-  acknowledged outputs instead, and the document labels this a known difference pending the owner's decision.
+- **A stage that fails and still closes is charged as a disconnect.** A stage receipt names no cause, and a live
+  stage also signs `failed` when the requester's abort reaches it, so only a missing close counts as a provider
+  failure. Both verifiers agree, because the document says so, and it lists this as a limit.
 - **The final stage closes with a null output.** A finished, acknowledged answer then settles at 0.
 - **Signers still write their own times.** The rules no longer reward a stage for backdating a late close, but no
   record can show when anything was really signed. The document lists this as a limit.
 
 ## What the document still leaves open
 
-[DOC-GAPS.md](DOC-GAPS.md) lists 77 items, numbered across all six versions of the document. Against the current
-text 47 are settled, 10 partly settled and 19 still stand; 1 is new. None of the open ones changed a result in this
-run. Those most likely to matter to another implementer:
+[DOC-GAPS.md](DOC-GAPS.md) lists 79 items, numbered across all seven versions of the document. Against the text
+with the decided rule its author counts 48 settled, 10 partly settled and 19 still standing of the first 77, and 2
+new. None of the open ones changed a result in this run. Those most likely to matter to another implementer:
 
-- **The Stage 1 pass condition past the ceiling.** It says the ledger's charge is the acknowledged count at the
-  policy rate, while the ledger's rule caps the charge at the signed ceiling, so for an answer past the ceiling
-  the condition as worded cannot hold. This is about the Stage 1 check, not the replay.
+- **Which rule a row was decided under (78).** No row member names the unfinished-answer terms applied, and the
+  result's `schema` is `v2` even over older terms; only `reason` says. A verifier reading a result needs the signed
+  terms to know.
+- **Older terms signed after the decision (79).** The replay decides by the signed value. Since this gap was
+  written the document adds that stages accept only the decided terms, so such terms stay `unknown`; the replay
+  still checks no date.
 - **Acceptances and late listings:** whether an in-time acceptance of another terms digest is listed as late, and
   whether an `invalid` row lists late records.
 - **Conflict list details:** what `digests` holds and in what order, and the order of entries between kinds.
 - **Field types.** `attemptId`, `requesterId`, `participantId` and `maximum` have no stated type.
 
-Settled by the current text since the last version: which sequences a conflict entry carries, what
-`closedAtLastStep` and `counts` hold, how a late receipt's chain is used, and when an attempt is decided.
+Settled by the text with the decided rule: the Stage 1 pass condition past the ceiling (77), and the scope of the
+old known difference (76 is moot).
 
 ## The first round
 

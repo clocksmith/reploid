@@ -1,9 +1,9 @@
 {
   "schema": "reploid.settlement-ledger-differential/v1",
-  "generatedAt": "2026-11-25T11:22:59.221Z",
-  "finishedAt": "2026-11-25T11:23:01.784Z",
+  "generatedAt": "2026-11-25T12:43:43.623Z",
+  "finishedAt": "2026-11-25T12:43:46.898Z",
   "command": "node scripts/settlement/independent/ledger-differential.js --out scripts/settlement/independent/receipts/ledger-differential.json",
-  "commit": "37221d16ae2dd6d38fd8ffa9f55557af24ea7a71",
+  "commit": "61cea0a888580e23c95fb9ca72eae1663e4aa17a",
   "uncommittedChangesInComparedCode": false,
   "node": "v22.20.0",
   "note": "All parties are simulated identities on one machine under one operator. The ledger is given each acknowledgment when it was signed, then what a live route retains (latest records and the signed stop) at the moment the last of them was signed, and asked again after the release window; the replay judges the same records after the window. Status pairs are ledger / replay.",
@@ -23,23 +23,15 @@
   },
   "handedToTheLedger": "each acknowledgment as signed, then the final collect with the stop",
   "cases": 109,
-  "amountsAgreed": 107,
+  "amountsAgreed": 109,
   "statusPairs": {
     "expired / expired": 49,
     "expired / unknown": 8,
     "settled / settled": 52
   },
   "differences": {
-    "total": 2,
-    "byCause": {
-      "KNOWN DIFFERENCE, pending the owner's decision (docs/settlement-replay.md): the stages closed an unfinished answer with no signed stop. The ledger charges the acknowledged outputs; the replay charges nothing": {
-        "count": 2,
-        "cases": [
-          "stages close early on their own after 3 outputs | all records",
-          "stages close early on their own after 3 outputs | requester withholds its top acknowledgment"
-        ]
-      }
-    }
+    "total": 0,
+    "byCause": {}
   },
   "lines": [
     {
@@ -172,7 +164,7 @@
           0,
           0
         ],
-        "reason": "the release window passed without every stage closing; under these terms nobody is charged or paid"
+        "reason": "the release window passed without every stage closing (a verified provider failure, or an attempt that never started); nobody is charged or paid"
       },
       "amountsAgree": true,
       "cause": null
@@ -361,7 +353,7 @@
           0,
           0
         ],
-        "reason": "the release window passed without every stage closing; under these terms nobody is charged or paid"
+        "reason": "the release window passed without every stage closing (a verified provider failure, or an attempt that never started); nobody is charged or paid"
       },
       "amountsAgree": true,
       "cause": null
@@ -469,7 +461,7 @@
           0,
           0
         ],
-        "reason": "the release window passed without every stage closing; under these terms nobody is charged or paid"
+        "reason": "the release window passed without every stage closing (a verified provider failure, or an attempt that never started); nobody is charged or paid"
       },
       "amountsAgree": true,
       "cause": null
@@ -496,7 +488,7 @@
           0,
           0
         ],
-        "reason": "the release window passed without every stage closing; under these terms nobody is charged or paid"
+        "reason": "the release window passed without every stage closing (a verified provider failure, or an attempt that never started); nobody is charged or paid"
       },
       "amountsAgree": true,
       "cause": null
@@ -523,7 +515,7 @@
           0,
           0
         ],
-        "reason": "the release window passed without every stage closing; under these terms nobody is charged or paid"
+        "reason": "the release window passed without every stage closing (a verified provider failure, or an attempt that never started); nobody is charged or paid"
       },
       "amountsAgree": true,
       "cause": null
@@ -550,7 +542,7 @@
           0,
           0
         ],
-        "reason": "the release window passed without every stage closing; under these terms nobody is charged or paid"
+        "reason": "the release window passed without every stage closing (a verified provider failure, or an attempt that never started); nobody is charged or paid"
       },
       "amountsAgree": true,
       "cause": null
@@ -658,7 +650,7 @@
           0,
           0
         ],
-        "reason": "the release window passed without every stage closing; under these terms nobody is charged or paid"
+        "reason": "the release window passed without every stage closing (a verified provider failure, or an attempt that never started); nobody is charged or paid"
       },
       "amountsAgree": true,
       "cause": null
@@ -685,7 +677,7 @@
           0,
           0
         ],
-        "reason": "the release window passed without every stage closing; under these terms nobody is charged or paid"
+        "reason": "the release window passed without every stage closing (a verified provider failure, or an attempt that never started); nobody is charged or paid"
       },
       "amountsAgree": true,
       "cause": null
@@ -712,7 +704,7 @@
           0,
           0
         ],
-        "reason": "the release window passed without every stage closing; under these terms nobody is charged or paid"
+        "reason": "the release window passed without every stage closing (a verified provider failure, or an attempt that never started); nobody is charged or paid"
       },
       "amountsAgree": true,
       "cause": null
@@ -739,7 +731,7 @@
           0,
           0
         ],
-        "reason": "the release window passed without every stage closing; under these terms nobody is charged or paid"
+        "reason": "the release window passed without every stage closing (a verified provider failure, or an attempt that never started); nobody is charged or paid"
       },
       "amountsAgree": true,
       "cause": null
@@ -847,7 +839,7 @@
           0,
           0
         ],
-        "reason": "the release window passed without every stage closing; under these terms nobody is charged or paid"
+        "reason": "the release window passed without every stage closing (a verified provider failure, or an attempt that never started); nobody is charged or paid"
       },
       "amountsAgree": true,
       "cause": null
@@ -874,7 +866,7 @@
           0,
           0
         ],
-        "reason": "the release window passed without every stage closing; under these terms nobody is charged or paid"
+        "reason": "the release window passed without every stage closing (a verified provider failure, or an attempt that never started); nobody is charged or paid"
       },
       "amountsAgree": true,
       "cause": null
@@ -901,7 +893,7 @@
           0,
           0
         ],
-        "reason": "the release window passed without every stage closing; under these terms nobody is charged or paid"
+        "reason": "the release window passed without every stage closing (a verified provider failure, or an attempt that never started); nobody is charged or paid"
       },
       "amountsAgree": true,
       "cause": null
@@ -928,7 +920,7 @@
           0,
           0
         ],
-        "reason": "the release window passed without every stage closing; under these terms nobody is charged or paid"
+        "reason": "the release window passed without every stage closing (a verified provider failure, or an attempt that never started); nobody is charged or paid"
       },
       "amountsAgree": true,
       "cause": null
@@ -1036,7 +1028,7 @@
           0,
           0
         ],
-        "reason": "the release window passed without every stage closing; under these terms nobody is charged or paid"
+        "reason": "the release window passed without every stage closing (a verified provider failure, or an attempt that never started); nobody is charged or paid"
       },
       "amountsAgree": true,
       "cause": null
@@ -1063,7 +1055,7 @@
           0,
           0
         ],
-        "reason": "the release window passed without every stage closing; under these terms nobody is charged or paid"
+        "reason": "the release window passed without every stage closing (a verified provider failure, or an attempt that never started); nobody is charged or paid"
       },
       "amountsAgree": true,
       "cause": null
@@ -1090,7 +1082,7 @@
           0,
           0
         ],
-        "reason": "the release window passed without every stage closing; under these terms nobody is charged or paid"
+        "reason": "the release window passed without every stage closing (a verified provider failure, or an attempt that never started); nobody is charged or paid"
       },
       "amountsAgree": true,
       "cause": null
@@ -1117,7 +1109,7 @@
           0,
           0
         ],
-        "reason": "the release window passed without every stage closing; under these terms nobody is charged or paid"
+        "reason": "the release window passed without every stage closing (a verified provider failure, or an attempt that never started); nobody is charged or paid"
       },
       "amountsAgree": true,
       "cause": null
@@ -1225,7 +1217,7 @@
           0,
           0
         ],
-        "reason": "the release window passed without every stage closing; under these terms nobody is charged or paid"
+        "reason": "the release window passed without every stage closing (a verified provider failure, or an attempt that never started); nobody is charged or paid"
       },
       "amountsAgree": true,
       "cause": null
@@ -1252,7 +1244,7 @@
           0,
           0
         ],
-        "reason": "the release window passed without every stage closing; under these terms nobody is charged or paid"
+        "reason": "the release window passed without every stage closing (a verified provider failure, or an attempt that never started); nobody is charged or paid"
       },
       "amountsAgree": true,
       "cause": null
@@ -1279,7 +1271,7 @@
           0,
           0
         ],
-        "reason": "the release window passed without every stage closing; under these terms nobody is charged or paid"
+        "reason": "the release window passed without every stage closing (a verified provider failure, or an attempt that never started); nobody is charged or paid"
       },
       "amountsAgree": true,
       "cause": null
@@ -1306,7 +1298,7 @@
           0,
           0
         ],
-        "reason": "the release window passed without every stage closing; under these terms nobody is charged or paid"
+        "reason": "the release window passed without every stage closing (a verified provider failure, or an attempt that never started); nobody is charged or paid"
       },
       "amountsAgree": true,
       "cause": null
@@ -1321,22 +1313,22 @@
           2,
           7
         ],
-        "reason": "unfinished-answer-closed-without-requester-stop",
+        "reason": "unattributed-disconnect-acknowledged-prefix",
         "atCollect": null,
         "collectedAtMs": 1501,
         "refusedAcknowledgments": 0
       },
       "replay": {
         "status": "settled",
-        "charge": 0,
+        "charge": 9,
         "credits": [
-          0,
-          0
+          2,
+          7
         ],
-        "reason": "a stage ended the answer before it finished; under these terms nobody is charged or paid"
+        "reason": "the stages closed an unfinished answer with no signed stop and no verified provider failure; the outputs the requester acknowledged are charged"
       },
-      "amountsAgree": false,
-      "cause": "KNOWN DIFFERENCE, pending the owner's decision (docs/settlement-replay.md): the stages closed an unfinished answer with no signed stop. The ledger charges the acknowledged outputs; the replay charges nothing"
+      "amountsAgree": true,
+      "cause": null
     },
     {
       "base": "stages close early on their own after 3 outputs",
@@ -1360,7 +1352,7 @@
           0,
           0
         ],
-        "reason": "the release window passed without every stage closing; under these terms nobody is charged or paid"
+        "reason": "the release window passed without every stage closing (a verified provider failure, or an attempt that never started); nobody is charged or paid"
       },
       "amountsAgree": true,
       "cause": null
@@ -1387,7 +1379,7 @@
           0,
           0
         ],
-        "reason": "the release window passed without every stage closing; under these terms nobody is charged or paid"
+        "reason": "the release window passed without every stage closing (a verified provider failure, or an attempt that never started); nobody is charged or paid"
       },
       "amountsAgree": true,
       "cause": null
@@ -1414,7 +1406,7 @@
           0,
           0
         ],
-        "reason": "the release window passed without every stage closing; under these terms nobody is charged or paid"
+        "reason": "the release window passed without every stage closing (a verified provider failure, or an attempt that never started); nobody is charged or paid"
       },
       "amountsAgree": true,
       "cause": null
@@ -1441,7 +1433,7 @@
           0,
           0
         ],
-        "reason": "the release window passed without every stage closing; under these terms nobody is charged or paid"
+        "reason": "the release window passed without every stage closing (a verified provider failure, or an attempt that never started); nobody is charged or paid"
       },
       "amountsAgree": true,
       "cause": null
@@ -1456,22 +1448,22 @@
           1,
           5
         ],
-        "reason": "unfinished-answer-closed-without-requester-stop",
+        "reason": "unattributed-disconnect-acknowledged-prefix",
         "atCollect": null,
         "collectedAtMs": 1501,
         "refusedAcknowledgments": 0
       },
       "replay": {
         "status": "settled",
-        "charge": 0,
+        "charge": 6,
         "credits": [
-          0,
-          0
+          1,
+          5
         ],
-        "reason": "a stage ended the answer before it finished; under these terms nobody is charged or paid"
+        "reason": "the stages closed an unfinished answer with no signed stop and no verified provider failure; the outputs the requester acknowledged are charged"
       },
-      "amountsAgree": false,
-      "cause": "KNOWN DIFFERENCE, pending the owner's decision (docs/settlement-replay.md): the stages closed an unfinished answer with no signed stop. The ledger charges the acknowledged outputs; the replay charges nothing"
+      "amountsAgree": true,
+      "cause": null
     },
     {
       "base": "stages close early on their own after 3 outputs",
@@ -1522,7 +1514,7 @@
           0,
           0
         ],
-        "reason": "the release window passed without every stage closing; under these terms nobody is charged or paid"
+        "reason": "the release window passed without every stage closing (a verified provider failure, or an attempt that never started); nobody is charged or paid"
       },
       "amountsAgree": true,
       "cause": null
@@ -1549,7 +1541,7 @@
           0,
           0
         ],
-        "reason": "the release window passed without every stage closing; under these terms nobody is charged or paid"
+        "reason": "the release window passed without every stage closing (a verified provider failure, or an attempt that never started); nobody is charged or paid"
       },
       "amountsAgree": true,
       "cause": null
@@ -1576,7 +1568,7 @@
           0,
           0
         ],
-        "reason": "the release window passed without every stage closing; under these terms nobody is charged or paid"
+        "reason": "the release window passed without every stage closing (a verified provider failure, or an attempt that never started); nobody is charged or paid"
       },
       "amountsAgree": true,
       "cause": null
@@ -1603,7 +1595,7 @@
           0,
           0
         ],
-        "reason": "the release window passed without every stage closing; under these terms nobody is charged or paid"
+        "reason": "the release window passed without every stage closing (a verified provider failure, or an attempt that never started); nobody is charged or paid"
       },
       "amountsAgree": true,
       "cause": null
@@ -1630,7 +1622,7 @@
           0,
           0
         ],
-        "reason": "the release window passed without every stage closing; under these terms nobody is charged or paid"
+        "reason": "the release window passed without every stage closing (a verified provider failure, or an attempt that never started); nobody is charged or paid"
       },
       "amountsAgree": true,
       "cause": null
@@ -1657,7 +1649,7 @@
           0,
           0
         ],
-        "reason": "the release window passed without every stage closing; under these terms nobody is charged or paid"
+        "reason": "the release window passed without every stage closing (a verified provider failure, or an attempt that never started); nobody is charged or paid"
       },
       "amountsAgree": true,
       "cause": null
@@ -1684,7 +1676,7 @@
           0,
           0
         ],
-        "reason": "the release window passed without every stage closing; under these terms nobody is charged or paid"
+        "reason": "the release window passed without every stage closing (a verified provider failure, or an attempt that never started); nobody is charged or paid"
       },
       "amountsAgree": true,
       "cause": null
@@ -1711,7 +1703,7 @@
           0,
           0
         ],
-        "reason": "the release window passed without every stage closing; under these terms nobody is charged or paid"
+        "reason": "the release window passed without every stage closing (a verified provider failure, or an attempt that never started); nobody is charged or paid"
       },
       "amountsAgree": true,
       "cause": null
@@ -1738,7 +1730,7 @@
           0,
           0
         ],
-        "reason": "the release window passed without every stage closing; under these terms nobody is charged or paid"
+        "reason": "the release window passed without every stage closing (a verified provider failure, or an attempt that never started); nobody is charged or paid"
       },
       "amountsAgree": true,
       "cause": null
@@ -1765,7 +1757,7 @@
           0,
           0
         ],
-        "reason": "the release window passed without every stage closing; under these terms nobody is charged or paid"
+        "reason": "the release window passed without every stage closing (a verified provider failure, or an attempt that never started); nobody is charged or paid"
       },
       "amountsAgree": true,
       "cause": null
@@ -1792,7 +1784,7 @@
           0,
           0
         ],
-        "reason": "the release window passed without every stage closing; under these terms nobody is charged or paid"
+        "reason": "the release window passed without every stage closing (a verified provider failure, or an attempt that never started); nobody is charged or paid"
       },
       "amountsAgree": true,
       "cause": null
@@ -1819,7 +1811,7 @@
           0,
           0
         ],
-        "reason": "the release window passed without every stage closing; under these terms nobody is charged or paid"
+        "reason": "the release window passed without every stage closing (a verified provider failure, or an attempt that never started); nobody is charged or paid"
       },
       "amountsAgree": true,
       "cause": null
@@ -1927,7 +1919,7 @@
           0,
           0
         ],
-        "reason": "the release window passed without every stage closing; under these terms nobody is charged or paid"
+        "reason": "the release window passed without every stage closing (a verified provider failure, or an attempt that never started); nobody is charged or paid"
       },
       "amountsAgree": true,
       "cause": null
@@ -1954,7 +1946,7 @@
           0,
           0
         ],
-        "reason": "the release window passed without every stage closing; under these terms nobody is charged or paid"
+        "reason": "the release window passed without every stage closing (a verified provider failure, or an attempt that never started); nobody is charged or paid"
       },
       "amountsAgree": true,
       "cause": null
@@ -1981,7 +1973,7 @@
           0,
           0
         ],
-        "reason": "the release window passed without every stage closing; under these terms nobody is charged or paid"
+        "reason": "the release window passed without every stage closing (a verified provider failure, or an attempt that never started); nobody is charged or paid"
       },
       "amountsAgree": true,
       "cause": null
@@ -2116,7 +2108,7 @@
           0,
           0
         ],
-        "reason": "the release window passed without every stage closing; under these terms nobody is charged or paid"
+        "reason": "the release window passed without every stage closing (a verified provider failure, or an attempt that never started); nobody is charged or paid"
       },
       "amountsAgree": true,
       "cause": null
@@ -2224,7 +2216,7 @@
           0,
           0
         ],
-        "reason": "the release window passed without every stage closing; under these terms nobody is charged or paid"
+        "reason": "the release window passed without every stage closing (a verified provider failure, or an attempt that never started); nobody is charged or paid"
       },
       "amountsAgree": true,
       "cause": null
@@ -2251,7 +2243,7 @@
           0,
           0
         ],
-        "reason": "the release window passed without every stage closing; under these terms nobody is charged or paid"
+        "reason": "the release window passed without every stage closing (a verified provider failure, or an attempt that never started); nobody is charged or paid"
       },
       "amountsAgree": true,
       "cause": null
@@ -2278,7 +2270,7 @@
           0,
           0
         ],
-        "reason": "the release window passed without every stage closing; under these terms nobody is charged or paid"
+        "reason": "the release window passed without every stage closing (a verified provider failure, or an attempt that never started); nobody is charged or paid"
       },
       "amountsAgree": true,
       "cause": null
@@ -2305,7 +2297,7 @@
           0,
           0
         ],
-        "reason": "the release window passed without every stage closing; under these terms nobody is charged or paid"
+        "reason": "the release window passed without every stage closing (a verified provider failure, or an attempt that never started); nobody is charged or paid"
       },
       "amountsAgree": true,
       "cause": null
@@ -2494,7 +2486,7 @@
           0,
           0
         ],
-        "reason": "the release window passed without every stage closing; under these terms nobody is charged or paid"
+        "reason": "the release window passed without every stage closing (a verified provider failure, or an attempt that never started); nobody is charged or paid"
       },
       "amountsAgree": true,
       "cause": null
@@ -2751,7 +2743,7 @@
           0,
           0
         ],
-        "reason": "the release window passed without every stage closing; under these terms nobody is charged or paid"
+        "reason": "the release window passed without every stage closing (a verified provider failure, or an attempt that never started); nobody is charged or paid"
       },
       "amountsAgree": true,
       "cause": null
@@ -2944,7 +2936,7 @@
           0,
           0
         ],
-        "reason": "the release window passed without every stage closing; under these terms nobody is charged or paid"
+        "reason": "the release window passed without every stage closing (a verified provider failure, or an attempt that never started); nobody is charged or paid"
       },
       "amountsAgree": true,
       "cause": null
