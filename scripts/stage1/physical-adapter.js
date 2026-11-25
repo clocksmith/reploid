@@ -34,6 +34,12 @@ const EARN_MAX_REQUESTS = 8;
 export const DEFAULT_BOOKKEEPING_MS = 240000;
 /** Where a machine keeps the fingerprints of one search scope, in its own state directory. */
 export const weightBaselineFile = (target, scope) => `${target.stateDirectory}/weight-baseline-${scope}.json`;
+/**
+ * The release whose weight searches a window runs: the commit that last changed what they cover (roots, skips, scope,
+ * ranges) or how a directory is fingerprinted. A baseline recorded before it predates those searches and the check
+ * refuses it. Move this, and record the baselines again, whenever either changes.
+ */
+export const WEIGHT_SCAN_RELEASE = Object.freeze({ commit: '63075ee06d53b767ba63fe7e6693b4caf69a3efa', committedAt: '2026-11-25T00:15:43.000Z' });
 
 const stopWith = (code, detail = '') => Object.assign(Error(detail ? `${code}: ${detail}` : code), { code });
 const matchesStage = (inventory, stage) => inventory.outsideStageRanges === 0 && inventory.outsideStageBytes === 0
@@ -283,10 +289,79 @@ export function createPhysicalStage1Adapter({ config, directory, expectations, s
     return results;
   }
 
+  /**
+   * Window-free and read-only: the window's own searches (`scan` and `requesterWeights` with `baseline: 'compare'`, so
+   * the same roots, skips and scope) and the preflight's build-record check, one step at a time so each is timed alone.
+   * A directory is hashed only if it is new or changed since the baseline, and no baseline is written. Each machine
+   * also reports the release and harness it runs. `release` is this operator's `{ sha, harnessDigest }`.
+   */
+  async function checkWeightBaselines({ release, timeoutMs = limits.phaseMs, signal, notBefore = WEIGHT_SCAN_RELEASE.committedAt } = {}) {
+    const span = clock.budget('check', timeoutMs, signal), iso = ms => new Date(ms).toISOString();
+    const text = message => (redactor ? redactor.text(message) : message);
+    const timed = async (name, work) => {
+      const startedAt = now();
+      const times = () => ({ startedAt: iso(startedAt), endedAt: iso(now()), ms: now() - startedAt });
+      try {
+        const value = await step(name, span, work);
+        return { ok: true, ...times(), ...value };
+      } catch (error) { return { ok: false, ...times(), code: error.code ?? null, error: text(String(error?.message ?? error)) }; }
+    };
+    /** What a compare says about the baseline, and why it would not hold in a window. */
+    const compared = (baseline, problems) => {
+      if (!baseline.matched) problems.push(`baseline-differs: ${baseline.hashedDirectories} directories re-hashed, ${baseline.goneDirectories} gone`);
+      if (!(Date.parse(baseline.recordedAt) >= Date.parse(notBefore))) problems.push(`baseline-older-than-release: recorded ${baseline.recordedAt}, before ${notBefore}`);
+      return { directories: baseline.directories, unchangedDirectories: baseline.unchangedDirectories, hashedDirectories: baseline.hashedDirectories,
+        rehashed: baseline.rehashed, goneDirectories: baseline.goneDirectories, matchedBaseline: baseline.matched, baselineRecordedAt: baseline.recordedAt };
+    };
+    const machines = {};
+    for (const [index, target] of [...hosts.entries(), [null, requesterTarget]]) {
+      const label = target.label, problems = [], scans = {};
+      const identity = await timed(`check ${label} release`, options => control(target, 'release', {}, options));
+      if (!identity.ok) problems.push(`release-unreadable: ${identity.error}`);
+      else {
+        if (identity.harnessDigest !== release.harnessDigest) problems.push('harness-digest-differs');
+        if (!identity.releaseSha || identity.releaseSha !== release.sha) problems.push(`release-sha-differs: ${identity.releaseSha}`);
+      }
+      let record = null;
+      if (index !== null) {
+        record = await timed(`check ${label} stage-directory record`, options => stageDirectory(label, { action: 'verify', ...options }));
+        if (!record.ok) problems.push(`stage-directory-record: ${record.code ?? record.error}`);
+        for (const scope of ['stage-directory', 'host-weight-directories']) {
+          scans[scope] = await timed(`check ${label} ${scope}`, async options => {
+            const row = await scan(target, index, scope, { ...options, baseline: 'compare' });
+            if (scope === 'stage-directory' && !matchesStage(row.inventory, expectations.stages[index])) problems.push('stage-directory does not hold exactly its stage');
+            if (scope === 'host-weight-directories' && row.outsideElsewhere > 0) problems.push(`${row.outsideElsewhere} other-stage ranges outside the full copy`);
+            return { rangeCount: row.inventory.rangeCount, outsideStageRanges: row.inventory.outsideStageRanges, outsideElsewhere: row.outsideElsewhere,
+              evidence: row.inventory.evidence, ...compared(row.baseline, problems) };
+          });
+        }
+      } else {
+        scans['requester-weight-directories'] = await timed('check requester weights', async options => {
+          const row = await requesterWeights({ ...options, baseline: 'compare' });
+          if (row.heldRanges.rangeCount !== 0) problems.push(`the requester holds ${row.heldRanges.rangeCount} pieces of the model`);
+          return { heldRanges: row.heldRanges.rangeCount, evidence: row.evidence ?? null, ...compared(row.baseline, problems) };
+        });
+      }
+      for (const [scope, row] of Object.entries(scans)) if (!row.ok) problems.push(`${scope}: ${row.code ?? row.error}`);
+      const rows = Object.values(scans), done = rows.filter(row => row.ok);
+      machines[label] = { ok: problems.length === 0, problems,
+        scanMs: rows.reduce((sum, row) => sum + row.ms, 0),
+        directoriesCompared: done.reduce((sum, row) => sum + row.directories, 0),
+        rehashedDirectories: done.reduce((sum, row) => sum + row.hashedDirectories, 0),
+        rehashed: Object.entries(scans).flatMap(([scope, row]) => (row.rehashed ?? []).map(item => ({ scope, ...item }))),
+        matchedBaseline: rows.length > 0 && rows.every(row => row.ok && row.matchedBaseline),
+        baselineRecordedAt: Object.fromEntries(Object.entries(scans).map(([scope, row]) => [scope, row.baselineRecordedAt ?? null])),
+        release: identity.ok ? { sha: identity.releaseSha, harnessDigest: identity.harnessDigest } : null,
+        ...(record ? { stageDirectoryRecord: record } : {}), scans };
+    }
+    return machines;
+  }
+
   const adapter = {
     describe: () => ({ runtimeClass: 'physical', adapter: 'physical-hosts' }),
     stageDirectory,
     recordWeightBaselines,
+    checkWeightBaselines,
     /** The split's bound is its generation's plus both bookkeeping budgets; every other phase has `limits.phaseMs`. */
     phaseBudgetMs: name => (name === 'split' ? limits.phaseMs + 2 * bookkeepingMs : limits.phaseMs),
     evidence: () => ({ serviceRestores: [...serviceRows.values()].map(row => ({ ...row })), steps: clock.records() }),

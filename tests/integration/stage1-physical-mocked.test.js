@@ -18,7 +18,8 @@ import { loadStage1Expectations, STAGE1_FIXTURE_FILE, STAGE1_MODEL_ID } from '..
 import { LABEL_POOLED } from '../../scripts/stage1/receipt-check.js';
 import { verifyCoordinatorTls } from '../../scripts/stage1/physical-coordinator.js';
 import { DEFAULT_BOOKKEEPING_MS } from '../../scripts/stage1/physical-adapter.js';
-import { prepareStageDirectories, runPhysicalStage1 } from '../../scripts/stage1/run.js';
+import { checkStageDirectories, prepareStageDirectories, runPhysicalStage1 } from '../../scripts/stage1/run.js';
+import { harnessDigest } from '../../scripts/stage1/host-agent.js';
 
 const EARN_NOT_CONFIGURED = ['phase-not-completed:earn', 'earn-missing'];
 const EARN_MODEL_ID = 'qwen-3-5-0-8b-q4k-ef16-af32-vf16';
@@ -198,6 +199,36 @@ describe.runIf(wrtc)('the physical adapter against mocked hosts', () => {
     expect(receipt.phases.preflight.reason).toContain('weight-baseline-missing');
     expect(receipt.phases['solo-a'].status).toBe('skipped');
     expect(verdict.ok).toBe(false);
+  }, 90000);
+
+  it('checks the window\'s compare-only searches without a window: unchanged passes, a changed file is re-hashed and named, no baseline fails', async () => {
+    const setup = await setUp('check');
+    const release = { sha: null, harnessDigest: await harnessDigest() };
+    const check = () => checkStageDirectories({ config: setup.config, transport: mockTransport(setup.scenarioFile), release, timeoutMs: 30000 });
+    const missing = await check();
+    expect(missing.ok).toBe(false);
+    for (const label of ['host-a', 'host-b', 'requester']) expect(missing.reasons.some(row => row.startsWith(`${label}:`) && row.includes('weight-baseline-missing'))).toBe(true);
+    await prepare(setup);
+    const unchanged = await check();
+    // The mock hosts have no RELEASE_SHA; everything else holds and nothing is hashed.
+    expect(unchanged.reasons.every(row => row.includes('release-sha'))).toBe(true);
+    expect(unchanged).toMatchObject({ schema: 'reploid.stage1-weight-check/v1', release, scanRelease: { commit: expect.stringMatching(/^[0-9a-f]{40}$/) } });
+    for (const label of ['host-a', 'host-b', 'requester']) {
+      expect(unchanged.machines[label]).toMatchObject({ rehashedDirectories: 0, matchedBaseline: true, release: { harnessDigest: release.harnessDigest } });
+      for (const row of Object.values(unchanged.machines[label].scans)) expect(row).toMatchObject({ ok: true, hashedDirectories: 0, goneDirectories: 0 });
+    }
+    expect(unchanged.machines['host-b'].scans['stage-directory']).toMatchObject({ evidence: 'unchanged-since-hash', rangeCount: loaded.expectations.stages[1].rangeCount });
+    expect(unchanged.machines['host-a'].stageDirectoryRecord).toMatchObject({ ok: true, verified: 'record' });
+    const shard = (await fs.readdir(setup.config.hosts[1].stageDirectory)).find(name => name.endsWith('.bin'));
+    await fs.appendFile(path.join(setup.config.hosts[1].stageDirectory, shard), '');
+    await fs.utimes(path.join(setup.config.hosts[1].stageDirectory, shard), new Date(), new Date());
+    const changed = await check();
+    expect(changed.machines['host-b']).toMatchObject({ matchedBaseline: false, rehashedDirectories: 2,
+      rehashed: [{ scope: 'stage-directory', path: '.', reason: 'changed' }, { scope: 'host-weight-directories', reason: 'changed' }] });
+    expect(changed.reasons).toContain('host-b: baseline-differs: 1 directories re-hashed, 0 gone');
+    expect(changed.machines['host-a'].matchedBaseline).toBe(true);
+    expect(spawned.every(row => row.mode === '--control')).toBe(true);
+    expect(JSON.stringify(changed)).not.toContain(root);
   }, 90000);
 
   it('refuses the earn phase, and so the receipt, when no earning machine is configured', async () => {

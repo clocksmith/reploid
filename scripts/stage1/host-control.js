@@ -85,7 +85,9 @@ async function readBaseline(file) {
  * per directory, its fingerprint (fingerprintDirectory) and the ranges it held. `{ action: 'compare', file }` reads no
  * weight bytes from a directory whose fingerprint is unchanged since then and takes the ranges recorded for it; a
  * directory that is new or changed is hashed now, and one that is gone holds nothing. The inventory's `evidence` says
- * which (`hashed-now` or `unchanged-since-hash`) and `hashedAt` when the oldest hash it rests on was taken.
+ * which (`hashed-now` or `unchanged-since-hash`) and `hashedAt` when the oldest hash it rests on was taken. A compare
+ * also names each directory it hashed again and why (`new` or `changed`, by its path under the root that holds it),
+ * counts the recorded directories now gone, and says whether every fingerprint `matched` the baseline.
  */
 export async function scanHostWeights({ roots, allRanges, stageRanges, fullCopyDirectory = null, skipDirectories = [], scope, measure = measureHeldRanges,
   baseline = null, now = Date.now, signal }) {
@@ -104,7 +106,12 @@ export async function scanHostWeights({ roots, allRanges, stageRanges, fullCopyD
   const directories = await findWeightDirectories(roots, new Set(allRanges.map(range => range.path)), skip);
   const fullCopy = fullCopyDirectory ? await realOrNull(fullCopyDirectory) : null;
   const byKey = new Map(allRanges.map(range => [rangeKey(range), range]));
-  const assigned = new Set(stageRanges.map(rangeKey)), held = new Map(), elsewhere = new Set(), inCopy = new Set(), recorded = {};
+  const assigned = new Set(stageRanges.map(rangeKey)), held = new Map(), elsewhere = new Set(), inCopy = new Set(), recorded = {}, rehashed = [];
+  const realRoots = previous ? await Promise.all(roots.map(realOrNull)) : [];
+  const underRoot = directory => {
+    const index = realRoots.findIndex(root => root !== null && inside(directory, root));
+    return index < 0 ? { root: null, path: path.basename(directory) } : { root: index, path: path.relative(realRoots[index], directory) || '.' };
+  };
   let unchanged = 0, hashed = 0, buildRecordDigest = null;
   for (const directory of directories) {
     signal?.throwIfAborted();
@@ -119,6 +126,7 @@ export async function scanHostWeights({ roots, allRanges, stageRanges, fullCopyD
     } else {
       found = await measure({ directory, ranges: allRanges, signal });
       hashed += 1;
+      if (previous) rehashed.push({ ...underRoot(directory), reason: before ? 'changed' : 'new' });
     }
     if (fingerprint) recorded[directory] = { fingerprint: fingerprint.digest, held: found.map(rangeKey) };
     for (const range of found) {
@@ -135,11 +143,13 @@ export async function scanHostWeights({ roots, allRanges, stageRanges, fullCopyD
     await fs.rename(temporary, baseline.file);
   }
   const evidence = previous && unchanged > 0 ? 'unchanged-since-hash' : 'hashed-now';
+  const gone = previous ? Object.keys(previous.directories ?? {}).filter(directory => !directories.includes(directory)).length : 0;
   return { inventory: { ...observeInventory({ held: [...held.values()], stageRanges, source: 'hashed-on-host', scope, scannedRanges: allRanges.length }),
     evidence, hashedAt: evidence === 'hashed-now' ? at : previous.recordedAt, ...(buildRecordDigest ? { buildRecordDigest } : {}) },
     outsideInFullCopy: inCopy.size, outsideElsewhere: elsewhere.size, skippedDirectories: skip.length,
     ...(baseline ? { baseline: { action: baseline.action, recordedAt: previous?.recordedAt ?? at,
-      directories: directories.length, unchangedDirectories: unchanged, hashedDirectories: hashed } } : {}) };
+      directories: directories.length, unchangedDirectories: unchanged, hashedDirectories: hashed,
+      ...(previous ? { rehashed, goneDirectories: gone, matched: hashed === 0 && gone === 0 } : {}) } } : {}) };
 }
 
 /**

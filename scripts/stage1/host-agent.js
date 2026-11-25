@@ -32,6 +32,12 @@ export async function harnessDigest(directory = STAGE1_DIRECTORY) {
   return 'sha256:' + hash.digest('hex');
 }
 
+/** The commit an installed release root was made from (`RELEASE_SHA` beside `scripts/`), or null when it has none. */
+export async function readReleaseSha(directory = STAGE1_DIRECTORY) {
+  const text = await fs.readFile(path.join(directory, '..', '..', 'RELEASE_SHA'), 'utf8').catch(() => '');
+  return /^[0-9a-f]{40}$/.test(text.trim()) ? text.trim() : null;
+}
+
 /** The persistent enrolled identity. It must already exist: enrollment is an operator step, not a side effect. */
 export async function readHostIdentity(file) {
   const stat = await fs.lstat(file).catch(() => null);
@@ -95,6 +101,8 @@ export function realHostPorts() {
 export function createControlOperations(ports) {
   return {
     'scan-weights': body => scanHostWeights({ ...body, measure: ports.measure }),
+    /** Which release and harness code this host runs; reads two small files, nothing else. */
+    release: async () => ({ releaseSha: await (ports.releaseSha ?? readReleaseSha)(), harnessDigest: await (ports.harnessDigest ?? harnessDigest)() }),
     'lock-directory': body => lockDirectory(body),
     'directory-bytes': ({ directories }) => measureDirectoryBytes(directories),
     'memory-pressure': async () => parseMemoryPressure(await ports.readPressure()),

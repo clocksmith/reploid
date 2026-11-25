@@ -7,6 +7,8 @@
  *     --out RECEIPT.json [--fixture FILE]
  *   node scripts/stage1/run.js --adapter physical --hosts PRIVATE_FILE --prepare-stage-directories build|verify
  *     [--host host-a|host-b|requester] [--hash] [--timeout-minutes N]
+ *   node scripts/stage1/run.js --adapter physical --hosts PRIVATE_FILE --prepare-stage-directories check --out RECEIPT.json
+ *     [--timeout-minutes N]
  *
  * `--prepare-stage-directories` runs before a window, never inside one: `build` writes each stage host's stage
  * directory from its full copy (refusing one that exists), `verify` checks an existing one's build record against
@@ -14,6 +16,13 @@
  * cover (each stage directory, each host's other weight roots apart from its full copy, the requester's roots) and keeps
  * their fingerprints on that machine. A window run needs those fingerprints: its searches hash only what changed since.
  * Preflight always checks each stage directory's build record against the pin.
+ *
+ * `check` is the window's own compare, run without a window and read-only: on host-a, host-b and the requester it runs
+ * the same searches with `baseline: 'compare'` and each stage directory's build-record check, one timed step at a time.
+ * It hashes only a directory that changed since the baseline, never writes one, and writes a receipt of each machine's
+ * scan time, directories compared and re-hashed (and why), whether everything matched the baseline, when that baseline
+ * was recorded, and the release and harness digest it runs. It fails if a baseline is missing, recorded for other
+ * roots, skips, scope or ranges, older than the release of the scan code (`WEIGHT_SCAN_RELEASE`), or no longer matched.
  *
  * Progress goes to standard error, one line per phase and step with UTC times and durations.
  *
@@ -30,7 +39,8 @@ import { loadStage1Expectations } from './expectations.js';
 import { checkStage1Receipt } from './receipt-check.js';
 import { runStage1Phases } from './runner.js';
 import { createLocalStage1Adapter } from './local-adapter.js';
-import { createPhysicalStage1Adapter } from './physical-adapter.js';
+import { createPhysicalStage1Adapter, WEIGHT_SCAN_RELEASE } from './physical-adapter.js';
+import { harnessDigest, readReleaseSha } from './host-agent.js';
 import { assertLongReference, createRedactor, loadPhysicalConfig, resolveRunWindow, validatePhysicalConfig } from './physical-config.js';
 import { createSshTransport } from './command-transport.js';
 
@@ -97,6 +107,29 @@ export async function prepareStageDirectories({ config, transport, action, label
   return results;
 }
 
+export const WEIGHT_CHECK_SCHEMA = 'reploid.stage1-weight-check/v1';
+
+/**
+ * The `check` action: the window's compare-only weight searches and build-record checks, outside any window, with a
+ * receipt. `release` is this operator's `{ sha, harnessDigest }`; every machine must run the same. Nothing is written
+ * on any machine. The receipt has the host file's private values removed.
+ */
+export async function checkStageDirectories({ config, transport, release, timeoutMs, signal = null, log = null, now = Date.now,
+  notBefore = WEIGHT_SCAN_RELEASE.committedAt }) {
+  validatePhysicalConfig(config);
+  const loaded = await loadWorkload('physical', null, config.credit.weights);
+  const redactor = createRedactor(config);
+  const adapter = createPhysicalStage1Adapter({ config, directory: null, transport, redactor, ...loaded, log, now });
+  const startedAt = now();
+  const machines = await adapter.checkWeightBaselines({ release, timeoutMs, signal, notBefore });
+  const endedAt = now();
+  const reasons = [...(release.sha ? [] : ['operator: release-sha-unknown']),
+    ...Object.entries(machines).flatMap(([label, row]) => row.problems.map(problem => `${label}: ${problem}`))];
+  const receipt = { schema: WEIGHT_CHECK_SCHEMA, ok: reasons.length === 0, reasons, startedAt: new Date(startedAt).toISOString(),
+    endedAt: new Date(endedAt).toISOString(), ms: endedAt - startedAt, release, scanRelease: { ...WEIGHT_SCAN_RELEASE, notBefore }, machines };
+  return JSON.parse(redactor.text(JSON.stringify(receipt)));
+}
+
 const progress = line => { process.stderr.write(line + '\n'); };
 
 async function main() {
@@ -107,10 +140,22 @@ async function main() {
   if (values['prepare-stage-directories'] !== undefined) {
     const minutes = Number(values['timeout-minutes'] ?? 240);
     if (values.adapter !== 'physical' || !values.hosts || values['window-until'] || !(minutes > 0)) {
-      throw Error('Usage: run.js --adapter physical --hosts PRIVATE_FILE --prepare-stage-directories build|verify [--host LABEL] [--hash] [--timeout-minutes N]');
+      throw Error('Usage: run.js --adapter physical --hosts PRIVATE_FILE --prepare-stage-directories build|verify|check [--host LABEL] [--hash] [--out FILE] [--timeout-minutes N]');
     }
     const stop = new AbortController();
     for (const name of ['SIGINT', 'SIGTERM']) process.once(name, () => stop.abort(Error(`Received ${name}`)));
+    if (values['prepare-stage-directories'] === 'check') {
+      if (!values.out || !path.isAbsolute(values.out) || values.hash || values.host) {
+        throw Error('Usage: run.js --adapter physical --hosts PRIVATE_FILE --prepare-stage-directories check --out ABSOLUTE_RECEIPT.json [--timeout-minutes N]');
+      }
+      const receipt = await checkStageDirectories({ config: await loadPhysicalConfig(values.hosts), transport: createSshTransport(),
+        release: { sha: await readReleaseSha(), harnessDigest: await harnessDigest() }, timeoutMs: Math.round(minutes * 60000), signal: stop.signal, log: progress });
+      await fs.writeFile(values.out, JSON.stringify(receipt, null, 2) + '\n', { flag: 'wx', mode: 0o600 });
+      process.stdout.write(JSON.stringify({ ok: receipt.ok, reasons: receipt.reasons, scanMs: Object.fromEntries(Object.entries(receipt.machines)
+        .map(([label, row]) => [label, row.scanMs])) }, null, 2) + '\n');
+      process.exitCode = receipt.ok ? 0 : 1;
+      return;
+    }
     const results = await prepareStageDirectories({ config: await loadPhysicalConfig(values.hosts), transport: createSshTransport(),
       action: values['prepare-stage-directories'], labels: values.host ? [values.host] : null, hash: values.hash === true,
       timeoutMs: Math.round(minutes * 60000), signal: stop.signal, log: progress });
