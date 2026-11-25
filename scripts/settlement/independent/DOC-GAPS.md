@@ -1,11 +1,12 @@
 # Gaps found in `docs/settlement-replay.md` while writing `replay.js`
 
-Source read: `docs/settlement-replay.md` only, as of commit 955bd5f7a (the commit is the one the coordinator named; the author may not run git and checked only the text: 621 lines, sha256 `2d220ef42c0d70c5c626d6d79f6a31c1b5ff0210425c6e7acfbef6b782d43740`, the same at the start and the end of the work). Line numbers refer to that text.
-Items 1-44 were written against commit 20121ae60, before the verifier was compared with anything; items 45-58 were added at 4ee9dd6b2, items 59-69 at c29bc5d44, items 70-74 at a25242bc3, and items 75-76 are new at 955bd5f7a. The numbering is kept. Every item's line numbers and "Chosen" text were brought up to 955bd5f7a, and each ends with a status line for that text. The author has still not read the reference code, the other files beside this one, or any comparison result.
+Source read: `docs/settlement-replay.md` only, as of commit f1b3f0754 (the commit is the one the coordinator named; the author may not run git and checked only the text: 638 lines, sha256 `c31c873c0dd53666723e9c0c459a3e763d03b9dba82ad6136ccc40fc5c6326ac`, the same at the start and the end of the work). Line numbers refer to that text.
+Items 1-44 were written against commit 20121ae60, before the verifier was compared with anything; items 45-58 were added at 4ee9dd6b2, items 59-69 at c29bc5d44, items 70-74 at a25242bc3, items 75-76 at 955bd5f7a, and item 77 is new at f1b3f0754. The numbering is kept. The author has still not read the reference code, the other files beside this one, or any comparison result.
+The f1b3f0754 text differs from 955bd5f7a only from line 465 on (the Stage 1 paragraph, the ledger paragraph, the "Known difference" section and the "Checking it" section). Lines 1-464, which hold every rule of the replay and its result, are unchanged, so `replay.js` was not changed for f1b3f0754 (its header comment still names 955bd5f7a), and every item's status line and line numbers stand as written at 955bd5f7a, except items 58, 72, 75 and 76, which were brought up to f1b3f0754.
 Each open item gives the question, the reading `replay.js` implements ("Chosen"), and the other plausible reading(s) ("Other"). A settled item keeps its question and says what settled it.
-Items 1-37, 45-54, 59-66 and 70-72 are places where the text does not determine behaviour. Items 38-44, 55-58, 67-69 and 73-76 are places where the text looks self-contradictory or wrong.
+Items 1-37, 45-54, 59-66 and 70-72 are places where the text does not determine behaviour. Items 38-44, 55-58, 67-69 and 73-77 are places where the text looks self-contradictory or wrong.
 
-Status at 955bd5f7a of items 1-74: 45 settled (2, 6, 12, 17, 19, 22, 23, 24, 27, 28, 29, 30, 32, 34, 35, 37-48, 50-59, 61, 62, 67-70, 73, 74), 10 partly settled (3, 13, 14, 15, 18, 26, 36, 49, 63, 72), 19 still stand (1, 4, 5, 7, 8, 9, 10, 11, 16, 20, 21, 25, 31, 33, 60, 64, 65, 66, 71). Six of the settled ones were settled by this text: 28, 54, 62, 70, 73, 74. New at 955bd5f7a: 2 (75, 76).
+Status at f1b3f0754 of items 1-76: 47 settled (2, 6, 12, 17, 19, 22, 23, 24, 27, 28, 29, 30, 32, 34, 35, 37-48, 50-59, 61, 62, 67-70, 73-76), 10 partly settled (3, 13, 14, 15, 18, 26, 36, 49, 63, 72), 19 still stand (1, 4, 5, 7, 8, 9, 10, 11, 16, 20, 21, 25, 31, 33, 60, 64, 65, 66, 71). Two of the settled ones were settled by this text: 75 and 76. New at f1b3f0754: 1 (77), which is about the Stage 1 harness and does not touch the replay.
 
 ## Encoding (lines 39-96)
 
@@ -235,7 +236,7 @@ Status at 955bd5f7a of items 1-74: 45 settled (2, 6, 12, 17, 19, 22, 23, 24, 27,
     Status: Settled at c29bc5d44, and still (L320-321, L362-365, L397-399).
 
 58. **Replay against ledger.**
-    Status: Settled at c29bc5d44, and still: L473-497 says where the two agree, and L499-536 names the case where they do not (item 76 is about how that case is worded).
+    Status: Settled at c29bc5d44, and still: L480-504 says where the two agree, and L506-550 names the one case where they differ in credits and the one where they differ in status only.
 
 ## Added at c29bc5d44: not determined by the text
 
@@ -293,10 +294,10 @@ Status at 955bd5f7a of items 1-74: 45 settled (2, 6, 12, 17, 19, 22, 23, 24, 27,
     Other: one entry per distinct value; sorted by kind or by count.
     Status: still stands.
 
-72. **L350-353, L524-525. `chargedOutputs`, `unacknowledgedOutputs` and `beyondCeiling` at the edges.**
+72. **L350-353, L538-539. `chargedOutputs`, `unacknowledgedOutputs` and `beyondCeiling` at the edges.**
     Chosen: `beyondCeiling` is `max(0, acknowledged - maxOutputTokens)` whatever the charge; `unacknowledgedOutputs` is `null` when the final stage's latest receipt has `output: null` (item 13).
     Other: `beyondCeiling` is 0 when nothing is charged.
-    Status: partly settled. Settled at 955bd5f7a: a row whose answer a stage ended is "`settled` with `outputs > 0` and `chargedOutputs: 0`" (L524-525), as `replay.js` had it. The other two edges are still not stated.
+    Status: partly settled, as at 955bd5f7a: a row whose answer a stage ended is "`settled` with `outputs > 0` and `chargedOutputs: 0`" (L538-539, and L470-471), as `replay.js` had it. The other two edges are still not stated.
 
 ## Added at a25242bc3: looked self-contradictory or wrong
 
@@ -306,11 +307,15 @@ Status at 955bd5f7a of items 1-74: 45 settled (2, 6, 12, 17, 19, 22, 23, 24, 27,
 74. **L165-168, L252-259, L270-273.** The release window "passed" for `at` before the last instant at which a close could still count.
     Status: Settled at 955bd5f7a: the window has passed at `at > deadline + releaseWindowMs + maxClockSkewMs` (L165-168), and step 6 is `open` up to and including that instant (L252-257). `replay.js` changed (it used `at >= deadline + releaseWindowMs`).
 
-## New at 955bd5f7a: looks self-contradictory or wrong
+## Added at 955bd5f7a: looked self-contradictory or wrong
 
-75. **L465-468 against L331.** The Stage 1 paragraph says a receipt passes "only when its replay lists the reservation in `knownDifferences` as `unfinished-split-answer-closed-without-stop` with the same acknowledged count". The Rows section gives what `replaySettlement` returns as six members, and `knownDifferences` is not one of them; nothing says what else holds that list or what one of its entries looks like.
-    Chosen: `replaySettlement` returns only the six documented members. Such a row can be recognised as L524-525 says: `status: 'settled'`, `outputs > 0`, `chargedOutputs: 0`.
-    Other: the replay returns `knownDifferences` as a seventh member.
+75. **L465-475 against L331.** The Stage 1 paragraph said a receipt passes only when "its replay lists the reservation in `knownDifferences`", a member the Rows section does not give `replaySettlement`'s return.
+    Status: Settled at f1b3f0754: `knownDifferences` belongs to the Stage 1 receipt, not to the replay. Each attempt's `settlementReplay` there "holds the replay's return as `result` and, next to it, `knownDifferences`", built by the harness with one `{ case, reservationId, requesterId, acknowledgedOutputs }` entry per `result.reservations` row that is `settled` with `outputs > 0` and `chargedOutputs: 0` (L465-472). `replaySettlement` returns the six documented members, as `replay.js` already did; nothing changed.
 
-76. **L499-512 against L287-293 and L473-496.** The known difference is described as "an unfinished split answer whose stages closed ..., with no in-time requester stop and no more than `K` acknowledgments withheld", and the replay's rule as "an unfinished split answer costs nothing unless the requester signs a stop". Step 9 makes it free only under `unfinishedTerms` equal to the provider-loss-free value, and withholding more than `K` acknowledgments also charges the prefix; under `null` or any other value the replay charges the prefix as the ledger's interim rule does. L473-474 calls it "the one case" where the two differ, while L493-496 names another difference of status (`unknown` in the replay, `expired` in the ledger), though one that moves nothing.
-    Chosen: step 9 as written. Nothing of the ledger's interim rule is implemented.
+76. **L506-521 against L287-293 and L480-504.** The known difference and "the replay's rule" were stated without the provider-loss-free condition and without the withheld case, and "the one case" left out the difference of status.
+    Status: Settled at f1b3f0754: the case is now "under `unfinishedTerms` equal to `reploid.unfinished-answer/provider-loss-free/v1` ... with no in-time requester stop and no more than `K` acknowledgments withheld", it "does not arise under `unfinishedTerms: null` or any other value, or when more than `K` acknowledgments were withheld" (L511-517), the replay's rule carries the same conditions (L519-521), and the text names "one case that moves credits" and "one difference of status only" (L508-510, L480-481). This is step 9 as `replay.js` already had it; nothing of the ledger's interim rule is implemented.
+
+## New at f1b3f0754: looks self-contradictory or wrong
+
+77. **L472-475 against L499-500 and L527-530.** The Stage 1 check passes with the known difference only when "the ledger charged exactly that prefix: its output count equals `outputs` and its charge is that count at the policy rate". But the ledger's interim rule charges the acknowledged prefix "up to `maxOutputTokens`", and the ledger "charges `maxOutputTokens` and records the rest as `beyondCeiling`". For a row whose `outputs` is past the ceiling the ledger's charge is `maxOutputTokens` at the policy rate, not `outputs` at that rate, so the condition as worded cannot hold there.
+    Chosen: nothing to implement. This is a rule of the Stage 1 harness, not of the replay; `replay.js` reports `outputs`, `chargedOutputs` and `beyondCeiling` and does not judge the ledger.

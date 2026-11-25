@@ -40,7 +40,8 @@ does, and only from the document's text. A fix prompted by the service's code wo
 
 ## Result on main
 
-The document and the service's verifier at 955bd5f7a. 20 base attempts, 25 mutation families, Ed25519 and P-256
+The document at f1b3f0754 and the service's verifier at 955bd5f7a (the later commit changes only the document's
+wording about Stage 1 and the ledger; the author re-read it and left the verifier as it was). 20 base attempts, 25 mutation families, Ed25519 and P-256
 keys, seven clock values around the deadline, the release window and the instant an attempt is decided. The
 document reports one row per reservation and requester, and the comparison is keyed the same way.
 
@@ -150,16 +151,13 @@ difference between implementations.
 
 ## What the document still leaves open
 
-[DOC-GAPS.md](DOC-GAPS.md) lists 76 items, numbered across all five versions of the document. Against the current
-text 45 are settled, 10 partly settled and 19 still stand; 2 are new, and both are places where the text looks
-wrong rather than undecided. None of the open ones changed a result in this run. Those most likely to matter to
-another implementer:
+[DOC-GAPS.md](DOC-GAPS.md) lists 77 items, numbered across all six versions of the document. Against the current
+text 47 are settled, 10 partly settled and 19 still stand; 1 is new. None of the open ones changed a result in this
+run. Those most likely to matter to another implementer:
 
-- **`knownDifferences`.** One paragraph says a Stage 1 receipt passes only when its replay lists the reservation in
-  `knownDifferences`, but the description of what the replay returns has no such member.
-- **How the known difference is worded.** It is stated without the provider-loss-free condition and without the
-  withheld case, and called the one case where ledger and replay differ, while another paragraph names a second
-  difference of status that moves nothing.
+- **The Stage 1 pass condition past the ceiling.** It says the ledger's charge is the acknowledged count at the
+  policy rate, while the ledger's rule caps the charge at the signed ceiling, so for an answer past the ceiling
+  the condition as worded cannot hold. This is about the Stage 1 check, not the replay.
 - **Acceptances and late listings:** whether an in-time acceptance of another terms digest is listed as late, and
   whether an `invalid` row lists late records.
 - **Conflict list details:** what `digests` holds and in what order, and the order of entries between kinds.
