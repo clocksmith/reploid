@@ -5,47 +5,43 @@ import { publicPreparationProgress } from '../../../../shared/vendor/reploid/mes
 import { computerLabel, withComputerLabels } from './computer-labels.js';
 import { updateModelSelect } from '../components/model-select.js';
 import { renderComputerRename, renderComputerBlock, bindComputerPreferences } from './computer-preferences-view.js';
+import { renderOptions, renderToggleRow, updateOption } from '../components/choices.js';
+import { escapeHtml } from '../components/attachments.js';
+import { fileModeChoices } from './choice-availability.js';
 /** Shared network controls consume host snapshots; they never grant permission on render. */
 
-export const renderConnectionControl = () => `<div class="network-sharing-row">
-  <div><strong class="pool-small">Public network</strong><span class="pool-small pool-muted" data-connection-label>Disconnected</span></div>
-  <button class="network-switch pool-switch" type="button" role="switch" aria-label="Connect to network" aria-checked="false" data-mesh-connect><span></span></button>
-</div><p class="pool-small pool-muted" data-connection-detail role="status"></p>`;
+export const renderConnectionControl = () => `${renderToggleRow({ id: 'network-connection', title: 'Public network', status: 'Disconnected',
+  statusAttrs: { 'data-connection-label': true }, switchAttrs: { 'aria-label': 'Connect to network', 'data-mesh-connect': true } })}
+<p class="pool-status-line pool-caption pool-muted" data-connection-detail role="status"></p>`;
 
 /** Compute contribution: the Computers pane's "This device" controls. */
-export const renderComputeSharingControls = () => `<div class="pool-stack pool-gap-md">
+export const renderComputeSharingControls = () => `<div class="pool-stack pool-gap-sm">
   <p class="pool-small" data-tab-sharing-summary role="status" hidden></p>
-  <div class="network-sharing-row" data-compute-sharing-row>
-    <div class="pool-stack pool-gap-xs"><strong>Answer requests</strong>
-      <p class="pool-muted">Share a downloaded model while this page is open. Downloads need your approval.</p>
-      <span class="pool-small pool-muted" data-contrib-label>Not sharing</span>
-      <p data-contribution-progress role="status" hidden></p>
-      <button type="button" class="pool-button" data-retry-contribution-stop hidden>Retry stopping</button></div>
-    <button class="network-switch pool-switch" type="button" role="switch" aria-label="Help answer requests" aria-checked="false" data-toggle-contribution><span></span></button>
-  </div>
-  <details class="pool-disclosure"><summary>Connection assistance</summary><div class="network-sharing-row">
-    <div><strong>Help peers connect</strong><p class="pool-muted">Forward invitations without sharing conversations, model files, or compute.</p></div>
-    <button class="network-switch pool-switch" type="button" role="switch" aria-label="Help peers connect" aria-checked="false" data-toggle-introductions><span></span></button>
-  </div></details>
+  ${renderToggleRow({ id: 'compute-sharing', title: 'Answer requests', status: 'Not sharing', rowAttrs: { 'data-compute-sharing-row': true },
+    statusAttrs: { 'data-contrib-label': true }, switchAttrs: { 'aria-label': 'Help answer requests', 'data-toggle-contribution': true } })}
+  <p class="pool-caption pool-muted">Share a downloaded model while this page is open. Downloads need your approval.</p>
+  <p class="pool-small" data-contribution-progress role="status" hidden></p>
+  <button type="button" class="pool-button" data-retry-contribution-stop hidden>Retry stopping</button>
+  ${renderToggleRow({ id: 'introductions', title: 'Help peers connect', status: 'Forwards invitations only: no conversations, files or compute.',
+    switchAttrs: { 'aria-label': 'Help peers connect', 'data-toggle-introductions': true } })}
 </div>`;
 
-/** File sharing and its download options: the Settings pane's Storage controls. */
-export const renderFileSharingControls = () => `<div class="network-sharing-row" data-file-sharing-row>
-    <div class="pool-stack pool-gap-xs"><strong>Share model files</strong>
-      <p class="pool-muted">Let others download files stored on this device.</p>
-      <span class="pool-small pool-muted" data-file-contribution-label>Not sharing</span>
-      <p data-file-progress role="status" hidden></p></div>
-    <button class="network-switch pool-switch" type="button" role="switch" aria-label="Store and share model files" aria-checked="false" data-toggle-file-contribution><span></span></button>
+let fileModeLists = 0;
+/** File sharing and its download options; each rendering is its own radio group. */
+export const renderFileSharingControls = () => `<div class="pool-stack pool-gap-sm" data-file-sharing-row>
+    ${renderToggleRow({ id: 'file-sharing', title: 'Share model files', status: 'Not sharing', statusAttrs: { 'data-file-contribution-label': true },
+      switchAttrs: { 'aria-label': 'Store and share model files', 'data-toggle-file-contribution': true } })}
+    <p class="pool-caption pool-muted">Let others download model files stored on this device.</p>
+    <p class="pool-small" data-file-progress role="status" hidden></p>
   </div>
   <details class="pool-disclosure" data-model-sharing-limits><summary>Download options</summary><div class="pool-stack pool-gap-md">
-    <label>Model<select class="pool-input" data-contribution-model aria-label="Model to share"></select></label>
-    <label>Files to share<select class="pool-input" data-file-mode aria-label="File participation">
-      <option value="cached-only">Already downloaded</option><option value="bounded-acquisition">Download within a limit</option>
-      <option value="full-model">Download the full model</option></select></label>
-    <label data-file-download-label hidden>Total download allowance (MiB)
+    <label class="pool-stack pool-gap-xs">Model<select class="pool-input" data-contribution-model aria-label="Model to share"></select></label>
+    ${renderOptions({ id: `file-mode-${++fileModeLists}`, label: 'Files to share', options: fileModeChoices().map(option => ({ ...option, key: option.value,
+      title: escapeHtml(option.title), status: escapeHtml(option.status), inputAttrs: { 'data-file-mode': true } })) })}
+    <label class="pool-stack pool-gap-xs" data-file-download-label hidden>Total download allowance (MiB)
       <input class="pool-input" data-file-download type="number" min="1" step="1" aria-label="Total download allowance in MiB"></label>
-    <p class="pool-muted" data-file-download-policy>No downloads in cached-only mode. Acquiring modes charge metadata and failed attempts; restarting does not renew the allowance.</p>
-    <p data-file-limits></p>
+    <p class="pool-caption pool-muted" data-file-download-policy>Acquiring modes count metadata and failed attempts against the allowance; restarting does not renew it.</p>
+    <p class="pool-small" data-file-limits></p>
   </div></details>`;
 
 /** The compute limits line, shown with This device. */
@@ -374,9 +370,12 @@ export function bindNetworkControls(container, session, { getInviteUrl, computer
     find('[data-file-limits]').textContent = fileLimits
       ? `Store up to ${gib(fileLimits.storedBytes)} · Send up to ${gib(fileLimits.supplyBytes)}` : 'Limits will be shown when file sharing is prepared.';
     const sharingFiles = network.files?.sharing || network.files?.preparing || network.files?.stopping;
-    const modeSelect = find('[data-file-mode]'), downloadInput = find('[data-file-download]');
+    const modeSelect = find('[data-file-mode]:checked'), downloadInput = find('[data-file-download]');
     if (modeSelect) {
-      modeSelect.disabled = !!sharingFiles;
+      const stored = catalogModels.filter(model => model.localCached).length;
+      for (const option of fileModeChoices({ storedModels: stored, sharing: !!sharingFiles, value: modeSelect.value })) {
+        updateOption(find(`[data-file-mode][value="${option.value}"]`), option);
+      }
       if (fileLimits?.maxDownloadBytes) downloadInput.max = fileLimits.maxDownloadBytes / 1048576;
       if (!downloadInput.value && fileLimits?.downloadBytes) downloadInput.value = fileLimits.downloadBytes / 1048576;
       find('[data-file-download-label]').hidden = modeSelect.value === 'cached-only';
@@ -430,12 +429,13 @@ export function bindNetworkControls(container, session, { getInviteUrl, computer
     return session.setComputeContribution(!(network?.computeEnabled ?? network?.sharing));
   }));
   on('[data-retry-contribution-stop]', 'click', () => act(() => session.setComputeContribution(false)));
-  on('[data-file-mode]', 'change', () => render(session.getState()));
+  const modes = find('[data-file-mode]')?.closest('.pool-options');
+  for (const type of ['change', 'click']) modes?.addEventListener(type, event => { if (event.target.matches?.('[data-file-mode]')) render(session.getState()); }, options);
   on('[data-toggle-file-contribution]', 'click', () => act(async () => {
     const network = session.getState().network, files = network?.files;
     const enable = !(files?.enabled ?? (files?.sharing || files?.preparing));
     if (enable && network?.paused) await session.connect();
-    const mode = find('[data-file-mode]')?.value || 'cached-only';
+    const mode = find('[data-file-mode]:checked')?.value || 'cached-only';
     if (enable && mode === 'cached-only' && session.setCachedFileContribution) return session.setCachedFileContribution(true);
     return session.setFileSharing(enable, contributionSelect.value, enable, {
       mode, ...(mode !== 'cached-only' ? { downloadBytes: Number(find('[data-file-download]')?.value) * 1048576 } : {})

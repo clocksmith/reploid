@@ -25,8 +25,9 @@ export const renderOperationSharing = () => [
   '<label class="pool-consent-row pool-small"><input type="checkbox" data-operation-approve>',
   '<span>I trust the selected publisher and allow this device to execute public inputs for this operation.</span></label>',
   '<div class="pool-control-actions">',
-  '<button type="button" class="btn btn-primary" data-operation-toggle aria-pressed="false">Share this capability</button>',
+  '<button type="button" class="pool-button btn-primary" data-operation-toggle aria-pressed="false" aria-describedby="operation-reason">Share this capability</button>',
   '<p class="pool-control-status pool-small pool-muted" role="status" aria-live="polite" data-operation-status>Not sharing</p></div>',
+  '<p class="pool-status-line pool-small" id="operation-reason" data-operation-reason></p>',
   '<p class="pool-control-help pool-small pool-muted">Weights may load on the first job. This does not expose private work or enable candidate adoption.</p>',
   '</div></div>'
 ].join('');
@@ -44,7 +45,10 @@ export function refreshOperationSharing(root, state) {
   const button = surface.querySelector('[data-operation-toggle]');
   button.textContent = active ? 'Stop sharing' : 'Share this capability';
   button.setAttribute('aria-pressed', String(active));
-  button.disabled = state.phase === 'stopping';
+  // Sharing needs the approval: until it is checked the button is disabled and says so beside it.
+  const unapproved = !active && !surface.querySelector('[data-operation-approve]').checked;
+  button.disabled = state.phase === 'stopping' || unapproved;
+  surface.querySelector('[data-operation-reason]').textContent = unapproved ? 'Check the approval above to share this capability.' : '';
 }
 
 export function bindOperationSharing(root, participation) {
@@ -58,8 +62,9 @@ export function bindOperationSharing(root, participation) {
     surface.querySelector('[data-operation-import]').hidden = !!surface.querySelector('[data-operation-model]').value;
   };
   for (const selector of ['[data-operation-settings]', '[data-operation-model]']) {
-    surface.querySelector(selector).addEventListener('change', changed, { signal: controller.signal });
+    surface.querySelector(selector).addEventListener('change', () => { changed(); refreshOperationSharing(root, participation.getState()); }, { signal: controller.signal });
   }
+  surface.querySelector('[data-operation-approve]').addEventListener('change', () => refreshOperationSharing(root, participation.getState()), { signal: controller.signal });
   surface.querySelector('[data-operation-toggle]').addEventListener('click', async () => {
     if (participation.getState().phase !== 'idle') {
       try { await participation.stop(); } catch (cause) { error(cause); }

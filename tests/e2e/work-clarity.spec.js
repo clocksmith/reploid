@@ -61,8 +61,8 @@ test('Network exposes sharing controls and still requires approval', async ({ pa
   await expect(page.locator('[data-operation-status]')).toHaveText('Not sharing');
   await expect(page.locator('[data-operation-approve]')).not.toBeChecked();
   await page.getByText('Specialized model jobs', { exact: true }).click();
-  await page.locator('[data-operation-toggle]').click();
-  await expect(page.locator('[data-operation-status]')).toHaveText('Approve the publisher and public-input execution first');
+  await expect(page.locator('[data-operation-toggle]')).toBeDisabled();
+  await expect(page.locator('[data-operation-reason]')).toHaveText('Check the approval above to share this capability.');
   await expect(page.locator('[data-operation-toggle]')).toHaveAttribute('aria-pressed', 'false');
   await expect(page.locator('[data-work-peer-status]')).toHaveText('Discovery has not run.');
 });

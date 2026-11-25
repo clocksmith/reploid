@@ -32,7 +32,8 @@ describe('Reploid appearance selector', () => {
     expect(root.querySelector('.pool-home').dataset.poolTheme).toBe('light');
     expect(document.documentElement.dataset.reploidTheme).toBe('light');
     expect(writes).toEqual([[THEME_STORAGE_KEY, 'light']]);
-    expect(button.getAttribute('aria-pressed')).toBe('true');
+    expect(button.checked).toBe(true);
+    expect(button.closest('[role=radiogroup]').getAttribute('aria-label')).toBe('Appearance');
 
     binding.dispose();
     root.remove();
@@ -48,7 +49,7 @@ it('follows system changes until overridden and resumes following when System is
   const binding = bindThemeSelector(root, { storage: { getItem: () => null, setItem() {} }, media: () => media });
   const system = root.querySelector('[data-pool-theme-choice=system]');
   const surface = root.querySelector('.pool-home');
-  expect(system.getAttribute('aria-pressed')).toBe('true');
+  expect(system.checked).toBe(true);
   expect(surface.dataset.poolTheme).toBe('light');
   media.matches = false; media.dispatchEvent(new Event('change'));
   expect(surface.dataset.poolTheme).toBe('dark');
@@ -71,6 +72,6 @@ it('closes settings and restores focus after choosing appearance', () => {
   root.querySelector('[data-pool-theme-choice=light]').click();
   expect(panel.open).toBe(false);
   expect(document.activeElement).toBe(panel.querySelector('summary'));
-  expect(root.querySelector('[data-pool-theme-choice=light]').getAttribute('aria-pressed')).toBe('true');
+  expect(root.querySelector('[data-pool-theme-choice=light]').checked).toBe(true);
   binding.dispose(); root.remove();
 });

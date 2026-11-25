@@ -1,3 +1,5 @@
+import { renderToggleRow } from '../components/choices.js';
+
 /** Network-answer settings and retained permission-record wording.
  * The host stores and enforces authorization; this view reports the person's choice. */
 
@@ -24,10 +26,9 @@ export function remotePermissionWording(need) {
 }
 
 export function renderRemotePermissionSettings() {
-  return `<section class="pool-stack pool-gap-xs" data-remote-permission-settings aria-labelledby="remote-permission-settings-title">
-    <div class="pool-row pool-row-between"><h3 class="pool-small" id="remote-permission-settings-title">Allow network answers</h3>
-      <button class="pool-switch" type="button" role="switch" aria-checked="false" aria-labelledby="remote-permission-settings-title" aria-describedby="remote-permission-help" data-remote-answers-toggle><span aria-hidden="true"></span></button></div>
-    <p class="pool-small pool-muted" id="remote-permission-help" data-remote-permission-status role="status"></p>
+  return `<section class="pool-stack pool-gap-xs" data-remote-permission-settings aria-labelledby="remote-permission-title">
+    ${renderToggleRow({ id: 'remote-permission', title: 'Allow network answers', statusAttrs: { 'data-remote-permission-status': true, role: 'status' },
+      switchAttrs: { 'data-remote-answers-toggle': true } })}
   </section>`;
 }
 

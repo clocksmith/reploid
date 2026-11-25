@@ -1,24 +1,21 @@
 import { parseOwnerPairingUrl } from '../../host/owner-pairing.js';
 import { bindDialog } from '../components/dialog.js';
+import { renderDialog } from '../components/choices.js';
 
 export function bindOwnerPairingLink(root, port, url) {
   const target = parseOwnerPairingUrl(url.href);
   if (!target || !port) return () => {};
 
-  root.insertAdjacentHTML('beforeend', `
-    <dialog class="chat-model-setup pool-surface" data-owner-pairing-link aria-labelledby="owner-pairing-title">
-      <h2 class="pool-heading" id="owner-pairing-title"></h2>
-      <p class="pool-small" role="status" data-pairing-message hidden></p>
-      <button class="pool-button btn-primary" type="button" data-pairing-connect>Connect</button>
-      <details class="pool-small pool-muted">
-        <summary>Details</summary>
-        <div class="pool-stack pool-gap-sm">
-          <p class="pool-caption" data-pairing-identity></p>
-          <p class="pool-caption" data-pairing-connection hidden></p>
-          <button class="pool-button btn-ghost" type="button" data-pairing-close>Close</button>
-        </div>
-      </details>
-    </dialog>`);
+  // The dialog shell: its body changes from request to waiting to result; the reserved status line and
+  // the pinned footer keep its size from first paint.
+  root.insertAdjacentHTML('beforeend', renderDialog({ titleId: 'owner-pairing-title', title: '', attrs: { 'data-owner-pairing-link': true },
+    closeAttrs: { 'data-pairing-close': true },
+    body: `<p class="pool-status-line pool-small" role="status" data-pairing-message hidden></p>
+      <details class="pool-disclosure"><summary>Details</summary><div class="pool-stack pool-gap-sm">
+        <p class="pool-caption pool-muted" data-pairing-identity></p>
+        <p class="pool-caption pool-muted" data-pairing-connection hidden></p>
+      </div></details>`,
+    footer: '<button class="pool-button btn-primary" type="button" data-pairing-connect>Connect</button>' }));
   const dialog = root.querySelector('[data-owner-pairing-link]');
   const title = dialog.querySelector('h2');
   const message = dialog.querySelector('[data-pairing-message]');

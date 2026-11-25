@@ -18,9 +18,12 @@ export function getPreferredTheme(storage = globalThis.localStorage, media = sys
   return resolveTheme(readChoice(storage), media);
 }
 
+let selectors = 0;
+/** Three mutually exclusive modes: a segmented radio group. Each rendered selector is its own group. */
 export function renderThemeSelector() {
-  return `<div class="pool-theme-selector pool-segmented" role="group" aria-label="Appearance">
-    ${['system', 'light', 'dark'].map(choice => `<button class="pool-segment" type="button" data-pool-theme-choice="${choice}" aria-pressed="false">${choice[0].toUpperCase() + choice.slice(1)}</button>`).join('')}
+  const name = `pool-theme-${++selectors}`;
+  return `<div class="pool-theme-selector pool-segmented" role="radiogroup" aria-label="Appearance">
+    ${['system', 'light', 'dark'].map(choice => `<label class="pool-segment"><input type="radio" name="${name}" value="${choice}" data-pool-theme-choice="${choice}">${choice[0].toUpperCase() + choice.slice(1)}</label>`).join('')}
   </div>`;
 }
 
@@ -42,7 +45,7 @@ export function applyTheme(root, theme, media = systemMedia) {
   if (globalThis.document?.documentElement) {
     globalThis.document.documentElement.dataset.reploidTheme = selected;
   }
-  root?.querySelectorAll?.('[data-pool-theme-choice]').forEach(button => { button.setAttribute('aria-pressed', String(button.dataset.poolThemeChoice === choice)); });
+  root?.querySelectorAll?.('[data-pool-theme-choice]').forEach(input => { input.checked = input.dataset.poolThemeChoice === choice; });
   return selected;
 }
 
@@ -59,22 +62,33 @@ export function bindThemeSelector(root, { storage = globalThis.localStorage, med
   };
   const onSystemChange = () => { if (choice === 'system') sync(); };
   const onChange = event => {
-    const button = event.target.closest?.('[data-pool-theme-choice]');
-    if (!button || !root.contains(button)) return;
-    choice = normalizeTheme(button.dataset.poolThemeChoice);
+    const input = event.target.closest?.('[data-pool-theme-choice]');
+    if (!input || !root.contains(input) || !input.checked) return;
+    const next = normalizeTheme(input.dataset.poolThemeChoice);
+    if (next === choice && event.type === 'change') return;
+    choice = next;
     sync();
-    const panel = button.closest('[data-pool-settings]');
-    if (panel) { panel.open = false; panel.querySelector('summary').focus(); }
     try { storage?.setItem(THEME_STORAGE_KEY, choice); }
     catch { /* Appearance persistence is optional. */ }
   };
+  // Choosing a mode in the Settings menu closes the menu and returns focus to its button.
+  const onClick = event => {
+    const input = event.target.closest?.('[data-pool-theme-choice]');
+    const panel = input && root.contains(input) ? input.closest('[data-pool-settings]') : null;
+    if (panel) { panel.open = false; panel.querySelector('summary').focus(); }
+  };
   sync();
   system?.addEventListener?.('change', onSystemChange);
+  // A radio reports its choice by click in every environment and by change in browsers; both apply it once.
+  root.addEventListener('change', onChange);
   root.addEventListener('click', onChange);
+  root.addEventListener('click', onClick);
   return {
     sync,
     dispose() {
+      root.removeEventListener('change', onChange);
       root.removeEventListener('click', onChange);
+      root.removeEventListener('click', onClick);
       disclosures.forEach(item => item.dispose());
       system?.removeEventListener?.('change', onSystemChange);
     }

@@ -128,13 +128,17 @@ describe('the Settings control', () => {
     root.innerHTML = renderConversationWorkspace();
     dispose = bindConversationWorkspace(root, session, { viewState: {} });
     session.setCachedModels([]);
-    const select = root.querySelector('[data-route-preference]');
-    expect([...select.options].map(option => option.textContent)).toEqual(['Balanced', 'Faster answers', 'More reliable']);
-    expect(select.value).toBe('more-reliable');
+    // Three exclusive modes are one segmented radio group, derived from whether several computers may answer.
+    const choices = [...root.querySelectorAll('[data-route-preference]')];
+    expect(choices[0].closest('[role=radiogroup]')).not.toBeNull();
+    expect(choices.map(input => input.closest('label').textContent)).toEqual(['Balanced', 'Faster', 'More reliable']);
+    expect(choices.find(input => input.checked).value).toBe('more-reliable');
+    const reason = root.querySelector('[data-route-preference-reason]').textContent;
+    expect(choices.every(input => input.disabled === !!reason)).toBe(true);
     const listener = vi.fn();
     const stop = session.subscribe(listener);
-    select.value = 'faster';
-    select.dispatchEvent(new Event('change', { bubbles: true }));
+    const faster = choices.find(input => input.value === 'faster');
+    faster.disabled = false; faster.click();
     stop();
     expect(session.getRoutePreference()).toBe('faster');
     expect(values.get('REPLOID_ROUTE_PREFERENCE')).toBe('faster');

@@ -97,9 +97,12 @@ it('selects bounded file participation separately from compute and preserves the
     +'<ul data-insp-device-list></ul><span data-network-message></span><button data-mesh-invite></button>';
   const dispose=bindNetworkControls(root,session);
   try {
-    const mode=root.querySelector('[data-file-mode]'), input=root.querySelector('[data-file-download]');
-    expect(mode.value).toBe('cached-only');expect(session.setFileSharing).not.toHaveBeenCalled();
-    mode.value='bounded-acquisition';mode.dispatchEvent(new Event('change'));input.value='32';
+    const mode=value=>root.querySelector(`[data-file-mode][value="${value}"]`), input=root.querySelector('[data-file-download]');
+    // Files to share is a single-select list: one radio group whose rows state what each mode downloads.
+    expect(mode('cached-only').closest('[role=radiogroup]')).not.toBeNull();
+    expect(root.querySelector('[data-file-mode]:checked').value).toBe('cached-only');expect(session.setFileSharing).not.toHaveBeenCalled();
+    expect(mode('cached-only').closest('.pool-option').textContent).toContain('Nothing is downloaded yet');
+    mode('bounded-acquisition').click();input.value='32';
     expect(root.querySelector('[data-file-download-label]').hidden).toBe(false);
     root.querySelector('[data-toggle-file-contribution]').click();await Promise.resolve();
     expect(session.setFileSharing).toHaveBeenCalledWith(true,'fixture',true,{mode:'bounded-acquisition',downloadBytes:33554432});
@@ -108,6 +111,9 @@ it('selects bounded file participation separately from compute and preserves the
     expect(input.disabled).toBe(true);expect(input.value).toBe('32');expect(root.querySelector('[data-file-limits]').textContent).toContain('Download allowance used');
     state.network.files.stopping=true;update(state);
     expect(root.querySelector('[data-toggle-file-contribution]').disabled).toBe(true);
+    // While files are shared the mode is fixed, and each row says how to change it.
+    expect(mode('full-model').disabled).toBe(true);
+    expect(mode('full-model').closest('.pool-option').textContent).toContain('Turn off Share model files to change this.');
   } finally {dispose();}
 });
 
@@ -119,13 +125,13 @@ it('states the whole-model download and storage before full-model seeding is swi
     +'<ul data-insp-device-list></ul><span data-network-message></span><button data-mesh-invite></button>';
   const dispose=bindNetworkControls(root,session);
   try {
-    const mode=root.querySelector('[data-file-mode]'), limits=()=>root.querySelector('[data-file-limits]').textContent;
+    const mode=root.querySelector('[data-file-mode][value="full-model"]'), limits=()=>root.querySelector('[data-file-limits]').textContent;
     expect(limits()).not.toContain('Full-model seeding');
-    mode.value='full-model';mode.dispatchEvent(new Event('change'));
+    mode.click();
     expect(limits()).toContain('Full-model seeding downloads and keeps 1.08 GiB on this device');
     expect(limits()).toContain('at least 1,103 MiB');
     expect(session.setFileSharing).not.toHaveBeenCalled();
-    delete state.network.files.seedingBytes;mode.dispatchEvent(new Event('change'));
+    delete state.network.files.seedingBytes;mode.dispatchEvent(new Event('change',{bubbles:true}));
     expect(limits()).toContain('checked against your allowance when seeding starts');
   } finally {dispose();}
 });

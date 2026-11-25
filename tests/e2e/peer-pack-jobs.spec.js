@@ -91,8 +91,8 @@ for (const schema of ['doppler.pack/v2', 'doppler.capsule/v2']) test(`reviewed p
     const configuration = await provider.evaluate(() => window.fixture.configuration());
     await provider.locator('[data-operation-model]').selectOption('');
     await provider.locator('[data-operation-settings]').setInputFiles({ name: 'models.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(configuration)) });
-    await provider.locator('[data-operation-toggle]').click();
-    await expect(provider.locator('[data-operation-status]')).toHaveText('Approve the publisher and public-input execution first');
+    await expect(provider.locator('[data-operation-toggle]')).toBeDisabled();
+    await expect(provider.locator('[data-operation-reason]')).toHaveText('Check the approval above to share this capability.');
     await provider.locator('[data-operation-approve]').check();
     await provider.locator('[data-operation-toggle]').click();
     await expect(provider.locator('[data-operation-status]')).toHaveText(/Offering .*Jobs load the exact model when needed\./);

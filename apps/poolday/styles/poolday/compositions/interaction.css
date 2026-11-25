@@ -6,16 +6,10 @@
 .network-workspace { grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr); align-items: start; }
 .network-workspace > .pool-connected-heading, .network-advanced { grid-column: 1 / -1; }
 .network-sharing-summary { margin: 0; overflow-wrap: anywhere; }
-.network-sharing-row { display: flex; align-items: center; justify-content: space-between; gap: var(--pool-size-16); padding-block: var(--pool-size-8); min-width: 0; }
-.network-sharing-row > div { display: grid; gap: var(--pool-size-4); min-width: 0; }
-.network-sharing-row p, .network-sharing-row strong span, .network-sharing-row > div > span { margin: 0; }
-.network-sharing-row strong span { display: block; margin-top: var(--pool-size-4); }
-.chat-network-actions > .network-sharing-row { flex: 1; }
 .network-peer-list { list-style: none; padding: 0; margin: 0; display: grid; }
 .network-peer-row { display: flex; align-items: center; justify-content: space-between; gap: var(--pool-size-16); padding-block: var(--pool-size-16); }
 .network-peer-row > div { display: grid; gap: var(--pool-size-4); min-width: 0; }
 .network-peer-row span, .network-empty { overflow-wrap: anywhere; }
-.network-status { display: inline-flex; align-items: center; gap: var(--pool-size-4); padding: var(--pool-size-4) var(--pool-size-8); }
 .network-empty { padding-block: var(--pool-size-24); }
 @media (max-width: 760px) {
   .network-workspace { grid-template-columns: minmax(0, 1fr); }
@@ -101,7 +95,6 @@
 @media (prefers-reduced-motion: reduce) { .network-inspector[open] { animation: none !important; } }
 .network-peer-row { align-items: start; gap: var(--pool-size-8); padding-block: var(--pool-size-16); }
 .network-peer-row details code { display: block; margin-top: var(--pool-size-8); }
-.network-status { padding: 0; white-space: nowrap; }
 @media (max-width: 760px) { .network-inspector { left: var(--pool-param-chat-gutter, var(--pool-size-16)); right: var(--pool-param-chat-gutter, var(--pool-size-16)); width: auto; } }
 
 /* Destination content fills the main workspace while its controls stay in the rail. */
@@ -113,7 +106,9 @@
   max-height: none; min-height: 0; margin: 0; padding: 0;
   flex: 1; overflow-y: auto;
 }
-.pool-home .chat-network-rail[data-mounted] .network-inspector:not([hidden]) { display: block; animation: none; }
+.pool-home .chat-network-rail[data-mounted] .network-inspector:not([hidden]) { display: grid; grid-template-rows: auto minmax(0, 1fr); overflow: hidden; animation: none; }
+/* The panel header stays put; only the body scrolls. */
+.pool-home .chat-network-rail[data-mounted] .network-inspector-body { min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
 .chat-network-rail .network-inspector-tabs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
 .pool-home .network-inspector .network-inspector-tabs > .pool-button {
   display: grid; place-items: center; min-width: 0; height: var(--pool-size-44); padding: 0;
@@ -141,9 +136,10 @@
 
 /* Keep the observed connection state beside its computer, including on phones. */
 .network-peer-row > div { width: 100%; }
-.network-peer-heading { display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--pool-size-8); }
+.network-peer-heading { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: var(--pool-size-8); min-height: var(--pool-size-24); }
 .network-peer-row progress { width: 100%; height: var(--pool-size-8); accent-color: var(--pool-color-ink); }
 .pool-app-shortcuts { display: flex; gap: var(--pool-size-8); }
+.pool-home .pool-app-shortcuts > .pool-button:not(.pool-icon):has(> svg) { align-items: flex-start; }
 .pool-app-shortcuts > .pool-button { display: flex; flex: 1; flex-direction: column; gap: var(--pool-size-4); min-width: 0; min-height: var(--pool-size-44); padding: var(--pool-size-8) var(--pool-size-4); }
 
 /* The inspection column reads a route vertically, so long pseudonyms never clip. */

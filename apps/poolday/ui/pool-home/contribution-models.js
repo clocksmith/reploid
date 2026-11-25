@@ -2,6 +2,7 @@ import { escapeHtml as escape } from '../../../../shared/ui/components/html.js';
 import { hasBrowserModelOrigin } from '../components/model-select.js';
 import { interfaceIcon } from '../components/interface-icons.js';
 import { bindDialog } from '../components/dialog.js';
+import { renderDialog } from '../components/choices.js';
 import { preparationStatus } from './model-preparation.js';
 import { bindMathematicalBackground } from '../components/mathematical-background.js';
 
@@ -50,6 +51,9 @@ export function bindContributionModels(container, session, { onChoose }) {
     detail.textContent = model.localReady ? 'Ready' : model.localCached ? 'Downloaded'
       : metadata ? size(metadata.sizeBytes) : '';
     detail.hidden = !detail.textContent;
+    // A model that cannot be shared says why on its own row; the reason is never only a tooltip.
+    const reason = button.querySelector('[data-model-issue]');
+    reason.textContent = issue || ''; reason.hidden = !issue;
     button.disabled = !!issue;
     button.title = issue || (model.localReady || model.localCached ? 'Share this model'
       : entry.error ? 'Check download size and retry' : 'Review download and sharing');
@@ -70,9 +74,11 @@ export function bindContributionModels(container, session, { onChoose }) {
       }
       if (!entry) {
         const button = document.createElement('button'); button.type = 'button';
-        button.className = 'pool-button pool-stack pool-gap-xs';
+        button.className = 'pool-action-row';
         button.dataset.productionModel = id;
-        button.innerHTML = '<span data-model-name></span><span class="pool-caption" data-model-supply hidden></span><span class="pool-caption" data-model-detail hidden></span>';
+        button.innerHTML = `<span class="pool-icon-box" aria-hidden="true">${interfaceIcon('model')}</span><span class="pool-row-text"><span class="pool-row-title" data-model-name></span>`
+          + '<span class="pool-row-status pool-row-segments"><span data-model-supply hidden></span><span data-model-detail hidden></span><span data-model-issue hidden></span></span></span>'
+          + `<span class="pool-icon-box pool-icon-box-sm" aria-hidden="true">${interfaceIcon('next')}</span>`;
         entry = { model, button, detail: button.querySelector('[data-model-detail]'), controller: new AbortController() };
         entries.set(id, entry); container.append(button);
       }
@@ -142,11 +148,12 @@ export function renderProductionContribution() {
       </dl>
       <div class="pool-stack pool-gap-xs" data-production-preparing hidden><p class="pool-small" data-production-progress-label role="status"></p><progress class="pool-progress" data-production-progress aria-label="Model preparation"></progress><button class="pool-button btn-ghost pool-small" type="button" data-production-cancel>Cancel</button></div>
       <p class="pool-caption pool-muted" data-production-settlement hidden>Waiting for cleanup</p>
-      <div data-production-setup-actions><div class="pool-row pool-gap-md" data-production-model-buttons></div><p class="pool-small pool-muted" data-production-model-empty hidden>No models available</p></div>
+      <div data-production-setup-actions><div class="pool-stack pool-gap-xs" data-production-model-buttons></div><p class="pool-small pool-muted" data-production-model-empty hidden>No models available</p></div>
       <footer class="production-utilities pool-row"><button class="pool-button btn-ghost pool-small" type="button" data-production-model-options hidden>Change model</button></footer>
     </section>
     <details class="pool-disclosure" data-production-history><summary>Contributions <span class="pool-muted" data-production-history-count></span></summary><div class="pool-stack pool-gap-sm"><p class="pool-caption pool-muted">Recent whole-model executions on this device. Session counters above reset when a model restarts. These records do not establish delivery or earnings.</p><p class="pool-small pool-muted" data-production-history-status role="status"></p><ol class="pool-list pool-small" data-production-history-records></ol></div></details>
-    <dialog class="chat-model-setup pool-surface pool-stack pool-gap-md" data-production-model-dialog aria-labelledby="production-model-title"><header class="pool-row pool-row-between"><h2 class="pool-heading" id="production-model-title">Change model</h2><button class="pool-button btn-ghost pool-icon" type="button" data-production-close-models aria-label="Close">${interfaceIcon('close')}</button></header><div data-production-more-models></div></dialog>
+    ${renderDialog({ titleId: 'production-model-title', title: 'Change model', fixed: true, attrs: { 'data-production-model-dialog': true },
+      closeAttrs: { 'data-production-close-models': true }, body: '<div data-production-more-models></div>' })}
   </section>`;
 }
 

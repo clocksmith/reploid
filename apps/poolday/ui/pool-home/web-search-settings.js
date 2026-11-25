@@ -1,26 +1,28 @@
+import { renderToggleRow } from '../components/choices.js';
+import { webSearchAvailability } from './choice-availability.js';
+
 /** Built-in search keeps per-answer confirmation. A configured personal MCP server instead uses the
  * stored on/off permission explained beside its switch. */
 export function renderWebSearchSettings() {
+  const fix = webSearchAvailability().fix;
   return `<section class="pool-stack pool-gap-sm" data-web-search-settings aria-labelledby="web-search-title">
-    <div class="pool-row pool-row-between">
-      <h3 class="pool-subheading" id="web-search-title">Web search</h3>
-      <button class="pool-switch" type="button" role="switch" aria-checked="false" aria-labelledby="web-search-title" data-web-search-toggle><span></span></button>
-    </div>
+    ${renderToggleRow({ id: 'web-search', title: 'Web search', statusAttrs: { 'data-web-search-reason': true }, switchAttrs: { 'data-web-search-toggle': true } })}
+    <div class="pool-row" data-web-search-fix-row hidden><button class="pool-button btn-ghost pool-caption" type="button" data-web-search-fix>${fix.label}</button></div>
     <details class="pool-disclosure" data-search-disclosure-details><summary>Who receives the search?</summary>
     <p class="pool-small pool-muted" data-web-search-disclosure></p></details>
-    <details class="pool-disclosure" data-web-search-config><summary>Developer settings · MCP search server</summary><div class="pool-stack pool-gap-sm">
+    <details class="pool-disclosure" data-web-search-config><summary>Search server (MCP)</summary><div class="pool-stack pool-gap-sm">
     <label class="pool-stack pool-gap-xs pool-small">MCP server URL
       <input class="pool-input" type="url" inputmode="url" autocomplete="off" spellcheck="false" placeholder="https://" data-web-search-url></label>
     <label class="pool-stack pool-gap-xs pool-small">Access token (optional, this tab only)
       <input class="pool-input" type="password" autocomplete="off" data-web-search-token></label>
     <label class="pool-stack pool-gap-xs pool-small">Search tool (optional)
       <input class="pool-input" type="text" autocomplete="off" spellcheck="false" placeholder="Found automatically" data-web-search-tool></label>
-    <div class="pool-row">
-      <button class="pool-button" type="button" data-web-search-save>Save</button>
+    <div class="pool-row pool-row-end">
       <button class="pool-button btn-ghost" type="button" data-web-search-check>Check server</button>
+      <button class="pool-button" type="button" data-web-search-save>Save</button>
     </div>
+    <p class="pool-status-line pool-small pool-muted" role="status" data-web-search-status></p>
     </div></details>
-    <p class="pool-small pool-muted" role="status" data-web-search-status></p>
   </section>`;
 }
 
@@ -63,8 +65,12 @@ export function bindWebSearchSettings(root, webSearch, { search = null } = {}) {
   const report = message => { status.textContent = message; };
   const render = state => {
     toggle.setAttribute('aria-checked', String(state.enabled));
-    toggle.disabled = !state.url && !search?.available();
-    toggle.setAttribute('aria-describedby', 'web-search-help');
+    // Unavailable search says why beside the switch and offers the one fix: adding a search server.
+    const availability = webSearchAvailability({ url: state.url, builtInAvailable: !!search?.available() });
+    toggle.disabled = availability.disabled;
+    toggle.setAttribute('aria-describedby', 'web-search-status web-search-help');
+    find('[data-web-search-reason]').textContent = availability.reason || (state.enabled ? 'On' : 'Off');
+    find('[data-web-search-fix-row]').hidden = !availability.fix;
     if (document.activeElement !== url) url.value = state.url;
     if (document.activeElement !== tool) tool.value = state.tool;
     token.placeholder = state.hasToken ? 'Set for this tab' : '';
@@ -86,5 +92,6 @@ export function bindWebSearchSettings(root, webSearch, { search = null } = {}) {
     if (url.value.trim()) void webSearch.check();
   }), options);
   find('[data-web-search-check]').addEventListener('click', () => { void webSearch.check(); }, options);
+  find('[data-web-search-fix]').addEventListener('click', () => { find('[data-web-search-config]').open = true; url.focus(); }, options);
   return () => { controller.abort(); unsubscribe(); unsubscribeSearch(); };
 }

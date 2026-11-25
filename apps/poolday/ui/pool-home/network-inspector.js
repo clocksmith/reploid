@@ -24,6 +24,8 @@ import { renderModelStorage, bindModelStorage } from './model-storage-view.js';
 import { renderLocalData, bindLocalData } from './local-data-view.js';
 import { renderThemeSelector } from './theme.js';
 import { DEFAULT_ROUTE_PREFERENCE, ROUTE_PREFERENCES } from '../../host/route-preference.js';
+import { renderDialog, renderOptions, renderSegmented, updateOption } from '../components/choices.js';
+import { routePreferenceChoices, sharingOptionChoices } from './choice-availability.js';
 
 export function renderInspectorNavigation({ workspace = false } = {}) {
   const tag = workspace ? 'a' : 'button';
@@ -48,6 +50,7 @@ export function renderInspectorRail({ mounted = false, navigation = !mounted, ap
     ${navigation ? renderInspectorNavigation() : ''}
     <${mounted ? 'section hidden' : 'dialog'} class="network-inspector${material} pool-small" id="network-inspector-panel" data-contextual-inspector data-network-workspace aria-labelledby="network-inspector-title">
     <header class="chat-network-heading"><h2 class="pool-subheading" id="network-inspector-title" tabindex="-1">Conversation details</h2><button class="pool-button btn-ghost pool-icon" type="button" data-close-inspector aria-label="Close">${interfaceIcon('close')}</button></header>
+    <div class="network-inspector-body">
     <section class="pool-stack pool-gap-lg" data-inspector-pane="conversation" aria-label="Conversation details">
       <div class="execution-ribbon-route" data-inspector-route></div>
       <p class="pool-small" data-inspector-status role="status"></p>
@@ -59,7 +62,7 @@ export function renderInspectorRail({ mounted = false, navigation = !mounted, ap
         <h3 class="pool-subheading">Context</h3>
         <p class="pool-caption pool-muted" data-inspector-context-detail></p>
         <fieldset class="pool-stack pool-gap-sm" data-context-controls hidden><legend class="pool-small">Context prompt</legend>
-          <label class="pool-row pool-gap-sm"><input type="checkbox" data-context-enabled> <span>Include app context</span></label>
+          <label class="pool-toggle-row"><span class="pool-row-text"><span class="pool-row-title">Include app context</span><span class="pool-row-status">A short description of the app, added before each message.</span></span><input class="pool-switch" type="checkbox" role="switch" data-context-enabled></label>
           <label class="pool-stack pool-gap-xs"><span class="pool-small">Word cap</span><select class="pool-input" data-context-cap aria-label="Context prompt word cap">${contextPolicy.wordLimits.map(limit => `<option value="${limit}">${limit}</option>`).join('')}</select></label>
           <p class="chat-setup-hint pool-small pool-muted" data-context-count></p><p class="chat-setup-hint pool-small pool-muted" data-context-preview></p>
         </fieldset>
@@ -98,32 +101,35 @@ export function renderInspectorRail({ mounted = false, navigation = !mounted, ap
     </section>
     <section class="pool-stack pool-gap-lg" data-inspector-pane="settings" aria-label="Settings" hidden>
       <section class="pool-stack pool-gap-sm"><h3 class="pool-subheading">Appearance</h3><div data-settings-appearance>${renderThemeSelector()}</div></section>
-      <section class="pool-stack pool-gap-sm" data-settings-routing><h3 class="pool-subheading">Answers</h3><label>When several computers can answer, prefer<select class="pool-input" data-route-preference>${ROUTE_PREFERENCES.map(({ id, label }) => `<option value="${id}">${label}</option>`).join('')}</select></label><p class="pool-small pool-muted">This only orders computers that already meet the conversation's privacy choice. Public computers do not charge yet, so Lower cost works like Balanced.</p></section>
+      <section class="pool-stack pool-gap-sm" data-settings-routing><h3 class="pool-subheading">Answers</h3><p class="pool-small pool-muted">When several computers can answer, prefer</p>${renderSegmented({ name: 'route-preference', label: 'When several computers can answer, prefer', options: ROUTE_PREFERENCES.map(({ id, label }) => ({ value: id, label, inputAttrs: { 'data-route-preference': true } })) })}<div class="pool-row pool-row-between pool-gap-sm"><p class="pool-status-line pool-caption pool-grow" data-route-preference-reason></p><button class="pool-button btn-ghost pool-caption" type="button" data-route-preference-fix hidden>Network answers</button></div><p class="pool-caption pool-muted">Only computers that meet the conversation’s privacy choice are ordered.</p></section>
       <section class="pool-stack pool-gap-md" data-settings-storage><h3 class="pool-subheading">Storage</h3>${renderModelStorage()}<p class="pool-small pool-muted" data-settings-storage-summary>No downloaded models</p>${renderFileSharingControls()}</section>
       ${renderLocalData()}
       ${renderAccountPanel()}
       <details class="pool-disclosure" data-settings-advanced><summary>Advanced</summary><div class="pool-stack pool-gap-lg">
-        <section class="pool-stack pool-gap-md"><h3 class="pool-small">Inference</h3>${renderRemotePermissionSettings()}</section>
+        ${renderRemotePermissionSettings()}
         ${renderWebSearchSettings()}
         <div data-settings-apps>${apps}</div>
       </div></details>
     </section>
     <p data-network-message role="status" hidden></p>
     <p data-inspector-error role="alert" hidden></p>
+    </div>
   </${mounted ? 'section' : 'dialog'}></aside>`;
 }
 
 export function renderModelSetupDialog() {
-  return `<dialog class="chat-model-setup pool-surface pool-small" data-model-dialog aria-labelledby="model-setup-title">
-    <h2 class="pool-heading" id="model-setup-title" data-download-title>Start sharing</h2>
-    <label>Model<select class="pool-input" data-download-model aria-label="Model to download"></select></label>
-    <fieldset data-download-sharing class="pool-stack pool-gap-xs"><legend>Sharing on this device</legend>
-      <label><input type="checkbox" data-download-compute> Answer other people’s requests with downloaded models</label>
-      <label><input type="checkbox" data-download-files> Share cached model files with other computers</label>
-    </fieldset>
-    <p data-download-fit class="pool-small pool-muted"></p><p data-download-size role="status">Checking download size…</p><button class="pool-button btn-ghost" type="button" data-retry-download-check hidden>Retry</button><p class="pool-muted" data-download-explanation>Download a model to answer public requests while this page is open. Pause anytime.</p><details class="pool-disclosure"><summary>Limits</summary><p data-download-compute-limits></p></details>
-    <div class="chat-network-actions"><button class="pool-button btn-ghost" type="button" data-download-cancel>Cancel</button><button class="pool-button btn-primary" type="button" data-download-confirm disabled>Download & share</button></div>
-  </dialog>`;
+  // Sharing is several independent choices: a multi-select list whose rows say what each shares or why it is unavailable.
+  const sharing = sharingOptionChoices({ canShareCompute: true, canShareFiles: true }).map(option => ({ ...option, key: option.value, title: escape(option.title), status: escape(option.status),
+    inputAttrs: { [`data-download-${option.value}`]: true } }));
+  return renderDialog({ titleId: 'model-setup-title', title: 'Start sharing', fixed: true, headingAttrs: { 'data-download-title': true },
+    attrs: { 'data-model-dialog': true }, closeAttrs: { 'data-dialog-close': true },
+    body: `<label class="pool-stack pool-gap-xs">Model<select class="pool-input" data-download-model aria-label="Model to download"></select></label>
+    ${renderOptions({ id: 'download-sharing', label: 'Sharing on this device', type: 'checkbox', options: sharing, attrs: { 'data-download-sharing': true } })}
+    <p class="pool-small pool-muted" data-download-explanation>Download a model to answer public requests while this page is open. Pause anytime.</p>
+    <p data-download-fit class="pool-small pool-muted"></p>
+    <details class="pool-disclosure"><summary>Limits</summary><p data-download-compute-limits></p></details>`,
+    // The primary acts or says why it cannot, beside it: checking the size, or the failed check with Retry.
+    footer: `<p class="pool-status-line" data-download-size role="status">Checking download size…</p><button class="pool-button btn-ghost" type="button" data-retry-download-check hidden>Retry</button><button class="pool-button btn-ghost" type="button" data-download-cancel>Cancel</button><button class="pool-button btn-primary" type="button" data-download-confirm disabled>Download & share</button>` });
 }
 
 /** Navigation, rail and setup dialog together, for routes that keep the inspector beside their content. */
@@ -248,8 +254,12 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
   }));
   const render = snapshot => {
     const state = withComputerLabels(snapshot, session);
-    const routeChoice = find('[data-route-preference]');
-    if (routeChoice) { routeChoice.value = session.getRoutePreference?.() ?? DEFAULT_ROUTE_PREFERENCE; routeChoice.disabled = !session.setRoutePreference; }
+    // Route preference orders computers only when several may answer; otherwise it says why it is off.
+    const routing = routePreferenceChoices({ remoteAnswersEnabled: state.remoteAnswersEnabled === true, canSet: !!session.setRoutePreference,
+      value: session.getRoutePreference?.() ?? DEFAULT_ROUTE_PREFERENCE });
+    for (const option of routing.options) updateOption(find(`[data-route-preference][value="${option.value}"]`), option);
+    find('[data-route-preference-reason]').textContent = routing.reason;
+    find('[data-route-preference-fix]').hidden = !routing.fix;
     privateComputers.update(state);
     ownerPairingView.update(state);
     circleInvites.update();
@@ -305,7 +315,16 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
         <button class="pool-button" type="button" data-revoke-grant="${escape(grant.id)}">Revoke</button></li>`).join('');
     }
   };
-  on('[data-route-preference]', 'change', event => session.setRoutePreference?.(event.target.value));
+  for (const type of ['change', 'click']) find('[data-settings-routing]')?.addEventListener(type, event => {
+    if (event.target.matches('[data-route-preference]') && event.target.checked && event.target.value !== session.getRoutePreference?.()) {
+      session.setRoutePreference?.(event.target.value);
+    }
+  }, options);
+  // The fix opens the setting that makes a preference meaningful; it never changes that setting itself.
+  on('[data-route-preference-fix]', 'click', () => {
+    const advanced = find('[data-settings-advanced]'); advanced.open = true;
+    find('[data-remote-answers-toggle]').focus({ preventScroll: false });
+  });
   const unsubscribe = session.subscribe(render);
   let downloadMode = 'contribute', downloadInfo = null, localReview = null;
   const checkDownload = async () => {
@@ -334,8 +353,11 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
     const compute = find('[data-download-compute]'), files = find('[data-download-files]');
     compute.checked = mode === 'contribute' || !!(network.computeEnabled ?? network.sharing);
     files.checked = !!(network.files?.enabled ?? network.files?.sharing);
-    files.disabled = !session.setCachedFileContribution;
-    compute.disabled = !session.setComputeContribution;
+    for (const option of sharingOptionChoices({ canShareCompute: !!session.setComputeContribution, canShareFiles: !!session.setCachedFileContribution,
+      compute: compute.checked, files: files.checked })) {
+      // Availability and its reason only: the checked state keeps the device's current sharing.
+      updateOption(option.value === 'compute' ? compute : files, { status: option.status, disabled: option.disabled });
+    }
     find('[data-download-fit]').textContent = '';
     find('[data-download-explanation]').textContent = mode === 'local'
       ? 'Store this model on this device to answer when network capacity is unavailable. Sharing choices apply to cached models on this device when you confirm.'
