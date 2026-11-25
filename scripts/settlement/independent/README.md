@@ -27,7 +27,7 @@ Plain Node, about 10 seconds, no model, no GPU, no network.
   independent party, and this is not a third-party replay.
 - **What the author read.** Only `docs/settlement-replay.md`, first at commit 20121ae60 and again in full at
   4ee9dd6b2, c29bc5d44, a25242bc3 and 955bd5f7a when the document changed. For the owner's decided
-  unfinished-answer rule (61cea0a88) a fresh session read only the document, `replay.js` and `DOC-GAPS.md`, with no
+  unfinished-answer rule (1281fdd47) a fresh session read only the document, `replay.js` and `DOC-GAPS.md`, with no
   git and no code search. It was told not to open the service's verifier, the signers, the tests, the
   scenario builder, the attack matrix, this directory's comparison or any diff, and it reported opening none of
   them. That boundary is self-reported.
@@ -42,7 +42,7 @@ does, and only from the document's text. A fix prompted by the service's code wo
 
 ## Result on main
 
-The document with the owner's decided unfinished-answer rule and both verifiers at 61cea0a88. 22 base attempts
+The document with the owner's decided unfinished-answer rule and both verifiers at 1281fdd47. 22 base attempts
 (two added for the older provider-loss-free terms), 25 mutation families, Ed25519 and P-256 keys, seven clock values
 around the deadline, the release window and the instant an attempt is decided. The document reports one row per
 reservation and requester, and the comparison is keyed the same way.
@@ -83,7 +83,7 @@ ledger's interim rules of 2026-11-25 (the document's "Older rules") are a ledger
 | c29bc5d44 | updated from the text | 1,774 of 1,774, then 1,904 of 1,904 with the added family | nothing |
 | a25242bc3 | updated from the text; the result shape now follows the document's member list | 1,904 of 1,904 | no verdict or amount; three small differences in other row members (an own-account stage in `credits`, conflict entry details, `closedAtLastStep`) |
 | 955bd5f7a | updated from the text | 1,936 of 1,936, every row member included | nothing |
-| 61cea0a88 | updated from the text with the decided unfinished-answer rule; result `schema` v2 | 2,052 of 2,052, every row member included | nothing; the amounts `replay.js` computes did not change, because it already charged the prefix under every value but the provider-loss-free one |
+| 1281fdd47 | updated from the text with the decided unfinished-answer rule; result `schema` v2 | 2,052 of 2,052, every row member included | nothing; the amounts `replay.js` computes did not change, because it already charged the prefix under every value but the provider-loss-free one |
 
 Between those rounds the comparison and [../baseline-matrix.js](../baseline-matrix.js) also showed properties both
 verifiers shared because the document said so, and the document and the service's verifier were changed on each: a
@@ -130,7 +130,7 @@ that never closes, still costs the requester nothing in both. Reservations made 
 | 560f7440b (first run, final `collect` only, no stop) | 102 of 109. Three causes: the case above; closes 5 s after the deadline inside the release window (ledger 0, replay 12); an answer past the signed ceiling (ledger refused the receipts, replay charged the ceiling). |
 | 4d845320a, fd2ece824 | The ledger was moved to the replay on all three, and the live route began handing over each acknowledgment as signed and the requester's stop: 109 of 109. |
 | 955bd5f7a | The first case was moved back in the ledger, once it was clear that the replay's rule makes every partial answer free at the requester's option: 107 of 109, the two walk-away cases. |
-| 4016e5281 | The owner's decision: the replay takes the ledger's charge for an unattributed disconnect under new terms, and the ledger keeps provider-failure relief: 109 of 109. |
+| 18bdd4862 | The owner's decision: the replay takes the ledger's charge for an unattributed disconnect under new terms, and the ledger keeps provider-failure relief: 109 of 109. |
 
 `--latest-only` runs the comparison with only the final `collect` and no stop: what a route that kept less would
 hand over. It shows what the agreement on the other cases depends on.
