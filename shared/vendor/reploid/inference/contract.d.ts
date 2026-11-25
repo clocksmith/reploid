@@ -34,7 +34,9 @@ export interface AdmittedRoute {
   id: string | null; planRouteId: string; policyId: string | null; shape: RouteShape; participants: string[]; backend: string; protocol: string | null;
 }
 export interface EvidenceClaim { claim: string; by: 'requester'; method: string; value?: unknown }
-export interface DeliveryEvent { event: 'sent' | 'resent' | 'received'; stage: 'admit' | 'request'; attempt: number; at: number }
+/** `path` names the data channel of the same connection a frame or path change used (0: the connection's own). */
+export interface DeliveryEvent { event: 'sent' | 'resent' | 'received' | 'path-opened' | 'path-failed' | 'ice-restart' | 'ice-restarted' | 'ice-restart-failed';
+  stage: 'admit' | 'request'; attempt: number; at: number; path?: number }
 export interface ExecutionReceipt {
   schema: 'reploid.execution-receipt/v1'; api: 'reploid.inference/v1'; requestId: string; attemptId: string; planId: string;
   status: 'completed' | 'cancelled' | 'failed';

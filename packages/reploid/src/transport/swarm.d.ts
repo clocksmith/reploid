@@ -8,8 +8,15 @@ export interface SwarmTransport {
   getPeerStates?(): Array<{ id: string; attemptId?: string; authenticated?: boolean; failure?: string | null; phase: string; transport: string; updatedAt: number; iceState: string | null; channelState: string | null }>;
   observePeerAuthentication?(peerId: string, attemptId: string): void;
   getIntroductions(): PeerIntroductions | null;
-  init(): Promise<boolean>; disconnect(): void; sendToPeer(peerId: string, type: string, payload: unknown): boolean;
-  broadcast(type: string, payload: unknown): number; onMessage(type: string, handler: (peerId: string, payload: Record<string, unknown>, envelope?: object) => void): void;
+  /** `options.path` sends on that open fresh path; otherwise, or once it closes, on the connection's own channel. */
+  init(): Promise<boolean>; disconnect(): void; sendToPeer(peerId: string, type: string, payload: unknown, options?: { path?: number }): boolean;
+  /** `context.path` is the fresh path a frame arrived on; 0 is the connection's own channel. */
+  broadcast(type: string, payload: unknown): number; onMessage(type: string, handler: (peerId: string, payload: Record<string, unknown>, envelope?: object, context?: { path: number }) => void): void;
+  /** Fresh-path recovery on the same connection: a new SCTP stream, or an ICE restart through renegotiation. */
+  supportsFreshPaths?(): boolean;
+  openFreshPath?(peerId: string, options?: { timeoutMs?: number }): Promise<number | null>;
+  restartPath?(peerId: string, options?: { timeoutMs?: number }): Promise<boolean>;
+  allowPathRecovery?(peerId: string): void;
   getConnectionState(): string; getConnectedPeers(): object[]; getStats(): Record<string, unknown>; getClock(): number; tick(): number;
   getPeerId(): string | null;
   /** Compatibility alias; use getPeerId for new consumers. */

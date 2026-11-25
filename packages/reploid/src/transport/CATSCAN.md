@@ -29,7 +29,7 @@ Partitions pipeline authorized requests/bounded replies under receiver credit; r
 - Reconnection honors trusted host retry deadlines; disconnect cancels that wait.
 - Custody/partitions/training use separate reliable ordered channels; framing grants no execution. Reject unknown/post-disconnect channels.
 - Shards, jobs, tensors/continuations and subtasks retain distinct contracts. Transfers authorize no execution/compatibility.
-- Candidate transfers bind endpoints, room, contract, bytes and expiry. Retried delivery is bounded at-least-once; acknowledgements establish retained preview only.
+- Candidate transfers bind endpoints, room, contract, bytes and expiry. Retried delivery is bounded at-least-once, any path, same connection; acknowledgements establish retained preview only.
 
 ## Acceptance
 Evidence: [contract tests](../../../../tests/unit/p2p-transport-lifecycle.test.js).

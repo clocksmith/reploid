@@ -171,7 +171,11 @@ var EXECUTION_BACKENDS = freeze({
 var plaintextBackends = Object.keys(EXECUTION_BACKENDS);
 
 // shared/vendor/reploid/mesh/request-delivery.js
+var DELIVERY_PROTOCOL = 1;
+var PATH_DELIVERY_PROTOCOL = 2;
+var DELIVERY_PROTOCOLS = Object.freeze([DELIVERY_PROTOCOL, PATH_DELIVERY_PROTOCOL]);
 var DELIVERY_STAGES = Object.freeze(["admit", "request"]);
+var PATH_EVENTS = Object.freeze(["resent", "path-opened", "path-failed", "ice-restart", "ice-restarted", "ice-restart-failed"]);
 
 // shared/vendor/reploid/rules/contribution.rules.json
 var contribution_rules_default = {

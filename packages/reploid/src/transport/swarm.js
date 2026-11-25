@@ -14,6 +14,13 @@ const AUXILIARY_CHANNELS = Object.freeze(['reploid-custody', 'reploid-partitions
   'reploid-partitions-input', 'reploid-partitions-control', 'reploid-jobs', 'reploid-partitions-ordered', 'reploid-training']);
 /** Labels this transport admits; consumers that open auxiliary channels must use one of these. */
 export const SWARM_AUXILIARY_CHANNELS = AUXILIARY_CHANNELS;
+// Fresh paths: extra application channels on the same connection, each its own SCTP stream, so a frame
+// sent on one is not held behind data queued on another. Numbered per connection and bounded.
+const PATH_LABEL = /^reploid-path-([1-8])$/, MAX_PATHS = 8;
+const pathLabel = path => `reploid-path-${path}`;
+// Marks an offer that renegotiates an open connection (an ICE restart). Discovery forwards the offer
+// object unchanged; an older peer ignores any offer for a connection whose channel is open.
+const RENEGOTIATION_MARKER = 'reploidRenegotiation';
 
 import { PROTOCOL_VERSION, RTC_MESSAGE_TYPES } from './message-types.js';
 
@@ -91,6 +98,14 @@ const WebRTCSwarm = {
       if (channel.label === 'reploid' && !peer.dataChannel) {
         peer.dataChannel = channel; setupDataChannel(channel, remotePeerId, peer); return;
       }
+      const fresh = PATH_LABEL.exec(channel.label);
+      if (fresh) {
+        const path = Number(fresh[1]);
+        // A fresh path belongs to a connection whose own channel is already open, and is never reused.
+        if (peer.dataChannel?.readyState !== 'open' || peer.paths.has(path) || peer.pathsSeen.has(path)) { channel.close(); return; }
+        setupPathChannel(channel, remotePeerId, peer, path);
+        return;
+      }
       const handler = auxiliaryHandlers.get(channel.label);
       if (!handler) { channel.close(); return; }
       try { handler(remotePeerId, retainAuxiliary(peer, channel)); }
@@ -166,8 +181,8 @@ const WebRTCSwarm = {
     };
     const preparePeer = async (remote, exchange) => {
       const peer = { id: remote, attemptId: `${_peerId}:${_generation}:${++attemptSequence}`,
-        authenticated: false, exchange, connection: null, dataChannel: null,
-        metadata: {}, status: 'connecting', lastSeen: Date.now() };
+        authenticated: false, exchange, connection: null, dataChannel: null, paths: new Map(), pathsSeen: new Set(),
+        pathSequence: 0, restart: null, pathRecovery: false, metadata: {}, status: 'connecting', lastSeen: Date.now() };
       retiredPeerStates.delete(remote);
       _peers.set(remote, peer);
       reportPeerProgress(peer, 'preparing');
@@ -680,6 +695,7 @@ const WebRTCSwarm = {
         logger.debug(`[WebRTCSwarm] Connection state with ${remotePeerId}: ${connection.connectionState}`);
         // ICE disconnected can recover. The existing heartbeat deadline bounds
         // liveness; do not destroy open custody/partition channels prematurely.
+        if (connection.connectionState === 'failed' && holdForRestart(remotePeerId, peer)) return;
         if (connection.connectionState === 'failed' || connection.connectionState === 'closed') {
           recoverPeer(remotePeerId, peer, connection.connectionState === 'failed' ? 'failed' : 'disconnected');
         }
@@ -708,6 +724,8 @@ const WebRTCSwarm = {
      */
     const handleOffer = async (remotePeerId, offer, exchange = null) => {
       if (_manualStop) return;
+      // A renegotiation of an open connection never replaces it; it is answered on that connection or ignored.
+      if (offer?.[RENEGOTIATION_MARKER] === 1) { if (!exchange) await handleRenegotiation(remotePeerId, offer); return; }
       if (_peers.get(remotePeerId)?.dataChannel?.readyState === 'open') return;
       // Crossing offers on a reconnection: the lower peer ID keeps its own and the other side accepts it.
       const pendingOffer = _peers.get(remotePeerId);
@@ -740,6 +758,7 @@ const WebRTCSwarm = {
         reportPeerProgress(peer, connection.connectionState === 'disconnected' ? 'interrupted' : peer.status);
         // Preserve transient ICE recovery under the same heartbeat deadline as
         // outgoing connections. Terminal states still retire the peer now.
+        if (connection.connectionState === 'failed' && holdForRestart(remotePeerId, peer)) return;
         if (connection.connectionState === 'failed' || connection.connectionState === 'closed') {
           recoverPeer(remotePeerId, peer, connection.connectionState === 'failed' ? 'failed' : 'disconnected');
         }
@@ -773,6 +792,93 @@ const WebRTCSwarm = {
         await peer.connection.setRemoteDescription(answer);
         await flushPendingIceCandidates(remotePeerId, peer.connection);
         reportPeerProgress(peer, peer.status === 'connected' ? 'connected' : 'opening-channel');
+        if (peer.restart && _peers.get(remotePeerId) === peer) { peer.restart.answered = true; peer.restart.check(); }
+      }
+    };
+
+    // ICE restart of an open connection, through an offer/answer exchange over discovery. The connection,
+    // its certificates, its channels and their SCTP association are kept; only the network path is found
+    // again. Bounded by `timeoutMs`; resolves true once the new answer is applied and ICE is connected.
+    const beginRestart = (remotePeerId, peer, timeoutMs) => {
+      if (peer.restart) return peer.restart;
+      const connection = peer.connection;
+      let finish;
+      const state = { answered: false, promise: new Promise(resolve => { finish = resolve; }), timer: null, check: () => {} };
+      const settle = ok => {
+        if (state.done) return;
+        state.done = true; clearTimeout(state.timer);
+        connection.removeEventListener?.('iceconnectionstatechange', state.check);
+        if (peer.restart === state) peer.restart = null;
+        if (_peers.get(remotePeerId) === peer) {
+          EventBus.emit('swarm:peer-path', { peerId: remotePeerId, attemptId: peer.attemptId, kind: 'ice-restart', ok });
+          // A connection that failed was kept only for this restart.
+          if (!ok && connection.connectionState === 'failed') recoverPeer(remotePeerId, peer, 'failed');
+        }
+        finish(ok);
+      };
+      state.check = () => {
+        if (_manualStop || _peers.get(remotePeerId) !== peer || ['closed'].includes(connection.signalingState)) return settle(false);
+        if (state.answered && ['connected', 'completed'].includes(connection.iceConnectionState)) settle(true);
+      };
+      state.settle = settle;
+      state.timer = setTimeout(() => settle(false), Math.min(Math.max(timeoutMs, 1), policy.webrtc.connectTimeoutMs));
+      connection.addEventListener?.('iceconnectionstatechange', state.check);
+      peer.restart = state;
+      return state;
+    };
+    const restartPeerIce = async (remotePeerId, timeoutMs = policy.webrtc.connectTimeoutMs) => {
+      const peer = _peers.get(remotePeerId);
+      // Introduced connections negotiate over their own exchange, which has ended once they open.
+      if (_manualStop || !isDirectPeer(peer) || peer.exchange || !peer.connection || peer.connection.signalingState === 'closed') return false;
+      if (peer.restart) return peer.restart.promise;
+      if (peer.connection.signalingState !== 'stable') return false;
+      const connection = peer.connection, state = beginRestart(remotePeerId, peer, timeoutMs);
+      try {
+        try { connection.restartIce?.(); } catch { /* createOffer below still asks for new ICE credentials. */ }
+        const offer = await connection.createOffer({ iceRestart: true });
+        if (state.done || _peers.get(remotePeerId) !== peer) return state.promise;
+        await connection.setLocalDescription(offer);
+        if (state.done || _peers.get(remotePeerId) !== peer) return state.promise;
+        const sent = await sendPeerSignal(peer, { type: 'offer', peerId: _peerId, targetPeer: remotePeerId,
+          offer: { type: offer.type, sdp: offer.sdp, [RENEGOTIATION_MARKER]: 1 } });
+        if (sent === false) state.settle(false);
+      } catch (error) {
+        logger.warn('[WebRTCSwarm] ICE restart failed:', error);
+        state.settle(false);
+      }
+      return state.promise;
+    };
+    // A connection that a peer asked to keep for path recovery tries one ICE restart before it is retired.
+    const holdForRestart = (remotePeerId, peer) => {
+      if (!peer.pathRecovery || _peers.get(remotePeerId) !== peer) return false;
+      if (!peer.restart) void restartPeerIce(remotePeerId);
+      return !!peer.restart;
+    };
+    const handleRenegotiation = async (remotePeerId, offer) => {
+      const peer = _peers.get(remotePeerId);
+      if (!isDirectPeer(peer) || peer.exchange || !peer.connection || peer.dataChannel?.readyState !== 'open'
+        || typeof offer.sdp !== 'string' || offer.type !== 'offer') return;
+      const connection = peer.connection;
+      try {
+        if (connection.signalingState === 'have-local-offer') {
+          // Both sides restarted at once: the lower peer ID keeps its own offer and the other accepts it.
+          if (_peerId < remotePeerId) return;
+          await connection.setLocalDescription({ type: 'rollback' });
+        }
+        if (connection.signalingState !== 'stable' || _peers.get(remotePeerId) !== peer) return;
+        const state = beginRestart(remotePeerId, peer, policy.webrtc.connectTimeoutMs);
+        await connection.setRemoteDescription({ type: 'offer', sdp: offer.sdp });
+        await flushPendingIceCandidates(remotePeerId, connection);
+        const answer = await connection.createAnswer();
+        if (_peers.get(remotePeerId) !== peer) return;
+        await connection.setLocalDescription(answer);
+        if (_peers.get(remotePeerId) !== peer) return;
+        state.answered = true;
+        await sendPeerSignal(peer, { type: 'answer', peerId: _peerId, targetPeer: remotePeerId, answer });
+        state.check();
+      } catch (error) {
+        logger.warn('[WebRTCSwarm] Renegotiation offer rejected:', error);
+        peer.restart?.settle(false);
       }
     };
 
@@ -848,6 +954,48 @@ const WebRTCSwarm = {
       };
     };
 
+    // A fresh path carries the same envelopes as the connection's own channel and is read the same way;
+    // closing it ends only that path, never the connection.
+    const setupPathChannel = (channel, remotePeerId, peer, path) => {
+      peer.paths.set(path, channel); peer.pathsSeen.add(path);
+      channel.onmessage = event => {
+        if (_manualStop || _peers.get(remotePeerId) !== peer || peer.paths.get(path) !== channel) return;
+        handlePeerMessage(remotePeerId, event.data, path);
+      };
+      channel.onerror = () => {};
+      channel.onclose = () => { if (peer.paths.get(path) === channel) peer.paths.delete(path); };
+    };
+    // Opens the next fresh path to a connected peer; resolves with its number once open, or null.
+    const openFreshPath = (remotePeerId, { timeoutMs = policy.webrtc.connectTimeoutMs } = {}) => {
+      const peer = _peers.get(remotePeerId);
+      if (_manualStop || !isDirectPeer(peer) || !peer.connection || peer.dataChannel?.readyState !== 'open'
+        || peer.pathSequence >= MAX_PATHS) return Promise.resolve(null);
+      const path = ++peer.pathSequence;
+      let channel;
+      try { channel = peer.connection.createDataChannel(pathLabel(path), CONFIG.channelOptions); }
+      catch { return Promise.resolve(null); }
+      setupPathChannel(channel, remotePeerId, peer, path);
+      return new Promise(resolve => {
+        let timer = null;
+        let done = false;
+        const finish = value => {
+          if (done) return;
+          done = true; clearTimeout(timer);
+          channel.onopen = null;
+          channel.onclose = () => { if (peer.paths.get(path) === channel) peer.paths.delete(path); };
+          if (value === null) { if (peer.paths.get(path) === channel) peer.paths.delete(path); try { channel.close(); } catch { /* already closed */ } }
+          else EventBus.emit('swarm:peer-path', { peerId: remotePeerId, attemptId: peer.attemptId, kind: 'fresh-channel', path, ok: true });
+          resolve(value);
+        };
+        channel.onopen = () => finish(_peers.get(remotePeerId) === peer ? path : null);
+        channel.onclose = () => finish(null);
+        // Some stacks (wrtc) open a channel on an established association at once and fire no open event.
+        if (channel.readyState === 'open') queueMicrotask(() => finish(_peers.get(remotePeerId) === peer ? path : null));
+        timer = setTimeout(() => finish(channel.readyState === 'open' && _peers.get(remotePeerId) === peer ? path : null),
+          Math.min(Math.max(timeoutMs, 1), policy.webrtc.connectTimeoutMs));
+      });
+    };
+
     const isDirectPeer = peer => !!peer && peer.transport !== 'signaling-relay';
 
     /**
@@ -893,7 +1041,10 @@ const WebRTCSwarm = {
           channelState: 'closed', path: null, updatedAt: Date.now() });
         while (retiredPeerStates.size > 64) retiredPeerStates.delete(retiredPeerStates.keys().next().value);
         if (!preserveIntroduction) introductions?.retirePeer(remotePeerId, peer.exchange?.attemptId);
+        peer.restart?.settle(false);
         try {
+          for (const channel of peer.paths?.values() || []) channel.close();
+          peer.paths?.clear();
           if (peer.dataChannel) peer.dataChannel.close();
           if (peer.connection) peer.connection.close();
         } catch (e) {
@@ -959,7 +1110,7 @@ const WebRTCSwarm = {
     /**
      * Handle incoming peer message
      */
-    const handlePeerMessage = (remotePeerId, data) => {
+    const handlePeerMessage = (remotePeerId, data, path = 0) => {
       let envelope;
       try {
         // Size check before parse
@@ -976,13 +1127,13 @@ const WebRTCSwarm = {
         return;
       }
 
-      handlePeerEnvelope(remotePeerId, envelope, data.length);
+      handlePeerEnvelope(remotePeerId, envelope, data.length, path);
     };
 
     /**
      * Handle a parsed envelope from either WebRTC or signaling relay transport.
      */
-    const handlePeerEnvelope = (remotePeerId, envelope, sizeHint = null) => {
+    const handlePeerEnvelope = (remotePeerId, envelope, sizeHint = null, path = 0) => {
       const serializedLength = Number.isFinite(sizeHint) ? sizeHint : JSON.stringify(envelope || {}).length;
 
       // Validate envelope
@@ -1011,7 +1162,8 @@ const WebRTCSwarm = {
       const handler = _messageHandlers.get(envelope.type);
       if (handler) {
         try {
-          handler(remotePeerId, envelope.payload, envelope);
+          // The fourth argument names the path the frame arrived on: 0 is the connection's own channel.
+          handler(remotePeerId, envelope.payload, envelope, { path });
         } catch (e) {
           logger.error(`[WebRTCSwarm] Handler error for ${envelope.type}:`, e);
         }
@@ -1028,7 +1180,8 @@ const WebRTCSwarm = {
     /**
      * Send message to specific peer
      */
-    const sendToPeer = (remotePeerId, type, payload) => {
+    // `options.path` sends on that fresh path while it is open, and otherwise on the connection's own channel.
+    const sendToPeer = (remotePeerId, type, payload, options = undefined) => {
       const peer = _peers.get(remotePeerId);
       if (!peer) {
         logger.warn(`[WebRTCSwarm] Cannot send to ${remotePeerId}: not connected`);
@@ -1063,9 +1216,11 @@ const WebRTCSwarm = {
           logger.warn(`[WebRTCSwarm] Cannot send to ${remotePeerId}: not connected`);
           return false;
         }
+        const fresh = Number.isSafeInteger(options?.path) && options.path > 0 ? peer.paths?.get(options.path) : null;
+        const channel = fresh?.readyState === 'open' ? fresh : peer.dataChannel;
 
-        if ((peer.dataChannel.bufferedAmount || 0) + new TextEncoder().encode(data).length > policy.webrtc.maxBufferedBytes) return false;
-        peer.dataChannel.send(data);
+        if ((channel.bufferedAmount || 0) + new TextEncoder().encode(data).length > policy.webrtc.maxBufferedBytes) return false;
+        channel.send(data);
 
         _stats.messagesSent++;
         _stats.bytesSent += data.length;
@@ -1298,6 +1453,16 @@ const WebRTCSwarm = {
           throw new Error('Connected WebRTC peer required for auxiliary transfer');
         }
         return retainAuxiliary(peer, peer.connection.createDataChannel(label, { ordered: true }));
+      },
+      /** True: this transport opens and accepts fresh paths and renegotiates an open connection. */
+      supportsFreshPaths: () => true,
+      openFreshPath,
+      /** ICE restart of the open connection to this peer; resolves true once ICE is connected on it again. */
+      restartPath: (remotePeerId, options = {}) => restartPeerIce(remotePeerId, options.timeoutMs),
+      /** Keep this peer's connection through one ICE restart if ICE fails, instead of retiring it at once. */
+      allowPathRecovery(remotePeerId) {
+        const peer = _peers.get(remotePeerId);
+        if (isDirectPeer(peer)) peer.pathRecovery = true;
       },
       getPeerBinding(remotePeerId) {
         const peer = _peers.get(remotePeerId);

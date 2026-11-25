@@ -142,7 +142,8 @@ describe('createRequestDelivery', () => {
     expect(delivery.attempt('request')).toBe(1);
     delivery.stop();
     expect(readDelivery({ delivery: { protocol: 1, attempt: 2 } })).toEqual({ protocol: 1, attempt: 2 });
-    for (const delivery of [undefined, { protocol: 2, attempt: 1 }, { protocol: 1, attempt: 0 }, { protocol: 1, attempt: 1.5 }, { protocol: 1, attempt: 99 }]) {
+    expect(readDelivery({ delivery: { protocol: 2, attempt: 1 } })).toEqual({ protocol: 2, attempt: 1 });
+    for (const delivery of [undefined, { protocol: 3, attempt: 1 }, { protocol: 1, attempt: 0 }, { protocol: 1, attempt: 1.5 }, { protocol: 1, attempt: 99 }]) {
       expect(readDelivery({ delivery })).toBeNull();
     }
   });

@@ -17,7 +17,7 @@ export function createRemoteGenerationRequests({ timeoutMs, maxPending, sendCanc
     }
     if (outcome.cancel) {
       // Transport teardown must not prevent local settlement.
-      try { sendCancel(pending.providerPeerId, pending.requestId); } catch { /* Original failure remains authoritative. */ }
+      try { sendCancel(pending.providerPeerId, pending.requestId, pending); } catch { /* Original failure remains authoritative. */ }
     }
     if (Object.hasOwn(outcome, 'error')) pending.reject(outcome.error ?? new Error('Remote request cancelled'));
     else pending.resolve(outcome.response);

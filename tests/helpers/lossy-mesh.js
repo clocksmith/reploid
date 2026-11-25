@@ -21,7 +21,7 @@ export async function createLossyMesh({ providers = ['provider'], latencyMs = 5,
     payload = structuredClone(payload);
     // A host that predates the delivery protocol: its advertisement has no delivery version and its
     // frames carry no delivery fields, whichever side it is.
-    if (legacy(from)) { delete payload.deliveryProtocol; delete payload.delivery; }
+    if (legacy(from)) { delete payload.deliveryProtocol; delete payload.deliveryProtocols; delete payload.delivery; }
     const frame = { from, to, type, payload, at: performance.now() };
     const action = link(frame);
     frame.action = action;

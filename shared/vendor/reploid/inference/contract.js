@@ -214,14 +214,16 @@ export function readExecutorResult(plan, raw, streamed) {
   };
 }
 
-const DELIVERY_EVENTS = ['sent', 'resent', 'received'], DELIVERY_STAGES = ['admit', 'request'];
+const DELIVERY_EVENTS = ['sent', 'resent', 'received', 'path-opened', 'path-failed', 'ice-restart', 'ice-restarted', 'ice-restart-failed'];
+const DELIVERY_STAGES = ['admit', 'request'];
 /** This requester's own record of how its request frames reached the recipient: each send, each re-send to
- * the same recipient, and each acknowledgement, in milliseconds from the first frame. Null when none was kept. */
+ * the same recipient, each acknowledgement and (protocol 2) each change of path on the same connection, in
+ * milliseconds from the first frame. Null when none was kept. */
 export function deliveryTimeline(delivery) {
-  if (!object(delivery) || delivery.protocol !== 1 || !Array.isArray(delivery.timeline) || delivery.timeline.length > 64) return null;
+  if (!object(delivery) || ![1, 2].includes(delivery.protocol) || !Array.isArray(delivery.timeline) || delivery.timeline.length > 64) return null;
   const rows = delivery.timeline.filter(row => object(row) && DELIVERY_EVENTS.includes(row.event) && DELIVERY_STAGES.includes(row.stage)
     && Number.isSafeInteger(row.attempt) && row.attempt > 0 && Number.isFinite(row.at) && row.at >= 0)
-    .map(({ event, stage, attempt, at }) => ({ event, stage, attempt, at }));
+    .map(({ event, stage, attempt, at, path }) => ({ event, stage, attempt, at, ...(Number.isSafeInteger(path) && path >= 0 && path <= 8 ? { path } : {}) }));
   return rows.length ? rows : null;
 }
 

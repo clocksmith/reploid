@@ -1416,7 +1416,7 @@
     {
       "path": "config/module-inventory.json",
       "byteLength": 699791,
-      "sha256": "sha256:04f1ca8e42f9575bb5f4275b930d1a18966f9fceca6a042de71613c804936d93"
+      "sha256": "sha256:8745f38ac6fe4dd14228f054b8226b87119b42051d7ff1ca8e236a16bccea614"
     },
     {
       "path": "config/module-registry.json",
@@ -3830,8 +3830,8 @@
     },
     {
       "path": "ui/pool-home/app.bundle.js",
-      "byteLength": 2801417,
-      "sha256": "sha256:70a6dd262bf4f40e32d6bba07012b67301e01eafc0960c3e2a0135c756a252b3"
+      "byteLength": 2809577,
+      "sha256": "sha256:e7dc7bdc13af27d4da8f76df65f6d73be661d8ccb29bbae4ba09f00b7b09abce"
     },
     {
       "path": "ui/pool-home/auto-download.js",
@@ -12175,8 +12175,8 @@
     },
     {
       "path": "vendor/reploid/inference/contract.js",
-      "byteLength": 18529,
-      "sha256": "sha256:fc08611ffb8ef5228d7e551c5cea16a10d83e12d20a329fa34a65f39d2f555e4"
+      "byteLength": 18771,
+      "sha256": "sha256:1743fabfaf540b17178eb61132903bbd0dd5791bdf6218a88de6560e697823b9"
     },
     {
       "path": "vendor/reploid/inference/index.js",
@@ -12495,8 +12495,8 @@
     },
     {
       "path": "vendor/reploid/mesh/peer-generation.js",
-      "byteLength": 83074,
-      "sha256": "sha256:ab4b368279696591a6d0cec351ea93370e0c0fe2baf8dc3878a9f18417a7da17"
+      "byteLength": 87574,
+      "sha256": "sha256:29a46daba40046974f30ac437658482831bb2332d91c6db70b1c97f5683b934d"
     },
     {
       "path": "vendor/reploid/mesh/peer-identity.js",
@@ -12525,13 +12525,13 @@
     },
     {
       "path": "vendor/reploid/mesh/remote-generation-requests.js",
-      "byteLength": 3093,
-      "sha256": "sha256:be87149411a012e9ba8a675fd7e47cc004cfa8d41580c33dfb916484a3e156d9"
+      "byteLength": 3102,
+      "sha256": "sha256:ddfbabda6203c3fdb068ae1c1c8138d6c519e6a7e0b61e8ec9a4b767bef52f4d"
     },
     {
       "path": "vendor/reploid/mesh/request-delivery.js",
-      "byteLength": 3619,
-      "sha256": "sha256:14e6a6df2c016601ed6e4a63073e632f0b7704dd3dbdc54d621b6b4cc3e39d8a"
+      "byteLength": 8893,
+      "sha256": "sha256:6ecb8b2a5dda44270f32e36e5a5c9a8864bb7134d615fa2a384fe5086e819cdd"
     },
     {
       "path": "vendor/reploid/mesh/swarm-coordination.js",
@@ -12561,7 +12561,7 @@
     {
       "path": "vendor/reploid/package-assets.json",
       "byteLength": 62741,
-      "sha256": "sha256:7f8882c29eb021e4953420662252adf70beea0b5d7e9ec63ef926c3a8f543afc"
+      "sha256": "sha256:cab8aac5f4b306982a968b924366898edc088b99c544496c2218b0066498756d"
     },
     {
       "path": "vendor/reploid/plugins/index.js",
@@ -12765,8 +12765,8 @@
     },
     {
       "path": "vendor/reploid/transport/room.js",
-      "byteLength": 15330,
-      "sha256": "sha256:39098e6404c9df753a549b13cec127d6f108a72465899e16ffbad06b06b23155"
+      "byteLength": 16031,
+      "sha256": "sha256:f7fb2d11f6373e3baf9e51fafde2626bed0c9c856c1b791dbbf9d424170babcb"
     },
     {
       "path": "vendor/reploid/transport/sdp-fingerprint.js",
@@ -12780,8 +12780,8 @@
     },
     {
       "path": "vendor/reploid/transport/swarm.js",
-      "byteLength": 54237,
-      "sha256": "sha256:a1e4300014dba0ed0fe926128cbf0c4e278a013ba43642c0623a8dbd78a69a90"
+      "byteLength": 64777,
+      "sha256": "sha256:0aada676152e0056ddd615b7d5f707eb1ccdce4324a730c2bcaf7b2350eeca9d"
     },
     {
       "path": "vendor/reploid/transport/tool-offer-channel.js",
@@ -12849,5 +12849,5 @@
       "sha256": "sha256:abb6c18f6167d6afc8ee1b3adfcbbb89c0e93fb4fc4e98d7a12250f78aab206a"
     }
   ],
-  "bundleHash": "sha256:dafaec45b27c09b95465f39b1f73dc55989eaffc16f8cf5fe2a5f020ff48c093"
+  "bundleHash": "sha256:1c9cfe4812e402825e1d86e01e8842c26325778131039a7ac5efe7f9106d130e"
 }

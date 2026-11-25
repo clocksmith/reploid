@@ -926,13 +926,13 @@
     },
     {
       "path": "inference/contract.d.ts",
-      "bytes": 6632,
-      "sha256": "c0d38f935a9551e82015e76378bfbc919da829ca581af1bc66cba393fea53fcb"
+      "bytes": 6853,
+      "sha256": "2ede9a4a59b3855663316d95ecc922cdedac9f6604c952dbdba81d41b63ae269"
     },
     {
       "path": "inference/contract.js",
-      "bytes": 18529,
-      "sha256": "fc08611ffb8ef5228d7e551c5cea16a10d83e12d20a329fa34a65f39d2f555e4"
+      "bytes": 18771,
+      "sha256": "1743fabfaf540b17178eb61132903bbd0dd5791bdf6218a88de6560e697823b9"
     },
     {
       "path": "inference/index.d.ts",
@@ -1506,8 +1506,8 @@
     },
     {
       "path": "mesh/peer-generation.js",
-      "bytes": 83074,
-      "sha256": "ab4b368279696591a6d0cec351ea93370e0c0fe2baf8dc3878a9f18417a7da17"
+      "bytes": 87574,
+      "sha256": "29a46daba40046974f30ac437658482831bb2332d91c6db70b1c97f5683b934d"
     },
     {
       "path": "mesh/peer-identity.js",
@@ -1551,13 +1551,13 @@
     },
     {
       "path": "mesh/remote-generation-requests.js",
-      "bytes": 3093,
-      "sha256": "be87149411a012e9ba8a675fd7e47cc004cfa8d41580c33dfb916484a3e156d9"
+      "bytes": 3102,
+      "sha256": "ddfbabda6203c3fdb068ae1c1c8138d6c519e6a7e0b61e8ec9a4b767bef52f4d"
     },
     {
       "path": "mesh/request-delivery.js",
-      "bytes": 3619,
-      "sha256": "14e6a6df2c016601ed6e4a63073e632f0b7704dd3dbdc54d621b6b4cc3e39d8a"
+      "bytes": 8893,
+      "sha256": "6ecb8b2a5dda44270f32e36e5a5c9a8864bb7134d615fa2a384fe5086e819cdd"
     },
     {
       "path": "mesh/swarm-coordination.d.ts",
@@ -1881,8 +1881,8 @@
     },
     {
       "path": "transport/room.js",
-      "bytes": 15330,
-      "sha256": "39098e6404c9df753a549b13cec127d6f108a72465899e16ffbad06b06b23155"
+      "bytes": 16031,
+      "sha256": "f7fb2d11f6373e3baf9e51fafde2626bed0c9c856c1b791dbbf9d424170babcb"
     },
     {
       "path": "transport/sdp-fingerprint.js",
@@ -1901,13 +1901,13 @@
     },
     {
       "path": "transport/swarm.d.ts",
-      "bytes": 2858,
-      "sha256": "296550aa9270b1382c2e2f0ab27e6400ac23585f2d37835ab246551d5f579a8d"
+      "bytes": 3497,
+      "sha256": "4737b938878d427409b0e6e1d27a091a15d7241eb42a1536adae3dd7c9104ee4"
     },
     {
       "path": "transport/swarm.js",
-      "bytes": 54237,
-      "sha256": "a1e4300014dba0ed0fe926128cbf0c4e278a013ba43642c0623a8dbd78a69a90"
+      "bytes": 64777,
+      "sha256": "0aada676152e0056ddd615b7d5f707eb1ccdce4324a730c2bcaf7b2350eeca9d"
     },
     {
       "path": "transport/tool-offer-channel.d.ts",

@@ -313,9 +313,9 @@ const SwarmTransport = {
     /**
      * Send message to specific peer
      */
-    const sendToPeer = (remotePeerId, type, payload) => {
+    const sendToPeer = (remotePeerId, type, payload, options = undefined) => {
       if (_transport === 'webrtc' && _webrtcSwarm) {
-        return _webrtcSwarm.sendToPeer(remotePeerId, type, payload);
+        return _webrtcSwarm.sendToPeer(remotePeerId, type, payload, options);
       }
 
       if (_transport === 'broadcast' && _broadcastChannel) {
@@ -470,6 +470,13 @@ const SwarmTransport = {
       },
       getIntroductions: () => _webrtcSwarm?.getIntroductions?.() || null,
       getPeerBinding: peerId => _webrtcSwarm?.getPeerBinding?.(peerId) || null,
+      // Fresh-path recovery exists only on a WebRTC connection; BroadcastChannel has no paths to change.
+      supportsFreshPaths: () => _transport === 'webrtc' && _webrtcSwarm?.supportsFreshPaths?.() === true,
+      openFreshPath: (peerId, options) => _transport === 'webrtc' && _webrtcSwarm?.openFreshPath
+        ? _webrtcSwarm.openFreshPath(peerId, options) : Promise.resolve(null),
+      restartPath: (peerId, options) => _transport === 'webrtc' && _webrtcSwarm?.restartPath
+        ? _webrtcSwarm.restartPath(peerId, options) : Promise.resolve(false),
+      allowPathRecovery: peerId => { if (_transport === 'webrtc') _webrtcSwarm?.allowPathRecovery?.(peerId); },
       getTransportType,
       getStats,
       getClock,
