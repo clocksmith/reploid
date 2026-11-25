@@ -10,23 +10,57 @@ It does not establish answer quality, acceptance or a release decision, and it i
 
 | Path | Content |
 |---|---|
-| `harness.py` | The command-line entry: `run`, `evaluate`, `compare`, `reproduce`, `search-preflight`. |
-| `answer_regression/targets.py` | The three targets behind one interface, and the identities each records. |
-| `answer_regression/checks.py` | The mechanical, format, instruction and search checks. |
-| `answer_regression/codeexec.py` | Executed-code checks in a sandboxed scratch directory. |
-| `answer_regression/judge.py` | The optional automated judge adapter. |
-| `answer_regression/evaluation.py` | Applies the checks to one run. |
-| `answer_regression/report.py` | The regression report: baseline against candidate. |
-| `answer_regression/reproduce.py` | Confirms the harness reproduces the frozen useful-answer results. |
-| `answer_regression/search_preflight.py` | Retrieval records and prompt sizes for the search set, with no model. |
+| `harness.js` | The command-line entry: `run`, `evaluate`, `compare`, `reproduce`, `search-preflight`. |
+| `lib/targets.js` | The three targets behind one interface, and the identities each records. |
+| `lib/checks.js` | The mechanical, format, instruction and search checks. |
+| `lib/mechanical.js` | The useful-answer set's check types, ported from its frozen `scripts/check.py` with the same verdicts and detail text. |
+| `lib/python-compat.js` | The Python `str`, `repr`, `re` and `json` behaviours those check types name, reimplemented in JavaScript. |
+| `lib/code-exec.js` | Executed-code checks in a sandboxed scratch directory (JavaScript only). |
+| `lib/judge.js` | The optional automated judge adapter. |
+| `lib/evaluation.js` | Applies the checks to one run. |
+| `lib/report.js` | The regression report: baseline against candidate. |
+| `lib/reproduce.js` | Confirms the harness reproduces the frozen useful-answer results. |
+| `lib/search-preflight.js` | Retrieval records and prompt sizes for the search set, with no model. |
+| `lib/context-candidate.js` | Loads and replays the retained `whole-passages-250` context candidate. |
 | `node/retrieval-helper.js` | Retrieval and citation checks through the retrieval component's exported interface. |
 | `node/doppler-run.mjs` | The single-machine Doppler runner that target (b) copies to its host. |
 | `sets/useful-answer-overlay.json` | Instruction checks and code probes for the frozen 40-item set. |
 | `sets/search-tasks.json` | The frozen search-task set, not yet exercised. Its preflight is `sets/search-tasks.preflight.json`. |
-| `targets/` | `cpu-q4k-mac.json` (target a), and example configurations for targets (b) and (c). |
+| `targets/` | `cpu-q4k-mac.json` (target a; it identifies the stored baseline and no longer generates), and example configurations for targets (b) and (c). |
 | `judges/judge.example.json` | An example judge configuration. It is not configured. |
 | `baselines/cpu-q4k-mac-20261015/` | The first baseline: the run, its evaluation and the reproduction result. |
-| `test_harness.py` | Focused tests of the harness, using synthetic answers only. |
+| `tests/unit/answer-regression-harness.test.js` | Focused tests of the harness, using synthetic answers only (vitest). |
+
+## JavaScript only
+
+Reploid is JavaScript only, so this harness is Node ESM (Node 22 or later) and starts no Python process. Compared
+with the earlier Python harness:
+- **Target (a) refuses to generate.** It ran the useful-answer set's frozen Python `run-arm.py`. `run` on it stops
+  with "target (a) ran a Python control; removed under the JavaScript-only order". Its stored baseline still
+  evaluates, compares and reproduces. New runs use target (b) or (c).
+- **Mechanical checks are ported, not loaded.** `lib/mechanical.js` reimplements every check type of the frozen
+  `scripts/check.py` (sha256 `1a303808…`), including Python's `repr` text, code-point lengths, Unicode-aware `\w`,
+  `\d`, `\b` and `$`, and `json.loads` error messages. Evaluations record the port's own sha256 and the file it
+  was ported from.
+- **Python-language code is not executed.** The overlay's Python cases (`code-sum-squares`, `code-count-vowels`,
+  `fu-palindrome`) and the `code-python-slice` reference program are recorded with `pass: null` and the reason
+  "not executed: python execution removed (JavaScript-only)". An unfenced Python `codeOnly` answer is recorded as
+  not checked (`pass: null`, `checked: false`). Ungraded rows do not count toward a family's rate; a family whose
+  rows are all ungraded has `pass: null`. The overlay itself is unchanged.
+- **JavaScript code runs in a fresh child `node`** (the harness's own `process.execPath`) with the same limits as
+  before; the 8 MiB file-size limit is applied through the shell's `ulimit -f`.
+
+The frozen useful-answer set and the review packet left the source tree for the
+[evidence catalog](../../docs/evidence-catalog/README.md). Restore them before evaluating or reproducing
+useful-answer runs, either in place or into a root outside the repository named by `REPLOID_ARX_EVIDENCE_ROOT`:
+
+```sh
+node scripts/restore-evidence.js artifacts/useful-answer-set-20261014 "$SCRATCH/evidence"
+node scripts/restore-evidence.js artifacts/independent-answer-review-20261014 "$SCRATCH/evidence"   # judge policies
+export REPLOID_ARX_EVIDENCE_ROOT="$SCRATCH/evidence"
+```
+
+Every restored file the harness reads is pinned by sha256; records name its canonical repository path.
 
 ## Targets
 
@@ -45,7 +79,7 @@ Machine paths come from `${ENV}` references. Records keep the configured text an
 
 | | Kind | What runs | State |
 |---|---|---|---|
-| (a) | `cpu-q4k-control` | The useful-answer set's frozen `run-arm.py` and `doppler-text.mjs`, unchanged and pinned by sha256, on mac-host CPU. The Doppler archive is extracted from the `.tgz` the target names, so the package identity is the archive hash. | Baseline stored |
+| (a) | `cpu-q4k-control` | Was the useful-answer set's frozen Python `run-arm.py` and `doppler-text.mjs` on mac-host CPU. Generation is removed under the JavaScript-only order; `run` refuses. | Baseline stored; no new runs |
 | (b) | `doppler-single-machine` | `node/doppler-run.mjs` on one host through Node WebGPU (Dawn). It runs the package unmodified, with the catalog's generation settings, as `unsplit` (whole model) or `ordered-three-stage` (the catalog plan's resident partitions in one process). It checks the package root against its archive file by file, checks the Capsule model bytes against the catalog, and checks that the execution identity matches the TargetPlan. | Preflight checked; GPU path not yet run |
 | (c) | `installed-route` | The installed native participant's mounted text API: `/v1/chat/completions`, or `/v1/messages`, which reports raw token usage. Sampling is the route's own, because the API takes no overrides. Placement is declared by the operator, because the API does not report it. | Not yet run |
 
@@ -53,38 +87,31 @@ Machine paths come from `${ENV}` references. Records keep the configured text an
 
 | Family | What it tests |
 |---|---|
-| mechanical | The useful-answer set's own `scripts/check.py`, loaded by sha256 and called unchanged (`run_check`, `grade_arm`). The two rubric items stay ungraded. |
+| mechanical | The useful-answer set's check types and `grade_arm`, ported from its frozen `scripts/check.py` to `lib/mechanical.js` with identical verdicts and detail text. The two rubric items stay ungraded. |
 | format | On every generated turn: a non-empty answer; a stop on the end-of-turn token rather than the length limit; no leaked template tokens; no U+FFFD; no degenerate repetition; and the prompt within the route limit. |
-| instruction | The overlay's checks of explicit form requirements, such as "two or three sentences", "just the output", "only the corrected sentence", "just the code", named functions, and "filter and map". |
-| code | The answer's own code, run verbatim in a fresh directory outside the repository, followed by a probe that calls the function on the prompt's inputs. It runs with a 10 s timeout, PATH and HOME only, an 8 MiB file-size limit, and, on macOS, `sandbox-exec` with no network and no writes outside the case directory. Two reference programs confirm the expected outputs of the "what does this print" items. |
+| instruction | The overlay's checks of explicit form requirements, such as "two or three sentences", "just the output", "only the corrected sentence", "just the code", named functions, and "filter and map". An unfenced JavaScript `codeOnly` answer is parsed with `node --check`; an unfenced Python one is not checked. |
+| code | The answer's own JavaScript, run verbatim by a fresh child `node` in a new directory outside the repository, followed by a probe that calls the function on the prompt's inputs. It runs with a 10 s timeout, PATH and HOME only, an 8 MiB file-size limit, and, on macOS, `sandbox-exec` with no network and no writes outside the case directory (`unshare` with no network on Linux where available). The JavaScript reference program confirms the expected output of `code-js-default-sort`. Python cases and the Python reference program are recorded as not executed. |
 | search | The retrieval outcome. The asked point, checked with the frozen check types. Abstention, for unanswerable items. Citation validity from `verifyCitations` with no support checker: citations resolve, reference entries match, no unrecorded URL appears, and the expected sources are cited. Claim coverage is reported separately. Support is never judged here. |
 | judge | Optional and off by default. A configurable adapter, `openai-chat` or `anthropic-messages`, grades each answer under the frozen evaluation policies. The judge must be a different model from the generator. The harness refuses a judge whose model name or identity matches the run's model, or whose endpoint is the run's own route. It discards any response that reports the generator or another model. Credentials come from an environment variable or a file outside the repository. |
 
 ## Usage
 
-Run every command from the repository root with `python3 -I`. Work and scratch directories must be outside the repository.
+Run every command from the repository root with `node`. Work and scratch directories must be outside the repository.
 
 ```sh
-# (a) CPU control on mac-host: generate, evaluate, compare with the stored baseline
-export REPLOID_ARX_DOPPLER_ARCHIVE=…/doppler-gpu-0.6.28.tgz      # sha256 2df37d88…
-export REPLOID_ARX_CAPSULE_DIR=…/qwen35-capsule-completion-20261013-c
-export REPLOID_ARX_INSTALLED_CATALOG=…/app/self/config/chat-models.json
-export REPLOID_ARX_BF16_CHECKPOINT=…/Qwen-Qwen3.5-0.8B-2fc0636
-export REPLOID_ARX_GGUF_DIR=…/pylib-gguf
-python3 -I tests/answer-regression/harness.py run --target tests/answer-regression/targets/cpu-q4k-mac.json \
-  --work "$SCRATCH/arx-work" --out "$SCRATCH/arx-candidate"
-python3 -I tests/answer-regression/harness.py evaluate --run "$SCRATCH/arx-candidate"
-python3 -I tests/answer-regression/harness.py compare --baseline tests/answer-regression/baselines/cpu-q4k-mac-20261015 \
+# Evaluate a run and compare it with the stored baseline of the same target
+node tests/answer-regression/harness.js evaluate --run "$SCRATCH/arx-candidate"
+node tests/answer-regression/harness.js compare --baseline tests/answer-regression/baselines/cpu-q4k-mac-20261015 \
   --candidate "$SCRATCH/arx-candidate" --out "$SCRATCH/arx-report" --fail-on-regression
 
-# Reproduction of the frozen useful-answer mechanical results
-python3 -I tests/answer-regression/harness.py reproduce --run tests/answer-regression/baselines/cpu-q4k-mac-20261015 --out "$SCRATCH/reproduction.json"
+# Reproduction of the frozen useful-answer mechanical results (needs the restored evidence, above)
+node tests/answer-regression/harness.js reproduce --run tests/answer-regression/baselines/cpu-q4k-mac-20261015 --out "$SCRATCH/reproduction.json"
 
 # Optional automated judge (off unless given)
-python3 -I tests/answer-regression/harness.py evaluate --run "$SCRATCH/arx-candidate" --judge my-judge.json --out "$SCRATCH/arx-candidate/evaluation-judged.json"
+node tests/answer-regression/harness.js evaluate --run "$SCRATCH/arx-candidate" --judge my-judge.json --out "$SCRATCH/arx-candidate/evaluation-judged.json"
 
 # Harness tests
-python3 -I tests/answer-regression/test_harness.py
+npx vitest run --config tests/vitest.config.js tests/unit/answer-regression-harness.test.js
 ```
 
 `compare` refuses runs of different targets or item sets. For search, generated turns must bind the frozen sources, context digest and actual dispatched messages; changed or missing inputs require a separate baseline. Both runs must contain the same evaluated item IDs. Non-dispatched retrieval failures remain visible failures. Timing and citation verification metadata do not change source identity or establish answer quality. It reports:
@@ -107,7 +134,7 @@ python3 -I tests/answer-regression/test_harness.py
    - `partition-policy.json`.
 3. Set `host` to an SSH alias from your own SSH configuration, such as `amd-host`, or to `local`.
 4. Run the preflight first. It checks identities and tokenizes the prompts, and opens no GPU:
-   `harness.py run --target my-amd.json --work "$SCRATCH/w" --out "$SCRATCH/pre" --preflight`.
+   `node tests/answer-regression/harness.js run --target my-amd.json --work "$SCRATCH/w" --out "$SCRATCH/pre" --preflight`.
 5. Drop `--preflight` to generate. Logs and the run directory stay on the host; only `out.json` comes back.
 6. Store the first evaluated run of that target as its baseline.
 
@@ -151,11 +178,19 @@ Its identities:
 | instruction | 10/10 items. |
 | code | 5/6 cases. `count_vowels` raises before the probe runs. Both reference programs give the expected output. |
 
-`reproduction.json` confirms the harness reproduces the useful-answer set's frozen mechanical results exactly:
+`reproduction.json` (written by the earlier Python harness) confirms the harness reproduces the useful-answer set's frozen mechanical results exactly:
 - **Check equivalence.** The harness's verdicts for the stored 2026-10-14 Q4_K and bf16 arm runs equal `results.json`. That covers 38 items and 60 checks per arm, compared on pass and detail text, with 0 mismatches.
 - **Generation.** All 46 turns of the fresh run equal the stored Q4_K run in prompt token IDs, rendered prompt, output token IDs, text, stop reason, decode steps and smallest top-1/top-2 margin.
 - **Verdicts and rates.** The fresh run's verdicts equal `results.json`'s Q4_K verdicts. The mechanical rates by category equal `results.json` for the fresh run (32/38), the stored Q4_K run (32/38) and the stored bf16 run (35/38).
 - **Whole evaluation.** The stored Q4_K run, evaluated now, agrees with the baseline evaluation in every mechanical, format, instruction and code verdict.
+
+The JavaScript harness, run on 2026-11-25 against the same stored run, reproduces it: check equivalence 0 mismatches
+in 60 checks per arm (pass and detail text), generation 0 differing turns of 46, baseline verdicts 0 mismatches, all
+three rate rows equal, and the whole evaluation equal in every mechanical, format, instruction and code verdict except
+four that needed Python: the code verdicts of `code-sum-squares` (was pass), `code-count-vowels` (was fail) and
+`fu-palindrome` (was pass), and the `fu-palindrome` `codeOnly` instruction verdict (was pass). Those are now
+ungraded, so a fresh evaluation of the baseline run reports instruction 9/9 and code 3/3 against the stored 10/10 and
+5/6, with no newly failing or newly passing verdict. `reproduce` lists them under `ungradedWithoutPython`.
 
 The reproduction reads only the mechanical fields of `results.json`. Its review section and provisional rubric grades are not used.
 
@@ -168,7 +203,7 @@ The baseline run record was written before the harness was committed. It names t
 - **The search items.** They are unexercised. Citation support is not judged.
 - **Variation.** Each run is one greedy generation; there is no confidence interval.
 
-*Last updated: October 2026*
+*Last updated: November 2026*
 
 ## Retained 250-token context candidate
 
@@ -192,8 +227,12 @@ Run the read-only coverage check from the repository root:
 
 ```sh
 node tests/answer-regression/test-context-candidate.js
-python3 -I tests/answer-regression/test_harness.py Citations FixedDocumentCompare Compare
+npx vitest run --config tests/vitest.config.js tests/unit/answer-regression-harness.test.js
 ```
+
+As of 2026-11-25 the replay fails on main: the retrieval component's records now carry a `partial` field that the
+retained fixture lacks. The harness then refuses the candidate, and the unit tests run the refusal test instead of
+the candidate group until the fixture is re-retained under a new pin.
 
 The existing `run` command accepts `--set search --context-candidate whole-passages-250`.
 This replays and verifies the retained fixture through the public retrieval API,
