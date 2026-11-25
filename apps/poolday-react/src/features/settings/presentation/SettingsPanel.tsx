@@ -202,7 +202,8 @@ function StorageSection({ services }: { readonly services: SettingsServices }) {
               checked={files.enabled}
               disabled={files.toggleDisabled}
               onChange={() => void services.toggleFileSharing({ ...selection, modelId: files.modelId, allowance: files.allowance })}
-              data={{ 'data-file-sharing-row': true, 'data-toggle-file-contribution': true }}
+              controlData={{ 'data-toggle-file-contribution': true }}
+              data={{ 'data-file-sharing-row': true }}
             />
             {files.progress !== '' && (
               <StatusLine muted={false} data={{ 'data-file-progress': true }}>

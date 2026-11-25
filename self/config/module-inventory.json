@@ -4460,7 +4460,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:60ac1ddb4f472a254d1aa0e13afc21cae15be8b55a85699697490bfaff32ce61",
+      "sha256": "sha256:e8d2027285683d5bda107b3f46940fad3a5e6a8094465d81a5ad30e485d88cac",
       "imports": []
     },
     {
@@ -4751,7 +4751,7 @@
     {
       "path": "ui/pool-home/navigation.js",
       "owner": "ui",
-      "sha256": "sha256:ef7c0aa0976bcef84845e05b1a019c7371f39509ed1a0a1391c26962abe2dbc1",
+      "sha256": "sha256:01bf18ca5207cde5c4912b5e97950e88dc5cd6e263238ba998dc8d30aa3686e3",
       "imports": [
         "./shell-view.js"
       ]
@@ -5574,13 +5574,13 @@
     {
       "path": "ui/react/app.js",
       "owner": "ui",
-      "sha256": "sha256:bc8adde350dd34e6ef098cfe970453771104e0a68d26d47e3c63573dd9bfeb83",
+      "sha256": "sha256:777f8dc12a4929ab6e993d2c4f621e94e7834a5f510b8bc3e44f849bdc96b9b3",
       "imports": []
     },
     {
       "path": "ui/react/design.js",
       "owner": "ui",
-      "sha256": "sha256:5892fd87fdc3c4ebe75f4f13ea31258ad4cac1bd901fab5baa9eba55e3a9bb45",
+      "sha256": "sha256:6c9a4090a3dd6f5aa111850689d9d8c1a7b0e600c28f7e57e635a60e5c3c803d",
       "imports": []
     },
     {

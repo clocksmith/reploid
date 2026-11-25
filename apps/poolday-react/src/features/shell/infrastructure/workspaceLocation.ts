@@ -15,7 +15,7 @@ export function readLocation(): WorkspaceLocation {
 /** The address of a location, keeping the room and other parameters; a pairing link's hash is dropped. */
 export function hrefFor(location: WorkspaceLocation): string {
   const url = new URL(window.location.href);
-  if (!['/', '/network'].includes(url.pathname)) url.pathname = '/';
+  if (!['/', '/network', '/work'].includes(url.pathname)) url.pathname = '/';
   if (parseOwnerPairingUrl(url.href)) url.hash = '';
   if (location.view === 'chat') url.searchParams.delete('view');
   else url.searchParams.set('view', location.view);

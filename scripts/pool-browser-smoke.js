@@ -14,8 +14,8 @@ if (!baseUrl) {
 // The separate distributed test proves acquisition, generation and recovery.
 const routes = ['/', '/work', '/network', '/improve', '/examples', '/ask', '/compute', '/records', '/room-1', '/history'];
 const requiredSelectors = {
-  '/': '[data-composer-form]',
-  '/work': '[data-composer-form]',
+  '/': '[data-composer-area]',
+  '/work': '[data-composer-area]',
   '/network': '[data-network-workspace]',
   '/improve': '[data-work-history]',
   '/examples': '#pool-home-ask-form',
@@ -45,16 +45,16 @@ const gotoRoute = async (targetPage, route) => {
   return response;
 };
 
-// Home, /work and /network render the conversation workspace. It renders no app bar:
-// its own toolbar carries the brand/Threads link, Computers and Settings, and
-// the inspector stays closed until one of those opens it. On phones the toolbar docks
-// below the conversation. Every other route keeps the app bar above its content.
+// Home, /work and /network are the React conversation workspace. It renders no app bar:
+// its own bar carries Threads, Conversation details, Computers and Settings, and every
+// drawer stays closed until one of those opens it. On phones the bar docks below the
+// conversation. Every other route is the vanilla shell, with the app bar above its content.
 const WORKSPACE_ROUTES = ['/', '/work', '/network'];
 const VIEWPORTS = [{ width: 1440, height: 1000 }, { width: 390, height: 844 }];
 const PHONE_MAX_WIDTH = 760;
 const workspaceToolbarControls = {
-  threads: '.pool-primary-brand[data-toggle-thread-rail]',
-  computers: '[data-toggle-inspector][data-inspector-section="participants"]',
+  threads: '[data-toggle-thread-rail]',
+  computers: '[data-workspace-view="computers"]',
   settings: '[data-inspector-section="settings"]'
 };
 
@@ -69,9 +69,9 @@ const checkWorkspaceAtLoad = async (routePage, route) => {
   await expect(toolbar.locator('[data-new-thread]')).toHaveCount(0);
   await expect(routePage.locator('[data-new-thread]')).toHaveCount(1);
   await expect(routePage.locator('[data-threads-dialog]')).toBeHidden();
-  await expect(routePage.locator('[data-network-workspace]')).toBeHidden();
-  await expect(routePage.locator('.pool-home')).not.toHaveAttribute('data-network-panel-open', '');
-  await expect(routePage.locator('[data-toggle-inspector]')).not.toHaveAttribute('aria-current', 'page');
+  await expect(routePage.locator('[data-network-workspace]:visible')).toHaveCount(0);
+  await expect(routePage.locator('.pool-workspace[data-end-open]')).toHaveCount(0);
+  await expect(routePage.locator(workspaceToolbarControls.computers)).not.toHaveAttribute('aria-current', 'page');
   // One chooser belongs to the composer; the removed model-card list must not return.
   await expect(routePage.locator('[data-production-shared]')).toHaveCount(0);
   await expect(routePage.locator('[data-production-device]')).toBeHidden();
@@ -92,7 +92,7 @@ const workspaceFrameFailures = async (routePage, route, width) => {
     await document.fonts.ready;
     await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
     const box = selector => document.querySelector(selector).getBoundingClientRect().toJSON();
-    return { toolbar: box('[data-chat-rail-toolbar]'), page: document.querySelector('.pool-route-content').firstElementChild.getBoundingClientRect().toJSON(),
+    return { toolbar: box('[data-chat-rail-toolbar]'), page: document.querySelector('.pool-workspace-main').getBoundingClientRect().toJSON(),
       area: box('[data-conversation-area]'), composer: box('[data-composer-area]'), input: box('[data-composer-input]'), send: box('[data-composer-send]'),
       model: box('[data-open-model]'), viewport: { width: innerWidth, height: innerHeight }, overflowX: document.documentElement.scrollWidth - innerWidth };
   });
@@ -144,21 +144,19 @@ const appBarFrameFailures = async (routePage, route, width) => {
 // /network opens the same workspace; its Computers control opens the inspector,
 // which preserves the center conversation while the right drawer is open.
 const checkNetworkInspector = async (routePage) => {
-  const inspector = routePage.locator('[data-network-workspace]');
   const computers = routePage.locator(`[data-chat-rail-toolbar] ${workspaceToolbarControls.computers}`);
   await computers.click();
-  await expect(inspector).toBeVisible();
-  await expect(computers).toHaveAttribute('aria-current', 'page');
-  await expect(routePage.locator('#network-inspector-title')).toHaveText('Computers');
-  const participants = inspector.locator('[data-inspector-pane="participants"]');
+  const participants = routePage.locator('[data-inspector-pane="participants"]');
   await expect(participants).toBeVisible();
+  await expect(computers).toHaveAttribute('aria-current', 'page');
+  await expect(participants.locator('h2').first()).toHaveText('Computers');
   await expect.poll(async () => {
-    const rect = await routePage.locator('[data-chat-inspector-slot]').boundingBox();
+    const rect = await participants.boundingBox();
     return rect ? rect.x + rect.width : Infinity;
   }).toBeLessThanOrEqual(routePage.viewportSize().width);
   const panel = await routePage.evaluate(() => ({ area: document.querySelector('[data-conversation-area]').getBoundingClientRect().width,
-    slot: document.querySelector('[data-chat-inspector-slot]').getBoundingClientRect().toJSON(), width: innerWidth,
-    open: document.querySelector('.pool-home').hasAttribute('data-network-panel-open') }));
+    slot: document.querySelector('[data-inspector-pane="participants"]').getBoundingClientRect().toJSON(), width: innerWidth,
+    open: !!document.querySelector('.pool-workspace[data-end-open]') }));
   if (!panel.open || !(panel.area > 0) || !(panel.slot.width > 0) || panel.slot.right > panel.width) {
     failures.push('/network: the open inspector does not preserve the conversation within the viewport: ' + JSON.stringify(panel));
   }
@@ -168,17 +166,17 @@ const checkNetworkInspector = async (routePage) => {
   await expect(participants.locator('[data-toggle-contribution]')).toBeVisible();
   await expect(participants.locator('[data-toggle-contribution]')).toHaveAttribute('aria-checked', 'false');
   await routePage.locator(`[data-chat-rail-toolbar] ${workspaceToolbarControls.settings}`).click();
-  const settings = inspector.locator('[data-inspector-pane="settings"]');
+  const settings = routePage.locator('[data-inspector-pane="settings"]');
   await expect(settings).toBeVisible();
   await expect(participants).toBeHidden();
-  await expect(routePage.locator('#network-inspector-title')).toHaveText('Settings');
+  await expect(settings.locator('h2').first()).toHaveText('Settings');
   const fileSharing = settings.locator('[data-toggle-file-contribution]');
   await expect(fileSharing).toBeVisible();
   await expect(participants.locator('[data-toggle-file-contribution]')).toHaveCount(0);
   await expect(fileSharing).toHaveAttribute('aria-checked', 'false');
-  await inspector.locator('[data-close-inspector]').click();
-  await expect(inspector).toBeHidden();
-  await expect(routePage.locator('.pool-home')).not.toHaveAttribute('data-network-panel-open', '');
+  await settings.locator('[data-close-inspector]').click();
+  await expect(settings).toBeHidden();
+  await expect(routePage.locator('.pool-workspace[data-end-open]')).toHaveCount(0);
   await expect(routePage.locator('[data-composer-input]')).toBeVisible();
 };
 
@@ -216,7 +214,7 @@ try {
   console.log('[pool-smoke] ordinary conversation and unsent draft');
   await gotoRoute(page, '/');
   await expect(page.locator('[data-chat-workspace]')).toBeVisible();
-  await expect(page.locator('[data-active-model-select]')).toBeAttached();
+  await expect(page.locator('[data-open-model]')).toBeAttached();
   await page.locator('[data-toggle-thread-rail]').click();
   await expect(page.locator('[data-threads-dialog]')).toBeVisible();
   await expect(page.locator('[data-new-thread]')).toBeVisible();
@@ -225,22 +223,22 @@ try {
   await expect(page.locator('[data-composer-input]')).toBeFocused();
   await expect(page.locator('[data-chat-approval]')).toBeHidden();
   await expect(page.locator('[data-mesh-invite]')).toBeHidden();
-  await page.locator('[data-toggle-inspector]').click();
-  // A new visitor serves nothing until they choose to.
-  for (const selector of ['[data-toggle-contribution]', '[data-toggle-file-contribution]']) {
-    await expect(page.locator(selector)).toHaveAttribute('aria-checked', 'false');
-  }
-  await expect(page.locator('[data-contrib-label]')).toHaveText('Not sharing');
-  await expect(page.locator('[data-file-contribution-label]')).toHaveText('Not sharing');
-  await expect(page.locator('[data-contribution-model] option')).not.toHaveCount(0);
-  await page.locator('[data-close-inspector]').click();
+  // A new visitor serves nothing until they choose to: compute sharing in Computers, file sharing in Settings.
+  await page.locator(workspaceToolbarControls.computers).click();
+  const computersPane = page.locator('[data-inspector-pane="participants"]');
+  await computersPane.locator('details:has([data-toggle-contribution]) > summary').click();
+  await expect(computersPane.locator('[data-toggle-contribution]')).toHaveAttribute('aria-checked', 'false');
+  await page.locator(workspaceToolbarControls.settings).click();
+  const settingsPane = page.locator('[data-inspector-pane="settings"]');
+  await expect(settingsPane.locator('[data-toggle-file-contribution]')).toHaveAttribute('aria-checked', 'false');
+  await settingsPane.locator('[data-close-inspector]').click();
   const draft = 'Unsent deployment check: retain this draft across reload and navigation.';
   await page.locator('[data-composer-input]').fill(draft);
   await page.reload({ waitUntil: 'domcontentloaded' });
   await expect(page.locator('[data-composer-input]')).toHaveValue(draft);
   await gotoRoute(page, '/work');
   await expect(page.locator('[data-composer-input]')).toHaveValue(draft);
-  await expect(page.locator('[data-message-stream] .chat-message-row')).toHaveCount(0);
+  await expect(page.locator('[data-message-stream] [data-message-id]')).toHaveCount(0);
   await expect(page.locator('[data-chat-approval]')).toBeHidden();
   console.log('[pool-smoke] conversation controls, optional contribution and draft persistence passed');
 } catch (error) {

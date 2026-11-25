@@ -1,7 +1,7 @@
 import { isProductPath, omitDefaultRoom } from './shell-view.js';
 
 /** Routes the React product serves; the vanilla shell never renders them. */
-export const WORKSPACE_PATHS = Object.freeze(['/', '/network']);
+export const WORKSPACE_PATHS = Object.freeze(['/', '/network', '/work']);
 const applyPoolNavOpenState = (nav, navToggle, isOpen) => {
   const openLabel = 'Close navigation';
   const closedLabel = 'Open navigation';
