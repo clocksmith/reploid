@@ -99,8 +99,9 @@ moves the credits post what the replay computes? It opens a fresh ledger for eac
 route does: reserve, dispatch and admit at the start; `collect` with each acknowledgment and the receipt it
 acknowledged at the moment that acknowledgment was signed; `collect` again when the last record was signed, with
 each stage's latest receipt, the latest acknowledgment and the requester's signed stop if there is one; and
-`recover` after the release window. The replay judges the same records after the window. The policy sets the
-request limit to the scenario's 30 s, so the ledger's deadline and the signed one are the same instant.
+`recover` once the attempt is decided (after the deadline, the release window and the clock allowance). The replay
+judges the same records at that time. The policy sets the request limit to the scenario's 30 s, so the ledger's
+deadline and the signed one are the same instant.
 
 16 base attempts, each with all its records and with a stage's closing receipt or every receipt withheld, and with
 the requester's top acknowledgment or all but its charge binding withheld.
@@ -108,32 +109,36 @@ the requester's top acknowledgment or all but its charge binding withheld.
 | | Count |
 | --- | --- |
 | Cases | 109 |
-| Same debit and same credit for every stage | 109 |
-| Different amounts | 0 |
+| Same debit and same credit for every stage | 107 |
+| Different amounts | 2, both the one known difference below |
 
 Where the amounts agree the words can still differ: when a stage presents no receipt at all for a delivered answer,
 the ledger reports the hold expired and the replay reports `unknown` (8 cases). Both move nothing.
 
-### How it got to 109
+### The one known difference
 
-The first run of this comparison (commit 560f7440b) handed the ledger only the final `collect`, with no stop, and
-found 7 differences in three causes. Commits 4d845320a and fd2ece824 changed the ledger and the live route on each:
+**The stages close an unfinished answer and no requester stop was signed.** The requester acknowledged 3 outputs;
+the ledger charges them (9, or 6 when the top acknowledgment is withheld) and the replay charges nothing. This is
+deliberate and labelled in [docs/settlement-replay.md](../../../docs/settlement-replay.md) as a known difference
+pending the owner's decision.
 
-| Cause | Before | Now |
-| --- | --- | --- |
-| The stages close as failed on their own after 3 acknowledged outputs | ledger charged 9, replay 0 | both 0 |
-| The last acknowledgment and the closes fall 5 s after the deadline, inside the release window | ledger 0, replay 12 | both 12 |
-| The answer runs past the signed ceiling of 3 outputs | ledger refused the receipts and posted 0, replay 9 | both 9 |
+Why it is open: the requester asks for every step of a split answer, so a requester that has read enough can stop
+asking. The stages then close, and the records look the same as stages that gave up. Under the replay's rule that
+costs nothing, while signing a stop costs the acknowledged outputs, so no requester would sign one: with 39 of 40
+outputs acknowledged, walking away is 0 and a signed stop is 117. Under the ledger's rule the requester owes what
+it acknowledged whoever ended the answer, and an answer a provider abandons is no longer free. Which of the two is
+meant is not a question a comparison can answer.
 
-The live route now signs the requester's stop and hands it to the ledger before stopping the stages, and hands over
-each acknowledgment as it is signed. `--latest-only` runs the comparison the old way, with only the final `collect`
-and no stop: 106 of 109. The three that differ show what the agreement depends on. Without the stop, the ledger
-reads a stopped answer as one the stages ended and charges nothing where the replay, which is shown the stop,
-charges the acknowledged outputs (2 cases). Without each acknowledgment as it is signed, the late case above
-returns (1 case).
+### How it got here
 
-The charge for a requester's stop on a split route is unchanged by all of this, and what it should be is a decision
-the owner has not made.
+| Commit | What the comparison showed |
+| --- | --- |
+| 560f7440b (first run, final `collect` only, no stop) | 102 of 109. Three causes: the case above; closes 5 s after the deadline inside the release window (ledger 0, replay 12); an answer past the signed ceiling (ledger refused the receipts, replay charged the ceiling). |
+| 4d845320a, fd2ece824 | The ledger was moved to the replay on all three, and the live route began handing over each acknowledgment as signed and the requester's stop: 109 of 109. |
+| 955bd5f7a | The first case was moved back in the ledger, once it was clear that the replay's rule makes every partial answer free at the requester's option: 107 of 109, the two cases above. |
+
+`--latest-only` runs the comparison with only the final `collect` and no stop: what a route that kept less would
+hand over. It shows what the agreement on the other cases depends on.
 
 ## Agreement that still deserves a reader
 

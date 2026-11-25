@@ -9,7 +9,8 @@
  * drives it: reserve, dispatch and admit at the start; `collect` with each acknowledgment and the receipt it
  * acknowledged at the moment that acknowledgment was signed; `collect` again, at the moment the last record was
  * signed, with what a live route retains (each stage's latest receipt, the latest acknowledgment and its receipt, and
- * the requester's signed stop when there is one); then `recover` once the release window has passed. The replay judges the same records
+ * the requester's signed stop when there is one); then `recover` once the attempt is decided, which is after the
+ * deadline, the release window and the clock allowance. The replay judges the same records
  * after the window. A fresh ledger is opened for every case.
  *
  * The terms' deadline in scenario.js is 30 s after the start, so the policy used here sets `maxRequestMs` to 30 s:
@@ -145,9 +146,10 @@ async function judge({ parties, base, variant, attempt }) {
     live.clock = Math.max(T0 + 1, ...variant.records.map(row => Date.parse(row.signedAt))) + 1;
     const collectedAt = live.clock - T0;
     collected = await attempted(async () => { await live.ledger.fence(attempt.reservationId, requesterId); return live.ledger.collect(attempt.reservationId, live.evidence(attempt, variant.records)); });
-    live.clock = live.closesAt + 1;
+    // Both are asked once the attempt is decided: after the deadline, the release window and the clock allowance.
+    live.clock = live.closesAt + POLICY.maxClockSkewMs + 1;
     final = await attempted(() => live.ledger.recover(attempt.reservationId));
-    const replayed = await replaySettlement({ records: variant.records, policies: [POLICY], at: attempt.closesAt + 1, accountOf: id => live.accountOf.get(id) });
+    const replayed = await replaySettlement({ records: variant.records, policies: [POLICY], at: attempt.closesAt + POLICY.maxClockSkewMs + 1, accountOf: id => live.accountOf.get(id) });
     const row = replayed.reservations.find(item => item.reservationId === attempt.reservationId && item.requesterId === requesterId) ?? null;
     const outcome = final.value ?? {};
     // A settled outcome carries its charge and credits and no status word.
@@ -164,6 +166,7 @@ async function judge({ parties, base, variant, attempt }) {
 
 /** One named cause per difference in amounts; the README explains each. */
 export const CAUSES = Object.freeze({
+  knownDifference: 'KNOWN DIFFERENCE, pending the owner\'s decision (docs/settlement-replay.md): the stages closed an unfinished answer with no signed stop. The ledger charges the acknowledged outputs; the replay charges nothing',
   failedClose: 'the stages closed as failed on their own: the ledger charges the acknowledged outputs, the replay charges nothing',
   lateInsideWindow: 'the last acknowledgment and the closes fall after the deadline, inside the release window: the ledger expires the hold, the replay charges the outputs acknowledged in time',
   pastCeiling: 'the answer ran past the signed output ceiling: the ledger refuses the receipts and expires the hold, the replay charges the ceiling'
@@ -171,6 +174,7 @@ export const CAUSES = Object.freeze({
 function causeOf(line) {
   if (line.amountsAgree) return null;
   if (LATEST_ONLY && line.base.startsWith('requester signs a stop')) return 'the ledger was not handed the requester\'s stop';
+  if (line.base.startsWith('stages close early on their own') && line.ledger.charge > 0 && line.replay.charge === 0) return CAUSES.knownDifference;
   if (line.base.startsWith('stages close early on their own')) return CAUSES.failedClose;
   if (line.base.startsWith('last acknowledgment and closes')) return CAUSES.lateInsideWindow;
   if (line.base.startsWith('output ceiling')) return CAUSES.pastCeiling;
@@ -201,8 +205,9 @@ async function main() {
   let commit = 'unknown', dirty = null;
   try {
     commit = execFileSync('git', ['-C', ROOT, 'rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
-    dirty = execFileSync('git', ['-C', ROOT, 'status', '--porcelain', '--', 'server/fleet', 'scripts/settlement', 'packages/reploid/src',
-      ':(exclude)scripts/settlement/independent/receipts'], { encoding: 'utf8' }).trim().length > 0;
+    // The code this comparison runs: the ledger, the replay, the signers, the scenario builder and this file.
+    dirty = execFileSync('git', ['-C', ROOT, 'status', '--porcelain', '--', 'server/fleet', 'scripts/settlement/scenario.js',
+      'scripts/settlement/independent/ledger-differential.js', 'packages/reploid/src'], { encoding: 'utf8' }).trim().length > 0;
   } catch { /* the receipt says unknown */ }
   const receipt = { schema: 'reploid.settlement-ledger-differential/v1', generatedAt: startedAt.toISOString(), finishedAt: new Date().toISOString(),
     command: 'node scripts/settlement/independent/ledger-differential.js --out scripts/settlement/independent/receipts/ledger-differential.json',
