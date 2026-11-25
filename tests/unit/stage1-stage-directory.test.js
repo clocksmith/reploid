@@ -4,7 +4,7 @@ import { createHash } from 'node:crypto';
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import { buildStageDirectory, loadPinnedStage, stageDirectoryOperation, STAGE_DIRECTORY_MANIFEST, verifyStageDirectory }
+import { buildStageDirectory, loadPinnedStage, stageDirectoryBytesNeeded, stageDirectoryOperation, STAGE_DIRECTORY_MANIFEST, verifyStageDirectory }
   from '../../scripts/stage1/build-stage-directory.js';
 import { createStageLoader } from '../../scripts/stage1/stage-loader.js';
 import { measureHeldRanges, summarizeRanges } from '../../scripts/stage1/inventory.js';
@@ -66,6 +66,15 @@ const snapshot = async directory => {
 };
 
 describe('the stage directory builder', () => {
+  // Pure arithmetic. No Windows machine has built a stage directory.
+  it('asks for the assigned bytes where files are sparse, and for each shard up to its last assigned range on Windows', () => {
+    const files = new Map([['shard-a.bin', [{ offset: 0, size: 100 }, { offset: 900, size: 100 }]], ['shard-b.bin', [{ offset: 5000, size: 50 }]]]);
+    const input = { files, assignedBytes: 250, metadataBytes: 30 };
+    expect(stageDirectoryBytesNeeded({ ...input, platform: 'linux' })).toBe(280);
+    expect(stageDirectoryBytesNeeded({ ...input, platform: 'darwin' })).toBe(280);
+    expect(stageDirectoryBytesNeeded({ ...input, platform: 'win32' })).toBe(1000 + 5050 + 30);
+  });
+
   it('writes each stage exactly its assigned ranges, copying only assigned bytes out of the shard both stages share', async () => {
     const copy = await syntheticCopy(), before = await snapshot(copy.source), all = copy.stageRanges.flat();
     for (const index of [0, 1]) {

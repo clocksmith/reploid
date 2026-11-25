@@ -110,6 +110,19 @@ async function verifyMetadata(directory, record, metadata) {
 }
 
 /**
+ * The free space a build asks for. Where files are sparse, the bytes outside the assigned ranges take no space, so
+ * the assigned bytes are enough. NTFS fills the gap before a write with real zeros unless the file is marked sparse,
+ * which this builder does not do, so on Windows each shard is counted up to the end of its last assigned range.
+ * Not yet run on a Windows host.
+ */
+export function stageDirectoryBytesNeeded({ files, assignedBytes, metadataBytes, platform = process.platform }) {
+  if (platform !== 'win32') return assignedBytes + metadataBytes;
+  let extents = 0;
+  for (const rows of files.values()) extents += rows.at(-1).offset + rows.at(-1).size;
+  return extents + metadataBytes;
+}
+
+/**
  * Writes `target` from the verified full copy at `source`. `pin` is `{ rangeCount, bytes, rangesDigest? }`;
  * `otherRanges` are the rest of the model's ranges, used only to prove none of them is readable from the result.
  * Refuses an existing target, and removes what it created if it fails part way.
@@ -134,7 +147,8 @@ export async function buildStageDirectory({ source, target, stageIndex, stageRan
   if (inside(realTarget, realSource) || inside(realSource, realTarget)) throw coded('stage-directory-refused', 'the target and the full copy overlap');
   const free = await fs.statfs(realParent).then(stat => stat.bavail * stat.bsize, () => null);
   if (metadata.some(row => shardSizes.has(row.path))) throw coded('stage-directory-refused', 'a metadata file is named like a weight shard');
-  const needed = summary.bytes + metadata.reduce((sum, row) => sum + (row.sizeBytes ?? manifestBytes.length), 0);
+  const needed = stageDirectoryBytesNeeded({ files, assignedBytes: summary.bytes,
+    metadataBytes: metadata.reduce((sum, row) => sum + (row.sizeBytes ?? manifestBytes.length), 0) });
   if (free !== null && free < needed) throw coded('stage-directory-no-space', `${needed} bytes are needed, ${free} are free`);
   try { await fs.mkdir(realTarget, { mode: 0o700 }); }
   catch (error) { if (error.code === 'EEXIST') throw coded('stage-directory-exists', 'the stage directory already exists; it is never overwritten'); throw error; }
