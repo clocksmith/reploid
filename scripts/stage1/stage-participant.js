@@ -79,7 +79,8 @@ export function createVisibilityTrace() {
         try { result = await resident.executeStage(input); }
         catch (error) {
           push(input.identity?.attemptId ?? 'unknown', { op: 'step-failed', step: input.step, inputTokenCount: input.inputTokenCount,
-            tokenContext: input.tokenContext ?? (ids ? 'sent' : 'absent'), error: String(error?.stack ?? error?.message ?? error).slice(0, 1500) });
+            tokenContext: input.tokenContext ?? (ids ? 'sent' : 'absent'), error: String(error?.stack ?? error?.message ?? error).slice(0, 1500),
+            causes: [...(error?.errors ?? []), ...(error?.cause ? [error.cause] : [])].map(item => String(item?.stack ?? item?.message ?? item).slice(0, 1500)) });
           throw error;
         }
         push(input.identity?.attemptId ?? 'unknown', { op: 'step', step: input.step, inputTokenCount: input.inputTokenCount,
