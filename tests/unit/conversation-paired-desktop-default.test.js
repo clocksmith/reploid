@@ -28,6 +28,11 @@ describe('Paired desktop default', () => {
   it('states the most a priced route can cost, and nothing for a route without terms', () => {
     expect(creditCapText({ creditCap: { maximum: 1600, unit: 'noncash-service-credit' } })).toBe(`This answer costs at most ${(1600).toLocaleString()} service credits.`);
     expect(creditCapText({ creditCap: { maximum: 1 } })).toBe('This answer costs at most 1 service credit.');
+    // The host's reading of the account says before Send when the ledger would refuse; enough credit adds nothing.
+    expect(creditCapText({ creditCap: { maximum: 48, spendable: 32 } })).toBe('This answer costs at most 48 service credits. '
+      + 'Your account can cover 32 now, so this would be refused before anything is sent. Serving answers for others earns more.');
+    expect(creditCapText({ creditCap: { maximum: 48, spendable: -5 } })).toContain('Your account can cover 0 now');
+    expect(creditCapText({ creditCap: { maximum: 48, spendable: 48 } })).toBe('This answer costs at most 48 service credits.');
     for (const route of [{}, null, { creditCap: { maximum: 0 } }, { creditCap: { maximum: 1.5 } }]) expect(creditCapText(route)).toBe('');
   });
 

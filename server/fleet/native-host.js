@@ -527,13 +527,16 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
         [row.id, row.participantIds]))).digest('hex');
       const available = participant?.getState()?.models || [];
       const configured = [...new Map(config.models.map(entry => [entry.model.id + entry.model.identity, entry.model])).values()];
+      // What this requester's own account could hold right now: balance less holds, plus the policy's debt limit.
+      // The ledger decides at reservation; this only lets the browser say before Send that an answer will be refused.
+      const ownAccount = await credits.call('snapshot', {}).then(value => value.accounts.find(row => row.id === config.computerId) ?? null, () => null);
       // The most one answer can cost, from the same terms and limit the request will be quoted with.
       const creditCaps = await Promise.all(configured.map(async model => {
         try {
           const { policy } = await credits.call('terms', { id: model.id, identity: model.identity });
           const { maximum, unit } = fleetCreditQuote(policy, Math.min(config.maxOutputTokens, policy.maxOutputTokens,
             model.generation?.maxTokens ?? config.maxOutputTokens), 'whole-model');
-          return { maximum, unit };
+          return { maximum, unit, ...(ownAccount ? { spendable: ownAccount.balance - ownAccount.held + policy.maxDebt } : {}) };
         } catch { return null; } // No accepted terms: the browser states no price rather than a guessed one.
       }));
       const models = configured.map((model, index) => {

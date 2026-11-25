@@ -234,3 +234,29 @@ it('signs failed terminal cleanup on provider startup for orphaned whole-model a
     credits.close();
   }
 });
+
+it('states the quote and what the requester’s own account can cover in the paired browser state', async () => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'fleet-browser-quote-')); roots.push(root);
+  const identity = await openComputerIdentity(path.join(root, 'identity.json'));
+  const other = await openComputerIdentity(path.join(root, 'other.json'));
+  const tokenFile = path.join(root, 'room.secret');
+  await fs.writeFile(tokenFile, '0123456789abcdef0123456789abcdef', { mode: 0o600 });
+  const model = { id: 'qwen-test', identity: 'sha256:' + 'c'.repeat(64), generation: { maxTokens: 48 } };
+  const credits = await openFleetCredits({ file: path.join(root, 'credits.sqlite'), computers: [
+    { id: 'laptop', name: 'Laptop', ownerId: 'you', providers: [{ participantId: identity.peerId, publicJwk: identity.publicJwk }] },
+    { id: 'other', name: 'Other', ownerId: 'them', providers: [{ participantId: other.peerId, publicJwk: other.publicJwk }] }],
+  policy: { schema: 'reploid.service-credit-policy/v1', version: 'test/quote-1', unit: 'noncash-service-credit', creditsPerOutputToken: 1,
+    maxDebt: 32, maxOutputTokens: 48, maxPendingPerComputer: 4, maxClockSkewMs: 30000, maxRequestMs: 120000, allowSameOwner: false } });
+  const service = await startFleetService({ credits, models: [{ id: model.id, identity: model.identity }],
+    placementPolicy: { maxObservationAgeMs: 30000, minSwitchHoldMs: 1000, maxGpuUtilization: 0.9, minHostHeadroomBytes: 0 } });
+  let host = null;
+  try {
+    host = await openFleetNativeHost({ configuration: { schema: 'reploid.fleet-native/v1', computerId: 'laptop', name: 'Laptop',
+      identityFile: path.join(root, 'identity.json'), roomId: 'fleet-private-test', roomTokenFile: tokenFile, serviceUrl: service.url,
+      maxOutputTokens: 48, models: [{ mode: 'whole-model', model }] },
+    loadRtc: async () => ({ RTCPeerConnection: class {}, RTCSessionDescription: class {}, RTCIceCandidate: class {} }),
+    loadSocket: async () => ({ WebSocket: class {} }), loadGpu: async () => ({ globals: {}, create: () => ({}) }) });
+    // Nothing earned yet: the debt limit alone covers 32 of a 48-credit answer.
+    expect((await host.browserState()).models[0].creditCap).toEqual({ maximum: 48, unit: 'noncash-service-credit', spendable: 32 });
+  } finally { await host?.close(); await service.close(); credits.close(); }
+});

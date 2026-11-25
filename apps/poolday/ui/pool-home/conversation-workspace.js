@@ -28,9 +28,13 @@ const modelKey = model => model?.selectionId || model?.id;
 const modelIdentity = model => JSON.stringify([modelKey(model), model?.identity, (model?.adapters || []).map(adapter => adapter.identity)]);
 /** The quoted ceiling for a priced route, shown before Send. A free route, or one with no accepted terms, states nothing. */
 export const creditCapText = model => {
-  const maximum = model?.creditCap?.maximum;
-  return Number.isSafeInteger(maximum) && maximum > 0
-    ? `This answer costs at most ${maximum.toLocaleString()} service credit${maximum === 1 ? '' : 's'}.` : '';
+  const maximum = model?.creditCap?.maximum, spendable = model?.creditCap?.spendable;
+  if (!(Number.isSafeInteger(maximum) && maximum > 0)) return '';
+  const quote = `This answer costs at most ${maximum.toLocaleString()} service credit${maximum === 1 ? '' : 's'}.`;
+  // The host's own reading of this account; the ledger still decides when Send reserves the answer.
+  return Number.isSafeInteger(spendable) && spendable < maximum
+    ? `${quote} Your account can cover ${Math.max(0, spendable).toLocaleString()} now, so this would be refused before anything is sent. Serving answers for others earns more.`
+    : quote;
 };
 const selectable = model => ['ready', 'busy', 'cached', 'loading', 'preparing'].includes(model.availability);
 
