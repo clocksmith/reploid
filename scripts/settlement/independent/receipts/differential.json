@@ -1,9 +1,9 @@
 {
   "schema": "reploid.settlement-replay-differential/v1",
-  "generatedAt": "2026-11-25T10:31:13.553Z",
-  "finishedAt": "2026-11-25T10:31:21.204Z",
+  "generatedAt": "2026-11-25T11:07:25.291Z",
+  "finishedAt": "2026-11-25T11:07:33.100Z",
   "command": "node scripts/settlement/independent/differential.js --out scripts/settlement/independent/receipts/differential.json",
-  "commit": "39cb8312815814fed64067df9a6f18e65ca340ef",
+  "commit": "4170e0abff56e4c5d8a9e7a7a60b494257ec0ba8",
   "uncommittedChangesInComparedCode": false,
   "node": "v22.20.0",
   "note": "All parties are simulated identities on one machine. The second verifier was written from docs/settlement-replay.md alone by a second session under the same operator, so this is not a third-party replay. Both verifiers ran in one process on the same record sets. Keys are fresh on each run; counts are deterministic. Every documented row member except the sentence in `reason` is compared; list entries are compared without regard to order, and `counts` without its zero entries. Classifications: a = a reading of a sentence the document leaves open, b = a defect in the service verifier, c = a defect in the second verifier, d = the document and the service verifier say different things.",
@@ -44,36 +44,36 @@
     "finished 40-output answer, last three acknowledgments withheld"
   ],
   "totals": {
-    "recordSets": 1376,
-    "judgments": 1904,
-    "outcomeAgreed": 1904,
-    "amountsAgreed": 1904,
-    "outcomeAndAmountsAgreed": 1904,
-    "lateListSizeAgreed": 1904,
-    "foreignListSizeAgreed": 1904,
-    "conflictListedAgreed": 1904,
-    "everyRowMemberAgreed": 1852,
-    "everyRowMemberAgreedInOrder": 1850,
-    "rejectedListSizeAgreed": 1860,
-    "sameRecordsRejected": 1860,
-    "countsAgreed": 1860,
-    "balancesAgreed": 1860,
-    "rejectedListsCompared": 1860
+    "recordSets": 1388,
+    "judgments": 1936,
+    "outcomeAgreed": 1936,
+    "amountsAgreed": 1936,
+    "outcomeAndAmountsAgreed": 1936,
+    "lateListSizeAgreed": 1936,
+    "foreignListSizeAgreed": 1936,
+    "conflictListedAgreed": 1936,
+    "everyRowMemberAgreed": 1936,
+    "everyRowMemberAgreedInOrder": 1934,
+    "rejectedListSizeAgreed": 1892,
+    "sameRecordsRejected": 1892,
+    "countsAgreed": 1892,
+    "balancesAgreed": 1892,
+    "rejectedListsCompared": 1892
   },
   "outcomePairs": {
     "conflict / conflict": 62,
-    "expired / expired": 266,
+    "expired / expired": 269,
     "invalid / invalid": 90,
     "none / none": 3,
-    "open / open": 129,
-    "settled / settled": 970,
+    "open / open": 135,
+    "settled / settled": 993,
     "unknown / unknown": 384
   },
   "families": {
     "unmutated, clock sweep": {
-      "judgments": 120,
-      "outcomeAgreed": 120,
-      "amountsAgreed": 120
+      "judgments": 140,
+      "outcomeAgreed": 140,
+      "amountsAgreed": 140
     },
     "remove each record": {
       "judgments": 105,
@@ -176,9 +176,9 @@
       "amountsAgreed": 35
     },
     "canonical encodings, time forms and the closing window": {
-      "judgments": 130,
-      "outcomeAgreed": 130,
-      "amountsAgreed": 130
+      "judgments": 142,
+      "outcomeAgreed": 142,
+      "amountsAgreed": 142
     },
     "unsigned additions": {
       "judgments": 43,
@@ -219,230 +219,7 @@
     "foreign",
     "unmatched"
   ],
-  "rowMemberDifferences": {
-    "conflicts": {
-      "count": 11,
-      "classification": "a",
-      "cause": "a `stage-receipt` conflict entry: which sequences it carries and how many entries one stage gets are not fixed by the document",
-      "examples": [
-        {
-          "base": "complete answer",
-          "mutation": "stage0 signs a later receipt with fewer steps",
-          "clock": "after",
-          "independent": [
-            {
-              "kind": "stage-receipt",
-              "blocking": true,
-              "signer": "peer:2f7dfb5c476980586d0d402b",
-              "partitionIndex": 0,
-              "sequences": [
-                5,
-                7
-              ]
-            },
-            {
-              "kind": "stage-receipt",
-              "blocking": true,
-              "signer": "peer:2f7dfb5c476980586d0d402b",
-              "partitionIndex": 0,
-              "sequences": [
-                6,
-                7
-              ]
-            }
-          ],
-          "service": [
-            {
-              "signer": "peer:2f7dfb5c476980586d0d402b",
-              "kind": "stage-receipt",
-              "blocking": true,
-              "partitionIndex": 0,
-              "sequences": [
-                6,
-                7
-              ]
-            }
-          ]
-        },
-        {
-          "base": "complete answer",
-          "mutation": "stage1 signs a later receipt with fewer steps",
-          "clock": "after",
-          "independent": [
-            {
-              "kind": "stage-receipt",
-              "blocking": true,
-              "signer": "peer:6269cecde98f204b3e60729f",
-              "partitionIndex": 1,
-              "sequences": [
-                5,
-                7
-              ]
-            },
-            {
-              "kind": "stage-receipt",
-              "blocking": true,
-              "signer": "peer:6269cecde98f204b3e60729f",
-              "partitionIndex": 1,
-              "sequences": [
-                6,
-                7
-              ]
-            },
-            {
-              "kind": "output-chain",
-              "blocking": true,
-              "signer": "peer:6269cecde98f204b3e60729f",
-              "count": 4
-            }
-          ],
-          "service": [
-            {
-              "signer": "peer:6269cecde98f204b3e60729f",
-              "kind": "stage-receipt",
-              "blocking": true,
-              "partitionIndex": 1,
-              "sequences": [
-                6,
-                7
-              ]
-            },
-            {
-              "signer": "peer:6269cecde98f204b3e60729f",
-              "kind": "output-chain",
-              "blocking": true,
-              "count": 4
-            }
-          ]
-        },
-        {
-          "base": "requester stops after 3 outputs",
-          "mutation": "stage0 signs a later receipt with fewer steps",
-          "clock": "after",
-          "independent": [
-            {
-              "kind": "stage-receipt",
-              "blocking": true,
-              "signer": "peer:2f7dfb5c476980586d0d402b",
-              "partitionIndex": 0,
-              "sequences": [
-                3,
-                5
-              ]
-            },
-            {
-              "kind": "stage-receipt",
-              "blocking": true,
-              "signer": "peer:2f7dfb5c476980586d0d402b",
-              "partitionIndex": 0,
-              "sequences": [
-                4,
-                5
-              ]
-            }
-          ],
-          "service": [
-            {
-              "signer": "peer:2f7dfb5c476980586d0d402b",
-              "kind": "stage-receipt",
-              "blocking": true,
-              "partitionIndex": 0,
-              "sequences": [
-                4,
-                5
-              ]
-            }
-          ]
-        }
-      ]
-    },
-    "closedAtLastStep": {
-      "count": 1,
-      "classification": "a",
-      "cause": "a row that ends `unknown` for a missing acceptance: whether a stage already treated as closed at its last step is still listed",
-      "examples": [
-        {
-          "base": "answer delivered but stage0 never closes",
-          "mutation": "stage0 acceptance signed 5 s late",
-          "clock": "after",
-          "independent": [
-            0
-          ],
-          "service": []
-        }
-      ]
-    },
-    "credits": {
-      "count": 40,
-      "classification": "d",
-      "cause": "an own-account stage: the document lists it in `credits` with amount 0, the service's verifier leaves it out",
-      "examples": [
-        {
-          "base": "requester computes stage0 itself",
-          "mutation": "all records",
-          "clock": "before-deadline",
-          "independent": [
-            {
-              "participantId": "peer:a5ef1207e9618e5c0db49e80",
-              "amount": 0
-            },
-            {
-              "participantId": "peer:6269cecde98f204b3e60729f",
-              "amount": 12
-            }
-          ],
-          "service": [
-            {
-              "participantId": "peer:6269cecde98f204b3e60729f",
-              "amount": 12
-            }
-          ]
-        },
-        {
-          "base": "requester computes stage0 itself",
-          "mutation": "all records",
-          "clock": "at-deadline",
-          "independent": [
-            {
-              "participantId": "peer:a5ef1207e9618e5c0db49e80",
-              "amount": 0
-            },
-            {
-              "participantId": "peer:6269cecde98f204b3e60729f",
-              "amount": 12
-            }
-          ],
-          "service": [
-            {
-              "participantId": "peer:6269cecde98f204b3e60729f",
-              "amount": 12
-            }
-          ]
-        },
-        {
-          "base": "requester computes stage0 itself",
-          "mutation": "all records",
-          "clock": "in-window",
-          "independent": [
-            {
-              "participantId": "peer:a5ef1207e9618e5c0db49e80",
-              "amount": 0
-            },
-            {
-              "participantId": "peer:6269cecde98f204b3e60729f",
-              "amount": 12
-            }
-          ],
-          "service": [
-            {
-              "participantId": "peer:6269cecde98f204b3e60729f",
-              "amount": 12
-            }
-          ]
-        }
-      ]
-    }
-  },
+  "rowMemberDifferences": {},
   "noted": [
     {
       "base": "complete answer",
@@ -455,15 +232,15 @@
       "base": "complete answer",
       "mutation": "a stranger signs terms for the same reservation",
       "clock": "after",
-      "independent": "unknown (step 8: stage 0 has no in-time acceptance of the agreed terms) debit 0 credits [0,0]",
-      "service": "unknown (no in-time signed acceptance of these terms was presented for stage 0, 1) debit 0 credits [0,0]"
+      "independent": "settled (step 9: finished, the acknowledged prefix is charged) debit 15 credits [3,12]",
+      "service": "settled (the answer was completed and acknowledged) debit 15 credits [3,12]"
     },
     {
       "base": "complete answer",
       "mutation": "a stranger signs terms for the same reservation",
       "clock": "after",
-      "independent": "settled (step 9: finished, the acknowledged prefix is charged) debit 15 credits [3,12]",
-      "service": "settled (the answer was completed and acknowledged) debit 15 credits [3,12]"
+      "independent": "unknown (step 8: stage 0 has no in-time acceptance of the agreed terms) debit 0 credits [0,0]",
+      "service": "unknown (no in-time signed acceptance of these terms was presented for stage 0, 1) debit 0 credits [0,0]"
     },
     {
       "base": "complete answer",
@@ -518,15 +295,15 @@
       "base": "complete answer",
       "mutation": "a stranger signs its own terms, acceptance and charge binding under this reservation ID",
       "clock": "after",
-      "independent": "expired (step 6: not every stage closed, no delivered answer, and the release window passed) debit 0 credits [0,0]",
-      "service": "expired (the release window passed without every stage closing; under these terms nobody is charged or paid) debit 0 credits [0,0]"
+      "independent": "settled (step 9: finished, the acknowledged prefix is charged) debit 15 credits [3,12]",
+      "service": "settled (the answer was completed and acknowledged) debit 15 credits [3,12]"
     },
     {
       "base": "complete answer",
       "mutation": "a stranger signs its own terms, acceptance and charge binding under this reservation ID",
       "clock": "after",
-      "independent": "settled (step 9: finished, the acknowledged prefix is charged) debit 15 credits [3,12]",
-      "service": "settled (the answer was completed and acknowledged) debit 15 credits [3,12]"
+      "independent": "expired (step 6: not every stage closed, no delivered answer, and the release window passed) debit 0 credits [0,0]",
+      "service": "expired (the release window passed without every stage closing; under these terms nobody is charged or paid) debit 0 credits [0,0]"
     },
     {
       "base": "complete answer",
