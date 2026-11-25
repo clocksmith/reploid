@@ -44,6 +44,9 @@ const assertConserved = rows => {
   for (const row of rows) assert.equal(row.held, 0, `Account ${row.id} retained non-zero credit hold`);
 };
 
+const UNATTRIBUTED_DISCONNECT = 'unattributed-disconnect-acknowledged-prefix';
+const withoutRuleLabel = ({ reason: _reason, economicHash: _economicHash, ...rest }) => rest;
+
 const files = process.argv.slice(2);
 assert.ok(files.length > 0, 'At least one retained receipt file is required');
 const root = await fs.mkdtemp(path.join(os.tmpdir(), 'fleet-receipt-replay-'));
@@ -53,7 +56,7 @@ try {
     assert.equal(report.passed, true);
     assert.equal(report.cleanup, 'settled');
     assert.ok(Array.isArray(report.requests) && report.requests.length > 0, 'Signed requests are required');
-    let now = 0;
+    let now = 0, ruleLabelsAdded = 0;
     // These receipts were recorded when the ledger kept one balance per computer, with every computer under one owner.
     // Replaying them per owner account would settle each one at zero, so each computer is enrolled as its own account:
     // the same keys and signatures, and the per-computer amounts they were settled for.
@@ -85,7 +88,17 @@ try {
         const result = await ledger.settle(input.id, request.evidence);
         // A credit now also names the account it is posted to; here every account is its computer.
         for (const credit of result.credits) assert.equal(credit.accountId, credit.computerId);
-        assert.deepEqual({ ...result, credits: result.credits.map(({ accountId: _accountId, ...credit }) => credit) }, request.outcome);
+        const replayedOutcome = { ...result, credits: result.credits.map(({ accountId: _accountId, ...credit }) => credit) };
+        if (replayedOutcome.reason === UNATTRIBUTED_DISCONNECT && request.outcome.reason === undefined) {
+          // These reports predate the unfinished-answer rules. An answer the stages closed unfinished, with no stop,
+          // settles today under reploid.settlement-replay/v2 and the outcome names that rule in `reason`, which
+          // `economicHash` also covers. The charge, the credits, the output count and the evidence must still be
+          // exactly what was recorded.
+          assert.deepEqual(withoutRuleLabel(replayedOutcome), withoutRuleLabel(request.outcome));
+          ruleLabelsAdded += 1;
+        } else {
+          assert.deepEqual(replayedOutcome, request.outcome);
+        }
         const before = ledger.snapshot();
         assert.deepEqual(await ledger.settle(input.id, request.evidence), result);
         assert.deepEqual(ledger.snapshot(), before, 'Idempotent duplicate settlement changed balances');
@@ -122,6 +135,7 @@ try {
       console.log(JSON.stringify({
         file,
         verifiedRequests: report.requests.length,
+        ...(ruleLabelsAdded ? { ruleLabelsAdded } : {}),
         conserved: true,
         admissionVerified: true,
         duplicateSettlement: 'unchanged',
