@@ -9,7 +9,7 @@ import { fileURLToPath } from 'node:url';
 import { createInterface } from 'node:readline';
 import { inspectDeviceMemory } from 'dopplerx/partitions';
 import { getDevice, getKernelCapabilities } from 'dopplerx/tooling/device';
-import { requestExecutionPolicy, assertAvailableExecutionPolicy, plaintextExecutionRoute, bindExecutionRoute, sameExecutionBinding } from '../../shared/vendor/reploid/chat/execution-policy.js';
+import { requestExecutionPolicy, assertAvailableExecutionPolicy, plaintextExecutionRoute, bindExecutionRoute, sameExecutionBinding, EXECUTION_BACKENDS } from '../../shared/vendor/reploid/chat/execution-policy.js';
 import { createInference, executionError, EXECUTION_ERROR_CODES } from '../../shared/vendor/reploid/inference/index.js';
 import { createSigningIdentity, createPeerIdFromPublicJwk } from '../../shared/vendor/reploid/artifacts/identity.js';
 import { signGenerationTerminal } from '../../shared/vendor/reploid/artifacts/generation-terminal.js';
@@ -657,8 +657,8 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
   });
 }
 
-/** What the owner's `generate` command allows when it names no requirements: any computer this host pins, readable by it. */
-const OWNER_METADATA = Object.freeze(['model-id', 'timing', 'length']);
+/** What the owner's `generate` command allows when it names no requirements: what a plaintext route discloses, access patterns included. */
+const OWNER_METADATA = Object.freeze([...EXECUTION_BACKENDS['doppler-plaintext/v1'].metadata]);
 
 /**
  * The owner's `generate` command through reploid/inference, the same prepare and run as the browser, the CLI and the

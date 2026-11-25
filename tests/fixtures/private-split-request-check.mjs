@@ -67,7 +67,7 @@ test('the approved split produces a streaming request pinned to both stages and 
     max_output_tokens: 4, reploid: { poolId: input.config.roomId,
       model: { identity: model.identity, adapterIdentities: [], planIdentity: model.partitionPlanId },
       execution: { placement: 'network-allowed', participants: { kind: 'named', ids: [...providers, requester] },
-        confidentiality: 'executor-readable', allowMetadata: ['model-id', 'timing', 'length'] } } });
+        confidentiality: 'executor-readable', allowMetadata: ['model-id', 'timing', 'length', 'access-patterns'] } } });
 });
 
 const refusals = [

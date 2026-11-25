@@ -123,6 +123,9 @@ export function routeDisclosures(route, execution) {
   const backend = executionBackend(route.backend);
   const local = route.shape === 'local';
   const named = execution.participants.kind === 'named';
+  // An executor that reads the content observes its access patterns; the rest also reaches the carriers.
+  const observed = backend.executorsReadContent && backend.metadata.includes('access-patterns');
+  const carried = backend.metadata.filter(item => item !== 'access-patterns' || !backend.executorsReadContent);
   const readers = local ? 'Only this device reads the content.'
     : route.selection === 'any-eligible' ? 'One eligible provider reads the content in plaintext. It is identified, and checked against this plan, before anything is sent.'
       : route.selection === 'one-of' ? 'One of the listed participants reads the content in plaintext.'
@@ -133,7 +136,8 @@ export function routeDisclosures(route, execution) {
     metadata: local ? [] : [...backend.metadata],
     statement: [readers,
       named && !local ? 'They are the participants you named. Naming your own devices limits readers to those devices; Reploid does not check who owns them.' : null,
-      local ? 'No network participant receives the content or its metadata.' : `The route can also expose ${backend.metadata.join(', ')} to coordinators, credit ledgers and relays that carry it.`,
+      !local && observed ? 'Because they read the content, they can also see its access patterns.' : null,
+      local ? 'No network participant receives the content or its metadata.' : `The route can also expose ${carried.join(', ')} to coordinators, credit ledgers and relays that carry it.`,
       'No backend that keeps content from its executors is qualified.'].filter(Boolean).join(' ')
   });
 }

@@ -94,7 +94,7 @@ it('never serves a stronger tier through a weaker one: each unmet requirement re
 // reploid/inference over the real whole-model requester and peer mesh. The transport and the generator are test-owned.
 describe('the inference API over the authenticated mesh', () => {
   const model = { id: 'model', identity: 'sha256:' + 'a'.repeat(64), name: 'Model', provider: 'doppler' };
-  const readable = (participants = { kind: 'open' }, allowMetadata = ['model-id', 'timing', 'length']) => ({
+  const readable = (participants = { kind: 'open' }, allowMetadata = ['model-id', 'timing', 'length', 'access-patterns']) => ({
     placement: 'network-allowed', participants, confidentiality: 'executor-readable', allowMetadata });
   async function boot({ resolve } = {}) {
     let whole, clock = 1000;
@@ -127,7 +127,7 @@ describe('the inference API over the authenticated mesh', () => {
     const { f, ask, sent, provider } = await boot();
     for (const [requestId, execution] of [['open-1', readable()], ['named-1', readable({ kind: 'named', ids: [provider] })]]) {
       const { plan, result, events } = await ask(execution, requestId);
-      expect(plan.disclosures).toMatchObject({ executorsReadContent: true, metadata: ['model-id', 'timing', 'length'],
+      expect(plan.disclosures).toMatchObject({ executorsReadContent: true, metadata: ['model-id', 'timing', 'length', 'access-patterns'],
         contentReadableBy: { requesterDevice: false } });
       // This provider answers without streaming, so no output.delta arrives between admission and the terminal event.
       expect(events).toEqual(['admitted', 'completed']);

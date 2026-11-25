@@ -103,7 +103,7 @@ async function checkAttempt(link) {
           input: messages, stream: true, reploid: { poolId: participant.roomId, conversationId: threadId,
             model: { identity: fixture.modelIdentity, planIdentity: fixture.planIdentity },
             execution: { placement: 'network-allowed', participants: { kind: 'named', ids: [...stageParticipants, requesterId] },
-              confidentiality: 'executor-readable', allowMetadata: ['model-id', 'timing', 'length'] } } }) });
+              confidentiality: 'executor-readable', allowMetadata: ['model-id', 'timing', 'length', 'access-patterns'] } } }) });
       const body = await res.text(); expect(res.status, body).toBe(200);
       const event = body.split('\n\n').find(frame => frame.startsWith(capped ? 'event: response.incomplete\n' : 'event: response.completed\n'));
       expect(event, body).toBeTruthy();

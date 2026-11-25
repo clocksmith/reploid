@@ -150,7 +150,7 @@ it('through the inference API, a provider lost mid-answer fails the run: streame
       attemptId: request.attemptId, privacy: policy }, { ...controls, onDelta(envelope) { stopping ??= fixture.stop('named'); return controls.onDelta(envelope); } })
   });
   const plan = await inference.prepare({ model: { id: model.id, identity: model.identity }, execution: { placement: 'network-allowed',
-    participants: { kind: 'named', ids: [named.identity.peerId] }, confidentiality: 'executor-readable', allowMetadata: ['model-id', 'timing', 'length'] } });
+    participants: { kind: 'named', ids: [named.identity.peerId] }, confidentiality: 'executor-readable', allowMetadata: ['model-id', 'timing', 'length', 'access-patterns'] } });
   const run = await inference.run({ planId: plan.id, requestId: 'lost-provider', input: { messages } }, { signal: AbortSignal.timeout(5000) });
   const events = [];
   for await (const event of run.events) events.push(event.type);

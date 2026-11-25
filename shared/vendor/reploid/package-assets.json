@@ -576,8 +576,8 @@
     },
     {
       "path": "chat/execution-policy.js",
-      "bytes": 18255,
-      "sha256": "42f454ab14b880b8b34f48086982fc61ba2cb8fa3eba1e61a5cb87636bf754eb"
+      "bytes": 18577,
+      "sha256": "7fcc3822b7c792e588f4454c83064b298d83b8cad949b515076f659cddc452e0"
     },
     {
       "path": "chat/index.d.ts",
@@ -931,8 +931,8 @@
     },
     {
       "path": "inference/contract.js",
-      "bytes": 16975,
-      "sha256": "e182628cfb590423547f981d34e6e1bd5d9afd03ad75c269d63e292210221a37"
+      "bytes": 17388,
+      "sha256": "8b980f979c9c08ff729a654602d76c0cefb4bce526bc84fbf6cf4578a081586c"
     },
     {
       "path": "inference/index.d.ts",

@@ -291,7 +291,7 @@ it('through the inference API, a provider that declines admission fails the run 
       privacy: policy, messages: request.messages }, controls)
   });
   const plan = await inference.prepare({ model: { id: 'model', identity: modelIdentity }, execution: { placement: 'network-allowed',
-    participants: { kind: 'named', ids: [f.identities[1].peerId] }, confidentiality: 'executor-readable', allowMetadata: ['model-id', 'timing', 'length'] } });
+    participants: { kind: 'named', ids: [f.identities[1].peerId] }, confidentiality: 'executor-readable', allowMetadata: ['model-id', 'timing', 'length', 'access-patterns'] } });
   const run = await inference.run({ planId: plan.id, requestId: 'declined', input: { messages: f.messages } },
     { signal: AbortSignal.timeout(5000), approve: (preview, route) => { approvals.push({ route, requests: of(f, 'reploid:generation-request').length }); return true; } });
   const result = await run.result;

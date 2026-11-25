@@ -14,7 +14,8 @@ export const EXECUTION_PRESETS = Object.freeze(['standard', 'own-devices', 'no-d
 const METADATA_WORDS = { 'model-id': 'model identity', timing: 'timing', length: 'message sizes', 'access-patterns': 'access patterns' };
 const words = items => items.map(item => METADATA_WORDS[item] || item);
 const sentence = items => items.length < 2 ? items.join('') : `${items.slice(0, -1).join(', ')} and ${items.at(-1)}`;
-const NETWORK_METADATA = words(EXECUTION_BACKENDS['doppler-plaintext/v1'].metadata);
+// A plaintext executor reads the content, so it also sees access patterns; the rest can reach the carriers too.
+const NETWORK_METADATA = words(EXECUTION_BACKENDS['doppler-plaintext/v1'].metadata.filter(item => item !== 'access-patterns'));
 
 /** The preset a stored policy stands for, given this device's own paired desktop (if any). */
 export function presetForPolicy(policy, ownDevices = []) {
@@ -43,11 +44,11 @@ export function policyForPreset(preset, current, ownDevices = []) {
 /** Availability and exposure, stated before Send. `desktop` is this device's paired desktop label, if one is paired. */
 export function presetDisclosure(preset, { desktop = null } = {}) {
   if (preset === 'standard') {
-    return `Available. The computer that answers reads your content in plaintext, and you approve it before anything is sent. The request's ${sentence(NETWORK_METADATA)} can also be visible to the coordinators, credit ledgers and relays that carry the request.`;
+    return `Available. The computer that answers reads your content in plaintext and can see its access patterns, and you approve it before anything is sent. The request's ${sentence(NETWORK_METADATA)} can also be visible to the coordinators, credit ledgers and relays that carry the request.`;
   }
   if (preset === 'own-devices') {
     return desktop
-      ? `Available on this device and ${desktop}. They run the model and read your content in plaintext; no other computer can read it. When ${desktop} answers, a relay that carries the connection can see its timing and message sizes. ${desktop} counts as yours because you approved its pairing code.`
+      ? `Available on this device and ${desktop}. They run the model and read your content in plaintext, so they can also see its access patterns; no other computer can read it. When ${desktop} answers, a relay that carries the connection can see its timing and message sizes. ${desktop} counts as yours because you approved its pairing code.`
       : 'Available on this device only; pair a desktop to add it. Nothing leaves this device, and no network participant sees its metadata.';
   }
   return 'Unavailable. No qualified backend keeps content from the computer that runs the model, so a request that requires it is refused before anything is sent.';

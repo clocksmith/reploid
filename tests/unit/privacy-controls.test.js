@@ -16,8 +16,8 @@ it('offers three presets, states availability and exposure before Send, and neve
   updatePrivacyControls(root, open, { desktop });
   expect(find('[value="standard"]').checked).toBe(true);
   expect(find('[value="no-device"]').disabled).toBe(true);
-  expect(find('[data-preset-note="standard"]').textContent).toMatch(/^Available\..*plaintext.*model identity, timing and message sizes/);
-  expect(find('[data-preset-note="own-devices"]').textContent).toMatch(/^Available on this device and Studio\..*no other computer can read it/);
+  expect(find('[data-preset-note="standard"]').textContent).toMatch(/^Available\..*plaintext and can see its access patterns.*model identity, timing and message sizes can also be visible/);
+  expect(find('[data-preset-note="own-devices"]').textContent).toMatch(/^Available on this device and Studio\..*plaintext, so they can also see its access patterns; no other computer can read it/);
   expect(find('[data-preset-note="no-device"]').textContent).toMatch(/^Unavailable\..*refused before anything is sent/);
   // Only your devices: the paired desktop is the one named participant, executor-readable.
   choose('own-devices');

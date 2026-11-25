@@ -21,7 +21,7 @@ const token = 'synthetic-fleet-api-bearer-secret-0123456789abcdef';
 const roomId = 'reploid-swarm-fleet-fixture';
 /** The one `reploid` extension: pinned model, the named participants allowed to read the prompt, and the private pool. */
 const extension = (ids, more = {}) => ({ poolId: roomId, model: { identity: model.identity }, execution: { placement: 'network-allowed',
-  participants: { kind: 'named', ids }, confidentiality: 'executor-readable', allowMetadata: ['model-id', 'timing', 'length'] }, ...more });
+  participants: { kind: 'named', ids }, confidentiality: 'executor-readable', allowMetadata: ['model-id', 'timing', 'length', 'access-patterns'] }, ...more });
 
 let root, keys, credits, service, requesterCredits, providerCredits;
 beforeEach(async () => {

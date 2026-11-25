@@ -75,14 +75,14 @@ it.each([
   const host = fixtureHost();
   const generate = createOwnerInference({ host, config: config() });
   const execution = { placement: 'network-allowed', participants: { kind: 'open' }, confidentiality: 'executor-readable',
-    allowMetadata: ['model-id', 'timing', 'length'], ...change };
+    allowMetadata: ['model-id', 'timing', 'length', 'access-patterns'], ...change };
   await expect(generate(request({ execution }))).rejects.toMatchObject({ code });
   expect(host.calls).toEqual([]);
 });
 
 it('keeps an open request within the pinned computers and refuses a substituted route at disclosure', async () => {
   const pinned = createOwnerInference({ host: fixtureHost(), config: config({ textApi: { allowedRecipients: [peer] } }) });
-  const open = { placement: 'network-allowed', participants: { kind: 'open' }, confidentiality: 'executor-readable', allowMetadata: ['model-id', 'timing', 'length'] };
+  const open = { placement: 'network-allowed', participants: { kind: 'open' }, confidentiality: 'executor-readable', allowMetadata: ['model-id', 'timing', 'length', 'access-patterns'] };
   const answered = await pinned(request({ execution: open }));
   expect(answered.executionReceipt.route.participants).toEqual([peer]);
   // A disclosure bound to another model artifact is not the planned route: refused before the prompt is sent.

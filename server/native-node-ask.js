@@ -1,13 +1,13 @@
 import { randomUUID } from 'node:crypto';
 import { availablePartitionRoute, currentPartitionRoute, matchesPartitionDisclosure } from '../apps/poolday/host/partition-release.js';
-import { createExecutionPolicy, compileExecutionRequirements, EXECUTION_METADATA } from '../shared/vendor/reploid/chat/execution-policy.js';
+import { createExecutionPolicy, compileExecutionRequirements, EXECUTION_BACKENDS, EXECUTION_METADATA } from '../shared/vendor/reploid/chat/execution-policy.js';
 import { createInference } from '../shared/vendor/reploid/inference/index.js';
 import { partitionAdapterIdentities } from '../shared/vendor/reploid/mesh/partitions/partition-contract.js';
 import { setTimeout as delay } from 'node:timers/promises';
 
-/** `reploid ask` without execution flags: any eligible provider may read the prompt, and the route's usual metadata is allowed. */
+/** `reploid ask` without execution flags: any eligible provider may read the prompt, and the metadata a plaintext route discloses is allowed. */
 export const DEFAULT_ASK_EXECUTION = Object.freeze({ placement: 'network-allowed', participants: Object.freeze({ kind: 'open' }),
-  confidentiality: 'executor-readable', allowMetadata: Object.freeze(['model-id', 'timing', 'length']) });
+  confidentiality: 'executor-readable', allowMetadata: Object.freeze([...EXECUTION_BACKENDS['doppler-plaintext/v1'].metadata]) });
 
 /** The inference requirements `reploid ask` flags select. Unknown values are refused here, before discovery. */
 export function askExecution({ participants = [], confidentiality = 'executor-readable', allowMetadata } = {}) {

@@ -39,8 +39,8 @@ API requirements, and the dialog states availability and exposure before Send.
 
 | Preset | Requirements | Availability | Who reads the content | What else is exposed |
 | --- | --- | --- | --- | --- |
-| Standard · Approved computers may read the content | `network-allowed`, `participants: open` (or the computer chosen in "Answer on"), `executor-readable` | Available | The computer that answers, approved before anything is sent; on a split, every stage | Model identity, timing and message sizes can be visible to coordinators, credit ledgers and relays |
-| Only your devices can read content | `local-only`, or `network-allowed` with `participants: named` = the desktop this device paired with; `executor-readable` | Available on this device; and on your paired desktop when one is paired | This device, or your paired desktop, in plaintext | Local: nothing leaves the device. Desktop: a relay that carries the WebRTC connection can see timing and message sizes |
+| Standard · Approved computers may read the content | `network-allowed`, `participants: open` (or the computer chosen in "Answer on"), `executor-readable` | Available | The computer that answers, approved before anything is sent; on a split, every stage | The readers also see access patterns. Model identity, timing and message sizes can be visible to coordinators, credit ledgers and relays |
+| Only your devices can read content | `local-only`, or `network-allowed` with `participants: named` = the desktop this device paired with; `executor-readable` | Available on this device; and on your paired desktop when one is paired | This device, or your paired desktop, in plaintext | The readers also see access patterns. Local: nothing leaves the device. Desktop: a relay that carries the WebRTC connection can see timing and message sizes |
 | Confidential execution · No device can read content | `requester-only` | **Unavailable**. Shown disabled, never applied | Not applicable | Not applicable |
 
 "Only your devices" is placement plus named participants with
@@ -63,7 +63,7 @@ const plan = await inference.prepare({
     placement: 'network-allowed',                     // or 'local-only' (participants { kind: 'none' })
     participants: { kind: 'named', ids: ['peer:…'] }, // or { kind: 'open' }
     confidentiality: 'executor-readable',             // or 'requester-only'
-    allowMetadata: ['model-id', 'timing', 'length']   // subset of model-id, timing, length, access-patterns
+    allowMetadata: ['model-id', 'timing', 'length', 'access-patterns'] // a plaintext route discloses all four
   }
 }, { signal });
 
@@ -103,7 +103,7 @@ and disallowed metadata, and pins a route. It places no credit hold.
   "disclosures": {
     "contentReadableBy": { "requesterDevice": false, "participants": ["peer:4b1d…"], "selection": "one-of" },
     "executorsReadContent": true,
-    "metadata": ["model-id", "timing", "length"],
+    "metadata": ["model-id", "timing", "length", "access-patterns"],
     "statement": "One of the listed participants reads the content in plaintext. …"
   }
 }
@@ -122,7 +122,13 @@ and disallowed metadata, and pins a route. It places no credit hold.
 - `maxCharge` is the route's service-credit ceiling when it quotes one (a
   paired private pool), otherwise `null`.
 - `disclosures` describe the backend, not the permission. `metadata` is what the
-  route can expose beyond the readers. A local route exposes nothing.
+  route can expose. A plaintext executor reads the content, so it also observes
+  its access patterns: both plaintext backends list `access-patterns` with
+  `model-id`, `timing` and `length`, and an executor-readable request must allow
+  all four (providers on earlier releases refuse a plaintext policy that omits
+  any of them). Coordinators, credit ledgers and relays can see the other three.
+  The protected backend computes data-independently and does not list
+  `access-patterns`. A local route exposes nothing.
 
 ### run
 
@@ -179,7 +185,7 @@ itself. A claim not listed was not checked.
   "requestId": "caller-key-1", "attemptId": "attempt_…", "planId": "plan_6f0c…", "status": "completed",
   "requested": { "model": { "id": "…", "identity": "sha256:…", "adapterIdentities": [] },
                  "execution": { "placement": "network-allowed", "participants": { "kind": "named", "ids": ["peer:4b1d…"] },
-                                "confidentiality": "executor-readable", "allowMetadata": ["model-id", "timing", "length"] },
+                                "confidentiality": "executor-readable", "allowMetadata": ["model-id", "timing", "length", "access-patterns"] },
                  "policyId": "sha256:…" },
   "route": { "planRouteId": "sha256:83ee…", "admittedRouteId": "sha256:…", "policyId": "sha256:…", "shape": "remote",
              "participants": ["peer:4b1d…"], "backend": "doppler-plaintext/v1", "protocol": null, "planIdentity": null },
@@ -247,7 +253,7 @@ requirements as `prepare`, plus the private pool and conversation:
   "reploid": {
     "model": { "identity": "sha256:…", "adapterIdentities": [], "planIdentity": "sha256:…" },
     "execution": { "placement": "network-allowed", "participants": { "kind": "named", "ids": ["peer:4b1d…"] },
-                   "confidentiality": "executor-readable", "allowMetadata": ["model-id", "timing", "length"] },
+                   "confidentiality": "executor-readable", "allowMetadata": ["model-id", "timing", "length", "access-patterns"] },
     "poolId": "reploid-swarm-team",
     "conversationId": "conv-alpha"
   }
@@ -264,7 +270,7 @@ POST /v1/responses         { "model": "…", "input": "Hi", "reploid": { … } }
 
 The adapter reads the extension before the protocol parses any message. A body
 without one runs under the standard requirements (`open`, executor-readable,
-`model-id`, `timing` and `length` allowed), bounded by the operator's
+`model-id`, `timing`, `length` and `access-patterns` allowed), bounded by the operator's
 `executionPolicyFor` policy. The caller's requirements may narrow the operator's
 policy but never widen it.
 
@@ -300,12 +306,13 @@ offered and is refused.
 ## CLI
 
 ```sh
-npx reploid ask 2b "Hello" --participant peer:4b1d… --allow-metadata model-id,timing,length
+npx reploid ask 2b "Hello" --participant peer:4b1d… --allow-metadata model-id,timing,length,access-patterns
 npx reploid ask 2b "Hello" --confidentiality requester-only   # refused before discovery: CONFIDENTIAL_EXECUTION_UNAVAILABLE
 ```
 
 `--participant` (repeatable) names who may read the prompt. `--allow-metadata`
-lists the metadata the route may expose. `--confidentiality` defaults to
+lists the metadata the route may expose; it defaults to all four, which is what a
+plaintext route discloses. `--confidentiality` defaults to
 `executor-readable`. The flags configure the inference request and never the
 participant process.
 
@@ -347,7 +354,8 @@ conversation port in `host/chat-execution.js`.
   model can read the prompt and answer. The requester binds the request to one
   identity-proved recipient before sending (metadata and a salted commitment
   first, messages only after a matching admission). A dishonest recipient can
-  keep, copy or misuse what it reads. Signaling, relays and credit ledgers can
+  keep, copy or misuse what it reads, and it sees the access patterns of the
+  content it reads. Signaling, relays and credit ledgers can
   see timing, sizes, model identity and participant identities.
 - **Executor-readable, named (including "Only your devices"):** the same, with
   readers limited to the named participants. A provider outside the list

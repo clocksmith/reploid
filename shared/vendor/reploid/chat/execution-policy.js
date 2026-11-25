@@ -37,11 +37,14 @@ const plaintextLeakage = [...metadata, 'plaintext'];
 /**
  * Backends this requester can actually run, keyed by exact identity. A backend is eligible only when its
  * registered computation and protocol match the offer exactly; an advertisement cannot add a row or upgrade one.
- * `metadata` is what the backend's route exposes beyond the participants that read content.
+ * `metadata` is the metadata the backend's route discloses. An executor that reads content in plaintext also observes
+ * its access patterns, so every plaintext backend lists all four; the rest also reach coordinators, ledgers and relays.
+ * Providers on earlier releases require all four in a plaintext policy, so a narrower default would be refused.
  */
+const PLAINTEXT_METADATA = ['model-id', 'timing', 'length', 'access-patterns'];
 export const EXECUTION_BACKENDS = freeze({
-  'doppler-plaintext/v1': { computation: 'plaintext', protocol: null, executorsReadContent: true, metadata: ['model-id', 'timing', 'length'] },
-  'doppler-partition-plaintext/v1': { computation: 'plaintext', protocol: null, executorsReadContent: true, metadata: ['model-id', 'timing', 'length'] }
+  'doppler-plaintext/v1': { computation: 'plaintext', protocol: null, executorsReadContent: true, metadata: [...PLAINTEXT_METADATA] },
+  'doppler-partition-plaintext/v1': { computation: 'plaintext', protocol: null, executorsReadContent: true, metadata: [...PLAINTEXT_METADATA] }
 });
 export const executionBackend = backend => Object.hasOwn(EXECUTION_BACKENDS, backend) ? EXECUTION_BACKENDS[backend] : null;
 const plaintextBackends = Object.keys(EXECUTION_BACKENDS);

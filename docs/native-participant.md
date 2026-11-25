@@ -587,7 +587,7 @@ replacing, the host's existing authorization:
 {
   "model": { "identity": "sha256:REPLACE-WITH-READY-MODEL-IDENTITY", "adapterIdentities": [], "planIdentity": "REPLACE-OR-OMIT" },
   "execution": { "placement": "network-allowed", "participants": { "kind": "named", "ids": ["REPLACE-WITH-ADMITTED-PEER-THUMBPRINT"] },
-                 "confidentiality": "executor-readable", "allowMetadata": ["model-id", "timing", "length"] },
+                 "confidentiality": "executor-readable", "allowMetadata": ["model-id", "timing", "length", "access-patterns"] },
   "poolId": "valera-private-pool-v1",
   "conversationId": "optional-conversation-id"
 }

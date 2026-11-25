@@ -163,9 +163,10 @@ var EXECUTION_ERROR_CODES = Object.freeze({
 var EXECUTION_METADATA = Object.freeze(["model-id", "timing", "length", "access-patterns"]);
 var metadata = [...EXECUTION_METADATA];
 var plaintextLeakage = [...metadata, "plaintext"];
+var PLAINTEXT_METADATA = ["model-id", "timing", "length", "access-patterns"];
 var EXECUTION_BACKENDS = freeze({
-  "doppler-plaintext/v1": { computation: "plaintext", protocol: null, executorsReadContent: true, metadata: ["model-id", "timing", "length"] },
-  "doppler-partition-plaintext/v1": { computation: "plaintext", protocol: null, executorsReadContent: true, metadata: ["model-id", "timing", "length"] }
+  "doppler-plaintext/v1": { computation: "plaintext", protocol: null, executorsReadContent: true, metadata: [...PLAINTEXT_METADATA] },
+  "doppler-partition-plaintext/v1": { computation: "plaintext", protocol: null, executorsReadContent: true, metadata: [...PLAINTEXT_METADATA] }
 });
 var plaintextBackends = Object.keys(EXECUTION_BACKENDS);
 

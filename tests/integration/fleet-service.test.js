@@ -418,7 +418,7 @@ it('streams execution evidence and settles once for a Responses request bound to
     const named = keys.slice(0, 3).map(key => key.peerId);
     const binding = { poolId: 'private-split-test', model: { identity: model.identity, adapterIdentities: [], planIdentity: model.partition.planId },
       execution: { placement: 'network-allowed', participants: { kind: 'named', ids: named }, confidentiality: 'executor-readable',
-        allowMetadata: ['model-id', 'timing', 'length'] } };
+        allowMetadata: ['model-id', 'timing', 'length', 'access-patterns'] } };
     const response = await fetch(f.url + '/responses', { method: 'POST', headers: f.headers,
       body: JSON.stringify({ model: model.selectionId || model.id, input: [{ role: 'user', content: 'test' }],
         store: false, stream: true, max_output_tokens: 2, reploid: binding }) });

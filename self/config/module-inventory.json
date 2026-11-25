@@ -4351,7 +4351,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:7851c9a68ffe9deda52a996b837b43d7790730927f724acbe80a21a5ea70923a",
+      "sha256": "sha256:40b3ba1a60967058aa7d150d60a621ad4f39598f15dbe8c6a9ad9f54088dd0a8",
       "imports": []
     },
     {
@@ -4869,7 +4869,7 @@
     {
       "path": "ui/pool-home/privacy-controls.js",
       "owner": "ui",
-      "sha256": "sha256:a1c9b6fa9ca3eaca82a0ed0d7fa754b0c1191787270a0f4bbbe36c96fb38bf41",
+      "sha256": "sha256:0e8248213791d2d8ce439c2eb83daf807021325fa5804e001bc92734e3b14341",
       "imports": [
         "../../vendor/reploid/chat/execution-policy.js",
         "./computer-labels.js"
@@ -19003,7 +19003,7 @@
     {
       "path": "vendor/reploid/chat/execution-policy.js",
       "owner": "vendor",
-      "sha256": "sha256:42f454ab14b880b8b34f48086982fc61ba2cb8fa3eba1e61a5cb87636bf754eb",
+      "sha256": "sha256:7fcc3822b7c792e588f4454c83064b298d83b8cad949b515076f659cddc452e0",
       "imports": [
         "../artifacts/signatures.js",
         "../contracts/partition.js"
@@ -19222,7 +19222,7 @@
     {
       "path": "vendor/reploid/inference/contract.js",
       "owner": "vendor",
-      "sha256": "sha256:e182628cfb590423547f981d34e6e1bd5d9afd03ad75c269d63e292210221a37",
+      "sha256": "sha256:8b980f979c9c08ff729a654602d76c0cefb4bce526bc84fbf6cf4578a081586c",
       "imports": [
         "../artifacts/signatures.js",
         "../chat/execution-policy.js",

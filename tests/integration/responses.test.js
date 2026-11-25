@@ -18,7 +18,7 @@ const orderedParticipant = mesh => ({
 const preview = (request, recipients=['stage']) => bindPreview(request, {threadId:request.threadId,attemptId:request.attemptId,modelId:request.model.id,modelIdentity:request.model.identity,recipients,input:{messages:request.messages,...(request.generationRequest?{generationRequest:request.generationRequest}:{})}});
 const model={id:'test-model',identity:'sha256:'+'a'.repeat(64),partition:{prepared:true,participantA:'actual-stage'}};
 // The one Reploid extension: the same model pin and execution requirements as reploid/inference prepare().
-const named=ids=>({placement:'network-allowed',participants:{kind:'named',ids},confidentiality:'executor-readable',allowMetadata:['model-id','timing','length']});
+const named=ids=>({placement:'network-allowed',participants:{kind:'named',ids},confidentiality:'executor-readable',allowMetadata:['model-id','timing','length','access-patterns']});
 const extension=(ids,extra={})=>({poolId:'valera-private-pool-v1',model:{identity:model.identity},execution:named(ids),...extra});
 const input={model:model.id,input:'hello',store:false}, owners=[];
 afterEach(async()=>{for(const close of owners.splice(0).reverse())await close();});
@@ -57,7 +57,7 @@ it('mounted route binds instructions and messages to actual authorization, prese
   expect(Object.isFrozen(request.messages)).toBe(true);
   // The participant runs the authorized request plus the policy the inference API compiled from the standard requirements.
   const {privacy,...authorized}=request;expect(f.authorize.mock.calls[1][0].request).toEqual(authorized);
-  expect(privacy).toMatchObject({placement:'network-allowed',recipients:{kind:'open',ids:[]},computation:'plaintext',leakage:['model-id','timing','length','plaintext']});
+  expect(privacy).toMatchObject({placement:'network-allowed',recipients:{kind:'open',ids:[]},computation:'plaintext',leakage:['model-id','timing','length','access-patterns','plaintext']});
 });
 it('streams contiguous typed events with one stable item and a genuine completed terminal',async()=>{
   const f=await boot(),rows=events(await(await f.post({...input,stream:true})).text());

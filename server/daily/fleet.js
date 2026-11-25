@@ -4,6 +4,7 @@ import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
 import { createInference, EXECUTION_ERROR_CODES } from '../../shared/vendor/reploid/inference/index.js';
+import { EXECUTION_BACKENDS } from '../../shared/vendor/reploid/chat/execution-policy.js';
 import { canonicalize } from '../../shared/vendor/reploid/artifacts/canonical-json.js';
 import { verifyReceipt } from '../../shared/vendor/reploid/artifacts/receipt.js';
 import { matchesWholeModelReceipt } from '../../shared/vendor/reploid/artifacts/whole-model-receipt.js';
@@ -15,9 +16,9 @@ import { PROFILE } from './rules.js';
 const digest = /^sha256:[a-f0-9]{64}$/;
 const requireValue = (ok, message) => { if (!ok) throw new Error(message); };
 const same = (left, right) => left !== undefined && canonicalize(left) === canonicalize(right);
-/** A daily turn's requirements: only the named provider reads the prompt, in plaintext. */
+/** A daily turn's requirements: only the named provider reads the prompt, in plaintext, with the metadata that discloses. */
 const dailyExecution = providerId => ({ placement: 'network-allowed', participants: { kind: 'named', ids: [providerId] },
-  confidentiality: 'executor-readable', allowMetadata: ['model-id', 'timing', 'length'] });
+  confidentiality: 'executor-readable', allowMetadata: [...EXECUTION_BACKENDS['doppler-plaintext/v1'].metadata] });
 
 function promptRoute(host, pins) {
   const route = host.textParticipant.getState().models?.find(model => !model.partition
