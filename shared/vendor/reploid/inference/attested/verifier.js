@@ -29,7 +29,7 @@ export const ATTESTATION_REASONS = Object.freeze([
   'evidence-invalid', 'nonce-mismatch', 'evidence-stale', 'platform-unsupported', 'measurement-unknown', 'model-mismatch',
   'key-unbound', 'debug-enabled', 'gpu-not-cc', 'gpu-measurement-unknown', 'gpu-count', 'signature-invalid',
   'certificate-expired', 'certificate-invalid', 'certificate-revoked', 'revocation-unchecked', 'tcb-out-of-date',
-  'quoting-enclave-unknown'
+  'quoting-enclave-unknown', 'migration-allowed'
 ]);
 
 export function attestationRejected(reason, message) {
@@ -218,6 +218,8 @@ export async function verifyAttestedEvidence(evidence, { policy, expected, now, 
   if (session.platform === 'amd-sev-snp') {
     try { cpu = parseSnpReport(rawReport); } catch { reject('evidence-invalid', 'The SEV-SNP report is malformed'); }
     if (cpu.debug) reject('debug-enabled', 'The confidential VM was launched with debugging allowed');
+    // The launch measurement does not cover the guest policy, and a migration agent is the host's choice.
+    if (cpu.migrationAgent) reject('migration-allowed', 'The confidential VM allows a migration agent, which could export its memory');
     const chainDer = decodeAll(evidence.cpu.certificates, 'An AMD certificate');
     let chain;
     try { chain = await verifyCertificateChain(chainDer, { roots: policy.roots.amdArk, now }); } catch (error) { throw chainError(error); }
@@ -228,7 +230,8 @@ export async function verifyAttestedEvidence(evidence, { policy, expected, now, 
     await cpuRevocation(policy, hooks, session.platform, chain, notChecked);
   } else {
     try { cpu = parseTdxQuote(rawReport); } catch { reject('evidence-invalid', 'The TDX quote is malformed'); }
-    if (cpu.debug) reject('debug-enabled', 'The trust domain was launched with debugging allowed');
+    if (cpu.debug) reject('debug-enabled', 'The trust domain was launched with debugging or host profiling allowed');
+    if (cpu.migratable) reject('migration-allowed', 'The trust domain is migratable: a migration service bound by the host could export its memory');
     let chain;
     try { chain = await verifyCertificateChain(cpu.pckChain, { roots: policy.roots.intelSgxRoot, now }); } catch (error) { throw chainError(error); }
     if (!await verifyTdxQuoteSignatures(cpu)) reject('signature-invalid', 'The TDX quote signature chain does not verify');

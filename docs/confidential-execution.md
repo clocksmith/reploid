@@ -898,8 +898,13 @@ The executor returns one bundle per session (`reploid.attested-gpu-evidence/v1`)
   VCEK, ASK and ARK chain, or an Intel TDX quote v4 with its PCK chain. The
   requester checks:
   - the chain to the pinned root, the report signature (for TDX, the QE report
-    and attestation-key chain too), and the DEBUG bit (SNP guest policy bit 19,
-    TDX `TD_ATTRIBUTES` bit 0);
+    and attestation-key chain too), and debugging: SNP guest policy bit 19, and
+    for TDX the whole debug group of `TD_ATTRIBUTES` (bits 0 to 7, which also
+    hold host profiling);
+  - migration: SNP guest policy bit 18 (a migration agent may be associated)
+    and TDX `TD_ATTRIBUTES` bit 29 (MIGRATABLE). The host chooses the agent
+    and the agent receives the guest's state, and neither bit is part of the
+    launch measurement, so both are refused (`migration-allowed`);
   - for TDX, that the quote was made by the pinned quoting enclave: its signer,
     its product id, a lowest version, and not a debug enclave. A PCK
     certificate vouches for any enclave its platform certified, so a quote from
@@ -1044,7 +1049,8 @@ fails with no output.
 | Evidence too old, or a session longer than policy | `evidence-stale` |
 | CPU measurement or launch not on the allowlist | `measurement-unknown` |
 | Launch serves another model | `model-mismatch` (or the executor refuses first) |
-| SNP DEBUG, TDX DEBUG, a debug quoting enclave, or GPU developer-tools mode | `debug-enabled` |
+| SNP DEBUG, any TDX debug-group attribute, a debug quoting enclave, or GPU developer-tools mode | `debug-enabled` |
+| SNP policy allows a migration agent, or the TDX trust domain is migratable | `migration-allowed` |
 | TDX quote made by an enclave other than the pinned quoting enclave | `quoting-enclave-unknown` |
 | GPU CC mode off | `gpu-not-cc` |
 | REPORT_DATA or the GPU nonce does not bind this session and key | `key-unbound` |
@@ -1139,7 +1145,8 @@ confidential split gate.
   - wrong nonce, stale evidence, unknown measurement (both platforms), a change
     in each pinned TDX RTMR, and the TD quote body layout stated independently
     of the fixture builder;
-  - SNP, TDX and GPU debug, GPU not in CC mode;
+  - SNP, TDX and GPU debug, GPU not in CC mode, TDX host profiling, and a guest
+    the host could migrate (both platforms);
   - a TDX quote from an unpinned, debug or outdated quoting enclave, and a
     policy that pins none;
   - unbound key (both platforms);

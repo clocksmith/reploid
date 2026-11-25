@@ -8,7 +8,7 @@ export declare const GPU_CC_MODES: readonly ['on', 'off', 'devtools'];
 export type AttestationReason = 'evidence-invalid' | 'nonce-mismatch' | 'evidence-stale' | 'platform-unsupported' | 'measurement-unknown' | 'model-mismatch'
   | 'key-unbound' | 'debug-enabled' | 'gpu-not-cc' | 'gpu-measurement-unknown' | 'gpu-count' | 'signature-invalid'
   | 'certificate-expired' | 'certificate-invalid' | 'certificate-revoked' | 'revocation-unchecked' | 'tcb-out-of-date'
-  | 'quoting-enclave-unknown';
+  | 'quoting-enclave-unknown' | 'migration-allowed';
 export declare const ATTESTATION_REASONS: readonly AttestationReason[];
 export declare function attestationRejected(reason: AttestationReason, message: string): Error & { code: 'ATTESTATION_REJECTED'; reason: AttestationReason };
 export interface AttestedLaunch { image: string; runtime: { name: string; version: string; digest: string }; model: { id: string; identity: string } }

@@ -4369,7 +4369,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:331ffe1dc8f71572f7b19c07cc55e6249cff494ec6d299a5b1ff94dc7591656c",
+      "sha256": "sha256:dc9cfe665d5d63d1dcf366bdfad46b10f322dcb329965507b02b4a7d1cba70ce",
       "imports": []
     },
     {
@@ -19316,7 +19316,7 @@
     {
       "path": "vendor/reploid/inference/attested/reports.js",
       "owner": "vendor",
-      "sha256": "sha256:f269190f88577f2adaa8bb7d101b626155060a9276e9527178fb27415cc36c53",
+      "sha256": "sha256:3120b2aec8009e67f3a74132fbacd9e8767f6d825ccfdb1973950873e2edb574",
       "imports": [
         "../../artifacts/binary.js",
         "./bytes.js",
@@ -19336,7 +19336,7 @@
     {
       "path": "vendor/reploid/inference/attested/verifier.js",
       "owner": "vendor",
-      "sha256": "sha256:d4ec7916733cac2f8ca4908781aafe5145163c6a1de5ec426d19fdc8c5cfe7a6",
+      "sha256": "sha256:c614ee85dca14b868793dc652ddf675f31232a12087532ba443720adad63d64c",
       "imports": [
         "../../chat/execution-policy.js",
         "./bytes.js",

@@ -113,6 +113,18 @@ describe('attested GPU session: every failure is refused before the prompt is se
   it('TDX trust domain launched with DEBUG', async () => {
     expectRejected(await attempt({ platform: 'intel-tdx', faults: { tdxDebug: true } }), 'debug-enabled');
   });
+  it('TDX trust domain with any attribute of the debug group set (profiling by the host)', async () => {
+    for (const bit of [4n, 5n, 6n]) expectRejected(await attempt({ platform: 'intel-tdx', faults: { tdAttributes: 1n << bit } }), 'debug-enabled');
+  });
+  it('SEV-SNP guest whose policy allows a migration agent', async () => {
+    expectRejected(await attempt({ faults: { snpPolicy: 0x30000n | (1n << 18n) } }), 'migration-allowed');
+  });
+  it('TDX trust domain marked migratable', async () => {
+    expectRejected(await attempt({ platform: 'intel-tdx', faults: { tdAttributes: (1n << 28n) | (1n << 29n) } }), 'migration-allowed');
+  });
+  it('TDX attributes that give the host no access are not refused', async () => {
+    expect((await attempt({ platform: 'intel-tdx', faults: { tdAttributes: 1n << 28n } })).error).toBeNull();
+  });
   it('GPU in developer-tools (debug) mode', async () => {
     expectRejected(await attempt({ faults: { devToolsMode: true, ccMode: 'devtools' } }), 'debug-enabled');
   });

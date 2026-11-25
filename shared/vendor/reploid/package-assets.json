@@ -946,8 +946,8 @@
     },
     {
       "path": "inference/attested/reports.js",
-      "bytes": 10887,
-      "sha256": "f269190f88577f2adaa8bb7d101b626155060a9276e9527178fb27415cc36c53"
+      "bytes": 11408,
+      "sha256": "3120b2aec8009e67f3a74132fbacd9e8767f6d825ccfdb1973950873e2edb574"
     },
     {
       "path": "inference/attested/session.d.ts",
@@ -961,13 +961,13 @@
     },
     {
       "path": "inference/attested/verifier.d.ts",
-      "bytes": 4189,
-      "sha256": "6d722e90f8050022bbf1b162410bd77bcd2ee64cfd4f4a5d349aaa7d2108949c"
+      "bytes": 4211,
+      "sha256": "bd7579fb0d4ab8f60357d98cc97edefbecd49edb578001761c5a865ee75a98ed"
     },
     {
       "path": "inference/attested/verifier.js",
-      "bytes": 22033,
-      "sha256": "d4ec7916733cac2f8ca4908781aafe5145163c6a1de5ec426d19fdc8c5cfe7a6"
+      "bytes": 22465,
+      "sha256": "c614ee85dca14b868793dc652ddf675f31232a12087532ba443720adad63d64c"
     },
     {
       "path": "inference/attested/websocket-channel.d.ts",

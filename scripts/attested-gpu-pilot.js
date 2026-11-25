@@ -193,6 +193,7 @@ async function inspect(executorUrl) {
   const raw = decodeBase64Url(evidence.cpu.report);
   const cpu = evidence.cpu.platform === 'intel-tdx' ? parseTdxQuote(raw) : parseSnpReport(raw);
   return { offer, platform: evidence.cpu.platform, launch: evidence.session.launch, debug: cpu.debug,
+    migrationAllowed: evidence.cpu.platform === 'intel-tdx' ? cpu.migratable : cpu.migrationAgent,
     measurement: evidence.cpu.platform === 'intel-tdx' ? { mrTd: cpu.mrTd, rtmr: cpu.rtmr, mrSeam: cpu.mrSeam, tdAttributes: cpu.tdAttributes.toString(16) } : { measurement: cpu.measurement, policy: cpu.policy.toString(16), reportedTcb: cpu.reportedTcb },
     // Shown for comparison only. `inspect` verifies nothing, so this is whatever enclave the executor presented.
     ...(evidence.cpu.platform === 'intel-tdx' ? { quotingEnclavePresented: cpu.qe } : {}),

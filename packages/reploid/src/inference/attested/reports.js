@@ -26,6 +26,7 @@ export const SNP_REPORT_BYTES = 1184;
 export const SNP_SIGNED_BYTES = 0x2a0;
 /** Guest policy bit 19: DEBUG. A debuggable guest's memory is readable by the hypervisor. */
 export const SNP_POLICY_DEBUG = 1n << 19n;
+/** Guest policy bit 18: a migration agent may be associated. The host picks it, and it receives the guest's context. */
 export const SNP_POLICY_MIGRATE_MA = 1n << 18n;
 
 const tcb = value => ({ bootloader: Number(value & 0xffn), tee: Number((value >> 8n) & 0xffn),
@@ -57,6 +58,10 @@ export const TDX_HEADER_BYTES = 48;
 export const TDX_BODY_BYTES = 584;
 /** TD_ATTRIBUTES bit 0: DEBUG (TUD.DEBUG). A debuggable TD's state is readable by the host VMM. */
 export const TDX_ATTRIBUTE_DEBUG = 1n;
+/** TD_ATTRIBUTES bits 7:0, the TUD (TD under debug) group: with any of them set (DEBUG, host profiling) the TD is untrusted. */
+export const TDX_ATTRIBUTES_TUD = 0xffn;
+/** TD_ATTRIBUTES bit 29: MIGRATABLE. A migration service TD bound by the host can then export the TD's state. */
+export const TDX_ATTRIBUTE_MIGRATABLE = 1n << 29n;
 
 const pemToDer = pem => {
   const blocks = [...pem.matchAll(/-----BEGIN CERTIFICATE-----([\s\S]*?)-----END CERTIFICATE-----/g)];
@@ -93,7 +98,8 @@ export function parseTdxQuote(bytes) {
   const pckChain = pemToDer(new TextDecoder().decode(bytes.subarray(o, o + innerSize)).replace(/\0+$/, ''));
   if (!pckChain.length) throw malformed('empty PCK certificate chain');
   return {
-    platform: 'intel-tdx', version, ...body, debug: (tdAttributes & TDX_ATTRIBUTE_DEBUG) !== 0n,
+    platform: 'intel-tdx', version, ...body, debug: (tdAttributes & TDX_ATTRIBUTES_TUD) !== 0n,
+    migratable: (tdAttributes & TDX_ATTRIBUTE_MIGRATABLE) !== 0n,
     signed: bytes.slice(0, b + TDX_BODY_BYTES), signature, attestationKey, qeReport, qeReportSignature, qeAuthData, pckChain,
     // The quoting enclave's identity, from its SGX report body: ATTRIBUTES.flags at 48 (bit 1 is DEBUG), MRSIGNER at 128,
     // ISVPRODID at 256 and ISVSVN at 258. It means something only after verifyTdxQuoteSignatures has passed.

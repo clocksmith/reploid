@@ -214,7 +214,8 @@ export async function createSyntheticWorld({ now = Date.UTC(2026, 10, 25, 12), e
 
 /**
  * A synthetic confidential-VM host for serveAttestedSession. `faults` change one thing at a time:
- *   ccMode, devToolsMode, snpDebug, tdxDebug, measurement, rtmr, qe, gpuMeasurements, unboundKey, wrongNonce, badGpuSignature,
+ *   ccMode, devToolsMode, snpDebug, snpPolicy, tdxDebug, tdAttributes, measurement, rtmr, qe, gpuMeasurements, unboundKey, wrongNonce,
+ *   badGpuSignature,
  *   revokedLeaf, staleOcsp, model, answer, failRuntime
  */
 export function syntheticHost(world, { platform = 'amd-sev-snp', faults = {}, participantId = 'peer:attested-synthetic', record = {} } = {}) {
@@ -234,11 +235,11 @@ export function syntheticHost(world, { platform = 'amd-sev-snp', faults = {}, pa
       const data = faults.unboundKey ? globalThis.crypto.getRandomValues(new Uint8Array(64)) : reportData;
       if (platform === 'amd-sev-snp') {
         return { report: await makeSnpReport({ reportData: data, measurement: faults.measurement ?? SYNTHETIC_MEASUREMENTS.snp, vcek: world.keys.vcek,
-          policy: faults.snpDebug ? 0x30000n | (1n << 19n) : 0x30000n }), certificates: world.chains.amd };
+          policy: faults.snpPolicy ?? (faults.snpDebug ? 0x30000n | (1n << 19n) : 0x30000n) }), certificates: world.chains.amd };
       }
       return { report: await makeTdxQuote({ reportData: data, mrTd: faults.measurement ?? SYNTHETIC_MEASUREMENTS.mrTd,
         rtmr: faults.rtmr ?? [SYNTHETIC_MEASUREMENTS.rtmr[0], SYNTHETIC_MEASUREMENTS.rtmr[1], SYNTHETIC_MEASUREMENTS.rtmr[2], h48(9)],
-        tdAttributes: faults.tdxDebug ? 1n : 0n, attestationKey: world.keys.qeAttestation, pck: world.keys.pck, pckChainDer: world.chains.intelPck,
+        tdAttributes: faults.tdAttributes ?? (faults.tdxDebug ? 1n : 0n), attestationKey: world.keys.qeAttestation, pck: world.keys.pck, pckChainDer: world.chains.intelPck,
         qe: { ...SYNTHETIC_MEASUREMENTS.qe, ...faults.qe } }), certificates: [] };
     },
     async generate({ messages, onDelta }) {
