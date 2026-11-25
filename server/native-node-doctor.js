@@ -37,7 +37,8 @@ export async function inspectNativeAdapter() {
 async function checkAdapter() {
   const adapter = await inspectNativeAdapter();
   const binding = adapter.maxStorageBufferBindingSize == null ? '' : `, max storage binding ${adapter.maxStorageBufferBindingSize} B`;
-  return `${adapter.backend}, ${adapter.name}${binding}`;
+  const f16 = adapter.shaderF16 == null ? '' : adapter.shaderF16 ? ', shader-f16' : ', no shader-f16 (f16-kernel models will not load)';
+  return `${adapter.backend}, ${adapter.name}${binding}${f16}`;
 }
 
 async function checkSignaling(signalingUrl, origin) {

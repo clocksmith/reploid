@@ -122,7 +122,9 @@ it('latches the first refusal on a device with every line and the bytes then all
 
 it('asks Dawn for Direct3D 12 on Windows, Metal on macOS and Vulkan elsewhere', async () => {
   const { nativeGpuBackend, createNativeGpuHost: createHost } = await import('../../server/native-gpu-host.js');
-  expect(['win32', 'darwin', 'linux'].map(nativeGpuBackend)).toEqual(['d3d12', 'metal', 'vulkan']);
+  expect(['win32', 'darwin', 'linux'].map(platform => nativeGpuBackend(platform, ''))).toEqual(['d3d12', 'metal', 'vulkan']);
+  expect(nativeGpuBackend('win32', 'vulkan')).toBe('vulkan');
+  expect(() => nativeGpuBackend('win32', 'opengl')).toThrow('REPLOID_GPU_BACKEND must be metal, vulkan or d3d12');
   let asked = null;
   const host = createHost(async () => ({ globals: {}, create: args => { asked = args; return {}; } }), { backend: 'd3d12' });
   await host.open();

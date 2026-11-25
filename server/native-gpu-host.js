@@ -4,8 +4,16 @@ import { requireValue } from './native-host-utils.js';
  * process. Final close follows resident settlement; stopping contribution alone
  * keeps the provider reusable. No private Doppler imports are needed. */
 /** The backend Dawn is asked for. Windows always has Direct3D 12; Vulkan there needs a separately installed loader,
- * and forcing it left a Windows host with no adapter at all. */
-export const nativeGpuBackend = (platform = process.platform) => platform === 'darwin' ? 'metal' : platform === 'win32' ? 'd3d12' : 'vulkan';
+ * and forcing it left a Windows host with no adapter at all. REPLOID_GPU_BACKEND overrides the default: some
+ * Windows drivers expose shader-f16 only through Vulkan (an AMD RDNA 2 integrated GPU reported it on Vulkan, not on
+ * Direct3D 12), and the packaged Dawn opens Vulkan there only when vulkan-1.dll sits beside its binary. */
+export const nativeGpuBackend = (platform = process.platform, override = process.env.REPLOID_GPU_BACKEND) => {
+  if (override) {
+    requireValue(['metal', 'vulkan', 'd3d12'].includes(override), 'REPLOID_GPU_BACKEND must be metal, vulkan or d3d12');
+    return override;
+  }
+  return platform === 'darwin' ? 'metal' : platform === 'win32' ? 'd3d12' : 'vulkan';
+};
 
 export function createNativeGpuHost(loadProvider, { backend = nativeGpuBackend(),
   loadTooling = () => import('dopplerx/tooling') } = {}) {
