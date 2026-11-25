@@ -9,11 +9,28 @@
 //
 // Follows the document's text with the decided unfinished-answer rule (the owner decision
 // of 2026-11-25) as amended for terms signed before terms carried K, then for signed accounts,
-// then in answer to DOC-GAPS 83-89, and then for failed stages (905 lines; the author had no
-// commit hash for it, nor for the 756-line text of those answers, the 744-line text of signed
-// accounts, the 713-line text before them or the 694-line text of the decided rule that the
-// versions before this one followed).
+// then in answer to DOC-GAPS 83-89, then for failed stages, then for the requester's own stages,
+// and then for the delivery of a requester's own final stage that contradicted itself (1,055
+// lines; the author had no commit hash for it, nor for the 1,001-line text of the own stages, the
+// 915-line and 905-line texts of failed stages, the 756-line text of those answers, the 744-line
+// text of signed accounts, the 713-line text before them or the 694-line text of the decided rule
+// that earlier versions followed).
 // Earlier versions followed the text as of commit 955bd5f7a, before the decision.
+// From the amendments for the requester's own stages (failed-stage terms only; DOC-GAPS 118-133):
+// right after step 4 the stages are marked as the requester's own, per participant (its ID is the
+// requester's; with signed accounts, a counting acceptance of it names `debitAccount`; without, its
+// `accountOf` equals the requester's). A requester's own stage whose receipts contradict each other
+// lists its `stage-receipt` entries with `blocking: false`, has no latest receipt and has not
+// closed, gets no `fault-and-close` entry, is decided at once and forfeits with cause
+// `contradiction`; if it is the final stage, what it delivered (steps 6 and 9) is read from its
+// highest-sequence counting receipt when no other kept receipt of it has that sequence, and
+// otherwise nothing was delivered. When the final stage is the requester's own, every count it
+// acknowledged in time is matched, nothing is listed in `unmatched`, its chain entries do not block,
+// step 7 tests no stage and the charge stops at the step cap (the fewest steps of an outside stage
+// that does not forfeit). A disputed chain never blocks. Step 7 never tests a requester's own stage;
+// step 8 does not block on a participant that named `debitAccount` among several accounts (its
+// account is then `debitAccount`); and the split never pays a requester's own stage. Under every
+// other `unfinishedTerms` value nothing is marked and every path is as before.
 // From the amendment for failed stages: one more record is admitted, the stage fault
 // (`reploid.settlement-stage-fault/v1`, signed by a stage); one that fails its shape check is
 // rejected with problem `fault_malformed`. Faults name no requester and are offered to every
@@ -631,21 +648,62 @@ async function decide(reservationId, requesterId, attempt, { policyByDigest, rec
   const stages = terms.shares.map((share, position) => {
     const mine = (record) => record.body.partitionIndex === position;
     const kept = keptReceipts.all.filter(mine).sort(bySequence); // late receipts included
+    const counting = keptReceipts.counting.filter(mine).sort(bySequence);
     return {
       share,
       position,
       kept,
-      latest: keptReceipts.counting.filter(mine).sort(bySequence).at(-1) ?? null,
+      counting,
+      latest: counting.at(-1) ?? null,
       faulted: keptFaults.counting.some(mine),
+      own: false, // a requester's own stage (failed-stage terms only), marked below
+      contradicted: false, // a requester's own stage whose receipts contradict each other (step 5)
+      pairs: receiptConflicts(kept), // step 5's `stage-receipt` pairs
     };
   });
   const hasClosed = ({ latest }) => latest !== null && isClosing(latest);
   const finalStage = stages.at(-1);
   const finalStageId = finalStage.share.participantId;
+  // The requester's own stages (end of step 4), used only under the failed-stage terms, where nothing
+  // such a stage signs or withholds may reduce what the outside stages are paid. A stage is the
+  // requester's own when its participant ID is the requester's; or, with signed accounts, when some
+  // acceptance that counts, of any stage run by that participant, names the terms' `debitAccount` as
+  // `payoutAccount`; or, without signed accounts, when `accountOf` of its participant equals `accountOf`
+  // of the requester. CHOICE (DOC-GAPS 118): marked once, per participant, right after step 4; under
+  // any other terms nothing is marked and `accountOf` is not called for it.
+  if (failedStageTerms) {
+    const requesterAccount = signedAccounts ? null : await accountFor(accountOf, requesterId);
+    const ownById = new Map(); // participant ID -> whether it is the requester's own
+    for (const stage of stages) {
+      const id = stage.share.participantId;
+      if (!ownById.has(id)) {
+        let own = id === requesterId;
+        if (!own && signedAccounts) {
+          own = keptAcceptances.counting.some((acceptance) => acceptance.body.participantId === id
+            && acceptance.body.payoutAccount === terms.debitAccount);
+        } else if (!own) {
+          own = (await accountFor(accountOf, id)) === requesterAccount;
+        }
+        ownById.set(id, own);
+      }
+      stage.own = ownById.get(id);
+    }
+    // A requester's own stage whose receipts contradict each other (step 5's first bullet) has
+    // contradicted itself: from here on it has no latest receipt and has not closed. CHOICE
+    // (DOC-GAPS 122): any `stage-receipt` pair from its kept receipts, late ones included.
+    for (const stage of stages) {
+      if (!stage.own || stage.pairs.length === 0) continue;
+      stage.contradicted = true;
+      stage.latest = null;
+    }
+  }
+  // The final stage is the requester's own (failed-stage terms only).
+  const ownFinal = finalStage.own;
   // A stage that faulted and also closed contradicted itself: it gets one `fault-and-close` entry,
   // not blocking. These entries are listed from step 4 on, whatever later decides the row.
   // CHOICE (DOC-GAPS 102): "closed" is step 6's, the latest receipt being a closing receipt.
   // CHOICE (DOC-GAPS 103): they stand here, before every entry of step 5, in ascending stage order.
+  // A requester's own stage that contradicted itself has not closed, so it gets none.
   for (const stage of stages) {
     if (stage.faulted && hasClosed(stage)) {
       conflict('fault-and-close', false, stage.share.participantId, { partitionIndex: stage.position });
@@ -672,9 +730,10 @@ async function decide(reservationId, requesterId, attempt, { policyByDigest, rec
 
   // Step 5. Acknowledged count and contradictions. Kept receipts and acknowledgments, late
   // or not, are used in every contradiction test.
+  // Under the failed-stage terms a requester's own stage's entries do not block (never otherwise).
   for (const stage of stages) {
-    for (const sequences of receiptConflicts(stage.kept)) {
-      conflict('stage-receipt', true, stage.share.participantId, { partitionIndex: stage.position, sequences });
+    for (const sequences of stage.pairs) {
+      conflict('stage-receipt', !stage.own, stage.share.participantId, { partitionIndex: stage.position, sequences });
     }
   }
   // Every kept receipt of the final stage with an `output` commits its chain at its count,
@@ -687,8 +746,9 @@ async function decide(reservationId, requesterId, attempt, { policyByDigest, rec
     committed.get(body.output.count).add(body.output.chain);
   }
   const ascending = (a, b) => a - b;
+  // Not blocking when the final stage is the requester's own under the failed-stage terms.
   for (const count of [...committed.keys()].sort(ascending)) {
-    if (committed.get(count).size > 1) conflict('output-chain', true, finalStageId, { count });
+    if (committed.get(count).size > 1) conflict('output-chain', !ownFinal, finalStageId, { count });
   }
   const committedAt = (count) => (count === 0 ? new Set([startingChain]) : committed.get(count) ?? null);
   // The requester's acknowledgments per count: every chain it signed (in time or late), and
@@ -701,13 +761,18 @@ async function decide(reservationId, requesterId, attempt, { policyByDigest, rec
   for (const ack of keptAcks.counting) acked.get(ack.body.count).timely.push(ack);
   // Only an in-time acknowledgment is matched, and it may be matched against the chain a late
   // receipt committed (step 4). A late acknowledgment never raises or lowers the count.
+  // Under the failed-stage terms, when the final stage is the requester's own, the requester signed
+  // both sides of every match: every count it acknowledged in time is matched, whatever chain the
+  // acknowledgment carries and whether or not a receipt commits a chain at that count, and nothing
+  // is listed in `unmatched` (DOC-GAPS 119). The chain tests still list their entries, not blocking.
   let acknowledged = 0; // the highest matched count, 0 if none
   for (const count of [...acked.keys()].sort(ascending)) {
     const { chains, timely } = acked.get(count);
+    if (ownFinal && timely.length > 0) acknowledged = Math.max(acknowledged, count);
     const finalChains = committedAt(count);
     if (finalChains === null) {
       // No final-stage receipt commits a chain at this count: in-time acknowledgments are unmatched.
-      for (const ack of timely) list('unmatched', ack, { kind: 'acknowledgment', count });
+      if (!ownFinal) for (const ack of timely) list('unmatched', ack, { kind: 'acknowledgment', count });
       continue;
     }
     const matched = timely.map((ack) => ack.body.chain).sort().find((chain) => finalChains.has(chain)) ?? null;
@@ -716,11 +781,19 @@ async function decide(reservationId, requesterId, attempt, { policyByDigest, rec
     if (others.length === chains.size) {
       // None of its chains for this count, in time or late, is the final stage's.
       // CHOICE: at count 0 only the charge-binding entry, not the disputed-chain one as well.
-      if (count === 0) conflict('charge-binding', true, requesterId, { count: 0 });
-      else conflict('output-chain', true, null, { count, signers: [finalStageId, requesterId] });
+      // The charge binding does not block when the final stage is the requester's own under the
+      // failed-stage terms; a disputed chain never blocks under those terms, and with an outside final
+      // stage that count is simply not matched (DOC-GAPS 121).
+      if (count === 0) conflict('charge-binding', !ownFinal, requesterId, { count: 0 });
+      else conflict('output-chain', !failedStageTerms, null, { count, signers: [finalStageId, requesterId] });
     } else if (others.length > 0) {
       // It also signed the final stage's chain: not blocking; `settledOn` when the count is matched.
-      const members = matched === null ? { count, chains: others } : { count, chains: others, settledOn: matched };
+      // CHOICE (DOC-GAPS 120): with the requester's own final stage the count is matched by any in-time
+      // acknowledgment, and `settledOn` is the final stage's chain the requester signed for it (an
+      // in-time one first, else the first in code unit order).
+      const settledOn = matched ?? (ownFinal && timely.length > 0
+        ? [...chains].filter((chain) => finalChains.has(chain)).sort()[0] : null);
+      const members = settledOn === null ? { count, chains: others } : { count, chains: others, settledOn };
       conflict('acknowledgment-equivocation', false, requesterId, members);
     }
   }
@@ -741,17 +814,22 @@ async function decide(reservationId, requesterId, attempt, { policyByDigest, rec
   // credited 0 and the debit falls by exactly the amount it would have been credited. No other
   // stage's amount changes and the forfeited share is not redistributed. A forfeiting stage on
   // the requester's own account changes nothing, because its share was never charged.
-  const post = async (units, unpaid = new Set()) => {
+  // Under the failed-stage terms a requester's own stage (step 4) is never paid. On a settled row with
+  // signed accounts (`settledRow`) every stage of such a participant is posted under `debitAccount`,
+  // which step 8 makes its account; an expired row is posted as before (DOC-GAPS 126).
+  const post = async (units, unpaid = new Set(), settledRow = false) => {
     const amounts = splitUnits(units, terms.shares.map((share) => BigInt(share.weight)));
     const requesterAccount = signedAccounts ? terms.debitAccount : await accountFor(accountOf, requesterId);
     let debit = units;
     row.credits = [];
     for (const [position, share] of terms.shares.entries()) {
-      const account = signedAccounts ? row.accounts.stages[position] ?? share.participantId
+      const own = stages[position].own;
+      const account = signedAccounts
+        ? (own && settledRow ? terms.debitAccount : row.accounts.stages[position] ?? share.participantId)
         : await accountFor(accountOf, share.participantId);
       // The requester's own account is neither charged nor credited: its stage shows amount 0.
       // So does a forfeiting stage (DOC-GAPS 109: it keeps its entry, and its account its posting of 0).
-      const amount = account === requesterAccount || unpaid.has(position) ? 0n : amounts[position];
+      const amount = account === requesterAccount || own || unpaid.has(position) ? 0n : amounts[position];
       debit -= amounts[position] - amount;
       row.credits.push({ participantId: share.participantId, amount: Number(amount) });
       postings.push([account, amount]);
@@ -762,7 +840,19 @@ async function decide(reservationId, requesterId, attempt, { policyByDigest, rec
 
   // Step 6. Closing. A non-final stage's `output` is never read.
   row.outputs = acknowledged; // for rows decided at step 6 or later
-  const delivered = finalStage.latest?.body.output ?? null; // the final stage's latest receipt's output
+  // The receipt the answer's end is read from: the final stage's latest receipt; or, for a requester's
+  // own final stage that contradicted itself (failed-stage terms only), its highest-sequence receipt
+  // that counts, but only when no other receipt of that stage has the same sequence, and otherwise
+  // none, so that no answer was delivered. CHOICE (DOC-GAPS 133): "other receipt of that stage" is
+  // any kept receipt, late ones included.
+  let endReceipt = finalStage.latest;
+  if (finalStage.contradicted) {
+    const highest = finalStage.counting.at(-1) ?? null;
+    const unique = highest !== null && finalStage.kept
+      .every((receipt) => receipt === highest || receipt.body.sequence !== highest.body.sequence);
+    endReceipt = unique ? highest : null;
+  }
+  const delivered = endReceipt?.body.output ?? null; // what step 9 calls `delivered`
   const answerDelivered = delivered?.done === true && delivered.count > 0 && acknowledged === delivered.count;
   const unclosed = stages.filter((stage) => !hasClosed(stage));
   // The release window has passed after the last instant at which closesInTime holds.
@@ -772,25 +862,30 @@ async function decide(reservationId, requesterId, attempt, { policyByDigest, rec
   if (failedStageTerms) {
     // Failed stages. Under the failed-stage terms this rule replaces the two bullets below, and no
     // attempt is `unknown` or `expired` because one stage withheld its close or its receipts.
-    const causeOf = (stage) => (!stage.faulted ? 'no-close' : hasClosed(stage) ? 'fault-and-close' : 'fault');
+    // A requester's own stage that contradicted itself is decided at once, as a faulted stage is; its
+    // cause is `contradiction`, whatever else it did.
+    const causeOf = (stage) => (stage.contradicted ? 'contradiction'
+      : !stage.faulted ? 'no-close' : hasClosed(stage) ? 'fault-and-close' : 'fault');
     const entriesFor = (members) => members.map((stage) => ({ partitionIndex: stage.position, cause: causeOf(stage) }));
-    // If some stage has neither closed nor faulted and the release window has not passed, the
-    // outcome is `open`. On an open row `forfeited` holds the stages that faulted so far.
-    // CHOICE (DOC-GAPS 106): each with the cause it has now; no other stage is listed yet.
-    if (!windowPassed && unclosed.some((stage) => !stage.faulted)) {
-      row.forfeited = entriesFor(stages.filter((stage) => stage.faulted));
+    const decidedAtOnce = (stage) => stage.faulted || stage.contradicted;
+    // If some stage has neither closed nor faulted nor contradicted itself and the release window has
+    // not passed, the outcome is `open`. On an open row `forfeited` holds the stages that faulted so far.
+    // CHOICE (DOC-GAPS 106, 123): each with the cause it has now, and the stages that contradicted
+    // themselves with theirs; no other stage is listed yet.
+    if (!windowPassed && unclosed.some((stage) => !decidedAtOnce(stage))) {
+      row.forfeited = entriesFor(stages.filter(decidedAtOnce));
       return done('open', 'step 6: failed-stage terms: a stage has neither closed nor faulted and the release window has not passed');
     }
-    // Otherwise every stage is decided. A stage that has neither closed nor faulted is treated as
-    // closed at its last signed step, and listed in `closedAtLastStep`, when the answer was
-    // delivered and its latest receipt has steps >= N. Every stage that faulted, and every other
-    // stage that has not closed, forfeits, with a cause: `fault` for a stage that faulted and did
-    // not close, `fault-and-close` for one that did both, `no-close` for one that did neither.
+    // Otherwise every stage is decided. A stage that has neither closed nor faulted nor contradicted
+    // itself is treated as closed at its last signed step, and listed in `closedAtLastStep`, when the
+    // answer was delivered and its latest receipt has steps >= N. Every stage that faulted or
+    // contradicted itself, and every other stage that has not closed, forfeits, with a cause:
+    // `contradiction`, else `fault`, `fault-and-close` or `no-close`.
     // CHOICE (DOC-GAPS 104): a stage treated as closed does not forfeit: it is in
     // `closedAtLastStep` only and is paid. A stage with no receipt that counts covers nothing.
     const covers = (stage) => answerDelivered && stage.latest !== null && stage.latest.body.steps >= delivered.count;
-    const atLastStep = unclosed.filter((stage) => !stage.faulted && covers(stage));
-    const forfeits = stages.filter((stage) => stage.faulted || (!hasClosed(stage) && !covers(stage)));
+    const atLastStep = unclosed.filter((stage) => !decidedAtOnce(stage) && covers(stage));
+    const forfeits = stages.filter((stage) => decidedAtOnce(stage) || (!hasClosed(stage) && !covers(stage)));
     row.closedAtLastStep = atLastStep.map((stage) => stage.position); // ascending; kept when step 7 or 8 decides
     row.forfeited = entriesFor(forfeits); // ascending stage order; kept when step 7 or 8 decides
     for (const stage of forfeits) forfeiting.add(stage.position);
@@ -823,8 +918,15 @@ async function decide(reservationId, requesterId, attempt, { policyByDigest, rec
 
   // Step 7. Steps. A stage that step 6 forfeits is not tested: its share is not paid whatever its
   // receipts say, and it may have presented none. Every other stage has closed or is treated as
-  // closed at its last signed step, so it has a latest receipt.
-  const behind = stages.filter((stage) => !forfeiting.has(stage.position) && stage.latest.body.steps < acknowledged);
+  // closed at its last signed step, so it has a latest receipt. Under the failed-stage terms the
+  // requester's own stages are not tested either; and when the final stage is the requester's own
+  // no stage is tested, and the charge stops instead at the step cap: the fewest `steps` in the
+  // latest receipt of any outside stage that does not forfeit, no cap when there is none (DOC-GAPS 124).
+  const paidOutside = stages.filter((stage) => !forfeiting.has(stage.position) && !stage.own);
+  const stepCap = ownFinal && paidOutside.length > 0
+    ? Math.min(...paidOutside.map((stage) => stage.latest.body.steps)) : null;
+  const tested = ownFinal ? [] : paidOutside;
+  const behind = tested.filter((stage) => stage.latest.body.steps < acknowledged);
   if (behind.length > 0) {
     for (const stage of behind) conflict('steps', true, stage.share.participantId, { partitionIndex: stage.position });
     return done('conflict', 'step 7: a stage\'s latest receipt has fewer steps than the acknowledged count');
@@ -844,15 +946,23 @@ async function decide(reservationId, requesterId, attempt, { policyByDigest, rec
       if (!namedBy.has(id)) namedBy.set(id, new Set(id === requesterId ? [terms.debitAccount] : []));
       for (const account of namedByStage[position]) namedBy.get(id).add(account);
     }
+    // Under the failed-stage terms a participant that named more than one account does not block when
+    // it is the requester's own key or one of the accounts it named is `debitAccount` (the requester's
+    // key always counts `debitAccount` among them): its entry is not blocking, its account is
+    // `debitAccount`, and the step goes on (DOC-GAPS 125).
+    const forgiven = (named) => failedStageTerms && named.has(terms.debitAccount);
     const several = [...namedBy].filter(([, named]) => named.size > 1);
     for (const [participantId, named] of several) {
-      conflict('payout-account', true, participantId, { accounts: [...named].sort() });
+      conflict('payout-account', !forgiven(named), participantId, { accounts: [...named].sort() });
     }
-    if (several.length > 0) return done('conflict', 'step 8: a participant named more than one account');
+    if (several.some(([, named]) => !forgiven(named))) {
+      return done('conflict', 'step 8: a participant named more than one account');
+    }
     // Otherwise, when the caller supplied `accountOf`, it is the enrollment the caller trusts, and
     // the outcome is `invalid` if the requester's `debitAccount`, or the signed account of any
     // stage that has one, differs from `accountOf` of that participant. No participant named
-    // more than one account here, so each has at most one to test.
+    // more than one account here, except one forgiven above, whose account is `debitAccount`; so
+    // each has at most one to test.
     // CHOICE (DOC-GAPS 90): supplied means any value but undefined or null. `accountOf` of a
     // participant is what `accountFor` gives, so one it does not place is its own account and
     // passes only when it signed its own participant ID. The requester is asked first, then the
@@ -861,7 +971,9 @@ async function decide(reservationId, requesterId, attempt, { policyByDigest, rec
     if (accountOf !== null && accountOf !== undefined) {
       const signed = new Map([[requesterId, terms.debitAccount]]); // participant ID -> its one signed account
       for (const [participantId, named] of namedBy) {
-        for (const account of named) signed.set(participantId, account);
+        // A forgiven participant's account is `debitAccount`; every other has at most one here.
+        if (named.size > 1) signed.set(participantId, terms.debitAccount);
+        else for (const account of named) signed.set(participantId, account);
       }
       for (const [participantId, account] of signed) {
         if ((await accountFor(accountOf, participantId)) !== account) {
@@ -900,15 +1012,21 @@ async function decide(reservationId, requesterId, attempt, { policyByDigest, rec
   // A row whose answer a stage ended is settled with `outputs > 0` and `chargedOutputs: 0`;
   // no other settled row has that pair. CHOICE: `beyondCeiling` does not depend on whether
   // anything is charged.
-  row.chargedOutputs = endedByStage ? 0 : Math.min(acknowledged, terms.maxOutputTokens);
+  // When the final stage is the requester's own (failed-stage terms), the charged outputs are
+  // min(acknowledged, maxOutputTokens, step cap). CHOICE (DOC-GAPS 126): `beyondCeiling` and
+  // `unacknowledgedOutputs` are counted as before, the latter from `delivered` (which may be negative
+  // here, or null when a requester's own final stage that contradicted itself delivered nothing).
+  const uncapped = Math.min(acknowledged, terms.maxOutputTokens);
+  row.chargedOutputs = endedByStage ? 0 : stepCap === null ? uncapped : Math.min(uncapped, stepCap);
   row.unacknowledgedOutputs = delivered === null ? null : delivered.count - acknowledged;
   row.beyondCeiling = Math.max(0, acknowledged - terms.maxOutputTokens);
-  await post(BigInt(row.chargedOutputs) * BigInt(terms.creditsPerOutputToken), forfeiting);
+  await post(BigInt(row.chargedOutputs) * BigInt(terms.creditsPerOutputToken), forfeiting, true);
   // Under terms other than the failed-stage ones every unclosed stage that reaches here was treated
   // as closed at its last step, so this is the same count as before; no stage forfeits there.
   const treated = row.closedAtLastStep.length;
   const closing = (treated > 0 ? `; step 6: ${treated} stage(s) closed at their last step` : '')
-    + (forfeiting.size > 0 ? `; step 6: ${forfeiting.size} stage(s) forfeit their share` : '');
+    + (forfeiting.size > 0 ? `; step 6: ${forfeiting.size} stage(s) forfeit their share` : '')
+    + (stepCap !== null && stepCap < uncapped ? `; step 7: the charge stops at the step cap, ${stepCap}` : '');
   // CHOICE (DOC-GAPS 78): the reason, which is not part of the outcome, is the only place a row
   // says which unfinished-answer rule applied. When cases overlap (finished and stopped, say),
   // it names the first in step 9's order: finished, stopped, withheld, unattributed disconnect.

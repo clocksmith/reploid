@@ -30,7 +30,8 @@ Plain Node, about 10 seconds, no model, no GPU, no network.
   unfinished-answer rule (1281fdd47) a fresh session read only the document, `replay.js` and `DOC-GAPS.md`, with no
   git and no code search. It was told not to open the service's verifier, the signers, the tests, the
   scenario builder, the attack matrix, this directory's comparison or any diff, and it reported opening none of
-  them. That boundary is self-reported.
+  them. That boundary is self-reported. Each later round, the last for the requester's own stages under the
+  failed-stage terms (the 1,055-line text), was done the same way by a fresh session.
 - **What the author could not test.** It had no signer, so before the comparison it could only check the verifier
   against records it signed itself.
 - **Who wrote the comparison.** Another session, which did read the service's code. `differential.js` builds its base
@@ -42,19 +43,19 @@ does, and only from the document's text. A fix prompted by the service's code wo
 
 ## Result on main
 
-The document with the owner's decided unfinished-answer rule, the older terms shape, signed accounts and the
-failed-stage terms, and both verifiers at 99e7840f5. 22 base attempts (two added for the older provider-loss-free
+The document with the owner's decided unfinished-answer rule, the older terms shape, signed accounts, the
+failed-stage terms and the requester's own stages under them (the 1,055-line text). 22 base attempts (two added for the older provider-loss-free
 terms), 28 mutation families, Ed25519 and P-256 keys, seven clock values
 around the deadline, the release window and the instant an attempt is decided. The document reports one row per
 reservation and requester, and the comparison is keyed the same way.
 
 | | Count |
 | --- | --- |
-| Record sets | 2,653 |
-| Judgments (one row at one clock value) | 4,833 |
-| Same outcome, same debit, same credit for every stage | 4,833 |
-| Every documented member of the row the same | 4,833 |
-| Same records rejected, same `counts` and same balances per account | 4,751 of 4,751 runs |
+| Record sets | 3,050 |
+| Judgments (one row at one clock value) | 6,007 |
+| Same outcome, same debit, same credit for every stage | 6,007 |
+| Every documented member of the row the same | 6,007 |
+| Same records rejected, same `counts` and same balances per account | 5,925 of 5,925 runs |
 | Disagreements | 0 |
 
 Read this as: on these record sets, a verifier written from the document's text alone returns what the service's
@@ -89,11 +90,15 @@ The family "failed stages" signs every base attempt again under the failed-stage
 (`reploid.unfinished-answer/acknowledged-prefix-failed-stage-forfeits/v1`) and then has stages sign a fault, keep
 back their close or their receipts, do both, or sign a fault late, before the attempt may start, on another route,
 for another stage, under another reservation or malformed; it repeats the main cases with a stage on the requester's
-own signed account. 2,306 judgments, at four clock values around the release window for most cases. The two verifiers
+own signed account, and with the requester's own stages signing contradictions, withholding their receipts or
+acknowledging past what the outside stages signed. 3,480 judgments, at four clock values around the release window for most cases. The two verifiers
 agreed on all of them at the first comparison, before any change to either. The second verifier's author listed gaps
 94 to 114 before that comparison; items 111 to 114, and 115 to 117 from its second pass, were places where the
 document's failed-stage text contradicted its own steps, and the text was corrected each time with no change to
-either verifier. The author has not yet read the answers to 115 to 117.
+either verifier. The third round, for the requester's own stages, listed 118 to 136. The service then summed one
+`balances` entry differently from the text (a requester's own stage that named two accounts, which step 8 puts under
+`debitAccount`) and read "another receipt at that sequence" more narrowly than the text (item 133); both were changed
+in the service to match the text.
 
 This verifier implements the replay, under the decided terms and under the older ones the document keeps. The
 ledger's interim rules of 2026-11-25 (the document's "Older rules") are a ledger rule and are not implemented here.
@@ -112,6 +117,7 @@ ledger's interim rules of 2026-11-25 (the document's "Older rules") are a ledger
 | 9c7e04d77 | updated from the text with the older terms shape (terms signed before `K`) | 2,128 of 2,128 with the added family, every row member included | nothing |
 | 1f79a07e6 | updated from the text with signed accounts, in two rounds; the second added the enrollment test its author's gap 89 called for | 2,527 of 2,527 with the added family, every row member included | nothing |
 | 8c2d13bb7 | updated from the text with the failed-stage terms, in two passes; the second changed nothing in the verifier | 4,833 of 4,833 with the added family, every row member included, at the first comparison | nothing |
+| v3 ledger change | updated from the text with the requester's own stages under the failed-stage terms (the earlier pass's changes had not reached the file) | 6,007 of 6,007, every row member included; 5,892 of 5,925 runs with the same balances | the balances of one family: the service's defect, fixed; then 5,925 of 5,925 |
 
 Between those rounds the comparison and [../baseline-matrix.js](../baseline-matrix.js) also showed properties both
 verifiers shared because the document said so, and the document and the service's verifier were changed on each: a
@@ -130,18 +136,27 @@ each stage's latest receipt, the latest acknowledgment and the requester's signe
 judges the same records at that time. The policy sets the request limit to the scenario's 30 s, so the ledger's
 deadline and the signed one are the same instant.
 
-16 base attempts, each with all its records and with a stage's closing receipt or every receipt withheld, and with
-the requester's top acknowledgment or all but its charge binding withheld. Every attempt is signed under the decided
-rules, which every new reservation takes.
+54 base attempts, each with all its records and with a stage's closing receipt, every receipt or its later steps
+withheld, and with the requester's top acknowledgment or all but its charge binding withheld; 120 cases add a stage
+owner's interruption claim, with or without the stage's signed fault. Every attempt runs under the failed-stage rules
+(`reploid.settlement-replay/v3`), which every new reservation takes. An acknowledgment the ledger refused when it was
+handed over is not handed again with the final records, as the live route does not.
 
 | | Count |
 | --- | --- |
-| Cases | 109 |
-| Same debit and same credit for every stage | 109 |
+| Cases | 590 |
+| Same debit and same credit for every stage | 590 |
 | Different amounts | 0 |
 
-Where the amounts agree the words can still differ: when a stage presents no receipt at all for a delivered answer,
-the ledger reports the hold expired and the replay reports `unknown` (8 cases). Both move nothing.
+Where the amounts agree the words can still differ: with nothing acknowledged, a stage owner's claim decides that
+stage in the ledger, which then settles at 0 where the replay reports `expired` (18 cases). Both move nothing.
+
+### The failed-stage rule
+
+New reservations take `reploid.settlement-replay/v3`: a stage that fails, by its owner's interruption claim or by
+having no closing receipt once the release window has passed, forfeits its own share, and the stages that closed are
+paid for what the requester acknowledged. The provider-relief rule below is kept for the reservations made under it;
+`tests/unit/settlement-v2-rules.test.js` repeats their frozen ledger steps.
 
 ### The decided rule
 
@@ -159,6 +174,7 @@ that never closes, still costs the requester nothing in both. Reservations made 
 | 4d845320a, fd2ece824 | The ledger was moved to the replay on all three, and the live route began handing over each acknowledgment as signed and the requester's stop: 109 of 109. |
 | 955bd5f7a | The first case was moved back in the ledger, once it was clear that the replay's rule makes every partial answer free at the requester's option: 107 of 109, the two walk-away cases. |
 | 18bdd4862 | The owner's decision: the replay takes the ledger's charge for an unattributed disconnect under new terms, and the ledger keeps provider-failure relief: 109 of 109. |
+| v3 ledger change | The ledger reserves under the failed-stage rules; the cases grow to 590 with stage faults, claims and the requester's own stages. First run 584 of 590: a requester's own final stage contradicting itself made the replay find no delivered answer (the text now reads the answer's end from its last receipt), and the comparison handed the ledger an acknowledgment it had already refused. Then 590 of 590. |
 
 `--latest-only` runs the comparison with only the final `collect` and no stop: what a route that kept less would
 hand over. It shows what the agreement on the other cases depends on.
