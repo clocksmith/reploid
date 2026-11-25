@@ -68,9 +68,11 @@ For each attempt, from the records in the receipt:
 5. **Stored replay.** If the receipt stored a replay result, a fresh replay of
    its records gives the same amounts.
 
-Under the decided rules (terms naming
-`reploid.unfinished-answer/acknowledged-prefix-provider-relief/v1`) the ledger
-and the replay must agree exactly. A receipt from before them, whose terms name
+Under the provider-relief rules (terms naming
+`reploid.unfinished-answer/acknowledged-prefix-provider-relief/v1`) and the
+failed-stage rules that new trades sign
+(`reploid.unfinished-answer/acknowledged-prefix-failed-stage-forfeits/v1`) the
+ledger and the replay must agree exactly. A receipt from before them, whose terms name
 `reploid.unfinished-answer/provider-loss-free/v1`, may carry the one older known
 difference that [settlement-replay.md](settlement-replay.md#older-rules)
 describes: the ledger charged the acknowledged prefix where the replay charges

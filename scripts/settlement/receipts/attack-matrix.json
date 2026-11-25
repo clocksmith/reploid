@@ -1,6 +1,6 @@
 {
   "schema": "reploid.settlement-attack-matrix/v1",
-  "generatedAt": "2026-11-25T12:42:52.498Z",
+  "generatedAt": "2026-11-25T21:17:37.687Z",
   "policy": {
     "schema": "reploid.service-credit-policy/v1",
     "unit": "noncash-service-credit",
@@ -17,7 +17,7 @@
   },
   "acknowledgmentBound": 2,
   "operatorGoalsAchieved": {
-    "replay": 0,
+    "replay": 1,
     "operatorLog": 6,
     "countersign": 2
   },
@@ -87,8 +87,8 @@
       "kind": "operator",
       "goal": "G5 charge an attempt a stage abandoned",
       "replay": {
-        "achieved": false,
-        "status": "expired"
+        "achieved": true,
+        "status": "settled"
       },
       "operatorLog": {
         "achieved": true

@@ -168,15 +168,23 @@ again with the closing evidence. With that stop the acknowledged prefix is
 charged. Without it, an unfinished answer that the stages closed, with `settled`
 or `failed` receipts, is an unattributed disconnect and charges the same
 acknowledged prefix, capped at the signed output ceiling and split by the signed
-weights, with reason `unattributed-disconnect-acknowledged-prefix`. This is the
-owner's decided rule (`settlementRules: reploid.settlement-replay/v2`; settlement
-terms name it as `unfinishedTerms:
-reploid.unfinished-answer/acknowledged-prefix-provider-relief/v1`), and the
+weights, with reason `unattributed-disconnect-acknowledged-prefix`. New split
+reservations take the owner's failed-stage rule (`settlementRules:
+reploid.settlement-replay/v3`; settlement terms name it as `unfinishedTerms:
+reploid.unfinished-answer/acknowledged-prefix-failed-stage-forfeits/v1`), and the
 ledger and the settlement replay agree on it
-([settlement-replay.md](settlement-replay.md#unfinished-answers)). A verified
-provider failure, a stage that never signed its close or a stage owner that
-vanished, charges the requester nothing and pays no stage. A requester's
-silence is never a provider failure. Reservations accepted under
+([settlement-replay.md](settlement-replay.md#failed-stages)). A stage that
+fails, by its owner's interruption claim or by having no closing receipt once
+the release window has passed, forfeits its own share and nothing else: the
+stages that closed are paid for the outputs the requester acknowledged, and the
+requester is charged exactly those shares, with reason
+`failed-stage-forfeits-own-share` and the failed stages in `forfeitedStages`. A
+stage on the requester's own account is never charged or paid, so its failure
+changes no amount. With nothing acknowledged such a request still expires with
+no charge. Reservations accepted under `reploid.settlement-replay/v2` (terms
+`reploid.unfinished-answer/acknowledged-prefix-provider-relief/v1`) keep that
+rule: a verified provider failure charged the requester nothing and paid no
+stage. A requester's silence is never a provider failure. Reservations accepted under
 `reploid.settlement-replay/v1` keep that rule: such an answer charged nothing,
 with reason `stage-ended-unfinished-answer`. Reservations accepted under the
 interim `reploid.settlement-replay/v1+acknowledged-prefix` charged the
@@ -206,9 +214,14 @@ On restart with the same profile, the stage reacquires the exclusive filesystem 
 process lifetime before reporting an interrupted owner to the service. On Linux the check uses the boot,
 PID namespace and process start time. A copied journal, a live predecessor, or an ambiguous PID namespace
 cannot close the admission. This lifecycle report carries the last signed step when one exists. The service
-still requires the requester’s signed output count and all other stages’ closing evidence. An interrupted
-execution charges the requester nothing and pays no stage, and returns `failed` with reason
-`interrupted-stage-owner`. A reservation made before these terms keeps its acknowledged-prefix charge. `POST /v1/reploid/recover` can read that outcome before a replacement model is loaded.
+still requires the requester’s signed output count and all other stages’ closing evidence. Under the failed-stage
+rules (`reploid.settlement-replay/v3`) the report also carries the stage's own signed fault
+(`reploid.settlement-stage-fault/v1`), which the stage host signs once with its enrolled key and journals before
+sending; the service checks it against the reservation and keeps it with the claim, so the settlement replay can
+reach the same result. The interrupted stage forfeits its own share and the other stages are paid for the
+acknowledged output. Under the earlier provider-relief rules an interrupted execution charges the requester nothing
+and pays no stage, and returns `failed` with reason `interrupted-stage-owner`. A reservation made before those
+terms keeps its acknowledged-prefix charge. `POST /v1/reploid/recover` can read that outcome before a replacement model is loaded.
 Unpublished work, physical GPU recovery and output text beyond the acknowledged prefix remain unknown.
 
 Both the service and the stage need the owned-admission operation. Legacy stages still use their existing

@@ -139,7 +139,10 @@ async function main() {
     rows.push({ kind: 'operator', goal: 'G4 fabricate a request', replay: { achieved: replay.reservations.some(r => r.reservationId === 'reservation-fake'), status: 'none' },
       operatorLog: { achieved: Boolean(b1) }, countersign: { achieved: Boolean(b2), accepted: Boolean(b2) } });
   }
-  // G5 charge an attempt whose stage vanished (a verified provider failure: nobody pays).
+  // G5 charge an attempt whose stage vanished. Under the provider-relief terms nobody paid. Under the failed-stage terms
+  // that new attempts sign, the stage that vanished forfeits its share and the stage that closed is paid for the
+  // acknowledged outputs, so the replay charges the requester that share: the goal is met by design, the accepted cost
+  // of the rule (docs/settlement-replay.md, "Failed stages").
   {
     const lost = await runAttempt(parties, { tag: 'lost', vanishStage: 0, vanishAfterStep: 1 });
     const t = await truthOf(lost.all(), lost.decidedAt);

@@ -216,7 +216,7 @@ async function main() {
     const lost = await runAttempt(parties, { tag: 'lost', vanishStage: 0, vanishAfterStep: 1 });
     const verdicts = await judge(lost.all(), lost);
     goal('G5 charge an attempt a stage abandoned', verdicts, { debit: 0, paid: {} },
-      `stage0 vanished after ${lost.acknowledged} acknowledged outputs; the signed terms say nobody pays. B3 charges the accepted prefix by design.`);
+      `stage0 vanished after ${lost.acknowledged} acknowledged outputs. Under the failed-stage terms it forfeits its share and the stage that closed is paid for the acknowledged outputs, so the replay charges that share by design (the accepted cost of the rule); B3 charges the whole accepted prefix.`);
   }
   {
     const twice = await judge([...done.all(), ...done.all()], done);
@@ -244,7 +244,7 @@ async function main() {
   {
     const lost = await runAttempt(parties, { tag: 'drop', outputs: forty, vanishStage: 1, vanishAfterStep: 9 });
     add('P6 the final stage drops after 10 of 40 outputs and never closes', lost, await judge(lost.all(), lost),
-      { lossCandidate: true, note: 'a verified provider failure: a stage with no closing receipt gets the requester relief, and B3 has no such rule. Deliberate under the decided rules (docs/settlement-replay.md, "Unfinished answers"); a requester cannot cause it, because a stage closes when the requester stops asking. 10 acknowledged outputs go unpaid.' });
+      { lossCandidate: true, note: 'under the failed-stage terms the stage with no closing receipt forfeits its own share and the stage that closed is paid for the 10 acknowledged outputs (docs/settlement-replay.md, "Failed stages"); B3 has no such rule and pays both. The replay charges less than B3 by exactly the forfeited share.' });
   }
   {
     const early = await runAttempt(parties, { tag: 'early', outputs: forty, stagesFailAfter: 10 });

@@ -1,6 +1,6 @@
 {
   "schema": "reploid.settlement-baseline-matrix/v1",
-  "generatedAt": "2026-11-25T12:42:53.617Z",
+  "generatedAt": "2026-11-25T21:17:40.421Z",
   "policy": {
     "schema": "reploid.service-credit-policy/v1",
     "unit": "noncash-service-credit",
@@ -19,9 +19,9 @@
   "note": "Every party, the witness included, is a simulated identity on one machine under one operator. B3 is this file's own 40-line rule over the replay's records, modelled on requester-accepted debit notes; it is not Golem's implementation. B4 models only PeerReview's witnessed, ordered commitments, not its log audits or its relay of disputed messages. Keys are fresh on each run; the amounts are deterministic.",
   "operatorGoals": 6,
   "operatorGoalsAchieved": {
-    "replay": 0,
+    "replay": 1,
     "debitNotes": 1,
-    "witnessed": 0
+    "witnessed": 1
   },
   "participantCases": 11,
   "participantCasesWithDifferentAmounts": [
@@ -112,9 +112,9 @@
       "kind": "operator",
       "goal": "G5 charge an attempt a stage abandoned",
       "replay": {
-        "achieved": false,
-        "status": "expired",
-        "debit": 0
+        "achieved": true,
+        "status": "settled",
+        "debit": 5
       },
       "debitNotes": {
         "achieved": true,
@@ -122,11 +122,11 @@
         "debit": 6
       },
       "witnessed": {
-        "achieved": false,
-        "status": "expired",
-        "debit": 0
+        "achieved": true,
+        "status": "settled",
+        "debit": 5
       },
-      "note": "stage0 vanished after 2 acknowledged outputs; the signed terms say nobody pays. B3 charges the accepted prefix by design."
+      "note": "stage0 vanished after 2 acknowledged outputs. Under the failed-stage terms it forfeits its share and the stage that closed is paid for the acknowledged outputs, so the replay charges that share by design (the accepted cost of the rule); B3 charges the whole accepted prefix."
     },
     {
       "kind": "operator",
@@ -219,13 +219,13 @@
       "delivered": 10,
       "owedIfEveryDeliveredOutputWerePaid": 30,
       "replay": {
-        "status": "expired",
-        "debit": 0,
+        "status": "settled",
+        "debit": 7,
         "paid": {
-          "stage0": 0,
+          "stage0": 7,
           "stage1": 0
         },
-        "reason": "the release window passed without every stage closing (a verified provider failure, or an attempt that never started); nobody is charged or paid"
+        "reason": "stage 1 failed (a signed fault, no close in time, or a contradiction by the requester's own stage) and forfeits its share; the stages that closed are paid for the outputs the requester acknowledged"
       },
       "debitNotes": {
         "status": "settled",
@@ -236,16 +236,16 @@
         }
       },
       "witnessed": {
-        "status": "expired",
-        "debit": 0,
+        "status": "settled",
+        "debit": 7,
         "paid": {
-          "stage0": 0,
+          "stage0": 7,
           "stage1": 0
         }
       },
       "sameAmounts": false,
       "replayLoses": true,
-      "note": "a verified provider failure: a stage with no closing receipt gets the requester relief, and B3 has no such rule. Deliberate under the decided rules (docs/settlement-replay.md, \"Unfinished answers\"); a requester cannot cause it, because a stage closes when the requester stops asking. 10 acknowledged outputs go unpaid."
+      "note": "under the failed-stage terms the stage with no closing receipt forfeits its own share and the stage that closed is paid for the 10 acknowledged outputs (docs/settlement-replay.md, \"Failed stages\"); B3 has no such rule and pays both. The replay charges less than B3 by exactly the forfeited share."
     },
     {
       "kind": "participant",
@@ -259,7 +259,7 @@
           "stage0": 7,
           "stage1": 23
         },
-        "reason": "the stages closed an unfinished answer with no signed stop and no verified provider failure; the outputs the requester acknowledged are charged"
+        "reason": "the stages closed an unfinished answer with no signed stop; the outputs the requester acknowledged are charged"
       },
       "debitNotes": {
         "status": "settled",
@@ -524,7 +524,7 @@
         }
       },
       "witnessed": {
-        "status": "expired",
+        "status": "settled",
         "debit": 0,
         "paid": {
           "stage0": 0,
