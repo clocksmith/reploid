@@ -20,7 +20,7 @@
   "counts": {
     "apps/poolday": 399,
     "self": 457,
-    "shared": 2519
+    "shared": 2521
   },
   "pendingMoves": 0,
   "violations": [],
@@ -16796,6 +16796,16 @@
     {
       "served": "vendor/reploid/inference/protected.js",
       "source": "shared/vendor/reploid/inference/protected.js",
+      "owner": "shared"
+    },
+    {
+      "served": "vendor/reploid/inference/secret-shared.d.ts",
+      "source": "shared/vendor/reploid/inference/secret-shared.d.ts",
+      "owner": "shared"
+    },
+    {
+      "served": "vendor/reploid/inference/secret-shared.js",
+      "source": "shared/vendor/reploid/inference/secret-shared.js",
       "owner": "shared"
     },
     {

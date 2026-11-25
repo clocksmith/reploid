@@ -1,7 +1,7 @@
 export interface ExecutionPolicy {
   schema: 'reploid.execution-policy/v2'; computation: 'plaintext' | 'cryptographic' | 'attested';
   recipients: {kind: 'none' | 'named' | 'open'; ids: string[]};
-  placement: 'local-only' | 'network-allowed'; collusion: 'none' | 'all-remote';
+  placement: 'local-only' | 'network-allowed'; collusion: 'none' | 'all-remote' | 'non-colluding-share-pairs';
   leakage: string[]; protocol: string | null; attestation: string | null;
   keyContext: string | null; retention: 'execution-and-recovery' | 'ephemeral';
   publication: false; reuse: false; allowDowngrade: false;
@@ -23,7 +23,7 @@ export declare const EXECUTION_METADATA: readonly ExecutionMetadata[];
 export interface ExecutionBackend { computation: 'plaintext'; protocol: null; executorsReadContent: boolean; executorsReadActivations?: true; metadata: ExecutionMetadata[] }
 export declare const EXECUTION_BACKENDS: Readonly<Record<string, ExecutionBackend>>;
 export declare const EDGES_BACKEND: 'doppler-partition-edges/v1';
-export type Confidentiality = 'requester-only' | 'requester-edges' | 'executor-readable';
+export type Confidentiality = 'requester-only' | 'requester-edges' | 'secret-shared-2party' | 'executor-readable';
 export declare const CONFIDENTIALITY_MODES: readonly Confidentiality[];
 export declare function executionBackend(backend: string): ExecutionBackend | null;
 export interface ExecutionRequirements {
@@ -35,6 +35,11 @@ export interface ExecutionRequirements {
 export declare function compileExecutionRequirements(execution: ExecutionRequirements): ExecutionPolicy;
 export declare const CONFIDENTIAL_EXECUTION_REVIEW_REASON: 'awaiting independent security review';
 export declare function compileProtectedExecutionRequirements(execution: ExecutionRequirements, protocol: string): ExecutionPolicy;
+export declare const SECRET_SHARED_PROTOCOL: 'reploid.secret-shared-2party/v1';
+export declare const SECRET_SHARED_COLLUSION: 'non-colluding-share-pairs';
+export declare const SECRET_SHARED_REVIEW_REASON: string;
+/** Only the inference API calls this, when its host enabled the unreviewed secret-shared route. */
+export declare function compileSecretSharedExecutionRequirements(execution: ExecutionRequirements): ExecutionPolicy;
 export declare function executionRequirementsFor(policy: ExecutionPolicy): ExecutionRequirements;
 export declare function narrowsExecutionPolicy(base: ExecutionPolicy, narrowed: ExecutionPolicy): boolean;
 export declare function createExecutionPolicy(overrides?: Partial<ExecutionPolicy>): ExecutionPolicy;

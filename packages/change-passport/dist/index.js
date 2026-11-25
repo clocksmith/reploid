@@ -176,7 +176,7 @@ var EXECUTION_BACKENDS = freeze({
     metadata: [...PLAINTEXT_METADATA]
   }
 });
-var CONFIDENTIALITY_MODES = Object.freeze(["requester-only", "requester-edges", "executor-readable"]);
+var CONFIDENTIALITY_MODES = Object.freeze(["requester-only", "requester-edges", "secret-shared-2party", "executor-readable"]);
 var plaintextBackends = Object.keys(EXECUTION_BACKENDS);
 
 // shared/vendor/reploid/mesh/request-delivery.js

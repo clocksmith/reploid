@@ -571,23 +571,23 @@
     },
     {
       "path": "chat/execution-policy.d.ts",
-      "bytes": 5433,
-      "sha256": "cb2c2165f45cb97b3d6c17c9998b3ab92286a64b7edb7a56a06c53e5e8851999"
+      "bytes": 5918,
+      "sha256": "639d58c3a5fe96ff99e0540fd8c98b8950f3890f5d3c8ba54e67b8ec6270ea15"
     },
     {
       "path": "chat/execution-policy.js",
-      "bytes": 22737,
-      "sha256": "5ce7b78c88be954b9f9325151bd38bdb10db106e38ec1662210328be20b61bfb"
+      "bytes": 25516,
+      "sha256": "225a8d2dca0e5740319464206f718dd8bf3421bd35f1390f6e6698f5678cb262"
     },
     {
       "path": "chat/index.d.ts",
-      "bytes": 16660,
-      "sha256": "7b79172f75337966e2f84231a918f9c12a32f912c82fdb1c4ec883abf0086e7d"
+      "bytes": 16751,
+      "sha256": "6f6257c86686b2308e9a8767746598a2d0ca4c94b59ad60e1f5d7a58bc938027"
     },
     {
       "path": "chat/index.js",
-      "bytes": 1563,
-      "sha256": "4d1e8e14a2f98ff9b8d438bce79035ad96dc3478ae50b991fda9b39f0113cbf8"
+      "bytes": 1654,
+      "sha256": "41f128abe3c9d3036d47088d681576ae72f2fa8b9c7b28de1016b2046f55ec17"
     },
     {
       "path": "chat/policy.json",
@@ -926,23 +926,23 @@
     },
     {
       "path": "inference/contract.d.ts",
-      "bytes": 7333,
-      "sha256": "28d6e58ca62be62caf933fce4dd33d5cbf4b715d99f9c131bc03318a1d5d011c"
+      "bytes": 7436,
+      "sha256": "635345988a7f1c218d320902656bded93864c77c78602ec0b14f2f1eb496b394"
     },
     {
       "path": "inference/contract.js",
-      "bytes": 22953,
-      "sha256": "a8eb7f6de7bdf9140a795f33338571e00e02a32a4a05ebe14db167e1c2dcace1"
+      "bytes": 24078,
+      "sha256": "8a044efd5b8981991782dafa7fc49015ab98f9749e62a478d027cb39e7c0fa07"
     },
     {
       "path": "inference/index.d.ts",
-      "bytes": 2174,
-      "sha256": "03a807dbe9b1b61c0b81a30c3c597348e899de60043cf8a57e36bb89274b4ade"
+      "bytes": 2543,
+      "sha256": "7fd449952551ca6b7bfae64739df3f97cd321be145eb707babeb44cc836384a8"
     },
     {
       "path": "inference/index.js",
-      "bytes": 14308,
-      "sha256": "bb782acfb6d710e74e043223a6d7dedfc44bb403abcf19cbba2b09f5b9206247"
+      "bytes": 19153,
+      "sha256": "c2e1eaa6d9d627fc4aae6cc55706a3cd5771ae09d2ec455e16ebdb8d25253754"
     },
     {
       "path": "inference/protected.d.ts",
@@ -953,6 +953,16 @@
       "path": "inference/protected.js",
       "bytes": 18650,
       "sha256": "0c4489af2abc70511a4cd8d7138a843bd20f2c433edbb69ffb8ec25491a8edc0"
+    },
+    {
+      "path": "inference/secret-shared.d.ts",
+      "bytes": 2976,
+      "sha256": "530cb55826958e345e348255b8c35480c85db008dc96cfd3173c0c7fca8b5994"
+    },
+    {
+      "path": "inference/secret-shared.js",
+      "bytes": 8760,
+      "sha256": "7cfd511fec8bd23968b13f66b1d7046fef8f7245cd17142ea9a7f117b5144146"
     },
     {
       "path": "measurement/capacity-utilization.js",

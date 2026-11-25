@@ -3,6 +3,8 @@ import type { ExecutionPlan, PrepareRequest, RunRequest, RouteCandidate, Inferen
 export * from './contract.js';
 export { createProtectedExecution, PROTECTED_EXECUTION_STATUS, protectedDisclosures } from './protected.js';
 import type { ProtectedExecution } from './protected.js';
+export { createSecretSharedExecution, SECRET_SHARED_STATUS, secretSharedDisclosures } from './secret-shared.js';
+import type { SecretSharedExecution } from './secret-shared.js';
 
 export interface InferenceJob {
   plan: ExecutionPlan & { execution: PrepareRequest['execution']; generation: { maxOutputTokens: number | null }; policyId: string };
@@ -22,6 +24,9 @@ export interface InferencePorts {
   /** Used only with `unreviewedProtectedExecution: true`; both are off by default. */
   protectedExecution?: ProtectedExecution | null;
   unreviewedProtectedExecution?: boolean;
+  /** Used only with `unreviewedSecretSharedExecution: true`; both are off by default. */
+  secretSharedExecution?: SecretSharedExecution | null;
+  unreviewedSecretSharedExecution?: boolean;
 }
 export interface InferenceRun {
   requestId: string; attemptId: string; planId: string;

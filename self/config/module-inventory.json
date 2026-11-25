@@ -4382,7 +4382,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:e9f12ac827ba757d34bdf4f26141e1191dc85aeff144b50c808d536c8924dc73",
+      "sha256": "sha256:f3264a1f2508801c0be08020c4f18f19ffd77ed3b3b25c9a3dbad098f9c4b838",
       "imports": []
     },
     {
@@ -4543,7 +4543,7 @@
     {
       "path": "ui/pool-home/conversation-view.js",
       "owner": "ui",
-      "sha256": "sha256:3cdb3b0ba229322767a4dfb108c61d7836add45f3339b60a63b4abd5cb4eb2b5",
+      "sha256": "sha256:0b2f83593e82f0828cc5d0ce6adb5bdad37d1d44c039519db36e7d69a3b1ae60",
       "imports": [
         "../../config/chat-prompts.json",
         "../../config/work-profile.json",
@@ -4562,7 +4562,7 @@
     {
       "path": "ui/pool-home/conversation-workspace.js",
       "owner": "ui",
-      "sha256": "sha256:23ab9d937100102a3d65aab1f1b1000bc0fb426b94baea5ca072b88e2db36a38",
+      "sha256": "sha256:e8b1e31b3f916d886493e73cf76e5a6a39409eefcbda5034f34182240d7fbf24",
       "imports": [
         "../../config/work-profile.json",
         "../../host/circle-invites.js",
@@ -4934,7 +4934,7 @@
     {
       "path": "ui/pool-home/privacy-controls.js",
       "owner": "ui",
-      "sha256": "sha256:f86568eca04c79f6e12cefebdd308f14d995530df56eed170975ed20e64e8daf",
+      "sha256": "sha256:607e7df4f4417b4025f15df8ba544701c4c67614105ca443b2e3771b575e0af2",
       "imports": [
         "../../vendor/reploid/chat/execution-policy.js",
         "../components/attachments.js",
@@ -5601,7 +5601,7 @@
     {
       "path": "ui/pool-home/workspace-navigation.js",
       "owner": "ui",
-      "sha256": "sha256:2078e84630e51d4d3958dff8913455a24cabb6034e9af24ba83da05bea03258a",
+      "sha256": "sha256:703c4ee2763002138b520dab5630486835a89e748f448e06b2f53c30537d7c55",
       "imports": [
         "../../host/owner-pairing.js"
       ]
@@ -5676,7 +5676,7 @@
     {
       "path": "ui/react/design.js",
       "owner": "ui",
-      "sha256": "sha256:120b470ef9d4cbf54c2971531d6ddfa8ee86b467b4f838ca3a69b126554168f5",
+      "sha256": "sha256:da7d39f885320d691c96e8f4acd6ce7099228e31d637cfb614abcb98f2094b68",
       "imports": []
     },
     {
@@ -19056,7 +19056,7 @@
     {
       "path": "vendor/reploid/chat/execution-policy.js",
       "owner": "vendor",
-      "sha256": "sha256:5ce7b78c88be954b9f9325151bd38bdb10db106e38ec1662210328be20b61bfb",
+      "sha256": "sha256:225a8d2dca0e5740319464206f718dd8bf3421bd35f1390f6e6698f5678cb262",
       "imports": [
         "../artifacts/signatures.js",
         "../contracts/partition.js"
@@ -19065,7 +19065,7 @@
     {
       "path": "vendor/reploid/chat/index.js",
       "owner": "vendor",
-      "sha256": "sha256:4d1e8e14a2f98ff9b8d438bce79035ad96dc3478ae50b991fda9b39f0113cbf8",
+      "sha256": "sha256:41f128abe3c9d3036d47088d681576ae72f2fa8b9c7b28de1016b2046f55ec17",
       "imports": [
         "./execution-offers.js",
         "./execution-policy.js",
@@ -19275,7 +19275,7 @@
     {
       "path": "vendor/reploid/inference/contract.js",
       "owner": "vendor",
-      "sha256": "sha256:a8eb7f6de7bdf9140a795f33338571e00e02a32a4a05ebe14db167e1c2dcace1",
+      "sha256": "sha256:8a044efd5b8981991782dafa7fc49015ab98f9749e62a478d027cb39e7c0fa07",
       "imports": [
         "../artifacts/signatures.js",
         "../chat/execution-policy.js",
@@ -19285,11 +19285,12 @@
     {
       "path": "vendor/reploid/inference/index.js",
       "owner": "vendor",
-      "sha256": "sha256:bb782acfb6d710e74e043223a6d7dedfc44bb403abcf19cbba2b09f5b9206247",
+      "sha256": "sha256:c2e1eaa6d9d627fc4aae6cc55706a3cd5771ae09d2ec455e16ebdb8d25253754",
       "imports": [
         "../artifacts/signatures.js",
         "./contract.js",
-        "./protected.js"
+        "./protected.js",
+        "./secret-shared.js"
       ]
     },
     {
@@ -19301,6 +19302,15 @@
         "../artifacts/signatures.js",
         "../chat/execution-policy.js",
         "../mesh/protected-generation.js"
+      ]
+    },
+    {
+      "path": "vendor/reploid/inference/secret-shared.js",
+      "owner": "vendor",
+      "sha256": "sha256:7cfd511fec8bd23968b13f66b1d7046fef8f7245cd17142ea9a7f117b5144146",
+      "imports": [
+        "../chat/execution-policy.js",
+        "./contract.js"
       ]
     },
     {
