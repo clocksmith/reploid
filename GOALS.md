@@ -1,54 +1,63 @@
 # Reploid Goals
 
-Reploid's north star is **confidential split inference paid for with earned
-compute credits**. The unique value is **pooled capacity without pooled
-trust**: run a model no participating GPU can fit alone, across independently
-operated machines, without giving their operators the prompt, intermediate
-state, or answer; pay for it with compute you contributed; and make the charge
-independently checkable by an outsider.
+Reploid's **long-term product goal (north star)** is **confidential split
+inference paid for with earned compute credits**. The unique value is **pooled
+capacity without pooled trust**: run a model no participating GPU can fit
+alone, across independently operated machines, without giving their operators
+the prompt, intermediate state, or answer; pay for it with compute you
+contributed; and let an outsider independently reproduce the debit and payouts.
+The **ordinary inference exchange** (whole-model and non-confidential split
+routes) is the **first launch**, so the broader pilot moves forward rather than
+blocking on confidential-compute breakthroughs.
 
 ## Operating mission
 
-**One hard bar (missing today).** A rented enclave demo, a slow encrypted toy,
-and a plaintext split are stepping stones—none proves the combined capability.
-One end-to-end run must establish all four conditions together in the same
-request:
+**One hard bar for the long-term product goal (missing today).** A rented
+enclave demo, a slow encrypted toy, and a plaintext split are stepping
+stones—none proves the combined capability. Before freezing the test, **settle
+the no-signed-Stop policy**. One end-to-end run must establish all four
+conditions together in the same request:
 1. **Earn by serving someone else.** A participant first earns spendable
    credits by serving another user's request.
-2. **Spend on one confidential pooled split.** From a browser that downloads
-   zero weights, that same account spends its earned credits on one
-   confidential inference request split across independently operated GPUs where
-   **no participating GPU can fit the model alone** at the pinned model,
-   context, and precision (verified by solo-failure controls on every
-   participating GPU), **without giving their operators the prompt,
-   intermediate state, or answer**.
-3. **Beat the best CPU offload baseline at a useful latency.** The confidential
-   split must outperform the strongest single-machine CPU offload baseline on
-   the same workload at a useful interactive latency (disqualifying a slow
-   encrypted toy).
-4. **Independent security review + correct answer + outsider-verifiable receipt
-   (all from the same run):**
-   - **Independent security review** auditing the confidentiality boundary (who
-     could read what across requester, relays, and every GPU operator under the
-     stated threat model), with pre-dispatch disclosure and fail-closed refusal
-     on policy or privacy failure.
+2. **Spend on one confidential pooled split that proves usefulness, not just
+   fit.** From a browser that downloads zero weights, that same account spends
+   its earned credits on one confidential inference request split across
+   independently operated GPUs where the **same pinned workload fails solo on
+   every participating GPU for a measured memory reason**, and the confidential
+   split **beats the best single-host CPU offload baseline** while meeting
+   **frozen latency and answer-quality limits** (disqualifying a slow encrypted
+   toy).
+3. **Named privacy guarantee + independent security review (no silent
+   weakening).** Name the privacy mode and its trust assumption explicitly:
+   **attested execution** trusts approved hardware and code; **secret sharing**
+   trusts peers not to collude. Both are useful milestones, but **neither may
+   silently pass Reploid's strongest requester-only bar**. Require an
+   **independent security review** (a visibility trace alone does not establish
+   secrecy), with pre-dispatch disclosure and fail-closed refusal on policy or
+   privacy failure.
+4. **Correct answer + outsider-reproducible settlement (from that same run):**
    - **Correct answer** matching a larger single-host reference at the pinned
-     model, context, and precision.
-   - **Receipt an outsider can verify independently**, proving model identity,
-     each host's work, the requester's earned-balance debit within cap, and
-     each operator's payout without exposing the prompt.
+     model, context, and precision, within the frozen quality limits.
+   - **Outsider-reproducible debit and payouts:** an outsider independently
+     reproduces the requester's earned-balance debit within cap and each
+     operator's payout from signed records without exposing the prompt.
+     **Signatures verify what was signed (terms, acknowledgments, identity,
+     and accounting), not that the underlying computation was honest.**
 - **Across failures,** including retries, cancellations, late receipts, or a
   split host that silently disappears, the ledger finalizes by a stated
   deadline with no double charge, double reward, or stranded hold, and reports
   any host cleanup it could not verify.
 
-This is the unified bar for the north star, not the minimum bar for every
-route. The
+This is the unified bar for the long-term product goal, not the minimum bar for
+every route or for the first launch. The
 [product contract](docs/product-specification.md#5-contribution-and-execution)
 defines the four routes and their qualification: local solo, remote solo, local +
-peer split, and remote-only split.
+peer split, and remote-only split. Solo failure for a measured memory reason is
+required for the larger-than-either-host capacity claim, not for qualifying
+every ordinary split route.
 
-**Where it stands.** This is an unmet target, not a qualified capability.
+**Where it stands.** This is an unmet long-term target, not a qualified
+capability.
 - No split route—and no confidential split route—is qualified for public use.
 - Prior stepping stones (plaintext split earn/spend runs that fit solo on one
   machine, and separate non-colluding secret-sharing prototypes) do not prove
@@ -60,9 +69,10 @@ peer split, and remote-only split.
 On **plaintext routes**, "private" means only that the requester approved a
 disclosed route and Reploid enforced it: executing hosts still read what their
 stage needs, so never describe a plaintext request as confidential from them.
-Confidentiality from individual GPU operators (hiding prompt, intermediate
-state, and answer) requires an independently security-reviewed confidential
-split backend qualified on that exact route. Evidence is in the
+Confidentiality from individual GPU operators requires an independently
+security-reviewed confidential split backend qualified on that exact route,
+with its trust assumption (attested hardware/code, non-colluding secret shares,
+or requester-only secrecy) stated explicitly. Evidence is in the
 [claim index](docs/status/surface-claim-index.json).
 
 ## The service
