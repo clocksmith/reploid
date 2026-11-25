@@ -59,8 +59,8 @@ acknowledgments beyond the ceiling or beyond delivery, terms that break the
 policy, withheld records, stop statements and unsigned additions.
 
 Repeating and reordering records never changed either verifier's answer (30 of
-30 judgments agree). Removing one record at a time disagreed in 2 of 84
-judgments; both are explained below.
+30 judgments agree). Removing one record at a time disagreed in 4 of 84
+judgments; all four are explained below.
 
 ## Facts the document does not state
 
