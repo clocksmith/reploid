@@ -86,6 +86,10 @@
           "sharedRewrite": "/design"
         },
         {
+          "source": "/x/design",
+          "destination": "/x/design.html"
+        },
+        {
           "sharedRewrite": "/audit"
         },
         {

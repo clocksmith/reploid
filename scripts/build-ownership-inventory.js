@@ -29,7 +29,7 @@ const posix = path.posix;
 
 /** Poolday entry points: its HTML entries and the source of the product bundle. */
 export const PRODUCT_ENTRIES = Object.freeze([
-  'index.html', 'pool-entry.html', 'poolday-design.html', 'document-study.html', 'repair-smoke.html',
+  'index.html', 'pool-entry.html', 'design.html', 'document-study.html', 'repair-smoke.html',
   'ui/pool-home/index.js'
 ]);
 
@@ -68,8 +68,8 @@ const RULES = Object.freeze([
   { match: /^capabilities\//, owner: 'self', reason: 'Optional agent capabilities (Optional Capabilities charter).' },
   { match: /^infrastructure\//, owner: 'self', reason: 'Runtime infrastructure charter; not loaded by the product.' },
   { match: /^styles\/audit\.css$/, owner: 'self', reason: 'Style of the substrate audit page.' },
-  { match: /^(design|reset)\.html$/, owner: 'shared', reason: 'RD design-system specimen and storage reset page served for every surface; load only shared styles.' },
-  { match: /^(pool|ui\/pool-home|ui\/poolday-design|styles\/poolday|host\/earning|host\/credits)\//, owner: 'apps/poolday', reason: 'Poolday runtime, interface and earning code used by hosted services, scripts and tests.' },
+  { match: /^(x\/design|reset)\.html$/, owner: 'shared', reason: 'Zero / X RD design-system specimen (/x/design) and storage reset page; load only shared styles.' },
+  { match: /^(pool|ui\/pool-home|ui\/react|styles\/poolday|host\/earning|host\/credits)\//, owner: 'apps/poolday', reason: 'Poolday runtime, interface and earning code used by hosted services, scripts and tests.' },
   { match: /^host\/(lora-training-worker|lora-training-executor|document-study)\.js$/, owner: 'apps/poolday', reason: 'Product worker and study page started by URL from product code.' },
   { match: /^config\/(model-manifests|model-pieces)\//, owner: 'shared', reason: 'Retained catalog data beside the shared catalog\'s manifests; the current catalog does not reference it.' },
   { match: /^config\/lora-adapters\//, owner: 'self', reason: 'Adapter manifests the substrate neural compiler reads from /config/lora-adapters.' },

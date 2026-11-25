@@ -51,13 +51,15 @@ app.get(['/doppler', '/doppler/'], (req, res) => {
   res.sendFile(path.join(dopplerDemoDir, 'index.html'));
 });
 
+// The Poolday design system page, built only from packages/poolday-ui.
 app.get('/design', (req, res) => {
   res.sendFile(browserFile('design.html'));
 });
+app.get(['/design/poolday', '/design/poolday/'], (req, res) => res.redirect(301, '/design'));
 
-// Poolday tokens, primitives and live component specimens, read from styles/poolday.
-app.get(['/design/poolday', '/design/poolday/'], (req, res) => {
-  res.sendFile(browserFile('poolday-design.html'));
+// The Zero / X RD design-system specimen.
+app.get('/x/design', (req, res) => {
+  res.sendFile(browserFile('x/design.html'));
 });
 
 app.get('/SECURITY_AUDIT.md', (req, res) => {

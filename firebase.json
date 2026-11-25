@@ -133,6 +133,10 @@
           "destination": "/design.html"
         },
         {
+          "source": "/x/design",
+          "destination": "/x/design.html"
+        },
+        {
           "source": "/audit",
           "destination": "/audit.html"
         },

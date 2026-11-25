@@ -125,6 +125,8 @@ describe('Poolday audit boundaries', () => {
         .filter((name) => name.endsWith('.js') && name !== 'app.bundle.js')
         .map((name) => `${poolHome}/${name}`),
       'apps/poolday/index.html',
+      // The React screens' public copy.
+      'apps/poolday-react/src/l10n/strings.ts',
       'README.md'
     ];
     const forbidden = /\b(trustless|hardware-attested|guaranteed honest GPU execution|verified GPU execution|tamper-proof|proof of execution|hardware proof)\b/i;

@@ -160,7 +160,7 @@ const cleanedModules = [
 export default [
   { ignores: ['.cache/**', '.tmp/**', '.claude/worktrees/**', '.deployment-checkouts/**',
     'output/**', 'node_modules/**', 'artifacts/**', 'coverage/**', 'test-results/**', 'playwright-report/**',
-    'shared/vendor/**', 'self/core/vendor/**', 'shared/core/vendor/**', '**/dist/**', 'packages/poolday-forecast/source/**', 'apps/poolday/ui/pool-home/app.bundle.js',
+    'shared/vendor/**', 'self/core/vendor/**', 'shared/core/vendor/**', '**/dist/**', 'packages/poolday-forecast/source/**', 'apps/poolday/ui/pool-home/app.bundle.js', 'apps/poolday/ui/react/**',
     'self/lib/**', 'doppler/**', '.firebase-hosting/**'] },
   {
     files: ['**/*.js', '**/*.mjs'],

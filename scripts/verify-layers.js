@@ -189,7 +189,9 @@ export function verifyRepositoryLayers(repoRoot, { checkDelivery: verifyDelivery
     const relative = toLayerPath(path.relative(repoRoot, file));
     // Inspect canonical inputs, not minified copies of their loader expressions.
     // The CLI separately rebuilds this exact output in memory and checks its bytes.
-    if (relative === 'self/ui/pool-home/app.bundle.js') continue;
+    // The React entries (ui/react/*.js) are built the same way from apps/poolday-react, whose
+    // sources scripts/check-poolday-ui-boundaries.mjs checks, and from host modules inspected here.
+    if (relative === 'self/ui/pool-home/app.bundle.js' || relative.startsWith('self/ui/react/')) continue;
     const source = fs.readFileSync(file, 'utf8');
     let edges;
     try {

@@ -46,7 +46,7 @@ export async function findBoundaryViolations({ repoRoot } = {}) {
   for (const served of tree.files) {
     if (served.startsWith('vendor/')) continue;
     const ext = posix.extname(served);
-    if (!['.js', '.mjs', '.html'].includes(ext) || served === 'ui/pool-home/app.bundle.js') continue;
+    if (!['.js', '.mjs', '.html'].includes(ext) || served === 'ui/pool-home/app.bundle.js' || served.startsWith('ui/react/')) continue;
     const source = tree.source(served), owner = rootOf(source);
     const text = await fs.readFile(tree.absolute(served), 'utf8');
     let references;

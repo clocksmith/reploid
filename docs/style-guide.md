@@ -128,7 +128,11 @@ Use `loadVfsModule` for VFS blob imports: its import rewriter resolves relative 
 
 ## Poolday design system
 
-Poolday is built in three layers, and each layer uses only the one below it:
+Poolday is built in three layers, and each layer uses only the one below it. React screens reach
+them only through `@reploid/poolday-ui` ([contract](poolday-ui-architecture.md)): its components
+render these primitive classes, so the stylesheets below are its implementation. The live
+catalog is `/design`.
+
 
 - **Tokens** (`apps/poolday/styles/poolday/tokens.css`) are every value: one neutral gray
   ramp named by lightness (`--pool-gray-13` is `#202020`), the prism palette (obsidian
@@ -301,11 +305,11 @@ checks token references, structural-only literals, converted compositions, the
 legacy count and product inline styles. `tests/e2e/chat-rail-layout.spec.js` covers
 the conversation screen in both themes and at narrow widths.
 
-The design system page shows every token, every primitive and every composition live.
-Each composition lists the primitives and tokens it uses and any one-off declarations
-left. Run `npm start`, then open `http://localhost:8000/design/poolday`. Token values
-are editable in place and apply to every specimen. The Changes panel lists the lines
-to paste back into `tokens.css`. When a layer file changes on disk, the page reloads
-it without a refresh.
+The design system page, `/design` (`npm start`, then `http://localhost:8000/design`), is built
+only from `@reploid/poolday-ui`. It shows tokens (raw scales, then semantic values per theme,
+with use counts and unused tokens marked), then primitives from simplest to most complex, then
+compositions from small pieces to whole screens. Each token lists the primitives that read it,
+and each primitive lists its tokens and the compositions that use it. The Zero / X RD specimen
+is at `/x/design`.
 
 *Last updated: November 2026*
