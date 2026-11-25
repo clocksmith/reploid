@@ -21,6 +21,7 @@
  *   node scripts/pilot/browser-reliability.js --url http://127.0.0.1:8000/ [--model SELECTION_ID] \
  *     [--requests 100] [--interval-ms 25000] [--timeout-ms 120000] [--prompts FILE.json [--only-model MODEL_ID]] \
  *     [--channel chrome] [--headed] [--label TEXT] [--out FILE.json]
+ *   node scripts/pilot/browser-reliability.js --url URL --sessions 4 --requests 20 [--gap-ms 3000] [--max-minutes M] [same options]
  *   node scripts/pilot/browser-reliability.js --self-check
  *
  * `--prompts` takes a file of `{ prompts: [{ id, prompt, model }] }`; without it the list in reliability.js is used.
@@ -31,6 +32,12 @@
  * run stops there with a `wrong model` verdict: it never measures a different model under this one's name. Without
  * `--model`, every request must use the model the setup request used.
  * If the setup request does not complete, the run stops there and reports why; it does not send the measured ones.
+ * `--sessions N` is the burst: N tabs, each its own browser context set up as above, press Send at the same moment,
+ * `--requests` rounds of them (N × requests requests). A round ends when every tab's answer has ended; the next one
+ * starts `--gap-ms` later. Each request is timed in its own page as above, so a wait behind the other tabs is in it.
+ * Prompts are walked in order across each round (burstPrompt). `--max-minutes` stops before a round that would
+ * start later than that; the receipt counts those rounds as not run. The verdict (summarizeBurst) counts every
+ * failure as infinite and asks the pilot's bar of every level, whatever its size.
  * `--self-check` runs the whole script against a mock page that plays each ending. It checks this script's timing
  * and labels, and nothing about the product.
  *
@@ -43,7 +50,7 @@ import http from 'node:http';
 import os from 'node:os';
 import { parseArgs } from 'node:util';
 import { pathToFileURL } from 'node:url';
-import { PROMPTS, RULE, summarize } from './reliability.js';
+import { PROMPTS, RULE, percentile, summarize } from './reliability.js';
 
 /**
  * How an answer ended, in the page's own words. Each answer row has an execution line whose first word is the
@@ -139,7 +146,13 @@ async function chooseModel(page, model) {
  * One request in a new thread. Never throws for a product failure: every ending becomes a record. `model`, when
  * given, is chosen inside the sheet if the sheet opens.
  */
-async function measureOne(page, { prompt, timeoutMs, model = null, expectModel = null, sheetWaitMs = 30000 }) {
+async function measureOne(page, options) {
+  const record = await prepareOne(page, options);
+  return record.failure ? record : sendAndWatch(page, record, options);
+}
+
+/** Everything before Send: a new thread on the right model, the prompt typed, Send enabled. Not timed. */
+async function prepareOne(page, { prompt, expectModel = null }) {
   const record = { completed: false, failure: null, firstTokenMs: null, stages: { sendEnabledMs: null, firstTokenMs: null, endMs: null },
     sheet: false, permissionPrompt: false, outputChars: 0, activity: '', statusText: '', sendAt: null, model: null, answerOn: null, modelChosen: false };
   try {
@@ -165,6 +178,11 @@ async function measureOne(page, { prompt, timeoutMs, model = null, expectModel =
     record.statusText = `Send was not offered: ${status.trim() || String(error.message).split('\n')[0]}`.slice(0, 300);
     return record;
   }
+  return record;
+}
+
+/** Clicks Send and watches the answer to its end. Never throws for a product failure. */
+async function sendAndWatch(page, record, { timeoutMs, model = null, expectModel = null, sheetWaitMs = 30000 }) {
   record.sendAt = new Date().toISOString();
   await page.evaluate(() => globalThis.__pilot.send());
   let state, started = false, sheetProblem = null, timedOut = false;
@@ -225,22 +243,30 @@ async function measureOne(page, { prompt, timeoutMs, model = null, expectModel =
  * request does not complete, nothing is measured: `notStarted` says why, and that is a failed availability check,
  * not a measurement of 0 of N.
  */
+/**
+ * A person's tab: its own browser context (no shared storage or connections), the page opened, discovery waited
+ * out and recorded as `discoveryMs`, then the unmeasured setup request that takes the sheet and the permission.
+ */
+async function openSession(browser, { url, model, timeoutMs, sheetWaitMs }) {
+  const page = await (await browser.newContext({ viewport: { width: 1280, height: 800 } })).newPage();
+  await page.addInitScript(installProbe);
+  await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 });
+  await page.locator('[data-composer-send]').waitFor({ state: 'visible', timeout: 60000 });
+  // Send is offered while the page is still "Finding computers…". A person would wait for that line to change;
+  // pressed earlier, the sheet can read as if nobody serves the model. The wait is recorded, not hidden.
+  const opened = Date.now();
+  await page.waitForFunction(() => !/Finding computers/i.test(globalThis.document.querySelector('[data-model-status]')?.textContent ?? ''),
+    null, { timeout: 60000 }).catch(() => {});
+  const discoveryMs = Date.now() - opened;
+  return { page, setup: { discoveryMs, ...await measureOne(page, { prompt: 'Say hello in one word.', timeoutMs, model, sheetWaitMs }) } };
+}
+
 export async function runBrowserPilot({ url, prompts, model = null, intervalMs = 25000, timeoutMs = 120000, sheetWaitMs = 30000, channel = null, headed = false,
   onResult = () => {} }) {
   const { chromium } = await import('@playwright/test');
   const browser = await chromium.launch({ headless: !headed, ...(channel ? { channel } : {}) });
   try {
-    const page = await (await browser.newContext({ viewport: { width: 1280, height: 800 } })).newPage();
-    await page.addInitScript(installProbe);
-    await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 });
-    await page.locator('[data-composer-send]').waitFor({ state: 'visible', timeout: 60000 });
-    // Send is offered while the page is still "Finding computers…". A person would wait for that line to change;
-    // pressed earlier, the sheet can read as if nobody serves the model. The wait is recorded, not hidden.
-    const opened = Date.now();
-    await page.waitForFunction(() => !/Finding computers/i.test(globalThis.document.querySelector('[data-model-status]')?.textContent ?? ''),
-      null, { timeout: 60000 }).catch(() => {});
-    const discoveryMs = Date.now() - opened;
-    const setup = { discoveryMs, ...await measureOne(page, { prompt: 'Say hello in one word.', timeoutMs, model, sheetWaitMs }) };
+    const { page, setup } = await openSession(browser, { url, model, timeoutMs, sheetWaitMs });
     const answerOn = setup.answerOn;
     if (!setup.completed) return { setup, answerOn, results: [], wrongModel: null, notStarted: `the setup request did not complete (${setup.failure}): ${setup.statusText || setup.activity || 'no status shown'}` };
     // Every measured request must ask the model the setup request asked: the one named by --model when given.
@@ -256,6 +282,81 @@ export async function runBrowserPilot({ url, prompts, model = null, intervalMs =
       if (index < prompts.length - 1 && wait > 0) await page.waitForTimeout(wait);
     }
     return { setup, answerOn, results, notStarted: null, wrongModel: null };
+  } finally {
+    await browser.close();
+  }
+}
+
+// ---------------------------------------------------------------------------------------------------------------
+// Burst: several people pressing Send at the same moment, each in their own tab.
+// ---------------------------------------------------------------------------------------------------------------
+
+/**
+ * The prompt for `session` in `round` when `sessions` tabs send together: the list is walked in order across each
+ * round and then on to the next, so no two tabs in a round share a prompt while the list is longer than the round.
+ */
+export function burstPrompt(prompts, sessions, session, round) {
+  return prompts[(round * sessions + session) % prompts.length];
+}
+
+/**
+ * One concurrency level over every request it sent. A failure counts as infinite even if a character appeared,
+ * so p50 and p95 are nearest-rank over every request. The bar is the pilot's: 99% completed (every request when
+ * there are fewer than 100) and a p95 within 5 s. JSON has no infinity: an infinite percentile is written 'inf'.
+ */
+export function summarizeBurst(rows) {
+  const times = rows.map(row => (row.completed && row.firstTokenMs !== null ? row.firstTokenMs : Infinity));
+  const shown = value => (value === null ? null : Number.isFinite(value) ? value : 'inf');
+  const failures = {};
+  for (const row of rows) if (!row.completed) failures[row.failure] = (failures[row.failure] ?? 0) + 1;
+  const completed = rows.filter(row => row.completed).length;
+  const p95 = percentile(times, RULE.firstTokenPercentile);
+  const completedEnough = rows.length > 0 && completed >= Math.ceil(RULE.completedShare * rows.length);
+  const fastEnough = p95 !== null && p95 <= RULE.firstTokenLimitMs;
+  return { requests: rows.length, completed, completionRate: rows.length ? Number((completed / rows.length).toFixed(4)) : null, failures,
+    firstCharacterMs: { p50: shown(percentile(times, 50)), p95: shown(p95) }, withinLimit: times.filter(value => value <= RULE.firstTokenLimitMs).length,
+    checks: { completedEnough, fastEnough }, verdict: rows.length === 0 ? 'not run' : completedEnough && fastEnough ? 'pass' : 'fail' };
+}
+
+/**
+ * `sessions` tabs, each opened and set up as in runBrowserPilot, then `rounds` rounds. In each round every tab
+ * starts a new thread and types its prompt (not timed); once all are ready, all press Send together and the round
+ * ends when every answer has ended. The next round starts `gapMs` later. Each request is timed in its own page
+ * exactly as a sequential one is, so the time includes any queue behind the other tabs. `deadline` (epoch ms), when
+ * given, ends the run before a round that would start after it; the rounds not started are counted, not invented.
+ */
+export async function runBurst({ url, prompts, sessions, rounds, model = null, gapMs = 3000, timeoutMs = 120000, sheetWaitMs = 30000, deadline = null,
+  channel = null, headed = false, onResult = () => {}, onRound = () => {} }) {
+  const { chromium } = await import('@playwright/test');
+  const browser = await chromium.launch({ headless: !headed, ...(channel ? { channel } : {}) });
+  const load = () => os.loadavg().map(value => Number(value.toFixed(2)));
+  try {
+    const opened = await Promise.all(Array.from({ length: sessions }, () => openSession(browser, { url, model, timeoutMs, sheetWaitMs })));
+    const setups = opened.map(({ setup }, session) => ({ session, ...setup }));
+    const broken = setups.find(setup => !setup.completed);
+    if (broken) return { setups, results: [], rounds: [], roundsNotRun: rounds, wrongModel: null,
+      notStarted: `session ${broken.session + 1}'s setup request did not complete (${broken.failure}): ${broken.statusText || broken.activity || 'no status shown'}` };
+    const expectModel = model ?? setups[0].model;
+    const results = [], roundLog = [];
+    for (let round = 0; round < rounds; round++) {
+      if (deadline !== null && Date.now() > deadline) return { setups, results, rounds: roundLog, roundsNotRun: rounds - round, wrongModel: null, notStarted: null };
+      const items = opened.map((_, session) => burstPrompt(prompts, sessions, session, round));
+      const ready = await Promise.all(opened.map(({ page }, session) => prepareOne(page, { prompt: items[session].prompt, expectModel })));
+      const rows = await Promise.all(opened.map(({ page }, session) => (ready[session].failure ? ready[session]
+        : sendAndWatch(page, ready[session], { timeoutMs, model, expectModel, sheetWaitMs }))
+        .then(record => ({ type: 'request', round, session, promptId: items[session].id, inputChars: items[session].prompt.length, ...record }))));
+      const sent = rows.map(row => row.sendAt).filter(Boolean).map(at => Date.parse(at));
+      const entry = { round, sent: sent.length, sendSpreadMs: sent.length ? Math.max(...sent) - Math.min(...sent) : null,
+        firstSendAt: sent.length ? new Date(Math.min(...sent)).toISOString() : null, endedAt: new Date().toISOString(), requesterLoad: load() };
+      roundLog.push(entry);
+      for (const row of rows) { results.push(row); onResult(row); }
+      onRound(entry);
+      const stop = rows.find(row => row.failure === 'wrong model');
+      if (stop) return { setups, results, rounds: roundLog, roundsNotRun: rounds - round - 1, notStarted: null,
+        wrongModel: `round ${round + 1}, session ${stop.session + 1}: ${stop.statusText}` };
+      if (round < rounds - 1 && gapMs > 0) await new Promise(resolve => setTimeout(resolve, gapMs));
+    }
+    return { setups, results, rounds: roundLog, roundsNotRun: 0, wrongModel: null, notStarted: null };
   } finally {
     await browser.close();
   }
@@ -368,6 +469,24 @@ async function selfCheck() {
       prompts: [{ id: 'm0', prompt: 'ok request' }] });
     expect('without --model every request is held to the model the setup request asked', unchecked.setup.model === 'small'
       && unchecked.results.length === 1 && unchecked.results[0].completed && unchecked.results[0].model === 'small' && !unchecked.results[0].modelChosen);
+    // Burst: three tabs, three rounds. Round 2's middle tab hangs; the round waits for its timeout before round 3.
+    const burstItems = ['ok a', 'ok b', 'ok c', 'ok d', 'hang e', 'slow f', 'ok g', 'ok h', 'ok i'].map((prompt, index) => ({ id: `b${index}`, prompt }));
+    const burst = await runBurst({ url: `http://127.0.0.1:${server.address().port}/?forget`, model: 'big', sessions: 3, rounds: 3, gapMs: 0, timeoutMs: 1500, prompts: burstItems });
+    const burstRows = burst.results;
+    expect('a burst sets up every tab in its own context and sends sessions × rounds requests',
+      burst.setups.length === 3 && burst.setups.every(setup => setup.completed && setup.sheet && setup.permissionPrompt) && burstRows.length === 9 && burst.roundsNotRun === 0);
+    expect('each round walks the prompts in order across its tabs', burstRows.map(row => row.promptId).join() === burstItems.map(item => item.id).join()
+      && burstRows.every((row, index) => row.round === Math.floor(index / 3) && row.session === index % 3));
+    expect('every tab in a round presses Send together', burst.rounds.length === 3 && burst.rounds.every(entry => entry.sent === 3 && entry.sendSpreadMs < 250));
+    expect('a round waits for its slowest answer, and the next round sends after it ended',
+      burstRows[4].failure === 'timeout' && Date.parse(burst.rounds[2].firstSendAt) >= Date.parse(burstRows[4].sendAt) + 1500);
+    expect('every burst request asked the chosen model', burstRows.every(row => row.model === 'big'));
+    const burstSummary = summarizeBurst(burstRows);
+    expect('the burst summary counts the timeout as infinite and fails the level', burstSummary.completed === 8 && burstSummary.failures.timeout === 1
+      && burstSummary.firstCharacterMs.p95 === 'inf' && burstSummary.verdict === 'fail');
+    const late = await runBurst({ url: `http://127.0.0.1:${server.address().port}/?forget`, model: 'big', sessions: 2, rounds: 3, gapMs: 0, timeoutMs: 1500,
+      prompts: burstItems, deadline: Date.now() - 1 });
+    expect('a burst past its deadline starts no round and counts them as not run', late.results.length === 0 && late.roundsNotRun === 3 && late.setups.length === 2);
     console.log(JSON.stringify({ selfCheck: problems.length === 0 ? 'pass' : 'fail', problems,
       results: results.map(row => ({ id: row.promptId, completed: row.completed, failure: row.failure, firstTokenMs: row.firstTokenMs, endMs: row.stages.endMs })) }, null, 2));
     process.exitCode = problems.length === 0 ? 0 : 1;
@@ -376,11 +495,39 @@ async function selfCheck() {
   }
 }
 
+/** --sessions N: N tabs press Send together, --requests rounds of them (so N × requests requests). */
+async function mainBurst(values, number, prompts, promptSource) {
+  const sessions = number('sessions'), rounds = number('requests');
+  if (sessions < 1) throw Error('--sessions must be at least 1');
+  const maxMinutes = values['max-minutes'] === undefined ? null : number('max-minutes');
+  const settings = { model: values.model ?? null, sessions, rounds, requests: sessions * rounds, gapMs: number('gap-ms'), timeoutMs: number('timeout-ms'),
+    maxMinutes, promptSource, promptIds: prompts.map(item => item.id) };
+  const startedAt = new Date().toISOString();
+  const load = () => os.loadavg().map(value => Number(value.toFixed(2)));
+  const loadAtStart = load();
+  const run = await runBurst({ url: values.url, prompts, sessions, rounds, model: settings.model, gapMs: settings.gapMs, timeoutMs: settings.timeoutMs,
+    deadline: maxMinutes === null ? null : Date.now() + maxMinutes * 60000, channel: values.channel ?? null, headed: values.headed,
+    onResult: row => console.error(`r${String(row.round + 1).padStart(2)} s${row.session + 1} ${row.completed ? 'ok  ' : 'FAIL'} first character ${row.firstTokenMs ?? '-'} ms, end ${row.stages.endMs ?? '-'} ms${row.failure ? `, ${row.failure}: ${row.statusText.slice(0, 80)}` : ''}`),
+    onRound: entry => console.error(`round ${entry.round + 1}: ${entry.sent} sent within ${entry.sendSpreadMs} ms, load ${entry.requesterLoad.join(' ')}`) });
+  const host = new URL(values.url).hostname;
+  const summary = run.notStarted ? { requests: 0, verdict: `not started: ${run.notStarted}` }
+    : run.wrongModel ? { ...summarizeBurst(run.results), verdict: `wrong model, stopped at ${run.wrongModel}` } : summarizeBurst(run.results);
+  const receipt = { schema: 'reploid.pilot-reliability-browser-burst/v1', startedAt, finishedAt: new Date().toISOString(), label: values.label, rule: RULE,
+    page: ['127.0.0.1', 'localhost', '[::1]'].includes(host) ? 'local page' : 'deployed page (address not recorded)', answerOn: run.setups[0]?.answerOn ?? null,
+    settings, node: process.version, requesterLoad: { cpus: os.cpus().length, start: loadAtStart, end: load() }, setups: run.setups, notStarted: run.notStarted,
+    roundsNotRun: run.roundsNotRun, summary, rounds: run.rounds, results: run.results };
+  const text = JSON.stringify(receipt, null, 2);
+  if (values.out) await fs.writeFile(values.out, `${text}\n`);
+  console.log(JSON.stringify({ label: receipt.label, sessions, roundsNotRun: run.roundsNotRun, ...summary }, null, 2));
+  process.exitCode = summary.verdict === 'pass' ? 0 : 1;
+}
+
 async function main() {
   const { values } = parseArgs({ options: { url: { type: 'string' }, model: { type: 'string' }, requests: { type: 'string', default: String(RULE.minimumRequests) },
     'interval-ms': { type: 'string', default: '25000' }, 'timeout-ms': { type: 'string', default: '120000' }, prompts: { type: 'string' },
     'only-model': { type: 'string' }, channel: { type: 'string' }, headed: { type: 'boolean', default: false }, label: { type: 'string', default: '' },
-    out: { type: 'string' }, 'self-check': { type: 'boolean', default: false } } });
+    out: { type: 'string' }, 'self-check': { type: 'boolean', default: false }, sessions: { type: 'string' }, 'gap-ms': { type: 'string', default: '3000' },
+    'max-minutes': { type: 'string' } } });
   if (values['self-check']) return selfCheck();
   if (!values.url) throw Error('Give --url, or --self-check');
   const number = name => { const value = Number(values[name]); if (!Number.isSafeInteger(value) || value < 0) throw Error(`--${name} must be a whole number`); return value; };
@@ -390,6 +537,7 @@ async function main() {
     prompts = file.prompts.filter(item => !values['only-model'] || item.model === values['only-model']).map(item => ({ id: item.id, prompt: item.prompt }));
     promptSource = `file with ${file.prompts.length} prompts${values['only-model'] ? `, ${prompts.length} for the chosen model` : ''}`;
   }
+  if (values.sessions !== undefined) return mainBurst(values, number, prompts, promptSource);
   const requests = number('requests');
   const list = Array.from({ length: requests }, (_, index) => prompts[index % prompts.length]);
   const settings = { model: values.model ?? null, requests, intervalMs: number('interval-ms'), timeoutMs: number('timeout-ms'), promptSource };
