@@ -216,7 +216,7 @@ export async function createSyntheticWorld({ now = Date.UTC(2026, 10, 25, 12), e
  * A synthetic confidential-VM host for serveAttestedSession. `faults` change one thing at a time:
  *   ccMode, devToolsMode, snpDebug, snpPolicy, tdxDebug, tdAttributes, measurement, rtmr, qe, gpuMeasurements, unboundKey, wrongNonce,
  *   badGpuSignature,
- *   revokedLeaf, staleOcsp, model, answer, failRuntime
+ *   revokedLeaf, staleOcsp, model, answer, usage, failRuntime
  */
 export function syntheticHost(world, { platform = 'amd-sev-snp', faults = {}, participantId = 'peer:attested-synthetic', record = {} } = {}) {
   const launch = structuredClone(SYNTHETIC_LAUNCH);
@@ -247,7 +247,7 @@ export function syntheticHost(world, { platform = 'amd-sev-snp', faults = {}, pa
       if (faults.failRuntime) throw Object.assign(new Error('runtime down'), { code: 'RUNTIME_DOWN' });
       const answer = faults.answer ?? 'Diagnosis: the build fails because src/config.ts imports a missing export.';
       for (const word of answer.match(/\S+\s*/g)) onDelta(word);
-      return { text: answer, finishReason: 'stop', stopReason: 'eos-token', usage: { inputTokens: 812, outputTokens: answer.split(/\s+/).length } };
+      return { text: answer, finishReason: 'stop', stopReason: 'eos-token', usage: faults.usage ?? { inputTokens: 812, outputTokens: answer.split(/\s+/).length } };
     }
   };
 }

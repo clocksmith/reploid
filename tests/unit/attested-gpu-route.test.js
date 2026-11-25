@@ -144,6 +144,15 @@ describe('an attested run', () => {
     expect(ledger.state.log.map(entry => Object.keys(entry)[0])).toEqual(['hold', 'released']);
   });
 
+  it('refuses an answer whose token counts are negative, and charges nothing', async () => {
+    const ledger = pilotLedger(1000);
+    const { inference } = setup({ credits: ledger.ports, faults: { usage: { inputTokens: 812, outputTokens: -40 } } });
+    const { result } = await runOnce(inference);
+    expect(result).toMatchObject({ status: 'failed', output: null, settlement: null, error: { code: 'ATTESTED_PROTOCOL_VIOLATION' } });
+    expect(ledger.state.balance).toBe(1000);
+    expect(ledger.state.log.map(entry => Object.keys(entry)[0])).toEqual(['hold', 'released']);
+  });
+
   it('refuses to hold more credits than the account has, before the prompt is sealed', async () => {
     const ledger = pilotLedger(10);
     const { inference, record } = setup({ credits: ledger.ports });

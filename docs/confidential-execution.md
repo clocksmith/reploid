@@ -1066,7 +1066,7 @@ fails with no output.
 | Report signature does not verify | `signature-invalid` |
 | TCB below policy, quoting enclave below the pinned version, TDX collateral not up to date | `tcb-out-of-date` |
 | Not enough credits for the ceiling | the ledger's refusal, before sealing |
-| Tampered, reordered or unknown frame after binding | `ATTESTED_PROTOCOL_VIOLATION`, no output, credits released |
+| Tampered, reordered or unknown frame after binding, or a result with negative token counts | `ATTESTED_PROTOCOL_VIOLATION`, no output, credits released |
 | Runtime failure inside the VM | `ATTESTED_RUNTIME_FAILED` (a code only), credits released |
 | Session expired before the request | `ATTESTED_SESSION_EXPIRED` |
 

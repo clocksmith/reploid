@@ -98,8 +98,11 @@ export async function runAttestedRequesterSession({ channel, policy, model, laun
       onDelta(body.text);
       continue;
     }
-    if (typeof body?.text !== 'string' || (text !== '' && body.text !== text) || !Number.isSafeInteger(body?.usage?.inputTokens)
-      || !Number.isSafeInteger(body?.usage?.outputTokens)) throw attestedSessionError('ATTESTED_PROTOCOL_VIOLATION', 'The result does not match its stream');
+    // The charge is output tokens times the planned price, so a count below zero would turn it into a credit.
+    const counts = [body?.usage?.inputTokens, body?.usage?.outputTokens];
+    if (typeof body?.text !== 'string' || (text !== '' && body.text !== text) || !counts.every(count => Number.isSafeInteger(count) && count >= 0)) {
+      throw attestedSessionError('ATTESTED_PROTOCOL_VIOLATION', 'The result does not match its stream or its token counts are not counts');
+    }
     return { output: { text: body.text, finishReason: body.finishReason ?? 'unknown', stopReason: body.stopReason ?? null },
       usage: { inputTokens: body.usage.inputTokens, outputTokens: body.usage.outputTokens },
       timing: typeof body.timing === 'object' && body.timing ? body.timing : null, attestation, frames: stats };
