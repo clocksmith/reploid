@@ -310,9 +310,11 @@ signed in time can still be presented and change the outcome.
 
    **Failed stages.** When the agreed terms' `unfinishedTerms` is
    `reploid.unfinished-answer/acknowledged-prefix-failed-stage-forfeits/v1`,
-   the two bullets above are replaced by this rule, and no attempt is `unknown`
-   or `expired` because one stage withheld something
-   (see [Failed stages](#failed-stages)):
+   the two bullets above are replaced by this rule. A stage that keeps back its
+   closing receipt then changes only its own amount, and so does a stage other
+   than the final one that keeps back its receipts covering a delivered answer.
+   What a withheld record can still do is listed under
+   [Failed stages](#failed-stages):
    - A stage has **faulted** when a stage fault of it counts (step 4). A stage
      that faulted and also closed contradicted itself: it gets one
      `fault-and-close` entry in `conflicts`, not blocking. These entries are
@@ -375,8 +377,8 @@ signed in time can still be presented and change the outcome.
    - Under `unfinishedTerms` equal to
      `reploid.unfinished-answer/acknowledged-prefix-provider-relief/v1` (the
      decided rules, settlement-rules id `reploid.settlement-replay/v2`), and
-     under `null` (older terms) or any other value except the next one, the
-     charge units are `min(acknowledged, maxOutputTokens) * creditsPerOutputToken`
+     under `null` (older terms) or any other value except the
+     provider-loss-free one below, the charge units are `min(acknowledged, maxOutputTokens) * creditsPerOutputToken`
      in every case above, an unattributed disconnect included.
    - Under `unfinishedTerms` equal to
      `reploid.unfinished-answer/acknowledged-prefix-failed-stage-forfeits/v1`
@@ -416,7 +418,8 @@ with no signed account, possible only on an `expired` row where every amount is
 
 - **settled:** every stage closed (step 6), or the answer
   was delivered and the stages that did not close are treated as closed under
-  step 6. The requester is debited by the charge rule of step 5: its
+  step 6; or, under the failed-stage terms, every stage is decided (step 6) and
+  the attempt is not `expired`. In each case steps 7 and 8 must also pass. The requester is debited by the charge rule of step 5: its
   acknowledged-in-time outputs, capped at `maxOutputTokens`, whether the answer
   finished, the requester stopped it, or the stages closed it with no signed
   stop. `failed` and `settled` closes are paid alike. Only under the older
@@ -427,8 +430,12 @@ with no signed account, possible only on an `expired` row where every amount is
   or paid. For an attempt that started, this is the relief for a verified
   provider failure. Under the failed-stage terms an attempt is `expired` only
   when nothing was acknowledged and some stage did not close; one with
-  acknowledged outputs is `settled`, with the failed stages forfeiting.
-- **open:** the release window has not passed yet and not every stage has closed.
+  acknowledged outputs is `settled`, with the failed stages forfeiting. Under
+  those terms `expired` and `settled` do not wait for the release window when
+  every stage has closed or faulted (a fault that counts, step 4; a late fault
+  decides nothing).
+- **open:** the release window has not passed yet and not every stage has closed
+  (under the failed-stage terms: closed or faulted).
 - **conflict:** a participant signed incompatible statements, or the records
   cannot show which of two signers did (below).
 - **unknown:** the records cannot decide. Examples are a delivered answer where
@@ -714,8 +721,11 @@ accepted by each stage, so the replay applies it from the records alone
 (steps 4, 6, 7 and 9):
 
 - **A failed stage forfeits its own share and nothing else.** A stage fails by
-  signing a stage fault, or by having no closing receipt that counts once the
-  release window has passed. It is credited 0. Every stage that closed is paid
+  signing a stage fault that counts (step 4), or by having no closing receipt
+  that counts once the release window has passed. One exception stays from
+  before: a stage that has not faulted and whose receipts cover a delivered
+  answer is not failed by its missing close; step 6 treats it as closed at its last signed step and it
+  is paid. A failed stage is credited 0. Every stage that closed is paid
   its share of the outputs the requester acknowledged in time, and the
   requester's debit is the sum of those shares.
 - **A stage on the requester's own account never gives relief.** Its share is
@@ -723,7 +733,9 @@ accepted by each stage, so the replay applies it from the records alone
   changes no amount.
 - **A fault is a fast close, not a favour.** It settles the attempt as soon as
   the other stages have closed, without waiting out the release window, and it
-  costs its signer its own share. Nobody can vouch a stage's failure into
+  costs its signer its own share. A row decided that early is decided for the
+  records presented: a record signed in time and presented later still counts,
+  as it does for any row. Nobody can vouch a stage's failure into
   relief for the requester.
 - **A stage that signs both a fault and a closing receipt** is credited 0 and
   listed as `fault-and-close`.
@@ -736,7 +748,7 @@ under the provider-relief terms:
 
 | Attack | Provider-relief terms | Failed-stage terms |
 | --- | --- | --- |
-| A stage, alone or with the requester, withholds its closing receipt | `expired`: nobody charged, nobody paid | that stage is paid 0; every stage that closed is paid; the requester pays those shares |
+| A stage, alone or with the requester, withholds its closing receipt of an unfinished answer | `expired`: nobody charged, nobody paid | that stage is paid 0; every stage that closed is paid; the requester pays those shares |
 | The requester withholds its own edge stage's closing receipt | `expired`: the answer is free | both operators are paid in full |
 | A stage signs a fault it did not have | (no such record) | it loses its own share; nobody else's amount changes |
 | The requester's own stage signs a fault | (no such record) | no amount changes |
@@ -767,6 +779,10 @@ What these terms do not stop:
   [Who bears a conflict](#who-bears-a-conflict)), and any stage can cause one
   by signing two receipts at one sequence. So can a requester that holds a
   stage. The entry names the signer; no amount follows from it.
+- **A withheld acceptance.** Step 8 still answers `unknown` when any stage has
+  no acceptance that counts, a forfeiting stage included, and an `unknown` row
+  moves nothing. A stage that is owed holds its own acceptance and can present
+  it; nobody can present another stage's for it.
 - **Self-reported times** (L5 above) apply to faults as to closing receipts.
 
 The live ledger does not reserve under these terms yet. It still gives every
