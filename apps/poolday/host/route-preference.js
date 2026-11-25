@@ -8,7 +8,7 @@
  */
 export const ROUTE_PREFERENCES = Object.freeze([
   Object.freeze({ id: 'balanced', label: 'Balanced' }),
-  Object.freeze({ id: 'faster', label: 'Faster answers' }),
+  Object.freeze({ id: 'faster', label: 'Faster' }),
   Object.freeze({ id: 'more-reliable', label: 'More reliable' })
 ]);
 export const DEFAULT_ROUTE_PREFERENCE = 'balanced';
