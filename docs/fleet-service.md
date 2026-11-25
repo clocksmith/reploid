@@ -356,7 +356,16 @@ fall back to public capacity or a local weight download.
 The answer retains actual whole-model or ordered-stage execution and service-credit
 records. Computers shows fresh observed capacity separately from execution receipts;
 expired observations are offline, not ready. Service credits and receipt export are
-on demand. Stop requests cancellation; a lost stream leaves a pending outcome until
+on demand. Opening **Service credits** reads the paired requester's own account
+(balance, held and available credits), its recent journal (credits earned by
+serving, credits spent by asking, and holds released unclaimed) and the other
+enrolled accounts. **Save statement** downloads that account's signed statement for
+the offline check above. Before Send, a priced route states the most one answer can
+cost. A request the account cannot cover is refused before any hold or disclosure,
+and the answer says so with the quote and what can be spent. Each answer states
+what was charged, including a Stop or failure that settled at zero. An answer whose
+hold is still pending shows the held amount, and Execution details re-reads the
+ledger when the answer is opened again. Stop requests cancellation; a lost stream leaves a pending outcome until
 the native owners reconcile. There is no automatic resend after interruption.
 Browser history, drafts and reload use the existing conversation store; the bridge
 does not retain prompt text. Signing keys and durable accounting remain native.

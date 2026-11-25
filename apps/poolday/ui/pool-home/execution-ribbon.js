@@ -1,5 +1,6 @@
 import { computerLabel, withComputerLabels } from './computer-labels.js';
 import { publicProviderHardware } from '../../../../shared/vendor/reploid/mesh/provider-hardware.js';
+import { serviceCreditOutcomeText } from './service-credit-text.js';
 /** Selected-attempt presentation only. Discovery never establishes an execution path. */
 const escape = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const measured = value => Number.isFinite(value) && value >= 0;
@@ -116,7 +117,7 @@ export function detailMarkup(view) {
       <dt>${view.split ? 'Recorded step time' : 'Compute time'}</dt><dd>${ms(node.duration)}</dd></dl></li>`).join('')}</ul>` : '<p>No executing participant has been assigned to this attempt.</p>'}
     ${view.split ? '<p>Output returns through the first executor. Step times include runtime and transport overhead; they are not GPU-only measurements.</p>' : ''}
     ${!view.requesterExecutes && executors.length ? '<p>Receiving the answer does not require model weights on this device.</p>' : ''}
-    ${view.execution?.serviceCredit ? `<p>Service credits: ${view.execution.serviceCredit.settledAt ? `${escape(view.execution.serviceCredit.charge)} settled` : 'Pending · outcome not yet settled'}</p>` : ''}
+    ${view.execution?.serviceCredit ? `<p>Service credits: ${escape(serviceCreditOutcomeText(view.execution.serviceCredit))}</p>` : ''}
     ${view.planId ? `<p>Plan <code>${escape(view.planId)}</code></p>` : ''}`;
 }
 

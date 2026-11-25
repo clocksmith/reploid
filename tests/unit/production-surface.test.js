@@ -168,16 +168,50 @@ it('puts network computers first and keeps usage and contribution in the owner d
 });
 
 it('keeps native service-credit debt and pending holds separate from browser token counts', async () => {
-  const fleet = { connected: true, requester: { name: 'Native requester' }, computers: [], models: [] };
+  const fleet = { connected: true, requester: { id: 'laptop', name: 'Native requester' }, computers: [], models: [] };
   const snapshot = { ...state(), privateComputers: fleet };
-  const accounts = vi.fn(async () => ({ accounts: [{ name: 'Mac', balance: -6, held: 2 }] }));
+  const accounts = vi.fn(async () => ({ accounts: [{ id: 'mac', name: 'Mac', balance: -6, held: 2, available: -8 }] }));
   const session = { getState: () => snapshot, subscribe(fn) { fn(snapshot); return () => {}; },
     privateComputers: { state: () => fleet, accounts } };
   const detach = bindProductionSurface(document.body, session);
   const details = document.querySelector('[data-private-account]');
   details.open = true; details.dispatchEvent(new Event('toggle'));
-  await vi.waitFor(() => expect(document.querySelector('[data-private-balances]').textContent).toContain('Mac · -6 credits · 2 held, pending'));
+  await vi.waitFor(() => expect(document.querySelector('[data-private-balances]').textContent)
+    .toBe('Other enrolled accounts: Mac · -6 credits · 2 credits held for unfinished answers · -8 credits available'));
+  // A host without the statement route says so instead of showing an empty history.
+  expect(document.querySelector('[data-private-activity]').textContent).toContain('does not report a statement');
+  expect(document.querySelector('[data-private-statement]').hidden).toBe(true);
   expect(document.querySelector('[data-device-supplied]').textContent).toBe('—');
+  detach();
+});
+
+it('shows the paying account, what it earned and spent, and saves the signed statement', async () => {
+  const fleet = { connected: true, requester: { id: 'yours', name: 'Laptop' }, computers: [{ id: 'yours', activeRequests: 0 }],
+    models: [{ id: 'small', name: 'Small model' }] };
+  const snapshot = { ...state(), privateComputers: fleet };
+  const accounts = vi.fn(async () => ({ accounts: [{ id: 'yours', name: 'Your computers', balance: 12, held: 0, available: 12 },
+    { id: 'other', name: 'Another person', balance: -12, held: 0, available: -12 }] }));
+  const statement = vi.fn(async () => ({ schema: 'reploid.fleet-credit-statement/v1', computerId: 'yours', balance: 12, held: 0,
+    entries: [
+      { sequence: 2, requestId: 'earned', delta: 32, at: 1000, request: { model: { id: 'small' } }, outcome: { outputTokens: 32 } },
+      { sequence: 3, requestId: 'spent', delta: -20, at: 2000, request: { model: { id: 'small' } }, outcome: { outputTokens: 20 } }],
+    expired: [{ requestId: 'dropped', request: { model: { id: 'small' }, createdAt: 3000 }, outcome: { status: 'expired', settledAt: 3500 } }] }));
+  const session = { getState: () => snapshot, subscribe(fn) { fn(snapshot); return () => {}; },
+    privateComputers: { state: () => fleet, accounts, statement } };
+  const detach = bindProductionSurface(document.body, session);
+  const details = document.querySelector('[data-private-account]');
+  details.open = true; details.dispatchEvent(new Event('toggle'));
+  await vi.waitFor(() => expect(document.querySelector('[data-private-own-account]').textContent).toBe('Your account (Your computers): 12 credits'));
+  expect([...document.querySelectorAll('[data-private-activity] li span')].map(node => node.textContent)).toEqual([
+    'Hold released unclaimed for Small model · nothing charged',
+    'Spent 20 credits asking Small model · 20 output tokens',
+    'Earned 32 credits serving Small model · 32 output tokens']);
+  expect(document.querySelector('[data-private-balances]').textContent).toBe('Other enrolled accounts: Another person · -12 credits');
+  const statementButton = document.querySelector('[data-private-statement]');
+  expect(statementButton.hidden).toBe(false);
+  URL.createObjectURL ??= () => 'blob:statement'; URL.revokeObjectURL ??= () => {};
+  statementButton.click();
+  await vi.waitFor(() => expect(statement).toHaveBeenCalledTimes(2));
   detach();
 });
 

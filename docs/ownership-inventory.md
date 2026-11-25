@@ -18,10 +18,10 @@ Product entries: `index.html`, `pool-entry.html`, `poolday-design.html`, `docume
 
 | Owner | Files |
 | --- | ---: |
-| apps/poolday | 398 |
+| apps/poolday | 399 |
 | self | 457 |
 | shared | 2518 |
-| total | 3373 |
+| total | 3374 |
 
 Every file lives in its owner's root.
 
@@ -930,6 +930,7 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `ui/pool-home/run-result-view.js` | `apps/poolday/ui/pool-home/run-result-view.js` | apps/poolday | Reached only from product entries. |
 | `ui/pool-home/run-visual-state.js` | `apps/poolday/ui/pool-home/run-visual-state.js` | apps/poolday | Reached only from product entries. |
 | `ui/pool-home/sequence-consent.js` | `apps/poolday/ui/pool-home/sequence-consent.js` | apps/poolday | Reached only from product entries. |
+| `ui/pool-home/service-credit-text.js` | `apps/poolday/ui/pool-home/service-credit-text.js` | apps/poolday | Reached only from product entries. |
 | `ui/pool-home/shell-view.js` | `apps/poolday/ui/pool-home/shell-view.js` | apps/poolday | Reached only from product entries. |
 | `ui/pool-home/specialist-routes.js` | `apps/poolday/ui/pool-home/specialist-routes.js` | apps/poolday | Reached only from product entries. |
 | `ui/pool-home/theme.js` | `apps/poolday/ui/pool-home/theme.js` | apps/poolday | Reached only from product entries. |

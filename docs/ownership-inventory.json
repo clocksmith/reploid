@@ -18,7 +18,7 @@
     "kernel/boot.js"
   ],
   "counts": {
-    "apps/poolday": 398,
+    "apps/poolday": 399,
     "self": 457,
     "shared": 2518
   },
@@ -5379,6 +5379,12 @@
     {
       "served": "ui/pool-home/sequence-consent.js",
       "source": "apps/poolday/ui/pool-home/sequence-consent.js",
+      "owner": "apps/poolday",
+      "basis": "Reached only from product entries."
+    },
+    {
+      "served": "ui/pool-home/service-credit-text.js",
+      "source": "apps/poolday/ui/pool-home/service-credit-text.js",
       "owner": "apps/poolday",
       "basis": "Reached only from product entries."
     },

@@ -1,6 +1,7 @@
 import { projectExecutionRibbon, RECORDED_GPU_TITLE } from './execution-ribbon.js';
 import { escapeHtml as escape } from '../components/attachments.js';
 import { interfaceIcon } from '../components/interface-icons.js';
+import { serviceCreditOutcomeText } from './service-credit-text.js';
 
 /** Observed attempt data only. Token deltas are not assumed to be single tokens. */
 export function projectExecutionActivity(state) {
@@ -129,7 +130,7 @@ export function updateExecutionDetail(detail, state) {
   }
   const credit = view.execution?.serviceCredit;
   if (credit) {
-    facts.push(['Service credits', typeof credit.settledAt === 'number' ? `${credit.charge} settled` : 'Pending']);
+    facts.push(['Service credits', serviceCreditOutcomeText(credit)]);
   }
   const transfer = view.execution?.stepSummary?.metrics?.transferMs;
   const transferMs = view.transferMs ?? (transfer?.count > 0 && transfer.count === view.execution.stepSummary.count ? transfer.total : null);

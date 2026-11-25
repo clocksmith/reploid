@@ -54,6 +54,11 @@ export function createFleetBrowserBridgeHandler({ host, token, origins, basePath
       if (routePath === '/accounts') {
         response.setHeader('Content-Type', 'application/json'); response.end(JSON.stringify(await host.balances())); return;
       }
+      if (routePath === '/statement') {
+        // This requester's own account journal with each entry's terms, outcome and signed evidence (credit-statement.js).
+        assert(typeof host.statement === 'function', 'Statements are not available on this host');
+        response.setHeader('Content-Type', 'application/json'); response.end(JSON.stringify(await host.statement())); return;
+      }
       if (routePath === '/cancel') {
         assert(pending.has(body.attemptId), 'No active bridge request');
         host.cancel(body.attemptId); response.setHeader('Content-Type', 'application/json'); response.end(JSON.stringify({ status: 'stopping' })); return;

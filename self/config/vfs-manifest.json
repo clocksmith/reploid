@@ -860,6 +860,7 @@
     "ui/pool-home/run-result-view.js",
     "ui/pool-home/run-visual-state.js",
     "ui/pool-home/sequence-consent.js",
+    "ui/pool-home/service-credit-text.js",
     "ui/pool-home/shell-view.js",
     "ui/pool-home/specialist-routes.js",
     "ui/pool-home/theme.js",

@@ -175,7 +175,7 @@ it('shows live queue position, cached prefix token reuse and service-credit sett
   updateExecutionActivity(root, state);
   expect(root.querySelector('[data-execution-trigger]').getAttribute('aria-label')).toBe('Queued · 2 of 3. Execution details');
   expect(root.textContent).toContain('Queue position2 of 3');
-  expect(root.textContent).toContain('Service creditsPending');
+  expect(root.textContent).toContain('Service creditsPending · outcome not yet settled');
 
   attempt.status = 'completed';
   attempt.execution = {
@@ -193,5 +193,12 @@ it('shows live queue position, cached prefix token reuse and service-credit sett
   expect(root.textContent).toContain('Cached prefix tokens96');
   expect(root.textContent).toContain('Computed prompt tokens24');
   expect(root.textContent).toContain('Admission wait0.41 s');
-  expect(root.textContent).toContain('Service credits24 settled');
+  expect(root.textContent).toContain('Service credits24 credits charged');
+  // A Stop under zero terminal terms and a refused request both say what was charged.
+  attempt.execution.serviceCredit = { status: 'cancelled', charge: 0, outputTokens: null, settledAt: 1700000000000 };
+  updateExecutionActivity(root, state);
+  expect(root.textContent).toContain('Service creditsStopped · nothing charged');
+  attempt.execution.serviceCredit = { status: 'cancelled_queued', charge: 0, outputTokens: 0, settledAt: 1700000000000 };
+  updateExecutionActivity(root, state);
+  expect(root.textContent).toContain('Service creditsNot sent · nothing charged');
 });

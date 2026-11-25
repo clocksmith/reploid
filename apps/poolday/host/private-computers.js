@@ -84,6 +84,8 @@ export function createPrivateComputers({ storage = globalThis.sessionStorage, fe
       storage?.removeItem(KEY); onChange(); },
     async receipt(id) { return (await call('/receipt', { id })).json(); },
     async accounts() { return (await call('/accounts')).json(); },
+    /** This requester's own account statement, checkable offline with server/fleet/credit-statement.js. */
+    async statement() { return (await call('/statement')).json(); },
     async recover(input, signal = AbortSignal.timeout(30000)) {
       const target = connection, version = epoch, stateAtSend = snapshot;
       assert(state().connected && stateAtSend.privacyProtocol === ROUTE_PROTOCOL, 'Current paired route required for recovery');
@@ -190,7 +192,19 @@ export function createPrivateComputers({ storage = globalThis.sessionStorage, fe
               placement = { ...placement, ...event.execution };
               controls.onState({ threadId, attemptId, status: event.status || 'queued', execution: structuredClone(placement) });
             }
-            if (event.error) { const error = Error(event.error); error.serviceCredit = event.serviceCredit; throw error; }
+            if (event.error) {
+              const error = Error(event.error), outcome = event.disconnect;
+              // A request the host refused before dispatch (for example too few credits) left nothing to settle;
+              // say so rather than leaving its credit record pending.
+              error.serviceCredit = event.serviceCredit || (outcome?.dispatched === false && outcome.finished
+                ? { id: outcome.reservationId, status: outcome.finished.status, charge: 0, outputTokens: 0, settledAt: outcome.finished.settledAt }
+                : undefined);
+              // An unsettled dispatched request keeps its hold; the host's outcome record says how much.
+              if (error.serviceCredit && typeof error.serviceCredit.settledAt !== 'number' && Number.isSafeInteger(outcome?.unknown?.heldCredits)) {
+                error.serviceCredit = { ...error.serviceCredit, heldCredits: outcome.unknown.heldCredits };
+              }
+              throw error;
+            }
             if (event.delta !== undefined) {
               assertCurrent();
               const text = typeof event.delta === 'string' ? event.delta : event.delta.text;

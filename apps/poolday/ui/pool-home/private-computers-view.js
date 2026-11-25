@@ -1,4 +1,5 @@
 import { escapeHtml as escape } from '../components/attachments.js';
+import { accountText, creditAccounts, creditActivity } from './service-credit-text.js';
 const gb = value => Number.isFinite(value) ? `${(value / 1024 ** 3).toFixed(1)} GiB` : 'Not reported';
 export const renderPrivateComputers = () => `<section class="pool-stack pool-gap-sm" data-private-computers>
   <h3 class="pool-subheading">Your private computers</h3><p class="pool-small pool-muted" data-private-status>Not connected</p>
@@ -8,7 +9,11 @@ export const renderPrivateComputers = () => `<section class="pool-stack pool-gap
     <label>Pairing secret<input class="pool-input" name="secret" type="password" autocomplete="off" required></label>
     <button class="pool-button btn-primary" type="submit">Connect</button></form></details>
   <ul class="pool-list pool-stack pool-gap-sm" data-private-list></ul>
-  <details class="pool-disclosure" data-private-account hidden><summary>Service credits</summary><p class="pool-caption pool-muted">Non-cash credits. Negative balances are allowed within your host’s limit. Held credits remain pending until work is reconciled.</p><div data-private-balances></div></details>
+  <details class="pool-disclosure" data-private-account hidden><summary>Service credits</summary><div class="pool-stack pool-gap-sm">
+    <p class="pool-caption pool-muted">Non-cash credits with no cash value. Your computers earn them by answering for others and spend them when you ask other computers. Before Send, each answer shows the most it can cost. Your host’s limit may allow a negative balance. Held credits stay pending until that answer is settled.</p>
+    <p data-private-own-account></p><ul class="pool-list pool-stack pool-gap-sm pool-small" data-private-activity></ul>
+    <p class="pool-caption pool-muted" data-private-balances></p>
+    <button class="pool-button btn-ghost" type="button" data-private-statement>Save statement</button></div></details>
   <button class="pool-button btn-ghost" type="button" data-private-disconnect hidden>Disconnect private computers</button>
   <p class="pool-small" role="alert" data-private-error hidden></p></section>`;
 
@@ -48,8 +53,35 @@ export function bindPrivateComputers(root, session) {
   find('[data-private-connect]').addEventListener('submit', event => { event.preventDefault(); const form = event.currentTarget;
     void act(async () => { await port.connect(form.elements.address.value, form.elements.secret.value); form.elements.secret.value = ''; }); }, { signal: controller.signal });
   find('[data-private-disconnect]').addEventListener('click', () => void act(() => port.disconnect()), { signal: controller.signal });
-  find('[data-private-account]').addEventListener('toggle', () => { if (!find('[data-private-account]').open) return;
-    void act(async () => { const value = await port.accounts(); find('[data-private-balances]').innerHTML = value.accounts.map(row =>
-      `<p>${escape(row.name)} · ${row.balance} credits${row.held ? ` · ${row.held} held, pending` : ''}</p>`).join(''); }); }, { signal: controller.signal });
-  return { update: render, dispose() { controller.abort(); } };
+  // The account view is read when opened, again when this pool's active work changes, and at most every 10 s while open.
+  let loadedAt = 0, loading = false, activeKey = '';
+  const loadAccount = () => {
+    if (loading || !find('[data-private-account]').open || !port.state().connected) return;
+    loading = true; loadedAt = Date.now();
+    void act(async () => {
+      const fleet = port.state();
+      const [snapshot, statement] = await Promise.all([port.accounts(), port.statement?.().catch(() => null) ?? null]);
+      const { own, others } = creditAccounts(snapshot, fleet.requester?.id);
+      find('[data-private-own-account]').textContent = own ? `Your account (${own.name}): ${accountText(own)}` : 'This host’s account was not reported.';
+      const modelName = id => fleet.models?.find(model => model.id === id)?.name || id;
+      const rows = creditActivity(statement, { modelName });
+      find('[data-private-activity]').innerHTML = statement ? rows.length ? rows.map(row => `<li><span>${escape(row.text)}</span>${Number.isFinite(row.at)
+        ? ` <time class="pool-muted" datetime="${escape(new Date(row.at).toISOString())}">${escape(new Date(row.at).toLocaleString())}</time>` : ''}</li>`).join('')
+        : '<li class="pool-muted">No credit activity yet.</li>' : '<li class="pool-muted">This host does not report a statement. Update the native host.</li>';
+      find('[data-private-balances]').textContent = others.length ? `Other enrolled accounts: ${others.map(row => `${row.name} · ${accountText(row)}`).join('; ')}` : '';
+      find('[data-private-statement]').hidden = !statement;
+    }).finally(() => { loading = false; });
+  };
+  find('[data-private-account]').addEventListener('toggle', loadAccount, { signal: controller.signal });
+  find('[data-private-statement]').addEventListener('click', () => void act(async () => {
+    const statement = await port.statement();
+    const url = URL.createObjectURL(new Blob([JSON.stringify(statement, null, 2)], { type: 'application/json' }));
+    const link = document.createElement('a'); link.href = url; link.download = 'reploid-service-statement.json'; link.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }), { signal: controller.signal });
+  return { update(state) {
+    render(state);
+    const fleet = state?.privateComputers || port.state();
+    const key = JSON.stringify((fleet.computers || []).map(row => [row.id, row.activeRequests ?? 0, row.queuedRequests ?? 0]));
+    if (key !== activeKey || Date.now() - loadedAt > 10000) { activeKey = key; loadAccount(); }
+  }, dispose() { controller.abort(); } };
 }

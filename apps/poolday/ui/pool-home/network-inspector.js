@@ -5,6 +5,7 @@ import { renderOwnerPairingControls, bindOwnerPairingControls } from './owner-pa
 import { renderCircleInviteControls, bindCircleInviteControls } from './circle-invites-view.js';
 import contextPolicy from '../../config/chat-context-policy.json' with { type: 'json' };
 import { updateExecutionDetail } from './execution-activity.js';
+import { serviceCreditOutcomeText } from './service-credit-text.js';
 import { projectContextIndicator } from './context-indicator.js';
 import { bindDrawer } from '../components/drawer.js';
 import { workspaceHref } from './workspace-navigation.js';
@@ -249,9 +250,17 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
     const id = creditRequest, receipt = await session.privateComputers.receipt(id);
     const url = URL.createObjectURL(new Blob([JSON.stringify(receipt, null, 2)], { type: 'application/json' }));
     const link = document.createElement('a'); link.href = url; link.download = 'reploid-service-receipt.json'; link.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
-    if (id === creditRequest) { const label = find('[data-credit-receipt-status]'); label.hidden = false;
-      label.textContent = receipt.state === 'settled' ? `${receipt.outcome.charge} credits settled` : 'Pending · outcome not yet settled'; }
+    if (id === creditRequest) showLedgerOutcome(receipt, 'Saved');
   }));
+  // The answer's own record can be older than the ledger: a pending hold may have settled or been released since.
+  const ledgerOutcome = receipt => serviceCreditOutcomeText(receipt.state === 'settled' ? receipt.outcome
+    : { status: receipt.state === 'abandoned' ? 'abandoned' : 'pending', heldCredits: receipt.binding?.maximum });
+  const showLedgerOutcome = (receipt, prefix) => { const label = find('[data-credit-receipt-status]'); label.hidden = false;
+    label.textContent = `${prefix} · ${ledgerOutcome(receipt)}`; };
+  const checkPendingCredit = (id, credit) => {
+    if (!id || typeof credit?.settledAt === 'number' || !session.privateComputers?.receipt) return;
+    void session.privateComputers.receipt(id).then(receipt => { if (id === creditRequest) showLedgerOutcome(receipt, 'Ledger now'); }, () => {});
+  };
   const render = snapshot => {
     const state = withComputerLabels(snapshot, session);
     // Route preference orders computers only when several may answer; otherwise it says why it is off.
@@ -280,6 +289,7 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
     find('[data-credit-receipt]').hidden = !creditRequest || !state.privateComputers?.connected;
     if (key !== executionKey) {
       find('[data-credit-receipt-status]').hidden = true;
+      if (state.privateComputers?.connected && !view.active) checkPendingCredit(creditRequest, view.execution?.serviceCredit);
       executionKey = key; find('[data-inspector-route]').innerHTML = routeMarkup(view);
       find('[data-ribbon-facts]').innerHTML = detailMarkup(view);
       const events = [];

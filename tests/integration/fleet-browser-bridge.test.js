@@ -346,3 +346,54 @@ it('refuses a paired advertisement that labels its remote coordinator as local',
     expect(sent.some(url => url.endsWith('/generate'))).toBe(false);
   } finally { client.close(); }
 });
+
+it('returns only the paired requester’s own statement and refuses it without pairing', async () => {
+  const statement = { schema: 'reploid.fleet-credit-statement/v1', computerId: 'yours', balance: 3, held: 0, entries: [], expired: [] };
+  const native = { ...host(), statement: vi.fn(async () => structuredClone(statement)) };
+  const bridge = await startFleetBrowserBridge({ host: native, origins: [origin], token });
+  const client = createPrivateComputers({ storage: null, fetchImpl });
+  try {
+    expect((await fetch(bridge.url + '/statement', { method: 'POST', body: '{}', headers: { Origin: origin } })).status).toBe(400);
+    expect(native.statement).not.toHaveBeenCalled();
+    await client.connect(bridge.url, token);
+    expect(await client.statement()).toEqual(statement);
+    expect(native.statement).toHaveBeenCalledTimes(1);
+  } finally { client.close(); await bridge.close(); }
+});
+
+it('shows a refused-before-dispatch request as not sent, with the ledger reason, instead of a pending charge', async () => {
+  const native = host();
+  native.generate.mockImplementation(async () => {
+    throw Object.assign(Error('Service-credit admission limit reached: not enough service credits. This answer can cost up to 48 and 32 can be spent now. Nothing was sent.'),
+      { disconnect: { schema: 'reploid.request-outcome/v1', reservationId: null, dispatched: false,
+        finished: { status: 'cancelled_queued', charge: 0, outputTokens: 0, settledAt: 5, evidenceHash: null } } });
+  });
+  const bridge = await startFleetBrowserBridge({ host: native, origins: [origin], token });
+  const client = createPrivateComputers({ storage: null, fetchImpl });
+  try {
+    await client.connect(bridge.url, token); const states = [];
+    await expect(client.execute({ threadId: 't', attemptId: 'refused', model: client.models()[0], messages: [{ role: 'user', content: 'x' }], permissions: { sharingScope: 'mesh' }, privacy: plaintextPolicy() },
+      { signal: new AbortController().signal, requestApproval: async () => true, onState: row => states.push(row), onDelta() {} }))
+      .rejects.toThrow('This answer can cost up to 48 and 32 can be spent now. Nothing was sent.');
+    expect(states.at(-1).execution.serviceCredit).toEqual({ id: null, status: 'cancelled_queued', charge: 0, outputTokens: 0, settledAt: 5 });
+  } finally { client.close(); await bridge.close(); }
+});
+
+it('keeps a dropped provider’s hold visible with its amount until the ledger settles it', async () => {
+  const native = host();
+  native.generate.mockImplementation(async (_, delta, route) => {
+    route({ recipientIdentity: provider, requestId: 'work' }); delta('Partial');
+    throw Object.assign(Error('Provider disconnected'), { serviceCredit: { id: 'service:held', status: 'pending' },
+      disconnect: { dispatched: true, finished: null, unknown: { reservationId: 'service:held', providerExecution: 'unresolved', heldCredits: 48 } } });
+  });
+  const bridge = await startFleetBrowserBridge({ host: native, origins: [origin], token });
+  const client = createPrivateComputers({ storage: null, fetchImpl });
+  try {
+    await client.connect(bridge.url, token); const states = [], deltas = [];
+    await expect(client.execute({ threadId: 't', attemptId: 'dropped', model: client.models()[0], messages: [{ role: 'user', content: 'x' }], permissions: { sharingScope: 'mesh' }, privacy: plaintextPolicy() },
+      { signal: new AbortController().signal, requestApproval: async () => true, onState: row => states.push(row), onDelta: row => deltas.push(row.text) }))
+      .rejects.toThrow('Provider disconnected');
+    expect(deltas).toEqual(['Partial']);
+    expect(states.at(-1).execution.serviceCredit).toEqual({ id: 'service:held', status: 'pending', heldCredits: 48 });
+  } finally { client.close(); await bridge.close(); }
+});
