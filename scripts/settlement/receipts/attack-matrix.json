@@ -1,0 +1,201 @@
+{
+  "schema": "reploid.settlement-attack-matrix/v1",
+  "generatedAt": "2026-11-25T02:38:24.255Z",
+  "policy": {
+    "schema": "reploid.service-credit-policy/v1",
+    "unit": "noncash-service-credit",
+    "version": "settlement-replay-1",
+    "creditsPerOutputToken": 3,
+    "maxDebt": 1000,
+    "maxOutputTokens": 128,
+    "maxPendingPerComputer": 4,
+    "maxClockSkewMs": 1000,
+    "maxRequestMs": 120000,
+    "allowSameOwner": false,
+    "partitionUnclaimedReleaseMs": 60000
+  },
+  "acknowledgmentBound": 2,
+  "operatorGoalsAchieved": {
+    "replay": 0,
+    "operatorLog": 6,
+    "countersign": 2
+  },
+  "operatorGoals": 6,
+  "rows": [
+    {
+      "kind": "operator",
+      "goal": "G1 overcharge the requester",
+      "replay": {
+        "achieved": false,
+        "status": "settled"
+      },
+      "operatorLog": {
+        "achieved": true
+      },
+      "countersign": {
+        "achieved": false,
+        "accepted": true
+      }
+    },
+    {
+      "kind": "operator",
+      "goal": "G2 shift credit between stages (one stage colludes)",
+      "replay": {
+        "achieved": false,
+        "status": "settled"
+      },
+      "operatorLog": {
+        "achieved": true
+      },
+      "countersign": {
+        "achieved": true,
+        "accepted": true
+      }
+    },
+    {
+      "kind": "operator",
+      "goal": "G3 drop one stage's credit",
+      "replay": {
+        "achieved": false,
+        "status": "settled"
+      },
+      "operatorLog": {
+        "achieved": true
+      },
+      "countersign": {
+        "achieved": true,
+        "accepted": true
+      }
+    },
+    {
+      "kind": "operator",
+      "goal": "G4 fabricate a request",
+      "replay": {
+        "achieved": false,
+        "status": "none"
+      },
+      "operatorLog": {
+        "achieved": true
+      },
+      "countersign": {
+        "achieved": false,
+        "accepted": false
+      }
+    },
+    {
+      "kind": "operator",
+      "goal": "G5 charge an attempt a stage abandoned",
+      "replay": {
+        "achieved": false,
+        "status": "expired"
+      },
+      "operatorLog": {
+        "achieved": true
+      },
+      "countersign": {
+        "achieved": false,
+        "accepted": false
+      }
+    },
+    {
+      "kind": "operator",
+      "goal": "G6 settle one reservation twice",
+      "replay": {
+        "achieved": false,
+        "status": "settled"
+      },
+      "operatorLog": {
+        "achieved": true,
+        "note": "achieved unless the log verifier keys entries by reservation; the operator chooses the IDs"
+      },
+      "countersign": {
+        "achieved": false,
+        "note": "countersignatures bind the reservation ID",
+        "computedIfSummed": 30
+      }
+    },
+    {
+      "kind": "participant",
+      "case": "P1 requester stops paying after 10 of 40 outputs",
+      "replay": {
+        "status": "settled",
+        "delivered": 13,
+        "paid": 10,
+        "unpaidOutputs": 3,
+        "bound": 3
+      },
+      "countersign": {
+        "status": "requester never countersigns",
+        "delivered": 40,
+        "paid": 0,
+        "unpaidOutputs": 40,
+        "note": "nothing in a post-hoc log stops delivery"
+      },
+      "operatorLog": {
+        "status": "operator decides",
+        "note": "trusted operator"
+      }
+    },
+    {
+      "kind": "participant",
+      "case": "P2 requester signs two sets of terms",
+      "replay": {
+        "status": "conflict"
+      },
+      "countersign": {
+        "status": "not modelled"
+      }
+    },
+    {
+      "kind": "participant",
+      "case": "P3 final stage signs two output chains",
+      "replay": {
+        "status": "conflict"
+      },
+      "countersign": {
+        "status": "not detectable: no output chain"
+      }
+    },
+    {
+      "kind": "participant",
+      "case": "P4 a stage withholds its closing receipt",
+      "replay": {
+        "status": "unknown",
+        "reason": "the answer was delivered and acknowledged, but no in-time closing receipt was presented for stage 0"
+      },
+      "countersign": {
+        "status": "unsettled: that stage never countersigns"
+      }
+    },
+    {
+      "kind": "participant",
+      "case": "P5 last acknowledgment signed after the deadline",
+      "replay": {
+        "status": "expired",
+        "debit": 0,
+        "acknowledgedInTime": 4,
+        "delivered": 5,
+        "late": [
+          {
+            "kind": "stage-receipt",
+            "partitionIndex": 0,
+            "sequence": 6
+          },
+          {
+            "kind": "stage-receipt",
+            "partitionIndex": 1,
+            "sequence": 6
+          },
+          {
+            "kind": "acknowledgment",
+            "count": 5
+          }
+        ],
+        "note": "the attempt ran past its deadline, so the stages closed late too; under the terms nobody is charged or paid"
+      },
+      "countersign": {
+        "status": "no time rule: whatever the parties sign later"
+      }
+    }
+  ]
+}
