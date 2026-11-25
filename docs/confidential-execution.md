@@ -28,7 +28,14 @@ Source: [`packages/reploid/src/inference/`](../packages/reploid/src/inference/),
   explicit host flag that is off everywhere Reploid ships.
 - **Executor-readable**: `confidentiality: "executor-readable"`. Each computer
   that runs the model reads the content in plaintext. Every route that runs
-  today is executor-readable.
+  today, apart from requester-held edges below, is executor-readable.
+- **Requester-held edges**: `confidentiality: "requester-edges"`. A split whose
+  first and last stage run on devices the requester names as its own. Only
+  those two stages read the prompt and the answer; every other stage reads
+  plaintext intermediate activations and token counts. It is a narrower
+  disclosure, not confidential execution: see
+  [Requester-held edges](#requester-held-edges-requester-edges). API only; the
+  Poolday chat does not offer it yet.
 - **Encrypted** is not used as a product term. WebRTC (DTLS) and HTTPS protect
   the wire. The computer that runs the model still reads the content.
 - **Participants** are the computers allowed to read content: the providers
@@ -239,7 +246,7 @@ it and does not re-verify it.
 | `EXECUTION_PLAN_CHANGED` | The route, participants, backend, model, adapters or charge ceiling differ from the plan, before or at disclosure | Nothing beyond what the plan admitted |
 | `RESULT_UNVERIFIED` | The answer names another model or adapters, contradicts its stream, exceeds the limit, or arrives without an admitted route | The plan's participants already had the content; no result is returned |
 | `EXECUTION_REQUEST_INVALID` | Malformed requirements, a prompt or tool given to `prepare`, an invalid `requestId` | Nothing |
-| `EXECUTION_ROUTE_UNAVAILABLE` | No route meets the requirements, for example local-only on a network-only deployment or a split outside the named participants | Nothing |
+| `EXECUTION_ROUTE_UNAVAILABLE` | No route meets the requirements, for example local-only on a network-only deployment, a split outside the named participants, or `requester-edges` without a route whose ends are the requester's own (it never falls back to a readable split) | Nothing |
 
 On the research protected route, `RESULT_UNVERIFIED` also covers a failed
 known-answer trap and a protocol violation the evaluator signed (an
@@ -382,6 +389,14 @@ conversation port in `host/chat-execution.js`.
   The desktop's own software and anyone with control of it can.
 - **Local-only:** nothing leaves this device. Software on the device can read
   the content.
+- **Requester-edges:** the two edge stages, which the requester names as its
+  own devices, read the prompt and the answer. Each middle stage reads the
+  plaintext activations entering and leaving its layers, the step's token
+  count, the generation settings and timing, and signed settlement records
+  whose output chain carries no text. An operator of a middle stage can try to
+  reconstruct the prompt or the answer from those activations (inversion), and
+  learns the prompt and answer lengths. Middle stages that collude learn nothing
+  more than each learns alone, apart from pooling their activations.
 - **Requester-only (confidential execution):** intended to keep content from
   every executor, including under collusion of all remote parties
   (`collusion: "all-remote"`). No cryptographic or attested backend is qualified,
@@ -817,6 +832,73 @@ the privacy tier is named honestly (neither hardware-attested execution nor
 non-colluding secret sharing may silently pass `requester-only`), and an
 independent security review, the reference answer, and outsider-reproducible
 requester debit and stage payouts are all verified from that same run.
+
+## Requester-held edges (`requester-edges`)
+
+Source: [`chat/execution-policy.js`](../packages/reploid/src/chat/execution-policy.js)
+(`EDGES_BACKEND`, `edgesExecutionRoute`),
+[`contracts/partition-disclosure.js`](../packages/reploid/src/contracts/partition-disclosure.js),
+[`mesh/partitions/partition-route-execution.js`](../packages/reploid/src/mesh/partitions/partition-route-execution.js)
+and [`partition-ordered-peer.js`](../packages/reploid/src/mesh/partitions/partition-ordered-peer.js),
+[`partition-attempt-evidence.js`](../packages/reploid/src/mesh/partitions/partition-attempt-evidence.js),
+[`inference/contract.js`](../packages/reploid/src/inference/contract.js).
+
+### Why this tier
+
+The goal is a split request whose operators cannot read the prompt,
+intermediate state or answer. The mechanisms considered, against what runs on
+ordinary mesh computers today:
+
+- **Hardware-attested execution** trusts the hardware vendor and the attested
+  code. The fleet's GPUs (integrated Intel, Jetson, consumer AMD, Apple) offer
+  no confidential-computing mode, so it cannot run on them.
+- **Homomorphic encryption** (the parked protected route) failed its latency
+  and memory limits for any useful model on fleet GPUs.
+- **Two-server secret sharing of the linear layers** (Doppler's research
+  shares route) hides the input from each provider if the two do not collude,
+  and is strictly stronger than this tier. Its measured small-model runs take
+  seconds per token over the network with the requester computing every
+  non-linear step; it is not integrated with ordered stages, the 27B's packed
+  weights or settlement, so it does not run a catalogued split today.
+- **Activation masking or permutation without a security argument** was
+  rejected: it would invite a confidentiality claim it cannot support.
+- **Requester-held edges** keeps the content itself, the token IDs and text of
+  the prompt and the answer, on the requester's own devices, at almost no cost,
+  using Doppler's ordinary ordered plan (stage 0 holds the embedding and the
+  first layers, the last stage holds the last layers, the final norm and the
+  output head). It runs on this fleet today. What it leaves exposed is named
+  below.
+
+### What it enforces
+
+- The requester names a route whose first and last stage are its own devices.
+  The execution binding (`doppler-partition-edges/v1`) marks those two hops
+  `plaintext` and every other hop `activations`; any other shape is refused.
+- The coordinator's signed grant names only the two edge stages as token
+  recipients. The coordinator sends a middle stage the step's token count and
+  its activation, never token IDs; a middle stage refuses a step that carries
+  token IDs, and its grant check declines token context. Doppler's resident
+  still takes a token array of the step's length, so the middle stage gives it
+  zeros; its layers read only the activation.
+- The output acknowledgments that every stage holds for settlement chain each
+  step with empty text on this route. A chain over each step's text would let a
+  middle stage recover the answer by trying every vocabulary entry. The final
+  stage and the requester, which compute the chain, are the same principal here.
+- `reploid/inference` accepts the value only for such a route: no readable split
+  substitutes for it, and a readable request never runs on one. The plan's
+  `disclosures` list content readers (`contentReadableBy`) and activation readers
+  (`activationsReadableBy`) separately, and the receipt records the tier with
+  `activation-inversion-resistance` and `edge-device-ownership` as not verified.
+
+### What it does not protect
+
+- Middle-stage activations are plaintext model state; inversion attacks can
+  recover inputs from them, more easily from early layers. A middle operator also
+  learns lengths, timing, the model and the generation settings.
+- Reploid does not verify that the edge devices belong to the requester.
+- Requester-only stays unavailable and keeps failing closed. This tier is not a
+  step on the way to passing it silently: it is a separately named disclosure.
+- No independent security review has examined it.
 
 ## Not claimed
 
