@@ -23,7 +23,8 @@
  *   node scripts/pilot/browser-reliability.js --self-check
  *
  * `--prompts` takes a file of `{ prompts: [{ id, prompt, model }] }`; without it the list in reliability.js is used.
- * One model per run: `--model` is the value of the model's choice in the "Answer on" picker, chosen once at setup.
+ * One model per run: `--model` is the value of the model's choice in the sheet, chosen during the setup request.
+ * If the setup request does not complete, the run stops there and reports why; it does not send the measured ones.
  * `--self-check` runs the whole script against a mock page that plays each ending. It checks this script's timing
  * and labels, and nothing about the product.
  *
@@ -96,17 +97,47 @@ function installProbe() {
 
 const ENDED = /^(Complete|Failed|Stopped|Interrupted|Disconnected)\b/;
 
-/** One request in a new thread. Never throws for a product failure: every ending becomes a record. */
-async function measureOne(page, { prompt, timeoutMs }) {
+const pickerOpen = page => page.evaluate(() => Boolean(globalThis.document.querySelector('[data-model-picker]')?.open));
+const rowCount = page => page.evaluate(() => globalThis.document.querySelectorAll('[data-message-stream] .chat-message-row').length);
+
+/** The "Where should this run?" sheet is modal: left open, it blocks every later request. */
+async function closeSheet(page) {
+  if (!await pickerOpen(page)) return;
+  await page.locator('[data-model-picker-close]').click({ timeout: 3000 }).catch(() => page.keyboard.press('Escape'));
+  await page.waitForFunction(() => !globalThis.document.querySelector('[data-model-picker]')?.open, null, { timeout: 5000 }).catch(() => {});
+}
+
+/** An empty thread is already new. Otherwise the thread list opens from its toggle, and New thread closes it again. */
+async function newThread(page) {
+  if (await rowCount(page) === 0) return;
+  const button = page.locator('[data-new-thread]');
+  if (!await button.isVisible()) await page.locator('[data-toggle-thread-rail]').click({ timeout: 5000 });
+  await button.click({ timeout: 5000 });
+  await page.waitForFunction(() => globalThis.document.querySelectorAll('[data-message-stream] .chat-message-row').length === 0, null, { timeout: 5000 });
+}
+
+/**
+ * One request in a new thread. Never throws for a product failure: every ending becomes a record. `model`, when
+ * given, is chosen inside the sheet if the sheet opens.
+ */
+async function measureOne(page, { prompt, timeoutMs, model = null, sheetWaitMs = 30000 }) {
   const record = { completed: false, failure: null, firstTokenMs: null, stages: { sendEnabledMs: null, firstTokenMs: null, endMs: null },
     sheet: false, permissionPrompt: false, outputChars: 0, activity: '', statusText: '', sendAt: null };
-  if (!await page.locator('[data-new-thread]').isVisible()) await page.locator('[data-toggle-thread-rail]').click().catch(() => {});
-  await page.locator('[data-new-thread]').click({ timeout: 10000 }).catch(() => {});
-  await page.locator('[data-composer-input]').fill(prompt);
-  const typed = Date.now();
-  await page.waitForFunction(() => { const send = globalThis.document.querySelector('[data-composer-send]'); return send && !send.disabled && !send.hidden; },
-    null, { timeout: 60000 });
-  record.stages.sendEnabledMs = Date.now() - typed;
+  try {
+    await closeSheet(page);
+    await newThread(page);
+    await page.locator('[data-composer-input]').fill(prompt);
+    const typed = Date.now();
+    await page.waitForFunction(() => { const send = globalThis.document.querySelector('[data-composer-send]'); return send && !send.disabled && !send.hidden; },
+      null, { timeout: 60000 });
+    record.stages.sendEnabledMs = Date.now() - typed;
+  } catch (error) {
+    // The page never offered Send: nothing was asked, and the request counts as one the page could not take.
+    const status = await page.locator('[data-model-status]').innerText({ timeout: 2000 }).catch(() => '');
+    record.failure = 'unavailable';
+    record.statusText = `Send was not offered: ${status.trim() || String(error.message).split('\n')[0]}`.slice(0, 300);
+    return record;
+  }
   record.sendAt = new Date().toISOString();
   await page.evaluate(() => globalThis.__pilot.send());
   let state, started = false, sheetProblem = null, timedOut = false;
@@ -114,19 +145,31 @@ async function measureOne(page, { prompt, timeoutMs }) {
     state = await page.evaluate(() => globalThis.__pilot.state());
     if (state.sheetOpen && !record.sheet) {
       record.sheet = true;
-      await page.locator('[data-execution-choice=network]').click();
-      const ready = await page.waitForFunction(() => { const button = globalThis.document.querySelector('[data-change-model]');
-        return button && !button.disabled && button.textContent.trim() === 'Send'; }, null, { timeout: 30000 }).then(() => true, () => false);
-      if (!ready) { sheetProblem = (await page.locator('[data-next-model-status]').innerText().catch(() => '')).trim().slice(0, 300) || 'no computer offered this model'; break; }
-      await page.locator('[data-change-model]').click();
+      await page.locator('[data-execution-choice=network]').click({ timeout: 5000 }).catch(() => {});
+      if (model) await page.locator(`[data-model-picker] .chat-model-choices input[value="${model}"]`).filter({ visible: true }).click({ timeout: 15000 }).catch(() => {});
+      // Either the choice sends by itself and the sheet closes, or its button turns into Send.
+      const ready = await page.waitForFunction(() => {
+        const picker = globalThis.document.querySelector('[data-model-picker]'), button = globalThis.document.querySelector('[data-change-model]');
+        return !picker?.open || (button && !button.disabled && button.textContent.trim() === 'Send');
+      }, null, { timeout: sheetWaitMs }).then(() => true, () => false);
+      if (!ready) {
+        const offered = await page.evaluate(() => [...globalThis.document.querySelectorAll('[data-execution-choice]')]
+          .map(node => (node.textContent || '').trim().replace(/\s+/g, ' ')).join(' | ')).catch(() => '');
+        const next = (await page.locator('[data-next-model-status]').innerText({ timeout: 2000 }).catch(() => '')).trim();
+        sheetProblem = [next, offered].filter(Boolean).join(' / ').slice(0, 300) || 'no computer offered this model';
+        await closeSheet(page);
+        break;
+      }
+      if (await pickerOpen(page)) await page.locator('[data-change-model]').click({ timeout: 5000 }).catch(() => {});
       continue;
     }
-    if (state.permissionShown) { record.permissionPrompt = true; await page.locator('[data-remote-permission] [data-remote-permission-allow]').click(); continue; }
+    if (state.permissionShown) { record.permissionPrompt = true; await page.locator('[data-remote-permission] [data-remote-permission-allow]').click({ timeout: 5000 }).catch(() => {}); continue; }
     if (!state.sendShown || state.active || state.outputChars > 0 || state.statusText || state.activity) started = true;
     // Ended: Send is back, the execution line is no longer active, and it names a final status or a system line says why.
     if (started && state.sendShown && !state.active && (ENDED.test(state.activity) || state.statusText)) break;
     if (state.elapsedMs > timeoutMs) {
       timedOut = true;
+      await closeSheet(page);
       await page.locator('[data-answer-stop]:visible, [data-composer-stop]:visible').first().click({ timeout: 5000 }).catch(() => {});
       await page.waitForFunction(() => globalThis.__pilot.state().sendShown, null, { timeout: 15000 }).catch(() => {});
       state = await page.evaluate(() => globalThis.__pilot.state());
@@ -144,8 +187,13 @@ async function measureOne(page, { prompt, timeoutMs }) {
   return record;
 }
 
-/** Opens the page once and sends the setup request and then every measured request, one at a time. */
-export async function runBrowserPilot({ url, prompts, model = null, intervalMs = 25000, timeoutMs = 120000, channel = null, headed = false, onResult = () => {} }) {
+/**
+ * Opens the page once and sends the setup request and then every measured request, one at a time. If the setup
+ * request does not complete, nothing is measured: `notStarted` says why, and that is a failed availability check,
+ * not a measurement of 0 of N.
+ */
+export async function runBrowserPilot({ url, prompts, model = null, intervalMs = 25000, timeoutMs = 120000, sheetWaitMs = 30000, channel = null, headed = false,
+  onResult = () => {} }) {
   const { chromium } = await import('@playwright/test');
   const browser = await chromium.launch({ headless: !headed, ...(channel ? { channel } : {}) });
   try {
@@ -153,25 +201,19 @@ export async function runBrowserPilot({ url, prompts, model = null, intervalMs =
     await page.addInitScript(installProbe);
     await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 });
     await page.locator('[data-composer-send]').waitFor({ state: 'visible', timeout: 60000 });
-    if (model) {
-      await page.locator('[data-open-model]').click();
-      const choice = page.locator(`[data-model-picker] .chat-model-choices input[value="${model}"]`).filter({ visible: true });
-      await choice.waitFor({ state: 'visible', timeout: 60000 });
-      await choice.click();
-      await page.locator('[data-model-picker]').waitFor({ state: 'hidden', timeout: 30000 });
-    }
-    const setup = await measureOne(page, { prompt: 'Say hello in one word.', timeoutMs });
+    const setup = await measureOne(page, { prompt: 'Say hello in one word.', timeoutMs, model, sheetWaitMs });
     const answerOn = (await page.locator('[data-open-model]').getAttribute('aria-label').catch(() => null)) ?? null;
+    if (!setup.completed) return { setup, answerOn, results: [], notStarted: `the setup request did not complete (${setup.failure}): ${setup.statusText || setup.activity || 'no status shown'}` };
     const results = [];
     for (const [index, item] of prompts.entries()) {
       const startedAt = Date.now();
-      const row = { type: 'request', index, promptId: item.id, inputChars: item.prompt.length, ...await measureOne(page, { prompt: item.prompt, timeoutMs }) };
+      const row = { type: 'request', index, promptId: item.id, inputChars: item.prompt.length, ...await measureOne(page, { prompt: item.prompt, timeoutMs, model, sheetWaitMs }) };
       results.push(row);
       onResult(row);
       const wait = intervalMs - (Date.now() - startedAt);
       if (index < prompts.length - 1 && wait > 0) await page.waitForTimeout(wait);
     }
-    return { setup, answerOn, results };
+    return { setup, answerOn, results, notStarted: null };
   } finally {
     await browser.close();
   }
@@ -184,7 +226,7 @@ export async function runBrowserPilot({ url, prompts, model = null, intervalMs =
 const MOCK_PAGE = `<!doctype html><meta charset="utf-8"><title>mock</title>
 <button data-new-thread>New thread</button>
 <div data-message-stream></div>
-<dialog data-model-picker><button data-execution-choice="network">Contributors</button><span data-next-model-status></span><button data-change-model disabled>Choose</button></dialog>
+<dialog data-model-picker><button data-model-picker-close>Close</button><button data-execution-choice="local">This device</button><button data-execution-choice="network">Contributors</button><span data-next-model-status></span><button data-change-model disabled>Choose</button></dialog>
 <div data-remote-permission hidden><button data-remote-permission-allow>Allow</button></div>
 <textarea data-composer-input></textarea><button data-composer-send>Send</button><button data-composer-stop hidden>Stop</button>
 <script>
@@ -195,7 +237,8 @@ const later = (ms, run) => timers.push(setTimeout(run, ms));
 const line = (row, summary, active) => { row.querySelector('[data-execution-trigger]').setAttribute('aria-label', summary + '. Execution details'); row.querySelector('[data-execution-activity]').toggleAttribute('data-active', active); };
 const finish = (row, status, why = '') => { line(row, status + ' · 1 computer · Contributors', false); const system = row.querySelector('[data-system-status]'); system.hidden = !why; system.textContent = why ? 'System · ' + why : ''; send.hidden = false; stop.hidden = true; };
 function start() {
-  const kind = $('[data-composer-input]').value.split(' ')[0];
+  const word = $('[data-composer-input]').value.split(' ')[0];
+  const kind = ['ok', 'slow', 'drop', 'refuse', 'empty', 'fail', 'hang'].includes(word) ? word : 'ok';
   if (!chosen) { $('[data-model-picker]').showModal(); return; }
   if (!allowed) { $('[data-remote-permission]').hidden = false; return; }
   const user = document.createElement('div'); user.className = 'chat-message-row is-user'; stream.append(user);
@@ -216,7 +259,11 @@ function start() {
 send.onclick = start;
 stop.onclick = () => { timers.forEach(clearTimeout); finish(current, 'Stopped', 'Stopped. Your partial answer is saved.'); };
 $('[data-new-thread]').onclick = () => { stream.replaceChildren(); };
-$('[data-execution-choice]').onclick = () => { const button = $('[data-change-model]'); button.disabled = false; button.textContent = 'Send'; };
+const empty = new URLSearchParams(location.search).has('empty');
+$('[data-model-picker-close]').onclick = () => $('[data-model-picker]').close();
+$('[data-execution-choice=network]').onclick = () => { const button = $('[data-change-model]');
+  if (empty) { $('[data-next-model-status]').textContent = 'No contributor serves this model now.'; return; }
+  button.disabled = false; button.textContent = 'Send'; };
 $('[data-change-model]').onclick = () => { chosen = true; $('[data-model-picker]').close(); start(); };
 $('[data-remote-permission-allow]').onclick = () => { allowed = true; $('[data-remote-permission]').hidden = true; start(); };
 </script>`;
@@ -249,6 +296,10 @@ async function selfCheck() {
       && labelOf({ activity: 'Failed', statusText: 'System · This answer could not finish.', outputChars: 0 }) === 'other'
       && labelOf({ outputChars: 0, sheetProblem: 'x' }) === 'unavailable');
     expect('a completed answer shows no system line, only the execution line', by(0).statusText === '' && /^Complete/.test(by(0).activity));
+    const none = await runBrowserPilot({ url: `http://127.0.0.1:${server.address().port}/?empty`, intervalMs: 0, timeoutMs: 1500, sheetWaitMs: 800,
+      prompts: [{ id: 'm0', prompt: 'ok request' }] });
+    expect('a pool with no contributor stops at the setup request, says why, and leaves the sheet closed',
+      none.results.length === 0 && none.setup.failure === 'unavailable' && /did not complete \(unavailable\): No contributor serves this model now/.test(none.notStarted));
     console.log(JSON.stringify({ selfCheck: problems.length === 0 ? 'pass' : 'fail', problems,
       results: results.map(row => ({ id: row.promptId, completed: row.completed, failure: row.failure, firstTokenMs: row.firstTokenMs, endMs: row.stages.endMs })) }, null, 2));
     process.exitCode = problems.length === 0 ? 0 : 1;
@@ -281,7 +332,8 @@ async function main() {
   const host = new URL(values.url).hostname;
   const receipt = { schema: 'reploid.pilot-reliability-browser/v1', startedAt, finishedAt: new Date().toISOString(), label: values.label, rule: RULE,
     page: ['127.0.0.1', 'localhost', '[::1]'].includes(host) ? 'local page' : 'deployed page (address not recorded)', answerOn: run.answerOn, settings,
-    node: process.version, setup: run.setup, summary: summarize(run.results), results: run.results };
+    node: process.version, setup: run.setup, notStarted: run.notStarted,
+    summary: run.notStarted ? { requests: 0, verdict: `not started: ${run.notStarted}` } : summarize(run.results), results: run.results };
   const text = JSON.stringify(receipt, null, 2);
   if (values.out) await fs.writeFile(values.out, `${text}\n`);
   console.log(JSON.stringify({ label: receipt.label, answerOn: receipt.answerOn, ...receipt.summary }, null, 2));
