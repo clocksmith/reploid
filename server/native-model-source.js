@@ -64,7 +64,12 @@ export async function openNativeModelSource({ model, modelDirectory, signal, run
     'Native manifest differs from the selected model id');
   const descriptor = model.source.files.find(row => row.role === 'model-piece-index');
   requireValue(descriptor?.hashAlgorithm === 'sha256', 'Native model requires a pinned piece index');
-  const indexBytes = descriptor.url?.startsWith('/config/model-pieces/')
+  const fetchExternal = async () => {
+    const bytes = await fetchPieceIndex(model.id, descriptor, signal);
+    await retainPieceIndex(root, bytes, signal);
+    return bytes;
+  };
+  let indexBytes = descriptor.url?.startsWith('/config/model-pieces/')
     ? new Uint8Array(await fs.readFile(resolveServedFile(descriptor.url)))
     : await read(descriptor.path).catch(async error => {
       if (error.code !== 'ENOENT') throw error;
@@ -72,10 +77,12 @@ export async function openNativeModelSource({ model, modelDirectory, signal, run
         throw new Error(`Native piece index ${descriptor.path} is not in the model directory`
           + (/^https:/.test(descriptor.url || '') ? `; place the pinned file from ${descriptor.url} there` : ''), { cause: error });
       }
-      const bytes = await fetchPieceIndex(model.id, descriptor, signal);
-      await retainPieceIndex(root, bytes, signal);
-      return bytes;
+      return fetchExternal();
     });
+  // A directory kept across a model rename can still hold the earlier name's external index beside the new
+  // manifest; reading it as this model's index refused every start. The pinned copy replaces it (the old one
+  // is kept as pieces.json.superseded-*) and is checked against the catalog below like any other.
+  if (hash(indexBytes) !== 'sha256:' + descriptor.hash && isExternalPieceIndex(model.id, descriptor)) indexBytes = await fetchExternal();
   requireValue(hash(indexBytes) === 'sha256:' + descriptor.hash, 'Native piece index differs from the approved catalog');
   let nodeGather;
   if (gather !== null) {

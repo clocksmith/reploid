@@ -105,6 +105,41 @@ it('adopts the directory of the identity a reissued model replaced, after hashin
   expect(await fs.readFile(path.join(other, 'shard_00000.bin'))).toEqual(f.shard);
 });
 
+it('replaces the earlier name\'s piece index with the manifest when it adopts a renamed directory, keeping both', async () => {
+  const f = fixture(), root = await folder();
+  const earlier = Buffer.from(JSON.stringify({ ...f.manifest, modelId: 'fixture-earlier-name' }));
+  const earlierIndex = Buffer.from(JSON.stringify({ ...f.index, manifestIdentity: 'sha256:' + hash(earlier) }));
+  const indexBytes = Buffer.from(JSON.stringify(f.index));
+  await fs.writeFile(path.join(root, 'shard_00000.bin'), f.shard);
+  await fs.writeFile(path.join(root, 'tokenizer.json'), f.tokenizer);
+  await fs.writeFile(path.join(root, 'manifest.json'), earlier);
+  await fs.writeFile(path.join(root, 'pieces.json'), earlierIndex);
+  const reissued = { ...f.model, supersedes: [{ id: 'fixture-earlier-name', identity: 'sha256:' + hash(earlier) }] };
+  const options = f.options(root), read = [];
+  options.readMetadata = async file => {
+    read.push(file.path);
+    if (file.path === 'pieces.json') return new Uint8Array(indexBytes);
+    return new Uint8Array(f.manifestBytes);
+  };
+  const result = await fillWholeModelDirectory({ ...options, model: reissued });
+  expect(result).toMatchObject({ fetchedPieces: 0 });
+  // The index is replaced in the same fill, before the manifest, from the verified source.
+  expect(read).toEqual(['pieces.json', 'manifest.json']);
+  expect(await fs.readFile(path.join(root, 'pieces.json'))).toEqual(indexBytes);
+  expect(await fs.readFile(path.join(root, 'manifest.json'))).toEqual(f.manifestBytes);
+  expect(await fs.readFile(path.join(root, `pieces.json.superseded-${hash(earlierIndex).slice(0, 12)}`))).toEqual(earlierIndex);
+  expect(await fs.readFile(path.join(root, `manifest.json.superseded-${hash(earlier).slice(0, 12)}`))).toEqual(earlier);
+  // Bytes that differ from the catalog's pin never replace the kept index.
+  const other = await folder();
+  for (const [name, bytes] of [['shard_00000.bin', f.shard], ['tokenizer.json', f.tokenizer], ['manifest.json', earlier], ['pieces.json', earlierIndex]]) {
+    await fs.writeFile(path.join(other, name), bytes);
+  }
+  const forged = { ...f.options(other), model: reissued, readMetadata: async file => new Uint8Array(file.path === 'pieces.json' ? earlierIndex : f.manifestBytes) };
+  await expect(fillWholeModelDirectory(forged)).rejects.toMatchObject({ code: 'WHOLE_MODEL_FILE_REJECTED' });
+  expect(await fs.readFile(path.join(other, 'pieces.json'))).toEqual(earlierIndex);
+  expect(await fs.readFile(path.join(other, 'manifest.json'))).toEqual(earlier);
+});
+
 it('never overwrites another model and stops when the directory lacks room', async () => {
   const f = fixture(), root = await folder();
   await fs.writeFile(path.join(root, 'manifest.json'), '{"modelId":"other"}');

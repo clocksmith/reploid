@@ -394,14 +394,20 @@ it('adopts a directory that still holds the manifest of the name this model repl
   const earlier = Buffer.from(JSON.stringify({ modelId: 'native-fixture-earlier-name', hashAlgorithm: 'sha256',
     shards: [{ filename: 'weights.bin', size: 8, hash: hash(Buffer.concat(f.chunks)) }] }));
   const model = { ...f.model, supersedes: [{ id: 'native-fixture-earlier-name', identity: 'sha256:' + hash(earlier) }] };
+  // The folder also keeps the earlier name's piece index; left in place it refused every later load.
+  const earlierIndex = Buffer.from(JSON.stringify({ schema: 'doppler.verified-pieces/v1', manifestIdentity: 'sha256:' + hash(earlier), files: [] }));
   await fs.writeFile(path.join(f.directories[0], 'manifest.json'), earlier);
-  await fs.rm(path.join(f.directories[0], 'pieces.json'));
+  await fs.writeFile(path.join(f.directories[0], 'pieces.json'), earlierIndex);
   await fs.writeFile(path.join(f.directories[0], 'weights.bin'), Buffer.concat(f.chunks));
   await f.share();
   const result = await f.owners[0].fillWholeModel(model);
   // The weights already present are kept after their hash is checked; only metadata is replaced.
   expect(result).toMatchObject({ filled: true, fetchedPieces: 0 });
   expect(hash(await fs.readFile(path.join(f.directories[0], 'manifest.json')))).toBe(model.identity.slice(7));
+  const indexFile = model.source.files.find(file => file.role === 'model-piece-index');
+  expect(hash(await fs.readFile(path.join(f.directories[0], 'pieces.json')))).toBe(indexFile.hash);
+  const kept = (await fs.readdir(f.directories[0])).filter(name => name.includes('.superseded-')).sort();
+  expect(kept).toEqual([`manifest.json.superseded-${hash(earlier).slice(0, 12)}`, `pieces.json.superseded-${hash(earlierIndex).slice(0, 12)}`]);
   expect(await fs.readFile(path.join(f.directories[0], 'weights.bin'))).toEqual(Buffer.concat(f.chunks));
 });
 function fakeOrigin(bytesFor, { corrupt = false } = {}) {

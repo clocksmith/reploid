@@ -11,6 +11,7 @@ import path from 'node:path';
 import { createHash } from 'node:crypto';
 import { countSupplier, supplierLabel, OTHER_SUPPLIERS } from '../shared/vendor/reploid/artifacts/custody/supplier-summary.js';
 import { supersededIdentities } from './native-model-names.js';
+import { keepSupersededFile } from './native-piece-index.js';
 
 const assert = (ok, message, code) => { if (!ok) throw Object.assign(new Error(message), code ? { code } : {}); };
 const sha256 = bytes => createHash('sha256').update(bytes).digest('hex');
@@ -108,10 +109,12 @@ export async function fillWholeModelDirectory({ root, model, manifest, index, ac
   // Never overwrite a directory that holds another model. A directory that holds the manifest this model
   // replaced (a reissue under a new name) is the same weights: it is adopted, each file is still used only
   // after its whole hash matches, and the manifest is replaced last.
+  let replacesManifest = false;
   try {
     const present = 'sha256:' + sha256(await fs.readFile(path.join(root, 'manifest.json')));
     assert(present === model.identity || supersededIdentities(model).includes(present),
       'Model directory holds a different manifest', 'WHOLE_MODEL_DIRECTORY_CONFLICT');
+    replacesManifest = present !== model.identity;
   } catch (error) { if (error.code !== 'ENOENT') throw error; }
   // A file already under its final name is used only after its whole hash matches; one that
   // does not becomes the partial file, so its matching pieces are still reused.
@@ -127,6 +130,16 @@ export async function fillWholeModelDirectory({ root, model, manifest, index, ac
     const filename = path.join(root, file.path);
     if (file.path !== 'manifest.json' && await regularSize(filename) === file.sizeBytes && await hashFile(filename, signal) === file.hash) continue;
     metadata.push(file);
+  }
+  // The piece index kept in the directory (an external index, not one bundled under /config) belongs to the
+  // manifest beside it. A rename replaces the manifest, so an index left from the earlier name is replaced
+  // in the same fill, before the manifest, from the verified catalog source; otherwise every later load
+  // refuses the directory ('Native piece index differs from the approved catalog').
+  const indexFile = (model.source?.files || []).find(file => file.role === 'model-piece-index' && plainName(file.path)
+    && !String(file.url || '').startsWith('/config/'));
+  const keptIndex = indexFile && path.join(root, indexFile.path), keptIndexSize = keptIndex && await regularSize(keptIndex);
+  if (keptIndexSize != null && !(keptIndexSize === indexFile.sizeBytes && await hashFile(keptIndex, signal) === indexFile.hash)) {
+    metadata.splice(metadata.length - 1, 0, indexFile);
   }
   const totals = { files: missing.length + metadata.length, pieces: missing.reduce((sum, file) => sum + file.pieces.length, 0),
     bytes: missing.reduce((sum, file) => sum + file.size, 0) + metadata.reduce((sum, file) => sum + file.sizeBytes, 0) };
@@ -192,6 +205,8 @@ export async function fillWholeModelDirectory({ root, model, manifest, index, ac
     const bytes = read instanceof Uint8Array ? read : read?.bytes;
     assert(bytes instanceof Uint8Array && bytes.byteLength === file.sizeBytes && sha256(bytes) === file.hash,
       'Rejected unverified bytes for ' + file.path, 'WHOLE_MODEL_FILE_REJECTED');
+    // The replaced manifest and index stay beside the new ones as `<name>.superseded-<hash>`.
+    if (file === indexFile || (file.path === 'manifest.json' && replacesManifest)) await keepSupersededFile(root, file.path);
     await writeAtomically(root, file.path, bytes, signal); await syncDirectory(root);
     if (!(read instanceof Uint8Array) && read?.supplier) countSupplier(progress.suppliers, read.supplier, bytes.byteLength);
     progress.completedFiles++; emit('file', { path: file.path, ...(read instanceof Uint8Array ? {} : { source: read?.source }) });
