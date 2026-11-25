@@ -1,12 +1,12 @@
 {
   "schema": "reploid.settlement-ledger-differential/v1",
-  "generatedAt": "2026-11-25T09:20:35.341Z",
-  "finishedAt": "2026-11-25T09:20:37.701Z",
+  "generatedAt": "2026-11-25T10:18:57.973Z",
+  "finishedAt": "2026-11-25T10:19:00.601Z",
   "command": "node scripts/settlement/independent/ledger-differential.js --out scripts/settlement/independent/receipts/ledger-differential.json",
-  "commit": "19c28784843de60272f192434f26df8eff81482c",
+  "commit": "0d2591486f29ee92a6d4cbab234f19bcf45acf66",
   "uncommittedChangesInComparedCode": false,
   "node": "v22.20.0",
-  "note": "All parties are simulated identities on one machine under one operator. The ledger is given what a live route retains (latest records only) at the moment the last of them was signed, and asked again after the release window; the replay judges the same records after the window. Status pairs are ledger / replay.",
+  "note": "All parties are simulated identities on one machine under one operator. The ledger is given each acknowledgment when it was signed, then what a live route retains (latest records and the signed stop) at the moment the last of them was signed, and asked again after the release window; the replay judges the same records after the window. Status pairs are ledger / replay.",
   "policy": {
     "schema": "reploid.service-credit-policy/v1",
     "unit": "noncash-service-credit",
@@ -18,42 +18,20 @@
     "maxClockSkewMs": 1000,
     "maxRequestMs": 30000,
     "allowSameOwner": false,
-    "partitionUnclaimedReleaseMs": 60000
+    "partitionUnclaimedReleaseMs": 60000,
+    "maxUnacknowledgedOutputs": 2
   },
+  "handedToTheLedger": "each acknowledgment as signed, then the final collect with the stop",
   "cases": 109,
-  "amountsAgreed": 102,
+  "amountsAgreed": 109,
   "statusPairs": {
     "expired / expired": 49,
-    "expired / settled": 6,
     "expired / unknown": 8,
-    "settled / settled": 46
+    "settled / settled": 52
   },
   "differences": {
-    "total": 7,
-    "byCause": {
-      "the stages closed as failed on their own: the ledger charges the acknowledged outputs, the replay charges nothing": {
-        "count": 2,
-        "cases": [
-          "stages close early on their own after 3 outputs | all records",
-          "stages close early on their own after 3 outputs | requester withholds its top acknowledgment"
-        ]
-      },
-      "the last acknowledgment and the closes fall after the deadline, inside the release window: the ledger expires the hold, the replay charges the outputs acknowledged in time": {
-        "count": 1,
-        "cases": [
-          "last acknowledgment and closes 5 s after the deadline | all records"
-        ]
-      },
-      "the answer ran past the signed output ceiling: the ledger refuses the receipts and expires the hold, the replay charges the ceiling": {
-        "count": 4,
-        "cases": [
-          "output ceiling 3 with 5 outputs | all records",
-          "output ceiling 3 with 5 outputs | stage0 withholds its closing receipt",
-          "output ceiling 3 with 5 outputs | stage1 withholds its closing receipt",
-          "output ceiling 3 with 5 outputs | requester withholds its top acknowledgment"
-        ]
-      }
-    }
+    "total": 0,
+    "byCause": {}
   },
   "lines": [
     {
@@ -68,7 +46,8 @@
         ],
         "reason": null,
         "atCollect": null,
-        "collectedAtMs": 2501
+        "collectedAtMs": 2501,
+        "refusedAcknowledgments": 0
       },
       "replay": {
         "status": "settled",
@@ -94,7 +73,8 @@
         ],
         "reason": "closed-at-last-signed-step-after-window",
         "atCollect": "pending",
-        "collectedAtMs": 2501
+        "collectedAtMs": 2501,
+        "refusedAcknowledgments": 0
       },
       "replay": {
         "status": "settled",
@@ -118,9 +98,10 @@
           0,
           0
         ],
-        "reason": "stage-unclaimed-after-window",
+        "reason": "unknown-delivered-answer-without-covering-receipt",
         "atCollect": "pending",
-        "collectedAtMs": 2501
+        "collectedAtMs": 2501,
+        "refusedAcknowledgments": 0
       },
       "replay": {
         "status": "unknown",
@@ -146,7 +127,8 @@
         ],
         "reason": "closed-at-last-signed-step-after-window",
         "atCollect": "pending",
-        "collectedAtMs": 2501
+        "collectedAtMs": 2501,
+        "refusedAcknowledgments": 0
       },
       "replay": {
         "status": "settled",
@@ -172,7 +154,8 @@
         ],
         "reason": "stage-unclaimed-after-window",
         "atCollect": "threw: Acknowledgment needs its signed output prefix",
-        "collectedAtMs": 2501
+        "collectedAtMs": 2501,
+        "refusedAcknowledgments": 5
       },
       "replay": {
         "status": "expired",
@@ -198,7 +181,8 @@
         ],
         "reason": null,
         "atCollect": null,
-        "collectedAtMs": 2501
+        "collectedAtMs": 2501,
+        "refusedAcknowledgments": 0
       },
       "replay": {
         "status": "settled",
@@ -224,7 +208,8 @@
         ],
         "reason": null,
         "atCollect": null,
-        "collectedAtMs": 2501
+        "collectedAtMs": 2501,
+        "refusedAcknowledgments": 0
       },
       "replay": {
         "status": "settled",
@@ -250,7 +235,8 @@
         ],
         "reason": null,
         "atCollect": null,
-        "collectedAtMs": 20001
+        "collectedAtMs": 20001,
+        "refusedAcknowledgments": 0
       },
       "replay": {
         "status": "settled",
@@ -276,7 +262,8 @@
         ],
         "reason": "closed-at-last-signed-step-after-window",
         "atCollect": "pending",
-        "collectedAtMs": 20001
+        "collectedAtMs": 20001,
+        "refusedAcknowledgments": 0
       },
       "replay": {
         "status": "settled",
@@ -300,9 +287,10 @@
           0,
           0
         ],
-        "reason": "stage-unclaimed-after-window",
+        "reason": "unknown-delivered-answer-without-covering-receipt",
         "atCollect": "pending",
-        "collectedAtMs": 20001
+        "collectedAtMs": 20001,
+        "refusedAcknowledgments": 0
       },
       "replay": {
         "status": "unknown",
@@ -328,7 +316,8 @@
         ],
         "reason": "closed-at-last-signed-step-after-window",
         "atCollect": "pending",
-        "collectedAtMs": 20001
+        "collectedAtMs": 20001,
+        "refusedAcknowledgments": 0
       },
       "replay": {
         "status": "settled",
@@ -354,7 +343,8 @@
         ],
         "reason": "stage-unclaimed-after-window",
         "atCollect": "threw: Acknowledgment needs its signed output prefix",
-        "collectedAtMs": 20001
+        "collectedAtMs": 20001,
+        "refusedAcknowledgments": 40
       },
       "replay": {
         "status": "expired",
@@ -380,7 +370,8 @@
         ],
         "reason": null,
         "atCollect": null,
-        "collectedAtMs": 20001
+        "collectedAtMs": 20001,
+        "refusedAcknowledgments": 0
       },
       "replay": {
         "status": "settled",
@@ -406,7 +397,8 @@
         ],
         "reason": null,
         "atCollect": null,
-        "collectedAtMs": 20001
+        "collectedAtMs": 20001,
+        "refusedAcknowledgments": 0
       },
       "replay": {
         "status": "settled",
@@ -432,7 +424,8 @@
         ],
         "reason": null,
         "atCollect": null,
-        "collectedAtMs": 20001
+        "collectedAtMs": 20001,
+        "refusedAcknowledgments": 0
       },
       "replay": {
         "status": "settled",
@@ -458,7 +451,8 @@
         ],
         "reason": "stage-unclaimed-after-window",
         "atCollect": "pending",
-        "collectedAtMs": 20001
+        "collectedAtMs": 20001,
+        "refusedAcknowledgments": 0
       },
       "replay": {
         "status": "expired",
@@ -484,7 +478,8 @@
         ],
         "reason": "stage-unclaimed-after-window",
         "atCollect": "pending",
-        "collectedAtMs": 20001
+        "collectedAtMs": 20001,
+        "refusedAcknowledgments": 0
       },
       "replay": {
         "status": "expired",
@@ -510,7 +505,8 @@
         ],
         "reason": "stage-unclaimed-after-window",
         "atCollect": "pending",
-        "collectedAtMs": 20001
+        "collectedAtMs": 20001,
+        "refusedAcknowledgments": 0
       },
       "replay": {
         "status": "expired",
@@ -536,7 +532,8 @@
         ],
         "reason": "stage-unclaimed-after-window",
         "atCollect": "threw: Acknowledgment needs its signed output prefix",
-        "collectedAtMs": 20001
+        "collectedAtMs": 20001,
+        "refusedAcknowledgments": 39
       },
       "replay": {
         "status": "expired",
@@ -562,7 +559,8 @@
         ],
         "reason": null,
         "atCollect": null,
-        "collectedAtMs": 20001
+        "collectedAtMs": 20001,
+        "refusedAcknowledgments": 0
       },
       "replay": {
         "status": "settled",
@@ -588,7 +586,8 @@
         ],
         "reason": null,
         "atCollect": null,
-        "collectedAtMs": 20001
+        "collectedAtMs": 20001,
+        "refusedAcknowledgments": 0
       },
       "replay": {
         "status": "settled",
@@ -614,7 +613,8 @@
         ],
         "reason": null,
         "atCollect": null,
-        "collectedAtMs": 20001
+        "collectedAtMs": 20001,
+        "refusedAcknowledgments": 0
       },
       "replay": {
         "status": "settled",
@@ -640,7 +640,8 @@
         ],
         "reason": "stage-unclaimed-after-window",
         "atCollect": "pending",
-        "collectedAtMs": 20001
+        "collectedAtMs": 20001,
+        "refusedAcknowledgments": 0
       },
       "replay": {
         "status": "expired",
@@ -666,7 +667,8 @@
         ],
         "reason": "stage-unclaimed-after-window",
         "atCollect": "pending",
-        "collectedAtMs": 20001
+        "collectedAtMs": 20001,
+        "refusedAcknowledgments": 0
       },
       "replay": {
         "status": "expired",
@@ -692,7 +694,8 @@
         ],
         "reason": "stage-unclaimed-after-window",
         "atCollect": "pending",
-        "collectedAtMs": 20001
+        "collectedAtMs": 20001,
+        "refusedAcknowledgments": 0
       },
       "replay": {
         "status": "expired",
@@ -718,7 +721,8 @@
         ],
         "reason": "stage-unclaimed-after-window",
         "atCollect": "threw: Acknowledgment needs its signed output prefix",
-        "collectedAtMs": 20001
+        "collectedAtMs": 20001,
+        "refusedAcknowledgments": 37
       },
       "replay": {
         "status": "expired",
@@ -744,7 +748,8 @@
         ],
         "reason": null,
         "atCollect": null,
-        "collectedAtMs": 20001
+        "collectedAtMs": 20001,
+        "refusedAcknowledgments": 0
       },
       "replay": {
         "status": "settled",
@@ -770,7 +775,8 @@
         ],
         "reason": null,
         "atCollect": null,
-        "collectedAtMs": 20001
+        "collectedAtMs": 20001,
+        "refusedAcknowledgments": 0
       },
       "replay": {
         "status": "settled",
@@ -796,7 +802,8 @@
         ],
         "reason": null,
         "atCollect": null,
-        "collectedAtMs": 3001
+        "collectedAtMs": 3001,
+        "refusedAcknowledgments": 0
       },
       "replay": {
         "status": "settled",
@@ -822,7 +829,8 @@
         ],
         "reason": "stage-unclaimed-after-window",
         "atCollect": "pending",
-        "collectedAtMs": 3001
+        "collectedAtMs": 3001,
+        "refusedAcknowledgments": 0
       },
       "replay": {
         "status": "expired",
@@ -848,7 +856,8 @@
         ],
         "reason": "stage-unclaimed-after-window",
         "atCollect": "pending",
-        "collectedAtMs": 3001
+        "collectedAtMs": 3001,
+        "refusedAcknowledgments": 0
       },
       "replay": {
         "status": "expired",
@@ -874,7 +883,8 @@
         ],
         "reason": "stage-unclaimed-after-window",
         "atCollect": "pending",
-        "collectedAtMs": 3001
+        "collectedAtMs": 3001,
+        "refusedAcknowledgments": 0
       },
       "replay": {
         "status": "expired",
@@ -900,7 +910,8 @@
         ],
         "reason": "stage-unclaimed-after-window",
         "atCollect": "threw: Acknowledgment needs its signed output prefix",
-        "collectedAtMs": 3001
+        "collectedAtMs": 3001,
+        "refusedAcknowledgments": 2
       },
       "replay": {
         "status": "expired",
@@ -926,7 +937,8 @@
         ],
         "reason": null,
         "atCollect": null,
-        "collectedAtMs": 3001
+        "collectedAtMs": 3001,
+        "refusedAcknowledgments": 0
       },
       "replay": {
         "status": "settled",
@@ -952,7 +964,8 @@
         ],
         "reason": null,
         "atCollect": null,
-        "collectedAtMs": 3001
+        "collectedAtMs": 3001,
+        "refusedAcknowledgments": 0
       },
       "replay": {
         "status": "settled",
@@ -978,7 +991,8 @@
         ],
         "reason": null,
         "atCollect": null,
-        "collectedAtMs": 1501
+        "collectedAtMs": 1501,
+        "refusedAcknowledgments": 0
       },
       "replay": {
         "status": "settled",
@@ -1004,7 +1018,8 @@
         ],
         "reason": "stage-unclaimed-after-window",
         "atCollect": "pending",
-        "collectedAtMs": 1501
+        "collectedAtMs": 1501,
+        "refusedAcknowledgments": 0
       },
       "replay": {
         "status": "expired",
@@ -1030,7 +1045,8 @@
         ],
         "reason": "stage-unclaimed-after-window",
         "atCollect": "pending",
-        "collectedAtMs": 1501
+        "collectedAtMs": 1501,
+        "refusedAcknowledgments": 0
       },
       "replay": {
         "status": "expired",
@@ -1056,7 +1072,8 @@
         ],
         "reason": "stage-unclaimed-after-window",
         "atCollect": "pending",
-        "collectedAtMs": 1501
+        "collectedAtMs": 1501,
+        "refusedAcknowledgments": 0
       },
       "replay": {
         "status": "expired",
@@ -1082,7 +1099,8 @@
         ],
         "reason": "stage-unclaimed-after-window",
         "atCollect": "threw: Acknowledgment needs its signed output prefix",
-        "collectedAtMs": 1501
+        "collectedAtMs": 1501,
+        "refusedAcknowledgments": 3
       },
       "replay": {
         "status": "expired",
@@ -1108,7 +1126,8 @@
         ],
         "reason": null,
         "atCollect": null,
-        "collectedAtMs": 1501
+        "collectedAtMs": 1501,
+        "refusedAcknowledgments": 0
       },
       "replay": {
         "status": "settled",
@@ -1134,7 +1153,8 @@
         ],
         "reason": null,
         "atCollect": null,
-        "collectedAtMs": 1501
+        "collectedAtMs": 1501,
+        "refusedAcknowledgments": 0
       },
       "replay": {
         "status": "settled",
@@ -1160,7 +1180,8 @@
         ],
         "reason": null,
         "atCollect": null,
-        "collectedAtMs": 2
+        "collectedAtMs": 2,
+        "refusedAcknowledgments": 0
       },
       "replay": {
         "status": "settled",
@@ -1186,7 +1207,8 @@
         ],
         "reason": "stage-unclaimed-after-window",
         "atCollect": "pending",
-        "collectedAtMs": 2
+        "collectedAtMs": 2,
+        "refusedAcknowledgments": 0
       },
       "replay": {
         "status": "expired",
@@ -1212,7 +1234,8 @@
         ],
         "reason": "stage-unclaimed-after-window",
         "atCollect": "pending",
-        "collectedAtMs": 2
+        "collectedAtMs": 2,
+        "refusedAcknowledgments": 0
       },
       "replay": {
         "status": "expired",
@@ -1238,7 +1261,8 @@
         ],
         "reason": "stage-unclaimed-after-window",
         "atCollect": "pending",
-        "collectedAtMs": 2
+        "collectedAtMs": 2,
+        "refusedAcknowledgments": 0
       },
       "replay": {
         "status": "expired",
@@ -1264,7 +1288,8 @@
         ],
         "reason": "stage-unclaimed-after-window",
         "atCollect": "pending",
-        "collectedAtMs": 2
+        "collectedAtMs": 2,
+        "refusedAcknowledgments": 0
       },
       "replay": {
         "status": "expired",
@@ -1283,14 +1308,15 @@
       "variant": "all records",
       "ledger": {
         "status": "settled",
-        "charge": 9,
+        "charge": 0,
         "credits": [
-          2,
-          7
+          0,
+          0
         ],
-        "reason": null,
+        "reason": "stage-ended-unfinished-answer",
         "atCollect": null,
-        "collectedAtMs": 1501
+        "collectedAtMs": 1501,
+        "refusedAcknowledgments": 0
       },
       "replay": {
         "status": "settled",
@@ -1301,8 +1327,8 @@
         ],
         "reason": "a stage ended the answer before it finished; under these terms nobody is charged or paid"
       },
-      "amountsAgree": false,
-      "cause": "the stages closed as failed on their own: the ledger charges the acknowledged outputs, the replay charges nothing"
+      "amountsAgree": true,
+      "cause": null
     },
     {
       "base": "stages close early on their own after 3 outputs",
@@ -1316,7 +1342,8 @@
         ],
         "reason": "stage-unclaimed-after-window",
         "atCollect": "pending",
-        "collectedAtMs": 1501
+        "collectedAtMs": 1501,
+        "refusedAcknowledgments": 0
       },
       "replay": {
         "status": "expired",
@@ -1342,7 +1369,8 @@
         ],
         "reason": "stage-unclaimed-after-window",
         "atCollect": "pending",
-        "collectedAtMs": 1501
+        "collectedAtMs": 1501,
+        "refusedAcknowledgments": 0
       },
       "replay": {
         "status": "expired",
@@ -1368,7 +1396,8 @@
         ],
         "reason": "stage-unclaimed-after-window",
         "atCollect": "pending",
-        "collectedAtMs": 1501
+        "collectedAtMs": 1501,
+        "refusedAcknowledgments": 0
       },
       "replay": {
         "status": "expired",
@@ -1394,7 +1423,8 @@
         ],
         "reason": "stage-unclaimed-after-window",
         "atCollect": "threw: Acknowledgment needs its signed output prefix",
-        "collectedAtMs": 1501
+        "collectedAtMs": 1501,
+        "refusedAcknowledgments": 3
       },
       "replay": {
         "status": "expired",
@@ -1413,14 +1443,15 @@
       "variant": "requester withholds its top acknowledgment",
       "ledger": {
         "status": "settled",
-        "charge": 6,
+        "charge": 0,
         "credits": [
-          1,
-          5
+          0,
+          0
         ],
-        "reason": null,
+        "reason": "stage-ended-unfinished-answer",
         "atCollect": null,
-        "collectedAtMs": 1501
+        "collectedAtMs": 1501,
+        "refusedAcknowledgments": 0
       },
       "replay": {
         "status": "settled",
@@ -1431,8 +1462,8 @@
         ],
         "reason": "a stage ended the answer before it finished; under these terms nobody is charged or paid"
       },
-      "amountsAgree": false,
-      "cause": "the stages closed as failed on their own: the ledger charges the acknowledged outputs, the replay charges nothing"
+      "amountsAgree": true,
+      "cause": null
     },
     {
       "base": "stages close early on their own after 3 outputs",
@@ -1446,7 +1477,8 @@
         ],
         "reason": null,
         "atCollect": null,
-        "collectedAtMs": 1501
+        "collectedAtMs": 1501,
+        "refusedAcknowledgments": 0
       },
       "replay": {
         "status": "settled",
@@ -1472,7 +1504,8 @@
         ],
         "reason": "stage-unclaimed-after-window",
         "atCollect": "pending",
-        "collectedAtMs": 2001
+        "collectedAtMs": 2001,
+        "refusedAcknowledgments": 0
       },
       "replay": {
         "status": "expired",
@@ -1498,7 +1531,8 @@
         ],
         "reason": "stage-unclaimed-after-window",
         "atCollect": "pending",
-        "collectedAtMs": 2001
+        "collectedAtMs": 2001,
+        "refusedAcknowledgments": 0
       },
       "replay": {
         "status": "expired",
@@ -1524,7 +1558,8 @@
         ],
         "reason": "stage-unclaimed-after-window",
         "atCollect": "pending",
-        "collectedAtMs": 1501
+        "collectedAtMs": 1501,
+        "refusedAcknowledgments": 0
       },
       "replay": {
         "status": "expired",
@@ -1550,7 +1585,8 @@
         ],
         "reason": "stage-unclaimed-after-window",
         "atCollect": "threw: Acknowledgment needs its signed output prefix",
-        "collectedAtMs": 1501
+        "collectedAtMs": 1501,
+        "refusedAcknowledgments": 3
       },
       "replay": {
         "status": "expired",
@@ -1576,7 +1612,8 @@
         ],
         "reason": "stage-unclaimed-after-window",
         "atCollect": "pending",
-        "collectedAtMs": 2001
+        "collectedAtMs": 2001,
+        "refusedAcknowledgments": 0
       },
       "replay": {
         "status": "expired",
@@ -1602,7 +1639,8 @@
         ],
         "reason": "stage-unclaimed-after-window",
         "atCollect": "pending",
-        "collectedAtMs": 2001
+        "collectedAtMs": 2001,
+        "refusedAcknowledgments": 0
       },
       "replay": {
         "status": "expired",
@@ -1628,7 +1666,8 @@
         ],
         "reason": "stage-unclaimed-after-window",
         "atCollect": "pending",
-        "collectedAtMs": 2001
+        "collectedAtMs": 2001,
+        "refusedAcknowledgments": 0
       },
       "replay": {
         "status": "expired",
@@ -1654,7 +1693,8 @@
         ],
         "reason": "stage-unclaimed-after-window",
         "atCollect": "pending",
-        "collectedAtMs": 1501
+        "collectedAtMs": 1501,
+        "refusedAcknowledgments": 0
       },
       "replay": {
         "status": "expired",
@@ -1680,7 +1720,8 @@
         ],
         "reason": "stage-unclaimed-after-window",
         "atCollect": "pending",
-        "collectedAtMs": 1501
+        "collectedAtMs": 1501,
+        "refusedAcknowledgments": 0
       },
       "replay": {
         "status": "expired",
@@ -1706,7 +1747,8 @@
         ],
         "reason": "stage-unclaimed-after-window",
         "atCollect": "threw: Acknowledgment needs its signed output prefix",
-        "collectedAtMs": 2001
+        "collectedAtMs": 2001,
+        "refusedAcknowledgments": 3
       },
       "replay": {
         "status": "expired",
@@ -1732,7 +1774,8 @@
         ],
         "reason": "stage-unclaimed-after-window",
         "atCollect": "pending",
-        "collectedAtMs": 2001
+        "collectedAtMs": 2001,
+        "refusedAcknowledgments": 0
       },
       "replay": {
         "status": "expired",
@@ -1758,7 +1801,8 @@
         ],
         "reason": "stage-unclaimed-after-window",
         "atCollect": "pending",
-        "collectedAtMs": 2001
+        "collectedAtMs": 2001,
+        "refusedAcknowledgments": 0
       },
       "replay": {
         "status": "expired",
@@ -1784,7 +1828,8 @@
         ],
         "reason": "closed-at-last-signed-step-after-window",
         "atCollect": "pending",
-        "collectedAtMs": 2501
+        "collectedAtMs": 2501,
+        "refusedAcknowledgments": 0
       },
       "replay": {
         "status": "settled",
@@ -1808,9 +1853,10 @@
           0,
           0
         ],
-        "reason": "stage-unclaimed-after-window",
+        "reason": "unknown-delivered-answer-without-covering-receipt",
         "atCollect": "pending",
-        "collectedAtMs": 2501
+        "collectedAtMs": 2501,
+        "refusedAcknowledgments": 0
       },
       "replay": {
         "status": "unknown",
@@ -1836,7 +1882,8 @@
         ],
         "reason": "closed-at-last-signed-step-after-window",
         "atCollect": "pending",
-        "collectedAtMs": 2501
+        "collectedAtMs": 2501,
+        "refusedAcknowledgments": 0
       },
       "replay": {
         "status": "settled",
@@ -1862,7 +1909,8 @@
         ],
         "reason": "stage-unclaimed-after-window",
         "atCollect": "threw: Acknowledgment needs its signed output prefix",
-        "collectedAtMs": 2501
+        "collectedAtMs": 2501,
+        "refusedAcknowledgments": 5
       },
       "replay": {
         "status": "expired",
@@ -1888,7 +1936,8 @@
         ],
         "reason": "stage-unclaimed-after-window",
         "atCollect": "pending",
-        "collectedAtMs": 2501
+        "collectedAtMs": 2501,
+        "refusedAcknowledgments": 0
       },
       "replay": {
         "status": "expired",
@@ -1914,7 +1963,8 @@
         ],
         "reason": "stage-unclaimed-after-window",
         "atCollect": "pending",
-        "collectedAtMs": 2501
+        "collectedAtMs": 2501,
+        "refusedAcknowledgments": 0
       },
       "replay": {
         "status": "expired",
@@ -1940,7 +1990,8 @@
         ],
         "reason": null,
         "atCollect": null,
-        "collectedAtMs": 31001
+        "collectedAtMs": 31001,
+        "refusedAcknowledgments": 0
       },
       "replay": {
         "status": "settled",
@@ -1966,7 +2017,8 @@
         ],
         "reason": "closed-at-last-signed-step-after-window",
         "atCollect": "pending",
-        "collectedAtMs": 31001
+        "collectedAtMs": 31001,
+        "refusedAcknowledgments": 0
       },
       "replay": {
         "status": "settled",
@@ -1990,9 +2042,10 @@
           0,
           0
         ],
-        "reason": "stage-unclaimed-after-window",
+        "reason": "unknown-delivered-answer-without-covering-receipt",
         "atCollect": "pending",
-        "collectedAtMs": 31001
+        "collectedAtMs": 31001,
+        "refusedAcknowledgments": 0
       },
       "replay": {
         "status": "unknown",
@@ -2018,7 +2071,8 @@
         ],
         "reason": "closed-at-last-signed-step-after-window",
         "atCollect": "pending",
-        "collectedAtMs": 31001
+        "collectedAtMs": 31001,
+        "refusedAcknowledgments": 0
       },
       "replay": {
         "status": "settled",
@@ -2044,7 +2098,8 @@
         ],
         "reason": "stage-unclaimed-after-window",
         "atCollect": "threw: Acknowledgment needs its signed output prefix",
-        "collectedAtMs": 31001
+        "collectedAtMs": 31001,
+        "refusedAcknowledgments": 5
       },
       "replay": {
         "status": "expired",
@@ -2070,7 +2125,8 @@
         ],
         "reason": null,
         "atCollect": null,
-        "collectedAtMs": 31001
+        "collectedAtMs": 31001,
+        "refusedAcknowledgments": 0
       },
       "replay": {
         "status": "settled",
@@ -2096,7 +2152,8 @@
         ],
         "reason": null,
         "atCollect": null,
-        "collectedAtMs": 31001
+        "collectedAtMs": 31001,
+        "refusedAcknowledgments": 0
       },
       "replay": {
         "status": "settled",
@@ -2114,15 +2171,16 @@
       "base": "last acknowledgment and closes 5 s after the deadline",
       "variant": "all records",
       "ledger": {
-        "status": "expired",
-        "charge": 0,
+        "status": "settled",
+        "charge": 12,
         "credits": [
-          0,
-          0
+          3,
+          9
         ],
-        "reason": "stage-unclaimed-after-window",
-        "atCollect": "pending",
-        "collectedAtMs": 35001
+        "reason": null,
+        "atCollect": null,
+        "collectedAtMs": 35001,
+        "refusedAcknowledgments": 0
       },
       "replay": {
         "status": "settled",
@@ -2133,8 +2191,8 @@
         ],
         "reason": "the answer was completed; the outputs the requester acknowledged in time are charged"
       },
-      "amountsAgree": false,
-      "cause": "the last acknowledgment and the closes fall after the deadline, inside the release window: the ledger expires the hold, the replay charges the outputs acknowledged in time"
+      "amountsAgree": true,
+      "cause": null
     },
     {
       "base": "last acknowledgment and closes 5 s after the deadline",
@@ -2148,7 +2206,8 @@
         ],
         "reason": "stage-unclaimed-after-window",
         "atCollect": "pending",
-        "collectedAtMs": 35001
+        "collectedAtMs": 35001,
+        "refusedAcknowledgments": 0
       },
       "replay": {
         "status": "expired",
@@ -2174,7 +2233,8 @@
         ],
         "reason": "stage-unclaimed-after-window",
         "atCollect": "pending",
-        "collectedAtMs": 35001
+        "collectedAtMs": 35001,
+        "refusedAcknowledgments": 0
       },
       "replay": {
         "status": "expired",
@@ -2200,7 +2260,8 @@
         ],
         "reason": "stage-unclaimed-after-window",
         "atCollect": "pending",
-        "collectedAtMs": 35001
+        "collectedAtMs": 35001,
+        "refusedAcknowledgments": 0
       },
       "replay": {
         "status": "expired",
@@ -2226,7 +2287,8 @@
         ],
         "reason": "stage-unclaimed-after-window",
         "atCollect": "pending",
-        "collectedAtMs": 35001
+        "collectedAtMs": 35001,
+        "refusedAcknowledgments": 4
       },
       "replay": {
         "status": "expired",
@@ -2252,7 +2314,8 @@
         ],
         "reason": null,
         "atCollect": null,
-        "collectedAtMs": 35001
+        "collectedAtMs": 35001,
+        "refusedAcknowledgments": 0
       },
       "replay": {
         "status": "settled",
@@ -2278,7 +2341,8 @@
         ],
         "reason": null,
         "atCollect": null,
-        "collectedAtMs": 35001
+        "collectedAtMs": 35001,
+        "refusedAcknowledgments": 0
       },
       "replay": {
         "status": "settled",
@@ -2296,15 +2360,16 @@
       "base": "output ceiling 3 with 5 outputs",
       "variant": "all records",
       "ledger": {
-        "status": "expired",
-        "charge": 0,
+        "status": "settled",
+        "charge": 9,
         "credits": [
-          0,
-          0
+          2,
+          7
         ],
-        "reason": "stage-unclaimed-after-window",
-        "atCollect": "threw: Stage receipt does not match the admitted work",
-        "collectedAtMs": 2501
+        "reason": null,
+        "atCollect": null,
+        "collectedAtMs": 2501,
+        "refusedAcknowledgments": 0
       },
       "replay": {
         "status": "settled",
@@ -2315,22 +2380,23 @@
         ],
         "reason": "the answer was completed and acknowledged"
       },
-      "amountsAgree": false,
-      "cause": "the answer ran past the signed output ceiling: the ledger refuses the receipts and expires the hold, the replay charges the ceiling"
+      "amountsAgree": true,
+      "cause": null
     },
     {
       "base": "output ceiling 3 with 5 outputs",
       "variant": "stage0 withholds its closing receipt",
       "ledger": {
-        "status": "expired",
-        "charge": 0,
+        "status": "settled",
+        "charge": 9,
         "credits": [
-          0,
-          0
+          2,
+          7
         ],
-        "reason": "stage-unclaimed-after-window",
-        "atCollect": "threw: Stage receipt does not match the admitted work",
-        "collectedAtMs": 2501
+        "reason": "closed-at-last-signed-step-after-window",
+        "atCollect": "pending",
+        "collectedAtMs": 2501,
+        "refusedAcknowledgments": 0
       },
       "replay": {
         "status": "settled",
@@ -2341,8 +2407,8 @@
         ],
         "reason": "the answer was completed and acknowledged; stage 0 signed no closing receipt and is treated as closed at its last signed step"
       },
-      "amountsAgree": false,
-      "cause": "the answer ran past the signed output ceiling: the ledger refuses the receipts and expires the hold, the replay charges the ceiling"
+      "amountsAgree": true,
+      "cause": null
     },
     {
       "base": "output ceiling 3 with 5 outputs",
@@ -2354,9 +2420,10 @@
           0,
           0
         ],
-        "reason": "stage-unclaimed-after-window",
-        "atCollect": "threw: Stage receipt does not match the admitted work",
-        "collectedAtMs": 2501
+        "reason": "unknown-delivered-answer-without-covering-receipt",
+        "atCollect": "pending",
+        "collectedAtMs": 2501,
+        "refusedAcknowledgments": 0
       },
       "replay": {
         "status": "unknown",
@@ -2374,15 +2441,16 @@
       "base": "output ceiling 3 with 5 outputs",
       "variant": "stage1 withholds its closing receipt",
       "ledger": {
-        "status": "expired",
-        "charge": 0,
+        "status": "settled",
+        "charge": 9,
         "credits": [
-          0,
-          0
+          2,
+          7
         ],
-        "reason": "stage-unclaimed-after-window",
-        "atCollect": "threw: Stage receipt does not match the admitted work",
-        "collectedAtMs": 2501
+        "reason": "closed-at-last-signed-step-after-window",
+        "atCollect": "pending",
+        "collectedAtMs": 2501,
+        "refusedAcknowledgments": 0
       },
       "replay": {
         "status": "settled",
@@ -2393,8 +2461,8 @@
         ],
         "reason": "the answer was completed and acknowledged; stage 1 signed no closing receipt and is treated as closed at its last signed step"
       },
-      "amountsAgree": false,
-      "cause": "the answer ran past the signed output ceiling: the ledger refuses the receipts and expires the hold, the replay charges the ceiling"
+      "amountsAgree": true,
+      "cause": null
     },
     {
       "base": "output ceiling 3 with 5 outputs",
@@ -2407,8 +2475,9 @@
           0
         ],
         "reason": "stage-unclaimed-after-window",
-        "atCollect": "threw: Stage receipt does not match the admitted work",
-        "collectedAtMs": 2501
+        "atCollect": "threw: Acknowledgment needs its signed output prefix",
+        "collectedAtMs": 2501,
+        "refusedAcknowledgments": 5
       },
       "replay": {
         "status": "expired",
@@ -2426,15 +2495,16 @@
       "base": "output ceiling 3 with 5 outputs",
       "variant": "requester withholds its top acknowledgment",
       "ledger": {
-        "status": "expired",
-        "charge": 0,
+        "status": "settled",
+        "charge": 9,
         "credits": [
-          0,
-          0
+          2,
+          7
         ],
-        "reason": "stage-unclaimed-after-window",
-        "atCollect": "threw: Stage receipt does not match the admitted work",
-        "collectedAtMs": 2501
+        "reason": null,
+        "atCollect": null,
+        "collectedAtMs": 2501,
+        "refusedAcknowledgments": 0
       },
       "replay": {
         "status": "settled",
@@ -2445,22 +2515,23 @@
         ],
         "reason": "the answer was completed; the outputs the requester acknowledged in time are charged"
       },
-      "amountsAgree": false,
-      "cause": "the answer ran past the signed output ceiling: the ledger refuses the receipts and expires the hold, the replay charges the ceiling"
+      "amountsAgree": true,
+      "cause": null
     },
     {
       "base": "output ceiling 3 with 5 outputs",
       "variant": "requester presents only its charge binding",
       "ledger": {
-        "status": "expired",
+        "status": "settled",
         "charge": 0,
         "credits": [
           0,
           0
         ],
-        "reason": "stage-unclaimed-after-window",
-        "atCollect": "threw: Stage receipt does not match the admitted work",
-        "collectedAtMs": 2501
+        "reason": null,
+        "atCollect": null,
+        "collectedAtMs": 2501,
+        "refusedAcknowledgments": 0
       },
       "replay": {
         "status": "settled",
@@ -2487,7 +2558,8 @@
         ],
         "reason": null,
         "atCollect": null,
-        "collectedAtMs": 2501
+        "collectedAtMs": 2501,
+        "refusedAcknowledgments": 0
       },
       "replay": {
         "status": "settled",
@@ -2515,7 +2587,8 @@
         ],
         "reason": "closed-at-last-signed-step-after-window",
         "atCollect": "pending",
-        "collectedAtMs": 2501
+        "collectedAtMs": 2501,
+        "refusedAcknowledgments": 0
       },
       "replay": {
         "status": "settled",
@@ -2541,9 +2614,10 @@
           0,
           0
         ],
-        "reason": "stage-unclaimed-after-window",
+        "reason": "unknown-delivered-answer-without-covering-receipt",
         "atCollect": "pending",
-        "collectedAtMs": 2501
+        "collectedAtMs": 2501,
+        "refusedAcknowledgments": 0
       },
       "replay": {
         "status": "unknown",
@@ -2571,7 +2645,8 @@
         ],
         "reason": "closed-at-last-signed-step-after-window",
         "atCollect": "pending",
-        "collectedAtMs": 2501
+        "collectedAtMs": 2501,
+        "refusedAcknowledgments": 0
       },
       "replay": {
         "status": "settled",
@@ -2597,9 +2672,10 @@
           0,
           0
         ],
-        "reason": "stage-unclaimed-after-window",
+        "reason": "unknown-delivered-answer-without-covering-receipt",
         "atCollect": "pending",
-        "collectedAtMs": 2501
+        "collectedAtMs": 2501,
+        "refusedAcknowledgments": 0
       },
       "replay": {
         "status": "unknown",
@@ -2627,7 +2703,8 @@
         ],
         "reason": "closed-at-last-signed-step-after-window",
         "atCollect": "pending",
-        "collectedAtMs": 2501
+        "collectedAtMs": 2501,
+        "refusedAcknowledgments": 0
       },
       "replay": {
         "status": "settled",
@@ -2655,7 +2732,8 @@
         ],
         "reason": "stage-unclaimed-after-window",
         "atCollect": "threw: Acknowledgment needs its signed output prefix",
-        "collectedAtMs": 2501
+        "collectedAtMs": 2501,
+        "refusedAcknowledgments": 5
       },
       "replay": {
         "status": "expired",
@@ -2683,7 +2761,8 @@
         ],
         "reason": null,
         "atCollect": null,
-        "collectedAtMs": 2501
+        "collectedAtMs": 2501,
+        "refusedAcknowledgments": 0
       },
       "replay": {
         "status": "settled",
@@ -2711,7 +2790,8 @@
         ],
         "reason": null,
         "atCollect": null,
-        "collectedAtMs": 2501
+        "collectedAtMs": 2501,
+        "refusedAcknowledgments": 0
       },
       "replay": {
         "status": "settled",
@@ -2738,7 +2818,8 @@
         ],
         "reason": null,
         "atCollect": null,
-        "collectedAtMs": 2501
+        "collectedAtMs": 2501,
+        "refusedAcknowledgments": 0
       },
       "replay": {
         "status": "settled",
@@ -2764,7 +2845,8 @@
         ],
         "reason": "closed-at-last-signed-step-after-window",
         "atCollect": "pending",
-        "collectedAtMs": 2501
+        "collectedAtMs": 2501,
+        "refusedAcknowledgments": 0
       },
       "replay": {
         "status": "settled",
@@ -2788,9 +2870,10 @@
           0,
           0
         ],
-        "reason": "stage-unclaimed-after-window",
+        "reason": "unknown-delivered-answer-without-covering-receipt",
         "atCollect": "pending",
-        "collectedAtMs": 2501
+        "collectedAtMs": 2501,
+        "refusedAcknowledgments": 0
       },
       "replay": {
         "status": "unknown",
@@ -2816,7 +2899,8 @@
         ],
         "reason": "closed-at-last-signed-step-after-window",
         "atCollect": "pending",
-        "collectedAtMs": 2501
+        "collectedAtMs": 2501,
+        "refusedAcknowledgments": 0
       },
       "replay": {
         "status": "settled",
@@ -2842,7 +2926,8 @@
         ],
         "reason": "stage-unclaimed-after-window",
         "atCollect": "threw: Acknowledgment needs its signed output prefix",
-        "collectedAtMs": 2501
+        "collectedAtMs": 2501,
+        "refusedAcknowledgments": 5
       },
       "replay": {
         "status": "expired",
@@ -2868,7 +2953,8 @@
         ],
         "reason": null,
         "atCollect": null,
-        "collectedAtMs": 2501
+        "collectedAtMs": 2501,
+        "refusedAcknowledgments": 0
       },
       "replay": {
         "status": "settled",
@@ -2894,7 +2980,8 @@
         ],
         "reason": null,
         "atCollect": null,
-        "collectedAtMs": 2501
+        "collectedAtMs": 2501,
+        "refusedAcknowledgments": 0
       },
       "replay": {
         "status": "settled",
