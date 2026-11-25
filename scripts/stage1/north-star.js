@@ -298,6 +298,7 @@ export async function runNorthStar({ config, transport, directory, fixtureFile, 
       requester: { label: config.requester.label, participantId: config.requester.participantId, machineId: config.requester.machineId, account: `owner-${requesterAccount}` },
       stages: config.stages.map((stage, index) => ({ label: stage.label, stageIndex: index, role: stage.role, participantId: stage.participantId, machineId: stage.machineId,
         account: stage.role === 'requester' ? `owner-${requesterAccount}` : `owner-${stage.label}`, layerRange: inventory.stages[index].layerRange,
+        capabilityRemap: stage.capabilityRemap === true,
         directory: { rangeCount: directories[index].rangeCount, bytes: directories[index].bytes, rangesDigest: directories[index].rangesDigest } })),
       earner: config.earner ? { label: config.earner.label, participantId: config.earner.participantId, machineId: config.earner.machineId, account: `owner-${requesterAccount}`, modelId: earnModel.id } : null,
       buyer: buyer ? { participantId: buyer.peerId, account: 'owner-buyer', where: 'operator machine' } : null,
@@ -339,7 +340,7 @@ export async function runNorthStar({ config, transport, directory, fixtureFile, 
     for (const [index, stage] of config.stages.entries()) {
       const edge = index === 0 || index === config.stages.length - 1;
       await step(`open stage ${stage.label}`, () => s(stage.label).call('open', { ...shared, stageIndex: index, modelDirectory: stage.stageDirectory,
-        stateDirectory: stage.stateDirectory, assignedRanges: inventory.stages[index].ranges,
+        stateDirectory: stage.stateDirectory, assignedRanges: inventory.stages[index].ranges, capabilityRemap: stage.capabilityRemap === true,
         ...(edge ? { fixtureBase64: fixtureBytes.toString('base64'), fixtureSha256, witness } : { witness: null }) }), limits.phaseMs);
     }
     const ownStages = config.stages.filter(stage => stage.role === 'requester').map(stage => stage.participantId);
