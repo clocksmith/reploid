@@ -5,6 +5,8 @@ vi.mock('../../apps/poolday/host/product-session.js', () => ({ createProductSess
 import { initPoolHome } from '../../apps/poolday/ui/pool-home/index.js';
 const owners = [];
 afterEach(async () => { for (const close of owners.splice(0)) await close(); ports.create.mockReset(); });
+// The vanilla shell serves the specialist routes; the workspace routes are the React product.
+window.history.replaceState(null, '', '/examples');
 function fixture() {
   const mount = document.createElement('div'); document.body.append(mount);
   const chat = createChatSession({ storage: null, models: [] });
@@ -18,10 +20,10 @@ it('awaits configured canonical history before binding the actual shell', async 
   ports.create.mockReturnValue(new Promise(done => { resolve = done; }));
   const canonical = { meshId: 'mesh', participantId: 'requester' };
   const opening = initPoolHome(mount, { canonical });
-  expect(mount.querySelector('[data-production-surface]')).toBeNull();
+  expect(mount.querySelector('.pool-route-content')).toBeNull();
   expect(ports.create.mock.calls[0][0].canonical).toBe(canonical);
   resolve(host); const dispose = await opening;
-  expect(mount.querySelector('[data-production-surface]')).not.toBeNull(); dispose();
+  expect(mount.querySelector('.pool-route-content')).not.toBeNull(); dispose();
 });
 it('closes an obsolete opening after a newer route initialization without binding it', async () => {
   const old = fixture(), next = fixture(); let resolve;
@@ -31,8 +33,8 @@ it('closes an obsolete opening after a newer route initialization without bindin
   expect(typeof dispose).toBe('function');
   resolve(old.host); await opening;
   expect(old.host.close).toHaveBeenCalledOnce();
-  expect(old.mount.querySelector('[data-production-surface]')).toBeNull();
-  expect(next.mount.querySelector('[data-production-surface]')).not.toBeNull(); dispose();
+  expect(old.mount.querySelector('.pool-route-content')).toBeNull();
+  expect(next.mount.querySelector('.pool-route-content')).not.toBeNull(); dispose();
 });
 it('pagehide retires pending opening and reports a failed admission without binding', async () => {
   const { mount } = fixture(); let reject;
@@ -41,7 +43,7 @@ it('pagehide retires pending opening and reports a failed admission without bind
   window.dispatchEvent(new Event('pagehide'));
   reject(Error('history writer unavailable'));
   await expect(opening).rejects.toThrow('history writer unavailable');
-  expect(mount.querySelector('[data-production-surface]')).toBeNull();
+  expect(mount.querySelector('.pool-route-content')).toBeNull();
 });
 
 it('a startup deadline retires the opening and closes a late host without replacing the failure view', async () => {
@@ -54,5 +56,5 @@ it('a startup deadline retires the opening and closes a late host without replac
   resolve(host); await opening;
   expect(host.close).toHaveBeenCalledOnce();
   expect(mount.textContent).toBe('Reploid could not load');
-  expect(mount.querySelector('[data-production-surface]')).toBeNull();
+  expect(mount.querySelector('.pool-route-content')).toBeNull();
 });

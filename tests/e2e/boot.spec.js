@@ -10,6 +10,8 @@ import { bootLegacyZeroInstance, bootRouteWithServiceWorker, readInstanceVfs, sa
 const APP_PATH = '/index.html';
 const HOME_PATH = '/index.html?profile=reploid-home';
 const PRODUCT_HOME_PATH = '/';
+// The workspace routes load the React product; the specialist routes and pool-entry.html keep the vanilla bundle.
+const PRODUCT_BUNDLES = '**/ui/{pool-home/app.bundle,react/app}.js';
 const DEFAULT_HOME_GOAL_SNIPPET = 'Start from the blueprint index';
 
 async function openBoot(page) {
@@ -28,7 +30,7 @@ async function expectProductionReady(page) {
   // usable production view from markup left behind by incomplete initialization.
   await page.locator('[data-workspace-view="settings"]').click();
   await expect(page.locator('[data-inspector-pane="settings"]')).toBeVisible({ timeout: 5000 });
-  await page.locator('[data-close-inspector]').click();
+  await page.locator('[data-close-inspector]:visible').click();
 }
 
 async function unlockGoalSection(page) {
@@ -110,7 +112,7 @@ test.describe('Route Entry Points', () => {
           get() { throw new DOMException('Storage denied', 'SecurityError'); } });
       });
       let requests = 0;
-      await page.route('**/ui/pool-home/app.bundle.js', route => {
+      await page.route(PRODUCT_BUNDLES, route => {
         requests++;
         return route.fulfill({ status: 503, contentType: 'text/plain', body: 'Temporarily unavailable' });
       });
@@ -130,7 +132,7 @@ test.describe('Route Entry Points', () => {
         expect(await page.evaluate(() => location.search)).not.toContain('reploidBootRetry');
         // Follow the real requester entry point while inference is unavailable.
         await expect(page.locator('[data-chat-workspace]')).toBeVisible({ timeout: 5000 });
-        await expect(page.locator('[data-contextual-inspector]')).not.toBeVisible();
+        await expect(page.locator('[data-contextual-inspector]:visible')).toHaveCount(0);
         const draft = 'Keep this question while inference is unavailable';
         await page.locator('[data-composer-input]').fill(draft);
         await page.reload({ waitUntil: 'domcontentloaded' });
@@ -145,7 +147,7 @@ test.describe('Route Entry Points', () => {
         window.setTimeout = (callback, delay, ...args) => original(callback, delay === 10000 ? 100 : delay, ...args);
       });
       let requests = 0;
-      await page.route('**/ui/pool-home/app.bundle.js', route => {
+      await page.route(PRODUCT_BUNDLES, route => {
         requests++;
         return route.fulfill({ contentType: 'application/javascript', body: 'export const initPoolHome = () => new Promise(() => {});' });
       });
@@ -157,7 +159,7 @@ test.describe('Route Entry Points', () => {
 
   test('recovers once from a transient public-route module failure', async ({ page }) => {
     let failedRequests = 0;
-    await page.route('**/ui/pool-home/app.bundle.js', async (route) => {
+    await page.route(PRODUCT_BUNDLES, async (route) => {
       if (failedRequests === 0) {
         failedRequests += 1;
         await route.fulfill({
@@ -180,7 +182,7 @@ test.describe('Route Entry Points', () => {
 
   test('stops after one public-route recovery when the product bundle stays unavailable', async ({ page }) => {
     let requests = 0;
-    await page.route('**/ui/pool-home/app.bundle.js', route => {
+    await page.route(PRODUCT_BUNDLES, route => {
       requests++;
       return route.fulfill({ status: 503, contentType: 'text/plain', body: 'Temporarily unavailable' });
     });

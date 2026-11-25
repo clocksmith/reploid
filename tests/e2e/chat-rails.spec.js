@@ -3,12 +3,11 @@ import { test, expect } from '@playwright/test';
 
 // Real host/workspace path with an injected executor. This proves interaction,
 // authorization and layout; it does not claim model or physical GPU execution.
-async function installChat(page) {
-  await page.evaluate(async () => {
-    window.dispatchEvent(new PageTransitionEvent('pagehide', { persisted: false }));
-    document.querySelector('[data-shell-inspector]')?.remove();
+async function installChat(page, theme = null) {
+  await page.evaluate(async theme => {
+    if (theme) localStorage.setItem('reploid.appearance.v1', theme);
     const { createChatSession } = await import('/host/chat-session.js');
-    const { renderConversationWorkspace, bindConversationWorkspace } = await import('/ui/pool-home/conversation-workspace.js');
+    const { mountPoolday } = await import('/ui/react/app.js');
     const a = 'peer:' + 'a'.repeat(24), b = 'peer:' + 'b'.repeat(24);
     const model = { id: 'fixture', name: 'Qwen 3.5 0.8B', provider: 'doppler', identity: 'sha256:' + 'c'.repeat(64), availability: 'ready',
       partition: { planId: 'sha256:' + 'd'.repeat(64), participantA: a, participantB: b, splitLayer: 12 } };
@@ -34,16 +33,17 @@ async function installChat(page) {
     };
     const session = createChatSession({ storage: null, models: [], partitions });
     session.subscribe(state => fixture.phases.push(state.activeThread?.attempts.at(-1)?.status));
-    const root = document.querySelector('.pool-route-content'); root.innerHTML = renderConversationWorkspace();
-    fixture.dispose = bindConversationWorkspace(root, session); fixture.session = session;
+    const root = document.createElement('div'); document.body.replaceChildren(root);
+    fixture.dispose = mountPoolday(root, { host: { chat: session, close: () => session.close() } }); fixture.session = session;
     window.chatFixture = fixture;
-  });
+  }, theme);
+  await expect(page.locator('[data-composer-input]')).toBeVisible();
 }
 
 async function checkComposer(page, button) {
   const field = await page.locator('[data-composer-field]').boundingBox();
   const action = await page.locator(button).boundingBox();
-  const attach = await page.locator('.chat-file-label').boundingBox();
+  const attach = await page.locator('[data-composer-attach]').boundingBox();
   expect(Math.abs(action.y + action.height / 2 - field.y - field.height / 2)).toBeLessThanOrEqual(1);
   for (const control of [action, attach]) {
     expect(control.x).toBeGreaterThanOrEqual(field.x);
@@ -60,36 +60,37 @@ for (const width of [1440, 390, 320]) for (const theme of ['light', 'dark']) {
   test(`${theme} direct chat and floating composer at ${width}px`, async ({ page }, info) => {
     await page.setViewportSize({ width, height: 844 });
     await page.goto('/'); await expect(page.locator('[data-chat-workspace]')).toBeVisible();
-    await page.evaluate(theme => { document.querySelector('.pool-home').dataset.poolTheme = theme; }, theme);
-    await installChat(page);
+    await installChat(page, theme);
     const rail = await page.locator('[data-toggle-thread-rail]').boundingBox();
-    const settings = await page.locator('[data-toggle-inspector]').boundingBox();
+    const settings = await page.locator('[data-inspector-section="settings"]').boundingBox();
     expect(rail.x).toBeGreaterThanOrEqual(16); expect(rail.y).toBeGreaterThanOrEqual(16);
     expect(width - settings.x - settings.width).toBeGreaterThanOrEqual(16);
     await checkComposer(page, '[data-composer-send]');
     await page.locator('[data-composer-input]').fill('hi');
     await page.getByRole('button', { name: 'Send', exact: true }).click();
     // Remote requests run under the stored contributor permission, on by default; no dialog interrupts the first send.
-    await expect(page.locator('.is-assistant .chat-message-content')).toContainText('Hello.');
+    await expect(page.locator('[data-message-role=assistant] .pool-prose')).toContainText('Hello.');
     await expect(page.locator('[data-remote-permission]')).toHaveCount(0);
     const state = await page.evaluate(() => chatFixture.session.getState());
     expect(state.activeThread.attempts[0].authorization).toMatchObject({ kind: 'permission', source: 'permission',
       permissionId: state.remotePermissions[0].id, recipients: ['peer:' + 'a'.repeat(24), 'peer:' + 'b'.repeat(24)] });
     expect(state.activeThread.grants).toEqual([]);
     expect(await page.evaluate(() => chatFixture.phases.includes('approval'))).toBe(false);
-    const user = await page.locator('.chat-message-row.is-user').boundingBox();
-    const assistant = await page.locator('.chat-message-row.is-assistant').boundingBox();
+    const user = await page.locator('[data-message-role=user]').boundingBox();
+    const assistant = await page.locator('[data-message-role=assistant]').boundingBox();
     // A one-line question stays a compact bubble; its row also carries the 44px copy action below it.
-    const bubble = await page.locator('.chat-message-row.is-user .chat-message-content').boundingBox();
+    const bubble = await page.locator('[data-message-role=user] .pool-message-text').boundingBox();
     expect(bubble.height).toBeLessThanOrEqual(64); expect(user.width).toBeLessThan(assistant.width);
     await page.screenshot({ path: info.outputPath('conversation.png'), fullPage: true });
     await page.evaluate(() => { chatFixture.hold = true; });
     await page.locator('[data-composer-input]').fill('Continue'); await page.locator('[data-composer-input]').press('Enter');
     // Follow-ups are sent under the stored permission with no dialog.
-    await expect(page.getByRole('button', { name: 'Stop', exact: true })).toBeVisible();
-    await checkComposer(page, '[data-composer-stop]');
-    await page.getByRole('button', { name: 'Stop', exact: true }).click();
-    await expect(page.locator('.is-assistant').last()).toContainText('Stopped.');
+    // One Stop is reachable: the answer's own while it is in view, otherwise the composer's.
+    const stop = page.getByRole('button', { name: 'Stop', exact: true }).filter({ visible: true });
+    await expect(stop).toHaveCount(1);
+    if (await page.locator('[data-composer-stop]').isVisible()) await checkComposer(page, '[data-composer-stop]');
+    await stop.click();
+    await expect(page.locator('[data-message-role=assistant]').last()).toContainText('Stopped.');
     await expect(page.getByRole('button', { name: 'Send', exact: true })).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
   });
@@ -99,11 +100,13 @@ for (const width of [1440, 320]) for (const theme of ['light', 'dark']) {
   test(`${theme} rail settings, keyboard access and navigation at ${width}px`, async ({ page }, info) => {
     await page.setViewportSize({ width, height: 844 });
     await page.goto('/'); await expect(page.locator('[data-chat-workspace]')).toBeVisible();
-    await page.evaluate(theme => { document.querySelector('.pool-home').dataset.poolTheme = theme; }, theme);
+    await page.evaluate(theme => localStorage.setItem('reploid.appearance.v1', theme), theme);
+    await page.reload(); await expect(page.locator('[data-chat-workspace]')).toBeVisible();
     const left = page.locator('[data-toggle-thread-rail]');
-    const right = page.locator('[data-toggle-inspector]');
+    // Computers is the bar's network destination; its drawer is the inspector.
+    const right = page.locator('[data-inspector-section="participants"]');
     const sidebar = page.locator('[data-thread-sidebar]');
-    const rail = page.locator('[data-network-rail]');
+    const rail = page.locator('[data-contextual-inspector]:visible');
     // Threads open as a workspace destination from the toolbar; the toolbar itself keeps its size.
     const toolbarWidth = (await sidebar.boundingBox()).width;
     await left.click();
@@ -134,7 +137,7 @@ for (const width of [1440, 320]) for (const theme of ['light', 'dark']) {
     await page.locator('[data-inspector-pane="settings"] a[href="/examples"]').click();
     await expect(page.locator('.pool-home')).toHaveAttribute('data-pool-route-id', 'examples');
     await expect(page.locator('.pool-primary-nav .pool-primary-actions')).toBeVisible();
-    await expect(page.locator('[data-toggle-inspector]')).toBeHidden();
+    await expect(page.locator('[data-workspace-view]')).toHaveCount(0);
     await page.locator('.pool-primary-brand').click();
     await expect(page.locator('[data-chat-workspace]')).toBeVisible();
     await page.keyboard.press('Tab'); await left.focus();
@@ -144,7 +147,7 @@ for (const width of [1440, 320]) for (const theme of ['light', 'dark']) {
     await left.click();
     expect(await left.evaluate(node => getComputedStyle(node).transitionDuration)).toBe('0s');
     await page.keyboard.press('Escape'); await right.click();
-    expect(await page.locator('[data-contextual-inspector]').evaluate(node => getComputedStyle(node).animationName)).toBe('none');
+    expect(await page.locator('[data-contextual-inspector]:visible').evaluate(node => getComputedStyle(node).animationName)).toBe('none');
     expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
   });
 }

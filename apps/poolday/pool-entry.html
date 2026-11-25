@@ -19,6 +19,8 @@
     <link rel="stylesheet" href="/styles/poolday/primitives/layout.css" />
     <link rel="stylesheet" href="/styles/poolday/primitives/text.css" />
     <link rel="stylesheet" href="/styles/poolday/primitives/optical.css" />
+    <link rel="stylesheet" href="/styles/poolday/primitives/workspace.css" />
+    <link rel="stylesheet" href="/styles/poolday/primitives/messages.css" />
     <link rel="stylesheet" href="/styles/poolday/compositions/screens.css" />
     <link rel="stylesheet" href="/styles/poolday/compositions/conversation.css" />
     <link rel="stylesheet" href="/styles/poolday/compositions/interaction.css" />
@@ -83,11 +85,14 @@
         currentUrl.searchParams.delete('reploidBootRetry');
         window.history.replaceState(window.history.state, '', `${currentUrl.pathname}${currentUrl.search}${currentUrl.hash}`);
       };
+      // The conversation workspace (/ and /network) is the React product (apps/poolday-react); the specialist routes keep the vanilla shell.
+      const productBundle = ['/', '/network'].includes((window.location.pathname || '/').replace(/\/+$/, '') || '/')
+        ? '/ui/react/app.js' : '/ui/pool-home/app.bundle.js';
       let timeoutId;
       const controller = new AbortController();
       try {
         await Promise.race([
-          import('/ui/pool-home/app.bundle.js').then(({ initPoolHome }) => {
+          import(productBundle).then(({ initPoolHome }) => {
             controller.signal.throwIfAborted();
             return initPoolHome(appRoot, { signal: controller.signal });
           }),

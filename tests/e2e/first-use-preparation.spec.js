@@ -15,10 +15,6 @@ for (const theme of ['light', 'dark']) for (const width of [390, 1440]) {
     });
     page.on('pageerror', error => errors.push(error.message));
     await page.context().route('**/*', route => new URL(route.request().url()).origin === origin ? route.continue() : route.abort());
-    if (process.env.REPLOID_FIRST_USE_BEFORE === '1') {
-      const source = await readFile('artifacts/first-use-preparation-20261013/conversation-workspace-before.js', 'utf8');
-      await page.route('**/ui/pool-home/conversation-workspace.js', route => route.fulfill({ contentType: 'text/javascript', body: source }));
-    }
     await page.clock.install();
     await page.setViewportSize({ width, height: 844 });
     // A static JSON document provides the origin without booting discovery or providers.
@@ -31,19 +27,20 @@ for (const theme of ['light', 'dark']) for (const width of [390, 1440]) {
         const link = document.createElement('link'); link.rel = 'stylesheet'; link.href = `/styles/${file}`; document.head.append(link);
       }
       const { createChatSession, CANONICAL_CHAT_MODELS } = await import('/host/chat-session.js');
-      const { renderConversationWorkspace, bindConversationWorkspace } = await import('/ui/pool-home/conversation-workspace.js');
-      const { renderNav } = await import('/ui/pool-home/shell-view.js');
-      const root = document.createElement('main'); root.className = 'pool-home'; root.dataset.poolRouteId = 'home'; root.dataset.poolTheme = theme;
-      root.innerHTML = renderNav('home') + '<div class="pool-route-content">' + renderConversationWorkspace() + '</div>'; document.body.append(root);
+      const { mountPoolday } = await import('/ui/react/app.js');
+      const { createExecutionPolicy } = await import('/vendor/reploid/chat/execution-policy.js');
+      localStorage.setItem('reploid.appearance.v1', theme);
+      const root = document.createElement('div'); document.body.append(root);
       const model = CANONICAL_CHAT_MODELS[0];
-      const peer = { peerId: 'fixture-preparing-peer', model: model.id, modelIdentity: model.identity, readiness: 'loading', hasInference: false, availableSlots: 0 };
+      const peer = { peerId: 'fixture-preparing-peer', model: model.id, modelIdentity: model.identity, readiness: 'loading', hasInference: false, availableSlots: 0, identityProtocol: 1, admissionProtocol: 2 };
       const link = { id: peer.peerId, phase: 'connected', channelState: 'open' };
       let connections = 0;
       const session = createChatSession({ storage: null, models: [model], swarm: {
         getState: () => ({ consumer: { connectionState: 'connected', connections: [link], peers: [peer] } }), async connect() { connections++; }
       } });
-      // Home renders no app bar, so there is no execution ribbon; the composer's status line carries preparation.
-      const dispose = bindConversationWorkspace(root, session);
+      // The composer's status line carries preparation. This requester has chosen contributors.
+      const privacy = createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'open', ids: [] } });
+      const dispose = mountPoolday(root, { host: { chat: session, close: async () => {} }, viewState: { privacy } });
       window.firstUse = {
         state: () => session.getState(), connections: () => connections,
         phase(value) { peer.readiness = value; peer.hasInference = value === 'ready'; peer.availableSlots = value === 'ready' ? 1 : 0; session.refreshNetwork(); },
@@ -55,9 +52,9 @@ for (const theme of ['light', 'dark']) for (const width of [390, 1440]) {
     await expect(page.locator('[data-composer-send]')).toBeDisabled();
     const evidence = process.env.REPLOID_FIRST_USE_EVIDENCE;
     const observe = async () => snapshots.push(await page.evaluate(() => ({
-      composerStatus: document.querySelector('[data-model-status]').textContent,
-      composerStatusVisible: document.querySelector('[data-model-status]').checkVisibility(),
-      retryVisible: !document.querySelector('[data-retry-connection]').hidden,
+      composerStatus: document.querySelector('[data-model-status]')?.textContent ?? '',
+      composerStatusVisible: !!document.querySelector('[data-model-status]')?.checkVisibility(),
+      retryVisible: !!document.querySelector('[data-retry-connection]')?.checkVisibility(),
       sendDisabled: document.querySelector('[data-composer-send]').disabled,
       draft: document.querySelector('[data-composer-input]').value
     })));
@@ -77,7 +74,8 @@ for (const theme of ['light', 'dark']) for (const width of [390, 1440]) {
       // A withdrawn advert does not finish discovery. Let the connected observation window elapse.
       await page.clock.fastForward(8_000);
       await expect(page.locator('[data-composer-send]')).toBeDisabled();
-      await expect(page.locator('[data-retry-connection]')).toBeVisible();
+      // The next step is named beside the status: this model can be downloaded here, so that is the offer.
+      await expect(page.locator('[data-download-local]')).toBeVisible();
       await expect(page.locator('[data-model-status]')).toBeVisible();
       await expect(page.locator('[data-model-status]')).toContainText('No eligible computer found');
       await expect(page.locator('[data-composer-input]')).toHaveValue(draft);

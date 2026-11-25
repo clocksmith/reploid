@@ -28,7 +28,7 @@ test('prepared whole-model service completes frozen independent chat tasks', asy
     if (!await advanced.evaluate(node => node.open)) await advanced.locator(':scope > summary').click();
     const permission = page.locator('[data-remote-answers-toggle]');
     if (await permission.getAttribute('aria-checked') === 'true') await permission.click();
-    await page.locator('[data-close-inspector]').click();
+    await page.locator('[data-close-inspector]:visible').click();
     for (const task of suite.tasks) {
       if (results.length) {
         await page.locator('[data-toggle-thread-rail]').click();

@@ -1,4 +1,7 @@
 import { isProductPath, omitDefaultRoom } from './shell-view.js';
+
+/** Routes the React product serves; the vanilla shell never renders them. */
+export const WORKSPACE_PATHS = Object.freeze(['/', '/network']);
 const applyPoolNavOpenState = (nav, navToggle, isOpen) => {
   const openLabel = 'Close navigation';
   const closedLabel = 'Open navigation';
@@ -64,8 +67,13 @@ export const bindPoolRouteControls = (mount, render, {
       refreshHref();
       if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey
         || control.hasAttribute('download') || (control.target && control.target !== '_self')) return;
-      event.preventDefault();
       const nextPath = resolvePath();
+      // The conversation workspace (/ and /network) is the React product: it loads as a page of its own.
+      event.preventDefault();
+      if (WORKSPACE_PATHS.includes(new URL(nextPath, window.location.origin).pathname)) {
+        window.location.assign(nextPath);
+        return;
+      }
       if (`${window.location.pathname}${window.location.search}${window.location.hash}` !== nextPath) {
         window.history.pushState({ reploidPoolRoute: nextPath }, '', nextPath);
       }

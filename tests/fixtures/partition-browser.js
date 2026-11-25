@@ -5,7 +5,7 @@ import { createMeshPeerIdentity } from '/vendor/reploid/mesh/peer-identity.js';
 import { createResidentPartition, createPartitionGrantAuthority, createPartitionPeer,
   createPartitionNetwork, createPartitionChat } from '/vendor/reploid/mesh/index.js';
 import { createChatSession } from '/host/chat-session.js';
-import { renderConversationWorkspace, bindConversationWorkspace } from '/ui/pool-home/conversation-workspace.js';
+import { mountPoolday } from '/ui/react/app.js';
 import { createPartitionRuntimeFixture } from '/partition-runtime-fixture.js';
 
 export async function start(index, { model: suppliedModel, plan: suppliedPlan,
@@ -67,8 +67,10 @@ export async function start(index, { model: suppliedModel, plan: suppliedPlan,
     state.disposeView?.();
     state.session = createChatSession({ partitions: state.chat, meshId: 'browser-split', participantId: identity.peerId,
       models: [model], service: { open() { throw new Error('Whole-model fallback forbidden'); } } });
-    document.body.innerHTML = renderConversationWorkspace();
-    state.disposeView = bindConversationWorkspace(document, state.session);
+    // The React product over this session, as `/` mounts it.
+    let root = document.querySelector('[data-partition-view]');
+    if (!root) { root = document.createElement('div'); root.dataset.partitionView = ''; document.body.append(root); }
+    state.disposeView = mountPoolday(root, { host: { chat: state.session, close: async () => {} } });
   };
   state.connect = async () => {
     const endpoint = await state.network.connect(state.remoteId);

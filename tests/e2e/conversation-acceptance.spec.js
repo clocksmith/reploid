@@ -1,25 +1,34 @@
 import { test, expect } from '@playwright/test';
 import { allowRemoteOnce } from '../fixtures/remote-permission.js';
+import { LOCAL_DOPPLER_MODELS } from '../../shared/config/doppler-local-models.js';
+
+const fixturePartition = { planId: 'fixture', participantA: 'peer:' + 'a'.repeat(24), participantB: 'peer:' + 'b'.repeat(24) };
+// Public partition service is closed until an owner approves a route (config/partition-releases.json); these
+// journeys approve exactly the scripted route for this page only.
+const fixtureRelease = JSON.stringify({ approvals: [{ modelId: LOCAL_DOPPLER_MODELS[0].id, modelIdentity: LOCAL_DOPPLER_MODELS[0].identity,
+  adapterIdentities: [], evidence: 'Scripted acceptance fixture only', partition: fixturePartition }] });
 
 // Five scripted phone tasks, not human observations or inference qualification.
 // Production session, storage, permissions and UI; injected discovery/execution.
 async function mount(page, { available = true } = {}) {
+  await page.route('**/config/partition-releases.json', route => route.fulfill({ contentType: 'application/json', body: fixtureRelease }));
   await page.goto('/');
   await page.locator('[data-chat-workspace]').waitFor();
-  await page.evaluate(async ({ available }) => {
+  await page.evaluate(async ({ available, partition }) => {
     window.dispatchEvent(new PageTransitionEvent('pagehide', { persisted: false }));
-    document.querySelector('[data-shell-inspector]')?.remove();
     const { createChatSession, CANONICAL_CHAT_MODELS } = await import('/host/chat-session.js');
-    const { renderConversationWorkspace, bindConversationWorkspace } = await import('/ui/pool-home/conversation-workspace.js');
+    const { mountPoolday } = await import('/ui/react/app.js');
+    const { partitionPrivacyBinding } = await import('/vendor/reploid/chat/execution-policy.js');
     const listeners = new Set(), jobs = new Map();
     const model = { ...CANONICAL_CHAT_MODELS[0], selectionId: 'test-partition',
-      availability: 'ready', partition: { planId: 'fixture', participantA: 'peer:' + 'a'.repeat(24), participantB: 'peer:' + 'b'.repeat(24) } };
+      availability: 'ready', partition };
     const partitions = {
       getModels: () => available ? [model] : [],
       subscribe(fn) { listeners.add(fn); return () => listeners.delete(fn); },
       async generate(request, controls) {
         const ids = { threadId: request.threadId, attemptId: request.attemptId };
-        const approved = await controls.requestApproval({ ...ids, id: crypto.randomUUID(), peerId: model.partition.participantA,
+        const privacyBinding = await partitionPrivacyBinding(request, [model.partition.participantA, model.partition.participantB], model.partition);
+        const approved = await controls.requestApproval({ ...ids, id: crypto.randomUUID(), peerId: model.partition.participantA, privacyBinding,
           recipientIdentity: model.partition.participantA, participantA: model.partition.participantA,
           participantB: model.partition.participantB,
           planId: model.partition.planId, operation: 'generate-partition', disclosure: 'partition-activations-and-tokens',
@@ -46,10 +55,14 @@ async function mount(page, { available = true } = {}) {
     const swarm = { getState: () => ({ sharing: false, consumer: { peers: [] } }),
       async connect() { available = true; listeners.forEach(fn => fn()); } };
     const session = createChatSession({ partitions, swarm, storage: localStorage });
-    const root = document.querySelector('.pool-route-content'); root.innerHTML = renderConversationWorkspace();
-    bindConversationWorkspace(root, session);
+    // The React product over this session, in place of the page's own.
+    const root = document.createElement('div'); document.body.replaceChildren(root);
+    // These journeys have already opted into contributors; a first visitor's default is "Your devices".
+    const { createExecutionPolicy } = await import('/vendor/reploid/chat/execution-policy.js');
+    const privacy = createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'open', ids: [] } });
+    mountPoolday(root, { host: { chat: session, close: async () => {} }, viewState: { privacy } });
     window.journey = { session, jobs };
-  }, { available });
+  }, { available, partition: fixturePartition });
 }
 async function send(page, text) {
   await page.locator('[data-composer-input]').fill(text);
@@ -89,12 +102,11 @@ test('scripted first visit: capacity retry preserves draft, Send authorizes befo
   await expect(page.locator('[data-composer-input]')).toHaveValue('What can you help with?');
   await page.locator('[data-composer-send]').click();
   await approve(page); await emit(page, 'Scripted answer, supplied by the test.');
-  await expect(page.locator('.is-assistant')).toContainText('Scripted answer');
+  await expect(page.locator('[data-message-role="assistant"]')).toContainText('Scripted answer');
   await expect(page.locator('[data-composer-stop]')).toBeHidden();
-  await page.locator('[data-toggle-inspector]').click();
-  await page.locator('[data-inspector-section="device"]').click();
-  await expect(page.locator('[data-contrib-label]')).toHaveText('Not sharing');
-  await expect(page.locator('[data-toggle-contribution]')).toHaveAttribute('aria-checked', 'false');
+  await page.locator('[data-chat-rail-toolbar] [data-inspector-section="participants"]').click();
+  await page.locator('[data-production-device]').getByText('Contribute this computer').click();
+  await expect(page.locator('[data-toggle-contribution]:visible')).toHaveAttribute('aria-checked', 'false');
 });
 
 test('scripted attachment: disclosed text, usable citation and copying', async ({ page }) => {
@@ -106,7 +118,7 @@ test('scripted attachment: disclosed text, usable citation and copying', async (
   await page.locator('[data-source-reference]').click();
   await expect(page.locator('[id$="D1-P1"]')).toBeFocused();
   await expect(page.locator('[id$="D1-P1"]')).toContainText('Delivery may happen Friday.');
-  await page.locator('.is-assistant [data-copy-message]').click();
+  await page.locator('[data-message-role="assistant"] [data-copy-message]').click();
   expect(await page.evaluate(() => navigator.clipboard.readText())).toBe('Friday is possible, not promised. [D1:P1]');
 });
 
@@ -120,20 +132,20 @@ test('scripted multitasking: Stop is isolated; completed answer and draft surviv
   await select(page, second); await emit(page, ' complete.');
   await page.locator('[data-composer-input]').fill('Saved follow-up');
   await mount(page); await select(page, second);
-  await expect(page.locator('.is-assistant')).toContainText('Second partial complete.');
+  await expect(page.locator('[data-message-role="assistant"]')).toContainText('Second partial complete.');
   await expect(page.locator('[data-composer-input]')).toHaveValue('Saved follow-up');
-  await select(page, first); await expect(page.locator('.is-assistant')).toContainText('Stopped. Your partial answer is saved.');
+  await select(page, first); await expect(page.locator('[data-message-role="assistant"]')).toContainText('Stopped. Your partial answer is saved.');
 });
 
 test('scripted contributor loss: explicit retry keeps the partial response separate', async ({ page }) => {
   await mount(page); await send(page, 'Explain this'); await approve(page); await emit(page, 'Partial before departure.', false);
   await page.evaluate(() => window.journey.jobs.get(window.journey.session.getState().selectedId).fail());
-  await expect(page.locator('.is-assistant')).toContainText('Nothing was resent. Retry to ask again');
+  await expect(page.locator('[data-message-role="assistant"]')).toContainText('Nothing was resent. Retry to ask again');
   await page.locator('[data-retry-attempt]').click();
   await approve(page); await emit(page, 'Complete replacement answer.');
-  await expect(page.locator('.is-assistant')).toHaveCount(2);
-  await expect(page.locator('.is-assistant').first()).toContainText('Partial before departure.');
-  await expect(page.locator('.is-assistant').last()).toContainText('New attempt');
+  await expect(page.locator('[data-message-role="assistant"]')).toHaveCount(2);
+  await expect(page.locator('[data-message-role="assistant"]').first()).toContainText('Partial before departure.');
+  await expect(page.locator('[data-message-role="assistant"]').last()).toContainText('New attempt');
 });
 
 test('scripted Send grants no future sharing and Stop preserves the partial answer', async ({ page }) => {
@@ -142,7 +154,7 @@ test('scripted Send grants no future sharing and Stop preserves the partial answ
   expect(await page.evaluate(() => window.journey.session.getState().activeThread.grants)).toEqual([]);
   await page.locator('[data-composer-stop]').click();
   await expect.poll(() => page.evaluate(() => window.journey.jobs.size)).toBe(0);
-  await expect(page.locator('.is-assistant').last()).toContainText('Partial follow-up');
+  await expect(page.locator('[data-message-role="assistant"]').last()).toContainText('Partial follow-up');
   await page.setViewportSize({ width: 390, height: 460 });
   await page.locator('[data-composer-input]').focus();
   await expect(page.locator('[data-composer-input]')).toBeInViewport();

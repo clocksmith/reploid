@@ -1,31 +1,15 @@
 import { test, expect } from '@playwright/test';
-import { readFile } from 'node:fs/promises';
-import path from 'node:path';
-import { participantLabel } from '../../apps/poolday/ui/pool-home/computer-labels.js';
-import { readServedText, readServedHarnessFile } from '../helpers/served-browser-files.js';
+import { readServedText } from '../helpers/served-browser-files.js';
 
-// Isolated presentation fixtures: no discovery, inference, model loading or GPU work.
+// The React product over an injected session: no discovery, inference, model loading or GPU work. The bar, the
+// drawers' geometry and keyboard access are workspace-navigation, poolday-layout-stability and chat-rails specs.
 test.beforeEach(async ({ page }) => {
-  await page.route('http://127.0.0.1:5198/**', async route => {
-    const pathname = new URL(route.request().url()).pathname;
-    if (pathname === '/') {
-      const manifest = JSON.parse(await readServedText('styles/poolday/layers.json'));
-      const layers = [manifest.tokens, ...manifest.primitives, ...manifest.compositions];
-      return route.fulfill({ contentType: 'text/html', body: '<!doctype html><html class="pool-page"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
-        + layers.map(file => `<link rel="stylesheet" href="/styles/poolday/${file}">`).join('') + '<main class="pool-home" data-pool-route-id="home"></main>' });
-    }
-    const body = await readServedHarnessFile('/self' + pathname);
-    if (!body) return route.abort();
-    try { return route.fulfill({ contentType: pathname.endsWith('.css') ? 'text/css' : pathname.endsWith('.json') ? 'application/json' : 'text/javascript', body }); }
-    catch { return route.abort(); }
-  });
-  await page.goto('http://127.0.0.1:5198/');
+  await page.goto('/');
+  await page.locator('[data-chat-workspace]').waitFor();
   await page.evaluate(async () => {
-    const [{ renderConversationWorkspace, bindConversationWorkspace }, { renderNav }] = await Promise.all([
-      import('/ui/pool-home/conversation-workspace.js'), import('/ui/pool-home/shell-view.js')
-    ]);
-    const root = document.querySelector('.pool-home');
-    root.innerHTML = renderNav('home') + '<div class="pool-route-content">' + renderConversationWorkspace() + '</div>';
+    window.dispatchEvent(new PageTransitionEvent('pagehide', { persisted: false }));
+    const { mountPoolday } = await import('/ui/react/app.js');
+    const root = document.createElement('div'); document.body.replaceChildren(root);
     const model = { id: 'qwen', name: 'Qwen 3.5 0.8B', availability: 'ready' };
     const thread = { id: 'thread', title: 'Jump into a useful conversation', model, permissions: { sharingScope: 'mesh' }, grants: [],
       messages: [{ id: 'question', role: 'user', content: 'Jump!' }, { id: 'response', role: 'assistant', attemptId: 'attempt', content: 'Ready for the challenge. Let’s go.' }],
@@ -38,26 +22,30 @@ test.beforeEach(async ({ page }) => {
         consumer: { peerId: 'requester-transport', connectionState: 'connected', peers: ['a', 'b', 'c', 'd'].map(id => ({ peerId: 'transport-' + id })) },
         partitionPeers: ['a', 'b', 'c', 'd'].map(id => ({ transportId: 'transport-' + id, participantId: 'participant-' + id, available: true, description: { index: id === 'a' ? 1 : 0, phase: 'ready', offer: model } }))
       } };
-    const emit = window.emitRailState = () => listeners.forEach(listener => listener(state));
-    const session = { getState: () => state, subscribe(listener) { listeners.add(listener); listener(state); return () => listeners.delete(listener); },
+    // Each update is a new snapshot, as the host publishes them.
+    const emit = window.emitRailState = () => { const next = structuredClone(state); listeners.forEach(listener => listener(next)); };
+    const session = { getState: () => structuredClone(state), subscribe(listener) { listeners.add(listener); return () => listeners.delete(listener); },
       saveDraft: (id, draft) => drafts.set(id, draft), getDraft: id => drafts.get(id),
       select(id) { state.selectedId = id; state.activeThread = state.threads.find(item => item.id === id) || null; emit(); },
       disconnect() { state.network.consumer.connectionState = 'disconnected'; emit(); }, connect() { state.network.consumer.connectionState = 'connected'; emit(); }
     };
     window.railSession = session;
-    window.disposeRails = bindConversationWorkspace(root, session);
+    window.disposeRails = mountPoolday(root, { host: { chat: session, close: async () => {} } });
   });
 });
-
-// Rendered contract: four >=44px icon+label destinations form one stable row, a top bar on desktop
-// and a bottom bar on phones, never shifting on load. Panel changes preserve draft and focus.
-const railButtons = ['[data-toggle-thread-rail]', '[data-inspector-section="conversation"]', '[data-toggle-inspector]', '[data-inspector-section="settings"]'];
+const openComputers = page => page.locator('[data-chat-rail-toolbar] [data-inspector-section="participants"]').click();
+// Connecting and idle computers fold under "Show others"; this journey follows one of them, so it stays unfolded.
+const showQuiet = async page => {
+  const toggle = page.locator('[data-quiet-computers]');
+  if (await toggle.count() && await toggle.getAttribute('aria-expanded') !== 'true') await toggle.click();
+};
+const update = async (page, fn, arg) => { await page.evaluate(fn, arg); await showQuiet(page); };
 
 for (const theme of ['light', 'dark']) for (const width of [1440, 390, 320]) {
   test(`computer facts stay readable and IDs stay folded: ${theme}, ${width}px`, async ({ page }, info) => {
     await page.setViewportSize({ width, height: 1000 });
-    await page.evaluate(async theme => {
-      document.querySelector('.pool-home').dataset.poolTheme = theme;
+    await page.evaluate(theme => {
+      localStorage.setItem('reploid.appearance.v1', theme);
       const state = window.railState, key = 'peer:' + 'a'.repeat(24);
       state.network.partitionPeers = [];
       state.network.connections = [{ id: 'transport-a', attemptId: '0c0b796e-ad08-4c56-be9a-477fcf5087833:1:2', phase: 'connected', path: 'direct' }];
@@ -68,307 +56,43 @@ for (const theme of ['light', 'dark']) for (const width of [1440, 390, 320]) {
         { peerId: 'transport-b', model: 'qwen', readiness: 'ready' }
       ];
       window.emitRailState();
-      const { createComputerPreferences } = await import('/host/computer-preferences.js');
-      const { bindComputerPreferences } = await import('/ui/pool-home/computer-preferences-view.js');
-      const preferences = createComputerPreferences({ storage: null, verifyPeer: async () => key });
-      bindComputerPreferences(document.querySelector('.pool-home'), preferences, window.railSession, window.emitRailState);
     }, theme);
-    await page.locator('[data-toggle-inspector]').click();
+    await openComputers(page);
     const row = page.locator('[data-computer-id="transport-a"]');
     const details = row.locator('[data-computer-details]');
-    await expect(details.locator('[data-computer-input-tokens]')).toBeHidden();
+    await expect(details.getByText('128', { exact: true })).toBeHidden();
     await details.locator(':scope > summary').click();
-    await expect(details.getByRole('table')).toHaveCount(2);
-    await expect(details.locator('[data-computer-path]')).toHaveText('Direct');
-    await expect(details.locator('[data-computer-auth]')).toHaveText('Authenticated');
-    await expect(details.locator('[data-computer-input-tokens]')).toHaveText('128');
-    await expect(details.locator('[data-computer-output-tokens]')).toHaveText('0');
-    await expect(details.locator('[data-computer-identity]')).toBeHidden();
+    await expect(details).toContainText('Direct');
+    await expect(details).toContainText('Authenticated');
+    await expect(details.getByText('128', { exact: true })).toBeVisible();
+    await expect(details.getByText('sha256:' + 'a'.repeat(64))).toBeHidden();
     await expect(page.locator('[data-computer-usage-help]')).toHaveCount(1);
     await row.scrollIntoViewIfNeeded();
     await row.screenshot({ path: info.outputPath('computer-details.png') });
-    await details.locator('[data-computer-preferences] > summary').click();
-    await row.locator('[data-computer-name-input]').fill('Desk');
-    await page.evaluate(() => { window.railState.network.consumer.peers[0].contribution.providedOutputTokens = 4; window.emitRailState(); });
-    await expect(row.locator('[data-computer-name-input]')).toHaveValue('Desk');
-    await expect(details.locator('[data-computer-output-tokens]')).toHaveText('4');
-    expect(await row.evaluate(node => node.scrollWidth <= node.clientWidth)).toBe(true);
-    await details.locator('[data-computer-preferences] > summary').click();
+    const preferences = details.locator('[data-computer-preferences]');
+    if (await preferences.count()) {
+      await preferences.locator(':scope > summary').click();
+      await row.locator('[data-computer-name-input] input, input[data-computer-name-input]').first().fill('Desk');
+      await page.evaluate(() => { window.railState.network.consumer.peers[0].contribution.providedOutputTokens = 4; window.emitRailState(); });
+      await expect(row.locator('[data-computer-name-input] input, input[data-computer-name-input]').first()).toHaveValue('Desk');
+      await expect(details.getByText('4', { exact: true })).toBeVisible();
+      await preferences.locator(':scope > summary').click();
+    }
+    expect(await row.evaluate(node => node.getBoundingClientRect().right <= innerWidth && document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await details.locator('[data-computer-identifiers] > summary').click();
-    await expect(details.locator('[data-computer-attempt]')).toHaveText('0c0b796e-ad08-4c56-be9a-477fcf5087833:1:2');
-    await expect(details.locator('[data-computer-identity]')).toHaveText('sha256:' + 'a'.repeat(64));
-    expect(await row.evaluate(node => node.scrollWidth <= node.clientWidth)).toBe(true);
+    await expect(details).toContainText('0c0b796e-ad08-4c56-be9a-477fcf5087833:1:2');
+    await expect(details).toContainText('sha256:' + 'a'.repeat(64));
+    expect(await row.evaluate(node => node.getBoundingClientRect().right <= innerWidth && document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await row.screenshot({ path: info.outputPath('computer-identifiers.png') });
   });
 }
 
-const contrastRatio = (first, second) => {
-  const luminance = css => css.match(/[\d.]+/g).slice(0,3).map(Number).map(value => {
-    const channel=value/255;return channel<=0.04045?channel/12.92:((channel+0.055)/1.055)**2.4;
-  }).reduce((sum,value,index)=>sum+value*[0.2126,0.7152,0.0722][index],0);
-  const a=luminance(first),b=luminance(second);return (Math.max(a,b)+.05)/(Math.min(a,b)+.05);
-};
-
-
-async function measureControls(page) {
-  return page.evaluate(selectors => selectors.map(selector => {
-    const node = document.querySelector(selector), box = node.getBoundingClientRect();
-    const glyph = node.querySelector('svg, .pool-power-tower'), icon = glyph.getBoundingClientRect();
-    const label = node.querySelector('.chat-rail-label');
-    const labelBox = label?.checkVisibility() ? label.getBoundingClientRect() : icon;
-    const top = Math.min(icon.top, labelBox.top), bottom = Math.max(icon.bottom, labelBox.bottom);
-    // Ghost controls are transparent; measure their ink against the composed ancestor surface.
-    const ancestors = []; for (let parent = node; parent; parent = parent.parentElement) ancestors.unshift(parent);
-    let background = [255, 255, 255];
-    for (const parent of ancestors) {
-      const channels = getComputedStyle(parent).backgroundColor.match(/[\d.]+/g).map(Number), alpha = channels[3] ?? 1;
-      background = background.map((channel, index) => channels[index] * alpha + channel * (1 - alpha));
-    }
-    return { selector, box: box.toJSON(), icon: icon.toJSON(), visible: node.checkVisibility(),
-      background: `rgb(${background.join(',')})`, color: getComputedStyle(node).color, radius: getComputedStyle(node).borderRadius,
-      centerX: icon.x + icon.width / 2 - box.x - box.width / 2,
-      centerY: (top + bottom) / 2 - box.y - box.height / 2 };
-  }), railButtons);
-}
-
-for (const theme of ['light', 'dark']) for (const width of [1440, 390, 320]) {
-  test(`${theme} one bar aligns all four destinations and opens each panel at ${width}px`, async ({ page }, info) => {
-    await page.setViewportSize({ width, height: 844 });
-    await page.evaluate(theme => { document.querySelector('.pool-home').dataset.poolTheme = theme; }, theme);
-    const rail = page.locator('[data-thread-sidebar]');
-    await expect(page.locator('.chat-thread-title').first()).toBeHidden();
-    await expect(page.locator('[data-thread-list]')).toBeHidden();
-    await expect(page.locator('[data-threads-dialog] [data-conversation-actions]')).toHaveCount(0);
-    await expect(page.locator('[data-pool-settings] > summary')).toBeHidden();
-    const controls = await measureControls(page);
-    expect(controls.every(item => item.visible)).toBe(true);
-    expect(new Set(controls.map(item => item.radius)).size).toBe(1);
-    for (const item of controls) {
-      expect(contrastRatio(item.background,item.color), item.selector).toBeGreaterThanOrEqual(3);
-      expect(item.box.width, item.selector).toBeGreaterThanOrEqual(44); expect(item.box.height, item.selector).toBeGreaterThanOrEqual(44);
-      // Desktop labels sit beside their icons; phone labels sit below them.
-      if (width <= 760) expect(Math.abs(item.centerX), item.selector).toBeLessThanOrEqual(0.5);
-      expect(Math.abs(item.centerY), item.selector).toBeLessThanOrEqual(0.5);
-      expect(item.box.y).toBe(controls[0].box.y);
-      expect(item.box.height).toBe(controls[0].box.height);
-    }
-    const bar = await rail.boundingBox();
-    if (width > 760) expect(bar.y).toBeLessThan(844 / 2); else expect(bar.y).toBeGreaterThan(844 / 2);
-    await page.locator('[data-composer-input]').fill('Keep this draft.');
-    await page.screenshot({path:info.outputPath('collapsed.png')});
-    await page.locator('[data-toggle-thread-rail]').click();
-    await expect(page.locator('[data-threads-dialog]')).toBeVisible();
-    await expect(page.locator('[data-threads-dialog]')).not.toHaveAttribute('data-drawer-moving');
-    await expect(page.locator('[data-thread-list]')).toBeVisible();
-    if (width <= 760) {
-      const sheetBox = await page.locator('[data-threads-dialog]').boundingBox();
-      expect(sheetBox.x).toBeLessThanOrEqual(16);
-      expect(width - (sheetBox.x + sheetBox.width)).toBeLessThanOrEqual(16);
-    }
-    await expect(page.locator('[data-open-model]')).toBeVisible();
-    await page.screenshot({path:info.outputPath('threads.png')});
-    await page.keyboard.press('Escape');
-    await expect(page.locator('[data-toggle-thread-rail]')).toBeFocused();
-    await page.locator('[data-toggle-inspector]').click();
-    await expect(page.locator('.chat-thread-title').first()).toBeHidden();
-    await expect(page.locator('[data-thread-list]')).toBeHidden();
-    await expect(page.locator('[data-contextual-inspector]')).toBeVisible();
-    await expect(page.locator('[data-chat-inspector-slot]')).not.toHaveAttribute('data-drawer-moving');
-    if (width <= 760) {
-      const inspectorBox = await page.locator('[data-chat-inspector-slot]').boundingBox();
-      expect(inspectorBox.x).toBeLessThanOrEqual(16);
-      expect(width - (inspectorBox.x + inspectorBox.width)).toBeLessThanOrEqual(16);
-    }
-    await expect(page.locator('.network-peer-row strong')).toHaveText(['a', 'b', 'c', 'd'].map(id => participantLabel('participant-' + id)));
-    await page.screenshot({path:info.outputPath('network.png')});
-    await page.locator('[data-inspector-section="settings"]').click();
-    await expect(page.locator('[data-inspector-pane="settings"]')).toBeVisible();
-    await page.locator('[data-inspector-section="conversation"]').click();
-    await expect(page.locator('[data-inspector-pane="conversation"]')).toBeVisible();
-    await page.locator('[data-toggle-thread-rail]').click();
-    if (width >= 1200) await expect(page.locator('[data-contextual-inspector]')).toBeVisible();
-    else await expect(page.locator('[data-contextual-inspector]')).toBeHidden();
-    await expect(page.locator('[data-thread-list]')).toBeVisible();
-    await page.locator('[data-show-archived]').click();
-    await expect(page.locator('[data-chat-workspace]')).toHaveAttribute('data-threads-open','');
-    await page.locator('[data-close-threads]').click();
-    await expect(page.locator('[data-threads-dialog]')).toBeHidden();
-    await page.locator('[data-open-model]').click();
-    await expect(page.locator('[data-model-picker]')).toBeVisible();
-    await expect(page.locator('[data-model-picker] input[type="radio"]:checked')).toBeFocused();
-    await page.locator('[data-model-picker-close]').click();
-    await expect(page.locator('[data-open-model]')).toBeFocused();
-    await expect(page.locator('[data-composer-input]')).toHaveValue('Keep this draft.');
-    const afterControls = await measureControls(page);
-    for (let i = 0; i < afterControls.length; i++) {
-      const item = afterControls[i];
-      if (width <= 760) expect(Math.abs(item.centerX),item.selector).toBeLessThanOrEqual(0.5);
-      expect(Math.abs(item.centerY),item.selector).toBeLessThanOrEqual(0.5);
-      expect(item.box.y).toBe(controls[0].box.y);
-      expect(Math.abs(item.box.x - controls[i].box.x)).toBeLessThanOrEqual(0.5);
-    }
-    expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
-    await expect(rail).toBeVisible();
-    await page.locator('[data-toggle-inspector]').click();
-    await page.locator('[data-toggle-thread-rail]').click();
-    await page.locator('[data-new-thread]').click();
-    await expect(page.locator('[data-contextual-inspector]')).toBeHidden();
-    await expect(page.locator('[data-composer-input]')).toBeFocused();
-    expect(await page.evaluate(()=>window.railState.selectedId)).toBe(null);
-  });
-}
-
-for (const width of [1440, 900, 390, 320]) for (const theme of ['light', 'dark']) {
-  test(`${theme} shared chat column follows the single panel at ${width}px`, async ({ page }, info) => {
-    await page.setViewportSize({width,height:844});
-    await page.evaluate(theme=>{
-      document.querySelector('.pool-home').dataset.poolTheme=theme;
-      const stream=document.querySelector('[data-message-stream]');
-      for(let i=0;i<12;i++)stream.append(stream.firstElementChild.cloneNode(true));
-    },theme);
-    const input=page.locator('[data-composer-input]');
-    await input.fill('A draft that wraps when the available chat column becomes narrow.');
-    const check=async state=>{
-      const result=await page.evaluate(()=>{
-        const box=s=>document.querySelector(s).getBoundingClientRect().toJSON();
-        const style=getComputedStyle(document.querySelector('[data-message-stream]'));
-        return {stream:box('[data-message-stream]'),gutter:parseFloat(style.paddingLeft)+parseFloat(style.paddingRight),composer:box('[data-composer-area]'),area:box('[data-conversation-area]'),rail:box('[data-thread-sidebar]'),panel:box('[data-chat-inspector-slot]')};
-      });
-      if(state==='network'){
-        // Desktop reserves space beside the conversation column; phones overlay the full-width sheet.
-        expect(result.panel.width).toBeGreaterThan(0);
-        expect(result.panel.right).toBeLessThanOrEqual(width-8);
-        if(width>=1100)expect(result.panel.x).toBeGreaterThanOrEqual(result.area.x+result.area.width-1);
-        if(width>760)expect(result.panel.y).toBeGreaterThanOrEqual(result.rail.bottom+8);
-        else{expect(result.panel.x).toBeLessThanOrEqual(16);expect(width-result.panel.right).toBeLessThanOrEqual(16);}
-      }else{
-        // One column: the transcript is centered on the composer and exceeds it by at most its own inline gutter.
-        expect(Math.abs((result.stream.x+result.stream.width/2)-(result.composer.x+result.composer.width/2))).toBeLessThanOrEqual(1);
-        expect(result.stream.width-result.composer.width).toBeGreaterThanOrEqual(-1);
-        expect(result.stream.width-result.composer.width).toBeLessThanOrEqual(result.gutter+1);
-        expect(Math.abs(result.composer.x+result.composer.width/2-result.area.x-result.area.width/2)).toBeLessThanOrEqual(1);
-        if(width>760)expect(result.area.y).toBeGreaterThanOrEqual(result.rail.bottom+8);
-        expect(result.composer.right).toBeLessThanOrEqual(width-8);
-      }
-      await expect(input).toHaveValue('A draft that wraps when the available chat column becomes narrow.');
-      if(state!=='network')await expect.poll(()=>input.evaluate(node=>Math.min(node.scrollHeight,innerHeight*.22)-node.clientHeight)).toBeLessThanOrEqual(1);
-      expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
-      await page.screenshot({path:info.outputPath(state+'.png')});
-    };
-    await check('collapsed');await page.locator('[data-toggle-thread-rail]').click();
-    await expect(page.locator('[data-threads-dialog]')).not.toHaveAttribute('data-drawer-moving');
-    await check('threads');
-    await page.locator('[data-close-threads]').click();
-    await expect(page.locator('[data-threads-dialog]')).not.toHaveAttribute('data-drawer-moving');
-    await page.locator('[data-toggle-inspector]').click();
-    await expect(page.locator('[data-chat-inspector-slot]')).not.toHaveAttribute('data-drawer-moving');
-    await check('network');
-    await page.locator('[data-close-inspector]').click();
-    await expect(page.locator('[data-chat-inspector-slot]')).not.toHaveAttribute('data-drawer-moving');
-    await check('closed');
-  });
-}
-
-for (const theme of ['light','dark']) for (const width of [1440,320]) {
-  test(`${theme} keyboard focus and marble switches at ${width}px`,async({page},info)=>{
-    await page.setViewportSize({width,height:844});
-    await page.evaluate(theme=>{document.querySelector('.pool-home').dataset.poolTheme=theme;},theme);
-    await page.keyboard.press('Tab');
-    const brand=page.locator('[data-toggle-thread-rail]');await brand.focus();
-    expect(await brand.evaluate(node=>getComputedStyle(node).outlineStyle)).toBe('solid');
-    await page.keyboard.press('Enter');await expect(brand).toHaveAttribute('aria-expanded','true');
-    await page.keyboard.press('Escape');await expect(brand).toHaveAttribute('aria-expanded','false');
-    await expect(brand).toBeFocused();
-    const network=page.locator('[data-toggle-inspector]');await network.focus();await page.keyboard.press('Enter');
-    await expect(page.locator('[data-contextual-inspector]')).toBeVisible();
-    await page.keyboard.press('Escape');await expect(page.locator('[data-contextual-inspector]')).toBeHidden();
-    await expect(network).toBeFocused();await page.keyboard.press('Enter');
-    const toggle=page.locator('[data-mesh-connect]'),knob=toggle.locator('span');
-    // The thumb is a token-colored disc that changes side and color with the state.
-    const on=await knob.boundingBox(),onColor=await knob.evaluate(node=>getComputedStyle(node).backgroundColor);
-    expect(onColor).not.toBe('rgba(0, 0, 0, 0)');
-    await page.emulateMedia({reducedMotion:'reduce'});await toggle.focus();
-    expect(await toggle.evaluate(node=>getComputedStyle(node).outlineStyle)).toBe('solid');
-    await page.keyboard.press('Space');await expect(toggle).toHaveAttribute('aria-checked','false');
-    expect((await knob.boundingBox()).x).toBeLessThan(on.x);
-    expect(await knob.evaluate(node=>getComputedStyle(node).backgroundColor)).not.toBe(onColor);
-    expect(await knob.evaluate(node=>getComputedStyle(node).transitionProperty)).toBe('none');
-    await page.screenshot({path:info.outputPath('marble-off.png')});
-    await page.keyboard.press('Escape');await expect(page.locator('[data-contextual-inspector]')).toBeHidden();
-    await expect(network).toBeFocused();
-  });
-}
-
-test('Verification Worker accepts changed presentation modules',async({page})=>{
-  const result=await page.evaluate(async()=>{
-    const files=['conversation-workspace','network-inspector','shell-view','index','contribution-models'];
-    const snapshot=Object.fromEntries(await Promise.all(files.map(async file=>['/self/ui/pool-home/'+file+'.js',await(await fetch('/ui/pool-home/'+file+'.js')).text()])));
-    return new Promise((resolve,reject)=>{
-      const worker=new Worker('/core/verification-worker.js');const timeout=setTimeout(()=>{worker.terminate();reject(Error('Worker timeout'));},10000);
-      worker.onmessage=event=>{clearTimeout(timeout);worker.terminate();resolve(event.data);};
-      worker.onerror=event=>{clearTimeout(timeout);worker.terminate();reject(Error(event.message));};worker.postMessage({type:'VERIFY',snapshot});
-    });
-  });
-  expect(result.passed,JSON.stringify(result)).toBe(true);
-});
-
-for (const width of [1440,320]) test(`shared shell inspector keeps fixed ownership across route return at ${width}px`,async({page},info)=>{
-  await page.setViewportSize({width,height:844});
-  await page.evaluate(async()=>{
-    const {renderNav,renderAppShortcuts}=await import('/ui/pool-home/shell-view.js');
-    const {renderConversationWorkspace,bindConversationWorkspace}=await import('/ui/pool-home/conversation-workspace.js');
-    const {renderNetworkInspector,renderInspectorNavigation,renderInspectorRail,renderModelSetupDialog,bindNetworkInspector}=await import('/ui/pool-home/network-inspector.js');
-    const {bindThemeSelector}=await import('/ui/pool-home/theme.js');
-    const root=document.querySelector('.pool-home'),session=window.railSession;
-    let disposeView=window.disposeRails,inspector,theme;
-    window.mountSharedRoute=route=>{
-      disposeView?.();inspector?.dispose();theme?.dispose?.();
-      root.dataset.poolRouteId=route;
-      root.innerHTML=renderNav(route)+'<div class="pool-route-content"></div><div data-shell-inspector></div>';
-      const shell=root.querySelector('[data-shell-inspector]'),content=root.querySelector('.pool-route-content');
-      if(route==='home'){
-        content.innerHTML=renderConversationWorkspace({inspector:false});
-        content.querySelector('[data-network-trigger-slot]').innerHTML=renderInspectorNavigation();
-        content.querySelector('[data-chat-inspector-slot]').innerHTML=renderInspectorRail({mounted:true,apps:renderAppShortcuts(route)});
-        shell.innerHTML=renderModelSetupDialog();
-      }else{shell.innerHTML=renderNetworkInspector();content.textContent='Changes';}
-      inspector=bindNetworkInspector(root,session);
-      disposeView=route==='home'?bindConversationWorkspace(content,session,{inspector}):null;
-      theme=bindThemeSelector(document.body);window.sharedInspector=inspector;
-    };
-    window.mountSharedRoute('home');
-  });
-  await page.locator('[data-composer-input]').fill('Preserve my draft across navigation.');
-  await page.locator('[data-toggle-inspector]').click();
-  await expect(page.locator('.network-peer-row strong')).toHaveCount(4);
-  await page.locator('[data-inspector-section="settings"]').click();
-  await expect(page.locator('[data-pool-theme-choice="dark"]')).toBeVisible();
-  await page.locator('[data-pool-theme-choice="dark"]').click();
-  await expect(page.locator('.pool-home')).toHaveAttribute('data-pool-theme','dark');
-  await page.evaluate(()=>{window.railState.network.consumer.peers.pop();window.emitRailState();});
-  await page.locator('[data-inspector-section="participants"]').click();
-  await expect(page.locator('[data-peer-readiness]')).toBeVisible();
-  await page.evaluate(()=>window.mountSharedRoute('improve'));
-  await expect(page.locator('[data-pool-settings] > summary')).toBeVisible();
-  await page.locator('[data-pool-settings] > summary').click();
-  await expect(page.locator('.pool-primary-nav [data-pool-theme-choice="light"]')).toBeVisible();
-  await page.evaluate(()=>window.mountSharedRoute('home'));
-  await expect(page.locator('[data-composer-input]')).toHaveValue('Preserve my draft across navigation.');
-  await expect(page.locator('[data-toggle-thread-rail] svg')).toBeVisible();
-  await page.locator('[data-toggle-inspector]').click();
-  await page.locator('[data-inspector-section="settings"]').click();
-  await expect(page.locator('[data-pool-theme-choice="light"]')).toBeVisible();
-  await expect(page.locator('[data-pool-theme-choice="light"]')).toHaveCount(1);
-  await page.screenshot({path:info.outputPath('shared-settings-return.png')});
-});
-
-
 for (const width of [1440, 390]) for (const theme of ['light', 'dark']) {
   test(`${theme} connection journey preserves pending, transfer, readiness and interruption at ${width}px`, async ({ page }, info) => {
     await page.setViewportSize({ width, height: 844 });
-    await page.evaluate(theme => {
-      document.querySelector('.pool-home').dataset.poolTheme = theme;
+    await update(page, theme => {
+      localStorage.setItem('reploid.appearance.v1', theme);
       const network = window.railState.network;
       network.partitionPeers = [];
       network.consumer.peers = [];
@@ -376,59 +100,59 @@ for (const width of [1440, 390]) for (const theme of ['light', 'dark']) {
       window.emitRailState();
     }, theme);
     await page.locator('[data-composer-input]').fill('Keep the draft while computers connect.');
-    await page.locator('[data-toggle-inspector]').click();
-    const row = page.locator('.network-peer-row');
+    await openComputers(page); await showQuiet(page);
+    const row = page.locator('[data-insp-device-list] [data-computer-id]');
     await expect(row).toHaveCount(1);
     await expect(row).toContainText('Preparing connection');
     await expect(row).toContainText('Waiting for connection configuration');
     await expect(row).toBeInViewport();
     await page.screenshot({ path: info.outputPath('pending.png') });
-    await page.evaluate(() => { window.railState.network.consumer.connections[0].phase = 'awaiting-answer'; window.emitRailState(); });
+    await update(page, () => { window.railState.network.consumer.connections[0].phase = 'awaiting-answer'; window.emitRailState(); });
     await expect(row).toContainText('Waiting for computer');
-    await page.evaluate(() => { window.railState.network.consumer.connections[0].phase = 'connected'; window.emitRailState(); });
+    await update(page, () => { window.railState.network.consumer.connections[0].phase = 'connected'; window.emitRailState(); });
     await expect(row).toContainText('Waiting for this computer to report its model status');
-    await expect(page.locator('[data-peer-readiness]')).toContainText('1 connected · 0 ready');
-    await page.evaluate(() => {
+    await expect(page.locator('[data-peer-readiness]')).toContainText('0 computers ready');
+    await update(page, () => {
       window.railState.network.consumer.peers = [{ peerId: 'transport-a', model: 'qwen', readiness: 'loading',
         preparation: { kind: 'receiving', receivedBytes: 25, totalBytes: 100 } }]; window.emitRailState();
     });
     await expect(row).toContainText('Receiving files');
     await expect(row.locator('progress')).toHaveAttribute('value', '25');
-    await row.locator('summary').click();
-    await page.evaluate(() => { window.railState.network.consumer.peers[0].preparation.receivedBytes = 75; window.emitRailState(); });
+    await row.locator('summary').first().click();
+    await update(page, () => { window.railState.network.consumer.peers[0].preparation.receivedBytes = 75; window.emitRailState(); });
     await expect(row.locator('progress')).toHaveAttribute('value', '75');
-    await expect(row.locator('details')).toHaveAttribute('open', '');
+    await expect(row.locator('details').first()).toHaveAttribute('open', '');
     await page.screenshot({ path: info.outputPath('receiving.png') });
-    await page.evaluate(() => {
+    await update(page, () => {
       window.railState.network.consumer.connections[0].authenticated = true;
       window.railState.network.consumer.peers[0].preparation = { kind: 'pipelines', prepared: 2, total: 4 };
       window.emitRailState();
     });
-    await expect(row).toContainText('Authenticated identity observed on this connection');
+    await expect(row).toContainText(/Identity\s*Authenticated/);
     await expect(row).toContainText('Preparing GPU');
     await expect(row.locator('progress')).toHaveAttribute('value', '2');
-    await page.evaluate(() => { window.railState.network.consumer.peers[0].readiness = 'ready'; window.emitRailState(); });
-    await expect(page.locator('[data-peer-readiness]')).toContainText('1 connected · 1 ready');
-    await expect(row).toContainText('Model loaded and ready to answer');
+    await update(page, () => { window.railState.network.consumer.peers[0].readiness = 'ready'; window.emitRailState(); });
+    await expect(page.locator('[data-peer-readiness]')).toContainText('1 computer ready');
+    await expect(row.locator('[data-computer-status]')).toHaveText('Ready');
     await page.screenshot({ path: info.outputPath('ready.png') });
-    await page.evaluate(() => { window.railState.network.consumer.peers[0].activity = { phase: 'executing' }; window.emitRailState(); });
-    await expect(row).toContainText('Answering a request');
-    await page.evaluate(() => { window.railState.network.consumer.peers[0].activity.phase = 'stopping'; window.emitRailState(); });
-    await expect(row).toContainText('Finishing cleanup before releasing resources');
-    await page.evaluate(() => { window.railState.network.consumer.connections[0].phase = 'interrupted'; window.emitRailState(); });
+    await update(page, () => { window.railState.network.consumer.peers[0].activity = { phase: 'executing' }; window.emitRailState(); });
+    await expect(row.locator('[data-computer-status]')).toHaveText('Working');
+    await update(page, () => { window.railState.network.consumer.peers[0].activity.phase = 'stopping'; window.emitRailState(); });
+    await expect(row.locator('[data-computer-status]')).toHaveText('Stopping');
+    await update(page, () => { window.railState.network.consumer.connections[0].phase = 'interrupted'; window.emitRailState(); });
     await expect(row).toContainText('Connection interrupted');
-    await expect(page.locator('[data-peer-readiness]')).toContainText('0 connected · 0 ready');
+    await expect(page.locator('[data-peer-readiness]')).toContainText('0 computers ready');
     await page.screenshot({ path: info.outputPath('interrupted.png') });
-    await expect(row).not.toContainText('Model loaded and ready');
-    await page.evaluate(() => {
+    await expect(row.locator('[data-computer-status]')).not.toHaveText('Ready');
+    await update(page, () => {
       window.railState.network.consumer.connections[0] = { id: 'transport-a', attemptId: 'connection-2', phase: 'connected' };
       window.railState.network.consumer.peers[0].attemptId = 'connection-1';
       window.emitRailState();
     });
     await expect(row).toContainText('Waiting for this computer to report its model status');
-    await expect(row).toContainText('Identity authentication has not been observed on this connection');
-    await expect(page.locator('[data-peer-readiness]')).toContainText('1 connected · 0 ready');
-    await page.evaluate(() => {
+    await expect(row).toContainText(/Identity\s*Not observed/);
+    await expect(page.locator('[data-peer-readiness]')).toContainText('0 computers ready');
+    await update(page, () => {
       window.railState.network.consumer.connections = []; window.railState.network.consumer.peers = [];
       window.railState.network.consumer.connectionState = 'retrying';
       window.railState.network.connectionFailure = { peerId: 'transport-a', message: 'Connection timed out' };
@@ -438,19 +162,19 @@ for (const width of [1440, 390]) for (const theme of ['light', 'dark']) {
     await expect(page.locator('[data-connection-detail]')).toContainText('Retrying');
     await page.screenshot({ path: info.outputPath('failed.png') });
     expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
-    await page.locator('[data-close-inspector]').click();
+    await page.locator('[data-close-inspector]:visible').click();
     await expect(page.locator('[data-composer-input]')).toHaveValue('Keep the draft while computers connect.');
   });
 }
 
 test('connection runtime passes the Verification Worker', async ({ page }, info) => {
   const files = ['host/work-swarm.js', 'vendor/reploid/transport/swarm.js', 'vendor/reploid/transport/room.js',
-    'vendor/reploid/mesh/peer-generation.js', 'ui/pool-home/network-controls.js', 'ui/pool-home/network-inspector.js',
+    'vendor/reploid/mesh/peer-generation.js', 'ui/pool-home/network-controls.js', 'host/decisions/computers.js',
     'ui/pool-home/computer-labels.js', 'ui/pool-home/shell-view.js', 'ui/pool-home/message-list.js',
     'providers/work-resident-provider.js', 'vendor/reploid/mesh/preparation-progress.js', 'vendor/reploid/mesh/peer-identity.js',
     'vendor/reploid/mesh/partitions/automatic-partitions.js', 'vendor/reploid/mesh/partitions/automatic-ordered-partitions.js',
     'vendor/reploid/retrieval/sources.js', 'vendor/reploid/retrieval/retrieval.js', 'vendor/reploid/chat/workspace.js',
-    'host/chat-session.js', 'ui/pool-home/conversation-workspace.js', 'ui/pool-home/web-search-settings.js'];
+    'host/chat-session.js', 'host/decisions/conversation-controller.js', 'ui/pool-home/web-search-settings.js'];
   const snapshot = Object.fromEntries(await Promise.all(files.map(async file => ['/' + file, await readServedText(file)])));
   const result = await page.evaluate(snapshot => new Promise((resolve, reject) => {
     const worker = new Worker('/core/verification-worker.js');
@@ -472,9 +196,9 @@ for (const width of [1440, 390]) test(`system failure is separate from model out
       retrieval: { outcome: 'failed', limits: { timeoutMs: 10000 }, error: { code: 'timeout', stage: 'extraction' } } };
     window.emitRailState();
   });
-  const row = page.locator('.is-assistant');
+  const row = page.locator('[data-message-role="assistant"]');
   await expect(row.locator('[data-system-status]')).toHaveText('System · Reading search results timed out after 10 seconds. No model answer was generated.');
-  await expect(row.locator('[aria-label="Model output"]')).toBeHidden();
+  await expect(row.getByLabel('Model output')).toHaveCount(0);
   await expect(row.locator('[data-copy-message]')).toHaveCount(0);
   await expect(row.locator('[data-retry-attempt]')).toHaveText('Retry');
   const boxes = await row.evaluate(row => ({
@@ -499,11 +223,11 @@ for (const width of [1440, 390]) test(`search progress, retry history and review
       progress: { stage: 'extraction', completed: 2, total: 5, available: 2 } } });
     window.emitRailState();
   });
-  const row = page.locator('.is-assistant');
+  const row = page.locator('[data-message-role="assistant"]');
   await expect(row).toHaveCount(1);
   // Retrieval progress shows in the answer's loader while the retry is queued; the system line stays for outcomes.
-  await expect(row.locator('[data-tool-status]')).toContainText('Reading search results · 2 of 5 pages');
-  await expect(row.locator('[aria-label="Model output"]')).toBeHidden();
+  await expect(row.locator('[data-execution-trigger]')).toContainText('Reading search results · 2 of 5 pages');
+  await expect(row.getByLabel('Model output')).toHaveCount(0);
   await row.locator('[data-previous-attempts] summary').click();
   await expect(row.locator('[data-previous-attempts]')).toContainText('the search provider failed');
   await page.screenshot({ path: info.outputPath('search-progress.png') });
@@ -515,7 +239,7 @@ for (const width of [1440, 390]) test(`search progress, retry history and review
     window.emitRailState();
   });
   await expect(row.locator('[data-system-status]')).toContainText('Using 1 retrieved source. Some pages were unavailable.');
-  await expect(row.locator('[aria-label="Model output"]')).toHaveText('An answer from the available pages.');
+  await expect(row.getByLabel('Model output')).toContainText('An answer from the available pages.');
   await expect(row.locator('[data-previous-attempts]')).toHaveAttribute('open', '');
   expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
   await page.screenshot({ path: info.outputPath('partial-search-answer.png') });

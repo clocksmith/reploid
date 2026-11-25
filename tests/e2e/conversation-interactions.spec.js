@@ -4,47 +4,45 @@ for (const width of [1440, 390]) test(`model picker retains unavailable choices 
   await page.setViewportSize({ width, height: 844 });
   await page.goto('/'); await expect(page.locator('[data-chat-workspace]')).toBeVisible();
   await page.evaluate(async () => {
-    window.dispatchEvent(new PageTransitionEvent('pagehide', { persisted: false }));
-    document.querySelector('[data-shell-inspector]')?.remove();
     const { createChatSession, CANONICAL_CHAT_MODELS } = await import('/host/chat-session.js');
-    const { renderConversationWorkspace, bindConversationWorkspace } = await import('/ui/pool-home/conversation-workspace.js');
+    const { mountPoolday } = await import('/ui/react/app.js');
     const [first, second] = CANONICAL_CHAT_MODELS;
     const peer = (model, index) => ({ peerId: `fixture-${index}`, model: model.id, modelIdentity: model.identity,
       readiness: 'ready', hasInference: true, availableSlots: 1, identityProtocol: 1, admissionProtocol: 2 });
     let peers = [peer(first, 0), peer(second, 1)];
     const session = createChatSession({ storage: null, swarm: { getState: () => ({ consumer: { peers } }) } });
     const original = session.createThread({ model: first });
-    const root = document.querySelector('.pool-route-content'); root.innerHTML = renderConversationWorkspace();
-    const dispose = bindConversationWorkspace(root, session);
+    const root = document.createElement('div'); document.body.replaceChildren(root);
+    const dispose = mountPoolday(root, { host: { chat: session, close: () => session.close() } });
     window.modelPickerFixture = {
-      first: first.id, second: second.id,
+      first: first.id, second: second.id, secondName: second.name,
       setCapacity(ready) { peers = ready ? [peer(first, 0), peer(second, 1)] : [peer(first, 0)]; session.refreshNetwork(); },
       original() { session.select(original); return session.getState().activeThread.model.id; },
       async close() { dispose(); await session.close(); }
     };
   });
-  const { first, second } = await page.evaluate(() => ({ first: window.modelPickerFixture.first, second: window.modelPickerFixture.second }));
+  const { first, second, secondName } = await page.evaluate(() => ({ first: window.modelPickerFixture.first, second: window.modelPickerFixture.second, secondName: window.modelPickerFixture.secondName }));
   await page.locator('[data-composer-input]').fill('Keep this original draft');
   await page.locator('[data-open-model]').click();
   await expect(page.locator('[data-model-picker]')).toBeVisible();
-  await expect(page.locator('[data-next-model]')).toHaveValue(first);
-  // The picker shows its choices as radios; the select behind them is the value port.
-  const choice = page.locator(`[data-model-picker] .chat-model-choice:has(input[value="${second}"])`);
+  await expect(page.locator('[data-next-model] input:checked')).toHaveValue(first);
+  // The picker shows its choices as radios, one per model.
+  const choice = page.locator(`[data-model-picker] [data-model-choice="${second}"]`);
   await choice.locator('input').check();
   await page.evaluate(() => window.modelPickerFixture.setCapacity(false));
-  await expect(page.locator('[data-next-model]')).toHaveValue(second);
+  await expect(page.locator('[data-next-model] input:checked')).toHaveValue(second);
   // With its shared capacity gone, the choice stays listed under its download group; the sheet names the fix.
-  await expect(choice.locator('[data-choice-status]')).toHaveText('Download required');
+  await expect(choice.locator('.pool-row-status')).toHaveText('Download required');
   await expect(page.locator('[data-next-model-status]')).toBeVisible();
   await expect(page.locator('[data-change-model]')).toHaveText('Download');
   await page.evaluate(() => window.modelPickerFixture.setCapacity(true));
-  await expect(page.locator('[data-next-model]')).toHaveValue(second);
+  await expect(page.locator('[data-next-model] input:checked')).toHaveValue(second);
   // The thread is on "Only your devices"; using the shared model is the named preset change, never a silent one.
   await expect(page.locator('[data-next-model-status]')).toHaveText(/^Only your devices can read this chat/);
   await expect(page.locator('[data-change-model]')).toHaveText('Use contributors');
   await page.locator('[data-change-model]').click();
   await expect(page.locator('[data-model-picker]')).toBeHidden();
-  await expect(page.locator('[data-active-model-select]')).toHaveValue(second);
+  await expect(page.locator('[data-composer-model-name]')).toHaveText(secondName);
   expect(await page.evaluate(() => window.modelPickerFixture.original())).toBe(first);
   await expect(page.locator('[data-composer-input]')).toHaveValue('Keep this original draft');
   await page.evaluate(() => window.modelPickerFixture.close());
@@ -53,7 +51,10 @@ for (const width of [1440, 390]) test(`model picker retains unavailable choices 
 test('optional and specialist routes still mount their existing views', async ({ page }) => {
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
-  for (const route of ['/network', '/improve', '/examples', '/ask', '/compute', '/records', '/history', '/room-1']) {
+  // /network is the conversation workspace (the React product); the rest keep their vanilla views.
+  await page.goto('/network');
+  await expect(page.locator('[data-chat-workspace]')).toBeVisible();
+  for (const route of ['/improve', '/examples', '/ask', '/compute', '/records', '/history', '/room-1']) {
     await page.goto(route);
     const content = page.locator('.pool-route-content');
     await expect(content).toBeVisible();
@@ -71,15 +72,17 @@ test('ordinary entry stays focused, and route navigation preserves a draft', asy
   expect(modules).not.toContain('/ui/pool-home/controls.js');
   expect(modules).not.toContain('/ui/pool-home/view.js');
   expect(modules).not.toContain('/ui/pool-home/prism.js');
-  const ribbon = page.locator('[data-toggle-inspector]');
-  await ribbon.focus(); await expect(page.locator('[data-contextual-inspector]')).toBeHidden();
-  await ribbon.press('Enter'); await expect(page.locator('[data-contextual-inspector]')).toBeVisible();
-  await page.keyboard.press('Escape'); await expect(page.locator('[data-contextual-inspector]')).toBeHidden();
+  // Conversation details is a destination in the bar; it opens by keyboard and Escape returns to it.
+  const ribbon = page.locator('[data-inspector-section="conversation"]');
+  const inspector = page.locator('[data-contextual-inspector]:visible');
+  await ribbon.focus(); await expect(inspector).toHaveCount(0);
+  await ribbon.press('Enter'); await expect(inspector).toBeVisible();
+  await page.keyboard.press('Escape'); await expect(inspector).toHaveCount(0);
   await expect(ribbon).toBeFocused();
   await page.locator('[data-composer-input]').fill('Keep my question while I inspect the network');
-  await page.locator('[data-toggle-inspector]').click();
-  await expect(page.locator('[data-network-workspace]')).toBeVisible();
-  await page.locator('[data-close-inspector]').click();
+  await page.locator('[data-inspector-section="participants"]').click();
+  await expect(page.locator('[data-network-workspace]:visible')).toBeVisible();
+  await page.locator('[data-close-inspector]:visible').click();
   await expect(page.locator('[data-composer-input]')).toHaveValue('Keep my question while I inspect the network');
   await page.reload();
   await expect(page.locator('[data-composer-input]')).toHaveValue('Keep my question while I inspect the network');
@@ -89,9 +92,8 @@ test('phone thread drawer preserves drafts, streaming nodes, and isolated Stop',
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/'); await expect(page.locator('[data-chat-workspace]')).toBeVisible();
   await page.evaluate(async () => {
-    window.dispatchEvent(new PageTransitionEvent('pagehide', { persisted: false }));
-    const { renderConversationWorkspace, bindConversationWorkspace } = await import('/ui/pool-home/conversation-workspace.js');
-    const root = document.querySelector('.pool-route-content'); root.innerHTML = renderConversationWorkspace();
+    const { mountPoolday } = await import('/ui/react/app.js');
+    const root = document.createElement('div'); document.body.replaceChildren(root);
     const model = { id: 'fixture', name: 'Test model', availability: 'ready' };
     const threads = ['one', 'two'].map(id => ({ id, purpose: id, model, messages: [
       { id: `${id}-question`, role: 'user', content: 'Question' },
@@ -102,15 +104,16 @@ test('phone thread drawer preserves drafts, streaming nodes, and isolated Stop',
     const emit = () => listeners.forEach(fn => fn(state));
     window.advanceConversation = () => { threads[0].messages[1].content += ' and more'; emit(); };
     window.conversationState = state;
-    bindConversationWorkspace(root, {
+    mountPoolday(root, { host: { close: async () => {}, chat: {
       getState: () => state, subscribe: fn => { listeners.add(fn); fn(state); return () => listeners.delete(fn); },
       select(id) { state.selectedId = id; state.activeThread = threads.find(thread => thread.id === id); emit(); },
       saveDraft: (id, value) => drafts.set(id, structuredClone(value)), getDraft: id => drafts.get(id),
       cancel(id) { state.runningIds = state.runningIds.filter(value => value !== id); threads.find(thread => thread.id === id).attempts[0].status = 'cancelled'; emit(); }
-    });
+    } } });
   });
   // Threads open as a workspace destination from the toolbar, which itself stays in place.
   const threads = page.locator('[data-threads-dialog]');
+  await expect(page.locator('[data-composer-input]')).toBeVisible();
   await expect(threads).toBeHidden();
   await page.locator('[data-composer-input]').fill('Draft one');
   await page.locator('[data-toggle-thread-rail]').click();
@@ -122,15 +125,16 @@ test('phone thread drawer preserves drafts, streaming nodes, and isolated Stop',
   await page.locator('[data-thread-item-id="one"]').click();
   await expect(page.locator('[data-composer-input]')).toHaveValue('Draft one');
   await page.evaluate(() => {
-    const node = document.querySelector('[data-message-id="one-reply"] [data-text-block] span').firstChild;
+    const node = document.querySelector('[data-message-id="one-reply"] .pool-prose [data-text-block]').firstChild;
     window.savedTextNode = node;
     const range = document.createRange(); range.setStart(node, 0); range.setEnd(node, 5);
     const selection = getSelection(); selection.removeAllRanges(); selection.addRange(range);
     window.advanceConversation();
   });
-  expect(await page.evaluate(() => ({ same: window.savedTextNode === document.querySelector('[data-message-id="one-reply"] [data-text-block] span').firstChild,
+  expect(await page.evaluate(() => ({ same: window.savedTextNode === document.querySelector('[data-message-id="one-reply"] .pool-prose [data-text-block]').firstChild,
     selection: getSelection().toString() }))).toEqual({ same: true, selection: 'First' });
-  await page.locator('[data-composer-stop]').click();
+  // The selected answer's Stop (in the transcript, or the composer's while that one is out of view) stops only it.
+  await page.locator('[data-composer-stop], [data-message-id="one-reply"] [data-answer-stop]').filter({ visible: true }).first().click();
   expect(await page.evaluate(() => window.conversationState.runningIds)).toEqual(['two']);
   await page.locator('[data-toggle-thread-rail]').click();
   await page.keyboard.press('Escape');
@@ -142,15 +146,13 @@ test('picker lists the catalog adapter beneath its base with purpose, version, a
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.goto('/'); await expect(page.locator('[data-chat-workspace]')).toBeVisible();
   const adapter = await page.evaluate(async () => {
-    window.dispatchEvent(new PageTransitionEvent('pagehide', { persisted: false }));
-    document.querySelector('[data-shell-inspector]')?.remove();
     const { createChatSession, CANONICAL_CHAT_MODELS } = await import('/host/chat-session.js');
-    const { renderConversationWorkspace, bindConversationWorkspace } = await import('/ui/pool-home/conversation-workspace.js');
+    const { mountPoolday } = await import('/ui/react/app.js');
     const base = CANONICAL_CHAT_MODELS.find(model => model.availableAdapters?.length), entry = base.availableAdapters[0];
     let peers = [];
     const session = createChatSession({ storage: null, swarm: { getState: () => ({ consumer: { peers } }) } });
-    const root = document.querySelector('.pool-route-content'); root.innerHTML = renderConversationWorkspace();
-    const dispose = bindConversationWorkspace(root, session);
+    const root = document.createElement('div'); document.body.replaceChildren(root);
+    const dispose = mountPoolday(root, { host: { chat: session, close: () => session.close() } });
     window.adapterPickerFixture = {
       serve(on) { peers = on ? [{ peerId: 'fixture-adapter', model: base.id, modelIdentity: base.identity, readiness: 'ready', hasInference: true,
         availableSlots: 1, adapterIdentities: [entry.identity] }] : []; session.refreshNetwork(); },
@@ -159,9 +161,9 @@ test('picker lists the catalog adapter beneath its base with purpose, version, a
     return { selectionId: base.id + '/' + entry.id, name: entry.name, version: entry.manifest.version, purpose: entry.purpose.statement };
   });
   await page.locator('[data-open-model]').click();
-  const choice = page.locator(`[data-model-picker] .chat-model-choice:has(input[value="${adapter.selectionId}"])`);
+  const choice = page.locator(`[data-model-picker] [data-model-choice="${adapter.selectionId}"]`);
   await expect(choice).toHaveAttribute('data-choice-adapter', '');
-  await expect(choice.locator('[data-choice-status]')).toHaveText('No computer serves it now');
+  await expect(choice.locator('.pool-row-status')).toHaveText('No computer serves it now');
   await expect(choice.locator('[data-choice-facts]')).toHaveText(`Adapter · v${adapter.version}`);
   await expect(choice.locator('[data-choice-note]')).toHaveText('No evaluation evidence');
   await choice.locator('input').check();
@@ -171,12 +173,13 @@ test('picker lists the catalog adapter beneath its base with purpose, version, a
   await expect(details.locator('[data-adapter-availability]')).toContainText('the base model is not used instead');
   await expect(page.locator('[data-change-model]')).toBeDisabled();
   await page.evaluate(() => window.adapterPickerFixture.serve(true));
-  await expect(choice.locator('[data-choice-status]')).toHaveText('Ready');
+  await expect(choice.locator('.pool-row-status')).toHaveText('Ready');
   await expect(details.locator('[data-adapter-availability]')).toHaveText('Served now by 1 computer');
-  await page.locator('[data-model-picker] [data-model-providers] summary').click();
-  await expect(page.locator('[data-model-picker] [data-provider-list]')).toContainText('Whole model');
+  // The execution routes sit in Model details.
+  await page.locator('[data-model-picker] [data-model-details] > summary').click();
+  await expect(page.locator('[data-model-picker] [data-model-details]')).toContainText('Whole model');
   await expect(page.locator('[data-change-model]')).toBeEnabled();
   await page.locator('[data-change-model]').click();
-  await expect(page.locator('[data-model-digest]')).toHaveText(adapter.name);
+  await expect(page.locator('[data-composer-model-name]')).toHaveText(adapter.name);
   await page.evaluate(() => window.adapterPickerFixture.close());
 });

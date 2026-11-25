@@ -10,7 +10,7 @@ for (const width of [1440, 390]) test(`production opens chat without prepared mo
   await expect(page.locator('[data-composer-field] [data-open-model]')).toBeVisible();
   await expect(page.locator('[data-composer-input]')).toBeVisible();
   await expect(page.locator('[data-production-surface]')).not.toBeVisible();
-  await expect(page.locator('[data-contextual-inspector]')).not.toBeVisible();
+  await expect(page.locator('[data-contextual-inspector]:visible')).toHaveCount(0);
   await page.screenshot({ path: info.outputPath(`production-${width}.png`), fullPage: true });
   await page.locator('[data-composer-input]').fill('Keep this draft while I view contributions');
   await page.evaluate(() => {
@@ -27,12 +27,12 @@ for (const width of [1440, 390]) test(`production opens chat without prepared mo
   await expect(page.locator('[data-production-device] > summary')).toHaveText('Contribute this computer');
   await page.locator('[data-production-device] > summary').click();
   await expect(page.locator('[data-production-history]')).toBeVisible();
-  await page.locator('[data-close-inspector]').click();
+  await page.locator('[data-close-inspector]:visible').click();
   await expect(page.locator('[data-production-surface]')).not.toBeVisible();
   await expect(page.locator('[data-composer-input]')).toHaveValue('Keep this draft while I view contributions');
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
   if (width < 760) {
-    const tops = await page.locator('.chat-rail-toolbar .pool-button').evaluateAll(nodes => nodes
+    const tops = await page.locator('[data-chat-rail-toolbar] .pool-button').evaluateAll(nodes => nodes
       .map(node => node.getBoundingClientRect()).filter(rect => rect.width && rect.height).map(rect => rect.top));
     expect(Math.max(...tops) - Math.min(...tops)).toBeLessThanOrEqual(1);
   }
@@ -66,9 +66,8 @@ async function installExecutionFixture(page, mode) {
   await page.goto('/network');
   await expect(page.locator('[data-composer-input]')).toBeVisible();
   await page.evaluate(async mode => {
-    window.dispatchEvent(new PageTransitionEvent('pagehide', { persisted: false }));
     const { createChatSession, CANONICAL_CHAT_MODELS } = await import('/host/chat-session.js');
-    const { renderConversationWorkspace, bindConversationWorkspace } = await import('/ui/pool-home/conversation-workspace.js');
+    const { mountPoolday } = await import('/ui/react/app.js');
     const { createExecutionPolicy, plaintextExecutionRoute, bindExecutionRoute } = await import('/vendor/reploid/chat/execution-policy.js');
     const model = CANONICAL_CHAT_MODELS[0], peer = 'peer:' + 'b'.repeat(24);
     const evidence = { opens: 0, disclosures: 0, model: model.id };
@@ -99,16 +98,16 @@ async function installExecutionFixture(page, mode) {
       } };
     const session = createChatSession({ storage: null, service, swarm, models: [model] });
     session.setCachedModels([model]);
-    const root = document.createElement('main'); root.className = 'pool-home'; root.dataset.poolRouteId = 'network';
-    root.innerHTML = '<nav class="pool-primary-nav"><button data-toggle-thread-rail>Threads</button></nav>' + renderConversationWorkspace();
+    const root = document.createElement('div');
     document.body.replaceChildren(root);
     // Choosing the network in "Answer on" sets both the location and who can read it (Standard: any approved computer).
     const viewState = mode === 'remote'
       ? { executionLocation: 'network', privacy: createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'open', ids: [] } }) }
       : { executionLocation: 'auto' };
-    const dispose = bindConversationWorkspace(root, session, { viewState });
+    const dispose = mountPoolday(root, { host: { chat: session, close: () => session.close() }, viewState });
     window.executionFixture = { session, evidence, async close() { dispose(); await session.close(); } };
   }, mode);
+  await expect(page.locator('[data-composer-input]')).toBeVisible();
 }
 
 test('a downloaded model prepares on Send without enabling contribution', async ({ page }) => {
@@ -142,8 +141,9 @@ test('network chat uses a permitted peer even with downloaded weights and respec
 test('changed runtime modules pass the Verification Worker sandbox', async ({ page }) => {
   const paths = ['host/model-storage.js', 'host/work-model-files.js', 'host/chat-execution.js', 'host/chat-session.js', 'host/chat-view.js', 'vendor/reploid/chat/workspace.js', 'host/product-session.js',
     'infrastructure/model-storage-lock.js', 'providers/work-network-provider.js', 'providers/work-resident-provider.js', 'vendor/reploid/chat/scheduler.js',
-    'ui/pool-home/network-controls.js', 'ui/pool-home/network-inspector.js', 'ui/pool-home/model-storage-view.js',
-    ...['production', 'contribution-models', 'conversation-workspace', 'index', 'shell-view'].map(name => `ui/pool-home/${name}.js`)];
+    // The host decisions the React screens render (the built React entry bundles the framework).
+    'host/decisions/conversation-controller.js', 'host/decisions/transcript.js', 'host/decisions/model-choices.js',
+    'host/decisions/computers.js', 'host/decisions/settings.js', 'host/decisions/conversation-details.js'];
   const snapshot = Object.fromEntries(await Promise.all(paths.map(async path => ['/' + path, await readServedText(path)])));
   await page.goto('/');
   const result = await page.evaluate(snapshot => new Promise((resolve, reject) => {

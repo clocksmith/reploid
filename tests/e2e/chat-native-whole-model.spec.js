@@ -61,7 +61,7 @@ test('native whole-model chat streams, follows up, cancels, reuses and reloads',
     const roster = page.locator('[data-inspector-pane="participants"] [data-insp-device-list]');
     await expect(roster.locator('[data-computer-id]').first()).toBeVisible();
     providerHardware = (await roster.locator('[data-computer-hardware]').first().textContent())?.trim() || null;
-    await page.locator('[data-close-inspector]').click();
+    await page.locator('[data-close-inspector]:visible').click();
     await page.locator('[data-open-model]').click();
     await choice.check();
     await expect(page.locator('[data-change-model]')).toBeEnabled({ timeout: 60000 });
@@ -109,7 +109,7 @@ test('native whole-model chat streams, follows up, cancels, reuses and reloads',
     await expect(page.locator('[data-conversation-area]')).toBeVisible();
     await page.locator('[data-inspector-pane="conversation"] > details > summary').click();
     await expect(page.locator('[data-ribbon-facts]')).toContainText(recordedHardware);
-    await page.locator('[data-close-inspector]').click();
+    await page.locator('[data-close-inspector]:visible').click();
 
     const draftText = 'Keep this draft while switching threads and reloading';
     await page.locator('[data-composer-input]').fill(draftText);

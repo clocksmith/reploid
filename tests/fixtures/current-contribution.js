@@ -1,9 +1,9 @@
 import { expect } from '@playwright/test';
 
 /**
- * Contribution and conversation steps through the current Poolday interface
- * (apps/poolday/ui/pool-home: network-controls.js, network-inspector.js,
- * contribution-models.js, conversation-workspace.js). Cached sharing is on by
+ * Contribution and conversation steps through the Poolday interface (written against
+ * the former vanilla inspector; its React Computers selectors are unverified until a
+ * real-peer run, since every spec using it needs physical GPUs). Cached sharing is on by
  * default (dda9e4692): a fresh profile reads "On · waiting for a downloaded model"
  * until a model is downloaded, and then shares it without another click.
  */

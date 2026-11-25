@@ -16,7 +16,9 @@ describe('Pinned Doppler asset resolution', () => {
     expect(html).toContain('resolveDopplerBrowserAssets({');
     expect(html).toContain("['reset', 'clear', 'default', 'local'].includes(queryBase)");
     expect(html).toContain("localStorage.removeItem('DOPPLER_BASE_URL')");
-    const applicationImport = /import\(['"]\/ui\/pool-home\/(?:app\.bundle|index)\.js['"]\)/.exec(html);
+    // The application is the React product on the workspace routes, the vanilla bundle elsewhere.
+    expect(html).toContain("'/ui/pool-home/app.bundle.js'");
+    const applicationImport = /import\((?:['"]\/ui\/pool-home\/(?:app\.bundle|index)\.js['"]|productBundle)\)/.exec(html);
     expect(applicationImport).not.toBeNull();
     expect(html.indexOf('resolveDopplerBrowserAssets({')).toBeLessThan(applicationImport.index);
   });

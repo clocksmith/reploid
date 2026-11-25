@@ -7,7 +7,7 @@ async function installTwoContributors(page) {
   await page.evaluate(async () => {
     window.dispatchEvent(new PageTransitionEvent('pagehide', { persisted: false }));
     const { createChatSession, CANONICAL_CHAT_MODELS } = await import('/host/chat-session.js');
-    const { renderConversationWorkspace, bindConversationWorkspace } = await import('/ui/pool-home/conversation-workspace.js');
+    const { mountPoolday } = await import('/ui/react/app.js');
     const { plaintextExecutionRoute, bindExecutionRoute } = await import('/vendor/reploid/chat/execution-policy.js');
     const models = CANONICAL_CHAT_MODELS.slice(0, 2), asked = [];
     const peerFor = model => 'peer:' + (model === models[0] ? 'a' : 'b').repeat(24);
@@ -28,11 +28,10 @@ async function installTwoContributors(page) {
       return { model: controls.modelId, modelIdentity: controls.modelIdentity, adapterIdentities: [], provider: 'doppler', peerId: peer, content: 'Controlled answer' };
     } };
     const session = createChatSession({ storage: null, swarm, models });
-    const root = document.createElement('main'); root.className = 'pool-home'; root.dataset.poolRouteId = 'network';
-    root.innerHTML = renderConversationWorkspace();
+    const root = document.createElement('div');
     document.body.replaceChildren(root);
     // A first visitor's view, with the browser storage the page uses for its "Answer on" choice.
-    const dispose = bindConversationWorkspace(root, session, { viewState: {}, choiceStorage: localStorage });
+    const dispose = mountPoolday(root, { host: { chat: session, close: () => session.close() } });
     window.fixture = { session, asked, models, async close() { dispose(); await session.close(); } };
   });
 }
@@ -43,7 +42,7 @@ async function send(page, text) {
   const allow = page.locator('[data-remote-permission] [data-remote-permission-allow]');
   await expect(allow.or(page.locator('[data-message-stream]').getByText('Controlled answer').last())).toBeVisible();
   if (await allow.isVisible()) await allow.click();
-  await expect(page.locator('[data-message-stream] .chat-message-row.is-assistant').last()).toContainText('Controlled answer');
+  await expect(page.locator('[data-message-stream] [data-message-role=assistant]').last()).toContainText('Controlled answer');
 }
 
 // Nothing leaves the test machine: the fixture supplies the contributors.
@@ -58,23 +57,25 @@ test('New thread and the next visit keep the model and computer chosen in Answer
   await page.goto('/network');
   await installTwoContributors(page);
   const chip = page.locator('[data-open-model]');
-  const { defaultId, other } = await page.evaluate(() => {
-    const defaultId = document.querySelector('[data-active-model-select]').value;
+  await expect(chip).toHaveAttribute('aria-label', /^Answer on /);
+  const name = await page.locator('[data-open-model] [data-composer-model-name]').textContent();
+  const { defaultId, other } = await page.evaluate(name => {
+    const defaultId = window.fixture.models.find(model => model.name === name)?.id;
     const other = window.fixture.models.find(model => model.id !== defaultId);
     return { defaultId, other: { id: other.id, name: other.name } };
-  });
+  }, name);
   expect(defaultId).not.toBe(other.id);
   // Choose the other model on Contributors, as a person would.
   await chip.click();
   await page.locator('[data-execution-choice=network]').click();
-  await page.locator(`[data-model-picker] .chat-model-choices input[value="${other.id}"]`).filter({ visible: true }).click();
+  await page.locator(`[data-model-picker] [data-next-model] input[value="${other.id}"]`).click();
   await expect(page.locator('[data-model-picker]')).toBeHidden();
   await expect(chip).toHaveAttribute('aria-label', new RegExp(`^Answer on Contributors · ${other.name}`));
   await send(page, 'First question');
   // New thread: the same model and computer, and the answer is asked of that model.
   if (!await page.locator('[data-new-thread]').isVisible()) await page.locator('[data-toggle-thread-rail]').click();
   await page.locator('[data-new-thread]').click();
-  await expect(page.locator('[data-message-stream] .chat-message-row')).toHaveCount(0);
+  await expect(page.locator('[data-message-stream] [data-message-id]')).toHaveCount(0);
   await expect(chip).toHaveAttribute('aria-label', `Answer on Contributors · ${other.name}, Ready`);
   await send(page, 'Second question');
   expect(await page.evaluate(() => window.fixture.asked)).toEqual([other.id, other.id]);
@@ -88,7 +89,7 @@ test('New thread and the next visit keep the model and computer chosen in Answer
   await page.locator('[data-composer-send]').click();
   // It does not ask "Where should this run?" again.
   await expect(page.locator('[data-model-picker]')).toBeHidden();
-  await expect(page.locator('[data-message-stream] .chat-message-row.is-assistant').last()).toContainText('Controlled answer');
+  await expect(page.locator('[data-message-stream] [data-message-role=assistant]').last()).toContainText('Controlled answer');
   expect(await page.evaluate(() => window.fixture.asked)).toEqual([other.id]);
   await page.evaluate(() => window.fixture.close());
 });

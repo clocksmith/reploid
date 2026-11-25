@@ -5,15 +5,12 @@
  */
 import { getPeerRoomId, getPeerRelayMode, getPeerRelayLabel, getPeerRoomBusFactory } from '../../host/product-context.js';
 import { createPeerRoomInviteUrl } from '../../pool/peer-rendezvous.js';
-import { renderNetworkSurface, renderImproveSurface } from './work.js';
-import { renderConversationWorkspace } from './conversation-workspace.js';
-import { renderProductionSurface } from './production.js';
+import { renderImproveSurface } from './work.js';
 import { renderHomeSimulation } from './examples-view.js';
 
 export { getPeerRoomId, getPeerRelayMode, getPeerRelayLabel, getPeerRoomBusFactory };
 export { getRouteId, isProductPath, renderNav, updateChangesControl } from './shell-view.js';
 export { resolvePoolNetworkVisualState } from './network-projection.js';
-export { renderConversationWorkspace };
 export { getPeerDiscoveryWindowMs, getPeerReceiptWindowMs, getPeerQueueWindowMs, getPeerSessionAcceptWindowMs,
   getPeerTransportConnectWindowMs, getPeerGenerationConfig } from '../../host/peer-execution-config.js';
 
@@ -45,8 +42,6 @@ export const getPeerInviteUrl = () => createPeerRoomInviteUrl({
 });
 
 export const renderRoutePanel = (routeId, options = {}) => {
-  if (routeId === 'home') return renderProductionSurface();
-  if (routeId === 'network') return renderNetworkSurface();
   if (routeId === 'improve') return renderImproveSurface();
   if (routeId === 'examples') return renderHomeSimulation(options);
   return '';

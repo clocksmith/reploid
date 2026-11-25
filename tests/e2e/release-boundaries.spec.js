@@ -32,7 +32,7 @@ test('Verification Worker accepts mutable release boundary modules', async ({ pa
     'vendor/reploid/mesh/remote-generation-requests.js', 'vendor/reploid/mesh/peer-generation.js',
     'vendor/reploid/mesh/peer-identity.js',
     'vendor/reploid/artifacts/custody/runtime.js', 'pool/adapter-registry.js', 'pool/peer-adapter-execution.js',
-    'ui/pool-home/conversation-workspace.js', 'pool/sdk.js',
+    'host/decisions/conversation-controller.js', 'pool/sdk.js',
     'capabilities/communication/swarm-join-policy.js', 'capabilities/communication/library-adapter.js',
     'vendor/reploid/transport/room.js', 'vendor/reploid/transport/swarm.js',
     'config/doppler-local-models.js', 'providers/work-network-provider.js'];

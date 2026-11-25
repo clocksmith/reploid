@@ -82,7 +82,7 @@ for (const [name, viewport] of Object.entries(VIEWPORTS)) {
     for (const view of ['settings', 'computers', 'conversation', 'threads']) {
       test(`the ${view} panel keeps its box while it loads and while its choices change`, async ({ page, baseURL }) => {
         await open(page, baseURL, `/?view=${view}`);
-        const panel = page.locator(view === 'threads' ? '[data-threads-dialog]' : '#network-inspector-panel');
+        const panel = page.locator(view === 'threads' ? '[data-threads-dialog]' : `#workspace-${view}`);
         await expect(panel).toBeVisible();
         await watchBox(panel);
         await page.waitForTimeout(2500);
@@ -114,8 +114,8 @@ for (const [name, viewport] of Object.entries(VIEWPORTS)) {
       await watchBox(picker);
       // It never opens with a computer and a model that disagree, and the composer chip names the same computer.
       const opening = await picker.evaluate(node => {
-        const computer = node.querySelector('[data-execution-location] [aria-checked="true"]')?.dataset.executionChoice;
-        const model = [...node.querySelectorAll('.chat-model-choices input')].find(input => input.checked);
+        const computer = node.querySelector('[data-execution-location] input:checked')?.closest('[data-execution-choice]')?.dataset.executionChoice;
+        const model = [...node.querySelectorAll('[data-next-model] input')].find(input => input.checked);
         return { computer, group: model?.closest('[data-choice-group]')?.dataset.choiceGroup ?? null,
           chip: document.querySelector('[data-composer-model-source]')?.textContent };
       });
@@ -123,7 +123,7 @@ for (const [name, viewport] of Object.entries(VIEWPORTS)) {
       expect(opening.group === null || agrees.includes(opening.group), JSON.stringify(opening)).toBe(true);
       expect(opening.chip).toBe({ local: 'This device', network: 'Contributors' }[opening.computer] ?? opening.chip);
       await expect(picker.locator('[data-execution-location]')).toHaveAttribute('role', 'radiogroup');
-      await expect(picker.locator('[data-execution-choice]').first()).toHaveAttribute('role', 'radio');
+      await expect(picker.locator('[data-execution-choice] input').first()).toHaveAttribute('type', 'radio');
       await picker.locator('[data-execution-choice=network]').click();
       await picker.locator('[data-execution-choice=local]').click();
       await page.waitForTimeout(1500);
@@ -131,7 +131,7 @@ for (const [name, viewport] of Object.entries(VIEWPORTS)) {
       expect(await misalignedRows(picker)).toEqual([]);
       // A model's computer count is part of its status line; the only thing beside a row is its trailing chevron.
       const floating = await picker.locator('[data-inspect-model-providers]:not([hidden])').evaluateAll(nodes => nodes.filter(node => {
-        const row = node.closest('[data-choice-row]').querySelector('.chat-model-choice').getBoundingClientRect(), box = node.getBoundingClientRect();
+        const row = node.closest('.pool-choice-row').querySelector('.pool-option').getBoundingClientRect(), box = node.getBoundingClientRect();
         return box.right > row.right + 1 || box.left < row.left || box.top < row.top - 1 || box.bottom > row.bottom + 1;
       }).length);
       expect(floating).toBe(0);
@@ -139,7 +139,7 @@ for (const [name, viewport] of Object.entries(VIEWPORTS)) {
 
     test('"Who can read it" keeps its box while routes are compared, and says why each unavailable protection is unavailable', async ({ page, baseURL }) => {
       await open(page, baseURL);
-      await page.locator('.chat-composer-toolbar [data-open-privacy]').click();
+      await page.locator('[data-composer-field] [data-open-privacy]').click();
       const dialog = page.locator('[data-privacy-dialog]');
       await expect(dialog).toBeVisible();
       // The exposure statement waits collapsed; opened, it keeps one height whichever preset is chosen.
@@ -172,7 +172,7 @@ for (const [name, viewport] of Object.entries(VIEWPORTS)) {
       const dialog = page.locator('[data-model-dialog]');
       await expect(dialog).toBeVisible();
       await watchBox(dialog);
-      const files = dialog.locator('[data-download-files]');
+      const files = dialog.locator('[data-download-files] input');
       if (await files.isEnabled()) { await files.check(); await files.uncheck(); }
       await page.waitForTimeout(2500);
       expect(await boxChange(page)).toBe(0);
@@ -183,17 +183,23 @@ for (const [name, viewport] of Object.entries(VIEWPORTS)) {
     });
 
     test('confirmation dialogs keep their box when an error appears', async ({ page, baseURL }) => {
-      await open(page, baseURL, '/?view=settings');
-      for (const selector of ['[data-storage-dialog]', '[data-data-dialog]']) {
-        const dialog = page.locator(selector);
-        await dialog.evaluate(node => node.showModal());
-        await watchBox(dialog);
-        await dialog.locator('[role=alert]').evaluate(node => { node.textContent = 'In use by another tab'; node.hidden = false; });
-        await page.waitForTimeout(200);
-        expect(await boxChange(page)).toBe(0);
-        await dialog.locator('[data-dialog-close]').click();
-        await expect(dialog).toBeHidden();
-      }
+      // Every dialog shares one shell whose footer reserves the line an error takes. A real refusal shows it: a
+      // protection this browser cannot run is refused on Apply, and nothing moves.
+      await open(page, baseURL);
+      await page.locator('[data-composer-field] [data-open-privacy]').click();
+      const dialog = page.locator('[data-privacy-dialog]');
+      await expect(dialog).toBeVisible();
+      await dialog.evaluate(node => {
+        const input = node.querySelector('[data-privacy-protection][value=homomorphic]');
+        input.disabled = false; input.click();
+      });
+      await watchBox(dialog);
+      await dialog.locator('[data-privacy-apply]').click();
+      await expect(dialog.locator('[data-privacy-error]')).toContainText('unavailable here');
+      await page.waitForTimeout(200);
+      expect(await boxChange(page)).toBe(0);
+      await dialog.locator('[data-dialog-close]').click();
+      await expect(dialog).toBeHidden();
     });
   });
 }
@@ -212,7 +218,7 @@ for (const width of [800, 1100, 1280, 1366, 1440, 1728]) {
     const measure = () => page.evaluate(async () => {
       await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
       const edges = node => { const box = node.getBoundingClientRect(); return { left: Math.round(box.left), right: Math.round(box.right) }; };
-      const drawers = [...document.querySelectorAll('.chat-inspector-slot, .chat-threads-dialog')].filter(node => !node.hidden && node.getBoundingClientRect().width);
+      const drawers = [...document.querySelectorAll('.pool-drawer')].filter(node => !node.hidden && node.getBoundingClientRect().width);
       const under = [];
       for (const control of document.querySelectorAll('[data-composer-area] :is(button, textarea, select)')) {
         const box = control.getBoundingClientRect();
@@ -222,7 +228,7 @@ for (const width of [800, 1100, 1280, 1366, 1440, 1728]) {
           if (Math.min(box.right, cover.right) - Math.max(box.left, cover.left) > 0.5) under.push(control.getAttribute('aria-label') || control.tagName);
         }
       }
-      const toolbar = document.querySelector('.chat-composer-toolbar');
+      const toolbar = document.querySelector('[data-composer-field] .pool-toolbar');
       return { composer: edges(document.querySelector('[data-composer-area]')), transcript: edges(document.querySelector('[data-chat-transcript]')),
         drawers: drawers.length, under, toolbarOverflow: toolbar.scrollWidth - toolbar.clientWidth };
     });
@@ -230,7 +236,7 @@ for (const width of [800, 1100, 1280, 1366, 1440, 1728]) {
     expect(closed.drawers).toBe(0);
     for (const view of ['computers', 'settings', 'threads']) {
       await page.locator(`[data-workspace-view="${view}"]:visible`).first().click();
-      await expect(page.locator(view === 'threads' ? '[data-threads-dialog]' : '#network-inspector-panel')).toBeVisible();
+      await expect(page.locator(view === 'threads' ? '[data-threads-dialog]' : `#workspace-${view}`)).toBeVisible();
       const opened = await measure();
       expect(opened.drawers, `${view}: a drawer is open`).toBeGreaterThan(0);
       expect(opened.composer, `${view}: the composer's box`).toEqual(closed.composer);

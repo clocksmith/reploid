@@ -23,7 +23,7 @@ for (const [width, height] of [[1440, 900], [1280, 720], [390, 844], [320, 740]]
 
     // Composer row: Attach (icon-only), Answer on · model, and Send on one aligned row; no ? help icon.
     await expect(page.locator('[data-open-control-help]')).toHaveCount(0);
-    const composerRow = await Promise.all(['.chat-file-label', '[data-open-model]', '[data-composer-send]'].map(sel => page.locator(sel).boundingBox()));
+    const composerRow = await Promise.all(['[data-composer-attach]', '[data-open-model]', '[data-composer-send]'].map(sel => page.locator(sel).boundingBox()));
     expect(Math.abs(composerRow[0].y - composerRow[1].y)).toBeLessThanOrEqual(2);
     expect(Math.abs(composerRow[1].y - composerRow[2].y)).toBeLessThanOrEqual(2);
 
@@ -53,12 +53,12 @@ for (const [width, height] of [[1440, 900], [1280, 720], [390, 844], [320, 740]]
       await expect(page).toHaveURL(new RegExp(`view=${view}`));
       await expect(link).toHaveAttribute('aria-current', 'page');
       await expect(link).not.toHaveAttribute('aria-pressed');
-      await expect(page.locator('#network-inspector-title')).toHaveText(title);
+      await expect(page.locator('[data-contextual-inspector]:visible h2')).toHaveText(title);
       await expect(page.locator(`[data-inspector-pane="${pane}"]`)).toBeVisible();
-      await expect(page.locator('[data-chat-inspector-slot]')).not.toHaveAttribute('data-drawer-moving');
+      await expect(page.locator('[data-contextual-inspector]:visible')).not.toHaveAttribute('data-drawer-moving');
       await expect(page.locator('dialog[open]')).toHaveCount(0);
       if (width <= 760) {
-        const slotBox = await page.locator('[data-chat-inspector-slot]').boundingBox();
+        const slotBox = await page.locator('[data-contextual-inspector]:visible').boundingBox();
         expect(slotBox.x).toBeLessThanOrEqual(16);
         expect(width - (slotBox.x + slotBox.width)).toBeLessThanOrEqual(16);
       }
@@ -74,8 +74,9 @@ for (const [width, height] of [[1440, 900], [1280, 720], [390, 844], [320, 740]]
     const pairing = page.locator('[data-owner-pairing]');
     await expect(pairing).toBeVisible();
     await pairing.locator(':scope > summary').click();
-    await expect(pairing.locator('input[name="link"]')).toBeVisible();
-    await expect(pairing.locator('[data-owner-pairing-unpair]')).toHaveText('Forget computer');
+    await expect(pairing.getByLabel('Pairing link')).toBeVisible();
+    // Forget computer is offered once a desktop is paired; nothing is paired in this browser.
+    await expect(pairing.locator('[data-owner-pairing-unpair]')).toHaveCount(0);
 
     // Verify disclosures use chevron (never '+' or '−') and toolbar never shifted.
     const disclosureMarker = await pairing.locator(':scope > summary').evaluate(node => getComputedStyle(node, '::after').content);
@@ -91,8 +92,8 @@ for (const [width, height] of [[1440, 900], [1280, 720], [390, 844], [320, 740]]
     }
 
     // Close inspector with icon-only Close button without losing draft.
-    await page.locator('[data-close-inspector]').click();
-    await expect(page.locator('[data-contextual-inspector]')).toBeHidden();
+    await page.locator('[data-close-inspector]:visible').click();
+    await expect(page.locator('[data-contextual-inspector]:visible')).toHaveCount(0);
     await expect(input).toHaveValue('Keep my draft');
     expect(await page.evaluate(() => window.originalComposer === document.querySelector('[data-composer-input]'))).toBe(true);
 
@@ -124,11 +125,10 @@ test('changed workspace modules pass the Verification Worker', async ({ page }) 
   await page.goto('/');
   await expect(page.locator('[data-chat-workspace]')).toBeVisible();
   const result = await page.evaluate(async () => {
-    const modules = ['conversation-workspace', 'network-inspector', 'workspace-navigation', 'model-providers', 'model-adapters', 'index'];
-    const snapshot = Object.fromEntries(await Promise.all(modules.map(async name => {
-      const path = '/ui/pool-home/' + name + '.js';
-      return [path, await (await fetch(path)).text()];
-    })));
+    // The host decisions and model modules the React workspace renders (its built entry bundles the framework).
+    const paths = ['/host/decisions/conversation-controller.js', '/host/decisions/model-choices.js',
+      '/ui/pool-home/model-providers.js', '/ui/pool-home/model-adapters.js'];
+    const snapshot = Object.fromEntries(await Promise.all(paths.map(async path => [path, await (await fetch(path)).text()])));
     return new Promise((resolve, reject) => {
       const worker = new Worker('/core/verification-worker.js');
       const timer = setTimeout(() => { worker.terminate(); reject(Error('Verification timeout')); }, 15000);

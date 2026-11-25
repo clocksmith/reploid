@@ -3,19 +3,20 @@ import { test, expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 
 async function installFixture(page, createThread = true) {
-  const service = await readFile('tests/fixtures/chat-service.js', 'utf8');
+  // Served from the page root, where the shared tree is overlaid.
+  const service = (await readFile('tests/fixtures/chat-service.js', 'utf8')).replace("'../../shared/config/", "'/config/");
   await page.route('**/diagnostic-chat-service.js', route => route.fulfill({ contentType: 'application/javascript', body: service }));
   // Explicitly injected execution proves UI and lifecycle, never answer quality.
   await page.evaluate(async createThread => {
-    const [{ createChatSession, CANONICAL_CHAT_MODELS }, { createChatTestService }, view] = await Promise.all([
-      import('/host/chat-session.js'), import('/diagnostic-chat-service.js'), import('/ui/pool-home/conversation-workspace.js')
+    const [{ createChatSession, CANONICAL_CHAT_MODELS }, { createChatTestService }, { mountPoolday }] = await Promise.all([
+      import('/host/chat-session.js'), import('/diagnostic-chat-service.js'), import('/ui/react/app.js')
     ]);
-    const root = document.querySelector('.pool-home');
-    root.innerHTML = view.renderConversationWorkspace();
+    const root = document.createElement('div');
+    document.body.replaceChildren(root);
     globalThis.documentSession = createChatSession({ storage: localStorage, service: createChatTestService() });
     documentSession.setCachedModels(CANONICAL_CHAT_MODELS);
     if (createThread) documentSession.createThread({ sharingScope: 'local' });
-    globalThis.disposeDocumentView = view.bindConversationWorkspace(root, documentSession);
+    globalThis.disposeDocumentView = mountPoolday(root, { host: { chat: documentSession, close: async () => {} } });
   }, createThread);
 }
 
@@ -29,11 +30,11 @@ test('ordinary attachments, export and persisted draft without sample controls',
   await page.locator('[data-composer-send]').click();
   await expect.poll(() => page.evaluate(() => documentSession.getState().activeThread.attempts.map(a => a.status))).toEqual(['completed']);
   await expect(page.locator('[data-message-stream]')).toContainText('Keep contributions optional.');
-  await page.locator('[data-inspector-section="conversation"]').click();
+  await page.locator('[data-chat-rail-toolbar] [data-inspector-section="conversation"]').click();
   const download = page.waitForEvent('download');
   await page.locator('[data-conversation-download]').click();
   expect(await readFile(await (await download).path(), 'utf8')).toContain('notes.txt');
-  await page.locator('[data-close-inspector]').click();
+  await page.locator('[data-close-inspector]:visible').click();
   await page.locator('[data-composer-input]').fill('Reconsider the deadline.');
   await page.reload(); await expect(page.locator('[data-chat-workspace]')).toBeVisible();
   await installFixture(page, false);

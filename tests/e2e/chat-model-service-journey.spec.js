@@ -121,7 +121,7 @@ test('exact whole-model service survives overlap, cancellation and provider depa
       if (!await advanced.evaluate(node => node.open)) await advanced.locator(':scope > summary').click();
       const permission = page.locator('[data-remote-answers-toggle]');
       if (await permission.getAttribute('aria-checked') !== 'true') await permission.click();
-      await page.locator('[data-close-inspector]').click();
+      await page.locator('[data-close-inspector]:visible').click();
       await expect(page.locator('[data-composer-send]')).toBeEnabled({ timeout: 120000 });
     }
     const [a, b] = pages;

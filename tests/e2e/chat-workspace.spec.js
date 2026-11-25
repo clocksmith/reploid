@@ -40,7 +40,7 @@ test('Verification Worker accepts the conversation and scheduler modules', async
   ])));
   for (const file of ['host/chat-session.js', 'host/chat-execution.js', 'host/chat-view.js', 'host/readonly-view.js', 'host/work-view.js', 'host/work-model-files.js', 'providers/work-resident-provider.js',
     'providers/work-provider.js', 'providers/work-generation-completion.js',
-    'infrastructure/pack-transfer-storage.js', 'ui/pool-home/conversation-workspace.js', 'vendor/reploid/artifacts/custody/exchange.js']) {
+    'infrastructure/pack-transfer-storage.js', 'host/decisions/conversation-controller.js', 'vendor/reploid/artifacts/custody/exchange.js']) {
     snapshot['/' + file] = await readServedText(file);
   }
   await page.goto('/');

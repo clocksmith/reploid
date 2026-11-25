@@ -15,14 +15,14 @@ async function chooseComputer(page, choice) {
   await page.locator('[data-open-model]').click();
   await expect(page.locator('[data-picker-title]')).toHaveText('Answer on');
   await page.locator(`[data-execution-choice=${choice}]`).click();
-  await expect(page.locator(`[data-execution-choice=${choice}]`)).toHaveAttribute('aria-checked', 'true');
+  await expect(page.locator(`[data-execution-choice=${choice}] input`)).toBeChecked();
   await page.locator('[data-model-picker-close]').click();
   await expect(page.locator('[data-model-picker]')).toBeHidden();
 }
 
 // "Who can read it" is the composer's privacy chip; Standard with "Let it choose" keeps automatic placement.
 async function allowOpenNetwork(page) {
-  await page.locator('.chat-composer-toolbar [data-open-privacy]').click();
+  await page.locator('[data-composer-field] [data-open-privacy]').click();
   await expect(page.locator('[data-model-picker]')).toBeHidden();
   const policy = page.locator('[data-privacy-dialog]');
   await expect(policy).toBeVisible();
@@ -60,14 +60,10 @@ test('fresh public route starts on this device, offers local recovery and report
 // Explicit acquisition/runtime fixtures exercise UI behavior without claiming model inference.
 async function installFixture(page, theme) {
   await page.evaluate(async theme => {
-    const { renderConversationWorkspace, bindConversationWorkspace } = await import('/ui/pool-home/conversation-workspace.js');
-    const { renderNav } = await import('/ui/pool-home/shell-view.js');
+    const { mountPoolday } = await import('/ui/react/app.js');
     const { createChatSession, CANONICAL_CHAT_MODELS } = await import('/host/chat-session.js');
     const { createModelAcquisition } = await import('/host/model-acquisition.js');
-    const original = document.querySelector('.pool-home'), root = original.cloneNode(false);
-    root.dataset.poolTheme = theme;
-    root.innerHTML = renderNav('home') + '<div class="pool-route-content">' + renderConversationWorkspace() + '</div>';
-    document.body.replaceChildren(root);
+    localStorage.setItem('reploid.appearance.v1', theme);
     const model = CANONICAL_CHAT_MODELS[0], host = createChatSession({ storage: null, models: [model] });
     const listeners = new Set();
     let state = { ...host.getState(), peerDiscoveryTimedOut: true, discoveryPhase: 'observed', localDownloadIssue: null,
@@ -86,7 +82,9 @@ async function installFixture(page, theme) {
         await owner.start(model, true, 123000000);
         state = { ...state, models: [{ ...state.models[0], availability: 'cached', localCached: true }] }; notify();
       }, cancelModelDownload: () => owner.cancel() };
-    bindConversationWorkspace(root, api, { viewState: { chosenModel: model } });
+    const root = document.createElement('div');
+    document.body.replaceChildren(root);
+    mountPoolday(root, { host: { chat: api, close: async () => {} }, viewState: { chosenModel: model } });
     window.firstVisitor = {
       ready: () => typeof report === 'function',
       search() { state = { ...state, discoveryPhase: 'searching', peerDiscoveryTimedOut: false }; notify(); },
@@ -114,9 +112,9 @@ test('queues Send while public computers are found and cancels back to an editab
   await send.click();
   await expect(page.locator('[data-model-picker]')).toBeVisible();
   await expect(page.locator('[data-picker-title]')).toHaveText('Where should this run?');
-  await expect(page.locator('[data-execution-choice=local]')).toHaveAttribute('aria-checked', 'true');
+  await expect(page.locator('[data-execution-choice=local] input')).toBeChecked();
   await page.locator('[data-execution-choice=network]').click();
-  await expect(page.locator('[data-execution-choice=network]')).toHaveAttribute('aria-checked', 'true');
+  await expect(page.locator('[data-execution-choice=network] input')).toBeChecked();
   await page.locator('[data-model-picker-close]').click();
   await expect(status).toContainText('Finding computers');
   await expect(cancel).toBeHidden();

@@ -2,9 +2,8 @@ import { readFile } from 'node:fs/promises';
 import { resolveServedFile } from '../../server/browser-roots.js';
 
 export async function openParticipantControls(page) {
-  if (!await page.locator('[data-contextual-inspector]').isVisible()) {
-    await page.locator('[data-toggle-inspector]').click();
-  }
+  // Computers is a workspace destination: pressing it again would close it, so press it only while it is closed.
+  if (await page.locator('[data-inspector-pane="participants"]').isVisible()) return;
   await page.locator('[data-inspector-section="participants"]').click();
 }
 

@@ -29,9 +29,11 @@ test.beforeEach(async ({ page }) => {
 test('Send, search progress, cancellation and Retry have no permission popups', async ({ page }, info) => {
   const errors = []; page.on('pageerror', error => errors.push(error.message));
   await page.evaluate(async () => {
-    const { renderConversationWorkspace, bindConversationWorkspace } = await import('/ui/pool-home/conversation-workspace.js');
+    const { mountPoolday } = await import('/ui/react/app.js');
     const model = { id: 'fixture', name: 'Fixture model', availability: 'ready', identity: 'sha256:' + 'a'.repeat(64) };
-    const thread = { id: 'fixture-thread', model, messages: [], attempts: [], grants: [], permissions: { sharingScope: 'mesh', executionLocation: 'network' } };
+    const { createExecutionPolicy } = await import('/vendor/reploid/chat/execution-policy.js');
+    const privacy = createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'open', ids: [] } });
+    const thread = { id: 'fixture-thread', model, messages: [], attempts: [], grants: [], privacy, permissions: { sharingScope: 'mesh', executionLocation: 'network' } };
     const state = { selectedId: thread.id, activeThread: thread, threads: [thread], models: [model], runningIds: [], network: {}, remoteAnswersEnabled: true };
     const listeners = new Set(), notify = () => listeners.forEach(fn => fn(state));
     let complete;
@@ -57,32 +59,34 @@ test('Send, search progress, cancellation and Retry have no permission popups', 
     };
     window.sent = []; window.finish = finish;
     window.progress = progress => { thread.attempts.at(-1).retrieval.progress = progress; notify(); };
-    const root = document.querySelector('#fixture'); root.innerHTML = renderConversationWorkspace();
-    bindConversationWorkspace(root, session, { search: { available: () => true, state: () => ({ state: 'ready' }), subscribe(fn) { fn(); return () => {}; } } });
+    const search = { available: () => true, state: () => ({ state: 'ready' }), subscribe(fn) { fn(); return () => {}; } };
+    mountPoolday(document.querySelector('#fixture'), { host: { chat: session, search, close: async () => {} } });
   });
-  await expect(page.locator('[data-search-permission], [data-remote-permission]')).toHaveCount(0);
+  await expect(page.locator(':is([data-search-permission], [data-remote-permission]):visible')).toHaveCount(0);
   await page.locator('[data-search-toggle]').click();
   await page.locator('[data-composer-input]').fill('Find movie recommendations');
   await page.locator('[data-composer-send]').click();
-  const tool = page.locator('.is-assistant [data-tool-status]').last();
+  // The running answer's activity names the tool step; it leaves once the answer stops.
+  const active = '[data-message-role="assistant"] [data-execution-activity][data-active] [data-execution-trigger]';
+  const tool = page.locator(active).last();
   await expect(tool).toBeVisible(); await expect(tool).toHaveText('Searching the web…');
   await page.evaluate(() => window.progress({ stage: 'extraction', completed: 2, total: 4, available: 1 }));
   await expect(tool).toHaveText('Reading search results · 2 of 4 pages');
   await page.screenshot({ path: info.outputPath('tool-loader.png'), fullPage: true });
-  await page.locator('[data-composer-stop]').click();
+  await page.locator('[data-answer-stop]').last().click();
   await expect(tool).toBeHidden();
   await page.locator('[data-retry-attempt]').click();
-  await expect(page.locator('.is-assistant [data-tool-status]').last()).toHaveText('Searching the web…');
+  await expect(page.locator(active).last()).toHaveText('Searching the web…');
   expect(await page.evaluate(() => window.sent.map(item => ({ query: item.query, source: item.source })))).toEqual([
     { query: 'Find movie recommendations', source: 'send' }, { query: 'Find movie recommendations', source: 'send' }
   ]);
-  await page.locator('[data-composer-stop]').click();
+  await page.locator('[data-answer-stop]').last().click();
   await expect(page.locator('dialog[open]')).toHaveCount(0);
   expect(errors).toEqual([]);
 });
 
 test('changed runtime passes the actual browser Verification Worker', async ({ page }, info) => {
-  const paths = ['host/chat-session.js', 'ui/pool-home/conversation-workspace.js', 'ui/pool-home/execution-activity.js',
+  const paths = ['host/chat-session.js', 'host/decisions/conversation-controller.js', 'ui/pool-home/execution-activity.js',
     'ui/pool-home/message-list.js', 'ui/pool-home/remote-permission.js', 'vendor/reploid/chat/search-permission.js'];
   const snapshot = Object.fromEntries(await Promise.all(paths.map(async name => ['/' + name, await readServedText(name)])));
   const result = await page.evaluate(snapshot => new Promise((resolve, reject) => {

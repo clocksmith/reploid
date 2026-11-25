@@ -7,7 +7,6 @@ import { answerPrivacy } from './privacy-controls.js';
  * Views request host actions; task execution and disclosure enforcement live in the host.
  * Refactored into decomposed sub-components within a centered reading layout.
  */
-import { renderNetworkInspector } from './network-inspector.js';
 import policy from '../../config/work-profile.json' with { type: 'json' };
 import { DEFAULT_WORK_MODELS, deriveOutcomeTags } from '../../host/work-session.js';
 import { renderGoalComposer, pickGoalPlaceholder } from './work-goal-composer.js';
@@ -50,7 +49,6 @@ export function renderWorkSurface() {
 }
 
 // Compatibility entry uses the same inspector as the conversation shell.
-export const renderNetworkSurface = renderNetworkInspector;
 
 export function renderImproveSurface() {
   return '<section class="pool-work-shell changes-workspace" data-work-surface aria-label="Changes">'
