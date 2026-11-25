@@ -44,6 +44,9 @@
   --pool-spectrum-indigo: #4f46e5;
   --pool-spectrum-teal: #0891b2;
   --pool-spectrum-on-light: #030712;
+  --pool-spectrum-amber: #fbbf24;
+  --pool-spectrum-amber-deep: #b45309;
+  --pool-spectrum-green-deep: #047857;
   --pool-alpha-4: 4%;
   --pool-alpha-8: 8%;
   --pool-alpha-12: 12%;
@@ -122,6 +125,11 @@
   --pool-color-field-focus: color-mix(in srgb, var(--pool-gray-44) var(--pool-alpha-32), transparent);
   --pool-color-ink-12: color-mix(in srgb, var(--pool-color-ink) var(--pool-alpha-12), transparent);
   --pool-color-switch-on: color-mix(in srgb, var(--pool-spectrum-cyan) var(--pool-alpha-64), transparent);
+  /* Status tones, used sparingly: a dot or badge for ready, pending and unavailable, never a whole surface. */
+  --pool-color-status-ready: var(--pool-spectrum-green);
+  --pool-color-status-pending: var(--pool-spectrum-amber);
+  --pool-color-status-unavailable: var(--pool-color-muted);
+  --pool-color-group: color-mix(in srgb, var(--pool-color-ink) var(--pool-alpha-4), transparent);
   --pool-color-on-primary: var(--pool-spectrum-on-light);
   --pool-surface-primary: linear-gradient(135deg, var(--pool-spectrum-cyan), var(--pool-spectrum-violet));
   --pool-surface-primary-pressed: linear-gradient(135deg, color-mix(in srgb, var(--pool-spectrum-cyan) 96%, black), color-mix(in srgb, var(--pool-spectrum-violet) 96%, black));
@@ -206,6 +214,8 @@
   --pool-space-row-inline: var(--pool-size-12);
   --pool-space-row-mark: var(--pool-size-2);
   --pool-space-option-gap: var(--pool-size-4);
+  --pool-space-section-title: var(--pool-size-8);
+  --pool-space-group-inline: var(--pool-size-16);
   --pool-space-dialog-edge: var(--pool-size-24);
   --pool-space-dialog-edge-tight: var(--pool-size-8);
   --pool-space-dialog-gap: var(--pool-size-16);
@@ -249,6 +259,9 @@
   --pool-color-ink: var(--pool-silica-ink);
   --pool-color-focus: var(--pool-spectrum-indigo);
   --pool-color-switch-on: color-mix(in srgb, var(--pool-spectrum-indigo) var(--pool-alpha-64), transparent);
+  --pool-color-status-ready: var(--pool-spectrum-green-deep);
+  --pool-color-status-pending: var(--pool-spectrum-amber-deep);
+  --pool-color-group: color-mix(in srgb, var(--pool-gray-100) var(--pool-alpha-48), transparent);
   /* The bright prism primary and dark label retain their contrast in both themes. */
   --pool-surface-backdrop: blur(24px) saturate(180%);
   --pool-shadow-inset: inset 0 1px 3px rgb(15 23 42 / 10%), inset 0 0 0 1px rgb(15 23 42 / 6%);

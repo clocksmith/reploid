@@ -157,7 +157,8 @@ its root carries `class="pool-page"` so the page shell uses the same tokens.
 | Text | `pool-title`, `pool-heading`, `pool-subheading`, `pool-body`, `pool-small`, `pool-caption`, `pool-label`, `pool-muted`, `pool-mono`, `pool-mark`, `pool-facts`, `pool-plain`, `pool-prose` |
 | Feedback | `pool-bar`, `pool-dot`, `pool-reveal` with `pool-reveal-host`, `pool-glass`, `pool-glass-focus`, `pool-activity-edge` |
 | Choices and rows | `pool-options` (+ `pool-options-multi`) of `pool-option`, `pool-option-mark`, `pool-option-fix`; `pool-segmented` of `label.pool-segment`; `pool-toggle-row`; `pool-action-row`; `pool-row-text`, `pool-row-title`, `pool-row-status`, `pool-row-segments`; `pool-icon-box` (`pool-icon-box-sm`) |
-| Status and space | `pool-status-line`, `pool-reserve`, `pool-badge`, `pool-visually-hidden` |
+| Status and space | `pool-status-line`, `pool-reserve`, `pool-badge`, `pool-tone-ready`, `pool-tone-pending`, `pool-tone-unavailable`, `pool-visually-hidden` |
+| Sections | `pool-section`, `pool-section-title`, `pool-section-note`, `pool-group`, `pool-disclosure-quiet` |
 | Dialog shell | `pool-dialog` (+ `pool-dialog-fixed`, `pool-dialog-wide`), `pool-dialog-header`, `pool-dialog-body`, `pool-dialog-footer` |
 
 ### Choosing the right control
@@ -194,6 +195,26 @@ their box, never placed on a text baseline. Longer explanations go in a
 
 Spacing inside rows, lists and dialogs uses the `--pool-space-row-*`,
 `--pool-space-option-gap` and `--pool-space-dialog-*` tokens.
+
+### Panels: sections, groups and one type scale
+
+A panel is a column of sections. Each section has a small uppercase title
+(`pool-section-title`), one group of rows on a quiet film (`pool-group`, rows
+separated by hairlines) and, when needed, a note below (`pool-section-note`).
+Never box a group twice: inside a group, a disclosure is `pool-disclosure-quiet`,
+a row with a trailing chevron. The type scale in a panel is: panel title
+`pool-heading`, section title, row title (`pool-row-title`), status and notes.
+
+Each panel has at most one primary button, for its main commitment. Form submits
+inside a panel are secondary. Developer details (peer IDs, rooms, digests,
+protocol words) sit behind a quiet disclosure named for experts or "Details";
+the visible path uses plain words, such as scanning or pasting a pairing link.
+
+Status colour is reserved for a dot or badge: `pool-tone-ready` (green),
+`pool-tone-pending` (amber) and `pool-tone-unavailable` (an outline). Text
+carries the state too, so colour is never the only signal.
+
+Empty states say what is missing and the next action, in one sentence.
 
 ### Unavailable options: disabled with a reason
 

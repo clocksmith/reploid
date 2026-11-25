@@ -20,6 +20,15 @@
    pool-status-line    status text whose line is reserved, so it never moves its neighbours
    pool-reserve        alternatives in one cell; the tallest reserves the height
 
+   Sections and groups
+   pool-section        a panel section: a small heading, then its group; sections are spaced, never boxed twice
+   pool-section-title  the section heading: small, semibold, muted, above its rows
+   pool-group          rows that belong together on one quiet film, separated by hairlines
+   pool-disclosure-quiet  a disclosure that reads as a row: no box, a chevron at the trailing edge
+
+   Status tones (sparingly: a dot or badge, never a whole surface)
+   pool-tone-ready, pool-tone-pending, pool-tone-unavailable
+
    Dialog shell
    pool-dialog         a dialog: fixed header, scrolling body, pinned footer
    pool-dialog-fixed   a dialog whose body is live data: its height is fixed at first paint
@@ -158,7 +167,7 @@
 .pool-home .pool-toggle-row > .pool-switch { justify-self: end; }
 
 /* A native checkbox drawn as the switch, for a toggle whose state a form reads as `checked`. */
-.pool-home input.pool-switch { appearance: none; margin: 0; }
+.pool-home input.pool-switch[type='checkbox'] { appearance: none; inline-size: calc(var(--pool-size-48) + var(--pool-size-4)); block-size: var(--pool-size-48); margin: 0; }
 .pool-home input.pool-switch::after {
   content: ''; position: absolute; top: 50%; left: var(--pool-size-4);
   width: var(--pool-size-20); height: var(--pool-size-20); transform: translateY(-50%);
@@ -259,3 +268,61 @@
 @media (forced-colors: active) {
   .pool-home .pool-option:has(> input:checked), .pool-home label.pool-segment:has(> input:checked) { outline: var(--pool-border-thick) solid Highlight; }
 }
+
+/* Sections and groups. A panel is a column of sections; a section is a heading over one group of rows. */
+.pool-home .pool-section { display: grid; gap: var(--pool-space-section-title); min-inline-size: 0; }
+.pool-home .pool-section > .pool-segmented, .pool-home .pool-section > * > .pool-segmented { inline-size: 100%; max-inline-size: none; }
+.pool-home .pool-section-title {
+  margin: 0;
+  padding-inline: var(--pool-space-group-inline);
+  color: var(--pool-color-muted);
+  font-size: var(--pool-text-xs);
+  font-weight: var(--pool-weight-semibold);
+  letter-spacing: var(--pool-tracking-wide);
+  line-height: var(--pool-leading-snug);
+  text-transform: uppercase;
+}
+.pool-home .pool-section-note { margin: 0; padding-inline: var(--pool-space-group-inline); color: var(--pool-color-muted); font-size: var(--pool-text-xs); line-height: var(--pool-leading-snug); }
+.pool-home .pool-group {
+  display: grid;
+  min-inline-size: 0;
+  margin: 0;
+  padding: 0 var(--pool-space-group-inline);
+  border: 0;
+  border-radius: var(--pool-radius-panel);
+  background: var(--pool-color-group);
+  list-style: none;
+}
+.pool-home .pool-group > * { min-inline-size: 0; }
+.pool-home .pool-group > :not([hidden]) ~ :not([hidden]) { border-block-start: var(--pool-border-hairline) solid var(--pool-color-line); }
+.pool-home .pool-group > :is(p, form, .pool-stack, .pool-segmented, .pool-row) { margin: 0; padding-block: var(--pool-space-row-gap); }
+.pool-home .pool-group > .pool-segmented { inline-size: 100%; max-inline-size: none; margin-block: var(--pool-space-row-gap); padding-block: var(--pool-size-4); }
+.pool-home .pool-group > :is(.pool-option, .pool-action-row) { padding-inline: 0; border-radius: 0; }
+.pool-home .pool-group .pool-segmented[role='radiogroup'] { inline-size: 100%; }
+
+/* A quiet disclosure: a row with a trailing chevron; its content follows without another box. */
+.pool-home .pool-disclosure.pool-disclosure-quiet { border: 0; border-radius: 0; background: transparent; }
+.pool-home .pool-disclosure.pool-disclosure-quiet > summary { min-block-size: var(--pool-row-single); padding: 0; font-weight: var(--pool-weight-medium); }
+.pool-home .pool-disclosure.pool-disclosure-quiet[open] > summary { border-block-end: 0; }
+.pool-home .pool-disclosure.pool-disclosure-quiet > :not(summary) { max-inline-size: 100%; margin: 0 0 var(--pool-space-row-gap); }
+.pool-home .pool-disclosure.pool-disclosure-quiet > summary:hover { color: var(--pool-color-ink); }
+.pool-home .pool-disclosure.pool-disclosure-quiet > summary .pool-row-title { color: var(--pool-color-ink); font-weight: var(--pool-weight-medium); }
+.pool-home .pool-disclosure.pool-disclosure-quiet > summary .pool-row-status { font-weight: var(--pool-weight-regular); }
+.pool-home .pool-disclosure.pool-disclosure-quiet > summary:focus-visible { outline-offset: calc(-1 * var(--pool-border-thick)); }
+
+/* Status tones: the dot before a status, or a badge's text. */
+.pool-home :is(.pool-tone-ready, .pool-tone-pending, .pool-tone-unavailable)::before {
+  content: '';
+  display: inline-block;
+  flex: none;
+  inline-size: var(--pool-size-8);
+  block-size: var(--pool-size-8);
+  margin-inline-end: var(--pool-size-8);
+  border-radius: var(--pool-radius-round);
+  vertical-align: middle;
+}
+.pool-home .pool-tone-ready::before { background: var(--pool-color-status-ready); }
+.pool-home .pool-tone-pending::before { background: var(--pool-color-status-pending); }
+.pool-home .pool-tone-unavailable::before { background: transparent; box-shadow: inset 0 0 0 var(--pool-border-thin) var(--pool-color-status-unavailable); }
+.pool-home .pool-badge:is(.pool-tone-ready, .pool-tone-pending, .pool-tone-unavailable) { background: transparent; box-shadow: none; padding-inline: 0; letter-spacing: var(--pool-tracking-none); font-size: var(--pool-text-xs); font-weight: var(--pool-weight-medium); }
+.pool-home .pool-badge:is(.pool-tone-ready, .pool-tone-pending, .pool-tone-unavailable)::before { margin-inline-end: var(--pool-size-4); }
