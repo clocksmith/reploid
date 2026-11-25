@@ -25,6 +25,11 @@
  *
  * `--prompts` takes a file of `{ prompts: [{ id, prompt, model }] }`; without it the list in reliability.js is used.
  * One model per run: `--model` is the value of the model's choice in the sheet, chosen during the setup request.
+ * Every request records the model its thread used (`model`, the page's own selection) and the "Answer on" label.
+ * Before each measured Send the script checks the new thread's model and, if it differs, chooses it in the sheet;
+ * that happens before the click, so it is not timed. If a request would still go, or went, to any other model, the
+ * run stops there with a `wrong model` verdict: it never measures a different model under this one's name. Without
+ * `--model`, every request must use the model the setup request used.
  * If the setup request does not complete, the run stops there and reports why; it does not send the measured ones.
  * `--self-check` runs the whole script against a mock page that plays each ending. It checks this script's timing
  * and labels, and nothing about the product.
@@ -99,6 +104,8 @@ function installProbe() {
 
 const ENDED = /^(Complete|Failed|Stopped|Interrupted|Disconnected)\b/;
 
+const selectedModel = page => page.evaluate(() => globalThis.document.querySelector('[data-active-model-select]')?.value || null);
+const answerOnLabel = page => page.locator('[data-open-model]').getAttribute('aria-label', { timeout: 2000 }).catch(() => null);
 const pickerOpen = page => page.evaluate(() => Boolean(globalThis.document.querySelector('[data-model-picker]')?.open));
 const rowCount = page => page.evaluate(() => globalThis.document.querySelectorAll('[data-message-stream] .chat-message-row').length);
 
@@ -118,16 +125,34 @@ async function newThread(page) {
   await page.waitForFunction(() => globalThis.document.querySelectorAll('[data-message-stream] .chat-message-row').length === 0, null, { timeout: 5000 });
 }
 
+/** Chooses `model` on Contributors through "Answer on", as a person would. A usable choice applies on tap. */
+async function chooseModel(page, model) {
+  await closeSheet(page);
+  await page.locator('[data-open-model]').click({ timeout: 5000 });
+  await page.locator('[data-execution-choice=network]').click({ timeout: 5000 }).catch(() => {});
+  await page.locator(`[data-model-picker] .chat-model-choices input[value="${model}"]`).filter({ visible: true }).click({ timeout: 15000 }).catch(() => {});
+  await page.waitForFunction(() => !globalThis.document.querySelector('[data-model-picker]')?.open, null, { timeout: 5000 }).catch(() => {});
+  await closeSheet(page);
+}
+
 /**
  * One request in a new thread. Never throws for a product failure: every ending becomes a record. `model`, when
  * given, is chosen inside the sheet if the sheet opens.
  */
-async function measureOne(page, { prompt, timeoutMs, model = null, sheetWaitMs = 30000 }) {
+async function measureOne(page, { prompt, timeoutMs, model = null, expectModel = null, sheetWaitMs = 30000 }) {
   const record = { completed: false, failure: null, firstTokenMs: null, stages: { sendEnabledMs: null, firstTokenMs: null, endMs: null },
-    sheet: false, permissionPrompt: false, outputChars: 0, activity: '', statusText: '', sendAt: null };
+    sheet: false, permissionPrompt: false, outputChars: 0, activity: '', statusText: '', sendAt: null, model: null, answerOn: null, modelChosen: false };
   try {
     await closeSheet(page);
     await newThread(page);
+    // The model this thread will ask, checked before Send so a different one is never measured under this name.
+    if (expectModel && await selectedModel(page) !== expectModel) { record.modelChosen = true; await chooseModel(page, expectModel); }
+    if (expectModel && await selectedModel(page) !== expectModel) {
+      record.model = await selectedModel(page); record.answerOn = await answerOnLabel(page);
+      record.failure = 'wrong model';
+      record.statusText = `This thread would ask ${record.model ?? 'no model'}, not ${expectModel}; nothing was sent.`;
+      return record;
+    }
     await page.locator('[data-composer-input]').fill(prompt);
     const typed = Date.now();
     await page.waitForFunction(() => { const send = globalThis.document.querySelector('[data-composer-send]'); return send && !send.disabled && !send.hidden; },
@@ -185,6 +210,12 @@ async function measureOne(page, { prompt, timeoutMs, model = null, sheetWaitMs =
   record.activity = state.activity;
   record.statusText = sheetProblem ?? state.statusText;
   record.failure = labelOf({ activity: state.activity, statusText: state.statusText, outputChars: state.outputChars, timedOut, sheetProblem });
+  // The sent thread's own model, read after the answer: the composer keeps showing it while the thread is open.
+  record.model = await selectedModel(page); record.answerOn = await answerOnLabel(page);
+  if ((expectModel ?? model) && !sheetProblem && record.model !== (expectModel ?? model)) {
+    record.failure = 'wrong model';
+    record.statusText = `This request asked ${record.model ?? 'no model'}, not ${expectModel ?? model}.`;
+  }
   record.completed = record.failure === null;
   return record;
 }
@@ -210,18 +241,21 @@ export async function runBrowserPilot({ url, prompts, model = null, intervalMs =
       null, { timeout: 60000 }).catch(() => {});
     const discoveryMs = Date.now() - opened;
     const setup = { discoveryMs, ...await measureOne(page, { prompt: 'Say hello in one word.', timeoutMs, model, sheetWaitMs }) };
-    const answerOn = (await page.locator('[data-open-model]').getAttribute('aria-label').catch(() => null)) ?? null;
-    if (!setup.completed) return { setup, answerOn, results: [], notStarted: `the setup request did not complete (${setup.failure}): ${setup.statusText || setup.activity || 'no status shown'}` };
+    const answerOn = setup.answerOn;
+    if (!setup.completed) return { setup, answerOn, results: [], wrongModel: null, notStarted: `the setup request did not complete (${setup.failure}): ${setup.statusText || setup.activity || 'no status shown'}` };
+    // Every measured request must ask the model the setup request asked: the one named by --model when given.
+    const expectModel = model ?? setup.model;
     const results = [];
     for (const [index, item] of prompts.entries()) {
       const startedAt = Date.now();
-      const row = { type: 'request', index, promptId: item.id, inputChars: item.prompt.length, ...await measureOne(page, { prompt: item.prompt, timeoutMs, model, sheetWaitMs }) };
+      const row = { type: 'request', index, promptId: item.id, inputChars: item.prompt.length, ...await measureOne(page, { prompt: item.prompt, timeoutMs, model, expectModel, sheetWaitMs }) };
       results.push(row);
       onResult(row);
+      if (row.failure === 'wrong model') return { setup, answerOn, results, notStarted: null, wrongModel: `request ${index + 1}: ${row.statusText}` };
       const wait = intervalMs - (Date.now() - startedAt);
       if (index < prompts.length - 1 && wait > 0) await page.waitForTimeout(wait);
     }
-    return { setup, answerOn, results, notStarted: null };
+    return { setup, answerOn, results, notStarted: null, wrongModel: null };
   } finally {
     await browser.close();
   }
@@ -234,13 +268,17 @@ export async function runBrowserPilot({ url, prompts, model = null, intervalMs =
 const MOCK_PAGE = `<!doctype html><meta charset="utf-8"><title>mock</title>
 <button data-new-thread>New thread</button>
 <div data-message-stream></div>
-<dialog data-model-picker><button data-model-picker-close>Close</button><button data-execution-choice="local">This device</button><button data-execution-choice="network">Contributors</button><span data-next-model-status></span><button data-change-model disabled>Choose</button></dialog>
+<dialog data-model-picker><button data-model-picker-close>Close</button><button data-execution-choice="local">This device</button><button data-execution-choice="network">Contributors</button><div class="chat-model-choices"><label><input type="radio" name="model" value="small">small</label><label><input type="radio" name="model" value="big">big</label></div><span data-next-model-status></span><button data-change-model disabled>Choose</button></dialog>
+<select data-active-model-select hidden><option value="small">small</option><option value="big">big</option></select><button data-open-model aria-label="Answer on Contributors · small, Ready">Answer on</button>
 <div data-remote-permission hidden><button data-remote-permission-allow>Allow</button></div>
 <p data-model-status>Finding computers…</p>
 <textarea data-composer-input></textarea><button data-composer-send>Send</button><button data-composer-stop hidden>Stop</button>
 <script>
 const $ = selector => document.querySelector(selector), stream = $('[data-message-stream]'), send = $('[data-composer-send]'), stop = $('[data-composer-stop]');
-let chosen = false, allowed = false, timers = [], current = null;
+let chosen = false, allowed = false, timers = [], current = null, bySend = false, answered = 0;
+// ?forget: New thread returns to the default model, as the page did before. ?lose: after the setup answer, no other model can be chosen.
+const query = new URLSearchParams(location.search), model = $('[data-active-model-select]');
+const setModel = value => { model.value = value; $('[data-open-model]').setAttribute('aria-label', 'Answer on Contributors · ' + value + ', Ready'); };
 const later = (ms, run) => timers.push(setTimeout(run, ms));
 // As the real page: the execution line carries the status and is data-active while running; the system line appears only for a failure.
 const line = (row, summary, active) => { row.querySelector('[data-execution-trigger]').setAttribute('aria-label', summary + '. Execution details'); row.querySelector('[data-execution-activity]').toggleAttribute('data-active', active); };
@@ -248,7 +286,8 @@ const finish = (row, status, why = '') => { line(row, status + ' · 1 computer �
 function start() {
   const word = $('[data-composer-input]').value.split(' ')[0];
   const kind = ['ok', 'slow', 'drop', 'refuse', 'empty', 'fail', 'hang'].includes(word) ? word : 'ok';
-  if (!chosen) { $('[data-model-picker]').showModal(); return; }
+  if (!chosen) { bySend = true; $('[data-model-picker]').showModal(); return; }
+  answered++;
   if (!allowed) { $('[data-remote-permission]').hidden = false; return; }
   const user = document.createElement('div'); user.className = 'chat-message-row is-user'; stream.append(user);
   const row = document.createElement('div'); row.className = 'chat-message-row is-assistant';
@@ -268,7 +307,13 @@ function start() {
 setTimeout(() => { $('[data-model-status]').textContent = ''; }, 300);
 send.onclick = start;
 stop.onclick = () => { timers.forEach(clearTimeout); finish(current, 'Stopped', 'Stopped. Your partial answer is saved.'); };
-$('[data-new-thread]').onclick = () => { stream.replaceChildren(); };
+$('[data-new-thread]').onclick = () => { stream.replaceChildren(); if (query.has('forget')) setModel('small'); };
+$('[data-open-model]').onclick = () => { bySend = false; $('[data-model-picker]').showModal(); };
+for (const radio of document.querySelectorAll('.chat-model-choices input')) radio.onclick = () => {
+  if (query.has('lose') && answered > 0) return;
+  setModel(radio.value);
+  if (!bySend && chosen) $('[data-model-picker]').close();
+};
 const empty = new URLSearchParams(location.search).has('empty');
 $('[data-model-picker-close]').onclick = () => $('[data-model-picker]').close();
 $('[data-execution-choice=network]').onclick = () => { const button = $('[data-change-model]');
@@ -283,13 +328,16 @@ async function selfCheck() {
   await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
   const kinds = ['ok', 'slow', 'drop', 'refuse', 'empty', 'fail', 'hang', 'ok'];
   try {
-    const { setup, results } = await runBrowserPilot({ url: `http://127.0.0.1:${server.address().port}/`, intervalMs: 0, timeoutMs: 1500,
+    // ?forget: each New thread returns to the default model, so every measured request must choose the model again.
+    const { setup, results } = await runBrowserPilot({ url: `http://127.0.0.1:${server.address().port}/?forget`, model: 'big', intervalMs: 0, timeoutMs: 1500,
       prompts: kinds.map((kind, index) => ({ id: `m${index}`, prompt: `${kind} request` })) });
     const problems = [], expect = (what, ok) => { if (!ok) problems.push(what); };
     const by = index => results[index];
     expect('setup took the sheet and the permission prompt', setup.sheet && setup.permissionPrompt);
     expect('setup waited for discovery to settle before pressing Send', setup.discoveryMs >= 250 && setup.discoveryMs < 5000);
     expect('no measured request met the sheet again', results.every(row => !row.sheet && !row.permissionPrompt));
+    expect('setup and every measured request asked the chosen model, choosing it again after New thread reset it',
+      setup.model === 'big' && results.length === kinds.length && results.every(row => row.model === 'big' && row.modelChosen && /· big, Ready$/.test(row.answerOn)));
     expect('ok completes with a first character near 80 ms', by(0).completed && by(0).firstTokenMs >= 70 && by(0).firstTokenMs < 300);
     expect('slow ignores whitespace and times the first real character near 400 ms', by(1).completed && by(1).firstTokenMs >= 390 && by(1).firstTokenMs < 700);
     expect('a dropped answer is transport and keeps its first-character time', by(2).failure === 'transport' && by(2).firstTokenMs !== null);
@@ -311,6 +359,15 @@ async function selfCheck() {
       prompts: [{ id: 'm0', prompt: 'ok request' }] });
     expect('a pool with no contributor stops at the setup request, says why, and leaves the sheet closed',
       none.results.length === 0 && none.setup.failure === 'unavailable' && /did not complete \(unavailable\): No contributor serves this model now/.test(none.notStarted));
+    const lost = await runBrowserPilot({ url: `http://127.0.0.1:${server.address().port}/?forget&lose`, model: 'big', intervalMs: 0, timeoutMs: 1500,
+      prompts: [{ id: 'm0', prompt: 'ok request' }, { id: 'm1', prompt: 'ok request' }] });
+    expect('a thread that cannot be put on the chosen model stops the run before Send, naming the model it would have asked',
+      lost.setup.completed && lost.results.length === 1 && lost.results[0].failure === 'wrong model' && lost.results[0].sendAt === null
+      && lost.results[0].model === 'small' && /^request 1: This thread would ask small, not big/.test(lost.wrongModel));
+    const unchecked = await runBrowserPilot({ url: `http://127.0.0.1:${server.address().port}/?forget`, intervalMs: 0, timeoutMs: 1500,
+      prompts: [{ id: 'm0', prompt: 'ok request' }] });
+    expect('without --model every request is held to the model the setup request asked', unchecked.setup.model === 'small'
+      && unchecked.results.length === 1 && unchecked.results[0].completed && unchecked.results[0].model === 'small' && !unchecked.results[0].modelChosen);
     console.log(JSON.stringify({ selfCheck: problems.length === 0 ? 'pass' : 'fail', problems,
       results: results.map(row => ({ id: row.promptId, completed: row.completed, failure: row.failure, firstTokenMs: row.firstTokenMs, endMs: row.stages.endMs })) }, null, 2));
     process.exitCode = problems.length === 0 ? 0 : 1;
@@ -347,7 +404,10 @@ async function main() {
   const receipt = { schema: 'reploid.pilot-reliability-browser/v1', startedAt, finishedAt: new Date().toISOString(), label: values.label, rule: RULE,
     page: ['127.0.0.1', 'localhost', '[::1]'].includes(host) ? 'local page' : 'deployed page (address not recorded)', answerOn: run.answerOn, settings,
     node: process.version, requesterLoad: { cpus: os.cpus().length, start: loadAtStart, end: load() }, setup: run.setup, notStarted: run.notStarted,
-    summary: run.notStarted ? { requests: 0, verdict: `not started: ${run.notStarted}` } : summarize(run.results), results: run.results };
+    summary: run.notStarted ? { requests: 0, verdict: `not started: ${run.notStarted}` }
+      // A run that would have measured another model has no verdict on this one.
+      : run.wrongModel ? { ...summarize(run.results), verdict: `wrong model, stopped at ${run.wrongModel}` } : summarize(run.results),
+    results: run.results };
   const text = JSON.stringify(receipt, null, 2);
   if (values.out) await fs.writeFile(values.out, `${text}\n`);
   console.log(JSON.stringify({ label: receipt.label, answerOn: receipt.answerOn, ...receipt.summary }, null, 2));
