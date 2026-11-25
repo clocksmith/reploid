@@ -22,83 +22,86 @@ Plain Node, about 10 seconds, no model, no GPU, no network.
 
 - **Who wrote it.** A second agent session working for the same operator as the service's verifier. It is not an
   independent party, and this is not a third-party replay.
-- **What the author read.** Only `docs/settlement-replay.md` at commit 20121ae60. It was told not to open the
-  service's verifier, the signers, the tests, the scenario builder, the attack matrix or the earlier verifier in this
-  directory, and it reported opening none of them. That boundary is self-reported.
+- **What the author read.** Only `docs/settlement-replay.md`, first at commit 20121ae60 and again in full at
+  4ee9dd6b2 when the document changed. It was told not to open the service's verifier, the signers, the tests, the
+  scenario builder, the attack matrix, this directory's comparison or any diff, and it reported opening none of
+  them. That boundary is self-reported.
 - **What the author could not test.** It had no signer, so before the comparison it could only check the verifier
   against records it signed itself.
 - **Who wrote the comparison.** Another session, which did read the service's code. `differential.js` builds its base
   attempts with the production signers through `scripts/settlement/scenario.js`.
 - **The parties.** Every requester, stage and stranger is a simulated identity on one machine.
 
-`replay.js` is kept as its author delivered it. A later fix must say whether the document or the service's code
-prompted it.
+`replay.js` is kept as its author delivered it for each version of the document. It changes only when the document
+does, and only from the document's text. A fix prompted by the service's code would have to say so.
 
 ## Result on main
 
-20 base attempts, 24 mutation families, Ed25519 and P-256 keys.
+The document and the service's verifier at 4ee9dd6b2. 20 base attempts, 24 mutation families, Ed25519 and P-256
+keys. The document reports one row per reservation and requester, and the comparison is keyed the same way.
 
 | | Count |
 | --- | --- |
 | Record sets | 1,246 |
-| Judgments (one reservation at one clock value) | 1,731 |
-| Same outcome, same debit, same credit for every stage | 1,704 |
-| Disagreements | 27 |
-| Same outcome and amounts, but a late, foreign or rejected list differs | 22 |
+| Judgments (one row at one clock value) | 1,774 |
+| Same outcome, same debit, same credit for every stage | 1,749 |
+| Disagreements | 25 |
+| Same outcome and amounts, but a late or rejected list differs | 17 |
 
-The 27 disagreements have two causes. In both, the document and the service's verifier say different things, and
+The 25 disagreements have two causes. In both, the document and the service's verifier say different things, and
 one of them should change.
 
-1. **A signature with base64 padding (21 judgments, 17 with different amounts).** The document says a signature is
+1. **A signature with base64 padding (19 judgments, 15 with different amounts).** The document says a signature is
    base64url without padding. The service's verifier accepts a signature with `=` appended, on all five record
    kinds. This verifier rejects the record. The signature member is unsigned, so anyone relaying a record can
    produce a second accepted form of it.
 2. **No policy supplied (6 judgments).** The document says terms are `invalid` unless their digest names a supplied
    policy. The service's verifier refuses to run when it is given no policy at all.
 
-The 22 list differences:
+The 17 list differences:
 
-- **A late stop (12).** The document says a stop signed outside the window is listed as late. The service's verifier
+- **A late stop (11).** The document says a stop signed outside the window is listed as late. The service's verifier
   ignores it without listing it.
-- **A second requester's terms with its own charge binding (6).** By step 1 of the document these terms count, and
-  the acceptance rule then drops them. The service's verifier lists them as `foreign`.
-- **Padding again (4).** The same cause as above, where the padded record did not change the outcome.
+- **Padding again (6).** The same cause as above, where the padded record did not change the outcome.
 
-Conflict entries are compared only by whether each verifier lists one, because the document names one conflict
-kind (`terms-equivocation`) and no others. On that measure the two agree on all 1,731 judgments.
+Conflict entries are compared only by whether each verifier lists one, because the document names two conflict
+kinds (`terms-equivocation` and `acknowledgment-equivocation`) and leaves the blocking cases unnamed. On that measure the two agree on all 1,774 judgments.
+
+### The same comparison one document earlier
+
+At 20121ae60 the first version of this verifier agreed on 1,704 of 1,731 judgments, with the same two causes. That
+run also showed three properties both verifiers shared because the document said so: a requester voided its own
+charge by signing a second acknowledgment, one stage vetoed every payment by withholding its closing receipt, and a
+stranger made a reservation undecidable with three signatures. Commit 4ee9dd6b2 changed the document and the
+service's verifier on all three. This verifier, updated from the new text alone, reaches the service's new verdicts
+on each: the charge stands, the stage is paid after the release window, and the stranger gets a row of its own.
 
 ## Agreement that still deserves a reader
 
 The two verifiers agree on the following, because the document says so. Each is a property of the rules, not a
-difference between implementations. [../baseline-matrix.js](../baseline-matrix.js) scores the first three against a
-simpler rule.
+difference between implementations.
 
-- **A requester voids its own charge.** After acknowledging a whole answer, the requester signs a second
-  acknowledgment for a count with another chain. Both verifiers answer `conflict`, debit 0. Signers write their own
-  `signedAt`, so it can do this afterwards.
-- **One stage vetoes every payment.** A stage that withholds its closing receipt after a delivered answer makes the
-  reservation `unknown`. Nobody is paid.
-- **A stranger makes a reservation undecidable.** A key that took no part signs its own terms, acceptance and charge
-  binding under the reservation ID. Both verifiers answer `unknown`.
-- **The final stage closes with a null output.** A finished, acknowledged answer then settles at 0.
 - **Times without a zone.** The document accepts any string `Date.parse` accepts, and `Date.parse` reads a time
-  without a zone as local time. One record set with such an acknowledgment settled at 15 on a verifier whose zone is
-  UTC and at 12 on one in another zone. Both verifiers behave this way. Checked by running the same set under two
-  `TZ` values; it is not part of the committed receipt.
+  without a zone as local time. One record set with such an acknowledgment settles at 15 on a verifier whose zone is
+  UTC and at 12 on one in another zone. Both verifiers behave this way at 4ee9dd6b2. Checked by running the same set
+  under two `TZ` values; it is not part of the committed receipt.
+- **Signers write their own times.** Stages that sign late receipts with an in-time `signedAt` are paid where
+  honest clocks are not. The document lists this as a limit. [../baseline-matrix.js](../baseline-matrix.js) shows
+  the amounts and what a third-party witness would change.
+- **The final stage closes with a null output.** A finished, acknowledged answer then settles at 0.
 
 ## What the document still leaves open
 
-[DOC-GAPS.md](DOC-GAPS.md) lists 44 items: 37 where the text did not decide the behaviour and 7 where it looks
-self-contradictory or wrong. Almost none of them changed a verdict in this run. Those most likely to matter to
-another implementer:
+[DOC-GAPS.md](DOC-GAPS.md) lists 58 items. Of the 44 written against 20121ae60, the text at 4ee9dd6b2 settles 4,
+partly settles 7 and leaves 33. Fourteen are new: 10 where the new text does not decide the behaviour and 4 where it
+looks self-contradictory. Almost none of them changed a verdict in this run. Those most likely to matter to another
+implementer:
 
+- **Conflict entries.** Five blocking cases have no named kind, and the shape of an entry varies by case.
+- **Which final-stage receipts commit a chain.** One step says "presented", another says late records are ignored.
+- **`open` against `unknown`** when a delivered answer has an unclosed stage with no covering receipt.
 - **Field types.** `attemptId`, `requesterId`, `participantId` and `maximum` have no stated type.
-- **`output` on a non-final stage.** The rule needs the terms, so it cannot be a per-record shape check.
-- **In-time judgments before terms are agreed.** `inTime` is defined on the agreed terms, and step 2 uses it to
-  choose them.
-- **Conflict entries.** No kind is named except `terms-equivocation`, and the signer of a step-7 conflict is not
-  stated.
-- **`accountOf` and `balances`.** The signature, the result's shape and the sign are not given.
+- **"Attempt" has two meanings:** the row for a reservation and requester, and the `attemptId`.
 - **Key aliases.** Coordinates are constrained only by a pattern, so non-canonical base64url gives one key several
   valid participant IDs.
 
@@ -115,7 +118,7 @@ differential (745 record sets, 1,146 judgments, 808 full agreements) found that 
 
 Commit 20121ae60 fixed all four in the service's verifier, signed `K` into the terms and rewrote the document. The
 verifier here was then written again from the new document by an author who had seen neither the code nor the first
-verifier.
+verifier (commit 3bf842816), and updated from the document again at 4ee9dd6b2.
 
 ## Limits
 

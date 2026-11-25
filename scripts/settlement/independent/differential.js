@@ -474,13 +474,15 @@ const CLOCKS = {
 
 const byStage = (shares, credits) => shares.map(row => credits.filter(credit => credit.participantId === row.participantId).reduce((sum, credit) => sum + credit.amount, 0));
 const EMPTY = shares => ({ reason: null, debit: 0, credits: shares.map(() => 0), late: 0, foreign: 0, conflicts: 0, conflictKinds: [] });
+// The document reports one row per reservation and requester.
+const rowKey = row => `${row.reservationId} / ${row.requesterId ?? 'no requester'}`;
 function independentView(result, shares) {
-  return new Map(result.reservations.map(row => [row.reservationId, { outcome: row.outcome, reason: row.reason, debit: row.debit,
+  return new Map(result.reservations.map(row => [rowKey(row), { outcome: row.outcome, reason: row.reason, debit: row.debit,
     credits: shares.map((share, index) => row.credits.filter(credit => credit.partitionIndex === index).reduce((sum, credit) => sum + credit.amount, 0)),
     late: row.late.length, foreign: row.foreign.length, conflicts: row.conflicts.length, conflictKinds: [...new Set(row.conflicts.map(item => item.kind))].sort() }]));
 }
 function serviceView(result, shares) {
-  return new Map(result.reservations.map(row => [row.reservationId, { outcome: row.status, reason: row.reason, debit: row.debit ?? 0,
+  return new Map(result.reservations.map(row => [rowKey(row), { outcome: row.status, reason: row.reason, debit: row.debit ?? 0,
     credits: byStage(shares, row.credits ?? []), late: (row.late ?? []).length, foreign: (row.foreign ?? []).length, conflicts: (row.conflicts ?? []).length,
     conflictKinds: [...new Set((row.conflicts ?? []).map(item => item.kind))].sort() }]));
 }

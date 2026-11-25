@@ -6,6 +6,9 @@
 // verifier beside this file were not read. Where the document did not decide a
 // behaviour, the choice made here is marked CHOICE and may differ from the
 // reference. Node 22, built-in modules only.
+//
+// Follows the document's text as of commit 4ee9dd6b2: one row per (reservation,
+// requester), the matched acknowledged count of step 5, and the closing rule of step 6.
 
 import { createHash, createPublicKey, verify } from 'node:crypto';
 
@@ -142,7 +145,7 @@ const KINDS = new Map([
       participantId: text(), sequence: (v) => Number.isSafeInteger(v) && v >= 1, status: (v) => STATUSES.has(v),
       steps: isCount, tokens: isTokens, timing: isTiming, output: nullOr(isOutput), signedAt: isTime,
     },
-    // "null except on the final stage" needs the terms, so it cannot be judged here (see step 6 and 9).
+    // "null except on the final stage" needs the terms, so it cannot be judged here (see steps 5, 6 and 9).
     across: (body) => (body.output !== null && body.output.count !== body.steps ? 'output.count is not steps' : null),
   }],
   [ACKNOWLEDGMENT, {
@@ -218,6 +221,24 @@ function admit(records, index) {
   return admitted;
 }
 
+// Groups by reservationId and then by requester (one "attempt", one output row): terms,
+// acknowledgments and stops go to the requester they name; acceptances and stage receipts
+// name no requester and are offered to every attempt under the reservation.
+function place(byReservation, record) {
+  const id = record.body.reservationId;
+  if (!byReservation.has(id)) byReservation.set(id, { attempts: new Map(), acceptances: [], receipts: [] });
+  const reservation = byReservation.get(id);
+  if (record.schema === ACCEPTANCE) return reservation.acceptances.push(record);
+  if (record.schema === RECEIPT) return reservation.receipts.push(record);
+  const { requesterId } = record.body;
+  if (!reservation.attempts.has(requesterId)) {
+    reservation.attempts.set(requesterId, { terms: [], acknowledgments: [], stops: [] });
+  }
+  const attempt = reservation.attempts.get(requesterId);
+  if (record.schema === TERMS) return attempt.terms.push(record);
+  return (record.schema === ACKNOWLEDGMENT ? attempt.acknowledgments : attempt.stops).push(record);
+}
+
 // ---- Deciding an outcome ----------------------------------------------------
 
 /** Step 3. Returns what is wrong between the agreed terms and their policy, or null. */
@@ -238,7 +259,7 @@ function policyFault(agreed, policy) {
   return null;
 }
 
-/** Step 5, first bullet, over one stage's receipts sorted by sequence (late ones included). */
+/** Step 5, first conflict bullet, over one stage's receipts sorted by sequence (late ones included). */
 function receiptFaults(sorted) {
   const faults = new Set();
   let highestSteps = -1; // over receipts with a strictly lower sequence
@@ -271,19 +292,18 @@ async function accountFor(accountOf, participantId) {
   }
 }
 
-async function decide(reservationId, group, { policyByDigest, at, accountOf }) {
+/** Decides one (reservation, requester) attempt: one row of the output. */
+async function decide(reservationId, requesterId, attempt, { policyByDigest, at, accountOf }) {
   const result = {
-    reservationId, outcome: 'unknown', reason: '', requesterId: null, termsDigest: null,
-    units: 0, debit: 0, credits: [], late: [], foreign: [], conflicts: [],
+    reservationId, outcome: 'unknown', reason: '', requesterId, termsDigest: null, units: 0, debit: 0,
+    credits: [], late: [], foreign: [], unmatched: [], closedAtLastStep: [], conflicts: [],
   };
   const done = (outcome, reason) => {
-    result.late.sort((a, b) => a.index - b.index);
-    result.foreign.sort((a, b) => a.index - b.index);
+    for (const list of [result.late, result.foreign, result.unmatched]) list.sort((a, b) => a.index - b.index);
     return Object.assign(result, { outcome, reason });
   };
-  const ofKind = (schema) => group.filter((record) => record.schema === schema);
-  const [everyTerms, acceptances, receipts, acknowledgments, stops] = [
-    TERMS, ACCEPTANCE, RECEIPT, ACKNOWLEDGMENT, STOP].map(ofKind);
+  // Own terms, acknowledgments and stops; every acceptance and stage receipt of the reservation.
+  const { terms: everyTerms, acknowledgments, stops, acceptances, receipts } = attempt;
   const listLate = (record) => result.late.push({ index: record.index, schema: record.schema });
   const block = (signer, kind) => result.conflicts.push({ signer, kind, blocking: true });
   const fromNamedStage = (terms, record) =>
@@ -299,28 +319,21 @@ async function decide(reservationId, group, { policyByDigest, at, accountOf }) {
     return (t) => terms.notBefore - allowance <= t && t <= terms.deadline + allowance;
   };
 
-  // Step 1. Which terms.
-  // CHOICE: terms that are both off the route and late are listed as foreign only.
-  let remaining = [];
+  // Step 1. Which terms. The acknowledgments here are this requester's only.
+  // CHOICE: "any acknowledgment" means any for the terms' attemptId; terms that are both
+  // off the route and late are listed as foreign only.
+  const remaining = [];
   for (const candidate of everyTerms) {
-    const { attemptId, routeHash, requesterId } = candidate.body;
+    const { attemptId, routeHash } = candidate.body;
     const itsAcks = acknowledgments.filter((ack) => ack.body.attemptId === attemptId);
     const itsReceipts = receipts.filter((receipt) => receipt.body.attemptId === attemptId
       && fromNamedStage(candidate, receipt));
-    const ackOnRoute = (ack) => ack.body.routeHash === routeHash && ack.body.requesterId === requesterId;
     const onRoute = itsAcks.length + itsReceipts.length > 0
       && (itsReceipts.length === 0 || itsReceipts.some((receipt) => receipt.body.routeHash === routeHash))
-      && (itsAcks.length === 0 || itsAcks.some(ackOnRoute));
+      && (itsAcks.length === 0 || itsAcks.some((ack) => ack.body.routeHash === routeHash));
     if (!onRoute) result.foreign.push({ index: candidate.index });
     else if (!windowOf(candidate)(candidate.signedAt)) listLate(candidate);
     else remaining.push(candidate);
-  }
-  const requestersOf = (list) => new Set(list.map((candidate) => candidate.body.requesterId));
-  if (requestersOf(remaining).size > 1) {
-    // CHOICE: "accepted" here is any acceptance of those terms by a stage they name, in time or not.
-    remaining = remaining.filter((candidate) => acceptances.some((acceptance) => accepts(acceptance, candidate)));
-    const left = requestersOf(remaining).size;
-    if (left !== 1) return done('unknown', `step 1: accepted terms leave ${left} requesters, not exactly one`);
   }
 
   // Step 2. One set or several.
@@ -333,16 +346,16 @@ async function decide(reservationId, group, { policyByDigest, at, accountOf }) {
       return acceptances.some((acceptance) => accepts(acceptance, candidate) && inItsWindow(acceptance.signedAt));
     });
     if (named.length !== 1) {
-      block(agreed.body.requesterId, 'terms-equivocation');
+      block(requesterId, 'terms-equivocation');
       return done('conflict', named.length === 0
         ? 'step 2: several terms from one requester and no in-time acceptance'
         : 'step 2: in-time acceptances name different terms');
     }
     [agreed] = named;
-    result.conflicts.push({ signer: agreed.body.requesterId, kind: 'terms-equivocation', blocking: false });
+    // CHOICE: "the settled digest" is carried as `settledOn`, the member step 5 names for its own entry.
+    result.conflicts.push({ signer: requesterId, kind: 'terms-equivocation', blocking: false, settledOn: agreed.digest });
   }
   const terms = agreed.body;
-  result.requesterId = terms.requesterId;
   result.termsDigest = agreed.digest;
 
   // Step 3. Policy.
@@ -365,9 +378,9 @@ async function decide(reservationId, group, { policyByDigest, at, accountOf }) {
   };
   const onAgreedRoute = (record) => record.body.routeHash === terms.routeHash;
   const keptReceipts = keep(receipts, (receipt) => onAgreedRoute(receipt) && fromNamedStage(agreed, receipt));
-  const keptAcks = keep(acknowledgments, (ack) => onAgreedRoute(ack) && ack.body.requesterId === terms.requesterId);
+  const keptAcks = keep(acknowledgments, onAgreedRoute); // the requester is this row's already
   const keptAcceptances = keep(acceptances, (acceptance) => accepts(acceptance, agreed));
-  const keptStops = keep(stops, (stop) => stop.body.requesterId === terms.requesterId);
+  const keptStops = keep(stops, () => true);
 
   // CHOICE: "latest" is the highest sequence. Step 5 leaves no ties once it passes.
   const bySequence = (a, b) => a.body.sequence - b.body.sequence;
@@ -379,43 +392,85 @@ async function decide(reservationId, group, { policyByDigest, at, accountOf }) {
   });
   const finalStage = stages.at(-1);
 
-  // Step 5. Contradictions. CHOICE: the document names no `kind` except terms-equivocation.
+  // Step 5. Acknowledged count and contradictions. CHOICE: the document names only the kinds
+  // terms-equivocation and acknowledgment-equivocation; the other kinds below are mine.
   for (const stage of stages) {
     for (const kind of receiptFaults(stage.all)) block(stage.share.participantId, kind);
   }
-  const chainsByCount = new Map();
-  for (const { body } of keptAcks.inTime) {
-    chainsByCount.set(body.count, (chainsByCount.get(body.count) ?? new Set()).add(body.chain));
+  // The chains the final stage's receipts give per count. CHOICE: in-time receipts only (step 4
+  // ignores late records, and only the first conflict bullet says late receipts are included).
+  const committed = new Map();
+  for (const { body } of finalStage.inTime) {
+    if (body.output === null) continue; // CHOICE: `output: null` on the final stage commits nothing
+    committed.set(body.output.count, (committed.get(body.output.count) ?? new Set()).add(body.output.chain));
   }
-  const acknowledgedOtherwise = (count, chain) => [...(chainsByCount.get(count) ?? [])].some((acked) => acked !== chain);
-  if ([...chainsByCount.values()].some((chains) => chains.size > 1)) block(terms.requesterId, 'acknowledgment-chains-differ');
-  // CHOICE: every in-time receipt of the final stage is compared, not only its latest.
-  if (finalStage.inTime.some(({ body }) => body.output !== null && acknowledgedOtherwise(body.output.count, body.output.chain))) {
-    block(finalStage.share.participantId, 'output-chain-differs-from-acknowledgment');
+  if ([...committed.values()].some((chains) => chains.size > 1)) {
+    block(finalStage.share.participantId, 'output-chain-equivocation');
   }
-  // CHOICE: a missing charge binding is not a contradiction; only a wrong one is.
+  // At count 0 the committed chain is the starting value. CHOICE: whatever a receipt gives there.
   const startingChain = digestOf({ schema: OUTPUT_CHAIN, reservationId, routeHash: terms.routeHash });
-  if (acknowledgedOtherwise(0, startingChain)) block(terms.requesterId, 'charge-binding-not-starting-chain');
+  const committedAt = (count) => (count === 0 ? new Set([startingChain]) : committed.get(count) ?? null);
+  const acksByCount = new Map();
+  for (const ack of keptAcks.inTime) {
+    if (!acksByCount.has(ack.body.count)) acksByCount.set(ack.body.count, []);
+    acksByCount.get(ack.body.count).push(ack);
+  }
+  let acknowledged = 0; // the highest matched count, 0 if none
+  for (const count of [...acksByCount.keys()].sort((a, b) => a - b)) {
+    const acks = acksByCount.get(count);
+    const chains = committedAt(count);
+    if (chains === null) {
+      // No final-stage receipt commits to this count: not charged. CHOICE: entries are { index, count }.
+      for (const ack of acks) result.unmatched.push({ index: ack.index, count });
+      continue;
+    }
+    const matched = acks.find((ack) => chains.has(ack.body.chain))?.body.chain ?? null;
+    if (matched === null && count === 0) {
+      // CHOICE: a wrong charge binding is the requester's fault alone (anyone can compute the value).
+      block(requesterId, 'charge-binding-not-starting-chain');
+    } else if (matched === null) {
+      // CHOICE: `signers` lists the requester, then the final stage.
+      const signers = [requesterId, finalStage.share.participantId];
+      result.conflicts.push({ signer: null, signers, kind: 'disputed-chain', blocking: true });
+    } else {
+      acknowledged = Math.max(acknowledged, count);
+      // CHOICE: one entry per extra acknowledgment, not one per count.
+      for (const ack of acks) {
+        if (ack.body.chain === matched) continue;
+        result.conflicts.push({ signer: requesterId, kind: 'acknowledgment-equivocation', blocking: false, settledOn: matched });
+      }
+    }
+  }
   const blockingKinds = new Set(result.conflicts.filter((conflict) => conflict.blocking).map((conflict) => conflict.kind));
   if (blockingKinds.size > 0) return done('conflict', `step 5: ${[...blockingKinds].join(', ')}`);
 
-  // Step 6. Closing. CHOICE: a final-stage receipt with `output: null` commits no output:
-  // it is not done and has no count. A non-final stage's `output` is never read.
+  // Step 6. Closing. A non-final stage's `output` is never read.
   const hasClosed = ({ latest }) => latest !== null && CLOSING.has(latest.body.status) && latest.body.timing.closedAt !== null;
-  const delivered = finalStage.latest?.body.output ?? null;
-  if (!stages.every(hasClosed)) {
-    if (delivered?.done === true && chainsByCount.has(delivered.count)) {
-      return done('unknown', 'step 6: delivered but a stage did not close');
+  const delivered = finalStage.latest?.body.output ?? null; // the final stage's latest in-time output
+  const answerDelivered = delivered?.done === true && delivered.count > 0 && acknowledged === delivered.count;
+  const unclosed = stages.filter((stage) => !hasClosed(stage));
+  if (unclosed.length > 0) {
+    // CHOICE: without a usable verification time the release window has not passed.
+    const windowPassed = typeof at === 'number' && at >= agreed.deadline + terms.releaseWindowMs;
+    if (!answerDelivered) {
+      return windowPassed
+        ? done('expired', 'step 6: not every stage closed, no delivered answer, and the release window passed')
+        : done('open', 'step 6: not every stage closed and the release window has not passed');
     }
-    // CHOICE: without a usable verification time the attempt stays open.
-    const passed = typeof at === 'number' && at >= agreed.deadline + terms.releaseWindowMs;
-    return passed
-      ? done('expired', 'step 6: not every stage closed and the release window passed')
-      : done('open', 'step 6: not every stage closed and the release window has not passed');
+    // CHOICE: a stage with no covering receipt makes the outcome unknown before the window too.
+    const uncovered = unclosed.find((stage) => stage.latest === null || stage.latest.body.steps < delivered.count);
+    if (uncovered) {
+      return done('unknown', `step 6: delivered, but stage ${uncovered.position} has no in-time receipt covering the answer`);
+    }
+    if (!windowPassed) return done('open', 'step 6: delivered, a stage has not closed and the release window has not passed');
+    // Treated as closed at its last signed step. CHOICE: entries are { partitionIndex, participantId },
+    // and they stay listed if step 7 or 8 then decides the row.
+    for (const stage of unclosed) {
+      result.closedAtLastStep.push({ partitionIndex: stage.position, participantId: stage.share.participantId });
+    }
   }
 
   // Step 7. Steps. CHOICE: listed against the stage whose receipt is behind.
-  const acknowledged = keptAcks.inTime.reduce((highest, ack) => Math.max(highest, ack.body.count), 0);
   const behind = stages.filter((stage) => stage.latest.body.steps < acknowledged);
   if (behind.length > 0) {
     for (const stage of behind) block(stage.share.participantId, 'steps-below-acknowledged');
@@ -436,7 +491,7 @@ async function decide(reservationId, group, { policyByDigest, at, accountOf }) {
 
   // Split arithmetic. Every amount is at most `maximum`, a safe integer, so Number() is exact.
   const amounts = splitUnits(units, terms.shares.map((share) => BigInt(share.weight)));
-  const requesterAccount = await accountFor(accountOf, terms.requesterId);
+  const requesterAccount = await accountFor(accountOf, requesterId);
   let debit = units;
   for (const [position, share] of terms.shares.entries()) {
     // The requester's own account is neither charged nor credited. CHOICE: its entry shows 0.
@@ -447,14 +502,16 @@ async function decide(reservationId, group, { policyByDigest, at, accountOf }) {
   }
   result.units = Number(units);
   result.debit = Number(debit);
+  const closing = unclosed.length > 0 ? `; step 6: ${unclosed.length} stage(s) closed at their last step` : '';
   if (endedByStage) return done('settled', 'step 9: ended by a stage under provider-loss-free terms, charges 0');
   const why = finished ? 'finished' : stopped ? 'stopped by the requester' : withheld ? 'acknowledgments withheld' : 'unfinished';
-  return done('settled', `step 9: ${why}, the acknowledged prefix is charged`);
+  return done('settled', `step 9: ${why}, the acknowledged prefix is charged${closing}`);
 }
 
 /**
  * Replays signed settlement records against public policies at verification time `at`
- * (milliseconds since the epoch). Never throws on bad records: they are listed as rejected.
+ * (milliseconds since the epoch). `reservations` holds one row per (reservationId, requesterId).
+ * Never throws on bad records: they are listed as rejected.
  */
 export async function replaySettlement({ records, policies, at, accountOf = null } = {}) {
   const policyByDigest = new Map();
@@ -467,7 +524,7 @@ export async function replaySettlement({ records, policies, at, accountOf = null
   }
 
   const rejected = [];
-  const groups = new Map(); // reservationId -> admitted records
+  const byReservation = new Map();
   const seen = new Set(); // identical bodies presented twice count once
   const count = Array.isArray(records) ? records.length : 0;
   for (let index = 0; index < count; index += 1) {
@@ -476,15 +533,19 @@ export async function replaySettlement({ records, policies, at, accountOf = null
       rejected.push({ index, reason: admitted.reason });
     } else if (!seen.has(admitted.identity)) {
       seen.add(admitted.identity);
-      const group = groups.get(admitted.body.reservationId) ?? [];
-      groups.set(admitted.body.reservationId, group);
-      group.push(admitted);
+      place(byReservation, admitted);
     }
   }
 
+  // CHOICE: rows are ordered by reservationId, then requesterId. A reservation whose records
+  // name no requester (acceptances and stage receipts only) has no attempt, so no row.
   const reservations = [];
-  for (const reservationId of [...groups.keys()].sort()) {
-    reservations.push(await decide(reservationId, groups.get(reservationId), { policyByDigest, at, accountOf }));
+  for (const reservationId of [...byReservation.keys()].sort()) {
+    const { attempts, acceptances, receipts } = byReservation.get(reservationId);
+    for (const requesterId of [...attempts.keys()].sort()) {
+      const attempt = { ...attempts.get(requesterId), acceptances, receipts };
+      reservations.push(await decide(reservationId, requesterId, attempt, { policyByDigest, at, accountOf }));
+    }
   }
   return { rejected, reservations };
 }
