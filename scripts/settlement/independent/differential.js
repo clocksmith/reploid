@@ -511,6 +511,48 @@ const MUTATIONS = {
       { name: 'no K, the base attempt\'s own unfinished-answer terms, policy that publishes no K',
         records: await withTerms(ctx, older(body => { body.policyDigest = olderDigest; })), policies: [POLICY_BEFORE_K] }
     ];
+  },
+  /** Signed accounts (docs/settlement-replay.md, step 8): terms name the requester's account, each acceptance its stage's. */
+  async 'signed accounts'(ctx) {
+    const REQUESTER = 'account-requester', stageAccount = index => `account-stage-${index}`;
+    // The requester's terms with `debitAccount`, and every acceptance of them signed again with `payoutOf(index)`
+    // (`undefined` leaves the member out).
+    const accounted = async (payoutOf, debitAccount = REQUESTER) => {
+      const terms = await sign(ctx.requester, { ...bodyOf(ctx.terms), debitAccount });
+      const digest = await termsDigest(bodyOf(terms));
+      const accept = (acceptance, account) => sign(ctx.stageIdentity(acceptance.partitionIndex),
+        { ...bodyOf(acceptance), termsDigest: digest, ...(account === undefined ? {} : { payoutAccount: account }) });
+      const acceptances = await Promise.all(ctx.acceptances.map(acceptance => accept(acceptance, payoutOf(acceptance.partitionIndex))));
+      return { accept, acceptances, records: [...without(ctx.records, ctx.terms, ...ctx.acceptances), terms, ...acceptances] };
+    };
+    const own = await accounted(stageAccount), first = ctx.acceptances.find(row => row.partitionIndex === 0);
+    const out = [
+      { name: 'every party signs its own account', records: own.records, clocks: Object.keys(CLOCKS) },
+      { name: 'stage 0 signs the requester\'s account as its own', records: (await accounted(index => (index === 0 ? REQUESTER : stageAccount(index)))).records },
+      { name: 'the final stage signs the requester\'s account as its own',
+        records: (await accounted(index => (index === ctx.finalIndex ? REQUESTER : stageAccount(index)))).records },
+      { name: 'every stage signs one shared account', records: (await accounted(() => 'account-shared')).records },
+      { name: 'stage 0 accepts without naming an account', records: (await accounted(index => (index === 0 ? undefined : stageAccount(index)))).records },
+      { name: 'no stage names an account', records: (await accounted(() => undefined)).records },
+      { name: 'the requester\'s account is empty text', records: (await accounted(stageAccount, '')).records },
+      { name: 'terms name no account, acceptances do',
+        records: [...without(ctx.records, ...ctx.acceptances), ...await Promise.all(ctx.acceptances.map(acceptance =>
+          sign(ctx.stageIdentity(acceptance.partitionIndex), { ...bodyOf(acceptance), payoutAccount: stageAccount(acceptance.partitionIndex) })))] }
+    ];
+    // The caller's enrollment (step 8): each key under the account it signed, one key under another, and nobody placed.
+    const signedBy = new Map([[ctx.requester.peerId, REQUESTER], ...ctx.terms.shares.map(share => [share.participantId, stageAccount(share.partitionIndex)])]);
+    out.push({ name: 'enrollment places every party under the account it signed', records: own.records, accountOf: id => signedBy.get(id) ?? id });
+    out.push({ name: 'enrollment places stage 0 under the requester\'s account', records: own.records,
+      accountOf: id => (id === ctx.terms.shares[0].participantId ? REQUESTER : signedBy.get(id) ?? id) });
+    out.push({ name: 'enrollment places the requester under another account', records: own.records,
+      accountOf: id => (id === ctx.requester.peerId ? 'account-other' : signedBy.get(id) ?? id) });
+    out.push({ name: 'enrollment places nobody', records: own.records, accountOf: id => id });
+    out.push({ name: 'enrollment supplied for an attempt without signed accounts', records: ctx.records, accountOf: id => signedBy.get(id) ?? id });
+    if (first) {
+      out.push({ name: 'stage 0 names two accounts', records: [...own.records, await own.accept(first, 'account-elsewhere')] });
+      out.push({ name: 'stage 0 names its account and also accepts without one', records: [...own.records, await own.accept(first, undefined)] });
+    }
+    return out;
   }
 };
 
@@ -545,7 +587,7 @@ const BASES = [
   { name: 'finished 40-output answer, last two acknowledgments withheld', options: { outputs: FORTY, stopAckingAfter: 38 }, sweepOnly: true },
   { name: 'finished 40-output answer, last three acknowledgments withheld', options: { outputs: FORTY, stopAckingAfter: 37 }, sweepOnly: true }
 ];
-const REDUCED = ['withheld records', 'records signed after the deadline', 'stop statements', 'terms signed before K'];
+const REDUCED = ['withheld records', 'records signed after the deadline', 'stop statements', 'terms signed before K', 'signed accounts'];
 
 // An attempt is decided once the deadline, the release window and the clock allowance have all passed.
 const decidedAt = ctx => ctx.closesAt + POLICY.maxClockSkewMs;
@@ -568,7 +610,7 @@ const EMPTY = shares => ({ reason: null, debit: 0, credits: shares.map(() => 0),
 // The document reports one row per reservation and requester, and names every member of a row.
 const rowKey = row => `${row.reservationId} / ${row.requesterId ?? 'no requester'}`;
 const MEMBERS = Object.freeze(['attemptId', 'status', 'debit', 'credits', 'outputs', 'chargedOutputs', 'unacknowledgedOutputs', 'beyondCeiling',
-  'closedAtLastStep', 'conflicts', 'late', 'foreign', 'unmatched']);
+  'closedAtLastStep', 'conflicts', 'late', 'foreign', 'unmatched', 'accounts']);
 const sortKeys = value => (Array.isArray(value) ? value.map(sortKeys)
   : value && typeof value === 'object' ? Object.fromEntries(Object.keys(value).sort().map(key => [key, sortKeys(value[key])])) : value);
 const exact = value => JSON.stringify(sortKeys(value) ?? null);
@@ -590,10 +632,12 @@ export const MEMBER_CAUSES = Object.freeze({
 });
 const membersDiffering = (a, b, same) => MEMBERS.filter(name => same(a.members?.[name]) !== same(b.members?.[name]));
 
-async function judge({ records, policies, at, shares }) {
+async function judge({ records, policies, at, shares, accountOf = null }) {
   let independent, independentError = null, service, serviceError = null;
-  try { independent = await independentReplay({ policies, records, at }); } catch (error) { independentError = String(error?.message ?? error); }
-  try { service = await serviceReplay({ records, policies, at }); } catch (error) { serviceError = String(error?.message ?? error); }
+  // `accountOf`, when a case supplies one, is the caller's enrollment (step 8); both verifiers get the same function.
+  const enrollment = accountOf ? { accountOf } : {};
+  try { independent = await independentReplay({ policies, records, at, ...enrollment }); } catch (error) { independentError = String(error?.message ?? error); }
+  try { service = await serviceReplay({ records, policies, at, ...enrollment }); } catch (error) { serviceError = String(error?.message ?? error); }
   const mine = independentError ? new Map() : independentView(independent, shares);
   const theirs = serviceError ? new Map() : serviceView(service, shares);
   const rows = [];
@@ -658,7 +702,7 @@ async function main() {
   const curved = { requester: await p256(), stages: [await p256(), await p256()] };
   const cases = [];
   const add = (base, family, entry, ctx) => cases.push({ base: base.name, family, name: entry.name, records: entry.records,
-    policies: entry.policies ?? [POLICY], clocks: entry.clocks ?? ['after'], ctx });
+    policies: entry.policies ?? [POLICY], clocks: entry.clocks ?? ['after'], accountOf: entry.accountOf ?? null, ctx });
 
   const contexts = [];
   for (const [index, base] of BASES.entries()) {
@@ -690,7 +734,7 @@ async function main() {
     for (const clock of item.clocks) {
       const at = CLOCKS[clock](item.ctx);
       const shares = item.ctx.terms.shares;
-      const { rows, rejected, totalsAgree } = await judge({ records: item.records, policies: item.policies, at, shares });
+      const { rows, rejected, totalsAgree } = await judge({ records: item.records, policies: item.policies, at, shares, accountOf: item.accountOf });
       totals.rejectedListsCompared += 1;
       if (rejected.agrees) totals.rejectedListSizeAgreed += 1;
       if (rejected.sameRecords) totals.sameRecordsRejected += 1;

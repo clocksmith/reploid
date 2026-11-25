@@ -8,11 +8,22 @@
 // reference. Node 22, built-in modules only.
 //
 // Follows the document's text with the decided unfinished-answer rule (the owner decision
-// of 2026-11-25) as amended for terms signed before terms carried K (713 lines; the author had
-// no commit hash for it, nor for the 694-line text of the decided rule that the version before
-// this one followed). Earlier versions followed the text as of commit 955bd5f7a, before the
-// decision. From the amendment: one older shape of terms is also accepted, with every member
-// but `maxUnacknowledgedOutputs` and with `unfinishedTerms` null or the provider-loss-free
+// of 2026-11-25) as amended for terms signed before terms carried K, then for signed accounts,
+// and then in answer to DOC-GAPS 83-89 (756 lines; the author had no commit hash for it, nor for
+// the 744-line text of signed accounts, the 713-line text before them or the 694-line text of
+// the decided rule that the versions before this one followed).
+// Earlier versions followed the text as of commit 955bd5f7a, before the decision.
+// From the two amendments for signed accounts: terms that sign K may carry one more member,
+// `debitAccount`, and an acceptance may carry `payoutAccount`. When the agreed terms carry
+// `debitAccount`: step 4 drops an acceptance without `payoutAccount`; step 8 answers `conflict`,
+// with one `payout-account` entry for each participant that named more than one account, then,
+// when the caller supplied `accountOf`, `invalid` if a signed account differs from `accountOf`
+// of its participant, and only otherwise `unknown` for a stage without a counting acceptance;
+// the split and `balances` use the signed accounts, and `accountOf` is used for nothing but that
+// enrollment test; and the row carries one more member, `accounts`, once step 3 has passed.
+// Without `debitAccount` every record is judged as before (DOC-GAPS 83-93).
+// From the amendment for terms before K: one older shape of terms is also accepted, with every
+// member but `maxUnacknowledgedOutputs` and with `unfinishedTerms` null or the provider-loss-free
 // value; step 3 passes such terms only against a policy that has no `maxUnacknowledgedOutputs`
 // either and answers `invalid` against one that publishes K; and K for them is the receiver
 // policy's value, the `maxUnacknowledgedOutputs` input, which step 9 then uses (DOC-GAPS 80-82).
@@ -154,8 +165,9 @@ const isOutput = (v) => hasExactly(v, ['count', 'chain', 'done', 'stopReason']) 
   && isDigest(v.chain) && typeof v.done === 'boolean' && nullOr(text(64))(v.stopReason);
 
 // One entry per record kind: the signer field, a rule per member (every listed member
-// is required and no other is allowed), rules that span members, and for terms the one
-// older shape that is also accepted.
+// is required and no other is allowed), rules that span members, for terms the one
+// older shape that is also accepted, and for terms and acceptances the one more member
+// they may carry (`optional`, with its rule).
 // CHOICE: the document gives no type for attemptId, requesterId, participantId or
 // `maximum`. The IDs are read as text 256 and `maximum` as a safe integer.
 const KINDS = new Map([
@@ -175,7 +187,14 @@ const KINDS = new Map([
       without: 'maxUnacknowledgedOutputs',
       allowed: (body) => body.unfinishedTerms === null || body.unfinishedTerms === PROVIDER_LOSS_FREE,
     },
+    // A newer shape is accepted as well: terms that have every member above, K included, may carry
+    // one more, `debitAccount`, the ledger account the requester is charged from (step 8).
+    optional: { debitAccount: text(128) },
     across(body) {
+      // "K included": terms of the older shape, which sign no K, may not carry it (DOC-GAPS 88).
+      if (Object.hasOwn(body, 'debitAccount') && !Object.hasOwn(body, 'maxUnacknowledgedOutputs')) {
+        return 'debitAccount on terms without maxUnacknowledgedOutputs';
+      }
       const product = BigInt(body.maxOutputTokens) * BigInt(body.creditsPerOutputToken);
       if (BigInt(body.maximum) !== product) return 'maximum is not maxOutputTokens * creditsPerOutputToken';
       if (!(Date.parse(body.deadline) > Date.parse(body.notBefore))) return 'deadline is not after notBefore';
@@ -188,6 +207,9 @@ const KINDS = new Map([
       schema: any, termsDigest: isDigest, reservationId: text(160), attemptId: text(), participantId: text(),
       partitionIndex: isCount, signedAt: isTime,
     },
+    // An acceptance has exactly these members, or these and `payoutAccount`, the ledger account
+    // this stage's share is paid into (step 8).
+    optional: { payoutAccount: text(128) },
   }],
   [STOP, {
     signer: 'requesterId',
@@ -262,7 +284,10 @@ function admit(records, index) {
     return reject('publicJwk or signature missing');
   }
   const { publicJwk, signature, ...body } = copy;
-  if (Object.keys(body).some((name) => !Object.hasOwn(kind.fields, name))) return reject('member not allowed');
+  const optional = kind.optional ?? {}; // the one more member a kind may carry, with its rule
+  if (Object.keys(body).some((name) => !Object.hasOwn(kind.fields, name) && !Object.hasOwn(optional, name))) {
+    return reject('member not allowed');
+  }
   for (const name of Object.keys(kind.fields)) {
     if (!Object.hasOwn(body, name)) {
       // The one older shape of a kind has every member but one, and only under its own rule.
@@ -270,6 +295,10 @@ function admit(records, index) {
       return reject(`member missing: ${name}`);
     }
     if (!kind.fields[name](body[name])) return reject(`field rule: ${name}`);
+  }
+  // A member a kind may carry need not be there; when it is, it obeys its rule.
+  for (const name of Object.keys(optional)) {
+    if (Object.hasOwn(body, name) && !optional[name](body[name])) return reject(`field rule: ${name}`);
   }
   const fault = kind.across ? kind.across(body) : null;
   if (fault) return reject(`field rule: ${fault}`);
@@ -308,7 +337,11 @@ function place(byReservation, record) {
 
 // ---- Rows -------------------------------------------------------------------
 
-/** A row with exactly the members of the "Rows" table, as they stand before any step decides. */
+/**
+ * A row with exactly the members of the "Rows" table, as they stand before any step decides.
+ * The one more member, `accounts`, is added in `decide`, when and only when the agreed terms
+ * carry `debitAccount` and the attempt passed step 3 (a row decided at step 1, 2 or 3 never has it).
+ */
 const newRow = (reservationId, requesterId) => ({
   reservationId, requesterId, attemptId: null, status: 'unknown', reason: '', debit: null, credits: null,
   outputs: null, chargedOutputs: null, unacknowledgedOutputs: null, beyondCeiling: null,
@@ -393,7 +426,9 @@ function receiptConflicts(sorted) {
 }
 
 // CHOICE: `accountOf` is read as a function (or a Map) from participant ID to an owner
-// account. A participant it does not place is its own account.
+// account. A participant it does not place is its own account. For an attempt with signed
+// accounts it is used for nothing but step 8's enrollment test, where this same answer is
+// "`accountOf` of that participant" (DOC-GAPS 90).
 async function accountFor(accountOf, participantId) {
   try {
     const account = typeof accountOf === 'function' ? await accountOf(participantId)
@@ -486,6 +521,8 @@ async function decide(reservationId, requesterId, attempt, { policyByDigest, rec
   // shape sign none and passed only under a policy that publishes none, so K for them is the
   // receiver policy's value. CHOICE (DOC-GAPS 81): that is the input; no signed record fixes it.
   const K = signsNoK(terms) ? receiverK : terms.maxUnacknowledgedOutputs;
+  // Signed accounts (step 8): the agreed terms carry `debitAccount`, the requester's account.
+  const signedAccounts = Object.hasOwn(terms, 'debitAccount');
 
   // Step 4. Records kept. A closing receipt counts when signed closesInTime, every other kept
   // record when signed inTime; both windows carry the clock allowance at both ends. A kept
@@ -510,7 +547,11 @@ async function decide(reservationId, requesterId, attempt, { policyByDigest, rec
   const onAgreedRoute = (record) => record.body.routeHash === terms.routeHash;
   const keptReceipts = keep(receipts, (receipt) => onAgreedRoute(receipt) && fromNamedStage(agreed, receipt));
   const keptAcks = keep(acknowledgments, onAgreedRoute); // the requester is this row's already
-  const keptAcceptances = keep(acceptances, (acceptance) => accepts(acceptance, agreed));
+  // When the agreed terms carry `debitAccount`, an acceptance without `payoutAccount` is dropped
+  // without being listed (step 2 has still counted it for the set it names); when they do not,
+  // an acceptance's `payoutAccount` is not used.
+  const keptAcceptances = keep(acceptances, (acceptance) => accepts(acceptance, agreed)
+    && (!signedAccounts || Object.hasOwn(acceptance.body, 'payoutAccount')));
   const keptStops = keep(stops, () => true);
 
   // A stage's latest receipt is its highest-sequence receipt that counts.
@@ -522,6 +563,24 @@ async function decide(reservationId, requesterId, attempt, { policyByDigest, rec
   });
   const finalStage = stages.at(-1);
   const finalStageId = finalStage.share.participantId;
+  // With signed accounts, the accounts each stage named: a stage's account is the `payoutAccount`
+  // of its in-time acceptances of the agreed terms. Only counting records name an account, so a
+  // late acceptance names none, in step 8's contradiction test as well.
+  const namedByStage = stages.map(({ position }) => (signedAccounts ? [...new Set(keptAcceptances.counting
+    .filter((acceptance) => acceptance.body.partitionIndex === position)
+    .map((acceptance) => acceptance.body.payoutAccount))] : []));
+  // The row's one more member, when and only when the agreed terms carry `debitAccount` and the
+  // attempt passed step 3: `requester` the terms' `debitAccount`, and `stages` one entry per
+  // stage in stage order, the `payoutAccount` its counting acceptances (step 4) name, or null
+  // when they name none or more than one; the same on every row that has the member, whatever
+  // step decided it (`open`, `expired`, a step-5 `conflict`). It is what was signed: step 8's
+  // enrollment test does not change it, and a row decided earlier is never tested (DOC-GAPS 93).
+  if (signedAccounts) {
+    row.accounts = {
+      requester: terms.debitAccount,
+      stages: namedByStage.map((named) => (named.length === 1 ? named[0] : null)),
+    };
+  }
 
   // Step 5. Acknowledged count and contradictions. Kept receipts and acknowledgments, late
   // or not, are used in every contradiction test.
@@ -580,14 +639,23 @@ async function decide(reservationId, requesterId, attempt, { policyByDigest, rec
   const blockingKinds = new Set(row.conflicts.filter((entry) => entry.blocking).map((entry) => entry.kind));
   if (blockingKinds.size > 0) return done('conflict', `step 5: ${[...blockingKinds].join(', ')}`);
 
-  // Debit and credits of a settled or expired row, and what they post to accounts.
+  // Debit and credits of a settled or expired row, and what they post to accounts. An attempt
+  // with signed accounts uses those (on a settled row step 8 has already refused any that
+  // `accountOf` contradicts) and uses `accountOf` for nothing here: the requester's account is
+  // `debitAccount`, a stage's is its signed `payoutAccount`, and a stage is the requester's own
+  // exactly when the two are equal. A stage with no signed account, possible only on an expired
+  // row where every amount is 0, is under its participant ID.
+  // CHOICE (DOC-GAPS 87): so is a stage whose counting acceptances name more than one account;
+  // and the signed account texts are keys of `balances` beside the accounts of other rows.
+  // CHOICE (DOC-GAPS 93): an expired row never reached step 8, so its accounts are untested.
   const post = async (units) => {
     const amounts = splitUnits(units, terms.shares.map((share) => BigInt(share.weight)));
-    const requesterAccount = await accountFor(accountOf, requesterId);
+    const requesterAccount = signedAccounts ? terms.debitAccount : await accountFor(accountOf, requesterId);
     let debit = units;
     row.credits = [];
     for (const [position, share] of terms.shares.entries()) {
-      const account = await accountFor(accountOf, share.participantId);
+      const account = signedAccounts ? row.accounts.stages[position] ?? share.participantId
+        : await accountFor(accountOf, share.participantId);
       // The requester's own account is neither charged nor credited: its stage shows amount 0.
       const amount = account === requesterAccount ? 0n : amounts[position];
       debit -= amounts[position] - amount;
@@ -633,7 +701,49 @@ async function decide(reservationId, requesterId, attempt, { policyByDigest, rec
     return done('conflict', 'step 7: a stage\'s latest receipt has fewer steps than the acknowledged count');
   }
 
-  // Step 8. Acceptances.
+  // Step 8. Acceptances and accounts. With signed accounts each participant has one account, and
+  // the outcome is `conflict` if a participant named more than one: a stage whose counting
+  // acceptances carry different `payoutAccount`s, a participant that runs several stages and named
+  // different ones, or a stage run by the requester's own key whose `payoutAccount` is not
+  // `debitAccount`. Each such participant gets one `payout-account` entry, in the order of the
+  // participants' first stages; its `accounts` are the distinct accounts it named in counting
+  // records (the `debitAccount` too when it is the requester's own key), sorted by code unit.
+  if (signedAccounts) {
+    const namedBy = new Map(); // participant ID -> the accounts it named, in the order of first stages
+    for (const { share, position } of stages) {
+      const id = share.participantId;
+      if (!namedBy.has(id)) namedBy.set(id, new Set(id === requesterId ? [terms.debitAccount] : []));
+      for (const account of namedByStage[position]) namedBy.get(id).add(account);
+    }
+    const several = [...namedBy].filter(([, named]) => named.size > 1);
+    for (const [participantId, named] of several) {
+      conflict('payout-account', true, participantId, { accounts: [...named].sort() });
+    }
+    if (several.length > 0) return done('conflict', 'step 8: a participant named more than one account');
+    // Otherwise, when the caller supplied `accountOf`, it is the enrollment the caller trusts, and
+    // the outcome is `invalid` if the requester's `debitAccount`, or the signed account of any
+    // stage that has one, differs from `accountOf` of that participant. No participant named
+    // more than one account here, so each has at most one to test.
+    // CHOICE (DOC-GAPS 90): supplied means any value but undefined or null. `accountOf` of a
+    // participant is what `accountFor` gives, so one it does not place is its own account and
+    // passes only when it signed its own participant ID. The requester is asked first, then the
+    // stages' participants in the order of their first stages, each once; the first that differs
+    // decides. CHOICE (DOC-GAPS 91): only the reason names it; the row has no member for it.
+    if (accountOf !== null && accountOf !== undefined) {
+      const signed = new Map([[requesterId, terms.debitAccount]]); // participant ID -> its one signed account
+      for (const [participantId, named] of namedBy) {
+        for (const account of named) signed.set(participantId, account);
+      }
+      for (const [participantId, account] of signed) {
+        if ((await accountFor(accountOf, participantId)) !== account) {
+          const member = participantId === requesterId ? 'debitAccount' : 'payoutAccount';
+          return done('invalid', `step 8: accountOf does not enroll ${participantId} under the ${member} it signed`);
+        }
+      }
+    }
+  }
+  // Otherwise the outcome is `unknown` if any stage has no in-time acceptance of the agreed terms
+  // that counts. Without signed accounts this is the whole step, as before.
   const unaccepted = stages.find((stage) => !keptAcceptances.counting.some((a) => a.body.partitionIndex === stage.position));
   if (unaccepted) return done('unknown', `step 8: stage ${unaccepted.position} has no in-time acceptance of the agreed terms`);
 
@@ -683,6 +793,11 @@ async function decide(reservationId, requesterId, attempt, { policyByDigest, rec
  * `maxUnacknowledgedOutputs` is the stages' receiver policy's K (2 by default), used only for
  * a policy that does not name its own. CHOICE: an unusable value here is read as 2. For terms
  * of the older shape, which sign no K and pass only under such a policy, it is K itself.
+ *
+ * `accountOf` groups participant IDs into owner accounts. For an attempt with signed accounts,
+ * whose agreed terms carry `debitAccount`, it is the enrollment the caller trusts and is used for
+ * nothing but step 8's test: when it is supplied (CHOICE, DOC-GAPS 90: any value but undefined
+ * or null), a signed account that differs from `accountOf` of its participant makes the row `invalid`.
  */
 export async function replaySettlement({
   records, policies, at, accountOf = null, maxUnacknowledgedOutputs = RECEIVER_POLICY_K,
@@ -731,7 +846,8 @@ export async function replaySettlement({
 
   // `counts` lists only the outcomes at least one row has (an empty object when there are no rows).
   // CHOICE: `balances` is an object keyed by account, debits negative, and names every account
-  // of a settled or expired row, with 0 when nothing moved.
+  // of a settled or expired row, with 0 when nothing moved. A row with signed accounts is summed
+  // under those accounts (DOC-GAPS 87); the other rows under `accountOf`'s, as before.
   const counts = {};
   for (const row of reservations) counts[row.status] = (counts[row.status] ?? 0) + 1;
   const balances = Object.fromEntries([...totals].map(([account, total]) => [account, Number(total)]));
