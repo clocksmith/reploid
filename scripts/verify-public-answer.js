@@ -38,13 +38,13 @@ try {
     // As a person would: tap Contributors, then wait for the sheet's primary button to offer Send. Discovery is
     // bounded (about 8 s); the sheet says "Finding computers…" until then and follows the tap to a served model.
     const contributors = page.locator('[data-execution-choice=network]');
-    if (await contributors.getAttribute('aria-checked') !== 'true') await contributors.click();
+    if (!await contributors.locator('input').isChecked()) await contributors.click();
     const commit = page.locator('[data-change-model]');
     const ready = await page.waitForFunction(() => {
       const button = globalThis.document.querySelector('[data-change-model]');
       return button && !button.disabled && /^Send\b/.test(button.textContent.trim());
     }, null, { timeout: 30000 }).then(() => true, () => false);
-    result.contributors = (await contributors.locator('[data-computer-state]').innerText()).trim();
+    result.contributors = (await contributors.locator('.pool-row-status').innerText()).trim();
     if (!ready) {
       const status = (await page.locator('[data-next-model-status]').innerText().catch(() => '')).trim();
       throw new Error(`No public computer serves the default model [${(await commit.innerText()).trim()}]: ${status}`);
@@ -55,12 +55,17 @@ try {
   result.model = await page.locator('[data-open-model]').getAttribute('aria-label');
   const started = Date.now();
   const stream = page.locator('[data-message-stream]');
-  await page.waitForFunction(() => /\bComplete ·|\bFailed\b|\bInterrupted\b|\bDisconnected\b/.test(globalThis.document.querySelector('[data-message-stream]')?.innerText || ''),
-    null, { timeout: limitMs });
+  // The answer's activity names its outcome ("Complete · …"); a failure adds a "System ·" note under the answer.
+  const outcome = () => {
+    const stream = globalThis.document.querySelector('[data-message-stream]');
+    const labels = [...(stream?.querySelectorAll('[data-execution-trigger]') || [])].map(node => node.getAttribute('aria-label') || '');
+    return [...labels, stream?.innerText || ''].join('\n');
+  };
+  await page.waitForFunction(`(${outcome})().match(/\\bComplete ·|\\bFailed\\b|\\bInterrupted\\b|\\bDisconnected\\b|System ·/)`, null, { timeout: limitMs });
   const text = (await stream.innerText()).replace(PROMPT, '').replace(/\s+/g, ' ').trim();
   result.seconds = Math.round((Date.now() - started) / 100) / 10;
   result.answer = text.slice(0, 200);
-  result.ok = /\bComplete ·/.test(text);
+  result.ok = /\bComplete ·/.test(await page.evaluate(outcome)) && !/System ·/.test(text);
   if (result.ok) result.stage = 'complete';
 } catch (error) {
   result.error = String(error.message).split('\n')[0].slice(0, 300);
