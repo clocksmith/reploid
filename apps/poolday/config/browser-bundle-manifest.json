@@ -1416,7 +1416,7 @@
     {
       "path": "config/module-inventory.json",
       "byteLength": 699516,
-      "sha256": "sha256:2375dcfd1687c0a1b521862d3b1cdf1b89058179816ca7aefdb2c8b66c6357be"
+      "sha256": "sha256:5ec85fb2a11b049877888af88f95a10973850637cf49e1fa3e7c550c43330308"
     },
     {
       "path": "config/module-registry.json",
@@ -3830,8 +3830,8 @@
     },
     {
       "path": "ui/pool-home/app.bundle.js",
-      "byteLength": 2790197,
-      "sha256": "sha256:66f204dec8a95bcf9cce4ceef6c82600158a4263601b235e9a7259a6edb3a26d"
+      "byteLength": 2790212,
+      "sha256": "sha256:97eaf5e3bdc7d9cb5d0eb0d8f89412458b025d18f997eb87b00deed976db65dd"
     },
     {
       "path": "ui/pool-home/auto-download.js",
@@ -3950,8 +3950,8 @@
     },
     {
       "path": "ui/pool-home/fleet-account-view.js",
-      "byteLength": 11485,
-      "sha256": "sha256:f56da7c9d38c42460acd3ebca6c19e1b861519b05f41d141838bc48620fdc6cc"
+      "byteLength": 11500,
+      "sha256": "sha256:d5101e1d1af7802488d7ee937e8651ee80bbfb8e06823a50aca71ab4442c7358"
     },
     {
       "path": "ui/pool-home/history-handover-view.js",
@@ -12844,5 +12844,5 @@
       "sha256": "sha256:abb6c18f6167d6afc8ee1b3adfcbbb89c0e93fb4fc4e98d7a12250f78aab206a"
     }
   ],
-  "bundleHash": "sha256:1bd219425da86f84c822ad51bebd3fef28a214112c52c169f15b8f61fa7c2a53"
+  "bundleHash": "sha256:11ae9da3e738d5493f0bf5cf30ce8058eabd7ddfd5d00dc98ecadd15823c359e"
 }

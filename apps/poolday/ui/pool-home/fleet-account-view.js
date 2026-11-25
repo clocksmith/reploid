@@ -29,8 +29,8 @@ export function fleetStarterText(view) {
     : 'No starter credit: this sign-in is not verified. Serve answers for others to earn credits first, or sign in with Google.';
 }
 
-export const renderFleetAccount = () => `<section class="pool-stack pool-gap-sm" data-fleet-account aria-labelledby="fleet-account-title" hidden>
-  <h3 class="pool-subheading" id="fleet-account-title">Your account</h3>
+export const renderFleetAccount = () => `<section class="pool-section" data-fleet-account aria-labelledby="fleet-account-title" hidden>
+  <h3 class="pool-section-title" id="fleet-account-title">Your account</h3>
   <p class="pool-status-line pool-small" data-fleet-account-status role="status"></p>
   <div class="pool-stack pool-gap-sm" data-fleet-sign-in hidden>
     <p class="pool-caption pool-muted">An account earns non-cash service credits when your computers answer for others, and spends them when you ask. Credits have no cash value.</p>
@@ -42,7 +42,7 @@ export const renderFleetAccount = () => `<section class="pool-stack pool-gap-sm"
     <p class="pool-caption pool-muted" data-fleet-starter></p>
     <ul class="pool-list pool-stack pool-gap-sm" data-fleet-computers aria-label="Paired computers"></ul>
     ${renderActionRow({ title: 'Pair a computer', status: 'Show a code to run on the computer that will serve', icon: 'peers', attrs: { 'data-fleet-pair': true } })}
-    <details class="pool-disclosure" data-fleet-activity-section><summary>Recent activity</summary>
+    <details class="pool-disclosure pool-disclosure-quiet" data-fleet-activity-section><summary>Recent activity</summary>
       <ul class="pool-list pool-stack pool-gap-sm pool-small" data-fleet-activity></ul>
       <button class="pool-button btn-ghost" type="button" data-fleet-statement>Save statement</button>
       <p class="pool-caption pool-muted">The statement lists each charge and earning with its signed receipts. Check it offline with <code class="pool-mono">node server/fleet/credit-statement.js statement.json</code>.</p>

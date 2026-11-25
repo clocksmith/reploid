@@ -4369,7 +4369,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:66f204dec8a95bcf9cce4ceef6c82600158a4263601b235e9a7259a6edb3a26d",
+      "sha256": "sha256:97eaf5e3bdc7d9cb5d0eb0d8f89412458b025d18f997eb87b00deed976db65dd",
       "imports": []
     },
     {
@@ -4632,7 +4632,7 @@
     {
       "path": "ui/pool-home/fleet-account-view.js",
       "owner": "ui",
-      "sha256": "sha256:f56da7c9d38c42460acd3ebca6c19e1b861519b05f41d141838bc48620fdc6cc",
+      "sha256": "sha256:d5101e1d1af7802488d7ee937e8651ee80bbfb8e06823a50aca71ab4442c7358",
       "imports": [
         "../components/attachments.js",
         "../components/choices.js",
