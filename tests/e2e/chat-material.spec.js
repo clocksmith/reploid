@@ -1024,7 +1024,7 @@ test('model preview and inference privacy commit independently', async ({ page }
   // Each preset states its availability before Send; the confidential one is unavailable and cannot be chosen.
   await expect(privacy.locator('[value=own-devices]')).toBeChecked();
   await expect(privacy.locator('[value=no-device]')).toBeDisabled();
-  await expect(privacy.locator('[data-preset-note=no-device]')).toContainText('Unavailable');
+  await expect(privacy.locator('[data-preset-status=no-device]')).toContainText('Not available yet');
   await expect(privacy.locator('[data-preset-note=standard]')).toContainText('model identity, timing and message sizes');
   await privacy.locator('[value=standard]').check();
   await privacy.screenshot({ path: info.outputPath('privacy-picker.png') });

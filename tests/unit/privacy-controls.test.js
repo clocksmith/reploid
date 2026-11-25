@@ -18,7 +18,13 @@ it('offers three presets, states availability and exposure before Send, and neve
   expect(find('[value="no-device"]').disabled).toBe(true);
   expect(find('[data-preset-note="standard"]').textContent).toMatch(/^Available\..*plaintext and can see its access patterns.*model identity, timing and message sizes can also be visible/);
   expect(find('[data-preset-note="own-devices"]').textContent).toMatch(/^Available on this device and Studio\..*plaintext, so they can also see its access patterns; no other computer can read it/);
-  expect(find('[data-preset-note="no-device"]').textContent).toMatch(/^Unavailable\..*refused before anything is sent/);
+  // Confidential execution is a planned target: disabled, with the reason on its own row, never described as working.
+  expect(find('[data-preset-note="no-device"]').textContent).toMatch(/^Not available yet\. Planned: .*refused before anything is sent/);
+  expect(find('[data-preset-status="no-device"]').textContent).toBe('Not available yet. Planned: no computer, not even the one answering, can read your prompt.');
+  expect(find('[data-preset-status="own-devices"]').textContent).toBe('This device and Studio read your messages. No other computer can.');
+  // Only the checked preset's exposure statement is shown; the others keep its cell so the dialog never resizes.
+  expect(find('[data-preset-note="standard"]').hidden).toBe(false);
+  expect(find('[data-preset-note="own-devices"]').hidden).toBe(true);
   // Only your devices: the paired desktop is the one named participant, executor-readable.
   choose('own-devices');
   const own = readPrivacyControls(root, { desktop, current: open });

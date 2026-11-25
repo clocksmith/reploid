@@ -2,13 +2,17 @@ import {
   createExecutionPolicy, validateExecutionPolicy, compileExecutionRequirements, executionRequirementsFor, EXECUTION_BACKENDS
 } from '../../../../shared/vendor/reploid/chat/execution-policy.js';
 import { computerLabel } from './computer-labels.js';
+import { renderDialog, renderOption, updateOption } from '../components/choices.js';
+import { escapeHtml } from '../components/attachments.js';
+import { privacyPresetChoices, CONFIDENTIAL_TARGET } from './choice-availability.js';
 
 /**
  * Execution presets. Each one is a set of inference API requirements (placement, participants, confidentiality,
  * allowed metadata); the dialog states its availability and what it exposes before Send.
  *  - standard: approved computers may read the content.
  *  - own-devices: executor-readable, limited to this device and the desktop this device paired with.
- *  - no-device: requester-only confidentiality. No backend qualifies, so it is shown unavailable and never applied.
+ *  - no-device: requester-only confidentiality, a planned target. No backend qualifies today, so it is shown
+ *    disabled with that reason and never applied.
  */
 export const EXECUTION_PRESETS = Object.freeze(['standard', 'own-devices', 'no-device']);
 const METADATA_WORDS = { 'model-id': 'model identity', timing: 'timing', length: 'message sizes', 'access-patterns': 'access patterns' };
@@ -51,7 +55,7 @@ export function presetDisclosure(preset, { desktop = null } = {}) {
       ? `Available on this device and ${desktop}. They run the model and read your content in plaintext, so they can also see its access patterns; no other computer can read it. When ${desktop} answers, a relay that carries the connection can see its timing and message sizes. ${desktop} counts as yours because you approved its pairing code.`
       : 'Available on this device only; pair a desktop to add it. Nothing leaves this device, and no network participant sees its metadata.';
   }
-  return 'Unavailable. No qualified backend keeps content from the computer that runs the model, so a request that requires it is refused before anything is sent.';
+  return `${CONFIDENTIAL_TARGET} No backend qualifies today, so a request that requires it is refused before anything is sent.`;
 }
 
 export function allowsOpenPlaintext(policy) {
@@ -63,23 +67,22 @@ export function allowsOpenPlaintext(policy) {
   } catch { return false; }
 }
 
-const option = (value, title, extra = '') => `<label class="pool-row pool-gap-xs">
-      <input type="radio" name="execution-preset" value="${value}" data-privacy-preset${extra}>
-      <span class="pool-stack pool-gap-xs"><strong>${title}</strong><span class="pool-muted" data-preset-note="${value}"></span></span>
-    </label>`;
+// One single-select list: title and one status line per preset. The checked preset's full exposure
+// statement sits below the list; every statement shares one cell, so changing the choice never resizes the dialog.
+const presetOptions = () => privacyPresetChoices().map(({ value, title, status, disabled }) => renderOption({
+  id: `chat-privacy-${value}`, name: 'execution-preset', value, title: escapeHtml(title), status: escapeHtml(status), disabled,
+  inputAttrs: { 'data-privacy-preset': true }, statusAttrs: { 'data-preset-status': value }
+})).join('');
 
-export const renderPrivacyControls = () => `<dialog class="chat-model-setup pool-surface pool-small" id="chat-privacy-dialog" data-privacy-dialog aria-labelledby="chat-privacy-title">
-  <h2 class="pool-heading" id="chat-privacy-title">Who can read your content</h2>
-  <fieldset class="pool-stack pool-bare pool-gap-sm" data-privacy-controls>
-    <legend class="chat-visually-hidden">Execution preset</legend>
-    ${option('standard', 'Standard · Approved computers may read the content')}
-    ${option('own-devices', 'Only your devices can read content')}
-    ${option('no-device', 'Confidential execution · No device can read content', ' disabled')}
-  </fieldset>
-  <p class="pool-muted">New messages only.</p>
-  <p role="alert" data-privacy-error hidden></p>
-  <div class="chat-network-actions"><button type="button" class="pool-button btn-ghost" data-privacy-cancel>Cancel</button><button type="button" class="pool-button btn-primary" data-privacy-apply>Apply</button></div>
-</dialog>`;
+export const renderPrivacyControls = () => renderDialog({
+  titleId: 'chat-privacy-title', title: 'Who can read your messages',
+  attrs: { id: 'chat-privacy-dialog', 'data-privacy-dialog': true },
+  closeAttrs: { 'data-dialog-close': true },
+  body: `<fieldset class="pool-options" role="radiogroup" aria-labelledby="chat-privacy-title" data-privacy-controls>${presetOptions()}</fieldset>
+    <div class="pool-reserve pool-small pool-muted" data-privacy-detail>${EXECUTION_PRESETS.map(preset => `<p data-preset-note="${preset}" hidden></p>`).join('')}</div>
+    <p class="pool-caption pool-muted">Applies to new messages only.</p>`,
+  footer: '<p class="pool-status-line" role="alert" data-privacy-error hidden></p><button type="button" class="pool-button btn-ghost" data-privacy-cancel>Cancel</button><button type="button" class="pool-button btn-primary" data-privacy-apply>Apply</button>'
+});
 
 const ownDevicesOf = context => context?.desktop?.id ? [context.desktop.id] : [];
 
@@ -90,11 +93,17 @@ export function readPrivacyControls(root, context = {}) {
   return policyForPreset(checked.value, context.current ?? null, ownDevicesOf(context));
 }
 
-/** Refresh the stated availability and exposure of every preset. */
-export function showPrivacyChoices(root, context = {}) {
+/** Refresh each preset's availability line and show the checked preset's exposure statement. */
+export function showPrivacyChoices(root, context = {}, { editable = true } = {}) {
+  const checked = root.querySelector('[data-privacy-preset]:checked')?.value ?? null;
+  for (const choice of privacyPresetChoices({ desktop: context.desktop?.label ?? null, editable })) {
+    updateOption(root.querySelector(`[data-privacy-preset][value="${choice.value}"]`), { status: choice.status, disabled: choice.disabled });
+  }
   for (const preset of EXECUTION_PRESETS) {
     const note = root.querySelector(`[data-preset-note="${preset}"]`);
-    if (note) note.textContent = presetDisclosure(preset, { desktop: context.desktop?.label ?? null });
+    if (!note) continue;
+    note.textContent = presetDisclosure(preset, { desktop: context.desktop?.label ?? null });
+    note.hidden = preset !== checked;
   }
   root.querySelector('[data-privacy-error]').hidden = true;
 }
@@ -107,8 +116,8 @@ export function updatePrivacyControls(root, privacy, context = {}) {
   try { preset = presetForPolicy(validateExecutionPolicy(privacy), ownDevicesOf(context)); }
   catch { /* Unsupported policies must not be converted to plaintext by opening this dialog. */ }
   for (const input of root.querySelectorAll('[data-privacy-preset]')) input.checked = input.value === preset;
-  showPrivacyChoices(root, context);
   const editable = preset === 'standard' || preset === 'own-devices';
+  showPrivacyChoices(root, context, { editable });
   fields.disabled = !editable;
   apply.disabled = !editable;
   notice.textContent = editable ? '' : 'This conversation has requirements these presets cannot express. It is read-only here.';

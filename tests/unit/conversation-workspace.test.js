@@ -67,7 +67,7 @@ describe('Conversation workspace', () => {
     expect(dialog.querySelector('[value="own-devices"]').checked).toBe(true);
     expect(dialog.querySelector('[value="no-device"]').disabled).toBe(true);
     expect(dialog.querySelector('[data-preset-note="own-devices"]').textContent).toMatch(/^Available on this device only/);
-    expect(dialog.querySelector('[data-preset-note="no-device"]').textContent).toMatch(/^Unavailable/);
+    expect(dialog.querySelector('[data-preset-note="no-device"]').textContent).toMatch(/^Not available yet/);
     choose('standard');
     await session.renameThread(id, 'Refresh the workspace');
     expect(dialog.querySelector('[value="standard"]').checked).toBe(true);

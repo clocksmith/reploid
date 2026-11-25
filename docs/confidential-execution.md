@@ -39,9 +39,9 @@ API requirements, and the dialog states availability and exposure before Send.
 
 | Preset | Requirements | Availability | Who reads the content | What else is exposed |
 | --- | --- | --- | --- | --- |
-| Standard · Approved computers may read the content | `network-allowed`, `participants: open` (or the computer chosen in "Answer on"), `executor-readable` | Available | The computer that answers, approved before anything is sent; on a split, every stage | The readers also see access patterns. Model identity, timing and message sizes can be visible to coordinators, credit ledgers and relays |
-| Only your devices can read content | `local-only`, or `network-allowed` with `participants: named` = the desktop this device paired with; `executor-readable` | Available on this device; and on your paired desktop when one is paired | This device, or your paired desktop, in plaintext | The readers also see access patterns. Local: nothing leaves the device. Desktop: a relay that carries the WebRTC connection can see timing and message sizes |
-| Confidential execution · No device can read content | `requester-only` | **Unavailable**. Shown disabled, never applied | Not applicable | Not applicable |
+| Standard: the computer that answers reads your messages | `network-allowed`, `participants: open` (or the computer chosen in "Answer on"), `executor-readable` | Available | The computer that answers, approved before anything is sent; on a split, every stage | The readers also see access patterns. Model identity, timing and message sizes can be visible to coordinators, credit ledgers and relays |
+| Only your devices | `local-only`, or `network-allowed` with `participants: named` = the desktop this device paired with; `executor-readable` | Available on this device; and on your paired desktop when one is paired | This device, or your paired desktop, in plaintext | The readers also see access patterns. Local: nothing leaves the device. Desktop: a relay that carries the WebRTC connection can see timing and message sizes |
+| Confidential execution (a planned target) | `requester-only` | **Not available yet**. Shown disabled with that reason, never applied | Not applicable | Not applicable |
 
 "Only your devices" is placement plus named participants with
 executor-readable confidentiality, stated plainly: your devices read the
