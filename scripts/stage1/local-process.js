@@ -48,6 +48,7 @@ const operations = {
   'gate-state': body => participant.gateState(body),
   progress: () => participant.progress(),
   cancel: () => participant.cancel(),
+  disconnect: () => participant.disconnect(),
   trace: body => participant.trace(body),
   generate: body => participant.generate(body),
   'settlement-records': body => participant.settlementRecords(body),

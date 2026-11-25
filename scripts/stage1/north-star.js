@@ -372,6 +372,34 @@ export async function runNorthStar({ config, transport, directory, fixtureFile, 
         visibility: await caseVisibility(held.progress.attemptId, config.stages.map(stage => stage.label)) };
     }
 
+    // 5b. A disconnect: no signed stop and no provider failure. The final stage (requester-held) is held at
+    // `disconnectAtStep`; once the requester has output it stops asking and signs nothing. Every stage then closes the
+    // unfinished answer, and the v2 rule charges the acknowledged prefix as an unattributed disconnect.
+    if (cases.disconnect !== false) {
+      const before = balanceOfAccount(accountId), gateStep = cases.disconnectAtStep ?? 8;
+      const held = await step('disconnect: answer to the gate', () => answerAttempt({ name: 'disconnect', gateLabel: config.stages.at(-1).label,
+        gateStep, keepPartial: true }), limits.phaseMs);
+      const attemptId = held.progress.attemptId;
+      await step('disconnect: requester stops asking, signs nothing', () => s(config.requester.label).call('disconnect'));
+      await step('disconnect: answer returns', () => held.answering.promise);
+      const own = await s(config.requester.label).call('settlement-records', { attemptId });
+      const reservationId = own.reservationId ?? own.terms?.reservationId;
+      await step('disconnect: settlement', () => settled(reservationId));
+      const settlement = await step('disconnect: ledger trace', () => ledgerTrace(coordinator.credits, reservationId));
+      const replay = await step('disconnect: settlement replay', () => collectSettlementReplay({ requester: s(config.requester.label), stages: config.stages.map(stage => s(stage.label)),
+        attemptId, policy: coordinator.credits.policy, computerOf: id => accountOf(id) ?? id }));
+      // Each stage's own signed closing receipt: which stages closed, with what status, and when.
+      const closes = replay.records.filter(row => row?.schema === 'reploid.stage-receipt/v1' && row.attemptId === attemptId && row.timing?.closedAt)
+        .map(row => ({ partitionIndex: row.partitionIndex, participantId: row.participantId, status: row.status, closedAt: row.timing.closedAt }));
+      receipt.disconnect = { attemptId, gate: { stage: config.stages.at(-1).label, step: gateStep },
+        how: 'The requester aborted its own request with a plain reason: no stop was signed and no stage was killed.',
+        disconnected: own.disconnected ?? null, stopSigned: Boolean(own.stop),
+        completed: held.answering.result?.completed === true, outputsReceived: own.received?.deltas ?? null, requesterOutcome: own.outcome,
+        stageCloses: closes, settlement, settlementReplay: { ...replay, policy: coordinator.credits.policy },
+        account: { accountId, before, after: balanceOfAccount(accountId) }, inferenceStatus: held.answering.result?.inference?.result?.status ?? null,
+        visibility: await caseVisibility(attemptId, config.stages.map(stage => stage.label)) };
+    }
+
     // 6. A dropped stage host partway, no stop. The named operator stage is held at `dropAtStep`; each stage signs its
     // acceptance and the dropped stage hands over its step receipts; then its process is killed by exact PID. With no
     // closing receipt from it, the ledger and the replay give verified-provider-failure relief after the release window.
@@ -406,7 +434,11 @@ export async function runNorthStar({ config, transport, directory, fixtureFile, 
       receipt.drop = { attemptId, gate: { stage: target.label, step: cases.dropAtStep ?? 8 }, killed, outputsBeforeKill: held.progress.deltas,
         outputsReceived: own.received?.deltas ?? null, stopSigned: Boolean(own.stop), requesterOutcome: own.outcome, settlement,
         settlementReplay: { ...replay, policy: coordinator.credits.policy }, account: { accountId, before, after: balanceOfAccount(accountId) },
-        visibility: { ...visibilityBefore, ...(await caseVisibility(attemptId, config.stages.filter(stage => stage !== target).map(stage => stage.label))) } };
+        visibility: { ...visibilityBefore, ...(await caseVisibility(attemptId, config.stages.filter(stage => stage !== target).map(stage => stage.label))) },
+        // Which rule decided the relief, from the requester's signed terms; the receipt states it rather than resolving it.
+        reliefRule: { unfinishedTerms: terms?.unfinishedTerms ?? null,
+          appliedRule: 'A stage named in the terms has no counting close after the release window and the answer was not delivered: the attempt expires, nobody is charged or paid.',
+          ...(cases.reliefNote ? { note: cases.reliefNote } : {}) } };
     }
 
     // 4. Close everything and confirm no hold is open.
@@ -421,7 +453,7 @@ export async function runNorthStar({ config, transport, directory, fixtureFile, 
     receipt.finishedAt = stamp();
   }
   const cases = config.cases ?? {};
-  receipt.verdict = checkNorthStar(receipt, { reference, weights, cases: [...(cases.stop !== false ? ['stop'] : []), ...(cases.drop !== false ? ['drop'] : [])] });
+  receipt.verdict = checkNorthStar(receipt, { reference, weights, cases: ['stop', 'disconnect', 'drop'].filter(name => cases[name] !== false) });
   receipt.notEstablished = [
     'An independent security review of the requester-edges tier (a visibility trace is not one).',
     'Confidentiality from operators: they read plaintext activations; "nobody can read it" remains a target and requester-only still fails closed.',

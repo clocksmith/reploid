@@ -323,7 +323,7 @@ export async function openStage1Participant({ stageIndex, identity, config, nati
       const record = records.get(attemptId);
       if (!record) return { role: 'requester', known: false };
       return { role: 'requester', known: true, terms: record.terms, termsSigned: 'in-approval-before-dispatch', termsError: record.termsError,
-        stop: record.stop, stopError: record.stopError, acknowledgments: record.view?.evidence() ?? null,
+        stop: record.stop, stopError: record.stopError, disconnected: record.disconnected ?? null, acknowledgments: record.view?.evidence() ?? null,
         reservationId: record.reservationId ?? null,
         received: { ...record.received }, outcome: record.outcome,
         approvals: record.approvals, attemptsOnThread: threads.get(record.threadId)?.length ?? 0 };
@@ -367,6 +367,19 @@ export async function openStage1Participant({ stageIndex, identity, config, nati
       } else if (record) record.stopError = 'no signed terms to stop';
       run.controller.abort(Object.assign(new DOMException('Stopped by harness', 'AbortError'), { requesterStop: true }));
       return { cancelled: true };
+    },
+    /**
+     * The requester stops asking partway and signs nothing: no stop, as a lost connection does. The fleet requester
+     * forwards a plain abort to the route (server/fleet/requester.js), the stages close the unfinished answer, and under
+     * the v2 rules that is an unattributed disconnect charged at the acknowledged prefix (docs/settlement-replay.md).
+     */
+    disconnect() {
+      const run = active;
+      if (!run) return { disconnected: false };
+      const record = records.get(run.attemptId);
+      if (record) record.disconnected = { at: new Date().toISOString(), acknowledged: record.view?.count() ?? 0 };
+      run.controller.abort(Error('The requester stopped asking (no stop signed)'));
+      return { disconnected: true };
     },
     trace: ({ attemptId }) => ({ tokenIds: trace.tokens(attemptId) }),
     visibility: ({ attemptId = null } = {}) => ({ participantId: identity.peerId, stageIndex, rows: visibility.rows(attemptId) }),

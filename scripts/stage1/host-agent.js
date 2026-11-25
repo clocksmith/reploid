@@ -193,6 +193,7 @@ export function createSessionOperations(ports) {
     'gate-state': body => live().gateState(body),
     progress: () => live().progress(),
     cancel: () => live().cancel(),
+    disconnect: () => live().disconnect(),
     trace: body => live().trace(body),
     generate: body => live().generate(body),
     'generate-edges': body => live().generateEdges(body),

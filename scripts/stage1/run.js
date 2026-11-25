@@ -44,7 +44,7 @@ import { harnessDigest, readReleaseSha } from './host-agent.js';
 import { assertLongReference, createRedactor, loadPhysicalConfig, resolveRunWindow, validatePhysicalConfig } from './physical-config.js';
 import { createSshTransport } from './command-transport.js';
 
-const loadWorkload = async (runtimeClass, fixtureFile, creditWeights) => {
+export const loadWorkload = async (runtimeClass, fixtureFile, creditWeights) => {
   const loaded = await loadStage1Expectations({ runtimeClass, ...(fixtureFile ? { fixtureFile } : {}), ...(creditWeights ? { creditWeights } : {}) });
   if (fixtureFile) assertLongReference(loaded.fixture);
   return loaded;

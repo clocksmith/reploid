@@ -257,6 +257,31 @@ export function createLocalStage1Adapter({ directory, expectations, stageRanges,
         } });
       return finishDrop({ drop, accountBefore, signal });
     },
+    /**
+     * Not a Stage 1 phase: the requester stops asking partway and signs nothing. The final stage is held before the last
+     * token; once the requester has output it aborts with a plain reason, every stage closes the unfinished answer, and
+     * the ledger and the replay settle it as an unattributed disconnect (docs/settlement-replay.md, "Unfinished answers").
+     */
+    async disconnectAnswer({ signal }) {
+      const accountBefore = accountBalance('computer-requester'), requester = node('requester'), threadId = 'stage1-disconnect-' + randomUUID();
+      await node('stage1').call('arm-gate', { threadId, step: expectations.reference.outputIds.length - 1 });
+      let finished = false;
+      const answering = requester.call('generate', { messages: fixture.messages, threadId, keepPartial: true }).finally(() => { finished = true; });
+      answering.catch(() => {});
+      const progress = await until(async () => {
+        if (finished) throw Error('disconnect-gate-missed: the answer ended before the gate held it');
+        const [gate, seen] = await Promise.all([node('stage1').call('gate-state', { threadId }), requester.call('progress')]);
+        return gate.entered && seen.deltas >= 1 && seen.attemptId ? seen : null;
+      }, { timeoutMs: 60000, label: 'the answer to reach the disconnect gate', signal });
+      await requester.call('disconnect');
+      const answer = await answering;
+      const own = await requester.call('settlement-records', { attemptId: progress.attemptId });
+      const reservationId = own.reservationId ?? own.terms?.reservationId;
+      await settled(reservationId, signal);
+      return { attemptId: progress.attemptId, completed: answer.completed === true, stopSigned: Boolean(own.stop), disconnected: own.disconnected,
+        outputsReceived: own.received?.deltas ?? null, settlement: await ledgerTrace(credits, reservationId),
+        accountBefore, accountAfter: accountBalance('computer-requester'), settlementReplay: await replay(progress.attemptId) };
+    },
     async cleanup() {
       await Promise.allSettled(['requester', 'stage0', 'stage1'].map(role => node(role).call('close', {}, 20000)));
       await Promise.all([...nodes.values()].map(item => item.exited ? null

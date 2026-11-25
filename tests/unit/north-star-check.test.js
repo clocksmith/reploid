@@ -109,3 +109,35 @@ describe('north-star receipt check: stop and dropped stage', () => {
     expect(caseCodes(seen)).toContain('operator-saw-content');
   });
 });
+
+describe('north-star receipt check: disconnect with no stop', () => {
+  const blind = { 'host-b': { ...operatorRows }, 'host-c': { ...operatorRows } };
+  const withDisconnect = () => {
+    const receipt = passing();
+    // 8 acknowledged outputs, no stop: units 0, 3, 3 and the remainder 2; the requester's own stages unbilled.
+    receipt.disconnect = { stopSigned: false, completed: false, disconnected: { acknowledged: 8 }, outputsReceived: 8,
+      account: { accountId: 'computer-requester', before: 15, after: 9 },
+      settlement: { ...settledTrace(6, 8, [{ accountId: 'computer-requester', delta: -6 }, { accountId: 'computer-host-b', delta: 3 }, { accountId: 'computer-host-c', delta: 3 }]),
+        reason: 'unattributed-disconnect-acknowledged-prefix' },
+      settlementReplay: { problems: [], result: { reservations: [{ reservationId: 'r', status: 'settled', debit: 6, chargedOutputs: 8,
+        credits: [{ participantId: ids[0], amount: 0 }, { participantId: ids[1], amount: 3 }, { participantId: ids[2], amount: 3 }, { participantId: ids[3], amount: 0 }] }] } },
+      visibility: structuredClone(blind) };
+    return receipt;
+  };
+  const disconnectCodes = receipt => checkNorthStar(receipt, { reference, weights, cases: ['disconnect'] }).problems.map(row => row.code);
+  it('passes an unsigned disconnect charged its acknowledged prefix under the disconnect reason', () => {
+    expect(disconnectCodes(withDisconnect())).toEqual([]);
+  });
+  it('fails a disconnect that was relieved, charged under another reason, signed a stop, or replays differently', () => {
+    const relieved = withDisconnect(); Object.assign(relieved.disconnect.settlement, { charge: 0, outputTokens: 0, credits: [], journal: [] });
+    expect(disconnectCodes(relieved)).toContain('disconnect-charge');
+    const reason = withDisconnect(); reason.disconnect.settlement.reason = 'interrupted-stage-owner';
+    expect(disconnectCodes(reason)).toContain('disconnect-reason');
+    const signed = withDisconnect(); signed.disconnect.stopSigned = true;
+    expect(disconnectCodes(signed)).toContain('disconnect-shape');
+    const replay = withDisconnect(); replay.disconnect.settlementReplay.result.reservations[0].credits[2].amount = 2;
+    expect(disconnectCodes(replay)).toContain('replay-differs-from-ledger');
+    const seen = withDisconnect(); seen.disconnect.visibility['host-b'].nonzeroTokenIdsReceived = 1;
+    expect(disconnectCodes(seen)).toContain('operator-saw-content');
+  });
+});

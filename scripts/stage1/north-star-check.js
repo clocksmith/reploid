@@ -155,6 +155,30 @@ export function checkNorthStar(receipt, { reference, weights, creditsPerOutputTo
       operatorsBlind('stop', stop.visibility);
     }
   }
+  // 6b. A disconnect: no signed stop, every stage closed. The v2 rule charges the acknowledged prefix as an unattributed
+  // disconnect; the ledger names that reason and the replay charges the same outputs.
+  if (cases.includes('disconnect')) {
+    const gone = receipt.disconnect, ledgerTrace = gone?.settlement;
+    if (!ledgerTrace) fail('disconnect-missing', 'no disconnect case');
+    else {
+      if (ledgerTrace.state !== 'settled' || ledgerTrace.heldAfter !== 0) fail('stranded-hold', `disconnect ${ledgerTrace.state} held ${ledgerTrace.heldAfter}`);
+      if (gone.stopSigned !== false || gone.completed !== false || !gone.disconnected) fail('disconnect-shape', JSON.stringify({ stop: gone.stopSigned, completed: gone.completed, disconnected: gone.disconnected }));
+      if (ledgerTrace.reason !== 'unattributed-disconnect-acknowledged-prefix') fail('disconnect-reason', ledgerTrace.reason);
+      if (!(ledgerTrace.outputTokens > 0 && ledgerTrace.outputTokens <= (gone.outputsReceived ?? 0) && ledgerTrace.outputTokens < (receipt.split?.cap ?? Infinity))) {
+        fail('disconnect-charge', `charged ${ledgerTrace.outputTokens} outputs, received ${gone.outputsReceived}`);
+      }
+      const due = creditSettlementDeltas({ computerId: gone.account.accountId, providers: stages.map((stage, index) => ({ participantId: stage.participantId, weight: weights[index] })) },
+        ledgerTrace.outputTokens * creditsPerOutputToken, id => accountOf(id, gone.account.accountId));
+      if (ledgerTrace.charge !== due.charge) fail('settlement-charge', `disconnect: ${ledgerTrace.charge}, expected ${due.charge}`);
+      if (ledgerTrace.journal.reduce((sum, item) => sum + item.delta, 0) !== 0) fail('settlement-not-conserved', 'disconnect');
+      if (gone.account.after !== gone.account.before - ledgerTrace.charge) fail('spend-mismatch', `disconnect: ${gone.account.before} - ${ledgerTrace.charge} != ${gone.account.after}`);
+      const row = gone.settlementReplay?.result?.reservations?.find(item => item.reservationId === ledgerTrace.reservationId);
+      if (!row || row.status !== 'settled' || row.chargedOutputs !== ledgerTrace.outputTokens) fail('replay-not-settled', `disconnect: ${row?.status} charged ${row?.chargedOutputs}`);
+      else sameAsLedger('disconnect', ledgerTrace, row, gone.account.accountId);
+      if (gone.settlementReplay?.problems?.length) fail('replay-records', `disconnect: ${gone.settlementReplay.problems.join('; ')}`);
+      operatorsBlind('disconnect', gone.visibility);
+    }
+  }
   // 7. A dropped stage host, no stop: verified-provider-failure relief. Nothing charged, nobody paid, nothing held.
   if (cases.includes('drop')) {
     const drop = receipt.drop, ledgerTrace = drop?.settlement;
