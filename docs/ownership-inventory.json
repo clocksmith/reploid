@@ -20,7 +20,7 @@
   "counts": {
     "apps/poolday": 401,
     "self": 457,
-    "shared": 2519
+    "shared": 2531
   },
   "pendingMoves": 0,
   "violations": [],
@@ -16784,6 +16784,66 @@
     {
       "served": "vendor/reploid/index.js",
       "source": "shared/vendor/reploid/index.js",
+      "owner": "shared"
+    },
+    {
+      "served": "vendor/reploid/inference/attested/bytes.js",
+      "source": "shared/vendor/reploid/inference/attested/bytes.js",
+      "owner": "shared"
+    },
+    {
+      "served": "vendor/reploid/inference/attested/execution.d.ts",
+      "source": "shared/vendor/reploid/inference/attested/execution.d.ts",
+      "owner": "shared"
+    },
+    {
+      "served": "vendor/reploid/inference/attested/execution.js",
+      "source": "shared/vendor/reploid/inference/attested/execution.js",
+      "owner": "shared"
+    },
+    {
+      "served": "vendor/reploid/inference/attested/hpke.js",
+      "source": "shared/vendor/reploid/inference/attested/hpke.js",
+      "owner": "shared"
+    },
+    {
+      "served": "vendor/reploid/inference/attested/reports.js",
+      "source": "shared/vendor/reploid/inference/attested/reports.js",
+      "owner": "shared"
+    },
+    {
+      "served": "vendor/reploid/inference/attested/session.d.ts",
+      "source": "shared/vendor/reploid/inference/attested/session.d.ts",
+      "owner": "shared"
+    },
+    {
+      "served": "vendor/reploid/inference/attested/session.js",
+      "source": "shared/vendor/reploid/inference/attested/session.js",
+      "owner": "shared"
+    },
+    {
+      "served": "vendor/reploid/inference/attested/verifier.d.ts",
+      "source": "shared/vendor/reploid/inference/attested/verifier.d.ts",
+      "owner": "shared"
+    },
+    {
+      "served": "vendor/reploid/inference/attested/verifier.js",
+      "source": "shared/vendor/reploid/inference/attested/verifier.js",
+      "owner": "shared"
+    },
+    {
+      "served": "vendor/reploid/inference/attested/websocket-channel.d.ts",
+      "source": "shared/vendor/reploid/inference/attested/websocket-channel.d.ts",
+      "owner": "shared"
+    },
+    {
+      "served": "vendor/reploid/inference/attested/websocket-channel.js",
+      "source": "shared/vendor/reploid/inference/attested/websocket-channel.js",
+      "owner": "shared"
+    },
+    {
+      "served": "vendor/reploid/inference/attested/x509.js",
+      "source": "shared/vendor/reploid/inference/attested/x509.js",
       "owner": "shared"
     },
     {

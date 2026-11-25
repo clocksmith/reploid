@@ -1415,8 +1415,8 @@
     },
     {
       "path": "config/module-inventory.json",
-      "byteLength": 699791,
-      "sha256": "sha256:d77615a0efa6ffb9fdbdbb4001d597664ae50644eb144f62a96f20480f3c14cf"
+      "byteLength": 702149,
+      "sha256": "sha256:e397ba250b845a17e269010a8dce052717f1879cb096e418681658d60a6fe6f9"
     },
     {
       "path": "config/module-registry.json",
@@ -1510,8 +1510,8 @@
     },
     {
       "path": "config/vfs-manifest.json",
-      "byteLength": 150001,
-      "sha256": "sha256:3bab890659ec9053a19b20f6709bf0c010880043ef6136d5c34c272d1203f565"
+      "byteLength": 150422,
+      "sha256": "sha256:e94b1cb436940904735611cc1d504fccae439b353db6546b9a0305b9a37e0275"
     },
     {
       "path": "config/vfs-policy.js",
@@ -3830,8 +3830,8 @@
     },
     {
       "path": "ui/pool-home/app.bundle.js",
-      "byteLength": 2811422,
-      "sha256": "sha256:d1a606438707edf20565e9b78885268d301a58f8d31e287e9bdbaa4da46dcaec"
+      "byteLength": 2819861,
+      "sha256": "sha256:cde69be9243fb01ab83c4e4a27a3463712e2570742727c15c4597f818c01ecba"
     },
     {
       "path": "ui/pool-home/auto-download.js",
@@ -12010,8 +12010,8 @@
     },
     {
       "path": "vendor/reploid/chat/execution-policy.js",
-      "byteLength": 18577,
-      "sha256": "sha256:7fcc3822b7c792e588f4454c83064b298d83b8cad949b515076f659cddc452e0"
+      "byteLength": 21041,
+      "sha256": "sha256:ac881dfb2957c6c033375395168bf4ac2a92faa4e04a09e42c5dc9df212f7135"
     },
     {
       "path": "vendor/reploid/chat/index.js",
@@ -12174,14 +12174,54 @@
       "sha256": "sha256:565faddca9230b2abb1861d3b5ec56815253507b92363cf6959ccb7cc82fedf1"
     },
     {
+      "path": "vendor/reploid/inference/attested/bytes.js",
+      "byteLength": 2396,
+      "sha256": "sha256:b2e28bda431e802de94303207d0f59f549e23c0191513c01bbf26b7c260b249b"
+    },
+    {
+      "path": "vendor/reploid/inference/attested/execution.js",
+      "byteLength": 13469,
+      "sha256": "sha256:26d61708c579f2180c07a0555d541729bfe7ce5fea5894402e49904b1fb2eee1"
+    },
+    {
+      "path": "vendor/reploid/inference/attested/hpke.js",
+      "byteLength": 7926,
+      "sha256": "sha256:a3281b5f2c88665b2c49b0c3ec367ae6d8770e665a125caedfa0c7ef150c8bd2"
+    },
+    {
+      "path": "vendor/reploid/inference/attested/reports.js",
+      "byteLength": 10171,
+      "sha256": "sha256:618e2cdd139c4223959fdc7fe1cc48d761690b28c155739829bee83593fe0df0"
+    },
+    {
+      "path": "vendor/reploid/inference/attested/session.js",
+      "byteLength": 14975,
+      "sha256": "sha256:167df8d7f2be175586fc2c03b780774a3d0edeedc4fcf67ec387d53862499f2c"
+    },
+    {
+      "path": "vendor/reploid/inference/attested/verifier.js",
+      "byteLength": 20515,
+      "sha256": "sha256:272328bfde84a59e5aab8bc2dc5c76da673ab81b23030f1888bf079cdd6d082e"
+    },
+    {
+      "path": "vendor/reploid/inference/attested/websocket-channel.js",
+      "byteLength": 4788,
+      "sha256": "sha256:14d9ebcddb1886e5861dcf8e118a72f3872ec6f51d48bd31a0aed64faccdbb5e"
+    },
+    {
+      "path": "vendor/reploid/inference/attested/x509.js",
+      "byteLength": 17891,
+      "sha256": "sha256:3cea4cb23ab4d85d209d3b04232a376f09de229dc4180bc6b3925a79b43c2576"
+    },
+    {
       "path": "vendor/reploid/inference/contract.js",
-      "byteLength": 18771,
-      "sha256": "sha256:1743fabfaf540b17178eb61132903bbd0dd5791bdf6218a88de6560e697823b9"
+      "byteLength": 19198,
+      "sha256": "sha256:c11064498ee3cdde9123ed8a55b1c7dde5694e6329745683f322fb10e7ff67de"
     },
     {
       "path": "vendor/reploid/inference/index.js",
-      "byteLength": 14308,
-      "sha256": "sha256:bb782acfb6d710e74e043223a6d7dedfc44bb403abcf19cbba2b09f5b9206247"
+      "byteLength": 17716,
+      "sha256": "sha256:c934ebc8f36ad659335586dc7a02de0ed4ab8df21087e44b68a99ea5b0a94a91"
     },
     {
       "path": "vendor/reploid/inference/protected.js",
@@ -12560,8 +12600,8 @@
     },
     {
       "path": "vendor/reploid/package-assets.json",
-      "byteLength": 62743,
-      "sha256": "sha256:65340389ade3e33a164f7071d783639a7b05d1902266e8cc08c60c0fa48bf089"
+      "byteLength": 64741,
+      "sha256": "sha256:270968ea6a18037311f02aafa115ecf5087f45f4f6af0c216a49db4b11c36954"
     },
     {
       "path": "vendor/reploid/plugins/index.js",
@@ -12849,5 +12889,5 @@
       "sha256": "sha256:abb6c18f6167d6afc8ee1b3adfcbbb89c0e93fb4fc4e98d7a12250f78aab206a"
     }
   ],
-  "bundleHash": "sha256:621b4ecedf12334b4db64cf1d75d83c519fec7a21bc072259417ad3cc664aa83"
+  "bundleHash": "sha256:9a0ace07e90a3f4d9485c4c272f6a2c8f6a06d816ddfdd1938a6bda48b13666c"
 }
