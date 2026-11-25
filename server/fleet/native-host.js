@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import fs from 'node:fs/promises';
-import { constants, readFileSync, realpathSync } from 'node:fs';
+import { readFileSync, realpathSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import path from 'node:path';
 import os from 'node:os';
@@ -11,7 +11,6 @@ import { inspectDeviceMemory } from 'dopplerx/partitions';
 import { getDevice, getKernelCapabilities } from 'dopplerx/tooling/device';
 import { requestExecutionPolicy, assertAvailableExecutionPolicy, plaintextExecutionRoute, bindExecutionRoute, sameExecutionBinding, EXECUTION_BACKENDS } from '../../shared/vendor/reploid/chat/execution-policy.js';
 import { createInference, executionError, EXECUTION_ERROR_CODES } from '../../shared/vendor/reploid/inference/index.js';
-import { createSigningIdentity, createPeerIdFromPublicJwk } from '../../shared/vendor/reploid/artifacts/identity.js';
 import { signGenerationTerminal } from '../../shared/vendor/reploid/artifacts/generation-terminal.js';
 import { hashJson } from '../../shared/vendor/reploid/artifacts/signatures.js';
 import { createNativeParticipant, createNativeRtcAdapter, createNativeGpuHost, readNativeRoomTokenFile } from '../native-participant.js';
@@ -29,33 +28,10 @@ import { openStageTokenWitness } from './stage-token-witness.js';
 import { createFairLaneScheduler } from './fair-lane-scheduler.js';
 export { createFairLaneScheduler } from './fair-lane-scheduler.js';
 import { assert, fleetCreditQuote, text, same } from './contract.js';
+import { openComputerIdentity, readOwnFile } from './computer-identity.js';
 import { partitionAdapterIdentities } from '../../shared/vendor/reploid/mesh/partitions/partition-contract.js';
 
-export async function openComputerIdentity(file) {
-  assert(path.isAbsolute(file), 'Absolute computer identity path required');
-  await fs.mkdir(path.dirname(file), { recursive: true, mode: 0o700 });
-  let identity;
-  try { identity = JSON.parse(await readOwnFile(file)); }
-  catch (error) {
-    if (error.code !== 'ENOENT') throw error;
-    identity = await createSigningIdentity({ algorithm: 'Ed25519' });
-    await fs.writeFile(file, JSON.stringify(identity), { flag: 'wx', mode: 0o600 });
-  }
-  assert(identity.privateJwk && await createPeerIdFromPublicJwk(identity.publicJwk) === identity.peerId, 'Invalid persistent computer identity');
-  return identity;
-}
-
-export async function readOwnFile(file) {
-  assert(path.isAbsolute(file), 'Absolute operator file path required');
-  assert(!(await fs.lstat(file)).isSymbolicLink(), 'Operator file cannot be a symbolic link');
-  const handle = await fs.open(file, constants.O_RDONLY | (constants.O_NOFOLLOW || 0));
-  try {
-    const stat = await handle.stat();
-    assert(stat.isFile(), 'Operator file must be regular');
-    if (process.getuid) assert(stat.uid === process.getuid() && (stat.mode & 0o077) === 0, 'Operator secrets must be owner-only');
-    return await handle.readFile('utf8');
-  } finally { await handle.close(); }
-}
+export { openComputerIdentity, readOwnFile };
 
 export function activeProviderRequests(state) {
   if (!state) return 0;

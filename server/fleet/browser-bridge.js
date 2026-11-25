@@ -1,7 +1,7 @@
 import http from 'node:http';
 import https from 'node:https';
 import { bindExecutionRoute, requestExecutionPolicy, assertAvailableExecutionPolicy, sameExecutionBinding } from '../../shared/vendor/reploid/chat/execution-policy.js';
-import { timingSafeEqual } from 'node:crypto';
+import { createHash, timingSafeEqual } from 'node:crypto';
 
 const assert = (ok, message) => { if (!ok) throw Error(message); };
 
@@ -15,7 +15,12 @@ function normalizeBasePath(basePath = '') {
 /** Explicitly paired access to an owner-operated native requester over loopback or TLS/bound-tunnel HTTPS.
  * The pairing secret authorizes delegation to this host's enrolled private pool;
  * it never exposes the signing identity, room credential, file paths or raw config. */
-export function createFleetBrowserBridgeHandler({ host, token, origins, basePath = '', maxBodyBytes = 262144, maxConcurrent = 8, maxSeenAttempts = 10000 }) {
+/** `claim` (optional) hands the pairing secret once to an allowed origin that presents the account pairing code this
+ * host joined with (`join.js`): `{ codeDigest: sha256 hex of the code, expiresAt }`. Five wrong codes close it. */
+export function createFleetBrowserBridgeHandler({ host, token, origins, basePath = '', maxBodyBytes = 262144, maxConcurrent = 8, maxSeenAttempts = 10000,
+  claim = null, now = Date.now }) {
+  assert(claim === null || /^[a-f0-9]{64}$/.test(claim.codeDigest) && Number.isSafeInteger(claim.expiresAt), 'Pairing claim needs a code digest and expiry');
+  let claimOpen = claim !== null, claimFailures = 0;
   assert(typeof token === 'string' && token.length >= 32, 'Strong pairing secret required');
   assert(Array.isArray(origins) && origins.length && origins.every(origin => new URL(origin).origin === origin), 'Exact allowed browser origins required');
   assert(Number.isSafeInteger(maxSeenAttempts) && maxSeenAttempts >= maxConcurrent, 'Positive replay window required');
@@ -37,8 +42,21 @@ export function createFleetBrowserBridgeHandler({ host, token, origins, basePath
       response.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
       response.setHeader('Access-Control-Allow-Private-Network', 'true');
       if (request.method === 'OPTIONS') { response.writeHead(204); response.end(); return; }
-      assert(request.method === 'POST' && authenticate(request), 'Pair this browser with the native host first');
       const pathname = new URL(request.url || '/', 'http://127.0.0.1').pathname;
+      if (request.method === 'POST' && pathname === `${prefix}/claim`) {
+        let length = 0; const chunks = [];
+        for await (const chunk of request) { length += chunk.length; assert(length <= 1024, 'Request exceeds browser bridge limit'); chunks.push(chunk); }
+        const code = String(JSON.parse(Buffer.concat(chunks) || '{}').code || '').toUpperCase();
+        assert(claimOpen && now() <= claim.expiresAt, 'This host is no longer waiting for a browser; enter its pairing secret instead');
+        const received = Buffer.from(createHash('sha256').update(code).digest('hex')), expected = Buffer.from(claim.codeDigest);
+        if (!timingSafeEqual(received, expected)) {
+          if (++claimFailures >= 5) claimOpen = false;
+          throw Error('That pairing code is not the one this host joined with');
+        }
+        claimOpen = false;
+        response.setHeader('Content-Type', 'application/json'); response.end(JSON.stringify({ token })); return;
+      }
+      assert(request.method === 'POST' && authenticate(request), 'Pair this browser with the native host first');
       assert(!prefix || pathname.startsWith(prefix + '/'), 'Unknown browser bridge operation');
       const routePath = prefix ? pathname.slice(prefix.length) : pathname;
       let length = 0; const chunks = [];
@@ -172,10 +190,10 @@ export function createFleetBrowserBridgeHandler({ host, token, origins, basePath
   };
 }
 
-export async function startFleetBrowserBridge({ host, token, origins, listenHost = '127.0.0.1', port = 0, tls = null, basePath = '', maxBodyBytes = 262144, maxConcurrent = 8, maxSeenAttempts = 10000 }) {
+export async function startFleetBrowserBridge({ host, token, origins, listenHost = '127.0.0.1', port = 0, tls = null, basePath = '', maxBodyBytes = 262144, maxConcurrent = 8, maxSeenAttempts = 10000, claim = null }) {
   const loopback = ['127.0.0.1', '::1', 'localhost'].includes(listenHost);
   assert(loopback || Boolean(tls?.key && tls?.cert), 'Non-loopback browser bridge requires TLS');
-  const bridge = createFleetBrowserBridgeHandler({ host, token, origins, basePath, maxBodyBytes, maxConcurrent, maxSeenAttempts });
+  const bridge = createFleetBrowserBridgeHandler({ host, token, origins, basePath, maxBodyBytes, maxConcurrent, maxSeenAttempts, claim });
   const server = tls ? https.createServer(tls, bridge.handle) : http.createServer(bridge.handle);
   server.requestTimeout = 30000;
   await new Promise((resolve, reject) => { server.once('error', reject); server.listen(port, listenHost, resolve); });

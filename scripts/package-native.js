@@ -51,7 +51,7 @@ export async function collectNativeFiles(sourceRoot, { omitModels = [] } = {}) {
     if (!existsSync(absolute)) continue;
     for (const file of await walkFiles(absolute)) available.add(`${directory}/${file}`);
   }
-  const selected = await collectModuleClosure({ root: sourceRoot, available, entries: ['server/native-node.js', 'server/native-participant.js', 'server/fleet/native-host.js', 'server/fleet/credits.js', 'server/fleet/terminal-policy.js', 'server/native-rtc-renewal-cli.js'] });
+  const selected = await collectModuleClosure({ root: sourceRoot, available, entries: ['server/native-node.js', 'server/native-participant.js', 'server/fleet/native-host.js', 'server/fleet/join.js', 'server/fleet/credits.js', 'server/fleet/terminal-policy.js', 'server/native-rtc-renewal-cli.js'] });
   // Served URLs resolve to whichever browser root holds the file.
   const servedSource = served => path.relative(sourceRoot, resolveServedFile(served, { repoRoot: sourceRoot })).split(path.sep).join('/');
   const catalogName = servedSource('config/chat-models.json');

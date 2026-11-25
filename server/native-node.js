@@ -64,6 +64,12 @@ async function main() {
     return;
   }
   if (command.text !== undefined) { console.log(command.text); return; }
+  if (command.join) {
+    const { runJoin } = await import('./fleet/join.js');
+    try { await runJoin(command.join); }
+    catch (error) { console.error('reploid: ' + error.message); process.exitCode = 1; }
+    return;
+  }
   if (command.doctor) {
     const result = await runDoctor(command.doctor);
     console.log(result.text);

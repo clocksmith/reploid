@@ -19,6 +19,7 @@ const commands = {
   models: 'List models included in this installation',
   doctor: 'Check this computer and signaling',
   completion: 'Print tab completion for Bash, Zsh or Fish',
+  join: 'Pair this computer with your replo.id account by code',
 };
 const shortNames = {
   'qwen-3-5-0-8b-q4k-ef16-af32-vf16': '0.8b',
@@ -62,6 +63,9 @@ Use a token file owned by you with mode 0600. Both stages and a requester are ne
   connect: 'npx reploid connect [model] [--room reploid-swarm-NAME]\nJoin discovery without starting a GPU or sharing files.',
   share: 'npx reploid share [model] [--weights DIRECTORY] [--supply-limit-gib GiB] [--supply-to COMPUTER_ID]\nOffer verified files to room peers. Repeat --supply-to to restrict uploads to named computers.',
   models: 'npx reploid models\nList the bundled model IDs, shortcuts, supported modes and whole-model weight sources.',
+  join: `npx reploid join ABCD-EFGH [--service https://replo.id] [--name "My laptop"] [--state DIR] [--bridge-port 18784] [--weights DIR]
+Claim the code your browser shows, print this computer's fingerprint and wait while you confirm it in the browser.
+Then writes an owner-only host configuration that earns service credits for the account by serving and lets the page spend them.`,
   completion: `npx reploid completion bash|zsh|fish
 Enable Tab for reploid and npx reploid in the current shell:
   source <(npx reploid completion zsh)
@@ -129,6 +133,7 @@ export function nativeCommand(argv) {
       doctorFlags: [...doctorOptions.map(k => '--' + k), '--help'], commands: commandNames, models: modelNames(catalog),
       splitModels: modelNames(catalog.filter(canSplit)), flags: Object.keys(participantOptions).map(k => '--' + k) }) };
   }
+  if (command === 'join') return { join: rest };
   if (command === 'doctor') {
     const { values } = parseArgs({ args: rest, options: subset(doctorOptions) });
     return { doctor: { signalingUrl: values['signaling-url'], origin: values.origin } };
