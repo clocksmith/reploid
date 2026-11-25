@@ -5,6 +5,7 @@
 import { verifyStageTokenWitnesses } from '../../server/fleet/stage-token-witness.js';
 import { replaySettlement } from '../../server/fleet/settlement-replay.js';
 import { policyDigest } from '../../server/fleet/settlement-terms.js';
+import { EXECUTION_RECEIPT_SCHEMA } from '../../packages/reploid/src/inference/contract.js';
 import { witnessDigest } from './expectations.js';
 
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
@@ -58,11 +59,15 @@ export function verifySplitTokens({ fixtureBytes, answer, input, output, tokenId
   if (witnessDigest(tokenIds) !== output.sampleDigest || tokenIds.length !== output.sampleCount) {
     throw Object.assign(Error('token-witness-disagrees: the final stage trace differs from its production witness'), { code: 'token-witness-disagrees' });
   }
+  // The harness's requester answers through the fleet requester, not HTTP, so it assembles the HTTP `reploid` record's
+  // fields the verifier reads from that answer: its attempt, base model, plan, stages, pool and conversation.
+  if (!answer.route.stages.length || answer.route.stages.includes(requesterId)) throw Error('The split route must name stages other than the requester');
   const parity = verifyStageTokenWitnesses({ fixtureBytes, httpAttemptId: answer.attemptId, input, output,
     response: { status: 'completed', output: [{ content: [{ text: answer.text }] }],
-      reploid: { attemptId: answer.attemptId, threadId, poolId: roomId, executionClass: 'private-pool',
-        modelIdentity: answer.route.modelIdentity, planIdentity: answer.route.planId, adapterIdentities: [],
-        recipients: [...answer.route.stages, requesterId], execution: answer.execution } } });
+      reploid: { executionReceipt: { schema: EXECUTION_RECEIPT_SCHEMA, attemptId: answer.attemptId,
+        requested: { model: { identity: answer.route.modelIdentity, adapterIdentities: [] } },
+        route: { planIdentity: answer.route.planId, participants: [...answer.route.stages] } },
+      execution: answer.execution, poolId: roomId, conversationId: threadId } } });
   return { parityExact: parity.exact === true,
     tokens: { outputIds: tokenIds, promptDigest: output.promptDigest, tokenizerDigest: input.tokenizerDigest,
       sampleCount: output.sampleCount, sampleDigest: output.sampleDigest, stopReason: output.stopReason } };
