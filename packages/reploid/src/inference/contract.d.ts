@@ -67,7 +67,8 @@ export type InferenceEvent =
   | { type: 'completed' | 'cancelled' | 'failed'; result: InferenceResult };
 
 export declare function validateModelPin(model: unknown): Required<ModelPin>;
-export declare function validatePrepareRequest(input: unknown, options?: { protectedProtocol?: string | null }): ValidatedPrepareRequest;
+export declare const SECRET_SHARED_BACKEND: 'doppler-secret-shared-2party/v1';
+export declare function validatePrepareRequest(input: unknown, options?: { protectedProtocol?: string | null; secretShared?: boolean }): ValidatedPrepareRequest;
 export declare function validateRunRequest(input: unknown): { planId: string; requestId: string; messages: RunRequest['input']['messages'] };
 export interface RouteCandidate { shape: RouteShape; backend: string; participants?: string[]; selection?: RouteSelection; maxCharge?: ChargeCeiling | null; planIdentity?: string | null;
   /** Required for the edges backend: the requester-held first and last stage participants. */

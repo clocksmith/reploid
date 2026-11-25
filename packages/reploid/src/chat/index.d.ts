@@ -239,6 +239,6 @@ export function createChatScheduler(options: {
   close(): Promise<void>;
 };
 
-export { EXECUTION_POLICY_SCHEMA, EXECUTION_BINDING_SCHEMA, createExecutionPolicy, validateExecutionPolicy, requestExecutionPolicy, assertAvailableExecutionPolicy, plaintextExecutionRoute, edgesExecutionRoute, tokenContextStages, EDGES_BACKEND, CONFIDENTIALITY_MODES, validateExecutionRoute, bindExecutionRoute, sameExecutionBinding, EXECUTION_ERROR_CODES, executionError, EXECUTION_METADATA, EXECUTION_BACKENDS, executionBackend, compileExecutionRequirements, executionRequirementsFor, narrowsExecutionPolicy } from './execution-policy.js';
+export { EXECUTION_POLICY_SCHEMA, EXECUTION_BINDING_SCHEMA, createExecutionPolicy, validateExecutionPolicy, requestExecutionPolicy, assertAvailableExecutionPolicy, plaintextExecutionRoute, edgesExecutionRoute, tokenContextStages, EDGES_BACKEND, CONFIDENTIALITY_MODES, validateExecutionRoute, bindExecutionRoute, sameExecutionBinding, EXECUTION_ERROR_CODES, executionError, EXECUTION_METADATA, EXECUTION_BACKENDS, executionBackend, compileExecutionRequirements, compileSecretSharedExecutionRequirements, SECRET_SHARED_PROTOCOL, SECRET_SHARED_COLLUSION, executionRequirementsFor, narrowsExecutionPolicy } from './execution-policy.js';
 
 export { validateExecutionOffers, eligibleExecutionOffers } from './execution-offers.js';
