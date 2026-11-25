@@ -140,6 +140,20 @@ for (const [width, height] of [[1280, 800], [390, 844]]) {
   });
 }
 
+test('at phone width a navigator jump stops the section below the pinned bar', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await openDesign(page);
+  for (const id of ['compositions', 'primitives']) {
+    await page.locator(`.pool-sidebar-nav a[href="#${id}"]`).click();
+    await expect.poll(() => page.evaluate(target => {
+      const bar = document.querySelector('.pool-sidebar-nav').getBoundingClientRect();
+      const heading = document.getElementById(target).getBoundingClientRect();
+      return bar.top === 0 && heading.top >= bar.bottom - 1 && heading.top < window.innerHeight / 2;
+    }, id)).toBe(true);
+  }
+});
+
 test('design page switches theme and frame width from the keyboard', async ({ page }) => {
   await openDesign(page);
   const themes = page.locator('[data-design-theme]');
