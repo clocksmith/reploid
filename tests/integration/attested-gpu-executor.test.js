@@ -68,6 +68,29 @@ describe('attested GPU executor on loopback', () => {
   });
 });
 
+describe('attested GPU executor: a requester that leaves', () => {
+  it('keeps serving after a client disconnects while evidence is being collected', async () => {
+    let entered, release;
+    const collecting = new Promise(resolve => { entered = resolve; }), gate = new Promise(resolve => { release = resolve; });
+    const base = syntheticHost(world, { platform: 'amd-sev-snp' });
+    const host = { ...base, collectGpuEvidence: async nonce => { entered(); await gate; return base.collectGpuEvidence(nonce); } };
+    const seen = [];
+    const slow = await startAttestedExecutor({ host, log: record => seen.push(record), offer: {} });
+    try {
+      const channel = await wsModule.connectWebSocketFrames(`${slow.url.replace(/^http/, 'ws')}/attested`);
+      await channel.send({ header: { schema: 'reploid.attested-gpu/v1', kind: 'challenge', nonce: Buffer.alloc(32, 1).toString('base64url'),
+        model: base.launch.model, launchId: null, blobs: [] }, blobs: [] });
+      await collecting;
+      channel.close();
+      await new Promise(resolve => setTimeout(resolve, 150));   // the executor sees the close before it has evidence to send
+      release();
+      await new Promise(resolve => setTimeout(resolve, 150));
+      expect(seen.filter(record => record.session)).toEqual([{ session: 'closed', code: null }]);
+      expect((await fetch(`${slow.url}/ready`)).status).toBe(200);
+    } finally { release(); await slow.close(); }
+  });
+});
+
 describe('executor host pieces', () => {
   it('refuses a runtime that is not on loopback', () => {
     expect(() => createOpenAiRuntime({ baseUrl: 'http://203.0.113.5:8080', model: 'm' })).toThrow(/loopback/);

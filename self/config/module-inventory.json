@@ -19326,7 +19326,7 @@
     {
       "path": "vendor/reploid/inference/attested/session.js",
       "owner": "vendor",
-      "sha256": "sha256:167df8d7f2be175586fc2c03b780774a3d0edeedc4fcf67ec387d53862499f2c",
+      "sha256": "sha256:4ad3618d205050c8700880a39ab22abd9d25f12d9dbd4fdbf58c808b9e618d3c",
       "imports": [
         "./bytes.js",
         "./hpke.js",

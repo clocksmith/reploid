@@ -76,7 +76,9 @@ export async function startAttestedExecutor({ host, offer, listen = '127.0.0.1:0
   server.on('upgrade', (req, socket, head) => {
     if (new URL(req.url, 'http://executor').pathname !== '/attested') { socket.destroy(); return; }
     wss.handleUpgrade(req, socket, head, ws => {
-      serveAttestedSession({ channel: wsFrameChannel(ws), host, log }).then(outcome => log({ session: outcome.outcome, code: outcome.code ?? null }));
+      // One session must never take the executor down: an unexpected failure is logged by its code and the socket dropped.
+      serveAttestedSession({ channel: wsFrameChannel(ws), host, log }).then(outcome => log({ session: outcome.outcome, code: outcome.code ?? null }),
+        error => { log({ session: 'failed', code: typeof error?.code === 'string' ? error.code : null }); ws.terminate(); });
     });
   });
   await new Promise((resolve, reject) => { server.once('error', reject); server.listen(port, address, resolve); });

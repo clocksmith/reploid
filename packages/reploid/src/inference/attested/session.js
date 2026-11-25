@@ -144,7 +144,8 @@ export async function serveAttestedSession({ channel, host, now = Date.now, sess
       certificates: cpu.certificates.map(toBase64Url) }, gpus };
   } catch (error) { return fail('ATTESTED_SESSION_REFUSED', `evidence: ${error.message}`); }
   const evidenceBytes = utf8(JSON.stringify(evidence));
-  await channel.send(frame('evidence', {}, evidenceBytes));
+  // The requester may have left while the evidence was collected; that ends this session and nothing else.
+  try { await channel.send(frame('evidence', {}, evidenceBytes)); } catch (error) { channel.close?.(); return { outcome: 'closed', error: error.message }; }
   log({ stage: 'evidence', bytes: evidenceBytes.length, ms: now() - started, session: `sha256:${toHex(sessionDigest)}` });
 
   let request;

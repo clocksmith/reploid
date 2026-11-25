@@ -1095,7 +1095,8 @@ It runs on top of four host ports:
 - `launch`: from a `reploid.attested-gpu-launch/v1` manifest whose runtime and
   model files are hashed at start. Any mismatch refuses to start.
 
-The executor logs sizes, timings and codes only.
+The executor logs sizes, timings and codes only. A requester that disconnects
+at any point ends its own session and nothing else.
 
 The platform must give the guest a raw CPU report with guest-chosen REPORT_DATA.
 GCP's TDX confidential VMs do (configfs-tsm). Azure's SEV-SNP confidential VMs
@@ -1164,8 +1165,8 @@ confidential split gate.
   the credit hold released or never placed.
 - [`tests/integration/attested-gpu-executor.test.js`](../tests/integration/attested-gpu-executor.test.js)
   runs the executor over a loopback WebSocket with the pilot's requester flow, a
-  streamed loopback runtime, launch measurement, the SNP certificate table and
-  OCSP requests.
+  streamed loopback runtime, a requester that leaves while evidence is being
+  collected, launch measurement, the SNP certificate table and OCSP requests.
 
 The configfs-tsm and NVML collectors have not run on real hardware. The first
 pilot is their first exercise.

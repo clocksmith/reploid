@@ -167,6 +167,17 @@ describe('attested GPU session: every failure is refused before the prompt is se
   });
 });
 
+describe('attested GPU session: the executor side', () => {
+  it('a requester that leaves while evidence is collected ends the session instead of throwing', async () => {
+    const [requester, hostEnd] = createAttestedChannelPair();
+    const served = serveAttestedSession({ channel: hostEnd, host: syntheticHost(world, {}), now: () => world.now });
+    await requester.send({ header: { schema: 'reploid.attested-gpu/v1', kind: 'challenge', nonce: Buffer.alloc(32, 1).toString('base64url'),
+      model: SYNTHETIC_MODEL, launchId: null, blobs: [] }, blobs: [] });
+    requester.close();
+    await expect(served).resolves.toMatchObject({ outcome: 'closed' });
+  });
+});
+
 describe('attested GPU session: after binding', () => {
   it('a response frame altered in transit ends the run with no answer', async () => {
     const [requester, hostEnd] = createAttestedChannelPair();
