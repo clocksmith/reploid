@@ -109,7 +109,12 @@ a safe integer `>= 0`; "positive" is a safe integer `> 0`.
   equal to the entry's position and `weight` positive; `unfinishedTerms`, `null` or
   text 128; `maxUnacknowledgedOutputs` count (this is `K`); `notBefore` and
   `deadline` times with `deadline` after `notBefore`; `releaseWindowMs` positive;
-  `signedAt` time.
+  `signedAt` time. One older shape is also accepted: terms signed before terms
+  carried `K` have every member above except `maxUnacknowledgedOutputs`, and
+  their `unfinishedTerms` must be `null` or
+  `reploid.unfinished-answer/provider-loss-free/v1`. Terms without the member
+  that name any other `unfinishedTerms` are malformed, so terms under the
+  decided rules always sign `K`.
 - **Acceptance** (signer: `participantId`): `schema`; `termsDigest` digest;
   `reservationId` text 160; `attemptId`; `participantId`; `partitionIndex` count;
   `signedAt` time.
@@ -190,8 +195,11 @@ signed in time can still be presented and change the outcome.
    `maxOutputTokens` at most the policy's, `deadline - notBefore` at most
    `maxRequestMs`, and `maxUnacknowledgedOutputs` equal to `K`: the policy's
    `maxUnacknowledgedOutputs`, or for a policy without one the receiver policy's
-   value. With no policy supplied, every attempt that reaches this step is
-   `invalid`.
+   value. Terms of the older shape, with no `maxUnacknowledgedOutputs` member,
+   pass this last check only against a policy that has no
+   `maxUnacknowledgedOutputs` either, and `K` for them is the receiver policy's
+   value; against a policy that publishes `K` they are `invalid`. With no policy
+   supplied, every attempt that reaches this step is `invalid`.
 4. **Records kept.** Acceptances, receipts, acknowledgments and stops are kept
    only when they name the agreed `attemptId`. Receipts must also carry the agreed
    `routeHash` and come from the participant the terms name at their
@@ -287,7 +295,8 @@ signed in time can still be presented and change the outcome.
    - The requester **stopped** when an in-time stop of its own exists. The
      stop's `acknowledged` count is not used.
    - The requester **withheld** when `delivered.count - acknowledged` is greater
-     than the terms' `maxUnacknowledgedOutputs`.
+     than `K` as step 3 fixed it: the terms' `maxUnacknowledgedOutputs`, or for
+     terms of the older shape the receiver policy's value.
    - An answer that did not finish, was not stopped and was not withheld is an
      **unattributed disconnect**: every stage closed, so no provider failure is
      verified (see [Unfinished answers](#unfinished-answers)), and the records
@@ -601,6 +610,13 @@ from both):
   the ledger charged exactly that prefix: its output count equals the smaller of
   `outputs` and the workload's `maxOutputTokens`, and its charge is that count
   at the policy rate.
+
+The first split trades of 2026-11-25 were signed before terms carried `K`.
+Their terms have no `maxUnacknowledgedOutputs` member and name the
+provider-loss-free terms; the replay reads them as the record shapes and step 3
+above describe, with `K` from the receiver policy, and reaches the amounts it
+reached when they were signed
+(`tests/unit/settlement-terms-before-k.test.js`).
 
 ## Checking it
 

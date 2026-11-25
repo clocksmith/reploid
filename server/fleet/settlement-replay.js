@@ -172,10 +172,14 @@ async function replayOne(reservationId, requesterId, group, { policies, at, comp
   }
   // K: the public policy's `maxUnacknowledgedOutputs` when it names one (it is in the policy digest the terms sign),
   // otherwise the stages' receiver policy's value.
-  const bound = Number.isSafeInteger(policy.maxUnacknowledgedOutputs) ? policy.maxUnacknowledgedOutputs : maxUnacknowledgedOutputs;
+  const published = Number.isSafeInteger(policy.maxUnacknowledgedOutputs);
+  const bound = published ? policy.maxUnacknowledgedOutputs : maxUnacknowledgedOutputs;
+  // Terms signed before terms carried K have no such member (settlement-terms.js): K is then the receiver policy's
+  // value, and a policy that publishes K was never theirs.
+  const boundAgrees = Object.hasOwn(agreed, 'maxUnacknowledgedOutputs') ? agreed.maxUnacknowledgedOutputs === bound : !published;
   if (agreed.unit !== policy.unit || agreed.creditsPerOutputToken !== policy.creditsPerOutputToken
     || agreed.maxOutputTokens > policy.maxOutputTokens || agreed.releaseWindowMs !== policy.partitionUnclaimedReleaseMs
-    || ms(agreed.deadline) - ms(agreed.notBefore) > policy.maxRequestMs || agreed.maxUnacknowledgedOutputs !== bound) {
+    || ms(agreed.deadline) - ms(agreed.notBefore) > policy.maxRequestMs || !boundAgrees) {
     return { ...base, status: 'invalid', reason: 'the terms differ from the named policy' };
   }
   const skew = policy.maxClockSkewMs, closesAt = ms(agreed.deadline) + agreed.releaseWindowMs;

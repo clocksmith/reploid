@@ -16,7 +16,7 @@ import {
   isCanonicalParticipantProof, normalizeParticipantPublicKey, participantIdFor, verifyParticipantSignature
 } from '../../shared/vendor/reploid/artifacts/participant-proofs.js';
 import { canonicalize } from '../../shared/vendor/reploid/artifacts/canonical-json.js';
-import { UNFINISHED_ANSWER_TERMS_V2 } from './credit-shares.js';
+import { UNFINISHED_ANSWER_TERMS, UNFINISHED_ANSWER_TERMS_V2 } from './credit-shares.js';
 
 export const SETTLEMENT_TERMS_SCHEMA = 'reploid.settlement-terms/v1';
 export const SETTLEMENT_ACCEPTANCE_SCHEMA = 'reploid.settlement-acceptance/v1';
@@ -26,6 +26,13 @@ export const SETTLEMENT_STOP_SCHEMA = 'reploid.settlement-stop/v1';
 const TERMS_KEYS = Object.freeze(['schema', 'reservationId', 'attemptId', 'routeHash', 'requesterId', 'policyDigest', 'unit',
   'creditsPerOutputToken', 'maxOutputTokens', 'maximum', 'shares', 'unfinishedTerms', 'maxUnacknowledgedOutputs', 'notBefore', 'deadline',
   'releaseWindowMs', 'signedAt']);
+/**
+ * Terms signed before terms carried K (the first split trades of 2026-11-25): every member above except
+ * `maxUnacknowledgedOutputs`. They are read only with the unfinished-answer terms of that time, `null` or the older
+ * provider-loss-free value, so nothing signed under the decided rules can leave K out (docs/settlement-replay.md,
+ * "Record shapes").
+ */
+const TERMS_KEYS_BEFORE_K = Object.freeze(TERMS_KEYS.filter(key => key !== 'maxUnacknowledgedOutputs'));
 const ACCEPTANCE_KEYS = Object.freeze(['schema', 'termsDigest', 'reservationId', 'attemptId', 'participantId', 'partitionIndex', 'signedAt']);
 const STOP_KEYS = Object.freeze(['schema', 'reservationId', 'attemptId', 'requesterId', 'acknowledged', 'signedAt']);
 const DIGEST = /^sha256:[a-f0-9]{64}$/;
@@ -42,7 +49,8 @@ export const policyDigest = policy => digestText(canonicalize(policy));
 export const termsDigest = body => digestText(canonicalPartitionJson(body));
 
 function termsProblem(body) {
-  if (!exact(body, TERMS_KEYS) || body.schema !== SETTLEMENT_TERMS_SCHEMA || !text(body.reservationId, 160) || !text(body.attemptId)
+  const beforeK = exact(body, TERMS_KEYS_BEFORE_K) && (body.unfinishedTerms === null || body.unfinishedTerms === UNFINISHED_ANSWER_TERMS);
+  if (!(beforeK || exact(body, TERMS_KEYS)) || body.schema !== SETTLEMENT_TERMS_SCHEMA || !text(body.reservationId, 160) || !text(body.attemptId)
     || !DIGEST.test(body.routeHash) || !text(body.requesterId) || !DIGEST.test(body.policyDigest) || !text(body.unit, 64)
     || !positive(body.creditsPerOutputToken) || !positive(body.maxOutputTokens)
     || body.maximum !== body.maxOutputTokens * body.creditsPerOutputToken || !Number.isSafeInteger(body.maximum)
@@ -50,7 +58,7 @@ function termsProblem(body) {
     || !body.shares.every((row, index) => exact(row, ['partitionIndex', 'participantId', 'weight']) && row.partitionIndex === index
       && text(row.participantId) && positive(row.weight))
     || !(body.unfinishedTerms === null || text(body.unfinishedTerms, 128))
-    || !Number.isSafeInteger(body.maxUnacknowledgedOutputs) || body.maxUnacknowledgedOutputs < 0
+    || !(beforeK || (Number.isSafeInteger(body.maxUnacknowledgedOutputs) && body.maxUnacknowledgedOutputs >= 0))
     || !time(body.notBefore) || !time(body.deadline) || Date.parse(body.deadline) <= Date.parse(body.notBefore)
     || !positive(body.releaseWindowMs) || !time(body.signedAt)) return 'terms_malformed';
   return null;
