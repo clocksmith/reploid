@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { renderConversationWorkspace, bindConversationWorkspace } from '../../apps/poolday/ui/pool-home/conversation-workspace.js';
+import { openConversation } from '../fixtures/conversation-view.js';
 import { attachmentInput, comparisonSources } from '../../apps/poolday/host/document-comparison.js';
 import { renderPermissionSummary, updatePermissionSummary } from '../../apps/poolday/ui/components/permission-card.js';
 import { createWebSearch } from '../../apps/poolday/host/web-search.js';
@@ -19,28 +19,25 @@ describe('Conversation Send authorization', () => {
     expect(root.querySelector('[data-permission-content] details').open).toBe(true);
   });
   it('Send never authorizes disclosure and rendering never approves a held request', async () => {
-    const root = document.createElement('div'); root.innerHTML = renderConversationWorkspace();
     const model = { id: 'model', name: 'Model', availability: 'ready', localReady: true };
     const thread = { id: 'thread', model, messages: [], attempts: [], grants: [] };
     const state = { selectedId: thread.id, activeThread: thread, threads: [thread], models: [model], runningIds: [], network: {} };
     const approve = vi.fn(), send = vi.fn(async () => ({ status: 'completed' }));
     const listeners = new Set();
-    const dispose = bindConversationWorkspace(root, { getState: () => state,
+    const view = openConversation({ getState: () => state,
       subscribe(fn) { listeners.add(fn); fn(state); return () => listeners.delete(fn); }, approve, send });
     expect(send).not.toHaveBeenCalled(); expect(approve).not.toHaveBeenCalled();
-    expect(root.querySelector('[data-chat-approval]')).toBeNull();
-    root.querySelector('[data-composer-input]').value = 'Hello';
-    root.querySelector('[data-composer-form]').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+    view.send('Hello');
     await vi.waitFor(() => expect(send).toHaveBeenCalledWith('thread', 'Hello', []));
     thread.attempts.push({ id: 'other-attempt', status: 'approval', approval: { id: 'other-preview' } });
     listeners.forEach(fn => fn(state));
     expect(approve).not.toHaveBeenCalled();
-    expect(root.querySelector('[data-remote-permission]')).toBeNull();
-    expect(root.querySelector('[data-composer-area]').hidden).toBe(false);
-    dispose();
+    // A held request without a permission need asks nothing of the person, and the composer stays.
+    expect(view.snapshot().remotePermission).toBeNull();
+    expect(view.composer().send.visible).toBe(true);
+    view.dispose();
   });
   it('With web search on, Send opts the request into retrieval and shows that search is on', async () => {
-    const root = document.createElement('div'); root.innerHTML = renderConversationWorkspace();
     const model = { id: 'model', name: 'Model', availability: 'ready', localReady: true };
     const thread = { id: 'thread', model, messages: [], attempts: [], grants: [] };
     const state = { selectedId: thread.id, activeThread: thread, threads: [thread], models: [model], runningIds: [], network: {} };
@@ -48,11 +45,10 @@ describe('Conversation Send authorization', () => {
     const values = new Map();
     const webSearch = createWebSearch({ storage: { getItem: key => values.get(key) ?? null, setItem: (key, value) => values.set(key, value) } });
     webSearch.configure({ url: 'https://search.example/mcp' }); webSearch.setEnabled(true);
-    const dispose = bindConversationWorkspace(root, { getState: () => state, subscribe(fn) { fn(state); return () => {}; }, send }, { webSearch });
-    expect(root.querySelector('[data-web-search-on]').hidden).toBe(false);
-    root.querySelector('[data-composer-input]').value = 'Hello';
-    root.querySelector('[data-composer-form]').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+    const view = openConversation({ getState: () => state, subscribe(fn) { fn(state); return () => {}; }, send }, { webSearch });
+    expect(view.composer().search).toEqual({ visible: true, pressed: true });
+    view.send('Hello');
     await vi.waitFor(() => expect(send).toHaveBeenCalledWith('thread', 'Hello', [], { retrieval: {} }));
-    dispose();
+    view.dispose();
   });
 });

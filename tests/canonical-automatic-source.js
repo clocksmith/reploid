@@ -89,21 +89,20 @@ try {
   const thread = await session.createThread({ model: mesh.getModels()[0] });
   let result;
   if (database) {
-    const { renderConversationWorkspace, bindConversationWorkspace } = await import('../apps/poolday/ui/pool-home/conversation-workspace.js');
-    document.body.innerHTML = renderConversationWorkspace();
+    // The composer the React product renders: the conversation controller over this session.
+    const { createConversationController } = await import('../apps/poolday/host/decisions/conversation-controller.js');
     let resolve, reject;
     const completion = new Promise((done, failed) => { resolve = done; reject = failed; });
-    disposeView = bindConversationWorkspace(document.body, { ...session, send(...args) {
+    const controller = createConversationController({ ...session, send(...args) {
       const operation = session.send(...args); operation.then(resolve, reject); return operation;
-    } });
-    const input = document.querySelector('[data-composer-input]'); input.value = 'actual requester message';
-    input.dispatchEvent(new Event('input', { bubbles: true }));
-    document.querySelector('[data-composer-form]').dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+    } }, { href: () => location.href });
+    disposeView = () => controller.dispose();
+    controller.setDraft('actual requester message');
+    controller.send();
     // The first remote request asks once for the contributor permission; Allow sends it.
     await new Promise((resolve, reject) => {
       const started = Date.now(), poll = () => {
-        const dialog = document.querySelector('[data-remote-permission]');
-        if (dialog?.open) { dialog.querySelector('[data-remote-permission-allow]').click(); resolve(); }
+        if (controller.getSnapshot().remotePermission) { controller.allowRemote(); resolve(); }
         else if (Date.now() - started > 5000) reject(Error('permission timeout')); else setTimeout(poll, 10);
       };
       poll();
@@ -111,9 +110,9 @@ try {
     result = await completion;
     const saved = await database.read('workspace');
     browserResult = { status: result.status, output: session.getState().activeThread.messages.at(-1).content,
-      visible: document.querySelector('[data-message-stream]').textContent.includes('34'),
+      visible: controller.getSnapshot().messages.some(message => message.content.includes('34')),
       records: saved.publications[thread].records.length, metadataText: saved.workspace.threads[0].messages.at(-1).content,
-      draftCleared: input.value === '', a: f.counters.a, b: f.counters.b };
+      draftCleared: controller.getSnapshot().composer.draft === '', a: f.counters.a, b: f.counters.b };
   } else {
     const completing = session.send(thread, 'actual requester message');
     const pending = await new Promise(resolve => { const stop = session.subscribe(value => {

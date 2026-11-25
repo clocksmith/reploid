@@ -100,7 +100,7 @@ export function modelFamilies(entries) {
   return families.map(family => ({ ...family, members: [family.base, ...family.adapters],
     lead: [family.base, ...family.adapters].reduce((best, entry) => familyRank(entry.model) < familyRank(best.model) ? entry : best).model }));
 }
-const ownGroup = (model, preferNetwork, location) => modelChoiceGroups([model], { preferNetwork, location })[0]?.id;
+export const ownGroup = (model, preferNetwork, location) => modelChoiceGroups([model], { preferNetwork, location })[0]?.id;
 
 /** Native radios keep keyboard selection; the select remains the caller's value port.
  * With `variants`, one radio stands for an exact model/adapter variant and its routes stay with the caller;
@@ -240,11 +240,11 @@ export function bindModelChoices(select, { onInspectProviders } = {}) {
   };
 }
 
-const availabilityLabel = model => ({ ready: 'Ready', cached: 'On this device', busy: 'Busy', loading: 'Preparing', preparing: 'Preparing', unavailable: 'Unavailable' }[model.availability] || '');
+export const availabilityLabel = model => ({ ready: 'Ready', cached: 'On this device', busy: 'Busy', loading: 'Preparing', preparing: 'Preparing', unavailable: 'Unavailable' }[model.availability] || '');
 /** How many computers advertise this whole model now. A distributed route has no single serving computer, so it reports none. */
 export const modelServingComputers = model => model?.partition ? 0 : new Set(model?.providerIds || []).size;
-const computerCountLabel = count => `${count} ${count === 1 ? 'computer' : 'computers'}`;
-const choiceStatus = (model, group, includeCount = true) => {
+export const computerCountLabel = count => `${count} ${count === 1 ? 'computer' : 'computers'}`;
+export const choiceStatus = (model, group, includeCount = true) => {
   if (group === 'network-unavailable') return 'Unavailable';
   if (group === 'download') return 'Download required';
   if (group !== 'shared') return availabilityLabel(model);

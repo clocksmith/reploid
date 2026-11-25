@@ -21,27 +21,3 @@ export function routeAlternatives({ current, model, desktop = null, busy = false
   }
   return offers;
 }
-
-export function updateRouteAlternatives(node, offers) {
-  if (!node) return;
-  const signature = JSON.stringify(offers);
-  if (node.dataset.offers === signature) return;
-  node.dataset.offers = signature;
-  node.hidden = offers.length === 0;
-  const heading = node.ownerDocument.createElement('p');
-  heading.className = 'pool-small pool-muted';
-  heading.textContent = 'Your choice cannot answer right now. Other options:';
-  const rows = offers.map(offer => {
-    const button = node.ownerDocument.createElement('button');
-    button.type = 'button';
-    button.className = 'pool-button btn-ghost pool-stack';
-    button.dataset.routeAlternative = offer.key;
-    const title = node.ownerDocument.createElement('span'), reads = node.ownerDocument.createElement('span');
-    title.textContent = offer.title;
-    reads.className = 'pool-caption pool-muted';
-    reads.textContent = offer.reads;
-    button.append(title, reads);
-    return button;
-  });
-  node.replaceChildren(...(offers.length ? [heading, ...rows] : []));
-}

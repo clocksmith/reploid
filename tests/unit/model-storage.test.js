@@ -1,7 +1,6 @@
 import { expect, it, vi } from 'vitest';
 import { createModelStorage } from '../../apps/poolday/host/model-storage.js';
 import { retainModelStorage, withUnusedModelStorage } from '../../apps/poolday/infrastructure/model-storage-lock.js';
-import { bindModelStorage, renderModelStorage } from '../../apps/poolday/ui/pool-home/model-storage-view.js';
 
 function lockManager() {
   const held = new Map();
@@ -167,14 +166,4 @@ it.each(['tampered identity', 'different model'])('does not trust manifest shard
   });
 });
 
-it('requires a bounded confirmation and keeps removal failures visible', async () => {
-  document.body.innerHTML = renderModelStorage();
-  const storage = { list: vi.fn(async () => [{ id: 'one', name: 'Model one', sizeBytes: 1048576 }]), remove: vi.fn(async () => { throw Error('In use by another tab'); }) };
-  const panel = bindModelStorage(document.body, storage); await panel.refresh();
-  document.querySelector('[aria-label="Remove Model one download"]').click();
-  expect(document.querySelector('[data-storage-dialog]').open).toBe(true); expect(storage.remove).not.toHaveBeenCalled();
-  document.querySelector('[data-storage-confirm]').click();
-  await vi.waitFor(() => expect(document.querySelector('[data-storage-remove-error]').textContent).toBe('In use by another tab'));
-  expect(document.querySelector('[data-storage-dialog]').open).toBe(true);
-  expect(storage.remove).toHaveBeenCalledWith('one'); panel.dispose();
-});
+// The bounded removal confirmation is tested on the React Settings pane (tests/unit/settings-account-data.test.tsx).

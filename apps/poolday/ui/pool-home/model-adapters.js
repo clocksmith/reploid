@@ -50,8 +50,6 @@ export function describeModelChoice(state) {
   };
 }
 
-export const renderAdapterDetails = () => '<div class="chat-model-adapter pool-stack pool-gap-xs" data-model-adapter-details hidden></div>';
-
 const link = (url, text) => url ? `<a href="${escape(url)}" target="_blank" rel="noopener noreferrer">${escape(text)}</a>` : escape(text);
 
 /** The highlighted adapter's purpose, identities, evaluation and availability.

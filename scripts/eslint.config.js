@@ -32,7 +32,6 @@ const browserHarnesses = ['evaluate-document-answers', 'pool-actual-browser-smok
 const cleanedModules = [
   'apps/poolday/host/private-computers.js',
   'apps/poolday/ui/pool-home/network-controls.js',
-  'apps/poolday/ui/pool-home/network-inspector.js',
   'apps/poolday/providers/work-{adapter,provider,generation-completion}.js',
   'packages/reploid/src/adapters/{resident-execution,device-lane,model-adapter}.js',
   'server/{browser-module-references,native-resident-provider,native-whole-model}.js',

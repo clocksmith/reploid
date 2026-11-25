@@ -1,12 +1,13 @@
 import { describe, it, expect, afterEach, vi } from 'vitest';
-import { creditCapText, renderConversationWorkspace, bindConversationWorkspace } from '../../apps/poolday/ui/pool-home/conversation-workspace.js';
+import { creditCapText, createConversationController } from '../../apps/poolday/host/decisions/conversation-controller.js';
 import { createChatSession, CANONICAL_CHAT_MODELS } from '../../apps/poolday/host/chat-session.js';
 import { createChatTestService } from '../fixtures/chat-service.js';
 
 // A paired, online desktop needs no privacy dialog or model picker: the composer sends only to it.
 describe('Paired desktop default', () => {
-  let root, session, dispose;
-  afterEach(async () => { dispose?.(); await session?.close(); root?.remove(); });
+  let controller, session;
+  afterEach(async () => { controller?.dispose(); await session?.close(); });
+  const composer = () => controller.getSnapshot().composer;
 
   const setup = (ownerPairing, extra = {}) => {
     const [model] = CANONICAL_CHAT_MODELS;
@@ -17,10 +18,9 @@ describe('Paired desktop default', () => {
     const inject = state => ({ ...state, ownerPairing, ...(extra.guestAccess ? { guestAccess: extra.guestAccess() } : {}), ...(extra.state ?? {}) });
     session = { ...real, getState: () => inject(real.getState()),
       subscribe: listener => real.subscribe(state => listener(inject(state))), ...(extra.guestJoin ? { guestJoin: extra.guestJoin } : {}) };
-    root = document.createElement('div'); document.body.append(root);
-    root.innerHTML = renderConversationWorkspace();
     const viewState = {};
-    dispose = bindConversationWorkspace(root, session, { viewState });
+    controller = createConversationController(session, { viewState, href: () => location.href,
+      forgetInvite: () => history.replaceState(history.state, '', location.pathname + location.search) });
     real.setCachedModels([]);
     return { model, viewState };
   };
@@ -45,26 +45,21 @@ describe('Paired desktop default', () => {
     expect(viewState.privacy.recipients).toEqual({ kind: 'named', ids: [host] });
     expect(viewState.privacy.computation).toBe('plaintext');
     expect(viewState.chosenModel?.id).toBe(model.id);
-    expect(root.querySelector('[data-composer-send]').disabled).toBe(false);
-    expect(root.textContent).toContain(`Sending to ${host}.`);
+    expect(composer().send.disabled).toBe(false);
+    expect(composer().disclosure).toContain(`Sending to ${host}.`);
   });
 
   it('names an unreachable paired desktop and says how to bring it back, without promising to wake it', () => {
     setup({ status: 'offline', paired: true, canSend: false, hostParticipantId: 'peer:91d1d9293ca2d973191156dc', hostLabel: 'Studio' },
       { peers: [], state: { discoveryPhase: 'observed' } });
-    expect(root.querySelector('[data-model-status]').textContent).toBe('Studio is offline. Open Reploid on Studio.');
-    expect(root.textContent).not.toMatch(/wake/i);
+    expect(composer().status.text).toBe('Studio is offline. Open Reploid on Studio.');
+    expect(JSON.stringify(controller.getSnapshot())).not.toMatch(/wake/i);
   });
 
   describe('a stale tap on the desktop row', () => {
     const host = 'peer:91d1d9293ca2d973191156dc';
-    const tapDesktop = () => {
-      // The row as it was drawn before the desktop's state changed.
-      const row = root.querySelector('[data-execution-choice="desktop"]');
-      row.disabled = false;
-      row.setAttribute('aria-checked', 'false');
-      row.click();
-    };
+    // A tap on the desktop row as it was drawn before the desktop's state changed.
+    const tapDesktop = () => { controller.openSheet(); controller.pickComputer('desktop'); };
     const online = () => ({ status: 'online', paired: true, canSend: true, hostParticipantId: host, hostLabel: 'Studio',
       readyModel: CANONICAL_CHAT_MODELS[0].id, disclosure: { readableBy: `Readable by: ${host}`, notice: `This runs on ${host}.` } });
 
@@ -97,7 +92,7 @@ describe('Paired desktop default', () => {
     expect(location.hash).toBe('');
     expect(viewState.guestInvite.hostPeerId).toBe(host);
     expect(viewState.privacy.recipients).toEqual({ kind: 'named', ids: [host] });
-    expect(root.textContent).toContain('Sending to Studio.');
+    expect(composer().disclosure).toContain('Sending to Studio.');
     history.replaceState(null, '', '/');
   });
 
@@ -109,16 +104,15 @@ describe('Paired desktop default', () => {
       readyModel: CANONICAL_CHAT_MODELS[0].id, error: '' }; return {}; }) };
     const { viewState } = setup({ status: 'unpaired', paired: false, canSend: false, hostParticipantId: null },
       { guestAccess: () => guest, guestJoin });
-    const join = root.querySelector('[data-join-host]');
-    expect(join.hidden).toBe(false);
-    expect(join.textContent).toBe('Join Studio');
-    expect(root.querySelector('[data-composer-send]').disabled).toBe(true);
-    join.click();
+    expect(composer().nextAction).toBe('join');
+    expect(composer().nextLabels.join).toBe('Join Studio');
+    expect(composer().send.disabled).toBe(true);
+    controller.joinHost();
     expect(guestJoin.join).toHaveBeenCalledWith({ hostPeerId: host, token, hostLabel: 'Studio', roomId: 'reploid-swarm-owner-abc' });
     await vi.waitFor(() => expect(viewState.guestInvite).toBeNull());
-    expect(join.hidden).toBe(true);
+    expect(composer().nextAction).not.toBe('join');
     expect(viewState.privacy.recipients).toEqual({ kind: 'named', ids: [host] });
-    expect(root.querySelector('[data-composer-send]').disabled).toBe(false);
+    expect(composer().send.disabled).toBe(false);
     history.replaceState(null, '', '/');
   });
 });

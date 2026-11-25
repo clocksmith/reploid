@@ -3,7 +3,7 @@
 // (partition-grants.js) and records what would leave the device. Presentation and authorization, not inference.
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { CANONICAL_CHAT_MODELS, createChatSession } from '../../apps/poolday/host/chat-session.js';
-import { renderConversationWorkspace, bindConversationWorkspace } from '../../apps/poolday/ui/pool-home/conversation-workspace.js';
+import { openConversation } from '../fixtures/conversation-view.js';
 import { remotePermissionWording } from '../../apps/poolday/ui/pool-home/remote-permission.js';
 import { orderedPartitionDisclosure } from '../../packages/reploid/src/mesh/partitions/partition-grants.js';
 import { createChatTestService } from '../fixtures/chat-service.js';
@@ -57,16 +57,15 @@ function openSession({ storage = memory(), partitions = orderedRoute(), ...optio
   cleanups.push(() => session.close());
   return { session, partitions, storage };
 }
+// The conversation controller the React composer renders (host/decisions/conversation-controller.js). The Settings
+// switch "Allow network answers" calls setRemoteAnswersEnabled; `toggle` presses it.
 function mount(session) {
-  const root = document.createElement('div'); root.innerHTML = renderConversationWorkspace(); document.body.append(root);
-  const dispose = bindConversationWorkspace(root, session); cleanups.push(async () => dispose());
-  const find = selector => root.querySelector(selector);
-  return { root, find,
-    submit(text) {
-      find('[data-composer-input]').value = text;
-      find('[data-composer-input]').dispatchEvent(new Event('input', { bubbles: true }));
-      find('[data-composer-form]').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
-    } };
+  const view = openConversation(session); cleanups.push(async () => view.dispose());
+  return { ...view,
+    permission: () => view.snapshot().remotePermission,
+    error: () => view.composer().error,
+    toggle: () => session.setRemoteAnswersEnabled(!session.getState().remoteAnswersEnabled),
+    submit: text => view.send(text) };
 }
 const lastAttempt = session => session.getState().activeThread?.attempts.at(-1);
 const completed = (session, count) => vi.waitFor(() => {
@@ -79,14 +78,14 @@ describe('Contributor execution without permission popups', () => {
     const { session, partitions } = openSession({}), view = mount(session);
     const thread = session.createThread({ model, privacy: OPEN_POLICY });
     expect(session.getState().remoteAnswersEnabled).toBe(true);
-    expect(view.find('[data-remote-answers-toggle]').getAttribute('aria-checked')).toBe('true');
+    expect(session.getState().remoteAnswersEnabled).toBe(true);
     expect(session.getState().remotePermissions).toEqual([]);
     expect(partitions.disclosed).toEqual([]);
     session.select(thread);
     expect(session.getState().remotePermissions).toEqual([]);
     view.submit('Answer using the network');
     const [attempt] = await completed(session, 1);
-    expect(view.find('[data-remote-permission]')).toBeNull();
+    expect(view.permission()).toBeNull();
     const [permission] = session.getState().remotePermissions;
     expect(permission.wording.id).toBe('reploid.remote-contributor-setting');
     expect(attempt.authorization).toMatchObject({ permissionId: permission.id, recipients: STAGES });
@@ -95,18 +94,18 @@ describe('Contributor execution without permission popups', () => {
 
   it('persists an explicit off choice before any use, and on restores prompt-free network answers', async () => {
     const first = openSession({}), view = mount(first.session);
-    view.find('[data-remote-answers-toggle]').click();
+    view.toggle();
     await vi.waitFor(() => expect(first.session.getState().remoteAnswersEnabled).toBe(false));
     const second = openSession({ storage: first.storage }), again = mount(second.session);
     expect(second.session.getState().remoteAnswersEnabled).toBe(false);
     second.session.createThread({ model, privacy: OPEN_POLICY }); again.submit('Ask first');
-    await vi.waitFor(() => expect(again.root.textContent).toContain('Network answers are off.'));
-    expect(again.find('[data-remote-permission]')).toBeNull();
+    await vi.waitFor(() => expect(again.error()).toContain('Network answers are off.'));
+    expect(again.permission()).toBeNull();
     expect(second.partitions.disclosed).toEqual([]);
-    again.find('[data-remote-answers-toggle]').click();
+    again.toggle();
     await vi.waitFor(() => expect(second.session.getState().remoteAnswersEnabled).toBe(true));
     again.submit('Allowed now'); await completed(second.session, 1);
-    expect(again.find('[data-remote-permission]')).toBeNull();
+    expect(again.permission()).toBeNull();
   });
 
   it('preserves legacy Turn off records when no new preference has been stored', async () => {
@@ -144,7 +143,7 @@ describe('Contributor execution without permission popups', () => {
     const reloaded = openSession({ storage, partitions }), again = mount(reloaded.session);
     again.submit('After reload'); await completed(reloaded.session, 3);
     expect(partitions.disclosed.at(-1).at(-1).content).toBe('After reload');
-    expect(again.find('[data-remote-permission]')).toBeNull();
+    expect(again.permission()).toBeNull();
   });
 
   it('binds a new network on Send without reusing another network record or asking', async () => {
@@ -155,7 +154,7 @@ describe('Contributor execution without permission popups', () => {
     const view = mount(second.session); second.session.createThread({ model, privacy: OPEN_POLICY }); view.submit('Room B');
     await completed(second.session, 2);
     expect(second.session.getState().remotePermissions.map(p => p.networkId)).toEqual(['room-a', 'room-b']);
-    expect(view.find('[data-remote-permission]')).toBeNull();
+    expect(view.permission()).toBeNull();
   });
 
   it('turning network answers off blocks new work inline and preserves already admitted work', async () => {
@@ -164,15 +163,15 @@ describe('Contributor execution without permission popups', () => {
     const { session } = openSession({ partitions }), view = mount(session);
     session.createThread({ model, privacy: OPEN_POLICY }); view.submit('Long answer');
     await vi.waitFor(() => expect(partitions.disclosed).toHaveLength(1));
-    view.find('[data-remote-answers-toggle]').click();
+    view.toggle();
     await vi.waitFor(() => expect(session.getState().remoteAnswersEnabled).toBe(false));
     expect(lastAttempt(session).status).toBe('executing');
     release(); await completed(session, 1);
     view.submit('Next question');
-    await vi.waitFor(() => expect(view.root.textContent).toContain('Network answers are off.'));
+    await vi.waitFor(() => expect(view.error()).toContain('Network answers are off.'));
     expect(partitions.disclosed).toHaveLength(1);
-    expect(view.find('[data-composer-input]').value).toBe('Next question');
-    expect(view.find('[data-remote-permission]')).toBeNull();
+    expect(view.composer().draft).toBe('Next question');
+    expect(view.permission()).toBeNull();
   });
 
   it('host callers also fail immediately when off instead of waiting for a hidden dialog', () => {
@@ -190,7 +189,7 @@ describe('Contributor execution without permission popups', () => {
     view.submit('Stay here');
     await vi.waitFor(() => expect(lastAttempt(session)?.status).toBe('completed'), { timeout: 4000 });
     expect(lastAttempt(session)).toMatchObject({ approval: null, authorization: null, execution: { placement: 'local-webgpu' } });
-    expect(view.find('[data-remote-permission]')).toBeNull(); expect(session.getState().remotePermissions).toEqual([]);
+    expect(view.permission()).toBeNull(); expect(session.getState().remotePermissions).toEqual([]);
   });
 
   it('reconnects a returning provider by cryptographic identity without re-asking, and requires fresh consent when another machine would receive the prompt', async () => {
@@ -255,7 +254,7 @@ describe('Contributor execution without permission popups', () => {
     await reloaded.session.send(thread, 'Turn two after provider reconnect');
     await completed(reloaded.session, 2);
     expect(statuses).not.toContain('approval');
-    expect(view.find('[data-remote-permission]')).toBeNull();
+    expect(view.permission()).toBeNull();
     expect(disclosed).toHaveLength(2);
     expect(disclosed[1]).toMatchObject({ recipientIdentity: providerKeyA, providerId: 'rtc-conn-2' });
     expect(reloaded.session.getState().remotePermissions).toHaveLength(1);
@@ -265,13 +264,12 @@ describe('Contributor execution without permission popups', () => {
     const thirdTurn = reloaded.session.send(thread, 'Turn three with another machine');
     await vi.waitFor(() => expect(lastAttempt(reloaded.session)?.status).toBe('approval'));
     expect(disclosed).toHaveLength(2);
-    const dialog = view.find('[data-remote-permission]');
-    expect(dialog).not.toBeNull();
-    expect(dialog.textContent).toContain(providerKeyB);
-    view.find('[data-remote-permission-allow]').click();
+    await vi.waitFor(() => expect(view.permission()).not.toBeNull());
+    expect(view.permission().recipient).toContain(providerKeyB);
+    view.controller.allowRemote();
     await thirdTurn;
     await completed(reloaded.session, 3);
-    expect(view.find('[data-remote-permission]')).toBeNull();
+    expect(view.permission()).toBeNull();
     expect(disclosed).toHaveLength(3);
     expect(disclosed[2].recipientIdentity).toBe(providerKeyB);
     expect(reloaded.session.getState().remotePermissions).toHaveLength(2);

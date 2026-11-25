@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { routeAlternatives } from '../../apps/poolday/ui/pool-home/route-alternatives.js';
-import { renderConversationWorkspace, bindConversationWorkspace } from '../../apps/poolday/ui/pool-home/conversation-workspace.js';
+import { openConversation } from '../fixtures/conversation-view.js';
 import { createChatSession, CANONICAL_CHAT_MODELS } from '../../apps/poolday/host/chat-session.js';
 import { createChatTestService } from '../fixtures/chat-service.js';
 
@@ -39,8 +39,8 @@ describe('routes offered when the chosen tier cannot answer', () => {
 });
 
 describe('taking an offer', () => {
-  let root, session, dispose;
-  afterEach(async () => { dispose?.(); await session?.close(); root?.remove(); });
+  let view, session;
+  afterEach(async () => { view?.dispose(); await session?.close(); });
 
   it('a pinned conversation widens only when the person picks the offer, and nothing is sent', async () => {
     const host = 'peer:91d1d9293ca2d973191156dc', [catalog] = CANONICAL_CHAT_MODELS;
@@ -54,23 +54,21 @@ describe('taking an offer', () => {
     let sent = 0;
     session = { ...real, getState: () => inject(real.getState()), subscribe: listener => real.subscribe(state => listener(inject(state))),
       send: (...args) => { sent += 1; return real.send(...args); } };
-    root = document.createElement('div'); document.body.append(root);
-    root.innerHTML = renderConversationWorkspace();
     const viewState = {};
-    dispose = bindConversationWorkspace(root, session, { viewState });
+    view = openConversation(session, { viewState });
     real.setCachedModels([]);
     expect(viewState.privacy.recipients).toEqual({ kind: 'named', ids: [host] });
-    expect(root.querySelector('[data-route-alternatives]').hidden).toBe(true);
+    expect(view.composer().routeAlternatives).toEqual([]);
 
     Object.assign(pairing, { status: 'offline', canSend: false });
     real.setCachedModels([]);
-    const offers = root.querySelector('[data-route-alternatives]');
-    expect(offers.hidden).toBe(false);
+    const offers = view.composer().routeAlternatives;
+    expect(offers.length).toBeGreaterThan(0);
     // Being offered a lower tier changes nothing.
     expect(viewState.privacy.recipients).toEqual({ kind: 'named', ids: [host] });
-    const contributors = offers.querySelector('[data-route-alternative="contributors"]');
-    expect(contributors.textContent).toContain('can read this conversation');
-    contributors.click();
+    const contributors = offers.find(offer => offer.key === 'contributors');
+    expect(contributors.reads).toContain('can read this conversation');
+    view.controller.takeRouteAlternative('contributors');
     await new Promise(resolve => setTimeout(resolve, 0));
     expect(viewState.privacy.recipients).toEqual({ kind: 'open', ids: [] });
     expect(sent).toBe(0);

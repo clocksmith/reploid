@@ -32,7 +32,7 @@ export function projectExecutionActivity(state) {
 const SUPPLY_LABELS = { local: 'This device', mesh: 'Mesh', hosted: 'Hosted', unknown: 'Executor not verified' };
 const supplyLabel = part => part?.supply === 'mixed' ? `Mixed: ${part.classes.map(name => SUPPLY_LABELS[name]).join(' + ')}`
   : SUPPLY_LABELS[part?.supply] ?? null;
-const supplyCaption = (view, supply) => view.execution?.privateDelegation && view.nodes.length
+export const supplyCaption = (view, supply) => view.execution?.privateDelegation && view.nodes.length
   ? (view.split ? 'split across ' : '') + view.nodes.map(node => node.label).join(' + ') : view.local || supply.answer === 'This device' ? 'This device'
   : supply.answer === 'Hosted' || view.attempt?.execution?.provider === 'hosted' ? 'Hosted'
   : supply.answer === 'Executor not verified' ? 'Executor not verified'

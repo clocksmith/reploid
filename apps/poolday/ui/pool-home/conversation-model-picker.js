@@ -1,7 +1,5 @@
 /** Model-picker presentation only. Selection and execution remain with the caller. */
-import { isDownloadableBaseModel, updateModelSelect, modelExecutionState, modelFacts, modelVariantKey, unavailableModelChoice } from '../components/model-select.js';
-import { updateModelProviders } from './model-providers.js';
-import { updateAdapterDetails, describeModelChoice } from './model-adapters.js';
+import { isDownloadableBaseModel, modelExecutionState, modelVariantKey } from '../components/model-select.js';
 import { allowsOpenPlaintext } from './privacy-controls.js';
 
 export const canDownloadModelHere = (model, state, canDownload) => canDownload && isDownloadableBaseModel(model)
@@ -125,75 +123,4 @@ export function describeAnswerChoice(model, location, { state = {}, block = null
   return stuck('No shared computer can answer with this model right now. Choose a model marked Ready.');
 }
 
-const computerState = (choice, { state, selected, locked, canDownload, block }) => {
-  if (choice === 'desktop') {
-    return { online: 'Ready', pairing: 'Connecting…', joining: 'Connecting…', connecting: 'Connecting…', offline: 'Offline',
-      invited: 'Tap Join' }[locked?.status] || 'Not connected';
-  }
-  if (choice === 'local') {
-    if (runsHere(selected)) return 'Ready';
-    return selected && canDownloadModelHere(selected, state, canDownload) ? 'Download needed' : 'Runs stored models';
-  }
-  if (block === 'own-devices') return 'Off · Only your devices';
-  if (runsOnNetwork(selected)) return 'Ready';
-  if ((state.models || []).some(runsOnNetwork)) return 'Not serving this model';
-  return state.discoveryPhase === 'searching' ? 'Finding computers…' : 'None available';
-};
 
-// The list keeps one fixed order whichever computer is pressed: where each model runs is its group.
-// These groups stay in place while discovery runs, so the list never jumps as capacity arrives.
-const stableGroups = state => ({ local: 'No model is stored on this device.',
-  shared: state.discoveryPhase === 'searching' ? 'Finding computers…' : 'No contributor shares a model right now.' });
-
-/** Renders the sheet for the caller's staged model and computer. Returns the staged model and what the primary does. */
-export function updateConversationModelPicker({ find, choices, state, model: pickerModel, location: pickerLocation,
-  touched: pickerTouched, changing: changingModel, selectedId, canDownload, destination = null, locked = null,
-  block = null, sending = false, implied = false, issue }) {
-  const keyFor = model => model?.selectionId || model?.id;
-  if (!pickerTouched) pickerModel = (state.models || []).find(model => keyFor(model) === selectedId) || pickerModel;
-  const models = [...(state.models || [])];
-  const selected = (state.models || []).find(model => keyFor(model) === keyFor(pickerModel));
-  if (pickerModel && !models.some(model => keyFor(model) === keyFor(pickerModel))) {
-    models.push(selected || unavailableModelChoice(pickerModel));
-  }
-  const side = sheetSide(pickerLocation);
-  find('[data-next-model]').disabled = changingModel;
-  updateModelSelect(find('[data-next-model]'), models, { value: keyFor(pickerModel), showAvailability: true, grouped: true, preferNetwork: false });
-  // On this device, stored and downloadable models lead their own groups, so the chosen row always sits under a
-  // heading that agrees with the chosen computer.
-  choices.update(models, { grouped: true, preferNetwork: false, location: side === 'local' ? 'local' : 'auto', variants: true, compact: true,
-    describe: describeModelChoice(state), keep: stableGroups(state) });
-  // Exact variants remain selectable; provider and format facts stay in the disclosure.
-  updateAdapterDetails(find('[data-model-picker]'), state, selected || pickerModel);
-  updateModelProviders(find('[data-model-picker]'), state, selected || pickerModel, { selectedId: keyFor(pickerModel), disabled: changingModel });
-  find('[data-model-facts]').textContent = (selected || pickerModel) ? describeModelChoice(state)(selected || pickerModel).facts || modelFacts(selected || pickerModel) : '';
-  // One row per computer: this device, the paired or invited computer, and contributors. Exactly one is pressed,
-  // and it is always the side the staged model is judged against.
-  const pressed = side === 'local' ? 'local' : destination === 'desktop' && locked ? 'desktop' : 'network';
-  for (const button of find('[data-execution-location]').querySelectorAll('[data-execution-choice]')) {
-    const choice = button.dataset.executionChoice;
-    if (choice === 'desktop') {
-      button.hidden = !locked;
-      if (locked) button.querySelector('[data-computer-desktop-name]').textContent = locked.label;
-    }
-    if (choice === 'network') button.hidden = !!locked?.guest;
-    button.querySelector('[data-computer-state]').textContent = computerState(choice, { state, selected, locked, canDownload, block });
-    button.setAttribute('aria-checked', String(choice === pressed));
-    // A radio group is one tab stop: the chosen computer takes focus, arrows move between the others.
-    button.tabIndex = choice === pressed ? 0 : -1;
-    button.disabled = changingModel || !!state.activeThread?.closed || (state.runningIds || []).includes(state.selectedId);
-  }
-  const outcome = describeAnswerChoice(selected || (pickerModel ? unavailableModelChoice(pickerModel) : null), side,
-    { state, block, canDownload, choice: pressed === 'desktop' ? 'desktop' : null, locked, sending, implied });
-  // The reason is one muted line beneath the chosen model; its fix is the sheet's primary button, never a second link.
-  const status = issue.querySelector('[data-next-model-status]');
-  const host = choices.checkedChoice()?.closest('[data-choice-row]') || find('[data-model-picker] .chat-model-choices');
-  if (host && issue.parentElement !== host) host.append(issue);
-  status.textContent = outcome.issue || '';
-  issue.hidden = !outcome.issue;
-  const commit = find('[data-change-model]');
-  commit.textContent = outcome.label;
-  commit.dataset.answerAction = outcome.action || '';
-  commit.disabled = changingModel || !outcome.action;
-  return { model: pickerModel, outcome };
-}

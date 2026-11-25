@@ -13,7 +13,7 @@ This tree.
 
 ## Contracts
 Inputs: [conversation state](../../../../packages/reploid/src/chat/CATSCAN.md), [host](../../host/CATSCAN.md), [runtime](../../pool/CATSCAN.md), [room projection](room-projection.js).
-Outputs: [production](production.js), [conversations](conversation-workspace.js), [Room-1](room-view.js).
+Outputs: [Room-1](room-view.js), specialist routes.
 
 ## Invariants
 - Shared models first. Contribution setup/history live in Computers; reviewed setup shares while open.
@@ -28,7 +28,7 @@ Outputs: [production](production.js), [conversations](conversation-workspace.js)
 - Connection/cached sharing default on; downloads require approval. Preserve training consent, bounded rounds, unadopted results, provenance, budgets, adapter compatibility and separate Room-1 administration.
 
 ## Acceptance
-Evidence: [UI](../../../../tests/unit/production-surface.test.js), [conversations](../../../../tests/e2e/chat-material.spec.js), [CSS](../../../../scripts/verify-poolday-css-layers.js), desktop/mobile checks. Qualification separate.
+Evidence: [UI](../../../../tests/unit/production-surface.test.tsx), [conversations](../../../../tests/e2e/chat-material.spec.js), [CSS](../../../../scripts/verify-poolday-css-layers.js), desktop/mobile checks. Qualification separate.
 
 ## Non-goals
 Primary research administration, reputation or protocol internals.

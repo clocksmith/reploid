@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { LAB_SURFACE_IDS, SURFACE_INTENTS } from '../../shared/config/surface-intents.js';
 import { bindPoolRouteControls } from '../../apps/poolday/ui/pool-home/navigation.js';
 import { renderAppShortcuts } from '../../apps/poolday/ui/pool-home/shell-view.js';
-import { renderNetworkInspector } from '../../apps/poolday/ui/pool-home/network-inspector.js';
+import { WORKSPACE_PATHS } from '../../apps/poolday/ui/pool-home/navigation.js';
 
 import {
   POOLDAY_NAV_ROUTES,
@@ -89,9 +89,8 @@ describe('poolday home navigation', () => {
   });
 
   it('uses Reploid publicly and keeps model evidence out of the main form', () => {
-    // The workspace brand opens the left Threads drawer (owner clarification, November 6, 2026);
-    // focused routes keep the brand as their way home.
-    for (const [route, brandLabel] of [['home', 'Threads'], ['compute', 'Reploid home'], ['records', 'Reploid home']]) {
+    // Focused routes keep the brand as their way home. The workspace (the React product) leads with Threads instead.
+    for (const [route, brandLabel] of [['compute', 'Reploid home'], ['records', 'Reploid home']]) {
       const host = document.createElement('div');
       host.innerHTML = renderNav(route) + renderRoutePanel(route) + renderRouteDetail(route);
       // The workspace toggle is named by its visible label; the focused routes' icon-only brand by aria-label.
@@ -195,27 +194,16 @@ describe('poolday home navigation', () => {
     });
   });
 
-  it('keeps the workspace and its network and change controls reachable', () => {
-    // Home and the conversation render no app bar: the workspace toolbar carries the
-    // brand and the inspector's Settings pane carries the Settings menu.
+  it('leaves the workspace to the React product and keeps the vanilla shell to the focused routes', () => {
+    // Home and the conversation are the React product (index.html loads /ui/react/app.js there); the vanilla
+    // shell renders no app bar or panel for them, and its links reach them as pages of their own.
+    expect(WORKSPACE_PATHS).toEqual(['/', '/network']);
     expect(renderNav('home')).toBe(''); expect(renderNav('network')).toBe('');
-    const host = document.createElement('div');
-    host.innerHTML = renderNetworkInspector({ apps: renderAppShortcuts('home') }) + renderRoutePanel('home');
-    const links = [...host.querySelectorAll('[data-inspector-pane="settings"] .pool-nav-link')];
-    expect(links.map(link => link.textContent)).toEqual(['Changes']);
-    expect(links.map(link => new URL(link.href).pathname)).toEqual(['/improve']);
-    expect(links.every(link => link.hasAttribute('data-pool-route-link'))).toBe(true);
-    expect(host.querySelector('[data-inspector-pane="settings"] [data-open-network]')).toBeNull();
-    expect(host.querySelector('[data-chat-workspace]')).not.toBeNull();
-    // The brand is the Threads drawer toggle: one URL-backed link to the left drawer.
-    const brand = host.querySelector('[data-chat-rail-toolbar] .pool-primary-brand');
-    expect(brand.textContent.trim()).toBe('Threads');
-    expect(new URL(brand.href).searchParams.get('view')).toBe('threads');
-    expect(host.querySelectorAll('[data-toggle-thread-rail]')).toHaveLength(1);
-    expect(host.querySelector('[data-toggle-thread-rail]')).toBe(brand);
-    const threads = host.querySelector('[data-threads-dialog]');
-    expect(host.querySelector(`#${threads.getAttribute('aria-labelledby')}`).textContent).toBe('Threads');
-    expect(host.querySelector('[data-inspector-section="settings"]')).not.toBeNull();
+    expect(renderRoutePanel('home')).toBe(''); expect(renderRoutePanel('network')).toBe('');
+    // A focused route's settings menu still reaches Changes, Examples, Experiments and the Network computers.
+    const links = [...new DOMParser().parseFromString(renderAppShortcuts('records'), 'text/html').querySelectorAll('[data-pool-route-link]')];
+    expect(links.map(link => new URL(link.getAttribute('href'), 'http://localhost').pathname)).toEqual(['/improve', '/examples', '/experiments']);
+    expect(renderAppShortcuts('records')).toContain('data-open-network');
   });
 
   it('keeps a path back from focused routes without legacy drawer chrome', () => {
@@ -498,14 +486,3 @@ it('shows only changes awaiting approval and clears the review indicator after d
   expect(root.querySelector('[data-pool-changes]').dataset.reviewNeeded).toBe('false');
 });
 
-it('updates the review indicator inside the inspector settings pane where the workspace routes keep it', () => {
-  const root = document.createElement('div'); root.innerHTML = renderNetworkInspector({ apps: renderAppShortcuts('network') });
-  expect(root.querySelector('[data-pool-settings]')).toBeNull();
-  updateChangesControl(root, [{ status: 'awaiting-approval' }, { status: 'evaluating' }]);
-  const control = root.querySelector('[data-inspector-pane="settings"] [data-pool-changes]');
-  expect(control.querySelector('[data-pool-change-count]').textContent).toBe('1');
-  expect(control.querySelector('[data-pool-change-count]').hidden).toBe(false);
-  expect(control.getAttribute('aria-label')).toBe('Changes: 1 awaiting review');
-  updateChangesControl(root, []);
-  expect(control.querySelector('[data-pool-change-count]').hidden).toBe(true);
-});

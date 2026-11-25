@@ -1,5 +1,3 @@
-import { renderToggleRow } from '../components/choices.js';
-
 /** Network-answer settings and retained permission-record wording.
  * The host stores and enforces authorization; this view reports the person's choice. */
 
@@ -23,20 +21,4 @@ export function remotePermissionText(need) {
 export function remotePermissionWording(need) {
   const text = remotePermissionText(need);
   return { ...REMOTE_PERMISSION_WORDING, text: ['title', 'what', 'who', 'scope'].map(key => text[key]).join('\n\n') };
-}
-
-export function renderRemotePermissionSettings() {
-  return `<section class="pool-stack pool-gap-xs" data-remote-permission-settings aria-labelledby="remote-permission-title">
-    ${renderToggleRow({ id: 'remote-permission', title: 'Allow network answers', icon: 'peers', statusAttrs: { 'data-remote-permission-status': true, role: 'status' },
-      switchAttrs: { 'data-remote-answers-toggle': true } })}
-  </section>`;
-}
-
-/** The network preference is distinct from routing and from sharing this device's capacity. */
-export function updateRemotePermissionSettings(root, state) {
-  const enabled = state.remoteAnswersEnabled === true;
-  root.querySelector('[data-remote-answers-toggle]').setAttribute('aria-checked', String(enabled));
-  root.querySelector('[data-remote-permission-status]').textContent = enabled
-    ? "Your messages and conversation context can be sent to contributors' computers on this network."
-    : 'Network answers are off. Turn this on to use contributors, or choose this device.';
 }

@@ -2,7 +2,7 @@ import { createExecutionPolicy } from '../../shared/vendor/reploid/chat/executio
 import { afterEach, expect, it, vi } from 'vitest';
 import { createChatSession, CANONICAL_CHAT_MODELS } from '../../apps/poolday/host/chat-session.js';
 import { createChatTestService } from '../fixtures/chat-service.js';
-import { renderConversationWorkspace, bindConversationWorkspace } from '../../apps/poolday/ui/pool-home/conversation-workspace.js';
+import { openConversation } from '../fixtures/conversation-view.js';
 import { AUTO_DOWNLOAD_STORAGE_KEY } from '../../apps/poolday/ui/pool-home/auto-download.js';
 const cleanups = [];
 const observedDiscovery = {
@@ -12,6 +12,8 @@ const observedDiscovery = {
 afterEach(async () => { for (const cleanup of cleanups.splice(0).reverse()) await cleanup(); vi.useRealTimers(); localStorage.removeItem(AUTO_DOWNLOAD_STORAGE_KEY); });
 // Legacy automatic-download preferences cannot bypass the explicit size-and-consent path.
 const openPolicy = createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'open', ids: [] } });
+// The first-visit decisions of the conversation controller (host/decisions/conversation-controller.js), which the
+// React composer and "Answer on" sheet render.
 function fixture({ automatic = false, viewState, fresh = false } = {}) {
   localStorage.setItem(AUTO_DOWNLOAD_STORAGE_KEY, automatic ? 'on' : 'off');
   const session = createChatSession({ storage: null, service: createChatTestService(), models: [CANONICAL_CHAT_MODELS[0]] });
@@ -22,9 +24,9 @@ function fixture({ automatic = false, viewState, fresh = false } = {}) {
   const api = { ...session, getState: () => state, subscribe: callback => { listeners.add(callback); callback(state); return () => listeners.delete(callback); },
     getModelDownload: vi.fn(async id => ({ id, sizeBytes: 123000000 })), downloadLocalModel: vi.fn(async () => {}),
     cancelModelDownload: vi.fn(), connect: vi.fn(async () => {}) };
-  const root = document.createElement('div'); root.innerHTML = renderConversationWorkspace(); document.body.append(root);
-  const dispose = bindConversationWorkspace(root, api, { viewState: { ...(fresh ? {} : { privacy: openPolicy }), ...viewState } }); cleanups.push(() => { dispose(); root.remove(); });
-  return { root, api, find: selector => root.querySelector(selector),
+  const view = openConversation(api, { viewState: { ...(fresh ? {} : { privacy: openPolicy }), ...viewState } });
+  cleanups.push(() => view.dispose());
+  return { api, view, c: view.controller,
     publish(update) { state = { ...state, ...update }; listeners.forEach(callback => callback(state)); }, state: () => state };
 }
 it('asks once where to run before a first visitor prompt can reach a network provider', async () => {
@@ -32,115 +34,109 @@ it('asks once where to run before a first visitor prompt can reach a network pro
   const model = { ...f.state().models[0], availability: 'ready', networkAvailability: 'ready',
     providerIds: ['peer'], reachableProviderIds: ['peer'] };
   f.publish({ ...observedDiscovery, models: [model] });
-  const send = f.find('[data-composer-send]');
   // Send is available, but nothing is sent until the visitor picks a computer in the one sheet.
-  expect(send.disabled).toBe(false);
-  f.find('[data-composer-input]').value = 'First question';
-  f.find('[data-composer-form]').dispatchEvent(new Event('submit', { cancelable: true }));
-  expect(f.find('[data-model-picker]').open).toBe(true);
-  expect(f.find('[data-picker-title]').textContent).toBe('Where should this run?');
-  expect(f.find('[data-execution-choice=local]').getAttribute('aria-checked')).toBe('true');
+  expect(f.view.composer().send.disabled).toBe(false);
+  f.view.send('First question');
+  expect(f.view.sheet().open).toBe(true);
+  expect(f.view.sheet().title).toBe('Where should this run?');
+  expect(f.view.checkedComputer()).toBe('local');
   // A first visitor starts on this device with a model it can run there: its download. Never a network-only pair.
-  expect(f.find('[data-next-model-status]').textContent).toMatch(/^Not on this device yet/);
-  expect(f.find('[data-change-model]').textContent).toBe(`Download ${model.name}`);
-  expect(f.find('[data-change-model]').disabled).toBe(false);
+  expect(f.view.sheet().outcome.issue).toMatch(/^Not on this device yet/);
+  expect(f.view.sheet().outcome.label).toBe(`Download ${model.name}`);
+  expect(f.view.sheet().outcome.disabled).toBe(false);
   expect(f.api.connect).not.toHaveBeenCalled();
-  f.find('[data-execution-choice=network]').click();
-  await vi.waitFor(() => expect(f.find('[data-execution-choice=network]').getAttribute('aria-checked')).toBe('true'));
+  f.c.pickComputer('network');
+  await vi.waitFor(() => expect(f.view.checkedComputer()).toBe('network'));
   // The sheet was opened by Send, so its button says what pressing it does.
-  expect(f.find('[data-change-model]').textContent).toBe('Send to contributors');
+  expect(f.view.sheet().outcome.label).toBe('Send to contributors');
 });
 it('waits calmly when a first visitor picks contributors before discovery settles, then offers Send for the model they serve', async () => {
   const f = fixture({ fresh: true });
   const [first, second] = CANONICAL_CHAT_MODELS;
   f.publish({ models: [first, second] });
-  const chosen = f.find('[data-active-model-select]').value;
+  const chosen = f.view.composer().chip.selectionId;
   const served = [first, second].find(model => (model.selectionId || model.id) !== chosen);
-  f.find('[data-composer-input]').value = 'First question';
-  f.find('[data-composer-form]').dispatchEvent(new Event('submit', { cancelable: true }));
-  expect(f.find('[data-picker-title]').textContent).toBe('Where should this run?');
-  f.find('[data-execution-choice=network]').click();
-  await vi.waitFor(() => expect(f.find('[data-execution-choice=network]').getAttribute('aria-checked')).toBe('true'));
+  f.view.send('First question');
+  expect(f.view.sheet().title).toBe('Where should this run?');
+  f.c.pickComputer('network');
+  await vi.waitFor(() => expect(f.view.checkedComputer()).toBe('network'));
   // No contributor is known yet, and none is known absent: no download offer and no "No contributor serves" verdict.
-  const status = f.find('[data-next-model-status]'), primary = f.find('[data-change-model]');
-  expect(status.textContent).toMatch(/^Finding computers/);
-  expect(primary.textContent).toBe('Send to contributors');
-  expect(primary.disabled).toBe(true);
+  expect(f.view.sheet().outcome.issue).toMatch(/^Finding computers/);
+  expect(f.view.sheet().outcome.label).toBe('Send to contributors');
+  expect(f.view.sheet().outcome.disabled).toBe(true);
   // A contributor appears serving a different model: the sheet follows the tapped computer to it.
   f.publish({ models: [first, second].map(model => model === served ? { ...model, availability: 'ready', networkAvailability: 'ready',
     providerIds: ['peer'], reachableProviderIds: ['peer'] } : model) });
-  expect(f.find('[data-next-model]').value).toBe(served.selectionId || served.id);
-  expect(primary.textContent).toBe('Send to contributors');
-  expect(primary.disabled).toBe(false);
-  expect(f.find('[data-answer-issue]').hidden).toBe(true);
+  expect(f.view.sheet().selectedKey).toBe(served.selectionId || served.id);
+  expect(f.view.sheet().outcome.label).toBe('Send to contributors');
+  expect(f.view.sheet().outcome.disabled).toBe(false);
+  expect(f.view.sheet().outcome.issue).toBe('');
 });
 it('offers Send, not a download, when the first advertisement is also what settles discovery', async () => {
   const f = fixture({ fresh: true });
   const [first, second] = CANONICAL_CHAT_MODELS;
   f.publish({ models: [first, second] });
-  const chosen = f.find('[data-active-model-select]').value;
+  const chosen = f.view.composer().chip.selectionId;
   const served = [first, second].find(model => (model.selectionId || model.id) !== chosen);
-  f.find('[data-composer-input]').value = 'First question';
-  f.find('[data-composer-form]').dispatchEvent(new Event('submit', { cancelable: true }));
-  f.find('[data-execution-choice=network]').click();
-  await vi.waitFor(() => expect(f.find('[data-execution-choice=network]').getAttribute('aria-checked')).toBe('true'));
-  expect(f.find('[data-next-model-status]').textContent).toMatch(/^Finding computers/);
+  f.view.send('First question');
+  f.c.pickComputer('network');
+  await vi.waitFor(() => expect(f.view.checkedComputer()).toBe('network'));
+  expect(f.view.sheet().outcome.issue).toMatch(/^Finding computers/);
   // The session settles discovery on the same update that brings the first served model (chat-session.js).
   f.publish({ ...observedDiscovery, models: [first, second].map(model => model === served ? { ...model, availability: 'ready',
     networkAvailability: 'ready', providerIds: ['peer'], reachableProviderIds: ['peer'] } : model) });
-  expect(f.find('[data-next-model]').value).toBe(served.selectionId || served.id);
-  expect(f.find('[data-change-model]').textContent).toBe('Send to contributors');
-  expect(f.find('[data-change-model]').disabled).toBe(false);
+  expect(f.view.sheet().selectedKey).toBe(served.selectionId || served.id);
+  expect(f.view.sheet().outcome.label).toBe('Send to contributors');
+  expect(f.view.sheet().outcome.disabled).toBe(false);
 });
 it('offers the download only once discovery has settled with no contributor for the model', async () => {
   const f = fixture({ fresh: true });
-  f.find('[data-composer-input]').value = 'First question';
-  f.find('[data-composer-form]').dispatchEvent(new Event('submit', { cancelable: true }));
-  f.find('[data-execution-choice=network]').click();
-  await vi.waitFor(() => expect(f.find('[data-execution-choice=network]').getAttribute('aria-checked')).toBe('true'));
-  expect(f.find('[data-change-model]').disabled).toBe(true);
+  f.view.send('First question');
+  f.c.pickComputer('network');
+  await vi.waitFor(() => expect(f.view.checkedComputer()).toBe('network'));
+  expect(f.view.sheet().outcome.disabled).toBe(true);
   f.publish(observedDiscovery);
-  expect(f.find('[data-next-model-status]').textContent).toMatch(/^No contributor serves this model now/);
-  expect(f.find('[data-change-model]').textContent).toMatch(/^Download /);
-  expect(f.find('[data-change-model]').disabled).toBe(false);
+  expect(f.view.sheet().outcome.issue).toMatch(/^No contributor serves this model now/);
+  expect(f.view.sheet().outcome.label).toMatch(/^Download /);
+  expect(f.view.sheet().outcome.disabled).toBe(false);
 });
 it('tells a first visitor a public computer can answer instead of reporting a dead end', () => {
-  const f = fixture({ fresh: true }), status = f.find('[data-model-status]');
+  const f = fixture({ fresh: true }), status = () => f.view.composer().status.text;
   f.publish(observedDiscovery);
-  expect(status.textContent).toBe('Model unavailable here.');
+  expect(status()).toBe('Model unavailable here.');
   f.publish({ models: [{ ...f.state().models[0], availability: 'ready', networkAvailability: 'ready',
     providerIds: ['peer'], reachableProviderIds: ['peer'] }] });
-  expect(status.textContent).toBe('Not on this device. A public computer can answer.');
+  expect(status()).toBe('Not on this device. A public computer can answer.');
   // The Answer on sheet opened from its own control does not say Send: nothing is waiting to be sent.
-  f.find('[data-open-model]').click();
-  expect(f.find('[data-change-model]').textContent).not.toMatch(/^Send/);
+  f.c.openSheet();
+  expect(f.view.sheet().outcome.label).not.toMatch(/^Send/);
 });
 
 it('names no model before discovery settles, then the smallest one a contributor serves', () => {
   const f = fixture({ fresh: true });
   const [small, medium] = CANONICAL_CHAT_MODELS;
-  const chip = () => [f.find('[data-composer-model-source]').textContent, f.find('[data-composer-model-name]').textContent];
+  const chip = () => [f.view.composer().chip.source, f.view.composer().chip.name];
   // Nothing can answer yet: no "This device · 2B" that may not run anywhere.
   expect(chip()).toEqual(['', 'Finding computers…']);
-  expect(f.find('[data-open-model]').getAttribute('aria-label')).toBe('Answer on, Finding computers');
+  expect(f.view.composer().chip.label).toBe('Answer on, Finding computers');
   const served = model => ({ ...model, availability: 'ready', networkAvailability: 'ready', providerIds: ['peer'], reachableProviderIds: ['peer'] });
   f.publish({ ...observedDiscovery, models: [served(small), served(medium)] });
-  expect(f.find('[data-active-model-select]').value).toBe(small.id);
+  expect(f.view.composer().chip.selectionId).toBe(small.id);
   expect(chip()).toEqual(['This device', small.name]);
 });
 it('starts a first visitor on a model contributors serve and says a public computer can answer', () => {
-  const f = fixture({ fresh: true }), status = f.find('[data-model-status]');
+  const f = fixture({ fresh: true }), status = () => f.view.composer().status.text;
   const [first, second] = CANONICAL_CHAT_MODELS;
   f.publish({ ...observedDiscovery, models: [first, second] });
-  const starting = f.find('[data-active-model-select]').value;
+  const starting = f.view.composer().chip.selectionId;
   // Discovery settled on the first advertisement, for the model this device would not start with.
   f.publish({ models: [first, second].map(model => (model.selectionId || model.id) === starting ? model
     : { ...model, availability: 'ready', networkAvailability: 'ready', providerIds: ['peer'], reachableProviderIds: ['peer'] }) });
   // A model contributors serve and this device could download is where a first visitor starts.
   const served = [first, second].find(model => (model.selectionId || model.id) !== starting);
-  expect(f.find('[data-active-model-select]').value).toBe(served.selectionId || served.id);
-  expect(status.textContent).toBe('Not on this device. A public computer can answer.');
-  expect(f.find('[data-download-local]').hidden).toBe(true);
+  expect(f.view.composer().chip.selectionId).toBe(served.selectionId || served.id);
+  expect(status()).toBe('Not on this device. A public computer can answer.');
+  expect(f.view.composer().nextAction).not.toBe('download-local');
 });
 
 it('bounds the host discovery window even when signaling never connects, without acquiring anything', async () => {
@@ -153,24 +149,22 @@ it('bounds the host discovery window even when signaling never connects, without
 });
 it('distinguishes discovery in progress, a transport interruption and observed absence of providers', async () => {
   const f = fixture();
-  const status = f.find('[data-model-status]'), retry = f.find('[data-retry-connection]');
-  const alternative = f.find('[data-review-shared-model]');
-  expect(status.textContent).toMatch(/looking|finding|searching/i);
-  expect(alternative.hidden).toBe(true);
+  const status = () => f.view.composer().status.text, next = () => f.view.composer().nextAction;
+  expect(status()).toMatch(/looking|finding|searching/i);
+  expect(next()).not.toBe('review-shared');
   f.publish({ discoveryPhase: 'interrupted', peerDiscoveryTimedOut: true,
     network: { consumer: { connectionState: 'retrying', peers: [] } } });
-  expect(status.textContent).toMatch(/interrupt|connection|connect to/i);
-  expect(retry.hidden).toBe(false);
-  expect(alternative.hidden).toBe(true);
-  retry.click();
+  expect(status()).toMatch(/interrupt|connection|connect to/i);
+  expect(next()).toBe('retry');
+  f.c.retryConnection();
   await vi.waitFor(() => expect(f.api.connect).toHaveBeenCalledOnce());
   f.publish(observedDiscovery);
-  expect(status.textContent).toMatch(/no .*computer|no .*provider/i);
-  expect(status.textContent).not.toMatch(/choose a shared model/i);
-  expect(alternative.hidden).toBe(true);
+  expect(status()).toMatch(/no .*computer|no .*provider/i);
+  expect(status()).not.toMatch(/choose a shared model/i);
+  expect(next()).not.toBe('review-shared');
   f.publish({ network: { ...observedDiscovery.network, connectionFailure: { peerId: 'departed-peer' } } });
-  expect(status.textContent).toContain('A peer connection failed. No eligible computer found');
-  expect(alternative.hidden).toBe(true);
+  expect(status()).toContain('A peer connection failed. No eligible computer found');
+  expect(next()).not.toBe('review-shared');
 });
 
 it('only offers a switch for a reachable shared provider with capacity', () => {
@@ -180,42 +174,42 @@ it('only offers a switch for a reachable shared provider with capacity', () => {
     providerIds: ['peer'], reachableProviderIds: [] };
   const publish = changes => f.publish({ ...observedDiscovery,
     models: [{ ...requested, availability: 'unavailable' }, { ...candidate, ...changes }] });
-  const alternative = f.find('[data-review-shared-model]');
+  const offered = () => f.view.composer().nextAction === 'review-shared';
   publish({});
-  expect(alternative.hidden).toBe(true);
+  expect(offered()).toBe(false);
   publish({ availability: 'busy', networkAvailability: 'busy', reachableProviderIds: ['peer'] });
-  expect(alternative.hidden).toBe(true);
+  expect(offered()).toBe(false);
   publish({ reachableProviderIds: ['peer'] });
-  expect(alternative.hidden).toBe(false);
-  expect(alternative.dataset.selectionId).toBe(other.id);
-  expect(f.find('[data-active-model-select]').value).toBe(requested.id);
+  expect(offered()).toBe(true);
+  expect(f.view.composer().nextLabels.reviewShared).toBe(`Review ${other.name}`);
+  expect(f.view.composer().chip.selectionId).toBe(requested.id);
+  // Reviewing opens Answer on with that model staged on contributors.
+  f.c.reviewSharedModel();
+  expect(f.view.sheet().selectedKey).toBe(other.id);
+  expect(f.view.checkedComputer()).toBe('network');
+  f.c.closeSheet();
   publish({});
-  expect(alternative.hidden).toBe(true);
+  expect(offered()).toBe(false);
 });
 
 it('names the pre-send destination as the selected model moves between local and public execution', () => {
   const f = fixture(), [model] = f.state().models;
-  const source = f.find('[data-composer-model-source]'), note = f.find('[data-prompt-disclosure]');
-  const switcher = f.find('[data-open-model]');
-  expect(f.find('[data-composer-send]').getAttribute('aria-describedby')).toBe(note.id);
-  expect(note.hidden).toBe(false);
-  expect(note.textContent).toContain('A network provider could read your prompt');
-  // One selector, named for what it does; the disclosure lives in the Answer on sheet beside the choice.
-  expect(switcher.getAttribute('aria-label')).toMatch(/^Answer on /);
-  expect(switcher.getAttribute('aria-label')).toContain(model.name);
-  expect(f.find('[data-model-picker]').contains(note)).toBe(true);
+  const source = () => f.view.composer().chip.source, note = () => f.view.composer().disclosure;
+  expect(note()).toContain('A network provider could read your prompt');
+  // One selector, named for what it does.
+  expect(f.view.composer().chip.label).toMatch(/^Answer on /);
+  expect(f.view.composer().chip.label).toContain(model.name);
   f.publish({ ...observedDiscovery, models: [{
     ...model, localCached: true, availability: 'cached', networkAvailability: 'unavailable'
   }] });
-  expect(source.textContent).toMatch(/this device/i);
-  expect(note.textContent).toBe('Nothing leaves this device.');
+  expect(source()).toMatch(/this device/i);
+  expect(note()).toBe('Nothing leaves this device.');
   f.publish({ models: [{
     ...model, localCached: false, availability: 'ready', networkAvailability: 'ready',
     providerIds: ['public-peer'], reachableProviderIds: ['public-peer']
   }] });
-  expect(source.textContent).toBe('Contributors');
-  expect(note.hidden).toBe(false);
-  expect(note.textContent).toBe('The answering computer can read your prompt.');
+  expect(source()).toBe('Contributors');
+  expect(note()).toBe('The answering computer can read your prompt.');
 });
 
 it.each([
@@ -228,81 +222,83 @@ it.each([
     { ...requested, availability: 'unavailable' },
     { ...other, availability: 'ready', networkAvailability: 'ready', providerIds: ['public'], reachableProviderIds: ['public'] }
   ] });
-  expect(f.find('[data-review-shared-model]').hidden).toBe(true);
+  expect(f.view.composer().nextAction).not.toBe('review-shared');
 });
 
 it('never turns Send into download or queues an automatic answer, even with an old automatic preference', async () => {
   const f = fixture({ automatic: true }), model = CANONICAL_CHAT_MODELS[0];
   f.api.send = vi.fn(() => Object.assign(Promise.resolve(), { admitted: Promise.resolve() }));
   f.publish(observedDiscovery);
-  expect(f.find('[data-auto-download-toggle]')).toBeNull();
-  expect(f.find('[data-composer-send]').disabled).toBe(true);
-  f.find('[data-composer-input]').value = 'Hello'; f.find('[data-composer-form]').requestSubmit();
+  expect(f.view.composer().send.disabled).toBe(true);
+  f.view.send('Hello');
   await new Promise(resolve => setTimeout(resolve, 0));
   expect(f.api.downloadLocalModel).not.toHaveBeenCalled(); expect(f.api.send).not.toHaveBeenCalled();
   f.publish({ models: f.state().models.map(entry => entry.id === model.id ? { ...entry, availability: 'cached', localCached: true } : entry) });
   await new Promise(resolve => setTimeout(resolve, 0));
-  expect(f.api.send).not.toHaveBeenCalled(); expect(f.find('[data-composer-input]').value).toBe('Hello');
+  expect(f.api.send).not.toHaveBeenCalled(); expect(f.view.composer().draft).toBe('Hello');
 });
 it('cancels an explicitly confirmed download while preserving the unsent draft', async () => {
   const f = fixture({ automatic: true }), model = CANONICAL_CHAT_MODELS[0]; f.api.send = vi.fn();
-  f.publish(observedDiscovery); f.find('[data-composer-input]').value = 'Hello';
-  f.find('[data-download-local]').click(); await vi.waitFor(() => expect(f.find('[data-download-confirm]').disabled).toBe(false));
-  expect(f.api.downloadLocalModel).not.toHaveBeenCalled(); f.find('[data-download-confirm]').click();
+  f.publish(observedDiscovery); f.c.setDraft('Hello');
+  expect(f.view.composer().nextAction).toBe('download-local');
+  f.c.downloadLocal(); await vi.waitFor(() => expect(f.view.snapshot().download?.ready).toBe(true));
+  expect(f.api.downloadLocalModel).not.toHaveBeenCalled(); f.c.confirmDownload();
   await vi.waitFor(() => expect(f.api.downloadLocalModel).toHaveBeenCalledWith(model.id, true));
   f.publish({ acquisition: { phase: 'downloading', modelId: model.id, progress: { message: 'Downloading model files.', receivedBytes: 1, totalBytes: 2 } } });
-  f.find('[data-cancel-download]').click(); expect(f.api.cancelModelDownload).toHaveBeenCalledOnce();
+  expect(f.view.composer().nextAction).toBe('cancel-download');
+  f.c.cancelDownload(); expect(f.api.cancelModelDownload).toHaveBeenCalledOnce();
   f.publish({ acquisition: { phase: 'cancelled', modelId: model.id, error: 'Download cancelled.', progress: null } });
-  expect(f.find('[data-composer-input]').value).toBe('Hello'); expect(f.find('[data-composer-send]').disabled).toBe(true);
-  f.find('[data-composer-form]').requestSubmit(); await new Promise(resolve => setTimeout(resolve, 0));
+  expect(f.view.composer().draft).toBe('Hello'); expect(f.view.composer().send.disabled).toBe(true);
+  f.c.send(); await new Promise(resolve => setTimeout(resolve, 0));
   expect(f.api.downloadLocalModel).toHaveBeenCalledOnce(); expect(f.api.send).not.toHaveBeenCalled();
-  expect(f.find('[data-download-local]').textContent).toBe('Retry download');
+  expect(f.view.composer().nextLabels.downloadLocal).toBe('Retry download');
 });
 it('offers explicit local download after no usable peers and reuses the existing size-and-consent dialog', async () => {
-  const f = fixture(); expect(f.find('[data-download-local]').hidden).toBe(true);
+  const f = fixture(); expect(f.view.composer().nextAction).not.toBe('download-local');
   f.publish(observedDiscovery);
-  expect(f.find('[data-download-local]').hidden).toBe(false); expect(f.find('[data-retry-connection]').hidden).toBe(true);
-  f.find('[data-download-local]').click();
-  await vi.waitFor(() => expect(f.find('[data-download-confirm]').disabled).toBe(false));
+  // One next action: the download, not a connection retry.
+  expect(f.view.composer().nextAction).toBe('download-local');
+  f.c.downloadLocal();
+  await vi.waitFor(() => expect(f.view.snapshot().download?.ready).toBe(true));
   expect(f.api.downloadLocalModel).not.toHaveBeenCalled();
-  expect(f.find('[data-download-title]').textContent).toBe('Download ' + CANONICAL_CHAT_MODELS[0].name);
-  expect(f.find('[data-download-size]').textContent).toBe('123 MB download');
-  f.find('[data-download-confirm]').click(); f.find('[data-download-confirm]').click();
+  expect(f.view.snapshot().download.title).toBe('Download ' + CANONICAL_CHAT_MODELS[0].name);
+  expect(f.view.snapshot().download.size).toBe('123 MB download');
+  f.c.confirmDownload(); f.c.confirmDownload();
   await vi.waitFor(() => expect(f.api.downloadLocalModel).toHaveBeenCalledOnce());
   expect(f.api.downloadLocalModel).toHaveBeenCalledWith(CANONICAL_CHAT_MODELS[0].id, true);
 });
 it('does not let a perpetually preparing unusable peer hide the local fallback', () => {
   const f = fixture(); f.publish({ ...observedDiscovery, models: [{ ...f.state().models[0], availability: 'loading' }] });
-  expect(f.find('[data-download-local]').hidden).toBe(false);
-  expect(f.find('[data-model-status]').textContent).toBe('Model preparing…');
-  expect(f.find('[data-composer-send]').disabled).toBe(true);
-  expect(f.find('[data-acquisition-status]').hidden).toBe(true);
+  expect(f.view.composer().nextAction).toBe('download-local');
+  expect(f.view.composer().status.text).toBe('Model preparing…');
+  expect(f.view.composer().send.disabled).toBe(true);
+  expect(f.view.composer().acquisition.text).toBe('');
 });
 it('keeps downloads cancellable when a usable peer arrives and never fabricates unknown totals', () => {
   const f = fixture();
   f.publish({ acquisition: { phase: 'downloading', progress: { message: 'Downloading model files.', receivedBytes: 20, totalBytes: null } } });
-  expect(f.find('[data-acquisition-progress]').hasAttribute('value')).toBe(false);
+  expect(f.view.composer().acquisition.progress).toEqual({ value: null, max: null });
   const ready = { ...f.state().models[0], availability: 'ready', networkAvailability: 'ready', providerIds: ['peer'], reachableProviderIds: ['peer'] };
   f.publish({ models: [ready], defaultModels: { auto: ready }, defaultModel: ready });
-  expect(f.find('[data-composer-send]').disabled).toBe(false); expect(f.find('[data-cancel-download]').hidden).toBe(false);
-  const status = f.find('[data-acquisition-status]');
-  expect(status.textContent).toContain('Network model ready.');
+  expect(f.view.composer().send.disabled).toBe(false); expect(f.view.composer().nextAction).toBe('cancel-download');
+  const status = () => f.view.composer().acquisition.text;
+  expect(status()).toContain('Network model ready.');
   f.publish({ models: [{ ...ready, availability: 'busy', networkAvailability: 'busy', reachableProviderIds: [] }] });
-  expect(status.textContent).toBe('Downloading model files.');
+  expect(status()).toBe('Downloading model files.');
   f.publish({ models: [{ ...ready, availability: 'cached', localCached: true, networkAvailability: 'unavailable', reachableProviderIds: [] }] });
-  expect(status.textContent).toBe('Downloading model files.');
-  f.find('[data-cancel-download]').click(); expect(f.api.cancelModelDownload).toHaveBeenCalledOnce();
+  expect(status()).toBe('Downloading model files.');
+  f.c.cancelDownload(); expect(f.api.cancelModelDownload).toHaveBeenCalledOnce();
 });
 it('keeps capability failures actionable and checks failed metadata again without starting a download', async () => {
   const f = fixture(); f.publish({ ...observedDiscovery, localDownloadIssue: 'This browser needs WebGPU.' });
-  expect(f.find('[data-download-local]').hidden).toBe(true);
-  expect(f.find('[data-model-status]').textContent).toContain('WebGPU');
-  expect(f.find('[data-acquisition-status]').hidden).toBe(true);
+  expect(f.view.composer().nextAction).not.toBe('download-local');
+  expect(f.view.composer().status.text).toContain('WebGPU');
+  expect(f.view.composer().acquisition.text).toBe('');
   f.publish({ localDownloadIssue: null }); f.api.getModelDownload.mockRejectedValueOnce(Error('Network unavailable'));
-  f.find('[data-download-local]').click();
-  await vi.waitFor(() => expect(f.find('[data-retry-download-check]').hidden).toBe(false));
-  expect(f.find('[data-download-confirm]').disabled).toBe(true); f.find('[data-retry-download-check]').click();
-  await vi.waitFor(() => expect(f.find('[data-download-confirm]').disabled).toBe(false));
+  f.c.downloadLocal();
+  await vi.waitFor(() => expect(f.view.snapshot().download?.retry).toBe(true));
+  expect(f.view.snapshot().download.ready).toBe(false); f.c.retryDownloadCheck();
+  await vi.waitFor(() => expect(f.view.snapshot().download?.ready).toBe(true));
   expect(f.api.downloadLocalModel).not.toHaveBeenCalled();
 });
 
@@ -326,13 +322,12 @@ for (const [preset, viewState, expected] of [
     const f = viewState ? fixture({ viewState }) : fixture({ fresh: true });
     const model = { ...f.state().models[0], availability: 'ready', networkAvailability: 'ready', providerIds: ['peer'], reachableProviderIds: ['peer'] };
     f.publish({ ...observedDiscovery, models: [model], defaultModel: model });
-    f.find('[data-open-model]').click();
-    const checked = f.find('[data-execution-location] [aria-checked=true]').dataset.executionChoice;
-    expect(checked).toBe(expected.computer);
-    const row = [...f.find('[data-model-picker]').querySelectorAll('.chat-model-choices input')].find(input => input.checked);
-    expect(row.closest('[data-choice-group]').dataset.choiceGroup).toBe(expected.group);
-    expect(f.find('[data-change-model]').textContent).toMatch(expected.action);
-    expect(f.find('[data-change-model]').disabled).toBe(false);
-    expect(f.find('[data-composer-model-source]').textContent).toBe(expected.chip);
+    f.c.openSheet();
+    expect(f.view.checkedComputer()).toBe(expected.computer);
+    const group = f.view.sheet().sections.find(section => section.rows.some(row => row.checked));
+    expect(group.id).toBe(expected.group);
+    expect(f.view.sheet().outcome.label).toMatch(expected.action);
+    expect(f.view.sheet().outcome.disabled).toBe(false);
+    expect(f.view.composer().chip.source).toBe(expected.chip);
   });
 }

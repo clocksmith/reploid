@@ -130,7 +130,7 @@ The conversation journey now has the following dependency path. These are source
 ownership boundaries, not a claim of qualified physical inference.
 
 ```text
-conversation-workspace.js (UI actions)
+conversation-controller.js (UI actions; the React screens render it)
   -> chat-session.js (host composition, storage, lifecycle)
      -> reploid/chat public entry -> workspace.js (attempts, grants, recovery)
      -> chat-view.js (pure catalog and accepted-history projections)

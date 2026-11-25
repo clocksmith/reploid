@@ -3,11 +3,6 @@ import { escapeHtml as escapeHtmlValue } from '../../../../shared/ui/components/
 const escapeHtml = value => escapeHtmlValue(value, '&#39;');
 
 
-export function renderAttachments(root, files) {
-  root.hidden = !files.length;
-  root.innerHTML = files.map((file, index) => `<span class="attachment-chip">${escapeHtml(file.name)} <button type="button" class="pool-button" data-remove-file="${index}" aria-label="Remove ${escapeHtml(file.name)}">Remove</button></span>`).join('');
-}
-
 export async function readTextAttachments(chosen, existing, { maxFiles, maxFileBytes, maxTotalBytes, extensions }) {
   if (chosen.length + existing.length > maxFiles || chosen.some(file => file.size > maxFileBytes)
     || [...chosen, ...existing].reduce((sum, file) => sum + (file.size ?? file.bytes), 0) > maxTotalBytes) {

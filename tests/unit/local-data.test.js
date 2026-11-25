@@ -2,7 +2,6 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createChatSession } from '../../apps/poolday/host/chat-session.js';
 import { createComputerPreferences } from '../../apps/poolday/host/computer-preferences.js';
 import { createLocalData, LOCAL_DATA_SCHEMA, LOCAL_DATA_VERSION, LOCAL_DATA_NOTE } from '../../apps/poolday/host/local-data.js';
-import { renderLocalData, bindLocalData } from '../../apps/poolday/ui/pool-home/local-data-view.js';
 import { createChatTestService } from '../fixtures/chat-service.js';
 
 const key = id => 'peer:' + id.repeat(24);
@@ -171,47 +170,5 @@ describe('local data import', () => {
   });
 });
 
-describe('Settings data controls', () => {
-  it('exports a file, previews an import with its counts in a dialog, and imports only on confirmation', async () => {
-    const source = await make(), target = await make({ conversations: 0 });
-    const mount = item => {
-      const root = document.createElement('div'); root.innerHTML = renderLocalData(); document.body.append(root);
-      const dialog = root.querySelector('dialog');
-      dialog.showModal = () => { dialog.open = true; }; dialog.close = () => { dialog.open = false; };
-      return { root, find: selector => root.querySelector(selector), binding: bindLocalData(root, item.chat, item.computers, { read: async file => file.contents }) };
-    };
-    const blobs = [], createObjectURL = vi.spyOn(URL, 'createObjectURL').mockImplementation(blob => { blobs.push(blob); return 'blob:fixture'; });
-    const revoke = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {});
-    const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
-    const settle = () => new Promise(resolve => setTimeout(resolve, 0));
-    const from = mount(source), to = mount(target);
-    try {
-      expect(from.find('[data-settings-data]').hidden).toBe(false);
-      expect(from.find('[data-data-export] .pool-row-title').textContent).toBe('Export my data'); expect(from.find('[data-data-import] .pool-row-title').textContent).toBe('Import data');
-      from.find('[data-data-export]').click(); await settle();
-      expect(click).toHaveBeenCalledOnce(); expect(blobs[0].type).toBe('application/json');
-      expect(from.find('[data-data-status]').textContent).toBe('Exported 2 conversations.');
-      const contents = await blobs[0].text();
-      expect(JSON.parse(contents).schema).toBe(LOCAL_DATA_SCHEMA);
-      const choose = text => { const input = to.find('[data-data-file]');
-        Object.defineProperty(input, 'files', { configurable: true, value: [{ size: text.length, contents: text }] });
-        input.dispatchEvent(new Event('change')); return settle(); };
-      await choose('{"schema":"other"}');
-      expect(to.find('[data-data-status]').textContent).toBe('This file is not a Reploid data export.'); expect(to.find('dialog').open).toBeFalsy();
-      await choose(contents);
-      expect(to.find('dialog').open).toBe(true);
-      expect(to.find('[data-data-summary]').textContent).toBe('This file adds 2 conversations, 0 computer names and 0 blocked computers.');
-      expect(target.chat.getState().threads).toHaveLength(0);
-      to.find('[data-data-cancel]').click();
-      expect(to.find('dialog').open).toBe(false); expect(target.chat.getState().threads).toHaveLength(0);
-      await choose(contents); to.find('[data-data-confirm]').click();
-      expect(target.chat.getState().threads.map(thread => thread.id)).toEqual(source.ids);
-      expect(to.find('[data-data-status]').textContent).toBe('Imported 2 conversations, 0 computer names and 0 blocked computers.');
-      await choose(contents);
-      expect(to.find('dialog').open).toBe(false); expect(to.find('[data-data-status]').textContent).toContain('Nothing to import.');
-    } finally {
-      from.binding.dispose(); to.binding.dispose(); from.root.remove(); to.root.remove();
-      createObjectURL.mockRestore(); revoke.mockRestore(); click.mockRestore();
-    }
-  });
-});
+// The Settings data controls (export, preview, confirm) are tested on the React Settings pane in
+// tests/unit/settings-account-data.test.tsx.

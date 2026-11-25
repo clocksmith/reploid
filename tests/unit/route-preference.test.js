@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { bindConversationWorkspace, renderConversationWorkspace } from '../../apps/poolday/ui/pool-home/conversation-workspace.js';
+import { projectRoutePreference } from '../../apps/poolday/host/decisions/settings.js';
 import { createChatSession } from '../../apps/poolday/host/chat-session.js';
 import { createChatTestService } from '../fixtures/chat-service.js';
 import { createRoutePreference, DEFAULT_ROUTE_PREFERENCE, normalizeRoutePreference, rankRoutes, ROUTE_PREFERENCES, routeObservations } from '../../apps/poolday/host/route-preference.js';
@@ -115,33 +115,30 @@ describe('the stored preference', () => {
 });
 
 describe('the Settings control', () => {
-  let root, session, dispose;
-  afterEach(async () => { dispose?.(); await session?.close(); root?.remove(); });
+  let session;
+  afterEach(async () => { await session?.close(); });
 
+  // The React Settings pane renders projectRoutePreference (host/decisions/settings.js) as one segmented choice and
+  // calls the session's setRoutePreference on a change.
   it('shows the stored preference, and a change reaches the session and survives', () => {
     const values = new Map([['REPLOID_ROUTE_PREFERENCE', 'more-reliable']]);
     const storage = { getItem: key => values.get(key) ?? null, setItem: (key, value) => values.set(key, value), removeItem: key => values.delete(key) };
     const routePreference = createRoutePreference({ storage });
     session = createChatSession({ storage: null, service: createChatTestService(), routePreference,
       swarm: { getState: () => ({ consumer: { peers: [] } }), connect: async () => {} } });
-    root = document.createElement('div'); document.body.append(root);
-    root.innerHTML = renderConversationWorkspace();
-    dispose = bindConversationWorkspace(root, session, { viewState: {} });
     session.setCachedModels([]);
-    // Three exclusive modes are one segmented radio group, derived from whether several computers may answer.
-    const choices = [...root.querySelectorAll('[data-route-preference]')];
-    expect(choices[0].closest('[role=radiogroup]')).not.toBeNull();
-    expect(choices.map(input => input.closest('label').textContent)).toEqual(['Balanced', 'Faster', 'More reliable']);
-    expect(choices.find(input => input.checked).value).toBe('more-reliable');
-    const reason = root.querySelector('[data-route-preference-reason]').textContent;
-    expect(choices.every(input => input.disabled === !!reason)).toBe(true);
+    // Three exclusive modes, derived from whether several computers may answer.
+    const view = projectRoutePreference(session.getState(), session);
+    expect(view.options.map(option => option.label)).toEqual(['Balanced', 'Faster', 'More reliable']);
+    expect(view.options.find(option => option.checked).value).toBe('more-reliable');
+    expect(view.options.every(option => option.disabled === !!view.reason)).toBe(true);
     const listener = vi.fn();
     const stop = session.subscribe(listener);
-    const faster = choices.find(input => input.value === 'faster');
-    faster.disabled = false; faster.click();
+    session.setRoutePreference('faster');
     stop();
     expect(session.getRoutePreference()).toBe('faster');
     expect(values.get('REPLOID_ROUTE_PREFERENCE')).toBe('faster');
     expect(listener).toHaveBeenCalled();
+    expect(projectRoutePreference(session.getState(), session).options.find(option => option.checked).value).toBe('faster');
   });
 });

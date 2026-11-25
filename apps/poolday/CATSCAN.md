@@ -34,7 +34,7 @@ Outputs:
 
 ## Acceptance
 - Routes boot, render and keep their boundaries.
-- Evidence: [browser boot test](../../tests/e2e/boot.spec.js), [UI tests](../../tests/unit/production-surface.test.js), [CSS verification](../../scripts/verify-poolday-css-layers.js), [boundary check](../../scripts/verify-browser-boundaries.js) and the [design-system check](../../scripts/check-poolday-ui-boundaries.mjs).
+- Evidence: [browser boot test](../../tests/e2e/boot.spec.js), [UI tests](../../tests/unit/production-surface.test.tsx), [CSS verification](../../scripts/verify-poolday-css-layers.js), [boundary check](../../scripts/verify-browser-boundaries.js) and the [design-system check](../../scripts/check-poolday-ui-boundaries.mjs).
 
 ## Non-goals
 - Making substrate capabilities visible in the product.

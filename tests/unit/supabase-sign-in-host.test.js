@@ -4,7 +4,6 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import { SUPABASE_AUTH_STORAGE_KEY, createSupabaseSignIn } from '../../apps/poolday/host/supabase-sign-in.js';
-import { bindAccountSignIn, renderAccountSignIn } from '../../apps/poolday/ui/pool-home/account-sign-in.js';
 
 const BASE = 'https://reploid.test/v1';
 const SETTINGS = { providerId: 'supabase', flow: 'supabase_magic_link', url: 'https://projectreftest.supabase.co', publishableKey: 'sb_publishable_test_only', metadataKey: 'reploid_sign_in_state' };
@@ -92,19 +91,5 @@ describe('Supabase magic-link sign-in in the browser', () => {
     expect(unconfigured.state()).toMatchObject({ phase: 'unavailable' });
   });
 
-  it('renders the Account section from the sign-in state', async () => {
-    const supabase = fakeSupabase();
-    const signIn = createSupabaseSignIn({ baseUrl: BASE, fetch: fakeService().fetch, loadSupabase: supabase.load, ...page('https://reploid.test/app') });
-    document.body.innerHTML = renderAccountSignIn();
-    const dispose = bindAccountSignIn(document.body, signIn);
-    const find = (selector) => document.querySelector(selector);
-    await vi.waitFor(() => expect(signIn.state().phase).toBe('signed_out'));
-    expect(find('[data-account-sign-in-summary]').textContent).toBe('Sign in with a one-time link sent to your email. Supabase receives your address to send it.');
-    expect(find('[data-account-sign-in-send]').disabled).toBe(false);
-    find('[data-account-sign-in-email]').value = 'person@example.test';
-    find('[data-account-sign-in-form]').dispatchEvent(new Event('submit', { cancelable: true }));
-    await vi.waitFor(() => expect(find('[data-account-sign-in-status]').textContent).toBe('Check your email for a sign-in link. Open it on this device.'));
-    expect(find('[data-account-signed-in]').hidden).toBe(true);
-    dispose();
-  });
+  // The Account section itself is tested on the React Settings pane (tests/unit/settings-account-data.test.tsx).
 });

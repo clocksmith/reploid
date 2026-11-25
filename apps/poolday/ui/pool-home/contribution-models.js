@@ -1,14 +1,7 @@
-import { escapeHtml as escape } from '../../../../shared/ui/components/html.js';
 import { hasBrowserModelOrigin } from '../components/model-select.js';
 import { interfaceIcon } from '../components/interface-icons.js';
-import { bindDialog } from '../components/dialog.js';
-import { renderDialog } from '../components/choices.js';
 import { preparationStatus } from './model-preparation.js';
-import { bindMathematicalBackground } from '../components/mathematical-background.js';
 
-const number = value => Number.isFinite(value) && value >= 0 ? value.toLocaleString() : '—';
-const bytes = value => Number.isFinite(value) && value >= 0
-  ? value < 1048576 ? `${number(value)} B` : `${(value / 1048576).toFixed(1)} MB` : '—';
 
 /**
  * Who serves a model, from the computers this browser can see. A computer seen is a fact at any time. Seeing none
@@ -133,99 +126,4 @@ export function projectProduction(state) {
     progress: phase === 'loading' ? { received: preparation.progress?.value, total: preparation.progress?.max, message: preparation.detail }
       : phase === 'connecting' ? { message: 'Waiting for connection' } : null,
     cancellationPending: contribution.unsettledOwners > 0 || network.unsettledOwners > 0 };
-}
-
-export function renderProductionContribution() {
-  return `<section class="production-surface pool-stack pool-gap-lg" data-production-surface aria-label="AI production">
-    <section class="pool-stack pool-gap-md" aria-label="Production">
-      <p class="pool-small" data-production-error role="alert" hidden></p>
-      <div class="pool-row pool-small" data-production-local aria-label="Models" hidden></div>
-      <p class="pool-small pool-muted" data-production-work hidden></p>
-      <dl class="pool-stats pool-columns" data-production-metrics hidden>
-        <div title="Output tokens from requests served by this device in this model session"><dt>Tokens produced</dt><dd data-production-tokens>—</dd></div>
-        <div><dt>Requests served</dt><dd data-production-completed>—</dd></div>
-        <div data-production-file-metric hidden><dt>Files sent</dt><dd data-production-supplied>—</dd></div>
-      </dl>
-      <div class="pool-stack pool-gap-xs" data-production-preparing hidden><p class="pool-small" data-production-progress-label role="status"></p><progress class="pool-progress" data-production-progress aria-label="Model preparation"></progress><button class="pool-button btn-ghost pool-small" type="button" data-production-cancel>Cancel</button></div>
-      <p class="pool-caption pool-muted" data-production-settlement hidden>Waiting for cleanup</p>
-      <div class="pool-stack pool-gap-xs" data-production-setup-actions><p class="pool-options-label">Choose a model to share</p><div class="pool-stack pool-gap-xs" data-production-model-buttons></div><p class="pool-small pool-muted" data-production-model-empty hidden>No models available</p></div>
-      <footer class="production-utilities pool-row"><button class="pool-button btn-ghost pool-small" type="button" data-production-model-options hidden>Change model</button></footer>
-    </section>
-    <details class="pool-disclosure pool-disclosure-quiet" data-production-history><summary>Contributions <span class="pool-muted" data-production-history-count></span></summary><div class="pool-stack pool-gap-sm"><p class="pool-caption pool-muted">Recent whole-model executions on this device. Session counters above reset when a model restarts. These records do not establish delivery or earnings.</p><p class="pool-small pool-muted" data-production-history-status role="status"></p><ol class="pool-list pool-small" data-production-history-records></ol></div></details>
-    ${renderDialog({ titleId: 'production-model-title', title: 'Change model', fixed: true, attrs: { 'data-production-model-dialog': true },
-      closeAttrs: { 'data-production-close-models': true }, body: '<div data-production-more-models></div>' })}
-  </section>`;
-}
-
-export function bindProductionControls(container, session, { inspector } = {}) {
-  const find = selector => container.querySelector(selector);
-  const backgroundRoot = container.closest('.pool-home');
-  const detachBackground = backgroundRoot && document.documentElement.classList.contains('pool-page') && !backgroundRoot.querySelector('.pool-math-background')
-    ? bindMathematicalBackground(backgroundRoot) : () => {};
-  if (!find('[data-production-surface]')) return { update() {}, dispose() { detachBackground(); } };
-  const controller = new AbortController(), options = { signal: controller.signal };
-  let last, pending = false, actionError = '', attention = false;
-  const modelsDialog = bindDialog(find('[data-production-model-dialog]'));
-  const modelButtons = find('[data-production-model-buttons]');
-  const modelActions = bindContributionModels(modelButtons, session, { onChoose: (id, opener) => { modelsDialog.close(); inspector?.contribute?.(id, opener); } });
-  const text = (selector, value) => { const node = find(selector); if (node) node.textContent = value; };
-  const render = state => {
-    last = projectProduction(state);
-    const preparing = ['loading', 'connecting'].includes(last.phase);
-    const needsAttention = preparing || !!last.error || last.cancellationPending;
-    if (needsAttention && !attention) find('[data-production-device]').open = true;
-    attention = needsAttention;
-    text('[data-production-tokens]', number(last.outputTokens));
-    text('[data-production-completed]', number(last.completed));
-    text('[data-production-supplied]', bytes(last.suppliedBytes));
-    find('[data-production-work]').hidden = !last.active || preparing;
-    text('[data-production-work]', last.phase === 'executing' ? 'Working on a request' : 'Waiting for requests');
-    const error = actionError || last.error;
-    text('[data-production-error]', error); find('[data-production-error]').hidden = !error;
-    find('[data-production-settlement]').hidden = !last.cancellationPending;
-    find('[data-production-setup-actions]').hidden = last.configured || last.active || preparing;
-    const modelSlot = find(last.configured || last.active ? '[data-production-more-models]' : '[data-production-setup-actions]');
-    if (modelButtons.parentElement !== modelSlot) modelSlot.prepend(modelButtons);
-    modelActions.update(state);
-    find('[data-production-model-options]').hidden = !(last.configured || last.active) || modelButtons.hidden;
-    find('[data-production-model-empty]').textContent = 'No models available';
-    find('[data-production-model-empty]').hidden = !modelButtons.hidden;
-    if (state.localDownloadIssue && !last.configured) {
-      find('[data-production-model-empty]').textContent = 'Local inference unavailable';
-      find('[data-production-model-empty]').title = state.localDownloadIssue;
-      find('[data-production-model-empty]').hidden = false;
-    }
-    const hasOutput = last.completed > 0 || last.outputTokens > 0 || last.suppliedBytes > 0;
-    find('[data-production-metrics]').hidden = preparing || !(last.active || hasOutput);
-    const hasCompute = !!state.network?.sharing || last.completed > 0 || last.outputTokens > 0;
-    find('[data-production-tokens]').parentElement.hidden = !hasCompute;
-    find('[data-production-completed]').parentElement.hidden = !hasCompute;
-    find('[data-production-file-metric]').hidden = !state.network?.files?.enabled && !(last.suppliedBytes > 0);
-    find('[data-production-local]').hidden = last.local.length === 0 || last.phase === 'loading';
-    find('[data-production-local]').innerHTML = last.local.map(model => `<span>${escape(model.name || model.id)} · ${model.localReady || state.network?.contribution?.ready && model.id === state.network.contribution.modelId ? 'Prepared' : 'Downloaded'}</span>`).join('');
-    const records = last.history.records;
-    text('[data-production-history-count]', records.length ? String(records.length) : '');
-    text('[data-production-history-status]', last.history.error || (records.length ? `Latest ${records.length} saved executions` : 'No saved executions yet'));
-    find('[data-production-history-records]').innerHTML = records.map(row => `<li><span>${escape((state.models || []).find(model => model.id === row.modelId)?.name || row.modelId)}</span> · <time datetime="${new Date(row.completedAt).toISOString()}">${escape(new Date(row.completedAt).toLocaleString())}</time> · ${row.outputTokens === null ? 'Token count unavailable' : `${number(row.outputTokens)} tokens`}</li>`).join('');
-    find('[data-production-preparing]').hidden = !last.progress;
-    if (last.progress) {
-      text('[data-production-progress-label]', last.progress.message);
-      const progress = find('[data-production-progress]');
-      if (Number.isFinite(last.progress.received) && last.progress.total > 0) { progress.max = last.progress.total; progress.value = last.progress.received; }
-      else progress.removeAttribute('value');
-    }
-  };
-  const act = async operation => {
-    if (pending) return;
-    pending = true; actionError = ''; render(session.getState());
-    try { await operation(); } catch (error) { actionError = error.message; }
-    finally { pending = false; if (!controller.signal.aborted) render(session.getState()); }
-  };
-  find('[data-production-cancel]').addEventListener('click', () => void act(async () => {
-    if (session.getState().acquisition?.phase === 'downloading') await session.cancelModelDownload?.();
-    else await session.setSharing(false, last.selection, false);
-  }), options);
-  find('[data-production-model-options]').addEventListener('click', event => modelsDialog.open(modelButtons.querySelector('button'), event.currentTarget), options);
-  find('[data-production-close-models]').addEventListener('click', () => modelsDialog.close(), options);
-  return { update: render, dispose() { controller.abort(); detachBackground(); modelActions.dispose(); modelsDialog.dispose(); } };
 }

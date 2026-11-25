@@ -26,13 +26,13 @@ its defects for completeness and builds on that fix.
 
 | Surface | Where |
 |---------|-------|
-| Threads drawer | `/?view=threads`, `conversation-view.js` |
-| Conversation details drawer | `/?view=conversation`, `network-inspector.js` |
-| Computers drawer | `/?view=computers`, `network-inspector.js`, `network-controls.js`, `owner-pairing-view.js`, `private-computers-view.js`, `circle-invites-view.js`, `contribution-models.js`, `operation-sharing.js` |
-| Settings drawer | `/?view=settings`, `network-inspector.js`, `theme.js`, `model-storage-view.js`, `local-data-view.js`, `account-panel.js`, `remote-permission.js`, `web-search-settings.js` |
-| Answer on sheet | composer model button, `conversation-view.js`, `conversation-workspace.js`, `conversation-model-picker.js` |
+| Threads drawer | `/?view=threads`, `features/chat/presentation/ThreadsPanel.tsx`, `host/decisions/conversation-controller.js` |
+| Conversation details drawer | `/?view=conversation`, `features/details/presentation/ConversationDetailsPanel.tsx`, `host/decisions/conversation-details.js` |
+| Computers drawer | `/?view=computers`, `features/computers/presentation/ComputersPanel.tsx`, `host/decisions/computers.js`, `network-controls.js`, `contribution-models.js`, `operation-sharing.js` |
+| Settings drawer | `/?view=settings`, `features/settings/presentation/SettingsPanel.tsx`, `host/decisions/settings.js`, `theme.js`, `remote-permission.js`, `web-search-settings.js` |
+| Answer on sheet | composer model button, `features/chat/presentation`, `host/decisions/conversation-controller.js`, `conversation-model-picker.js` |
 | Who can read it dialog | from the composer's privacy button, `privacy-controls.js` |
-| Start sharing / Download model dialog | from a model to share or a local download, `network-inspector.js` |
+| Start sharing / Download model dialog | from a model to share or a local download, `host/decisions/conversation-controller.js` |
 | Change model dialog | Contribute this computer, `contribution-models.js` |
 | Remove download dialog | Settings, Storage |
 | Import data dialog | Settings, Your data |

@@ -32,7 +32,7 @@ Signaling establishes connections; a relay may carry WebRTC traffic when needed.
 
 | Boundary | Implementation |
 | --- | --- |
-| View and application lifetime | [product-session.js](../apps/poolday/host/product-session.js), [conversation-workspace.js](../apps/poolday/ui/pool-home/conversation-workspace.js) |
+| View and application lifetime | [product-session.js](../apps/poolday/host/product-session.js), [conversation-controller.js](../apps/poolday/host/decisions/conversation-controller.js) |
 | Durable threads and dispatch | [chat-session.js](../apps/poolday/host/chat-session.js), [workspace.js](../packages/reploid/src/chat/workspace.js), [chat-execution.js](../apps/poolday/host/chat-execution.js) |
 | Discovery and placement | [automatic-partitions.js](../packages/reploid/src/mesh/partitions/automatic-partitions.js), [partition-discovery.js](../packages/reploid/src/mesh/partitions/partition-discovery.js), [partition-placement.js](../packages/reploid/src/mesh/partitions/partition-placement.js) |
 | Admission and resource ownership | [partition-entry.js](../packages/reploid/src/mesh/partitions/partition-entry.js), [resident-partition.js](../packages/reploid/src/mesh/partitions/resident-partition.js), [partition-reservations.js](../packages/reploid/src/mesh/partitions/partition-reservations.js) |

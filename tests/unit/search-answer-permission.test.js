@@ -11,7 +11,7 @@ import { createFixedSearchProvider, createRetrieval, renderSourceContext } from 
 import { orderedPartitionDisclosure } from '../../packages/reploid/src/mesh/partitions/partition-grants.js';
 import { createChatSession, SEARCH_ROUTE } from '../../apps/poolday/host/chat-session.js';
 import { createServerSearch } from '../../apps/poolday/host/server-search.js';
-import { renderConversationWorkspace, bindConversationWorkspace } from '../../apps/poolday/ui/pool-home/conversation-workspace.js';
+import { openConversation } from '../fixtures/conversation-view.js';
 import { remotePermissionWording } from '../../apps/poolday/ui/pool-home/remote-permission.js';
 import { createChatTestService } from '../fixtures/chat-service.js';
 
@@ -288,28 +288,30 @@ describe('host session and conversation view', () => {
     let fail = true;
     partitions.generate = async (...args) => { if (fail) { fail = false; throw Error('Fixture generation failed; retry manually'); } return generate(...args); };
     const search = { available: () => true, state: () => ({ state: 'ready' }), subscribe: listener => { listener(); return () => {}; }, refresh() {} };
-    const root = document.createElement('div'); root.innerHTML = renderConversationWorkspace(); document.body.append(root);
-    const dispose = bindConversationWorkspace(root, session, { search }); cleanups.push(async () => dispose());
-    const find = selector => root.querySelector(selector);
-    const submit = text => { const input = find('[data-composer-input]'); input.value = text; input.dispatchEvent(new Event('input', { bubbles: true })); find('[data-composer-form]').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true })); };
-    expect(find('[data-search-permission]')).toBeNull();
-    expect(find('[data-remote-permission]')).toBeNull();
+    const view = openConversation(session, { search }); cleanups.push(async () => view.dispose());
+    const submit = text => view.send(text);
+    expect(view.snapshot().remotePermission).toBeNull();
     session.createThread({ model, privacy: openPolicy, executionLocation: 'network' });
-    find('[data-search-toggle]').click(); submit(QUESTION);
+    expect(view.composer().search.visible).toBe(true);
+    view.controller.toggleSearch(); submit(QUESTION);
     await vi.waitFor(() => expect(session.getState().activeThread?.attempts.at(-1)?.status).toBe('failed'), { timeout: 10000 });
     const first = session.getState().activeThread.attempts[0];
     expect(first.searchPermission).toMatchObject({ source: 'send', query: QUESTION, recipients: STAGES });
-    find('[data-retry-attempt]').click();
+    // The failed answer offers Retry; it runs search again under a fresh grant.
+    await vi.waitFor(() => expect(view.snapshot().messages.at(-1).retry?.attemptId).toBe(first.id));
+    view.controller.retryAttempt(first.id);
     await vi.waitFor(() => expect(session.getState().activeThread?.attempts.at(-1)?.status).toBe('completed'), { timeout: 10000 });
     const retried = session.getState().activeThread.attempts.at(-1);
     expect(retried.retryOf).toBe(first.id);
     expect(retried.searchPermission).toMatchObject({ source: 'send', query: QUESTION, recipients: STAGES });
     expect(retried.searchPermission.id).not.toBe(first.searchPermission.id);
     expect(session.getState().remotePermissions[0].wording.id).toBe('reploid.remote-contributor-setting');
-    expect(find('[data-search-toggle]').getAttribute('aria-pressed')).toBe('false');
-    expect(find('.chat-message-row.is-assistant [data-source-reference]').textContent).toBe('[1]');
+    expect(view.composer().search.pressed).toBe(false);
+    // The answer's [1] marker links to its first retrieved source.
+    await vi.waitFor(() => expect(view.snapshot().messages.at(-1).markdownTargets.map(([marker]) => marker)).toContain('1'));
+    expect(view.snapshot().messages.at(-1).content).toContain('[1]');
     await session.send(session.getState().selectedId, 'Private notes', [{ name: 'private.txt', text: 'Private attachment contents' }]);
-    find('[data-search-toggle]').click(); submit('What year was the Eiffel Tower completed?');
+    view.controller.toggleSearch(); submit('What year was the Eiffel Tower completed?');
     await vi.waitFor(() => expect(session.getState().activeThread?.attempts.at(-1)?.searchPermission?.query).toBe('What year was the Eiffel Tower completed?'));
     await vi.waitFor(() => expect(session.getState().activeThread?.attempts.at(-1)?.status).toBe('completed'));
     expect(partitions.disclosed.at(-1)).toHaveLength(1);

@@ -12,7 +12,8 @@ function heldNote(attempt) {
     ? ` ${credit.heldCredits.toLocaleString()} service credits stay held until this answer is settled; Computers, Service credits shows the outcome.` : '';
 }
 
-function failureLabel(attempt) {
+/** Why an attempt did not finish, as the transcript states it. */
+export function failureLabel(attempt) {
   // The paired host's ledger refused before any hold or disclosure (server/fleet/credits.js).
   const short = /not enough service credits\. This answer can cost up to (\d+) and (\d+) can be spent now/.exec(attempt.error || '');
   if (short) return `Not sent. Not enough service credits: this answer can cost up to ${short[1]} and your account can spend ${short[2]} now. Serving answers for others earns more.`;

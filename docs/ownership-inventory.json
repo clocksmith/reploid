@@ -18,7 +18,7 @@
     "kernel/boot.js"
   ],
   "counts": {
-    "apps/poolday": 400,
+    "apps/poolday": 395,
     "self": 457,
     "shared": 2523
   },
@@ -2353,6 +2353,42 @@
       "basis": "Reached only from product entries."
     },
     {
+      "served": "host/decisions/computers.js",
+      "source": "apps/poolday/host/decisions/computers.js",
+      "owner": "apps/poolday",
+      "basis": "Product decisions and helpers the React bundle (ui/react/app.js) compiles in; the bundle is not traced by import."
+    },
+    {
+      "served": "host/decisions/conversation-controller.js",
+      "source": "apps/poolday/host/decisions/conversation-controller.js",
+      "owner": "apps/poolday",
+      "basis": "Product decisions and helpers the React bundle (ui/react/app.js) compiles in; the bundle is not traced by import."
+    },
+    {
+      "served": "host/decisions/conversation-details.js",
+      "source": "apps/poolday/host/decisions/conversation-details.js",
+      "owner": "apps/poolday",
+      "basis": "Product decisions and helpers the React bundle (ui/react/app.js) compiles in; the bundle is not traced by import."
+    },
+    {
+      "served": "host/decisions/model-choices.js",
+      "source": "apps/poolday/host/decisions/model-choices.js",
+      "owner": "apps/poolday",
+      "basis": "Product decisions and helpers the React bundle (ui/react/app.js) compiles in; the bundle is not traced by import."
+    },
+    {
+      "served": "host/decisions/settings.js",
+      "source": "apps/poolday/host/decisions/settings.js",
+      "owner": "apps/poolday",
+      "basis": "Product decisions and helpers the React bundle (ui/react/app.js) compiles in; the bundle is not traced by import."
+    },
+    {
+      "served": "host/decisions/transcript.js",
+      "source": "apps/poolday/host/decisions/transcript.js",
+      "owner": "apps/poolday",
+      "basis": "Product decisions and helpers the React bundle (ui/react/app.js) compiles in; the bundle is not traced by import."
+    },
+    {
       "served": "host/device-capability.js",
       "source": "apps/poolday/host/device-capability.js",
       "owner": "apps/poolday",
@@ -2428,7 +2464,7 @@
       "served": "host/local-data.js",
       "source": "apps/poolday/host/local-data.js",
       "owner": "apps/poolday",
-      "basis": "Reached only from product entries."
+      "basis": "Product decisions and helpers the React bundle (ui/react/app.js) compiles in; the bundle is not traced by import."
     },
     {
       "served": "host/lora-training-executor.js",
@@ -2469,6 +2505,12 @@
     {
       "served": "host/model-storage.js",
       "source": "apps/poolday/host/model-storage.js",
+      "owner": "apps/poolday",
+      "basis": "Reached only from product entries."
+    },
+    {
+      "served": "host/open-product-host.js",
+      "source": "apps/poolday/host/open-product-host.js",
       "owner": "apps/poolday",
       "basis": "Reached only from product entries."
     },
@@ -4255,6 +4297,12 @@
       "basis": "Reached only from product entries."
     },
     {
+      "served": "styles/poolday/primitives/messages.css",
+      "source": "apps/poolday/styles/poolday/primitives/messages.css",
+      "owner": "apps/poolday",
+      "basis": "Reached only from product entries."
+    },
+    {
       "served": "styles/poolday/primitives/optical.css",
       "source": "apps/poolday/styles/poolday/primitives/optical.css",
       "owner": "apps/poolday",
@@ -4269,6 +4317,12 @@
     {
       "served": "styles/poolday/primitives/text.css",
       "source": "apps/poolday/styles/poolday/primitives/text.css",
+      "owner": "apps/poolday",
+      "basis": "Reached only from product entries."
+    },
+    {
+      "served": "styles/poolday/primitives/workspace.css",
+      "source": "apps/poolday/styles/poolday/primitives/workspace.css",
       "owner": "apps/poolday",
       "basis": "Reached only from product entries."
     },
@@ -4702,19 +4756,13 @@
       "served": "ui/components/choices.js",
       "source": "apps/poolday/ui/components/choices.js",
       "owner": "apps/poolday",
-      "basis": "Reached only from product entries."
-    },
-    {
-      "served": "ui/components/control-help.js",
-      "source": "apps/poolday/ui/components/control-help.js",
-      "owner": "apps/poolday",
-      "basis": "Reached only from product entries."
+      "basis": "Product decisions and helpers the React bundle (ui/react/app.js) compiles in; the bundle is not traced by import."
     },
     {
       "served": "ui/components/dialog.js",
       "source": "apps/poolday/ui/components/dialog.js",
       "owner": "apps/poolday",
-      "basis": "Reached only from product entries."
+      "basis": "Product decisions and helpers the React bundle (ui/react/app.js) compiles in; the bundle is not traced by import."
     },
     {
       "served": "ui/components/diamond-renderer.js",
@@ -4731,12 +4779,6 @@
     {
       "served": "ui/components/disclosure.js",
       "source": "apps/poolday/ui/components/disclosure.js",
-      "owner": "apps/poolday",
-      "basis": "Reached only from product entries."
-    },
-    {
-      "served": "ui/components/drawer.js",
-      "source": "apps/poolday/ui/components/drawer.js",
       "owner": "apps/poolday",
       "basis": "Reached only from product entries."
     },
@@ -4762,19 +4804,19 @@
       "served": "ui/components/mathematical-background.js",
       "source": "apps/poolday/ui/components/mathematical-background.js",
       "owner": "apps/poolday",
-      "basis": "Reached only from product entries."
+      "basis": "Product decisions and helpers the React bundle (ui/react/app.js) compiles in; the bundle is not traced by import."
     },
     {
       "served": "ui/components/message-markdown.js",
       "source": "apps/poolday/ui/components/message-markdown.js",
       "owner": "apps/poolday",
-      "basis": "Reached only from product entries."
+      "basis": "Product decisions and helpers the React bundle (ui/react/app.js) compiles in; the bundle is not traced by import."
     },
     {
       "served": "ui/components/model-select.js",
       "source": "apps/poolday/ui/components/model-select.js",
       "owner": "apps/poolday",
-      "basis": "Reached only from product entries."
+      "basis": "Product decisions and helpers the React bundle (ui/react/app.js) compiles in; the bundle is not traced by import."
     },
     {
       "served": "ui/components/permission-card.js",
@@ -4795,18 +4837,6 @@
       "basis": "Reached only from substrate entries."
     },
     {
-      "served": "ui/pool-home/account-panel.js",
-      "source": "apps/poolday/ui/pool-home/account-panel.js",
-      "owner": "apps/poolday",
-      "basis": "Reached only from product entries."
-    },
-    {
-      "served": "ui/pool-home/account-sign-in.js",
-      "source": "apps/poolday/ui/pool-home/account-sign-in.js",
-      "owner": "apps/poolday",
-      "basis": "Reached only from product entries."
-    },
-    {
       "served": "ui/pool-home/agent-network.js",
       "source": "apps/poolday/ui/pool-home/agent-network.js",
       "owner": "apps/poolday",
@@ -4816,7 +4846,7 @@
       "served": "ui/pool-home/answer-choice.js",
       "source": "apps/poolday/ui/pool-home/answer-choice.js",
       "owner": "apps/poolday",
-      "basis": "Reached only from product entries."
+      "basis": "Poolday runtime, interface and earning code used by hosted services, scripts and tests."
     },
     {
       "served": "ui/pool-home/app.bundle.js",
@@ -4840,19 +4870,13 @@
       "served": "ui/pool-home/choice-availability.js",
       "source": "apps/poolday/ui/pool-home/choice-availability.js",
       "owner": "apps/poolday",
-      "basis": "Reached only from product entries."
+      "basis": "Poolday runtime, interface and earning code used by hosted services, scripts and tests."
     },
     {
       "served": "ui/pool-home/circle-guest-view.js",
       "source": "apps/poolday/ui/pool-home/circle-guest-view.js",
       "owner": "apps/poolday",
       "basis": "Poolday runtime, interface and earning code used by hosted services, scripts and tests."
-    },
-    {
-      "served": "ui/pool-home/circle-invites-view.js",
-      "source": "apps/poolday/ui/pool-home/circle-invites-view.js",
-      "owner": "apps/poolday",
-      "basis": "Reached only from product entries."
     },
     {
       "served": "ui/pool-home/computer-labels.js",
@@ -4864,7 +4888,7 @@
       "served": "ui/pool-home/computer-preferences-view.js",
       "source": "apps/poolday/ui/pool-home/computer-preferences-view.js",
       "owner": "apps/poolday",
-      "basis": "Reached only from product entries."
+      "basis": "Poolday runtime, interface and earning code used by hosted services, scripts and tests."
     },
     {
       "served": "ui/pool-home/constants.js",
@@ -4876,13 +4900,13 @@
       "served": "ui/pool-home/context-indicator.js",
       "source": "apps/poolday/ui/pool-home/context-indicator.js",
       "owner": "apps/poolday",
-      "basis": "Reached only from product entries."
+      "basis": "Poolday runtime, interface and earning code used by hosted services, scripts and tests."
     },
     {
       "served": "ui/pool-home/contribution-models.js",
       "source": "apps/poolday/ui/pool-home/contribution-models.js",
       "owner": "apps/poolday",
-      "basis": "Reached only from product entries."
+      "basis": "Poolday runtime, interface and earning code used by hosted services, scripts and tests."
     },
     {
       "served": "ui/pool-home/contribution-state.js",
@@ -4909,28 +4933,10 @@
       "basis": "Reached only from product entries."
     },
     {
-      "served": "ui/pool-home/conversation-list.js",
-      "source": "apps/poolday/ui/pool-home/conversation-list.js",
-      "owner": "apps/poolday",
-      "basis": "Reached only from product entries."
-    },
-    {
       "served": "ui/pool-home/conversation-model-picker.js",
       "source": "apps/poolday/ui/pool-home/conversation-model-picker.js",
       "owner": "apps/poolday",
-      "basis": "Reached only from product entries."
-    },
-    {
-      "served": "ui/pool-home/conversation-view.js",
-      "source": "apps/poolday/ui/pool-home/conversation-view.js",
-      "owner": "apps/poolday",
-      "basis": "Reached only from product entries."
-    },
-    {
-      "served": "ui/pool-home/conversation-workspace.js",
-      "source": "apps/poolday/ui/pool-home/conversation-workspace.js",
-      "owner": "apps/poolday",
-      "basis": "Reached only from product entries."
+      "basis": "Poolday runtime, interface and earning code used by hosted services, scripts and tests."
     },
     {
       "served": "ui/pool-home/dashboard-controls.js",
@@ -4954,7 +4960,7 @@
       "served": "ui/pool-home/execution-activity.js",
       "source": "apps/poolday/ui/pool-home/execution-activity.js",
       "owner": "apps/poolday",
-      "basis": "Reached only from product entries."
+      "basis": "Poolday runtime, interface and earning code used by hosted services, scripts and tests."
     },
     {
       "served": "ui/pool-home/execution-ribbon.js",
@@ -4966,7 +4972,7 @@
       "served": "ui/pool-home/fleet-account-view.js",
       "source": "apps/poolday/ui/pool-home/fleet-account-view.js",
       "owner": "apps/poolday",
-      "basis": "Reached only from product entries."
+      "basis": "Poolday runtime, interface and earning code used by hosted services, scripts and tests."
     },
     {
       "served": "ui/pool-home/history-handover-view.js",
@@ -4993,12 +4999,6 @@
       "basis": "Reached only from product entries."
     },
     {
-      "served": "ui/pool-home/local-data-view.js",
-      "source": "apps/poolday/ui/pool-home/local-data-view.js",
-      "owner": "apps/poolday",
-      "basis": "Reached only from product entries."
-    },
-    {
       "served": "ui/pool-home/lora-training.js",
       "source": "apps/poolday/ui/pool-home/lora-training.js",
       "owner": "apps/poolday",
@@ -5008,31 +5008,25 @@
       "served": "ui/pool-home/message-list.js",
       "source": "apps/poolday/ui/pool-home/message-list.js",
       "owner": "apps/poolday",
-      "basis": "Reached only from product entries."
+      "basis": "Poolday runtime, interface and earning code used by hosted services, scripts and tests."
     },
     {
       "served": "ui/pool-home/model-adapters.js",
       "source": "apps/poolday/ui/pool-home/model-adapters.js",
       "owner": "apps/poolday",
-      "basis": "Reached only from product entries."
+      "basis": "Poolday runtime, interface and earning code used by hosted services, scripts and tests."
     },
     {
       "served": "ui/pool-home/model-preparation.js",
       "source": "apps/poolday/ui/pool-home/model-preparation.js",
       "owner": "apps/poolday",
-      "basis": "Reached only from product entries."
+      "basis": "Poolday runtime, interface and earning code used by hosted services, scripts and tests."
     },
     {
       "served": "ui/pool-home/model-providers.js",
       "source": "apps/poolday/ui/pool-home/model-providers.js",
       "owner": "apps/poolday",
-      "basis": "Reached only from product entries."
-    },
-    {
-      "served": "ui/pool-home/model-storage-view.js",
-      "source": "apps/poolday/ui/pool-home/model-storage-view.js",
-      "owner": "apps/poolday",
-      "basis": "Reached only from product entries."
+      "basis": "Poolday runtime, interface and earning code used by hosted services, scripts and tests."
     },
     {
       "served": "ui/pool-home/navigation.js",
@@ -5044,13 +5038,7 @@
       "served": "ui/pool-home/network-controls.js",
       "source": "apps/poolday/ui/pool-home/network-controls.js",
       "owner": "apps/poolday",
-      "basis": "Reached only from product entries."
-    },
-    {
-      "served": "ui/pool-home/network-inspector.js",
-      "source": "apps/poolday/ui/pool-home/network-inspector.js",
-      "owner": "apps/poolday",
-      "basis": "Reached only from product entries."
+      "basis": "Poolday runtime, interface and earning code used by hosted services, scripts and tests."
     },
     {
       "served": "ui/pool-home/network-projection.js",
@@ -5067,12 +5055,6 @@
     {
       "served": "ui/pool-home/operation-sharing.js",
       "source": "apps/poolday/ui/pool-home/operation-sharing.js",
-      "owner": "apps/poolday",
-      "basis": "Reached only from product entries."
-    },
-    {
-      "served": "ui/pool-home/owner-pairing-view.js",
-      "source": "apps/poolday/ui/pool-home/owner-pairing-view.js",
       "owner": "apps/poolday",
       "basis": "Reached only from product entries."
     },
@@ -5119,18 +5101,6 @@
       "basis": "Reached only from product entries."
     },
     {
-      "served": "ui/pool-home/private-computers-view.js",
-      "source": "apps/poolday/ui/pool-home/private-computers-view.js",
-      "owner": "apps/poolday",
-      "basis": "Reached only from product entries."
-    },
-    {
-      "served": "ui/pool-home/production.js",
-      "source": "apps/poolday/ui/pool-home/production.js",
-      "owner": "apps/poolday",
-      "basis": "Reached only from product entries."
-    },
-    {
       "served": "ui/pool-home/provider-controls.js",
       "source": "apps/poolday/ui/pool-home/provider-controls.js",
       "owner": "apps/poolday",
@@ -5164,7 +5134,7 @@
       "served": "ui/pool-home/remote-permission.js",
       "source": "apps/poolday/ui/pool-home/remote-permission.js",
       "owner": "apps/poolday",
-      "basis": "Reached only from product entries."
+      "basis": "Poolday runtime, interface and earning code used by hosted services, scripts and tests."
     },
     {
       "served": "ui/pool-home/requester-controls.js",
@@ -5350,7 +5320,7 @@
       "served": "ui/pool-home/route-alternatives.js",
       "source": "apps/poolday/ui/pool-home/route-alternatives.js",
       "owner": "apps/poolday",
-      "basis": "Reached only from product entries."
+      "basis": "Poolday runtime, interface and earning code used by hosted services, scripts and tests."
     },
     {
       "served": "ui/pool-home/route-controls.js",
@@ -5440,7 +5410,7 @@
       "served": "ui/pool-home/web-search-settings.js",
       "source": "apps/poolday/ui/pool-home/web-search-settings.js",
       "owner": "apps/poolday",
-      "basis": "Reached only from product entries."
+      "basis": "Poolday runtime, interface and earning code used by hosted services, scripts and tests."
     },
     {
       "served": "ui/pool-home/work-activity-list.js",
@@ -5503,12 +5473,6 @@
       "basis": "Reached only from product entries."
     },
     {
-      "served": "ui/pool-home/workspace-navigation.js",
-      "source": "apps/poolday/ui/pool-home/workspace-navigation.js",
-      "owner": "apps/poolday",
-      "basis": "Reached only from product entries."
-    },
-    {
       "served": "ui/proto/index.js",
       "source": "self/ui/proto/index.js",
       "owner": "self",
@@ -5555,6 +5519,12 @@
       "source": "self/ui/proto/workers.js",
       "owner": "self",
       "basis": "Reached only from substrate entries."
+    },
+    {
+      "served": "ui/react/app.js",
+      "source": "apps/poolday/ui/react/app.js",
+      "owner": "apps/poolday",
+      "basis": "Reached only from product entries."
     },
     {
       "served": "ui/react/design.js",
