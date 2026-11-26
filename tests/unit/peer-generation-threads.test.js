@@ -2,6 +2,7 @@ import { createExecutionPolicy, bindExecutionRoute, plaintextExecutionRoute } fr
 import { it, expect, vi } from 'vitest';
 import { REQUESTER_CANCELLED, REQUESTER_DISCONNECTED, createPeerGenerationMesh } from '../../packages/reploid/src/mesh/peer-generation.js';
 import { resolveConfig } from '../../packages/reploid/src/config/index.js';
+import { signComputerLink, verifyComputerLink } from '../../packages/reploid/src/mesh/peer-identity.js';
 
 import { createSigningIdentity, importSigningKey, getIdentitySignAlgorithm, encodeBytes, toBase64Url } from '../../packages/reploid/src/artifacts/identity.js';
 import { hashJson } from '../../packages/reploid/src/artifacts/signatures.js';
@@ -26,6 +27,7 @@ function fixture(meshOverrides = {}, execution = {}) {
     operation: 'generate', protocol: null, evidence: null });
   const underlying = createPeerGenerationMesh({ config: resolveConfig({ overrides: { mesh: { enabled: true, roomId: 'test', ...meshOverrides } } }), ports: {
     instanceId: 'test', modelConfig: execution.modelConfig || null, authorize, admitsBeforeDisclosure: true,
+    ...(execution.computerIdentity ? { computerIdentity: execution.computerIdentity } : {}),
     getExecutionState: execution.getExecutionState || (() => ({ phase: execution.modelConfig ? 'ready' : 'idle', modelIdentity: artifactA })), generate: execution.generate || (async () => {}),
     utils: { generateId: () => crypto.randomUUID() }, events, eventBus: events,
     identity: { ensure: () => signingIdentity('fixture-local'), sync: async () => {}, save: async () => {} },
@@ -75,7 +77,7 @@ function fixture(meshOverrides = {}, execution = {}) {
     await handlers.get('reploid:generation-admit')(peer, { ...details, promptCommitment });
     return { ...details, messages, admission: { salt } };
   };
-  return { mesh, sent, broadcasts, advertise, respond, authorize, events, handlers, prepareInbound,
+  return { mesh, sent, broadcasts, advertise, respond, authorize, events, handlers, prepareInbound, signingIdentity,
     update: (request, chunk) => handlers.get('reploid:generation-update')(request.peer, { requestId: request.payload.requestId, chunk }) };
 }
 
@@ -121,6 +123,41 @@ it('does not trust identity fields injected into peer advertisements', async () 
     f.advertise('wire', 'qwen', { participantId: 'forged-key', identityVerified: true });
     expect(f.mesh.getSwarmSnapshot().peers[0]).toMatchObject({ peerId: 'wire', participantId: null, identityVerified: false });
   } finally { await f.mesh.close(); }
+});
+
+it('names the computer of a contributor connection only from a link its requester key signed for that proven key', async () => {
+  const f = fixture(); await f.mesh.connect();
+  try {
+    const requester = await f.signingIdentity('desk-requests'), compute = await f.signingIdentity('desk-compute');
+    const link = await signComputerLink({ identity: requester, participantId: compute.peerId, roomId: 'test' });
+    f.advertise('desk-requests', null, { modelIdentity: null, readiness: 'idle', hasInference: false });
+    f.advertise('desk-compute', 'qwen', { computerLink: link });
+    // A third peer replays the link, or claims the computer outright: neither names it.
+    f.advertise('intruder', 'qwen', { computerLink: link });
+    f.advertise('claimant', 'qwen', { computerId: requester.peerId });
+    for (const id of ['desk-requests', 'desk-compute', 'intruder', 'claimant']) await f.mesh.verifyPeerIdentity(id);
+    const peer = id => f.mesh.getSwarmSnapshot().peers.find(row => row.peerId === id);
+    await vi.waitFor(() => expect(peer('desk-compute')).toMatchObject({ identityVerified: true, participantId: compute.peerId, computerId: requester.peerId }));
+    expect(peer('intruder').identityVerified && peer('claimant').identityVerified).toBe(true);
+    expect(peer('desk-requests')).toMatchObject({ participantId: requester.peerId, computerId: null });
+    expect(peer('intruder').computerId).toBeNull();
+    expect(peer('claimant').computerId).toBeNull();
+    expect(f.mesh.getSwarmSnapshot().peers.every(row => !('computerLink' in row))).toBe(true);
+  } finally { await f.mesh.close(); }
+});
+
+it('a contributor connection advertises the link its computer key signed; a requester advertises none', async () => {
+  const computer = await createSigningIdentity({ algorithm: 'Ed25519' });
+  const contributor = fixture({}, { modelConfig: { id: 'qwen' }, computerIdentity: () => computer });
+  const requester = fixture();
+  await contributor.mesh.connect(); await requester.mesh.connect();
+  try {
+    contributor.events.emit('swarm:peer-joined', {}); requester.events.emit('swarm:peer-joined', {});
+    const own = (await contributor.signingIdentity('fixture-local')).peerId;
+    const sent = contributor.broadcasts.filter(row => row.name === 'reploid:peer-advertisement').at(-1).payload;
+    expect(await verifyComputerLink(sent.computerLink, 'test')).toEqual({ computerId: computer.peerId, participantId: own });
+    expect(requester.broadcasts.filter(row => row.name === 'reploid:peer-advertisement').every(row => !row.payload.computerLink)).toBe(true);
+  } finally { await contributor.mesh.close(); await requester.mesh.close(); }
 });
 
 it('reserves separate compatible peers during concurrent approval and binds host context without putting it on the wire', async () => {

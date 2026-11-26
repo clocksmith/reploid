@@ -1,5 +1,5 @@
 import { it, expect, vi } from 'vitest';
-import { createMeshPeerIdentity } from '../../packages/reploid/src/mesh/peer-identity.js';
+import { createMeshPeerIdentity, signComputerLink, verifyComputerLink } from '../../packages/reploid/src/mesh/peer-identity.js';
 import { createSigningIdentity } from '../../packages/reploid/src/artifacts/identity.js';
 
 async function fixture() {
@@ -153,4 +153,18 @@ it('rejects a valid signature when the channel changes while proof is in flight'
   });
   try { await expect(f.owners[0].verify('connection-1')).rejects.toThrow('Recipient connection changed'); }
   finally { f.close(); }
+});
+
+it('links a contributor key to its computer only under the requester key that signed it, in this room', async () => {
+  const [requester, contributor, other] = await Promise.all(['ECDSA', 'Ed25519', 'ECDSA'].map(algorithm => createSigningIdentity({ algorithm })));
+  const link = await signComputerLink({ identity: requester, participantId: contributor.peerId, roomId: 'room' });
+  expect(await verifyComputerLink(link, 'room')).toEqual({ computerId: requester.peerId, participantId: contributor.peerId });
+  // Another room, another named key, or a claim to someone else's computer under a different key: no link.
+  expect(await verifyComputerLink(link, 'other-room')).toBeNull();
+  expect(await verifyComputerLink({ ...link, participantId: other.peerId }, 'room')).toBeNull();
+  const forged = await signComputerLink({ identity: other, participantId: contributor.peerId, roomId: 'room' });
+  expect(await verifyComputerLink({ ...forged, computerId: requester.peerId }, 'room')).toBeNull();
+  expect(await verifyComputerLink({ ...link, publicJwk: other.publicJwk }, 'room')).toBeNull();
+  expect(await verifyComputerLink({ ...link, participantId: requester.peerId }, 'room')).toBeNull();
+  expect(await verifyComputerLink(null, 'room')).toBeNull();
 });

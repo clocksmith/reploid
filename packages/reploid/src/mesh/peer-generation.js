@@ -8,7 +8,7 @@ import computerPolicy from './computer-identity.policy.json' with { type: 'json'
 import { createRemoteGenerationRequests } from './remote-generation-requests.js';
 import { DELIVERY_PROTOCOL, DELIVERY_PROTOCOLS, DELIVERY_STAGES, PATH_DELIVERY_PROTOCOL, advertisedDeliveryProtocol,
   createPathRecovery, createRequestDelivery, readDelivery } from './request-delivery.js';
-import { createMeshPeerIdentity } from './peer-identity.js';
+import { createMeshPeerIdentity, signComputerLink, verifyComputerLink } from './peer-identity.js';
 import { requireResolvedConfig, snapshotJson } from '../config/index.js';
 import { createPeerAdvertisement, createSwarmController } from './swarm-coordination.js';
 import { rankProviderPeers, applyReceiptToContribution } from './contribution.js';
@@ -127,6 +127,10 @@ export function createPeerGenerationMesh({ config, ports }) {
   let closing = null;
   let closed = false, identityBundle = null, swarmTransport = ports.transport || null;
   let peerIdentity = null;
+  // This connection's link to its computer's requester key (ports.computerIdentity), and the links other connections
+  // carry, each kept with its verification. See peer-identity.js signComputerLink.
+  let computerLink = null;
+  const computerLinks = new Map();
   let recovery = null;
   const generationJournal = ports.generationJournal || createMemoryGenerationJournal(policy.mesh.maxRetainedJobs);
   let pendingFreshIdentity = ports.forceFreshIdentity === true;
@@ -267,8 +271,11 @@ export function createPeerGenerationMesh({ config, ports }) {
     peerId: identityBundle?.peerId || null,
     peers: snapshotJson(swarmController.listPeers().map(peer => {
       const participantId = peerIdentity?.getVerified(peer.peerId) || null;
+      // The computer a verified link names, only while this channel proves the key the link was signed for.
+      const linked = computerLinks.get(peer.peerId)?.verified;
       // Never promote identity fields supplied by an advertisement into verified labels.
       return { ...(observedPeers.get(peer.peerId) || peer), participantId, identityVerified: !!participantId,
+        computerId: participantId && linked?.participantId === participantId ? linked.computerId : null,
         ...(isBlockedProvider(peer.peerId) ? { blocked: true } : {}),
         ...(unresponsivePeers.has(peer.peerId) ? { unresponsive: true } : {}) };
     }))
@@ -339,6 +346,7 @@ export function createPeerGenerationMesh({ config, ports }) {
     // Advertised only by a host that enforces settings, so other advertisements are unchanged.
     const generationSettings = settingsCapability();
     if (generationSettings) advertisement.generationSettings = generationSettings;
+    if (computerLink?.participantId === identityBundle.peerId) advertisement.computerLink = computerLink;
     swarmTransport.broadcast('reploid:peer-advertisement', advertisement);
     return advertisement;
   };
@@ -404,10 +412,33 @@ export function createPeerGenerationMesh({ config, ports }) {
     return null;
   };
 
+  const checkComputerLink = (peerId, link) => {
+    const key = link ? JSON.stringify(link) : null;
+    if (!key) { computerLinks.delete(peerId); return; }
+    if (computerLinks.get(peerId)?.key === key) return;
+    const entry = { key, verified: null };
+    computerLinks.set(peerId, entry);
+    verifyComputerLink(link, policy.mesh.roomId).then(verified => {
+      if (closed || !verified || computerLinks.get(peerId) !== entry) return;
+      entry.verified = verified;
+      emitSwarmState();
+    }, () => {});
+  };
+
+  // A contributor connection links its key to the requester key of the same browser, when the host supplies it.
+  const linkComputer = async () => {
+    const computer = ports.computerIdentity?.() || null;
+    computerLink = computer?.privateJwk && identityBundle && computer.peerId !== identityBundle.peerId
+      ? await signComputerLink({ identity: computer, participantId: identityBundle.peerId, roomId: policy.mesh.roomId }).catch(() => null) : null;
+  };
+
   const handlePeerAdvertisement = (remotePeerId, payload = {}) => {
     try { payload = snapshotJson(payload); } catch { return; }
     if (!payload || Array.isArray(payload) || typeof payload !== 'object') return;
     if (!Number.isFinite(payload.updatedAt)) return;
+    const link = payload.computerLink;
+    delete payload.computerLink;
+    delete payload.computerId;
     delete payload.participantId;
     delete payload.identityVerified;
     try {
@@ -460,6 +491,7 @@ export function createPeerGenerationMesh({ config, ports }) {
     if (next?.role === 'provider') {
       bridgeEvents.emit('provider-ready', next);
     }
+    if (next) checkComputerLink(remotePeerId, link);
     emitSwarmState();
     const channel = swarmTransport?.getPeerBinding?.(remotePeerId);
     const attemptId = swarmTransport?.getPeerStates?.().find(peer => peer.id === remotePeerId)?.attemptId ?? null;
@@ -1238,6 +1270,7 @@ export function createPeerGenerationMesh({ config, ports }) {
         forceNew: pendingFreshIdentity
       });
       pendingFreshIdentity = false;
+      await linkComputer();
 
       if (!swarmEnabled) {
         return getSwarmSnapshot();
@@ -1289,6 +1322,7 @@ export function createPeerGenerationMesh({ config, ports }) {
           peerIdentity?.retirePeer(peerId);
           swarmController.removePeer(peerId);
           observedPeers.delete(peerId);
+          computerLinks.delete(peerId);
           identificationAttempts.delete(peerId);
           unresponsivePeers.delete(peerId);
           remoteRequests.retirePeer(peerId);
@@ -1341,6 +1375,7 @@ export function createPeerGenerationMesh({ config, ports }) {
       instanceId,
       retireLegacy: input.retireLegacy !== false
     });
+    await linkComputer();
     await syncIdentityDocument();
     if (swarmEnabled && swarmInitialized) {
       advertiseSelf();

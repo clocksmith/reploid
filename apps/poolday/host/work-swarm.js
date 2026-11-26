@@ -190,6 +190,8 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
       enabled: true, executeJobs: !!model, maxInboundJobs: 1 } } });
     const mesh = createPeerGenerationMesh({ config, ports: {
       instanceId, modelConfig: model, utils, eventBus, events, getBlockedComputers,
+      // A contributor connection is linked to this browser's requester key, so other peers list one computer.
+      ...(model ? { computerIdentity: () => consumerIdentity } : {}),
       ...(rankProviders ? { rankProviders } : {}),
       getExecutionState: () => {
         const state = execution?.getState();
