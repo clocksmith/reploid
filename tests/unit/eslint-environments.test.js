@@ -1,7 +1,11 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest';
 import { ESLint } from 'eslint';
-import { createChangedCodeLinter } from '../../scripts/lint-changed-code.js';
+import { execFileSync } from 'node:child_process';
+import { mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
+import { createChangedCodeLinter, lintChangedCode } from '../../scripts/lint-changed-code.js';
 
 const eslint = new ESLint({ overrideConfigFile: 'scripts/eslint.config.js' });
 async function errors(filePath, source) {
@@ -30,6 +34,32 @@ describe('execution environment lint boundaries', () => {
     const [old] = await linter.lintText('export function value() { const unused = 1; return 1; }', { filePath: 'self/ui/legacy-example.js' });
     expect(old.messages).toEqual([expect.objectContaining({ ruleId: 'no-unused-vars' })]);
   });
+  it('a local run holds uncommitted and untracked new modules to the rules a push is held to', async () => {
+    const cwd = realpathSync(mkdtempSync(path.join(tmpdir(), 'lint-changed-')));
+    const git = (...args) => execFileSync('git', ['-c', 'user.name=t', '-c', 'user.email=t@example.org', ...args], { cwd, stdio: 'ignore' });
+    const nested = 'export const pick = (a, b) => a ? b ? 1 : 2 : 3;\n';
+    try {
+      mkdirSync(path.join(cwd, 'scripts'));
+      writeFileSync(path.join(cwd, 'scripts/eslint.config.js'), 'export default [{ rules: {} }];\n');
+      writeFileSync(path.join(cwd, 'existing.js'), 'export const one = 1;\n');
+      git('init', '-q'); git('add', '.'); git('commit', '-q', '-m', 'first');
+      writeFileSync(path.join(cwd, 'committed.js'), nested);
+      git('add', '.'); git('commit', '-q', '-m', 'second');
+      writeFileSync(path.join(cwd, 'existing.js'), nested);
+      writeFileSync(path.join(cwd, 'untracked.js'), nested);
+      const quiet = async options => {
+        const write = process.stdout.write;
+        process.stdout.write = () => true;
+        try { return await lintChangedCode({ cwd, ...options }); } finally { process.stdout.write = write; }
+      };
+      // No origin/main here, so the local base is HEAD^: committed.js and untracked.js are new, existing.js is not.
+      expect(await quiet({})).toEqual({ errors: 2, warnings: 0 });
+      // A push range sees only what was committed in it.
+      expect(await quiet({ base: 'HEAD^' })).toEqual({ errors: 1, warnings: 0 });
+      expect(await quiet({ base: 'HEAD' })).toEqual({ errors: 0, warnings: 0 });
+    } finally { rmSync(cwd, { recursive: true, force: true }); }
+  });
+
   it.each(['.tmp', '.claude/worktrees/review', '.deployment-checkouts/release'])(
     'excludes local scratch or checkout copies under %s', async directory => {
       expect(await eslint.isPathIgnored(`${directory}/server/example.js`)).toBe(true);
