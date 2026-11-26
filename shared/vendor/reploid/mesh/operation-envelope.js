@@ -11,6 +11,14 @@
 import { createReceiptDraft, signReceiptDraft, verifyReceipt } from '../artifacts/receipt.js';
 import { hashJson } from '../artifacts/signatures.js';
 import { AUTO_ROUTES, PROTECTIONS, PROTECTION_ROUTES } from '../chat/execution-policy.js';
+import {
+  MAX_UNACKNOWLEDGED_OUTPUTS, OUTPUT_ACKNOWLEDGMENT_SCHEMA, STAGE_RECEIPT_SCHEMA, extendOutputChain, outputChainGenesis,
+  verifyOutputAcknowledgment, verifyStageReceipt
+} from './partitions/partition-attempt-evidence.js';
+import {
+  SETTLEMENT_ACCEPTANCE_SCHEMA, SETTLEMENT_STOP_SCHEMA, SETTLEMENT_TERMS_SCHEMA, acceptSettlementTerms, signSettlementStop,
+  signSettlementTermsFor, termsDigest, verifySettlementAcceptance, verifySettlementTerms
+} from './settlement-terms.js';
 
 export const MESH_OPERATION_SCHEMA = 'reploid.mesh-operation/v1';
 export const MESH_OPERATION_GRANT_SCHEMA = 'reploid.mesh-operation-grant/v1';
@@ -291,3 +299,191 @@ export async function requestMeshOperation({ transport, verifyPeer, currentPeer,
   });
 }
 
+
+/**
+ * Signed settlement records for a whole-model operation: the single-stage case of the records a split answer signs
+ * (settlement-terms.js, partitions/partition-attempt-evidence.js), so the same replay settles both
+ * (docs/settlement-replay.md, "Whole-model operations").
+ *
+ *   requester  terms (price, cost cap, the one stage, its own account) and the charge binding, before any input leaves
+ *   provider   acceptance of exactly those terms (with its payout account), before it is sent the input
+ *   provider   one closing stage receipt: the units it delivered and a chain value that commits to the output
+ *   requester  one acknowledgment of those units, once the whole output has arrived and matches
+ *   requester  a stop, when the person ends the answer first
+ *
+ * A whole-model operation is charged whole or not at all, as its ledger hold always was: there is no acknowledged
+ * prefix, the provider signs its count once at the end, and the acknowledgment bound the terms carry is the
+ * policy's, which a single whole-model stage does not enforce (it risks the whole answer, as it did before).
+ */
+export const MESH_OPERATION_ATTEMPT_SCHEMA = 'reploid.mesh-operation-attempt/v1';
+export const MESH_OPERATION_SETTLEMENT_RECORDS_SCHEMA = 'reploid.mesh-operation-settlement-records/v1';
+/** The whole-model route of an operation plan: what `planDigest` binds for one named recipient. */
+const WHOLE_MODEL_EXECUTION = Object.freeze({ protection: 'plaintext', route: 'remote' });
+
+/** The plan digest of a whole-model operation served by `recipient`, as both sides compute it. */
+export const wholeModelOperationPlanDigest = ({ operation, modelId, manifestDigest, recipient }) =>
+  meshOperationPlanDigest({ operation, modelId, manifestDigest, execution: WHOLE_MODEL_EXECUTION, recipientGrant: { recipient } });
+
+/** The route hash every record of one whole-model attempt carries: the requester, the request and the plan. */
+export const meshOperationRouteHash = ({ requesterId, requestId, planDigest }) =>
+  hashJson({ schema: MESH_OPERATION_ATTEMPT_SCHEMA, requesterId, requestId, planDigest });
+
+/**
+ * The chain value after `units` delivered units. A whole-model stage signs once, at the end, so every step but the
+ * last extends the chain with no text and the last extends it with the digest of the whole output.
+ */
+export async function meshOperationOutputChain({ reservationId, routeHash, units, outputDigest }) {
+  let chain = await outputChainGenesis({ reservationId, routeHash });
+  for (let step = 0; step < units; step += 1) chain = await extendOutputChain(chain, { step, delta: step === units - 1 ? outputDigest : '' });
+  return chain;
+}
+
+const settlementRefusal = message => meshOperationError('OPERATION_RESULT_INVALID', message);
+const iso = ms => new Date(ms).toISOString();
+const units = value => Number.isSafeInteger(value) && value >= 0;
+
+/**
+ * Requester side. Signs the terms and the charge binding for one whole-model attempt, then keeps every record of it.
+ * `policy` is the public credit policy the ledger quoted; `debitAccount` the ledger account the hold sits on.
+ * Returns `{ terms, charge, routeHash, accept, acknowledge, close, stop, records, summary }`.
+ */
+export async function openMeshOperationCharge({ signer, requestId, planDigest, recipient, reservationId, policy, maxCostUnits,
+  debitAccount = undefined, now = signer?.now ?? Date.now }) {
+  const routeHash = await meshOperationRouteHash({ requesterId: signer.participantId, requestId, planDigest });
+  const notBefore = now();
+  const terms = await signSettlementTermsFor({ signer, reservationId, attemptId: requestId, routeHash, requesterId: signer.participantId,
+    participants: [recipient], weights: [1], policy, maxOutputTokens: maxCostUnits, notBefore, deadline: notBefore + policy.maxRequestMs,
+    maxUnacknowledgedOutputs: policy.maxUnacknowledgedOutputs ?? MAX_UNACKNOWLEDGED_OUTPUTS, debitAccount, now });
+  const { publicJwk: _key, signature: _signature, ...body } = terms;
+  const digest = await termsDigest(body), genesis = await outputChainGenesis({ reservationId, routeHash });
+  const acknowledgment = (count, chain) => signer.sign(OUTPUT_ACKNOWLEDGMENT_SCHEMA, { schema: OUTPUT_ACKNOWLEDGMENT_SCHEMA, reservationId,
+    attemptId: requestId, routeHash, requesterId: signer.participantId, count, chain, signedAt: iso(now()) });
+  const charge = await acknowledgment(0, genesis);
+  const held = { acceptance: null, receipt: null, acknowledged: null, stop: null };
+  const ownReceipt = async receipt => {
+    const checked = await verifyStageReceipt(receipt);
+    const row = checked.body;
+    if (!checked.ok || row.reservationId !== reservationId || row.attemptId !== requestId || row.routeHash !== routeHash
+      || row.partitionIndex !== 0 || row.participantId !== recipient || row.timing.closedAt === null || row.status === 'executing') {
+      throw settlementRefusal('The provider\'s closing record is not its signed close of this attempt');
+    }
+    return row;
+  };
+  return Object.freeze({
+    terms: structuredClone(terms), charge: structuredClone(charge), routeHash, reservationId,
+    /** The provider's acceptance of exactly these terms; throws unless it is. Nothing is sent before this passes. */
+    async accept(acceptance) {
+      const checked = await verifySettlementAcceptance(acceptance);
+      const row = checked.body;
+      if (!checked.ok || row.termsDigest !== digest || row.reservationId !== reservationId || row.attemptId !== requestId
+        || row.participantId !== recipient || row.partitionIndex !== 0
+        || Object.hasOwn(body, 'debitAccount') !== Object.hasOwn(row, 'payoutAccount')) {
+        throw settlementRefusal('The provider did not sign an acceptance of these settlement terms');
+      }
+      held.acceptance = structuredClone(acceptance);
+      return true;
+    },
+    /**
+     * The provider's closing receipt for a delivered output of `delivered` units whose digest is `outputDigest` (both
+     * from the provider's execution receipt, which the caller has verified against what arrived). Signs and returns the
+     * acknowledgment of exactly that count; throws when the receipt commits to anything else.
+     */
+    async acknowledge({ receipt, units: delivered, outputDigest }) {
+      const row = await ownReceipt(receipt);
+      if (!units(delivered) || delivered > maxCostUnits || row.status !== 'settled' || row.steps !== delivered || row.output?.count !== delivered
+        || row.output.done !== true || row.output.chain !== await meshOperationOutputChain({ reservationId, routeHash, units: delivered, outputDigest })) {
+        throw settlementRefusal('The provider\'s closing record does not commit to the output that arrived');
+      }
+      held.receipt = structuredClone(receipt);
+      held.acknowledged = delivered === 0 ? structuredClone(charge) : await acknowledgment(delivered, row.output.chain);
+      return structuredClone(held.acknowledged);
+    },
+    /** Keeps the provider's closing receipt of an answer that did not complete (nothing is acknowledged). */
+    async close(receipt) {
+      await ownReceipt(receipt);
+      held.receipt ??= structuredClone(receipt);
+      return true;
+    },
+    /** The requester's signed stop of this attempt: a whole-model answer has no acknowledged prefix, so it stops at zero. */
+    async stop() {
+      held.stop ??= await signSettlementStop({ signer, terms: body, acknowledged: 0, now });
+      return structuredClone(held.stop);
+    },
+    /** Every record this requester holds of the attempt, in the order they were signed. */
+    records: () => structuredClone([terms, charge, held.acceptance, held.receipt, held.acknowledged, held.stop]
+      .filter((record, index, all) => record && all.findIndex(other => other?.signature === record.signature) === index)),
+    /** What is held, and what an outsider would still miss: `complete` only with terms, acceptance, close and acknowledgment. */
+    summary() {
+      const missing = [...(held.acceptance ? [] : ['acceptance']), ...(held.receipt ? [] : ['close']), ...(held.acknowledged || held.stop ? [] : ['acknowledgment'])];
+      return { reservationId, attemptId: requestId, routeHash, requesterId: signer.participantId, providerId: recipient,
+        accepted: Boolean(held.acceptance), closed: Boolean(held.receipt), acknowledged: held.acknowledged?.count ?? null, stopped: Boolean(held.stop),
+        complete: missing.length === 0, missing };
+    }
+  });
+}
+
+/**
+ * Provider side. Checks the requester's terms and charge binding for a whole-model attempt this provider is asked to
+ * serve and signs its acceptance. `consumer` is the requester's verified identity and `planDigest` this provider's own
+ * digest of the plan (wholeModelOperationPlanDigest). Terms that name the requester's account are accepted only with
+ * `payoutAccount`. Throws to refuse. Returns `{ acceptance, reservationId, close, acknowledged, records }`.
+ */
+export async function acceptMeshOperationCharge({ signer, settlement, consumer, requestId, planDigest, payoutAccount = undefined,
+  now = signer?.now ?? Date.now }) {
+  const checked = await verifySettlementTerms(settlement?.terms);
+  const body = checked.body;
+  if (!checked.ok) throw invalid(`Settlement terms do not verify: ${checked.problem}`);
+  const routeHash = await meshOperationRouteHash({ requesterId: consumer, requestId, planDigest });
+  if (body.requesterId !== consumer || body.attemptId !== requestId || body.routeHash !== routeHash || body.shares.length !== 1
+    || body.shares[0].participantId !== signer.participantId) throw invalid('Settlement terms name another attempt, plan or provider');
+  const { reservationId } = body, genesis = await outputChainGenesis({ reservationId, routeHash });
+  const bound = await verifyOutputAcknowledgment(settlement.charge);
+  if (!bound.ok || bound.body.count !== 0 || bound.body.reservationId !== reservationId || bound.body.attemptId !== requestId
+    || bound.body.routeHash !== routeHash || bound.body.requesterId !== consumer || bound.body.chain !== genesis) {
+    throw invalid('The charge binding is not the requester\'s signed binding of this attempt');
+  }
+  // A whole-model stage enforces no acknowledgment bound, so it accepts the one the requester's policy publishes.
+  const acceptance = await acceptSettlementTerms({ signer, terms: settlement.terms, partitionIndex: 0,
+    maxUnacknowledgedOutputs: body.maxUnacknowledgedOutputs, now,
+    // Accounts are signed by both parties or by neither (settlement-terms.js).
+    ...(Object.hasOwn(body, 'debitAccount') ? { payoutAccount } : {}) });
+  const reservedAt = iso(now());
+  const held = { receipt: null, acknowledged: null };
+  return Object.freeze({
+    acceptance: structuredClone(acceptance), reservationId, routeHash, maxCostUnits: body.maxOutputTokens,
+    /**
+     * The closing receipt, signed once: `delivered` units and the output's digest for a completed operation, or
+     * `failed` for one that ended early, which claims nothing.
+     */
+    async close({ units: delivered = 0, outputDigest = null, stopReason = null, promptUnits = null, failed = false } = {}) {
+      if (held.receipt) return structuredClone(held.receipt);
+      const done = failed !== true;
+      if (done && !(units(delivered) && DIGEST.test(outputDigest ?? ''))) throw invalid('A closing receipt needs the delivered units and the output digest');
+      const count = done ? delivered : 0, at = iso(now());
+      held.receipt = await signer.sign(STAGE_RECEIPT_SCHEMA, { schema: STAGE_RECEIPT_SCHEMA, reservationId, attemptId: requestId, routeHash,
+        partitionIndex: 0, participantId: signer.participantId, sequence: 1, status: done ? 'settled' : 'failed', steps: count,
+        tokens: { prompt: units(promptUnits) ? promptUnits : null, processed: (units(promptUnits) ? promptUnits : 0) + count },
+        timing: { reservedAt, firstStepAt: null, lastStepAt: null, closedAt: at },
+        output: { count, chain: done ? await meshOperationOutputChain({ reservationId, routeHash, units: count, outputDigest }) : genesis, done,
+          stopReason: done && typeof stopReason === 'string' ? stopReason.slice(0, 64) : null }, signedAt: at });
+      return structuredClone(held.receipt);
+    },
+    /** Keeps the requester's acknowledgment of this provider's closing receipt; false when it is not one. */
+    async acknowledged(acknowledgment) {
+      const signed = await verifyOutputAcknowledgment(acknowledgment, { publicJwk: settlement.charge.publicJwk });
+      const closing = held.receipt?.output;
+      if (!signed.ok || !closing || signed.body.reservationId !== reservationId || signed.body.attemptId !== requestId
+        || signed.body.routeHash !== routeHash || signed.body.requesterId !== consumer || signed.body.count !== closing.count
+        || signed.body.chain !== closing.chain) return false;
+      held.acknowledged = structuredClone(acknowledgment);
+      return true;
+    },
+    /** Every record this provider holds of the attempt. */
+    records: () => structuredClone([settlement.terms, settlement.charge, acceptance, held.receipt, held.acknowledged]
+      .filter((record, index, all) => record && all.findIndex(other => other?.signature === record.signature) === index))
+  });
+}
+
+/** The schemas an exported record set may contain, for a reader that sorts them. */
+export const MESH_OPERATION_SETTLEMENT_RECORD_SCHEMAS = Object.freeze([SETTLEMENT_TERMS_SCHEMA, OUTPUT_ACKNOWLEDGMENT_SCHEMA,
+  SETTLEMENT_ACCEPTANCE_SCHEMA, STAGE_RECEIPT_SCHEMA, SETTLEMENT_STOP_SCHEMA]);

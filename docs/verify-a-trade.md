@@ -44,6 +44,18 @@ result with `expected.json`. Its `README.md` lists the expected output and the
 commit the verifier was copied from. `node verify.mjs --verifier REPLOID` runs
 the same check with their own clone instead.
 
+### A whole-model answer
+
+An ordinary answer from one computer has the same check. The requester's host
+returns one request's signed records with the ledger's own record of it
+(`tradeRecords` on the paired host, `POST /trade` on its browser bridge; the
+ledger part is the signed `trace` operation). Save that object as
+`receipt.json` in an empty directory and run the command above on it. Its
+`label` is `signed-records` when the requester holds its terms, the provider's
+acceptance and closing receipt, and its own acknowledgment or stop, and
+`no-verifiable-receipt` otherwise, with what is missing; the second kind does
+not verify. See [settlement-replay.md](settlement-replay.md#whole-model-operations).
+
 ## Records only
 
 A receipt carries more than an outsider should be given: the answer text, the

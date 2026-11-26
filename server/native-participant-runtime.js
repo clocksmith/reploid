@@ -146,6 +146,9 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
     // readiness and, with a credit ledger, from the reservation's commitment. Credit admission proper
     // binds the prompt's digest, so it still runs on `mesh.execute`.
     admitsBeforeDisclosure: true,
+    // With a credit ledger this provider signs the settlement records of a charged request (mesh/operation-envelope.js),
+    // naming the account it is paid into.
+    ...(typeof executionAdmission?.settlementAccount === 'function' ? { settlementAccount: () => executionAdmission.settlementAccount() } : {}),
     authorize: async request => !closed && (request.action === 'mesh.connect'
       || request.action === 'mesh.admit' && whole?.getState().ready === true && wholeEarningReady
         && await allowedOwner(request)

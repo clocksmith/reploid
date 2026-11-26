@@ -96,3 +96,48 @@ export function requestMeshOperation(options: {
   envelope: MeshOperationEnvelope;
   signal?: AbortSignal;
 }): Promise<{ output: Record<string, unknown>; receipt: Record<string, unknown> }>;
+
+/** A record signed with a participant's own key: its body, the key and the signature. */
+export type SignedSettlementRecord = Record<string, unknown> & { schema: string; publicJwk: JsonWebKey; signature: string };
+export const MESH_OPERATION_ATTEMPT_SCHEMA: 'reploid.mesh-operation-attempt/v1';
+export const MESH_OPERATION_SETTLEMENT_RECORDS_SCHEMA: 'reploid.mesh-operation-settlement-records/v1';
+export const MESH_OPERATION_SETTLEMENT_RECORD_SCHEMAS: readonly string[];
+export function wholeModelOperationPlanDigest(plan: { operation: MeshOperationName; modelId: string; manifestDigest: string; recipient: string }): Promise<string>;
+export function meshOperationRouteHash(attempt: { requesterId: string; requestId: string; planDigest: string }): Promise<string>;
+export function meshOperationOutputChain(output: { reservationId: string; routeHash: string; units: number; outputDigest: string }): Promise<string>;
+/** A participant's signing port (partition-attempt-evidence.js, createAttemptEvidenceSigner). */
+export interface SettlementSigner {
+  participantId: string;
+  now(): number;
+  sign(domain: string, body: Record<string, unknown>): Promise<SignedSettlementRecord>;
+}
+export interface MeshOperationCharge {
+  terms: SignedSettlementRecord;
+  charge: SignedSettlementRecord;
+  routeHash: string;
+  reservationId: string;
+  /** Throws unless this is the provider's signed acceptance of exactly these terms. */
+  accept(acceptance: unknown): Promise<true>;
+  /** Signs the acknowledgment of the provider's closing receipt; throws when it commits to another output. */
+  acknowledge(delivered: { receipt: unknown; units: number; outputDigest: string }): Promise<SignedSettlementRecord>;
+  close(receipt: unknown): Promise<true>;
+  stop(): Promise<SignedSettlementRecord>;
+  records(): SignedSettlementRecord[];
+  summary(): { reservationId: string; attemptId: string; routeHash: string; requesterId: string; providerId: string; accepted: boolean;
+    closed: boolean; acknowledged: number | null; stopped: boolean; complete: boolean; missing: string[] };
+}
+/** Requester side: signs the terms and charge binding of one whole-model attempt and keeps its records. */
+export function openMeshOperationCharge(options: {
+  signer: SettlementSigner; requestId: string; planDigest: string; recipient: string; reservationId: string;
+  policy: Record<string, unknown>; maxCostUnits: number; debitAccount?: string; now?: () => number;
+}): Promise<Readonly<MeshOperationCharge>>;
+/** Provider side: checks the requester's terms and charge binding and signs the acceptance; throws to refuse. */
+export function acceptMeshOperationCharge(options: {
+  signer: SettlementSigner; settlement: { terms: unknown; charge: unknown }; consumer: string; requestId: string; planDigest: string;
+  payoutAccount?: string; now?: () => number;
+}): Promise<Readonly<{
+  acceptance: SignedSettlementRecord; reservationId: string; routeHash: string; maxCostUnits: number;
+  close(output?: { units?: number; outputDigest?: string | null; stopReason?: string | null; promptUnits?: number | null; failed?: boolean }): Promise<SignedSettlementRecord>;
+  acknowledged(acknowledgment: unknown): Promise<boolean>;
+  records(): SignedSettlementRecord[];
+}>>;

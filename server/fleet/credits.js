@@ -333,6 +333,25 @@ export async function openFleetCredits({ file, computers, policy: supplied, now 
     },
     request: read,
     /**
+     * The ledger's own record of one reservation, for its participants: the outcome, the payouts, and the journal rows it
+     * posted, per computer and per owner account, with the account each party's key is enrolled under. It is what
+     * scripts/settlement/verify-trade.js compares the signed records with (docs/verify-a-trade.md).
+     */
+    trace(id) {
+      recovery.expire();
+      const row = read(id); assert(row, 'Unknown credit reservation');
+      const entries = db.prepare('SELECT * FROM fleet_journal WHERE request_id=? ORDER BY sequence').all(id);
+      const open = ['reserved', 'dispatched', 'closing'].includes(row.state);
+      return { reservationId: id, mode: row.binding.mode, state: row.state, status: row.outcome?.status ?? null, reason: row.outcome?.reason ?? null,
+        charge: row.outcome?.charge ?? null, outputTokens: row.outcome?.outputTokens ?? null, held: open ? row.binding.maximum : 0,
+        credits: (row.outcome?.credits ?? []).map(credit => ({ computerId: credit.computerId, amount: credit.amount })),
+        journal: entries.map(entry => ({ accountId: entry.computer_id ?? entry.account_id, delta: entry.delta })),
+        journalByAccount: entries.map(entry => ({ accountId: entry.account_id ?? null, computerId: entry.computer_id ?? null, delta: entry.delta })),
+        participants: [row.binding.consumer, ...row.binding.providers.map(provider => provider.participantId)]
+          .map(participantId => ({ participantId, ...placeOf(participantId) })),
+        policy: structuredClone(policy) };
+    },
+    /**
      * Everything one owner account needs to check its own balance without this ledger: each settled request it took
      * part in, with the request's accepted terms, its outcome, the signed evidence it was settled on, and the
      * computers the account's share is attributed to (credit-statement.js).

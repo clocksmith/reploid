@@ -131,6 +131,8 @@ export function createWholeModelRequester({ mesh, models }) {
         }, { signal: controls.signal, modelId: model.id, modelIdentity: model.identity,
           adapterIdentities: partitionAdapterIdentities(model), privacy: request.privacy,
           ...(settings ? { settings: request.settings } : {}),
+          // The caller's port for the signed records of a charged request (mesh/operation-envelope.js).
+          ...(controls.settlement ? { settlement: controls.settlement } : {}),
           // Asked of the mesh only for a caller that publishes the provider's input count before its text.
           ...(typeof controls.onUsage === 'function' ? { onUsage: ({ inputTokens }) => {
             controls.signal.throwIfAborted();

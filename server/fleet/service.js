@@ -10,6 +10,7 @@ import { planFleetPlacement } from './placement.js';
 import { createNativeEarningStorage } from '../native-earning.js';
 import { openFleetCredits } from './credits.js';
 import { canonicalRouteAttemptBinding } from '../../shared/vendor/reploid/mesh/partitions/partition-contract.js';
+import { policyDigest } from './settlement-terms.js';
 
 
 /** Private to enrolled signers, using TLS outside loopback. */
@@ -144,6 +145,12 @@ export function createFleetServiceHandler({ credits, models, placementPolicy, no
         const model = models.find(row => row.id === payload.id && row.identity === payload.identity);
         assert(model, 'Model is not enabled for this service');
         return { model: structuredClone(model), policy: credits.policy };
+      }
+      case 'trace': {
+        const request = credits.request(payload.id);
+        assert(request && (request.binding.consumer === signer || request.binding.providers.some(row => row.participantId === signer)), 'Not a participant in this request');
+        const trace = credits.trace(payload.id);
+        return { ...trace, policyDigest: await policyDigest(trace.policy) };
       }
       case 'request': {
         const request = credits.request(payload.id);

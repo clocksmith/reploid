@@ -8,6 +8,7 @@ export function createFleetExecutionAdmission({ credits, model, stageOwner = nul
   const exact = { id: model.id, identity: model.identity, adapterIdentities: partitionAdapterIdentities(model) };
   const outputLimit = model.generation?.maxTokens;
   assert(Number.isSafeInteger(outputLimit) && outputLimit > 0, 'Credited providers need an explicit output bound');
+  let account = null;
   return Object.freeze({
     async whole({ request, consumer }) {
       assert(request.consumer === consumer, 'Execution consumer differs from authenticated peer');
@@ -45,6 +46,13 @@ export function createFleetExecutionAdmission({ credits, model, stageOwner = nul
       const result = await credits.call('preadmit', { id: `service:${consumer}:${request.requestId}`, executionId: request.requestId,
         consumer, mode: 'whole-model', model: exact, commitment: request.promptCommitment });
       assert(result?.preadmitted === true, 'Exact credit preadmission is required before disclosure');
+      // Signed settlement terms sent with the request must name this reservation and exactly its hold: this provider's
+      // acceptance is then of the terms the ledger reserved under, not of another quote.
+      const terms = request.settlement?.terms;
+      if (terms !== undefined) {
+        assert(terms?.reservationId === `service:${consumer}:${request.requestId}` && terms.maximum === result.maximum
+          && terms.maxOutputTokens === result.maxOutputTokens, 'Settlement terms differ from the credit reservation');
+      }
       return true;
     },
     /** A mesh operation other than generation (mesh/operation-envelope.js): admitted for the base model this provider
@@ -63,6 +71,18 @@ export function createFleetExecutionAdmission({ credits, model, stageOwner = nul
         partitionIndex: request.partitionIndex, outputLimit: request.maxTokens };
       if (stageOwner) await stageOwner.admit(credits, payload);
       else await credits.call('admit', payload);
+    },
+    /**
+     * The owner account this provider's key is enrolled under, which it signs into its acceptance as the account it is
+     * paid into. Read once from the ledger's own statement of this account.
+     */
+    settlementAccount() {
+      account ??= Promise.resolve(credits.call('statementMine', {})).then(statement => {
+        assert(typeof statement?.accountId === 'string' && statement.accountId, 'The ledger named no account for this provider');
+        return statement.accountId;
+      });
+      account.catch(() => { account = null; });
+      return account;
     },
     ...(stageOwner ? { checkpoint: (request, index, receipt) => stageOwner.checkpoint(request, index, receipt) } : {}),
     partitionReceipt(bundle) { return stageOwner ? stageOwner.finish(credits, bundle) : credits.collect(bundle.reservationId, bundle); },

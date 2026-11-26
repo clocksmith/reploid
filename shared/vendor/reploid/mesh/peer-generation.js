@@ -15,6 +15,8 @@ import { rankProviderPeers, applyReceiptToContribution } from './contribution.js
 import { createReceiptDraft, countersignReceipt, signReceiptDraft, verifyReceipt } from '../artifacts/receipt.js';
 import { measureWholeModelReceipt, matchesWholeModelReceipt } from '../artifacts/whole-model-receipt.js';
 import { hashJson } from '../artifacts/signatures.js';
+import { createAttemptEvidenceSigner } from './partitions/partition-attempt-evidence.js';
+import { acceptMeshOperationCharge, wholeModelOperationPlanDigest } from './operation-envelope.js';
 import { signGenerationTerminal, verifyGenerationTerminal } from '../artifacts/generation-terminal.js';
 import { createGenerationRecovery, createMemoryGenerationJournal } from './generation-recovery.js';
 import { assertSettingsSupported, effectiveRequestDigest, isCanonicalGenerationSettings, normalizeGenerationSettings,
@@ -43,6 +45,8 @@ const promptCommitment = (salt, messages, settings) => {
   if (!ADMISSION_SALT.test(salt || '')) throw Error('Admission salt is invalid');
   return hashJson({ schema: 'reploid.prompt-commitment/v1', salt, messages, settings: settings ?? null });
 };
+/** Version of the signed settlement records a provider advertises it produces (operation-envelope.js). */
+const SETTLEMENT_PROTOCOL = 1;
 const admissionSalt = () => Array.from(crypto.getRandomValues(new Uint8Array(32)), byte => byte.toString(16).padStart(2, '0')).join('');
 
 // Whole-request generation by authorized peers over the swarm protocol: advertisement,
@@ -91,6 +95,13 @@ export function createPeerGenerationMesh({ config, ports }) {
   // The newest fresh path this requester opened to each provider, kept with the connection it belongs to.
   const freshPaths = new Map();
   const admitsBeforeDisclosure = ports.admitsBeforeDisclosure === true;
+  // The acceptance travels in the answer to an admission, so only a host that admits before disclosure signs one.
+  const signsSettlement = admitsBeforeDisclosure && typeof ports.settlementAccount === 'function';
+  // Provider side: the signed records of recent charged requests, until the requester's acknowledgment arrives.
+  const settlementCharges = new Map();
+  // Requester side: the charges of recent requests, so a provider's closing record that arrives after the request
+  // ended here (a stop, a timeout) is still kept with the caller's records.
+  const openCharges = new Map();
   const consumerOrder = [], consumerBuckets = new Map();
   const inboundSettlements = new Set();
   const receiptSettlements = new Set();
@@ -197,13 +208,15 @@ export function createPeerGenerationMesh({ config, ports }) {
   const supportsSettings = (peer, settings) => {
     try { assertSettingsSupported(peer.generationSettings, settings); return true; } catch { return false; }
   };
-  const chooseCompatibleProvider = (modelId, includeBusy = false, modelIdentity = null, adapters = [], preferred = null, privacy = null, offerId = null, settings = undefined) => {
+  const chooseCompatibleProvider = (modelId, includeBusy = false, modelIdentity = null, adapters = [], preferred = null, privacy = null, offerId = null, settings = undefined, signedSettlement = false) => {
     const blocked = blockedComputers();
     let eligible = rankProviderPeers(swarmController.listPeers().filter(peer => privacyEligible(peer, privacy, offerId)))
     .filter(peer => !isBlockedProvider(peer.peerId, blocked) && !unresponsivePeers.has(peer.peerId) && supportsAdapters(peer, adapters) && peer.readiness === 'ready' && (!modelIdentity || peer.modelIdentity === modelIdentity) && (!modelId || peer.model === modelId) && (includeBusy || (!reservedProviders.has(peer.peerId) && peer.availableSlots > 0))
       && (policy.models.contract === null
       || JSON.stringify(snapshotJson(peer.modelContract ?? null)) === JSON.stringify(policy.models.contract))
-      && (!settings || supportsSettings(peer, settings)));
+      && (!settings || supportsSettings(peer, settings))
+      // A request that requires a verifiable charge considers only providers that advertise they sign its records.
+      && (!signedSettlement || peer.settlementProtocol === SETTLEMENT_PROTOCOL));
     // Optional host ranking: connection ids or identities proven on this channel, best first. Providers it
     // does not name keep the default order after it. It reorders eligible providers; it cannot add one.
     const order = eligible.length > 1 ? ports.rankProviders?.(eligible.map(placementCandidate), { modelId, modelIdentity }) : null;
@@ -294,6 +307,10 @@ export function createPeerGenerationMesh({ config, ports }) {
     // This provider can decide on a request from its details before the prompt is sent. Advertised only
     // by a host that answers `mesh.admit`, so other advertisements are unchanged.
     if (admitsBeforeDisclosure) advertisement.admissionProtocol = 2;
+    // This provider signs the settlement records of a charged request: an acceptance of the requester's signed terms
+    // before the prompt is sent, and a closing receipt (operation-envelope.js). Advertised only by a host that can
+    // name the account it is paid into, so other advertisements are unchanged.
+    if (signsSettlement) advertisement.settlementProtocol = SETTLEMENT_PROTOCOL;
     // This provider acknowledges each request frame on arrival and ignores a repeated one, so a requester
     // may send it again to this same computer. A requester never re-sends to one that does not say so.
     if (policy.mesh.executeJobs) advertisement.deliveryProtocol = DELIVERY_PROTOCOL;
@@ -334,8 +351,8 @@ export function createPeerGenerationMesh({ config, ports }) {
     await syncIdentityDocument();
   };
 
-  const waitForProvider = (modelId, signal, timeoutMs = REMOTE_GENERATION_TIMEOUT_MS, modelIdentity = null, adapters = [], privacy = null, offerId = null, settings = undefined) => {
-    if (chooseCompatibleProvider(modelId, false, modelIdentity, adapters, null, privacy, offerId, settings)) return Promise.resolve(true);
+  const waitForProvider = (modelId, signal, timeoutMs = REMOTE_GENERATION_TIMEOUT_MS, modelIdentity = null, adapters = [], privacy = null, offerId = null, settings = undefined, signedSettlement = false) => {
+    if (chooseCompatibleProvider(modelId, false, modelIdentity, adapters, null, privacy, offerId, settings, signedSettlement)) return Promise.resolve(true);
     return new Promise(resolve => {
       let unsubscribe = () => {};
       const finish = available => {
@@ -345,24 +362,24 @@ export function createPeerGenerationMesh({ config, ports }) {
       const abort = () => finish(false);
       const timer = setTimeout(() => finish(false), timeoutMs);
       providerWaiters.add(finish);
-      unsubscribe = bridgeEvents.on('provider-ready', () => { if (chooseCompatibleProvider(modelId, false, modelIdentity, adapters, null, privacy, offerId, settings)) finish(true); });
+      unsubscribe = bridgeEvents.on('provider-ready', () => { if (chooseCompatibleProvider(modelId, false, modelIdentity, adapters, null, privacy, offerId, settings, signedSettlement)) finish(true); });
       signal?.addEventListener('abort', abort, { once: true });
       if (signal?.aborted) finish(false);
     });
   };
 
-  const chooseProvider = async (modelId, signal, modelIdentity, adapters, preferred = null, privacy = null, offerId = null, settings = undefined) => {
+  const chooseProvider = async (modelId, signal, modelIdentity, adapters, preferred = null, privacy = null, offerId = null, settings = undefined, signedSettlement = false) => {
     const deadline = Date.now() + REMOTE_GENERATION_TIMEOUT_MS;
     while (!closed && Date.now() < deadline) {
       signal?.throwIfAborted();
-      const provider = chooseCompatibleProvider(modelId, false, modelIdentity, adapters, preferred, privacy, offerId, settings);
+      const provider = chooseCompatibleProvider(modelId, false, modelIdentity, adapters, preferred, privacy, offerId, settings, signedSettlement);
       if (provider) {
         reservedProviders.add(provider.peerId);
         const selected = snapshotJson(provider);
         placementChoices.set(selected, placementChoices.get(provider));
         return selected;
       }
-      if (!await waitForProvider(modelId, signal, deadline - Date.now(), modelIdentity, adapters, privacy, offerId, settings)) break;
+      if (!await waitForProvider(modelId, signal, deadline - Date.now(), modelIdentity, adapters, privacy, offerId, settings, signedSettlement)) break;
     }
     signal?.throwIfAborted();
     return null;
@@ -402,6 +419,7 @@ export function createPeerGenerationMesh({ config, ports }) {
       next.modelContract = payload.modelContract || null;
       next.identityProtocol = payload.identityProtocol === 1 ? 1 : null;
       next.admissionProtocol = payload.admissionProtocol === 2 ? 2 : null;
+      next.settlementProtocol = payload.settlementProtocol === SETTLEMENT_PROTOCOL ? SETTLEMENT_PROTOCOL : null;
       next.deliveryProtocol = payload.deliveryProtocol === DELIVERY_PROTOCOL ? DELIVERY_PROTOCOL : null;
       next.deliveryProtocols = advertisedDeliveryProtocol(payload) === PATH_DELIVERY_PROTOCOL ? [...DELIVERY_PROTOCOLS] : null;
       const generationSettings = normalizeGenerationSettingsCapability(payload.generationSettings);
@@ -481,12 +499,23 @@ export function createPeerGenerationMesh({ config, ports }) {
       remoteRequests.settle(pending, { error: new Error('The provider admitted a different request. The prompt was not sent.'), cancel: true });
       return;
     }
-    admission.sent = true;
-    pending.delivery?.acknowledge('admit');
-    try {
-      if (!admission.send()) remoteRequests.settle(pending, { error: new Error('Failed to send swarm generation request') });
-      else pending.delivery?.sent('request');
-    } catch (error) { remoteRequests.settle(pending, { error, cancel: true }); }
+    const release = () => {
+      admission.sent = true;
+      pending.delivery?.acknowledge('admit');
+      try {
+        if (!admission.send()) remoteRequests.settle(pending, { error: new Error('Failed to send swarm generation request') });
+        else pending.delivery?.sent('request');
+      } catch (error) { remoteRequests.settle(pending, { error, cancel: true }); }
+    };
+    if (!pending.settlement) return release();
+    // The provider advertised that it signs the settlement records: the prompt leaves only after its signed
+    // acceptance of exactly the terms it was sent verifies.
+    if (admission.accepting) return;
+    admission.accepting = true;
+    pending.settlement.accept(payload.settlementAcceptance).then(() => {
+      if (remoteRequests.get(pending.requestId, remotePeerId) === pending && !admission.sent) release();
+    }, () => remoteRequests.settle(pending, { error: Object.assign(
+      new Error('The provider did not sign an acceptance of the settlement terms. The prompt was not sent.'), { code: 'VERIFIABLE_CHARGE_UNAVAILABLE' }), cancel: true }));
   };
 
   const handleGenerationResult = async (remotePeerId, payload = {}) => {
@@ -539,7 +568,14 @@ export function createPeerGenerationMesh({ config, ports }) {
         }
         const countersigned = await countersignReceipt(payload.receipt, identityBundle);
         if (!current()) return;
-        swarmTransport.sendToPeer(remotePeerId, 'reploid:receipt', { receipt: countersigned },
+        // The whole output arrived and matches the provider's measured receipt: acknowledge the provider's closing
+        // record of the same count. A closing record that is missing or commits to anything else is not acknowledged;
+        // the answer stands and its records stay incomplete, which the caller reports as no verifiable receipt.
+        const acknowledgment = pending.settlement && [2, 3].includes(Number(payload.receipt.version))
+          ? await pending.settlement.acknowledge({ receipt: payload.settlement?.receipt, units: payload.receipt.outputTokens,
+            outputDigest: payload.receipt.outputDigest }).catch(() => null) : null;
+        if (!current()) return;
+        swarmTransport.sendToPeer(remotePeerId, 'reploid:receipt', { receipt: countersigned, ...(acknowledgment ? { settlementAcknowledgment: acknowledgment } : {}) },
           pending.paths?.path ? { path: pending.paths.path } : undefined);
         await updateConsumerReceiptCount();
         response.executionReceipt = countersigned;
@@ -552,6 +588,9 @@ export function createPeerGenerationMesh({ config, ports }) {
   };
 
   const handleGenerationError = async (remotePeerId, payload = {}) => {
+    // The provider's closing record of an answer that did not complete, kept even when the request already ended here.
+    const ended = payload?.settlement?.receipt ? openCharges.get(`${remotePeerId}:${payload.requestId}`) : null;
+    if (ended) await ended.close(payload.settlement.receipt).catch(() => {});
     const pending = remoteRequests.get(payload.requestId, remotePeerId);
     if (!pending || pending.processing || !onAdmittedConnection(pending, remotePeerId)) return;
     const error = new Error(String(payload.error || 'Remote generation failed'));
@@ -586,6 +625,14 @@ export function createPeerGenerationMesh({ config, ports }) {
     const verification = await verifyReceipt(payload.receipt);
     if (!verification.valid || !verification.consumerValid) return;
     if (payload.receipt.provider !== identityBundle.peerId) return;
+    // The requester's acknowledgment of this provider's closing record completes the provider's own copy of the
+    // signed settlement records, which its host may keep.
+    const chargeKey = typeof payload.receipt.jobHash === 'string' ? `${payload.receipt.consumer}:${payload.receipt.jobHash.slice('request:'.length)}` : null;
+    const charge = chargeKey && payload.settlementAcknowledgment ? settlementCharges.get(chargeKey) : null;
+    if (charge && await charge.acknowledged(snapshotJson(payload.settlementAcknowledgment))) {
+      settlementCharges.delete(chargeKey);
+      await Promise.resolve(ports.onSettlementRecords?.({ reservationId: charge.reservationId, records: charge.records() })).catch(() => {});
+    }
     await ports.onReceipt?.(snapshotJson(payload.receipt));
     await updateProviderContribution(payload.receipt);
   };
@@ -772,7 +819,8 @@ export function createPeerGenerationMesh({ config, ports }) {
       const entry = admitted.get(key);
       if (entry) {
         if (entry.commitment === payload.promptCommitment && entry.channel === canonicalConnection(remotePeerId)) {
-          swarmTransport.sendToPeer(remotePeerId, 'reploid:generation-admitted', { requestId, admissionProtocol: 2, promptCommitment: entry.commitment }, replyOn(key));
+          swarmTransport.sendToPeer(remotePeerId, 'reploid:generation-admitted', { requestId, admissionProtocol: 2, promptCommitment: entry.commitment,
+            ...(entry.settlement ? { settlementAcceptance: entry.settlement.acceptance } : {}) }, replyOn(key));
         }
         return;
       }
@@ -804,10 +852,23 @@ export function createPeerGenerationMesh({ config, ports }) {
     if (!admitting.delete(key) || closed) return;
     if (!allowed || !channel || channel !== canonicalConnection(remotePeerId) || !ready() || !bindingAvailable(request.binding, request.adapters)) return void refuse('The provider declined this request. The prompt was not sent.');
     if (admitted.has(key) || inbound.has(key) || inboundQueued.has(key)) return;
-    const entry = { commitment: payload.promptCommitment, digest, channel,
+    // The requester sent signed settlement terms: this provider signs its acceptance of exactly those terms, with
+    // the account it is paid into, before the prompt is sent. Terms it cannot accept are refused here.
+    let settlement = null;
+    if (signsSettlement && payload.settlement !== undefined) {
+      try {
+        settlement = await acceptMeshOperationCharge({ signer: createAttemptEvidenceSigner({ identity: identityBundle }), settlement: payload.settlement,
+          consumer: request.consumer, requestId, payoutAccount: await ports.settlementAccount(),
+          planDigest: await wholeModelOperationPlanDigest({ operation: 'generate', modelId: request.binding.model, manifestDigest: request.binding.modelIdentity,
+            recipient: identityBundle.peerId }) });
+      } catch { return void refuse('The provider declined the settlement terms. The prompt was not sent.'); }
+      if (closed || channel !== canonicalConnection(remotePeerId) || admitted.has(key) || inbound.has(key) || inboundQueued.has(key)) return;
+    }
+    const entry = { commitment: payload.promptCommitment, digest, channel, settlement,
       timer: setTimeout(() => { if (admitted.get(key) === entry) admitted.delete(key); }, policy.mesh.generationTimeoutMs) };
     admitted.set(key, entry);
-    swarmTransport.sendToPeer(remotePeerId, 'reploid:generation-admitted', { requestId, admissionProtocol: 2, promptCommitment: entry.commitment }, replyOn(key));
+    swarmTransport.sendToPeer(remotePeerId, 'reploid:generation-admitted', { requestId, admissionProtocol: 2, promptCommitment: entry.commitment,
+      ...(settlement ? { settlementAcceptance: settlement.acceptance } : {}) }, replyOn(key));
   };
 
   const validateDisclosedRequest = async (remotePeerId, payload, messages, signal) => {
@@ -834,7 +895,7 @@ export function createPeerGenerationMesh({ config, ports }) {
     if (signal.aborted || closed) return;
     // A replay cannot evade the durable fence by downgrading its protocol flag.
     const earlierAdmission = !payload.recoverable && await generationJournal.get({ provider: identityBundle.peerId, consumer, requestId });
-    return { request, settingsDigest, earlierAdmission, channel: admission.channel };
+    return { request, settingsDigest, earlierAdmission, channel: admission.channel, charged: admission.settlement ?? null };
   };
 
   const handleGenerationRequest = async (remotePeerId, payload = {}, _envelope = null, context = null) => {
@@ -874,7 +935,7 @@ export function createPeerGenerationMesh({ config, ports }) {
       inboundSettlements.delete(inspection);
     }
     if (!checked || validation.signal.aborted) return;
-    const { request, settingsDigest, earlierAdmission, channel } = checked;
+    const { request, settingsDigest, earlierAdmission, channel, charged } = checked;
     // Conversation output leaves only on the connection this request was admitted on. If that connection
     // is gone the output is withheld, and a recoverable answer stays in the journal for a verified query.
     // Its output stays on one path once it starts, so its updates arrive in order: the newest path a frame
@@ -1007,7 +1068,16 @@ export function createPeerGenerationMesh({ config, ports }) {
       controller.signal.throwIfAborted();
       if (closed) return;
 
-      const result = { requestId, response, receipt };
+      // The closing record of a charged request: the measured output tokens and the output's digest, the same
+      // values the execution receipt signs. An unmeasured completion closes as failed and claims nothing.
+      const closing = charged ? await charged.close(measured
+        ? { units: measured.outputTokens, outputDigest: measured.outputDigest, stopReason: measured.stopReason, promptUnits: measured.inputTokens }
+        : { failed: true }) : null;
+      if (charged) {
+        settlementCharges.set(`${consumer}:${requestId}`, charged);
+        while (settlementCharges.size > policy.mesh.maxRetainedJobs) settlementCharges.delete(settlementCharges.keys().next().value);
+      }
+      const result = { requestId, response, receipt, ...(closing ? { settlement: { receipt: closing } } : {}) };
       if (recoveryBinding) {
         await generationJournal.finish(recoveryBinding, { type: 'reploid:generation-result', payload: result });
         retainedResult = true;
@@ -1031,6 +1101,10 @@ export function createPeerGenerationMesh({ config, ports }) {
             await ports.onGenerationTerminal?.(snapshotJson(payload.terminal));
           }
         } catch { /* No terminal proof: retain the admission fence and uncertainty. */ }
+      }
+      // The provider's own signed close of an answer that did not complete: it claims no output.
+      if (charged) {
+        try { payload.settlement = { receipt: await charged.close({ failed: true }) }; } catch { /* The request ends without it. */ }
       }
       if (!closed) {
         completed.set(key, { type: 'reploid:generation-error', payload });
@@ -1175,7 +1249,13 @@ export function createPeerGenerationMesh({ config, ports }) {
   };
 
 
-  const generate = async (messages, onUpdate, { signal, modelId, modelIdentity = null, adapterIdentities = [], requestContext = null, privacy = null, offerId = null, settings = undefined, onUsage = undefined } = {}) => {
+  /**
+   * `settlement` (optional, remote execution only) is the caller's port for the signed records of a charged request:
+   * `open({ requestId, recipientIdentity, modelId, modelIdentity, planDigest })` returns the requester's charge
+   * (openMeshOperationCharge) once the host has approved the disclosure, or null for none; `required: true` sends only
+   * to a provider that advertises it signs those records and refuses, before anything is held or sent, when none does.
+   */
+  const generate = async (messages, onUpdate, { signal, modelId, modelIdentity = null, adapterIdentities = [], requestContext = null, privacy = null, offerId = null, settings = undefined, onUsage = undefined, settlement = null } = {}) => {
     if (closed) throw new Error('Mesh is closed');
     privacy = assertAvailableExecutionPolicy(privacy === null && modelConfig
       ? createExecutionPolicy() : requestExecutionPolicy({ privacy }));
@@ -1210,7 +1290,13 @@ export function createPeerGenerationMesh({ config, ports }) {
       const unsupporting = chooseCompatibleProvider(modelId, true, modelIdentity, adapterIdentities, null, privacy, offerId);
       if (unsupporting) assertSettingsSupported(unsupporting.generationSettings, settings);
     }
-    const pick = () => chooseProvider(modelId, signal, modelIdentity, adapterIdentities, contextProviders.get(affinityKey), privacy, offerId, settings);
+    // A verifiable charge is required and providers serve this model, but none signs the records: refuse now.
+    const signedSettlement = settlement?.required === true;
+    if (signedSettlement && !chooseCompatibleProvider(modelId, true, modelIdentity, adapterIdentities, null, privacy, offerId, settings, true)
+      && chooseCompatibleProvider(modelId, true, modelIdentity, adapterIdentities, null, privacy, offerId, settings)) {
+      throw Object.assign(new Error('No computer serving this model signs a verifiable charge. Nothing was held or sent.'), { code: 'VERIFIABLE_CHARGE_UNAVAILABLE' });
+    }
+    const pick = () => chooseProvider(modelId, signal, modelIdentity, adapterIdentities, contextProviders.get(affinityKey), privacy, offerId, settings, signedSettlement);
     let provider = await pick();
     // With a block list, a candidate whose identity is not yet known is asked to prove it before it is
     // chosen; one that proves to be blocked is passed over for the next. Nothing is disclosed meanwhile.
@@ -1294,6 +1380,15 @@ export function createPeerGenerationMesh({ config, ports }) {
         }
       };
       verifyCurrentRecipient();
+      // The host approved and holds the cost. The requester's signed terms and charge binding travel with the
+      // admission question, so the provider signs its acceptance before the prompt is sent. Only a provider that
+      // advertises the records is sent them; any other receives exactly the request it always did.
+      const charge = typeof settlement?.open === 'function' && provider.settlementProtocol === SETTLEMENT_PROTOCOL
+        ? await settlement.open({ requestId, recipientIdentity, modelId, modelIdentity,
+          planDigest: await wholeModelOperationPlanDigest({ operation: 'generate', modelId, manifestDigest: modelIdentity, recipient: recipientIdentity }) }) ?? null
+        : null;
+      signal?.throwIfAborted();
+      if (charge) requestPayload.settlement = { terms: snapshotJson(charge.terms), charge: snapshotJson(charge.charge) };
       admission.channel = canonicalConnection(provider.peerId);
       const { messages: _messages, settings: _settings, admission: _admission, ...details } = requestPayload;
       const admitPayload = { ...details, promptCommitment: admission.commitment };
@@ -1331,7 +1426,13 @@ export function createPeerGenerationMesh({ config, ports }) {
       const result = await remoteRequests.start({ requestId, modelId, modelIdentity, adapterIdentities,
         providerPeerId: provider.peerId, providerIdentity: recipientIdentity, messages, onUpdate, signal,
         ...(typeof onUsage === 'function' ? { onUsage } : {}),
-        ...(settings ? { settings, settingsDigest } : {}), admission, ...(delivery ? { delivery } : {}), ...(paths ? { paths } : {}) }, () => {
+        ...(settings ? { settings, settingsDigest } : {}), admission, ...(charge ? { settlement: charge } : {}),
+        ...(delivery ? { delivery } : {}), ...(paths ? { paths } : {}) }, () => {
+        if (charge) {
+          const chargeKey = `${provider.peerId}:${requestId}`;
+          openCharges.set(chargeKey, charge);
+          while (openCharges.size > policy.mesh.maxRetainedJobs) openCharges.delete(openCharges.keys().next().value);
+        }
         admission.send = () => {
           signal?.throwIfAborted();
           verifyCurrentRecipient();

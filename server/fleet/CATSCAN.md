@@ -43,7 +43,7 @@ Evidence: [credits](../../tests/unit/fleet-credits.test.js),
 [settlement replay](../../tests/unit/settlement-replay.test.js),
 [placement](../../tests/unit/fleet-placement.test.js),
 [feed](../../tests/unit/fleet-notifier.test.js),
-[integration](../../tests/integration/fleet-service.test.js).
+[integration](../../tests/integration/fleet-service.test.js),[signed-charge](../../tests/integration/whole-model-signed-charge.test.js).
 Physical runs qualify exercised devices only.
 
 ## Non-goals

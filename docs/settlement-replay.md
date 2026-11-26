@@ -1039,6 +1039,46 @@ one process and with a test key, and every trade settled before 2026-11-26 has
 none. For those, the release of the hold is the publisher's unsigned statement
 and is not proven by any record.
 
+## Whole-model operations
+
+An ordinary request that one computer answers with the whole model signs the
+same records with one stage (`shares` has one entry, `partitionIndex` 0), so
+every step above applies unchanged. Source:
+[`packages/reploid/src/mesh/operation-envelope.js`](../packages/reploid/src/mesh/operation-envelope.js).
+
+- `attemptId` is the request ID. `routeHash` is the digest of
+  `{ schema: "reploid.mesh-operation-attempt/v1", requesterId, requestId, planDigest }`,
+  where `planDigest` is the operation envelope's digest of the operation, the
+  model, its manifest digest, the plaintext whole-model route and the one
+  recipient. A verifier treats it as it treats any route hash: a value the
+  records must share.
+- The requester signs the terms and the charge binding and sends them with its
+  admission question. The provider signs its acceptance before the prompt is
+  sent; a requester that gets no valid acceptance sends nothing further.
+- The provider signs one stage receipt, at the end, which is its closing
+  receipt: `steps` and `output.count` are the output tokens it measured (one
+  unit for an operation that is not generation), and the chain value is the
+  starting value extended once per unit, with no text for every step but the
+  last and the digest of the whole output for the last. A request that did not
+  complete closes with status `failed`, zero steps and the starting chain.
+- The requester signs one acknowledgment of that count, after the whole output
+  has arrived and matches the provider's execution receipt. A person who stops
+  the answer signs a stop with `acknowledged` 0.
+
+A whole-model operation is therefore charged whole or not at all, as its ledger
+hold always was: a completed and acknowledged answer settles at its output
+tokens, and a stopped, failed or lost one at zero. The terms still carry the
+policy's `maxUnacknowledgedOutputs`, which the replay requires of any terms, but a single
+whole-model stage does not enforce it: it delivers the whole answer before any
+acknowledgment and bears that risk, as it did before these records existed.
+
+The ledger still settles such a request from the countersigned execution
+receipt and the requester's stop. It does not read the terms, so the records are
+an outsider's check on the amounts it posted, not its input. A provider that
+runs code from before these records signs none of them; the request is then
+served and labelled `no-verifiable-receipt`, or refused before any hold when
+the requester requires a verifiable charge.
+
 ## Checking it
 
 ```sh

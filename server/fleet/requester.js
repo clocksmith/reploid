@@ -5,7 +5,24 @@ import { partitionAdapterIdentities } from '../../shared/vendor/reploid/mesh/par
 import { effectiveRequestDigest, normalizeGenerationSettings } from '../../shared/vendor/reploid/mesh/generation-settings.js';
 import { signSettlementStop } from './settlement-terms.js';
 import { countersignReceipt } from '../../shared/vendor/reploid/artifacts/receipt.js';
-import { executeMeshOperation } from '../../shared/vendor/reploid/mesh/operation-envelope.js';
+import { MESH_OPERATION_SETTLEMENT_RECORDS_SCHEMA, executeMeshOperation, openMeshOperationCharge } from '../../shared/vendor/reploid/mesh/operation-envelope.js';
+
+/** How a charged whole-model answer is labelled: with every signed record an outsider needs, or without. */
+export const VERIFIABLE_CHARGE_LABELS = Object.freeze({ signed: 'signed-records', none: 'no-verifiable-receipt' });
+
+/**
+ * One whole-model request's signed settlement records as this requester holds them now (docs/verify-a-trade.md).
+ * `label` is `signed-records` only when the requester's terms, the provider's acceptance and closing receipt, and the
+ * requester's acknowledgment or stop are all held; anything less is `no-verifiable-receipt` with what is missing.
+ */
+export function settlementRecordsOf({ reservationId, charge, policy, reason = null }) {
+  const summary = charge?.summary() ?? null;
+  return { schema: MESH_OPERATION_SETTLEMENT_RECORDS_SCHEMA, reservationId,
+    label: summary?.complete ? VERIFIABLE_CHARGE_LABELS.signed : VERIFIABLE_CHARGE_LABELS.none,
+    ...(summary ? { attemptId: summary.attemptId, requesterId: summary.requesterId, providerId: summary.providerId, missing: summary.missing,
+      acknowledged: summary.acknowledged, stopped: summary.stopped } : { missing: ['terms', 'acceptance', 'close', 'acknowledgment'] }),
+    ...(reason ? { reason } : {}), policy: charge ? structuredClone(policy) : null, records: charge ? charge.records() : [] };
+}
 
 export function buildFleetRequestOutcome({
   attemptId = null, threadId = null, reservationId = null, executionId = null,
@@ -71,7 +88,11 @@ const STOP_HANDOFF_MS = 2000;
 /** Compose credit admission with the native requester's existing disclosure gate. */
 export function createFleetRequester({
   participant, identity, credits, maxOutputTokens,
-  onOutcome = () => {}, lookupOutcome = () => null, resolveProviderId = () => null
+  onOutcome = () => {}, lookupOutcome = () => null, resolveProviderId = () => null,
+  // A standing policy: send whole-model requests only to a provider that signs the settlement records.
+  requireVerifiableCharge = false,
+  // Receives `{ reservationId, read }` for each dispatched whole-model request; `read()` returns its records as held then.
+  onSettlementRecords = () => {}
 }) {
   assert(participant?.generate && identity?.peerId && credits?.reserve && credits?.settle,
     'Requester, signing identity and service-credit owner required');
@@ -86,7 +107,8 @@ export function createFleetRequester({
    */
   const signStop = (binding, acknowledged) => signSettlementStop({ signer: createAttemptEvidenceSigner({ identity }), acknowledged,
     terms: { requesterId: identity.peerId, reservationId: binding.id, attemptId: binding.executionId } });
-  const settleStop = async binding => credits.settle(binding.id, await signStop(binding, 0));
+  // A request that signed settlement terms stops with the stop that names them, so its records hold the same stop.
+  const settleStop = async (binding, charge = null) => credits.settle(binding.id, charge ? await charge.stop() : await signStop(binding, 0));
   // The output limit a request is quoted and reserved for: the caller's limit, never above the model or policy ceiling.
   const outputLimitOf = (request, settings) => Math.min(maxOutputTokens, request.generationRequest?.maxOutputTokens ?? maxOutputTokens,
     request.model.generation?.maxTokens ?? maxOutputTokens, settings?.maxOutputTokens ?? maxOutputTokens);
@@ -133,6 +155,10 @@ export function createFleetRequester({
         adapterIdentities: partitionAdapterIdentities(request.model), messages: request.messages, settings }) : null;
       let reservation = null, dispatched = false, abandoned = false, acknowledgments = null, routeIdentity = null, observeOutput = null;
       let disclosedProviderId = null, disclosedProviderIdentity = null, deltaCount = 0, outputCharacters = 0, splitStop = null;
+      // Whole-model only: the policy the hold was quoted under and this request's signed charge, once a provider that
+      // signs the records was chosen.
+      let quotedPolicy = null, charge = null, unsignedReason = 'provider-does-not-sign';
+      const verifiable = requireVerifiableCharge === true || request.verifiableCharge === 'required';
       // A split answer the person stops: the requester signs its stop and hands it to the ledger before the stages are
       // told to stop, so the ledger has it before any stage closes. With it the ledger charges the acknowledged prefix.
       // A lost connection is not a stop and signs nothing; the stages then close an unfinished answer, which under the
@@ -162,9 +188,27 @@ export function createFleetRequester({
           }
         } : {}),
         authorizationExpiresAt: () => Math.min(reservation?.deadline ?? Infinity, controls.authorizationExpiresAt?.() ?? Infinity),
+        // The mesh asks for the signed terms after this requester approved the disclosure and holds the cost, and only
+        // for a provider that advertises it signs the records. `required` refuses, before any hold, when none does.
+        ...(partition ? {} : { settlement: { required: verifiable,
+          async open({ requestId, recipientIdentity, planDigest }) {
+            assert(reservation && dispatched && reservation.executionId === requestId && disclosedProviderIdentity === recipientIdentity,
+              'Settlement terms need the approved reservation of this request');
+            try {
+              charge = await openMeshOperationCharge({ signer: createAttemptEvidenceSigner({ identity }), requestId, planDigest,
+                recipient: recipientIdentity, reservationId: reservation.id, policy: quotedPolicy, maxCostUnits: outputLimit,
+                ...(typeof reservation.accountId === 'string' && reservation.accountId ? { debitAccount: reservation.accountId } : {}) });
+            } catch (error) {
+              // Terms this requester cannot sign under the quoted policy: served unsigned and labelled, unless required.
+              if (verifiable) throw error;
+              unsignedReason = 'terms-not-signed';
+            }
+            return charge;
+          } } }),
         requestApproval: async disclosure => {
           assert(!reservation, 'One provider per request; replacements need explicit retry');
           const terms = await credits.call('terms', { id: request.model.id, identity: request.model.identity });
+          quotedPolicy = terms.policy;
           const acceptedQuote = fleetCreditQuote(terms.policy, outputLimit, mode);
           if (await controls.requestApproval({ ...structuredClone(disclosure), serviceCreditQuote: structuredClone(acceptedQuote) }) !== true) return false;
           controls.signal.throwIfAborted();
@@ -268,7 +312,7 @@ export function createFleetRequester({
           } else settlement = await credits.fence(reservation.id, identity.peerId);
         } else if (result?.execution?.receipt) settlement = await credits.settle(reservation.id, result.execution.receipt);
         else if (failure?.generationTerminal) settlement = await credits.collect(reservation.id, { terminal: failure.generationTerminal });
-        else if (failure && controls.signal.reason?.requesterStop === true) settlement = await settleStop(reservation);
+        else if (failure && controls.signal.reason?.requesterStop === true) settlement = await settleStop(reservation, charge);
         else settlement = await credits.fence(reservation.id, identity.peerId);
       } catch (error) {
         settlement = { id: reservation.id, status: 'pending', error: error.message };
@@ -297,14 +341,20 @@ export function createFleetRequester({
         recordedAt: Date.now()
       });
       onOutcome(outcome);
+      // The signed records of this whole-model request, labelled by what is held: read again later, they include a
+      // provider's closing record that arrives after a stop.
+      const readRecords = partition ? null : () => settlementRecordsOf({ reservationId: reservation.id, charge, policy: quotedPolicy,
+        reason: charge ? null : unsignedReason });
+      if (readRecords) { try { onSettlementRecords({ reservationId: reservation.id, read: readRecords }); } catch { /* The caller's store is its own. */ } }
       if (failure) {
         if (typeof failure === 'object') {
           failure.serviceCredit = settlement;
           failure.disconnect = outcome;
+          if (readRecords) failure.settlementRecords = readRecords();
         }
         throw failure;
       }
-      return { ...result, serviceCredit: settlement };
+      return { ...result, serviceCredit: settlement, ...(readRecords ? { settlementRecords: readRecords() } : {}) };
     },
     async recover({ reservationId, messages, providerId, settings: suppliedSettings, stop = false }, controls, recoverExecution = participant.recoverGeneration) {
       assert(typeof reservationId === 'string' && reservationId.length > 0 && Array.isArray(messages) && messages.length > 0
