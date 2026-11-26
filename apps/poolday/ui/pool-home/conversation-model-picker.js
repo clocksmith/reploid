@@ -2,15 +2,16 @@
 import { isDownloadableBaseModel, modelExecutionState, modelVariantKey } from '../components/model-select.js';
 import { allowsOpenPlaintext } from './privacy-controls.js';
 import { promptDisclosure } from '../../host/decisions/prompt-disclosure.js';
+import { modelKey, preparingStatus, storedHere } from '../../host/decisions/model-state.js';
 
 export const canDownloadModelHere = (model, state, canDownload) => canDownload && isDownloadableBaseModel(model)
-  && !model.fleet && !model.localReady && !model.localCached && model.availability !== 'cached' && !state.localDownloadIssue;
+  && !model.fleet && !storedHere(model) && !state.localDownloadIssue;
 
 // A recovery suggestion requires a free, connected provider for this exact variant.
 // The ordinary picker also lists downloadable, busy and advertised models.
 export function recoverySharedModel(state, selectedId, location, privacy) {
   if (location === 'local' || !allowsOpenPlaintext(privacy)) return null;
-  return state.models?.find(model => (model.selectionId || model.id) !== selectedId
+  return state.models?.find(model => modelKey(model) !== selectedId
     && !model.fleet && !model.partition && model.networkAvailability === 'ready'
     && model.reachableProviderIds?.length > 0) ?? null;
 }
@@ -113,11 +114,11 @@ export function describeAnswerChoice(model, location, { state = {}, block = null
   if (there || choice === 'desktop') return ready;
   if (here) return fix('No contributor serves this model now. It is on this device.', 'use-device', 'Use this device');
   // Discovery is bounded (about 8 s); until it settles, absence is not yet known, so the sheet waits calmly.
-  if (implied && state.discoveryPhase === 'searching' && !['loading', 'preparing'].includes(model.networkAvailability)) {
+  if (implied && state.discoveryPhase === 'searching' && !preparingStatus(model.networkAvailability)) {
     return stuck('Finding computers… This model becomes Ready here when one shares it.');
   }
   if (downloadable) return fix(acquiring?.phase === 'failed' ? acquiring.error : 'No contributor serves this model now. Download it to run it here; you see its size first.', 'download', downloadLabel);
-  if (['loading', 'preparing'].includes(model.networkAvailability)) return stuck('A contributor is preparing this model. It becomes Ready here when it can answer.');
+  if (preparingStatus(model.networkAvailability)) return stuck('A contributor is preparing this model. It becomes Ready here when it can answer.');
   if (state.discoveryPhase === 'searching') return stuck('Finding computers… This model becomes Ready here when one shares it.');
   return stuck('No shared computer can answer with this model right now. Choose a model marked Ready.');
 }

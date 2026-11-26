@@ -7,6 +7,7 @@
 import { routePreferenceChoices, fileModeChoices, webSearchAvailability } from '../../ui/pool-home/choice-availability.js';
 import { webSearchDisclosure } from '../../ui/pool-home/web-search-settings.js';
 import { DEFAULT_ROUTE_PREFERENCE, ROUTE_PREFERENCES } from '../route-preference.js';
+import { modelKey, servingStatus } from './model-state.js';
 
 export { ROUTE_PREFERENCES, DEFAULT_ROUTE_PREFERENCE, routePreferenceChoices, fileModeChoices, webSearchAvailability, webSearchDisclosure };
 
@@ -47,9 +48,8 @@ export function fileSharingStatus(network = {}) {
 
 export function projectFileSharing(state, selection = {}) {
   const network = state.network || {}, catalogModels = (state.models || []).filter(model => !model.partition);
-  const keyFor = model => model?.selectionId || model?.id;
-  const prepared = catalogModels.find(model => model.id === state.defaultModel?.id && ['ready', 'busy'].includes(state.defaultModel?.availability));
-  const modelId = selection.modelId && catalogModels.some(model => keyFor(model) === selection.modelId) ? selection.modelId : keyFor(prepared || catalogModels[0]) || null;
+  const prepared = catalogModels.find(model => model.id === state.defaultModel?.id && servingStatus(state.defaultModel?.availability));
+  const modelId = selection.modelId && catalogModels.some(model => modelKey(model) === selection.modelId) ? selection.modelId : modelKey(prepared || catalogModels[0]) || null;
   const sharingFiles = !!(network.files?.sharing || network.files?.preparing || network.files?.stopping);
   const stored = (state.models || []).filter(model => model.localCached).length;
   const mode = selection.mode || 'cached-only';
@@ -70,7 +70,7 @@ export function projectFileSharing(state, selection = {}) {
     toggleDisabled: !!network.files?.stopping,
     status: fileSharingStatus(network),
     progress: network.files?.progress?.message || '',
-    models: catalogModels.map(model => ({ id: keyFor(model), name: model.name || model.id })),
+    models: catalogModels.map(model => ({ id: modelKey(model), name: model.name || model.id })),
     modelId,
     modelDisabled: sharingFiles,
     modes: fileModeChoices({ storedModels: stored, sharing: sharingFiles, value: mode }),

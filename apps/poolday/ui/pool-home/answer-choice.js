@@ -8,13 +8,15 @@
  *
  * `name` is the label the pick was shown under. A pick can be read back before its model is listed (a private pool
  * loads after the page; a split route comes and goes), and the page then still names it, as unavailable. */
+import { modelKey } from '../../host/decisions/model-state.js';
+
 export const ANSWER_CHOICE_STORAGE_KEY = 'reploid.answer-choice.v1';
 const ROUTES = new Set(['contributors', 'device']);
 const text = value => typeof value === 'string' && value.length > 0 && value.length <= 512;
 const labelOf = model => [...new Set([model?.name, ...(model?.adapters || []).map(adapter => adapter.name || adapter.id)].filter(Boolean))].join(' + ');
 
 export const answerChoiceOf = (model, route = null, picked = false) => {
-  const selectionId = model?.selectionId || model?.id;
+  const selectionId = modelKey(model);
   return text(selectionId) ? { selectionId, identity: text(model.identity) ? model.identity : null, route: ROUTES.has(route) ? route : null,
     picked: picked === true, name: text(labelOf(model)) ? labelOf(model) : null } : null;
 };
@@ -38,6 +40,6 @@ export function writeAnswerChoice(storage, model, route, picked = false) {
 /** The catalog entry for a remembered choice: the same selection and, when one was recorded, the same identity. */
 export function findAnswerChoice(choice, models = []) {
   if (!choice) return null;
-  return models.find(item => (item.selectionId || item.id) === choice.selectionId
+  return models.find(item => modelKey(item) === choice.selectionId
     && (choice.identity === null || item.identity === choice.identity)) ?? null;
 }

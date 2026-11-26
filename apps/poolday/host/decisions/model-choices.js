@@ -8,8 +8,8 @@ import {
   modelVariants, modelFamilies, modelChoiceGroups, modelVariantLabel, modelSelectionLabel, modelFacts, modelServingComputers,
   choiceStatus, availabilityLabel, computerCountLabel, ownGroup
 } from '../../ui/components/model-select.js';
+import { modelKey } from './model-state.js';
 
-const keyFor = model => model?.selectionId || model?.id;
 
 /**
  * `value` is the selected selection id. Options mirror bindModelChoices.update: `grouped`, `preferNetwork`,
@@ -19,7 +19,7 @@ const keyFor = model => model?.selectionId || model?.id;
 export function projectModelChoices(models, { value = null, grouped = false, preferNetwork = true, variants = false, describe = null,
   compact = false, location = 'auto', keep = {}, inspectable = false, disabled = false } = {}) {
   const entries = variants ? modelVariants(models, { value, preferNetwork })
-    : models.map(model => ({ key: keyFor(model), model, ids: [keyFor(model)], value: keyFor(model) }));
+    : models.map(model => ({ key: modelKey(model), model, ids: [modelKey(model)], value: modelKey(model) }));
   const families = variants && !compact ? modelFamilies(entries)
     : entries.map(entry => ({ base: entry, adapters: [], members: [entry], lead: entry.model }));
   const byLead = new Map(families.map(family => [family.lead, family]));
@@ -30,7 +30,7 @@ export function projectModelChoices(models, { value = null, grouped = false, pre
     const folded = grouped && /unavailable$/.test(section.id);
     const rows = section.models.flatMap(lead => byLead.get(lead).members.map(entry => {
       const nested = byLead.get(lead).base !== entry;
-      const model = entry.routes?.find(route => keyFor(route) === entry.value) || entry.model;
+      const model = entry.routes?.find(route => modelKey(route) === entry.value) || entry.model;
       const described = describe?.(model) || {};
       const statusGroup = ownGroup(model, preferNetwork, location);
       const status = described.status ?? (grouped ? choiceStatus(model, statusGroup, !inspectable) : availabilityLabel(model));

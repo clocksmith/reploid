@@ -23,6 +23,7 @@ import { createChatDrafts } from './chat-drafts.js';
 import { createChatContext } from './chat-context.js';
 import { createAdapterEvidence } from './adapter-evidence.js';
 import { executionRouteFor } from './execution-route.js';
+import { modelKey } from './decisions/model-state.js';
 
 /** The thread's requirements with the route its model and execution location stand for. */
 const withRoute = (requirements, request) => requirements.route === 'local' ? requirements
@@ -323,7 +324,7 @@ export function createChatSession({
    * catalog's ready providers for this model. Execution must stay within them or the passages are not sent. */
   const listedContributors = async (model, sharingScope, executionLocation, signal) => {
     if (!execution.remoteDisclosure(model, sharingScope, executionLocation)) return [];
-    const key = item => item.selectionId || item.id;
+    const key = item => modelKey(item);
     const known = getCatalogModels().find(item => key(item) === key(model) && item.identity === model.identity) || model;
     if (known.partition?.route) return [...new Set(known.partition.route.stages.map(stage => stage.participantId))];
     if (known.partition?.participantA) return [known.partition.participantA, known.partition.participantB].filter(Boolean);
@@ -367,7 +368,7 @@ export function createChatSession({
     for (const thread of st.threads) {
       if (st.storageError || thread.automaticModel !== true || thread.closed || thread.messages.length || thread.attempts.length || thread.grants.length || resolvingModels.has(thread.id)) continue;
       const location = thread.permissions.executionLocation ?? (thread.permissions.sharingScope === 'local' ? 'local' : 'auto');
-      const key = model => model.selectionId || model.id;
+      const key = model => modelKey(model);
       const model = st.defaultModels[location];
       if (!model || key(model) === key(thread.model) && model.identity === thread.model.identity
         && JSON.stringify((model.adapters || []).map(item => item.identity)) === JSON.stringify((thread.model.adapters || []).map(item => item.identity))) continue;
@@ -412,7 +413,7 @@ export function createChatSession({
       comparisonPhase: comparisons.get(wsState.selectedId)?.phase || null,
       models: catalog, privateComputers: fleet.state(), ownerPairing: ownerPairing.state(), guestAccess: guestJoin.state(),
       answerLimits: catalog.filter(model => model.partition).map(model => ({
-        selectionId: model.selectionId || model.id,
+        selectionId: modelKey(model),
         cells: ROUTE_ENVELOPE_POLICY.routes.find(row => row.modelIdentity === model.identity
           && row.planId === model.partition.planId)?.cells || []
       })).filter(entry => entry.cells.length),
@@ -440,7 +441,7 @@ export function createChatSession({
 
   async function getModelDownload(modelId, { signal } = {}) {
     assertOpen();
-    const model = getCatalogModels().find(item => (item.selectionId || item.id) === modelId);
+    const model = getCatalogModels().find(item => modelKey(item) === modelId);
     assert(model?.source, 'Choose a catalog model');
     const file = model.source.files.find(item => item.role === 'model-manifest');
     signal = AbortSignal.any([...(signal ? [signal] : []), AbortSignal.timeout(15000)]);
@@ -486,7 +487,7 @@ export function createChatSession({
     async prepareLocalModel(modelId) {
       assert(!zeroRequesterWeights, ZERO_WEIGHT_NOTICE);
       assertOpen();
-      const model = getCatalogModels().find(item => (item.selectionId || item.id) === modelId);
+      const model = getCatalogModels().find(item => modelKey(item) === modelId);
       assert(model, 'Choose a catalog model');
       try { await execution.prepareLocal(model); } finally { notifyAll(); }
     },
@@ -511,7 +512,7 @@ export function createChatSession({
       const catalogFile = model.source?.files.find(item => item.role === 'model-manifest');
       let sizeBytes = downloadSizes.get(model.id) ?? (model.adapters?.length ? null : entry?.sizeBytes) ?? null;
       if (sizeBytes === null && catalogFile?.url?.startsWith('/config/model-manifests/')) {
-        const info = await getModelDownload(model.selectionId || model.id, { signal });
+        const info = await getModelDownload(modelKey(model), { signal });
         sizeBytes = info.sizeBytes;
       }
       const freeBytes = Number.isFinite(storage?.quota) && Number.isFinite(storage?.usage)
@@ -788,7 +789,7 @@ export function createChatSession({
       try {
         if (enabled) {
           assert(approved === true, 'Approve public prompt execution before sharing');
-          const model = getCatalogModels().find(item => (item.selectionId || item.id) === selectionId);
+          const model = getCatalogModels().find(item => modelKey(item) === selectionId);
           assert(model, 'Select a catalog model before contributing');
           if (!model.partition && !model.adapters?.length && !isCached(model)) await acquireApprovedModel(model);
           assertOpen();
@@ -805,7 +806,7 @@ export function createChatSession({
       try {
         if (!enabled) { await swarm.stopFiles(); return; }
         assert(approved === true, 'Approve file distribution separately from compute');
-        const model = getCatalogModels().find(item => (item.selectionId || item.id) === selectionId);
+        const model = getCatalogModels().find(item => modelKey(item) === selectionId);
         assert(model, 'Select a catalog model before distributing files');
         await swarm.shareFiles(model, true, controls);
       } finally { notifyAll(); }

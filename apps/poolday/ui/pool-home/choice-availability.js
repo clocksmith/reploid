@@ -6,6 +6,7 @@
  */
 import { ROUTE_PREFERENCES } from '../../host/route-preference.js';
 import { promptDisclosure } from '../../host/decisions/prompt-disclosure.js';
+import { modelKey, storedHere } from '../../host/decisions/model-state.js';
 import { PROTECTION_DISPLAY, ROUTE_DISPLAY, PARTICIPANTS_DISPLAY, gatedCapabilities } from '../../../../shared/vendor/reploid/inference/protections.js';
 
 const LOCKED = 'This conversation’s requirements are fixed.';
@@ -121,9 +122,7 @@ export function webSearchAvailability({ url = '', builtInAvailable = false } = {
  * a fresh visitor sees always agree. Returns null when nothing can run here; the caller keeps its own fallback.
  */
 export function startingLocalModel(models = [], { defaultModel = null, canDownloadHere = () => false } = {}) {
-  const key = model => model?.selectionId || model?.id;
-  const isDefault = model => !!defaultModel && (key(model) === key(defaultModel) || model.id === defaultModel.id);
+  const isDefault = model => !!defaultModel && (modelKey(model) === modelKey(defaultModel) || model.id === defaultModel.id);
   const pick = test => models.find(model => isDefault(model) && test(model)) || models.find(test) || null;
-  const stored = model => !model.partition && !model.fleet && (model.localReady || model.localCached || model.availability === 'cached');
-  return pick(stored) || pick(model => !model.partition && !model.fleet && canDownloadHere(model));
+  return pick(storedHere) || pick(model => !model.partition && !model.fleet && canDownloadHere(model));
 }

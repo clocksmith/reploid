@@ -3,8 +3,8 @@ import { escapeHtml as escape } from '../components/attachments.js';
 import { computerLabel } from './computer-labels.js';
 import { projectNetworkPeers } from './network-controls.js';
 import { hardwareText } from './execution-ribbon.js';
+import { modelKey } from '../../host/decisions/model-state.js';
 
-const keyFor = model => model.selectionId || model.id;
 const adapters = model => (model.adapters || []).map(adapter => adapter.identity).sort();
 export const sameModelVariant = (a, b) => !!a?.identity && a.id === b?.id && a.identity === b.identity
   && (a.fleet?.requester.participantId ?? null) === (b.fleet?.requester.participantId ?? null)
@@ -28,7 +28,7 @@ export function projectModelProviders(state, selected) {
     if (peer.executionType !== 'whole-model' || peer.modelId !== whole.id || peer.modelIdentity !== whole.identity
       || JSON.stringify(adapters(whole)) !== JSON.stringify([...(peer.adapterIdentities || [])].sort())) continue;
     const admitted = whole.providerIds?.includes(peer.id);
-    rows.push({ id: peer.id, selectionId: keyFor(whole), type: 'Whole model',
+    rows.push({ id: peer.id, selectionId: modelKey(whole), type: 'Whole model',
       status: admitted ? peer.status : peer.phase === 'ready' ? 'Unavailable' : peer.status,
       participants: [person(peer.id, 'Whole model', peer.hardware)] });
   }
@@ -37,7 +37,7 @@ export function projectModelProviders(state, selected) {
     const ids = route?.schema === 'reploid.partition-route/v1' ? route.stages?.map(stage => stage.participantId)
       : [model.partition.participantA, model.partition.participantB];
     if (!ids || ids.length < 2 || ids.some(id => typeof id !== 'string' || !id) || new Set(ids).size !== ids.length) continue;
-    rows.push({ id: keyFor(model), selectionId: keyFor(model), type: `Distributed · ${ids.length} computers`,
+    rows.push({ id: modelKey(model), selectionId: modelKey(model), type: `Distributed · ${ids.length} computers`,
       status: routeStatus(model),
       participants: ids.map((id, index) => {
         const capability = state.network?.partitionPeers?.find(peer => peer.available && (peer.participantId === id || peer.description?.participantId === id));
@@ -45,7 +45,7 @@ export function projectModelProviders(state, selected) {
         return person(id, `Stage ${index + 1} of ${ids.length}`, peer?.hardware);
       }) });
   }
-  if (whole?.localReady || whole?.localCached) rows.push({ id: 'local', selectionId: keyFor(whole), type: 'This device',
+  if (whole?.localReady || whole?.localCached) rows.push({ id: 'local', selectionId: modelKey(whole), type: 'This device',
     status: whole.localReady ? 'Ready' : 'Downloaded · preparation required',
     participants: [{ id: 'local', label: 'This device', role: 'Whole model',
       hardware: hardwareLabel(state.localModel?.modelIdentity === whole.identity ? state.localModel.hardware : null) }] });
@@ -56,16 +56,16 @@ export function projectModelProviders(state, selected) {
  * distributed route with its ordered stages. A distributed route without assigned computers lists none. */
 export function projectModelRoutes(state, selected) {
   if (!selected?.identity) return [];
-  if (selected.fleet) return [{ selectionId: keyFor(selected), type: 'Private computers', status: routeStatus(selected),
+  if (selected.fleet) return [{ selectionId: modelKey(selected), type: 'Private computers', status: routeStatus(selected),
     participants: [{ id: selected.fleet.requester.participantId, label: selected.fleet.requester.name, role: 'Coordinates your enrolled computers', hardware: '', status: '' }] }];
   const variants = (state.models || []).filter(model => sameModelVariant(model, selected));
   const rows = projectModelProviders(state, selected);
   return variants.map(model => {
-    const own = rows.filter(row => row.selectionId === keyFor(model));
-    if (!model.partition) return { selectionId: keyFor(model), type: 'Whole model', status: routeStatus(model),
+    const own = rows.filter(row => row.selectionId === modelKey(model));
+    if (!model.partition) return { selectionId: modelKey(model), type: 'Whole model', status: routeStatus(model),
       participants: own.flatMap(row => row.participants.map(peer => ({ ...peer, role: '', status: row.status }))) };
     const route = own[0];
-    return { selectionId: keyFor(model), type: route?.type || 'Distributed layers', status: routeStatus(model),
+    return { selectionId: modelKey(model), type: route?.type || 'Distributed layers', status: routeStatus(model),
       participants: route?.participants.map(peer => ({ ...peer, status: '' })) || [] };
   });
 }
@@ -77,7 +77,7 @@ export const renderModelProviders = () => `<details class="pool-disclosure chat-
 let routeGroup = 0;
 /** Update only the disclosure contents, keeping its open state and the surrounding controls.
  * With several routes, each route is a radio carrying its selectionId; the caller owns the value. */
-export function updateModelProviders(root, state, model, { selectedId = model ? keyFor(model) : null, disabled = false } = {}) {
+export function updateModelProviders(root, state, model, { selectedId = model ? modelKey(model) : null, disabled = false } = {}) {
   const routes = projectModelRoutes(state, model);
   for (const disclosure of root.querySelectorAll('[data-model-providers]')) {
     disclosure.hidden = !model;

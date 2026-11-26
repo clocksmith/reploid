@@ -34,15 +34,14 @@ import { remotePermissionText, remotePermissionWording } from '../../ui/pool-hom
 import { answerChoiceOf, findAnswerChoice, readAnswerChoice, writeAnswerChoice } from '../../ui/pool-home/answer-choice.js';
 import { projectModelChoices } from './model-choices.js';
 import { promptDisclosure } from './prompt-disclosure.js';
-import { servesPublicAnswers } from '../chat-view.js';
+import { modelKey, preparingStatus, selectableStatus, servesPublicAnswers, storedHere } from './model-state.js';
 import { createTranscript } from './transcript.js';
 import workProfile from '../../config/work-profile.json' with { type: 'json' };
 import chatPrompts from '../../config/chat-prompts.json' with { type: 'json' };
 
 const busyAcquisition = state => state.acquisition?.phase === 'downloading';
-const modelKey = model => model?.selectionId || model?.id;
 const modelIdentity = model => JSON.stringify([modelKey(model), model?.identity, (model?.adapters || []).map(adapter => adapter.identity)]);
-const selectable = model => ['ready', 'busy', 'cached', 'loading', 'preparing'].includes(model.availability);
+const selectable = model => selectableStatus(model.availability);
 
 /** Up to `count` distinct prompts drawn at random from `prompts` (a partial Fisher-Yates shuffle over a copy). */
 export function pickStartingPrompts(prompts, random = Math.random, count = 3) {
@@ -148,7 +147,6 @@ export function createConversationController(session, {
   }
   const rememberChoice = (model, privacy, location, picked) => writeAnswerChoice(storage, model,
     location === 'local' || privacy?.placement === 'local-only' ? 'device' : privacy?.recipients?.kind === 'open' ? 'contributors' : null, picked);
-  const storedHere = model => !model.partition && !model.fleet && (model.localReady || model.localCached || model.availability === 'cached');
   // The same predicate ends the session's discovery search, so "observed" never arrives on capacity this path refuses.
   const publicAnswers = servesPublicAnswers;
   const openDefault = openPolicy();
@@ -257,8 +255,7 @@ export function createConversationController(session, {
     }
   };
   const choiceAvailable = (model, state) => {
-    const execution = modelExecutionState(model, effectiveLocation(state));
-    return execution.usable || ['loading', 'preparing'].includes(execution.status);
+    return selectableStatus(modelExecutionState(model, effectiveLocation(state)).status);
   };
   const choiceWaitOver = state => state.peerDiscoveryTimedOut === true && state.discoveryPhase === 'observed';
   /** Whether the page is still choosing the model among the computers that answer: no draft is pinned to one meanwhile. */
@@ -507,7 +504,7 @@ export function createConversationController(session, {
         && model.identity === peer.description.offer?.identity)
       && (!requestedModel || requestedModel.id === peer.description.offer?.id
         && requestedModel.identity === peer.description.offer?.identity));
-    const selectedPreparing = catalogModels.some(model => modelKey(model) === current && ['loading', 'preparing'].includes(model.availability));
+    const selectedPreparing = catalogModels.some(model => modelKey(model) === current && preparingStatus(model.availability));
     const preparing = localPreparing || remotePreparing || selectedPreparing;
     const acquiring = state.acquisition?.phase === 'downloading';
     const phase = state.discoveryPhase;

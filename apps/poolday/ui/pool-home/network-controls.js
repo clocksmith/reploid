@@ -8,6 +8,7 @@ import { renderComputerRename, renderComputerBlock, bindComputerPreferences } fr
 import { renderOptions, renderToggleRow, updateOption } from '../components/choices.js';
 import { escapeHtml } from '../components/attachments.js';
 import { fileModeChoices } from './choice-availability.js';
+import { modelKey, servingStatus } from '../../host/decisions/model-state.js';
 /** Shared network controls consume host snapshots; they never grant permission on render. */
 
 export const renderConnectionControl = () => `<div>${renderToggleRow({ id: 'network-connection', title: 'Public network', status: 'Disconnected', icon: 'peers',
@@ -297,10 +298,10 @@ export function bindNetworkControls(container, session, { getInviteUrl, computer
   };
   const render = snapshot => {
     const state = withComputerLabels(snapshot, session);
-    const catalogModels = state.models || [], keyFor = model => model?.selectionId || model?.id;
+    const catalogModels = state.models || [];
     const prepared = catalogModels.find(model => !model.partition && model.id === state.defaultModel?.id
-      && ['ready', 'busy'].includes(state.defaultModel?.availability));
-    const contributionKey = contributionSelect.value || keyFor(prepared || catalogModels.find(model => !model.partition));
+      && servingStatus(state.defaultModel?.availability));
+    const contributionKey = contributionSelect.value || modelKey(prepared || catalogModels.find(model => !model.partition));
     updateModelSelect(contributionSelect, catalogModels.filter(model => !model.partition), { value: contributionKey });
     const network = state.network || {}, peers = projectNetworkPeers(state);
     find('[data-toggle-introductions]')?.setAttribute('aria-checked', String(!!network.introductionAssistance));

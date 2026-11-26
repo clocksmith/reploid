@@ -15,6 +15,7 @@ import { fleetAccountText, fleetStarterText } from '../../ui/pool-home/fleet-acc
 import { hasBrowserModelOrigin, modelVariantLabel } from '../../ui/components/model-select.js';
 import { sameModelVariant } from '../../ui/pool-home/model-providers.js';
 import { projectProviderEligibility, reachablePeerIds } from '../chat-view.js';
+import { modelKey } from './model-state.js';
 
 export { creditAccounts, accountText, creditActivity } from '../../ui/pool-home/service-credit-text.js';
 
@@ -150,7 +151,7 @@ function selectionFacts(state, selected) {
   const connections = network.connections ?? network.consumer?.connections;
   const peers = network.consumer?.peers || [];
   const open = reachablePeerIds({ peers, connections });
-  const model = selected ? (state.models || []).find(row => !row.partition && !row.fleet && (row.selectionId || row.id) === selected) : null;
+  const model = selected ? (state.models || []).find(row => !row.partition && !row.fleet && modelKey(row) === selected) : null;
   const decisions = new Map(model ? projectProviderEligibility({ model, peers, connections }).map(row => [row.peerId, row]) : []);
   const label = model ? modelVariantLabel(model) : '';
   return id => {
@@ -313,7 +314,7 @@ function productionView(state, sizes) {
   const observed = state.discoveryPhase === 'observed', suggestion = suggestedModelId(models, { observed });
   const issue = state.localDownloadIssue || '';
   const rows = models.map(model => {
-    const id = model.selectionId || model.id, size = sizes?.get(id);
+    const id = modelKey(model), size = sizes?.get(id);
     const detail = model.localReady ? 'Ready' : model.localCached ? 'Downloaded' : Number.isSafeInteger(size?.sizeBytes) ? downloadSize(size.sizeBytes) : '';
     const supply = [id === suggestion ? 'Suggested' : '', modelSupplyText(model, { observed })].filter(Boolean).join(' · ');
     return { id, name: model.name || model.id, status: [supply, detail, issue].filter(Boolean).join(' · '), disabled: !!issue,
@@ -385,7 +386,7 @@ export function projectComputers(state, { filter = null, sizes = null, names, se
   const allPeers = projectNetworkPeers(state);
   // A filter names a model ({ model }: its current providers) or the computers Answer on counted ({ providerIds, label }).
   const current = filter?.model && (state.models || []).find(row => !row.partition && !row.fleet
-    && (row.selectionId || row.id) === (filter.model.selectionId || filter.model.id) && sameModelVariant(row, filter.model));
+    && modelKey(row) === modelKey(filter.model) && sameModelVariant(row, filter.model));
   const providers = filter?.model ? current?.providerIds || [] : filter?.providerIds || [];
   const peers = peerRows(state, filter ? { model: filter.model ?? null, providers } : null, names, selected);
   const phase = state => peers.filter(peer => peer.phase === state).length;

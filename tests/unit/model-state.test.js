@@ -38,25 +38,25 @@ it('names the serving, usable, preparing and selectable statuses', () => {
     .map(group => [group.id, group.models.map(model => model.id)])).toEqual([['shared', ['loading', 'preparing']], ['network-unavailable', ['unavailable']]]);
 });
 
-it('reads a private pool model with local flags the way each place reads it today', () => {
+it('never reads a private pool model as stored here, as the session never runs one here', () => {
   const pooled = { ...SMALL, fleet: pool, localCached: true, availability: 'cached', networkAvailability: 'unavailable' };
-  // The routing reading: stored here, so it runs here.
-  expect(modelExecutionState(pooled, 'auto').source).toBe('local');
-  // The conversation's first-visit check and the local starting model leave a private pool's model out.
+  // The session sends a private pool's model to the pool (chat-execution.js); the composer's reading now agrees.
+  expect(modelExecutionState(pooled, 'auto').source).toBe('network');
+  // The first-visit check and the local starting model already left it out.
   expect(composerFor([pooled, { ...MEDIUM }]).disclosure).toBe('A network provider could read your prompt.');
   expect(startingLocalModel([pooled])).toBe(null);
   expect(canDownloadModelHere({ ...pooled, localCached: false, availability: 'unavailable', source: { baseUrl: 'https://x/' } }, {}, true)).toBe(false);
 });
 
-it('reads a model marked cached only by its availability the way each place reads it today', () => {
+it('reads a model marked cached only by its availability as stored here, as the routing reads it', () => {
   const cached = { ...SMALL, availability: 'cached' };
   expect(modelExecutionState(cached, 'local').status).toBe('cached');
-  // The session's starting choice on this device reads only localCached.
-  expect(selectAvailableChatModel([cached], [], 'local')).toBe(null);
+  // The session's starting choice on this device reads it the same way (the session sets both flags together).
+  expect(selectAvailableChatModel([cached], [], 'local')).toBe(cached);
 });
 
-it('lists a split route with local flags the way each place lists it today', () => {
+it('never lists a split route under On this device, as the routing never runs one here', () => {
   const split = { ...MEDIUM, selectionId: `${MEDIUM.id}/split`, partition: { planId: 'p' }, localCached: true, networkAvailability: 'unavailable' };
   expect(modelExecutionState(split, 'auto').source).toBe('network');
-  expect(modelChoiceGroups([split], { location: 'auto' }).map(group => group.id)).toEqual(['local']);
+  expect(modelChoiceGroups([split], { location: 'auto' }).map(group => group.id)).toEqual(['unavailable']);
 });

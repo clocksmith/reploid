@@ -1,5 +1,6 @@
 import { escapeHtml } from './attachments.js';
 import { interfaceIcon } from './interface-icons.js';
+import { modelKey, preparingStatus, servingStatus, sharedModelChoice, storedHere, usableStatus } from '../../host/decisions/model-state.js';
 
 let choiceId = 0;
 // The browser downloader resolves weights against baseUrl. Pinned metadata alone cannot supply them.
@@ -8,16 +9,16 @@ export const isDownloadableBaseModel = model => hasBrowserModelOrigin(model) && 
 /** Retain a saved choice's identity without retaining old capacity observations. */
 export const unavailableModelChoice = model => ({ ...model, availability: 'unavailable', networkAvailability: 'unavailable',
   localReady: false, localCached: false, providerIds: [] });
-export const isSharedModelChoice = model => ['ready', 'busy', 'loading', 'preparing'].includes(model.networkAvailability);
+export const isSharedModelChoice = sharedModelChoice;
 
 /** The selected execution source, matching the host's local-cache reuse policy. */
 export function modelExecutionState(model, location = 'auto') {
-  const local = !model?.partition && (model?.localReady || model?.localCached || model?.availability === 'cached');
+  const local = storedHere(model);
   const source = location === 'local' || location === 'auto' && local ? 'local' : 'network';
   const status = source === 'local' ? model?.partition ? 'unavailable' : model?.localReady ? 'ready' : local ? 'cached' : 'unavailable'
     : model?.networkAvailability ?? (local ? 'unavailable' : model?.availability ?? 'unavailable');
-  return { source, status, usable: ['ready', 'busy', 'cached'].includes(status),
-    label: !['ready', 'busy', 'cached'].includes(status) ? ['loading', 'preparing'].includes(status) ? 'Loading' : 'Unavailable' : source === 'local' ? 'This device' : model?.fleet ? 'Private computers' : model?.partition && ['ready', 'busy'].includes(status) ? 'Public network · Split model' : 'Public network' };
+  return { source, status, usable: usableStatus(status),
+    label: !usableStatus(status) ? preparingStatus(status) ? 'Loading' : 'Unavailable' : source === 'local' ? 'This device' : model?.fleet ? 'Private computers' : model?.partition && servingStatus(status) ? 'Public network · Split model' : 'Public network' };
 }
 
 /** Catalog facts shown beside a choice: declared weights and advertised context, nothing inferred. */
@@ -32,11 +33,11 @@ export function modelChoiceGroups(models, { preferNetwork = true, location = 'au
   for (const model of models) {
     if (model.fleet) privateModels.push(model);
     // On this device, a stored or downloadable model is listed as such even when the network also shares it.
-    else if (location === 'local' && (model.localReady || model.localCached || model.availability === 'cached') && !model.partition) local.push(model);
+    else if (location === 'local' && storedHere(model)) local.push(model);
     else if (location === 'local' && isDownloadableBaseModel(model)) downloads.push(model);
     else if (isSharedModelChoice(model)) shared.push(model);
     else if (location === 'network') unavailable.push(model);
-    else if (model.localReady || model.localCached || model.availability === 'cached') local.push(model);
+    else if (storedHere(model)) local.push(model);
     else if (isDownloadableBaseModel(model)) downloads.push(model);
     else unavailable.push(model);
   }
@@ -78,8 +79,8 @@ export function modelVariants(models, { value = null, preferNetwork = true } = {
   return [...variants.entries()].map(([key, routes]) => {
     const model = [...routes].sort((a, b) => routeRank(a, preferNetwork) - routeRank(b, preferNetwork)
       || Number(!!a.partition) - Number(!!b.partition))[0];
-    const ids = routes.map(route => route.selectionId || route.id);
-    return { key, model, routes, ids, value: ids.includes(value) ? value : model.selectionId || model.id };
+    const ids = routes.map(route => modelKey(route));
+    return { key, model, routes, ids, value: ids.includes(value) ? value : modelKey(model) };
   });
 }
 
@@ -142,7 +143,7 @@ export function bindModelChoices(select, { onInspectProviders } = {}) {
       group.hidden = select.hidden;
       const active = group.contains(document.activeElement) ? document.activeElement : null;
       const entries = variants ? modelVariants(models, { value: select.value, preferNetwork })
-        : models.map(model => ({ key: model.selectionId || model.id, model, ids: [model.selectionId || model.id], value: model.selectionId || model.id }));
+        : models.map(model => ({ key: modelKey(model), model, ids: [modelKey(model)], value: modelKey(model) }));
       const families = variants && !compact ? modelFamilies(entries) : entries.map(entry => ({ base: entry, adapters: [], members: [entry], lead: entry.model }));
       const byLead = new Map(families.map(family => [family.lead, family]));
       const sections = grouped ? modelChoiceGroups(families.map(family => family.lead), { preferNetwork, location, keep: Object.keys(keep) }) : [{ id: 'all', models: families.map(family => family.lead) }];
@@ -180,7 +181,7 @@ export function bindModelChoices(select, { onInspectProviders } = {}) {
           if (position !== parent) group.insertBefore(parent, position || null);
         }
         section.models.flatMap(lead => byLead.get(lead).members.map(entry => [entry, byLead.get(lead).base !== entry])).forEach(([entry, nested], index) => {
-          const model = entry.routes?.find(route => (route.selectionId || route.id) === entry.value) || entry.model;
+          const model = entry.routes?.find(route => (modelKey(route)) === entry.value) || entry.model;
           let row = rows.get(entry.key);
           if (!row) {
             row = document.createElement('div');
@@ -260,7 +261,7 @@ export const modelSelectionLabel = model => modelVariantLabel(model) + (model.ex
 
 export function updateModelSelect(select, models, { value = select.value, showAvailability = false, empty = 'No models available', grouped = false, preferNetwork = true, location = 'auto' } = {}) {
   const groups = grouped ? modelChoiceGroups(models, { preferNetwork, location }) : [{ id: 'all', models }];
-  const rows = groups.map(group => ({ ...group, entries: group.models.map(model => [model.selectionId || model.id, modelSelectionLabel(model),
+  const rows = groups.map(group => ({ ...group, entries: group.models.map(model => [modelKey(model), modelSelectionLabel(model),
     showAvailability ? grouped ? choiceStatus(model, group.id) : availabilityLabel(model) : '']) }));
   const entries = rows.flatMap(group => group.entries);
   const key = JSON.stringify(rows.map(({ id, entries }) => [id, entries]));

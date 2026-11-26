@@ -1,6 +1,7 @@
 import { hasBrowserModelOrigin } from '../components/model-select.js';
 import { interfaceIcon } from '../components/interface-icons.js';
 import { preparationStatus } from './model-preparation.js';
+import { modelKey } from '../../host/decisions/model-state.js';
 
 
 /**
@@ -23,7 +24,7 @@ export function suggestedModelId(models = [], { observed = false } = {}) {
   if (!observed) return null;
   const unserved = models.filter(model => Array.isArray(model.providerIds) && model.providerIds.length === 0);
   const pick = unserved.find(model => model.localReady || model.localCached) ?? unserved[0];
-  return pick ? pick.selectionId || pick.id : null;
+  return pick ? modelKey(pick) : null;
 }
 
 /** Model actions retain their identity across discovery and metadata updates. */
@@ -54,13 +55,13 @@ export function bindContributionModels(container, session, { onChoose }) {
   const update = state => {
     if (disposed) return;
     const models = (state.models || []).filter(eligible);
-    const ids = new Set(models.map(model => model.selectionId || model.id));
+    const ids = new Set(models.map(model => modelKey(model)));
     const observed = state.discoveryPhase === 'observed', suggestion = suggestedModelId(models, { observed });
     for (const [id, entry] of entries) if (!ids.has(id)) {
       entry.controller.abort(); entry.button.remove(); entries.delete(id);
     }
     for (const model of models) {
-      const id = model.selectionId || model.id;
+      const id = modelKey(model);
       let entry = entries.get(id);
       if (entry && entry.model.identity !== model.identity) {
         entry.controller.abort(); entry.button.remove(); entries.delete(id); entry = null;
