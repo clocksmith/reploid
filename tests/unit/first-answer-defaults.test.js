@@ -308,3 +308,23 @@ it('holds a returning visitor\'s Send for whichever model turns up when their re
   expect(alone.view.composer().nextAction).toBe('retry');
   expect(alone.view.composer().draft).toBe('Typed before discovery settled');
 });
+
+it('bounds a held Send by the discovery wait: it says it is waiting for capacity, then goes the way a Send pressed now would', async () => {
+  const f = fixture();
+  f.view.send('Held while the only computer is busy');
+  expect(f.view.composer().status.text).toBe('Finding computers…');
+  // The only computer is busy, or advertised but not reachable yet: the composer names its model as able to answer.
+  const busy = { ...SMALL, availability: 'busy', networkAvailability: 'busy', providerIds: ['peer'], reachableProviderIds: [] };
+  f.publish({ discoveryPhase: 'observed', peerDiscoveryTimedOut: false, network: observed.network, models: [busy, MEDIUM] });
+  await new Promise(resolve => setTimeout(resolve, 0));
+  expect([chip(f).selectionId, chip(f).availability]).toEqual([key(SMALL), 'ready']);
+  expect(f.view.composer().status.text).toBe('Waiting for capacity.');
+  expect(f.view.composer().nextAction).toBe('cancel-queued');
+  expect(f.sent).toHaveLength(0);
+  // The wait ends: the question is sent to the model shown, as pressing Send now would send it.
+  f.publish({ peerDiscoveryTimedOut: true });
+  await vi.waitFor(() => expect(f.sent).toHaveLength(1));
+  expect(key(f.created[0].model)).toBe(key(SMALL));
+  expect(f.sent[0].content).toBe('Held while the only computer is busy');
+  expect(f.view.composer().nextAction).not.toBe('cancel-queued');
+});

@@ -562,13 +562,23 @@ export function createConversationController(session, {
     // A Send held for whichever model turns up ends with the wait when none did: the status below says so.
     if (queuedSend && waitsForAnyModel(state) && choiceWaitOver(state) && !usable) queuedSend = null;
     if (queuedSend) {
-      statusText = waitsForAnyModel(state) ? 'Finding computers…' : `Waiting for a computer running ${modelVariantLabel(selectedModel)}…`;
-      const intent = queuedSend;
-      if (!intent.scheduled && readyForQueuedSend(state, intent)) {
+      const intent = queuedSend, ready = readyForQueuedSend(state, intent);
+      // The hold is bounded by the discovery wait. While the composer names a model that can answer but whose
+      // computer is busy or not reachable yet, it says so; once the wait is over, the held Send goes the way a
+      // Send pressed now would.
+      statusText = usable && !ready ? 'Waiting for capacity.'
+        : waitsForAnyModel(state) ? 'Finding computers…' : `Waiting for a computer running ${modelVariantLabel(selectedModel)}…`;
+      if (!intent.scheduled && (ready || usable && choiceWaitOver(state))) {
         intent.scheduled = true;
         queueMicrotask(() => {
           intent.scheduled = false;
-          if (queuedSend === intent && readyForQueuedSend(withChoiceWait(sessionState), intent)) submitDraft(intent);
+          if (queuedSend !== intent) return;
+          const latest = withChoiceWait(sessionState);
+          if (readyForQueuedSend(latest, intent)) submitDraft(intent);
+          else if (choiceWaitOver(latest) && !sendDisabled
+            && modelExecutionState(latest.models?.find(item => modelKey(item) === currentKey), effectiveLocation(latest)).usable) {
+            queuedSend = null; submitDraft();
+          }
         });
       }
     }
