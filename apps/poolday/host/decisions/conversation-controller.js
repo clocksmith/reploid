@@ -581,7 +581,7 @@ export function createConversationController(session, {
         intent.scheduled = true;
         queueMicrotask(() => {
           intent.scheduled = false;
-          if (queuedSend !== intent) return;
+          if (disposed || queuedSend !== intent) return;
           const latest = withChoiceWait(sessionState);
           if (readyForQueuedSend(latest, intent)) submitDraft(intent);
           else if (choiceWaitOver(latest) && !sendDisabled
@@ -719,6 +719,8 @@ export function createConversationController(session, {
 
   // ---- commands ----
   function submitDraft(intent = null) {
+    // A closed screen sends nothing, whether the Send was pressed or held for a computer.
+    if (disposed) return;
     const content = draftText.trim(), state = withChoiceWait(sessionState), original = draftText;
     if (!content || attachmentReader.pending || submitting || (state.runningIds || []).includes(state.selectedId)) return;
     if (intent ? !readyForQueuedSend(state, intent) : sendDisabled) return;
@@ -1030,7 +1032,7 @@ export function createConversationController(session, {
     });
   };
 
-  let retryPending = false;
+  let retryPending = false, retryDeadline = null;
   const unsubscribe = session.subscribe(state => { sessionState = state; notify(); });
   const unsubscribeSearch = search && session.searchPermissionRequest ? search.subscribe(() => notify()) : () => {};
   if (search && search.state().state === 'unknown') void search.refresh();
@@ -1066,7 +1068,8 @@ export function createConversationController(session, {
     cancelQueuedSend() { queuedSend = null; notify(); },
     retryConnection() {
       queuedSend = null; retryPending = true; notify();
-      const deadline = setTimeout(() => { retryPending = false; notify(); }, 8000);
+      clearTimeout(retryDeadline);
+      const deadline = retryDeadline = setTimeout(() => { retryPending = false; notify(); }, 8000);
       void Promise.resolve().then(() => session.connect()).catch(cause => error(cause.message))
         .finally(() => { clearTimeout(deadline); retryPending = false; notify(); });
     },
@@ -1274,7 +1277,9 @@ export function createConversationController(session, {
     dispose() {
       if (disposed) return;
       try { observe(saveDraft()); } catch (cause) { error(cause); }
+      queuedSend = null;
       disposed = true;
+      clearTimeout(retryDeadline);
       fitRequest?.abort(); downloadRequest?.abort(); attachmentReader.close(); if (clock) clearInterval(clock);
       unsubscribe(); unsubscribeSearch(); unsubscribeWebSearch(); listeners.clear();
     }

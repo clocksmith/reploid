@@ -66,6 +66,24 @@ describe('conversation controller', () => {
     controller.dispose();
   });
 
+  it('sends nothing once disposed: a Send queued while computers are found does not leave after the screen closes', async () => {
+    const fixture = fixtureSession({ discoveryPhase: 'searching' });
+    const sends = [];
+    fixture.api.send = (...args) => { sends.push(args); return Promise.resolve(); };
+    const controller = createConversationController(fixture.api, { href: () => 'http://localhost/' });
+    controller.setDraft('Explain ocean tides.');
+    controller.send();
+    expect(controller.getSnapshot().composer.nextAction).toBe('cancel-queued');
+    // A computer turns up and the screen closes in the same tick, before the held Send's microtask runs.
+    fixture.peer();
+    controller.dispose();
+    await tick(); await tick();
+    // Nor does a direct Send after dispose go out.
+    controller.send();
+    await tick(); await tick();
+    expect(sends).toEqual([]);
+  });
+
   it('stages protection and route in "Who can read it?" and applies them only with Apply', async () => {
     const fixture = fixtureSession();
     const controller = createConversationController(fixture.api, { href: () => 'http://localhost/' });
