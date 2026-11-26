@@ -6,6 +6,10 @@ import { INTRODUCTION_CONTACT, INTRODUCTION_SIGNAL } from './introductions.js';
 import { OWNER_PAIRING_REQUEST, OWNER_PAIRING_RESULT } from './owner-pairing.js';
 import { CIRCLE_JOIN_REQUEST, CIRCLE_JOIN_RESULT } from './circle-join.js';
 export const PROTOCOL_VERSION = 1;
+// Non-generation mesh operations (mesh/operation-envelope.js). Defined here so transport/ never imports mesh/.
+export const MESH_OPERATION_REQUEST = 'reploid:mesh-operation-request';
+export const MESH_OPERATION_RESULT = 'reploid:mesh-operation-result';
+export const MESH_OPERATION_CANCEL = 'reploid:mesh-operation-cancel';
 export const APPLICATION_MESSAGE_TYPES = Object.freeze([
   'sync-request', 'sync-response',
   'goal-update', 'reflection-share',
@@ -19,6 +23,7 @@ export const APPLICATION_MESSAGE_TYPES = Object.freeze([
   'reploid:generation-result', 'reploid:generation-error',
   'reploid:generation-cancel', 'reploid:generation-recover', 'reploid:generation-recovery',
   'reploid:receipt', 'reploid:target-score-request', 'reploid:target-score-result',
+  MESH_OPERATION_REQUEST, MESH_OPERATION_RESULT, MESH_OPERATION_CANCEL,
   'reploid:web-offer', 'reploid:web-request', 'reploid:web-response', 'reploid:web-cancel',
   'reploid:tool-offer', 'reploid:tool-offer-ack',
   'reploid:custody-request', 'reploid:custody-response', 'reploid:custody-offer',
