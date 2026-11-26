@@ -177,6 +177,10 @@ export interface ChatWorkspace {
   schema?:string;threadId?:string;route?:PartitionRoute;stages?:readonly {participantId:string}[]} | null}):boolean;
   getState(): ChatState;
   subscribe(listener: (state: ChatState) => void): () => void;
+  /** `getState`, frozen. A transactional history's conversations are shared with its saved records, not copied, so the cost does not grow with the history. Read only. */
+  view(): Readonly<ChatState>;
+  /** `subscribe` for observers that only read: each change delivers `view()`. */
+  observe(listener: (state: Readonly<ChatState>) => void): () => void;
   /** Adds conversations from an export file; ids already present are skipped. Ordinary history only; grants are not restored. */
   importThreads(threads: unknown[], options?: { dryRun?: boolean }): { added: string[]; skipped: string[] };
   createThread(options: { model: ChatModel; automaticModel?: boolean; purpose?: string; members?: string[]; permissions?: Record<string, unknown>; privacy?: ExecutionPolicy | null; systemContext?: ChatSystemContext | null }): string;

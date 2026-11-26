@@ -286,7 +286,7 @@ export function createChatSession({
   });
   bindPublicationAuthorization?.(workspace.authorizePublication);
   function allowConfiguredRemote(threadId) {
-    const thread = workspace.getState().threads.find(item => item.id === threadId);
+    const thread = workspace.view().threads.find(item => item.id === threadId);
     if (!thread) return;
     const { model, permissions } = thread;
     const disclosure = execution.remoteDisclosure(model, permissions?.sharingScope, permissions?.executionLocation);
@@ -380,24 +380,31 @@ export function createChatSession({
   };
 
   const getSessionState = () => {
-    const wsState = workspace.getState();
+    // The workspace's view shares its saved conversations, frozen, so building this state costs the same however
+    // long the history is: nothing below copies a conversation that did not change.
+    const { threads: savedThreads, ...workspaceState } = workspace.view();
     const network = copy({ ...(swarm?.getState?.() || { sharing: false, consumer: null }), files: swarm?.getFileState?.() || null });
     // Only active execution metadata is ephemeral. Text and terminal states
     // remain the committed workspace projection supplied above.
-    for (const view of wsState.ephemeralExecutions || []) {
-      const attempt = wsState.threads.find(thread => thread.id === view.threadId)?.attempts.find(item => item.id === view.attemptId);
-      if (attempt) Object.assign(attempt, { persistedStatus: attempt.status, ephemeral: true,
-        status: view.status, approval: view.approval, execution: view.execution });
-    }
-    const activeThread = wsState.threads.find(t => t.id === wsState.selectedId) || null;
+    const ephemeral = workspaceState.ephemeralExecutions || [];
+    const threads = !ephemeral.length ? savedThreads : Object.freeze(savedThreads.map(thread => {
+      const views = ephemeral.filter(view => view.threadId === thread.id && thread.attempts.some(item => item.id === view.attemptId));
+      return !views.length ? thread : Object.freeze({ ...thread, attempts: Object.freeze(thread.attempts.map(attempt => {
+        const view = views.find(item => item.attemptId === attempt.id);
+        return !view ? attempt : Object.freeze({ ...attempt, persistedStatus: attempt.status, ephemeral: true,
+          status: view.status, approval: view.approval, execution: view.execution });
+      })) });
+    }));
+    const wsState = { ...workspaceState, threads };
+    const activeThread = threads.find(t => t.id === wsState.selectedId) || null;
     const catalog = getCatalogModels(network);
     const preferred = candidates => candidates.find(model => model.id === profile.defaultModelId) || candidates[0];
     const defaultModels = Object.fromEntries(['auto', 'local', 'network'].map(location =>
       [location, selectAvailableChatModel(catalog, profile.chatModelPreference, location)]));
-    return readonlyView({
-      ...wsState,
+    // Conversations and the execution records they hold are already frozen; only the rest is copied and frozen here.
+    return Object.freeze({ threads, activeThread, placements: Object.freeze(projectChatPlacements(threads)), ...readonlyView({
+      ...workspaceState,
       closed,
-      activeThread,
       comparisonPhase: comparisons.get(wsState.selectedId)?.phase || null,
       models: catalog, privateComputers: fleet.state(), ownerPairing: ownerPairing.state(), guestAccess: guestJoin.state(),
       answerLimits: catalog.filter(model => model.partition).map(model => ({
@@ -413,15 +420,15 @@ export function createChatSession({
       computerUsage: projectComputerUsage({ threads: wsState.threads, network,
         historyUnavailable: wsState.storageError || (historyState.mode === 'refused' ? 'Conversation usage is unavailable while another tab owns its history' : null) }),
       scheduler: execution.getState(),
-      placements: projectChatPlacements(wsState.threads),
       history: historyState,
       remotePermissions: copy(remotePermissions), remoteNetworkId: currentNetwork(), remoteAnswersEnabled: remoteAccess.enabled(),
       adapterEvidence: adapterEvidence.snapshot()
-    });
+    }) });
   };
 
   // Re-emit workspace updates
-  const unsubscribeWorkspace = workspace.subscribe(() => {
+  // Observing (not subscribing) spares the full copy of the history a subscriber is handed on every change.
+  const unsubscribeWorkspace = workspace.observe(() => {
     notifyAll();
   });
 
@@ -468,7 +475,7 @@ export function createChatSession({
     },
     setContextPrompt(threadId, selection) {
       assertOpen();
-      const thread = workspace.getState().threads.find(item => item.id === threadId);
+      const thread = workspace.view().threads.find(item => item.id === threadId);
       assert(thread, 'Conversation not found');
       return workspace.setSystemContext(threadId, createChatContext(selection, thread.model, models));
     },
@@ -565,14 +572,14 @@ export function createChatSession({
       return workspace.setExecutionLocation(threadId, location);
     },
     /** The stored conversations, for a local data export. Reads only; nothing is sent or changed. */
-    exportThreads() { assertOpen(); return { meshId, participantId, threads: copy(workspace.getState().threads) }; },
+    exportThreads() { assertOpen(); return { meshId, participantId, threads: copy(workspace.view().threads) }; },
     /** Adds conversations from an export file, skipping ids already here. Ordinary browser history only. */
     importThreads(threads, { dryRun = false } = {}) {
       assertOpen();
       assert(historyState.mode === 'ordinary' && !canonicalHistory, 'Conversations cannot be imported into this history');
       assert(Array.isArray(threads), 'Invalid imported conversations');
       // A failed history save stops every later save until reload, so the size is tried under a spare key first.
-      const known = new Set(workspace.getState().threads.map(thread => thread.id));
+      const known = new Set(workspace.view().threads.map(thread => thread.id));
       if (storage?.setItem && threads.some(thread => !known.has(thread?.id))) {
         const probe = STORAGE_KEY + ':import-check';
         try { storage.setItem(probe, JSON.stringify({ current: storage.getItem(STORAGE_KEY), threads })); }
@@ -644,14 +651,14 @@ export function createChatSession({
     cancelAll() {
       assertOpen();
       for (const operation of comparisons.values()) operation.controller.abort();
-      const state = workspace.getState();
+      const state = workspace.view();
       for (const tid of state.runningIds) {
         workspace.cancel(tid);
       }
     },
     retry(threadId, attemptId, { search = null } = {}) {
       assertOpen();
-      const attempt = workspace.getState().threads.find(thread => thread.id === threadId)?.attempts.find(item => item.id === attemptId);
+      const attempt = workspace.view().threads.find(thread => thread.id === threadId)?.attempts.find(item => item.id === attemptId);
       allowConfiguredRemote(threadId);
       return workspace.retry(threadId, attemptId, search ? { retrievalQuery: search.query ?? null,
         searchPermission: searchGrant(threadId, search.query ?? attempt?.request?.retrieval?.query ?? '',

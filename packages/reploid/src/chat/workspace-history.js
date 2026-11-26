@@ -20,7 +20,8 @@ export async function openCanonicalWorkspaceHistory({ store, key, meshId, partic
     && maxThreads > 0 && typeof publicationOptions === 'function', 'Bounded workspace publication ports required');
   const bounded = value => {
     const text = JSON.stringify(value);
-    assert(typeof text === 'string' && new TextEncoder().encode(text).length <= maxWorkspaceBytes, 'Workspace storage allowance exhausted');
+    // A UTF-16 unit is at most three UTF-8 bytes, so a history well inside its allowance is not encoded to be measured.
+    assert(typeof text === 'string' && (text.length * 3 <= maxWorkspaceBytes || new TextEncoder().encode(text).length <= maxWorkspaceBytes), 'Workspace storage allowance exhausted');
     return JSON.parse(text);
   };
   const validWorkspace = value => {

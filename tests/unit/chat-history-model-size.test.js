@@ -47,6 +47,49 @@ describe('conversation history size per thread', () => {
     expect(saved.attempts[0].request.model).toEqual(light);
   });
 
+  it('a transactional history copies only the conversation that changed, for its saves and for its views', async () => {
+    const saves = [];
+    const unused = async () => { throw Error('not used by a whole-model answer'); };
+    const store = { mode: 'transactional', supportsWholeModel: true, writerEpoch: 'e'.repeat(32), load: () => null,
+      save: async value => { saves.push(value); }, assertCurrentWriter: async () => {}, publication: unused, project: unused };
+    const app = createChatWorkspace({ meshId: 'mesh', participantId: 'alice', store, execute: async (request, controls) => {
+      for (let sequence = 0; sequence < 20; sequence++) controls.onDelta({ ...result(request, ''), text: 'a', sequence });
+      return result(request, 'a'.repeat(20));
+    } });
+    const seen = [];
+    app.observe(state => seen.push(state));
+    const ids = [];
+    for (let index = 0; index < 3; index++) {
+      ids.push(await app.createThread({ model: light }));
+      expect((await app.send(ids[index], `Question ${index}`)).status).toBe('completed');
+    }
+    const before = app.view(), savesBefore = saves.length;
+    ids.push(await app.createThread({ model: light }));
+    expect((await app.send(ids[3], 'Question 3')).status).toBe('completed');
+    const after = app.view();
+    // The three finished conversations are the very same frozen records in every later save and view.
+    expect(saves.length).toBeGreaterThan(savesBefore);
+    for (const saved of saves.slice(savesBefore)) for (let index = 0; index < 3; index++) expect(saved.threads[index]).toBe(saves[savesBefore - 1].threads[index]);
+    for (let index = 0; index < 3; index++) expect(after.threads[index]).toBe(before.threads[index]);
+    expect(Object.isFrozen(after.threads[0].attempts[0].request)).toBe(true);
+    expect(after.threads[3].messages.at(-1).content).toBe('a'.repeat(20));
+    // Observers were handed views, and the last one is the current state; getState still returns a copy to change freely.
+    expect(seen.at(-1).threads[0]).toBe(before.threads[0]);
+    const copied = app.getState();
+    expect(copied).toEqual(after);
+    expect(copied.threads[0]).not.toBe(after.threads[0]);
+    expect(Object.isFrozen(copied.threads[0])).toBe(false);
+    // Selecting changes no conversation: every record is reused.
+    await app.select(ids[0]);
+    expect(saves.at(-1).selectedId).toBe(ids[0]);
+    expect(saves.at(-1).threads.every((thread, index) => thread === saves.at(-2).threads[index])).toBe(true);
+    // A rename copies that one conversation and no other.
+    await app.renameThread(ids[1], 'Renamed');
+    expect(saves.at(-1).threads[1].title).toBe('Renamed');
+    expect(saves.at(-1).threads[0]).toBe(saves.at(-2).threads[0]);
+    await app.close();
+  });
+
   it('drops load options from a history saved before this change on its next save', async () => {
     let data;
     const store = { load: () => data, save: value => { data = structuredClone(value); } };

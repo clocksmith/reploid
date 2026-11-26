@@ -16,6 +16,11 @@ import failureMessages from '../transport/partition-errors.json' with { type: 'j
 
 const copy = value => structuredClone(value);
 const assert = (ok, message) => { if (!ok) throw new Error(message); };
+// Records shared between saves and views are frozen all the way down; a frozen value is never walked again.
+const freeze = value => {
+  if (value && typeof value === 'object' && !Object.isFrozen(value)) { Object.values(value).forEach(freeze); Object.freeze(value); }
+  return value;
+};
 // A streaming answer changes once per token, and every notification copies the whole history for each observer,
 // so its cost grows with the history. Between checkpoints, observers hear of new text at most once per this
 // interval, or twice the time the last notification took when that is longer, so a loaded page keeps time for
@@ -111,7 +116,7 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
     return copy(value);
   };
   let closed = false, selectedId = null, storageError = null;
-  const listeners = new Set(), runs = new Map();
+  const listeners = new Set(), viewers = new Set(), runs = new Map();
   const loaded = store.load();
   assert(!loaded || loaded.schema === 'reploid.chat-workspace/v1'
     && loaded.meshId === meshId && loaded.participantId === participantId && Array.isArray(loaded.threads), 'Stored workspace identity mismatch');
@@ -153,11 +158,16 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
       attempt.provenance = answerProvenance(thread, attempt, { localIds: [loadedRequester, participantId].filter(Boolean) });
     }
   }
-  durableThreads = copy(threads);
+  // A transactional history is saved and viewed through one frozen copy per conversation. A save copies only the
+  // conversations it was told changed and reuses the others' copies, and a view shares them, so neither grows
+  // with the number of past conversations. An ordinary store keeps receiving a copy of its own.
+  const captured = new Map();
+  const capture = thread => { const record = freeze(copy(thread)); captured.set(thread.id, record); return record; };
+  durableThreads = transactional ? Object.freeze(threads.map(capture)) : copy(threads);
   // Canonical text is already durable in the publication journal. Keep its verified
   // projection separate from full-history save acknowledgements, which may arrive later.
   const publishedResponses = new Map();
-  const durableView = () => durableThreads.map(thread => {
+  const durableView = (shared = false) => durableThreads.map(thread => {
     let response = publishedResponses.get(thread.id);
     if (!response && !storageError && runs.has(thread.id)) {
       const liveThread = threads.find(item => item.id === thread.id);
@@ -171,21 +181,32 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
         response = { ...preview, durability: 'checkpoint-pending' };
       }
     }
-    return response ? { ...thread, messages: thread.messages.map(message => message.id === response.id ? response : message) } : thread;
+    if (!response) return thread;
+    if (shared) response = freeze(copy(response));
+    const overlaid = { ...thread, messages: thread.messages.map(message => message.id === response.id ? response : message) };
+    return shared ? freeze(overlaid) : overlaid;
+  });
+  const ephemeralExecutions = () => [...runs.keys()].flatMap(threadId => {
+    const attempt = threads.find(thread => thread.id === threadId)?.attempts.at(-1);
+    return attempt && activeStatuses.has(attempt.status) ? [{ threadId, attemptId: attempt.id, status: attempt.status,
+      approval: attempt.approval, execution: attempt.execution }] : [];
   });
   const snapshot = () => copy({ schema: 'reploid.chat-workspace/v1', meshId, participantId,
     selectedId, threads: transactional || storageError ? durableView() : threads, runningIds: [...runs.keys()], storageError,
-    ...(transactional ? { ephemeralExecutions: [...runs.keys()].flatMap(threadId => {
-      const attempt = threads.find(thread => thread.id === threadId)?.attempts.at(-1);
-      return attempt && activeStatuses.has(attempt.status) ? [{ threadId, attemptId: attempt.id, status: attempt.status,
-        approval: attempt.approval, execution: attempt.execution }] : [];
-    }) } : {}),
+    ...(transactional ? { ephemeralExecutions: ephemeralExecutions() } : {}),
     limits: { maxThreads: limits.maxThreads, maxMessageCharacters: limits.maxMessageCharacters } });
+  // The same state, frozen. A transactional history's conversations are the shared saved records: only a streaming
+  // answer's preview and the running attempts are copied, so this costs the same after one conversation or sixty.
+  const view = () => !transactional ? freeze(snapshot()) : Object.freeze({ schema: 'reploid.chat-workspace/v1', meshId, participantId,
+    selectedId, threads: Object.freeze(durableView(true)),
+    runningIds: Object.freeze([...runs.keys()]), storageError, ephemeralExecutions: freeze(copy(ephemeralExecutions())),
+    limits: Object.freeze({ maxThreads: limits.maxThreads, maxMessageCharacters: limits.maxMessageCharacters }) });
   let streamTimer = null, notifyCostMs = 0;
   const notify = () => {
     clearTimeout(streamTimer); streamTimer = null;
     const started = performance.now();
     notifyObservers(listeners, snapshot, onListenerError);
+    notifyObservers(viewers, view, onListenerError);
     notifyCostMs = performance.now() - started;
   };
   const notifyStreaming = () => {
@@ -193,14 +214,19 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
     streamTimer = setTimeout(() => { streamTimer = null; if (!closed) notify(); }, Math.max(STREAM_NOTIFY_MS, 2 * notifyCostMs));
     streamTimer.unref?.();
   };
-  const persist = () => {
+  // `changed` names the conversations this save alters; without it every conversation is copied again. A caller
+  // passes it only where it changed nothing else since the last save.
+  const persist = (changed = null) => {
     assert(!storageError, `History storage failed: ${storageError}`);
     try {
-      const saved = copy({ schema: 'reploid.chat-workspace/v1', meshId, participantId, selectedId, threads });
+      const saved = transactional
+        ? { schema: 'reploid.chat-workspace/v1', meshId, participantId, selectedId,
+          threads: Object.freeze(threads.map(thread => changed && !changed.includes(thread) && captured.get(thread.id) || capture(thread))) }
+        : copy({ schema: 'reploid.chat-workspace/v1', meshId, participantId, selectedId, threads });
       const result = store.save(saved);
       if (transactional) {
         const operation = Promise.resolve(result).then(() => {
-          durableThreads = copy(saved.threads); notify();
+          durableThreads = saved.threads; notify();
         }, error => {
           storageError = String(error.message || error);
           for (const run of runs.values()) run.controller.abort(error);
@@ -216,6 +242,8 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
       }
       durableThreads = copy(saved.threads);
     } catch (error) {
+      // A caller may now undo its change; the next save copies these conversations again.
+      for (const thread of changed ?? threads) captured.delete(thread.id);
       storageError = String(error.message || error);
       // Unknown storage outcomes fence every writer until the host reloads and
       // reconciles storage. Cancellation retains execution ownership until its
@@ -308,7 +336,7 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
     runs.set(thread.id, run);
     if (select) selectedId = thread.id;
     let admitted;
-    try { admitted = persist(); }
+    try { admitted = persist([thread]); }
     catch (error) { runs.delete(thread.id); thread.attempts.pop(); thread.messages.pop(); throw error; }
     const matches = envelope => envelope?.threadId === thread.id && envelope?.attemptId === attempt.id;
     const live = () => !controller.signal.aborted && runs.get(thread.id) === run;
@@ -337,7 +365,7 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
           const binding = await bindAuxiliaryDisclosure(request.privacy, { ...detail, requestId: attempt.id }, declared);
           controller.signal.throwIfAborted();
           attempt.auxiliaryBindings = [...(attempt.auxiliaryBindings || []), copy(binding)];
-          await persist(); controller.signal.throwIfAborted(); return binding;
+          await persist([thread]); controller.signal.throwIfAborted(); return binding;
         })();
         auxiliary.set(key, pending); return pending;
       };
@@ -355,7 +383,7 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
             dispatched.messages[index] = restored.messages[0];
           }
           attempt.request = copy(dispatched);
-          await persist(); controller.signal.throwIfAborted();
+          await persist([thread]); controller.signal.throwIfAborted();
         }
         if (request.retrieval) {
           // Provenance is durable before any source text can be disclosed; failure dispatches nothing.
@@ -365,7 +393,7 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
               if (!live() || attempt.retrieval.outcome !== 'pending') return;
               attempt.retrieval.progress = copy(progress); notify();
             } });
-          await persist(); controller.signal.throwIfAborted();
+          await persist([thread]); controller.signal.throwIfAborted();
           assert(attempt.retrieval.outcome === 'retrieved', retrievalFailureMessage(attempt.retrieval));
           dispatched = await retriever.dispatch(dispatched, attempt.retrieval);
         }
@@ -399,7 +427,7 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
             assert(response.content.length + envelope.text.length <= limits.maxResponseCharacters, 'Response exceeds the conversation limit');
             run.nextSequence++;
             response.content += envelope.text; response.status = 'streaming'; attempt.status = 'executing';
-            if (run.nextSequence === 1 || run.nextSequence % checkpointDeltas === 0) persist();
+            if (run.nextSequence === 1 || run.nextSequence % checkpointDeltas === 0) persist([thread]);
             else notifyStreaming();
           },
           onActivity(envelope) {
@@ -480,12 +508,12 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
               if (accepted !== true || !live() || preview.expiresAt <= now()) return false;
               attempt.authorization = { kind: 'once', grantId: null, peerId: preview.peerId,
                 ...copy(scope), source: 'send', expiresAt: preview.expiresAt };
-              await persist(); controller.signal.throwIfAborted();
+              await persist([thread]); controller.signal.throwIfAborted();
               return true;
             }
             if (grant) {
               attempt.authorization = { kind: 'thread-grant', grantId: grant.id, peerId: preview.peerId, ...copy(scope) };
-              await persist(); controller.signal.throwIfAborted();
+              await persist([thread]); controller.signal.throwIfAborted();
               return true;
             }
             // Unverified partition recipients are never offered; with a permission port, no unverified recipient is.
@@ -496,7 +524,7 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
             const permission = covering(need);
             if (permission) {
               attempt.authorization = permitted(scope, preview, permission);
-              await persist(); controller.signal.throwIfAborted();
+              await persist([thread]); controller.signal.throwIfAborted();
               return live() && preview.expiresAt > now();
             }
             // Outside every stored permission: nothing is sent until one covers it (resumePermitted) or it is declined.
@@ -563,7 +591,7 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
         clearTimeout(timer); controller.signal.removeEventListener('abort', aborted);
         run.approval?.(false); attempt.approval = null; attempt.finishedAt = now();
         attempt.provenance = answerProvenance(thread, attempt, { localIds: localIds() });
-        runs.delete(thread.id); await persist();
+        runs.delete(thread.id); await persist([thread]);
         if (publishedResponses.delete(thread.id)) notify();
       }
       return copy(attempt);
@@ -602,6 +630,10 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
       return ['once', 'permission'].includes(auth.kind) && auth.expiresAt > now();
     },
     subscribe(listener) { listeners.add(listener); listener(snapshot()); return () => listeners.delete(listener); },
+    /** The state as `getState` returns it, frozen and sharing its saved conversations instead of copying them. */
+    view,
+    /** `subscribe` for observers that read without changing: each change delivers `view()`. */
+    observe(listener) { viewers.add(listener); listener(view()); return () => viewers.delete(listener); },
     createThread({ model, purpose = '', members = [], permissions = {}, privacy = null, systemContext = null, automaticModel = false }) {
       current(); assert(threads.length < limits.maxThreads, 'Conversation limit reached');
       assert(typeof automaticModel === 'boolean', 'Invalid automatic model selection');
@@ -609,7 +641,7 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
       assert(Array.isArray(members) && members.every(member => typeof member === 'string' && member), 'Invalid conversation members');
       const thread = { id: id(), ...(automaticModel ? { automaticModel: true } : {}), model: modelIdentity(model), purpose, systemContext: validateSystemContext(systemContext), members: [...new Set([participantId, ...members])],
         privacy: privacy === null ? createExecutionPolicy() : requestExecutionPolicy({ privacy }), permissions: copy(permissions), grants: [], messages: [], attempts: [], closed: false, createdAt: now() };
-      threads.push(thread); selectedId = thread.id; const saved = persist();
+      threads.push(thread); selectedId = thread.id; const saved = persist([thread]);
       return transactional ? saved.then(() => thread.id) : thread.id;
     },
     /** Adds conversations from an export file. A conversation whose id is already here is skipped, never
@@ -632,7 +664,7 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
       try { persist(); } catch (error) { threads.splice(threads.length - added.length, added.length); notify(); throw error; }
       return { added: added.map(thread => thread.id), skipped };
     },
-    select(threadId) { current(); if (threadId !== null) find(threadId); selectedId = threadId; const saved = persist(); if (transactional) notify(); return saved; },
+    select(threadId) { current(); if (threadId !== null) find(threadId); selectedId = threadId; const saved = persist([]); if (transactional) notify(); return saved; },
     resolveAutomaticModel(threadId, model, systemContext, { keepAutomatic = false } = {}) {
       current(); const thread = find(threadId);
       assert(typeof keepAutomatic === 'boolean', 'Invalid automatic model selection');
@@ -642,7 +674,7 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
       const candidate = { model: modelIdentity(model), systemContext: validateSystemContext(systemContext), automaticModel: keepAutomatic };
       const previous = { model: thread.model, systemContext: thread.systemContext, automaticModel: thread.automaticModel };
       Object.assign(thread, candidate);
-      try { return persist(); } catch (error) { Object.assign(thread, previous); notify(); throw error; }
+      try { return persist([thread]); } catch (error) { Object.assign(thread, previous); notify(); throw error; }
     },
     setExecutionLocation(threadId, location) {
       current(); const thread = find(threadId);
@@ -652,7 +684,7 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
       const previous = thread.permissions, automaticModel = thread.automaticModel;
       thread.automaticModel = false;
       thread.permissions = { ...previous, executionLocation: location, sharingScope: location === 'local' ? 'local' : 'mesh' };
-      try { return persist(); } catch (error) { thread.permissions = previous; thread.automaticModel = automaticModel; notify(); throw error; }
+      try { return persist([thread]); } catch (error) { thread.permissions = previous; thread.automaticModel = automaticModel; notify(); throw error; }
     },
     setExecutionPrivacy(threadId, value) {
       current(); const thread = find(threadId);
@@ -662,18 +694,18 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
       const previous = thread.privacy, reset = thread.executionSettingsReset;
       thread.privacy = copy(privacy);
       delete thread.executionSettingsReset;
-      try { return persist(); } catch (error) { thread.privacy = previous; if (reset) thread.executionSettingsReset = true; notify(); throw error; }
+      try { return persist([thread]); } catch (error) { thread.privacy = previous; if (reset) thread.executionSettingsReset = true; notify(); throw error; }
     },
     setSystemContext(threadId, value) {
       current(); const thread = find(threadId);
       assert(!thread.closed && !runs.has(threadId), 'Change context only in an open idle conversation');
       const previous = thread.systemContext;
       thread.systemContext = validateSystemContext(value);
-      try { return persist(); } catch (error) { thread.systemContext = previous; notify(); throw error; }
+      try { return persist([thread]); } catch (error) { thread.systemContext = previous; notify(); throw error; }
     },
-    renameThread(threadId, title) { current(); assert(typeof title === 'string' && title.trim() && title.length <= limits.maxMessageCharacters, 'Invalid conversation title'); find(threadId).title = title.trim(); return persist(); },
-    closeThread(threadId) { current(); find(threadId).closed = true; if (selectedId === threadId) selectedId = null; return persist(); },
-    reopenThread(threadId) { current(); find(threadId).closed = false; selectedId = threadId; return persist(); },
+    renameThread(threadId, title) { current(); assert(typeof title === 'string' && title.trim() && title.length <= limits.maxMessageCharacters, 'Invalid conversation title'); const thread = find(threadId); thread.title = title.trim(); return persist([thread]); },
+    closeThread(threadId) { current(); const thread = find(threadId); thread.closed = true; if (selectedId === threadId) selectedId = null; return persist([thread]); },
+    reopenThread(threadId) { current(); const thread = find(threadId); thread.closed = false; selectedId = threadId; return persist([thread]); },
     /** `retrieval` opts this request into search-backed answering: `{ route?, query?, limits? }`, the query defaulting
      * to the message. A search-answer route also needs `searchPermission` for this answer. */
     send(threadId, content, { select = true, authorizeDisclosure = null, retrieval = null, searchPermission = null } = {}) {
@@ -743,7 +775,7 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
         run.deciding = true;
         const fail = error => { if (grant) thread.grants.pop(); attempt.authorization = null; run.approval?.(false); run.deciding = false; throw error; };
         try {
-          const saved = persist();
+          const saved = persist([thread]);
           if (transactional) return saved.then(() => {
             run.deciding = false;
             run.approval?.(allowed && !run.controller.signal.aborted && attempt.approval?.expiresAt > now());
@@ -767,7 +799,7 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
         const settle = () => { run.deciding = false; run.approval?.(!run.controller.signal.aborted && attempt.approval?.expiresAt > now()); };
         const fail = error => { attempt.authorization = null; run.deciding = false; run.approval?.(false); throw error; };
         try {
-          const saved = persist();
+          const saved = persist([thread]);
           resumed.push(transactional ? saved.then(settle, fail) : (settle(), undefined));
         } catch (error) { fail(error); }
       }
@@ -781,7 +813,7 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
       grant.revokedAt = now();
       const attempt = thread.attempts.at(-1), run = runs.get(threadId);
       if (attempt?.authorization?.grantId === grantId) run?.controller.abort(new Error('Conversation grant revoked'));
-      return persist();
+      return persist([thread]);
     },
     cancel(threadId) { const run = runs.get(threadId); run?.controller.abort(new Error('Response stopped')); return run?.completion || Promise.resolve(); },
     async close() {
@@ -789,7 +821,7 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
       const pending = [...runs.values()];
       for (const run of pending) run.controller.abort(new Error('Workspace closed'));
       await Promise.allSettled(pending.map(run => run.completion));
-      const saved = await Promise.allSettled([...pendingSaves]); listeners.clear();
+      const saved = await Promise.allSettled([...pendingSaves]); listeners.clear(); viewers.clear();
       if (transactional && (saved.some(row => row.status === 'rejected') || storageError)) throw new Error(`History storage failed: ${storageError}`);
     }
   });
