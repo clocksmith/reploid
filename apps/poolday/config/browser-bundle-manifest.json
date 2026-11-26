@@ -1416,7 +1416,7 @@
     {
       "path": "config/module-inventory.json",
       "byteLength": 700186,
-      "sha256": "sha256:0134c4bcd6fdcdf79bf25c760a39803ccd4cdcd5841af6ed3a17e209a600855a"
+      "sha256": "sha256:c06a245f1374676498d69c594e2ced8ea2cb671c5a0de6a9c77a11b5fac3d0ee"
     },
     {
       "path": "config/module-registry.json",
@@ -1935,8 +1935,8 @@
     },
     {
       "path": "host/decisions/conversation-controller.js",
-      "byteLength": 89619,
-      "sha256": "sha256:4c11b8ba8515be05e090d2b61b892283512d258983c126c576aeb01af9334774"
+      "byteLength": 89863,
+      "sha256": "sha256:9f0594bb139746e5bd018fcd2eb7fddc25f4295f954fc03450818e91811795c4"
     },
     {
       "path": "host/decisions/conversation-details.js",
@@ -1945,8 +1945,8 @@
     },
     {
       "path": "host/decisions/model-choices.js",
-      "byteLength": 3802,
-      "sha256": "sha256:b4dd212656cddc30a3f1eb50e9cb3d434c3692fbd63dc6914b48766f9b31ac29"
+      "byteLength": 5239,
+      "sha256": "sha256:1f568b624875bf1f1c6bd795caa12e0e7fa74884783768f5f5f37fac7e257acd"
     },
     {
       "path": "host/decisions/model-state.js",
@@ -4430,13 +4430,13 @@
     },
     {
       "path": "ui/react/app.js",
-      "byteLength": 2209742,
-      "sha256": "sha256:62e2eb2dcda1ee700969152384fafc1d6a5af2253d9be94736f488cf97e582bf"
+      "byteLength": 2210328,
+      "sha256": "sha256:15a296ebda360412873f33ea7fd21ba98efeca6838305deacbf0fc00b8b685ef"
     },
     {
       "path": "ui/react/design.js",
-      "byteLength": 1161591,
-      "sha256": "sha256:3c37346a6ff561787a80b69401dda2bbcadd13c21b828d14bcf6133003796ad9"
+      "byteLength": 1162170,
+      "sha256": "sha256:400241f62c4a00dbf4beb18fc78164b70a3c7c4d2a1fb5bbe97bbafd14636101"
     },
     {
       "path": "ui/reploid-home/index.js",
@@ -12854,5 +12854,5 @@
       "sha256": "sha256:abb6c18f6167d6afc8ee1b3adfcbbb89c0e93fb4fc4e98d7a12250f78aab206a"
     }
   ],
-  "bundleHash": "sha256:20836e9a957175bf4cbb5e5f4b56ebc2434d33f66d83f3ecb24f2df1ec5d59b1"
+  "bundleHash": "sha256:23257e5c5ad138e281388885969afa503407bc7e7f8db0bb7c4a9af2d65025f7"
 }
