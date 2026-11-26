@@ -38,6 +38,7 @@ const SemanticMemoryLLM = {
     let _memories = [];
     let _tagIndex = {}; // tag -> [memoryIds]
     let _isInitialized = false;
+    let _unsubscribeHistory = null;
 
 
     // --- Storage ---
@@ -122,7 +123,8 @@ const SemanticMemoryLLM = {
       await loadFromVFS();
       _isInitialized = true;
 
-      EventBus.on('agent:history', handleAgentHistory);
+      _unsubscribeHistory?.();
+      _unsubscribeHistory = EventBus.on('agent:history', handleAgentHistory);
       logger.info(`[SemanticMemory] Initialized with ${_memories.length} memories`);
 
       return true;
@@ -361,7 +363,8 @@ const SemanticMemoryLLM = {
     };
 
     const dispose = async () => {
-      EventBus.off('agent:history', handleAgentHistory);
+      _unsubscribeHistory?.();
+      _unsubscribeHistory = null;
       if (_learningTimeout) {
         clearTimeout(_learningTimeout);
       }

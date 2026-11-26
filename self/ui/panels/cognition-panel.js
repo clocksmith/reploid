@@ -20,6 +20,7 @@ const CognitionPanel = {
     let _canvas = null;
     let _ctx = null;
     let _animationId = null;
+    let _unsubscribers = [];
 
     // Graph visualization state
     let _nodes = [];
@@ -192,8 +193,11 @@ const CognitionPanel = {
       }
 
       // Listen for cognition events
-      EventBus.on('cognition:symbolic:add', loadGraphData);
-      EventBus.on('cognition:learning:extract', loadGraphData);
+      _unsubscribers.forEach(unsub => unsub());
+      _unsubscribers = [
+        EventBus.on('cognition:symbolic:add', loadGraphData),
+        EventBus.on('cognition:learning:extract', loadGraphData)
+      ];
 
       // Handle resize
       window.addEventListener('resize', resizeCanvas);
@@ -492,8 +496,8 @@ const CognitionPanel = {
         cancelAnimationFrame(_animationId);
       }
       window.removeEventListener('resize', resizeCanvas);
-      EventBus.off('cognition:symbolic:add', loadGraphData);
-      EventBus.off('cognition:learning:extract', loadGraphData);
+      _unsubscribers.forEach(unsub => unsub());
+      _unsubscribers = [];
     };
 
     return { init, dispose, refresh: loadGraphData };
