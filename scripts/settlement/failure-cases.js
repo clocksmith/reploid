@@ -14,6 +14,10 @@
  *   - the ledger, the replay and the second verifier post the same debit and the same payout for every stage;
  *   - no hold is left, every owner's statement verifies offline, and presenting the evidence again moves nothing.
  *
+ * With `evidence: true` each case also returns its signed records and the coordinator's signed settlement statement
+ * (server/fleet/settlement-statement.js), built from the ledger's own state and signed with a test coordinator key:
+ * what a records-only export for an outsider is made of (records-export.js).
+ *
  *   node scripts/settlement/failure-cases.js [--json] [--out FILE.json]
  *
  * Plain Node: no model, no GPU, no network. Three stages on three owner accounts and a requester on a fourth, all
@@ -32,6 +36,7 @@ import { openFleetCredits } from '../../server/fleet/credits.js';
 import { verifyCreditStatement } from '../../server/fleet/credit-statement.js';
 import { SETTLEMENT_RULES, UNFINISHED_ANSWER_TERMS_V3 } from '../../server/fleet/credit-shares.js';
 import { replaySettlement } from '../../server/fleet/settlement-replay.js';
+import { signSettlementStatement } from '../../server/fleet/settlement-statement.js';
 import { SETTLEMENT_STOP_SCHEMA, signStageFaultRecord } from '../../server/fleet/settlement-terms.js';
 import { replaySettlement as secondReplay } from './independent/replay.js';
 import { POLICY as SCENARIO_POLICY, T0, createParties, runAttempt } from './scenario.js';
@@ -58,7 +63,7 @@ export const CASES = Object.freeze([
     attempt: { vanishStage: 1, vanishAfterStep: 3 } }
 ]);
 
-async function runCase(spec, index) {
+async function runCase(spec, index, { coordinator = null } = {}) {
   const parties = await createParties(3), directory = await mkdtemp(path.join(tmpdir(), 'reploid-failure-cases-'));
   const people = [parties.requester, ...parties.stages], owners = [ACCOUNTS.requester, ...ACCOUNTS.stages];
   const computers = people.map((identity, at) => ({ id: `computer-${at}`, name: `Computer ${at}`, ownerId: owners[at],
@@ -167,15 +172,27 @@ async function runCase(spec, index) {
       presentedAgainMovesNothing: same(again, outcome) && ledger.snapshot().journal.length === journalBefore
     };
     result.ok = Object.values(result.checks).every(Boolean);
+    if (coordinator) {
+      // The coordinator's statement, from what this ledger posted and holds for the reservation, signed when it was decided.
+      const posted = snapshot.journal.filter(row => row.request_id === a.reservationId && row.delta > 0).map(row => ({ account: row.account_id, amount: row.delta }));
+      const decided = live.clock;
+      const statement = await signSettlementStatement({ signer: createAttemptEvidenceSigner({ identity: coordinator, now: () => decided }), terms: a.terms,
+        settlementRules: binding.settlementRules, status: outcome.status === 'expired' ? 'expired' : 'settled', debit: outcome.charge, payouts: posted, forfeited,
+        hold: { placed: heldAtReservation, remaining: snapshot.accounts.find(row => row.id === ACCOUNTS.requester).held } });
+      result.evidence = { reservationId: a.reservationId, requesterId: parties.requester.peerId, records,
+        enrollment: people.map((identity, at) => ({ participantId: identity.peerId, account: owners[at] })), statement };
+    }
     return result;
   } finally {
     try { ledger.close(); } finally { await rm(directory, { recursive: true, force: true }); }
   }
 }
 
-export async function runFailureCases() {
+export async function runFailureCases({ evidence = false } = {}) {
   const cases = [];
-  for (const [index, spec] of CASES.entries()) cases.push(await runCase(spec, index));
+  // One test coordinator key for the run: it stands for whoever keeps the ledger.
+  const coordinator = evidence ? (await createParties(0)).requester : null;
+  for (const [index, spec] of CASES.entries()) cases.push(await runCase(spec, index, { coordinator }));
   return { schema: 'reploid.settlement-failure-cases/v1', note: 'Simulated identities and test keys on one machine, fake clock, no model. Not a physical trade.',
     policy: POLICY, accounts: ACCOUNTS, weights: WEIGHTS, cases, ok: cases.every(row => row.ok) };
 }

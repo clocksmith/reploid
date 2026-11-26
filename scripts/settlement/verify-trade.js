@@ -11,6 +11,12 @@
  * requester signed into its terms and the ledger ran; and the ledger's recorded debit, payouts and journal must equal
  * the replay's. The public policy comes from the receipt (`settlementReplay.policy`) or from `policy.json` beside it.
  *
+ *   node scripts/settlement/verify-trade.js --records TRADE.json_or_DIRECTORY [--at ISO_TIME] [--json]
+ *
+ * With `--records` it checks a records-only export instead (verify-records.js): signed records and the publisher's
+ * stated amounts, with no receipt text and no ledger trace. It recomputes the debit and every payout, compares them
+ * with the stated amounts and the signed maximum, and reports what shows the hold was released.
+ *
  * Plain Node 22 or later, no npm packages, no keys and no network. A pass shows that the published records, signed by
  * the keys they name, imply the amounts the ledger posted under the named policy. It does not show who owns a key,
  * that any computation was correct, that no party withheld a record, or when a record was really signed.
@@ -163,6 +169,7 @@ export async function verifyTrade({ receipt, policy = null, at = Date.now() }) {
 }
 
 async function main() {
+  if (process.argv.includes('--records')) return (await import('./verify-records.js')).recordsCommand(process.argv.slice(2).filter(value => value !== '--records'));
   const args = process.argv.slice(2), flag = name => { const at = args.indexOf(`--${name}`); return at === -1 ? null : args[at + 1] ?? true; };
   const directory = args.find((value, index) => !value.startsWith('--') && args[index - 1] !== '--at');
   if (!directory) { console.error('Usage: node scripts/settlement/verify-trade.js RECEIPT_DIRECTORY [--at ISO_TIME] [--json]'); process.exitCode = 2; return; }
