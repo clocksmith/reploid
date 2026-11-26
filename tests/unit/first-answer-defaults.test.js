@@ -8,6 +8,8 @@ import { createChatSession, CANONICAL_CHAT_MODELS } from '../../apps/poolday/hos
 import { createChatTestService } from '../fixtures/chat-service.js';
 import { openConversation } from '../fixtures/conversation-view.js';
 import { ANSWER_CHOICE_STORAGE_KEY } from '../../apps/poolday/ui/pool-home/answer-choice.js';
+import { selectAvailableChatModel } from '../../apps/poolday/host/chat-view.js';
+import profile from '../../apps/poolday/config/work-profile.json' with { type: 'json' };
 
 const cleanups = [];
 afterEach(async () => { for (const cleanup of cleanups.splice(0).reverse()) await cleanup(); });
@@ -20,15 +22,16 @@ const memory = (entries = {}) => {
 };
 const [SMALL, MEDIUM] = CANONICAL_CHAT_MODELS;
 
-/** The host's real chat session with discovery and capacity published by the test. `defaultModels` is derived the way
- * the session derives it (the first served model in catalog order), so the controller reads what the page reads. */
+/** The host's real chat session with discovery and capacity published by the test. `defaultModels` is derived by the
+ * session's own selection (chat-view.js selectAvailableChatModel over the profile's preference order), so the
+ * controller reads what the page reads. */
 function fixture({ storage = null, session: reuse = null, draft = null } = {}) {
   const session = reuse ?? createChatSession({ storage: null, service: createChatTestService(), models: [SMALL, MEDIUM] });
   if (!reuse) cleanups.push(() => session.close());
   const derive = state => {
-    const network = state.models.find(model => model.networkAvailability === 'ready') ?? null;
-    const local = state.models.find(model => model.localReady || model.localCached) ?? null;
-    return { ...state, defaultModels: { network, local, auto: network ?? local }, defaultModel: network ?? local ?? state.models[1] };
+    const defaultModels = Object.fromEntries(['auto', 'local', 'network'].map(location =>
+      [location, selectAvailableChatModel(state.models, profile.chatModelPreference, location)]));
+    return { ...state, defaultModels, defaultModel: defaultModels.auto || state.models.find(model => model.id === profile.defaultModelId) || state.models[0] || null };
   };
   let state = derive({ ...session.getState(), localDownloadIssue: null, peerDiscoveryTimedOut: false, discoveryPhase: 'searching',
     network: { connecting: true, consumer: { connectionState: 'connecting', peers: [] } } });
@@ -348,4 +351,19 @@ it('holds no Send while the network is turned off: the composer says it is pause
   await new Promise(resolve => setTimeout(resolve, 0));
   expect(first.view.composer().nextAction).not.toBe('cancel-queued');
   expect(first.created).toHaveLength(0);
+});
+
+it('chooses the automatic model by the session\'s preference order, not by catalog or advertisement order', async () => {
+  expect(profile.chatModelPreference.indexOf(SMALL.id)).toBeLessThan(profile.chatModelPreference.indexOf(MEDIUM.id));
+  const f = fixture();
+  // Both are served and the catalog lists the less preferred one first.
+  f.publish({ ...observed, models: [served(MEDIUM), served(SMALL)] });
+  expect([chip(f).selectionId, chip(f).availability]).toEqual([key(SMALL), 'ready']);
+  // A ready model is chosen before a busy one, whatever the preference.
+  f.publish({ models: [served(MEDIUM), { ...served(SMALL), availability: 'busy', networkAvailability: 'busy' }] });
+  expect(chip(f).selectionId).toBe(key(MEDIUM));
+  f.publish({ models: [served(MEDIUM), served(SMALL)] });
+  f.view.send('To the preferred model');
+  await vi.waitFor(() => expect(f.sent).toHaveLength(1));
+  expect(key(f.created[0].model)).toBe(chip(f).selectionId);
 });
