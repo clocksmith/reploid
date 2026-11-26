@@ -969,6 +969,7 @@ reached when they were signed
 npx vitest run --config tests/vitest.config.js tests/unit/settlement-replay.test.js tests/unit/settlement-old-rules.test.js \
   tests/unit/settlement-v2-rules.test.js tests/unit/settlement-failed-stage-forfeits.test.js tests/unit/settlement-own-stage-ledger.test.js
 node scripts/settlement/independent/ledger-differential.js
+node scripts/settlement/failure-cases.js
 node scripts/settlement/attack-matrix.js --out /absolute/path/matrix.json
 node scripts/settlement/baseline-matrix.js --out /absolute/path/baseline.json
 ```
@@ -982,6 +983,13 @@ stage closed at its last signed step and an answer whose stages closed after the
 deadline with the requester's last acknowledgment late, and that a stage lost
 partway forfeits its share in both. They also run one record set under
 several `TZ` values and check that it settles the same in each.
+`scripts/settlement/failure-cases.js` runs a cancellation, an unattributed
+disconnect and a provider failure (with the stage's signed fault, and silent) as
+separate trades through a ledger, the replay and the second verifier, and checks
+for each that the debit stays within the signed maximum, that the stages that
+closed are paid their signed share, and that no hold is left
+(`tests/unit/settlement-failure-cases.test.js`). Its parties are simulated on one
+machine.
 `tests/unit/settlement-old-rules.test.js` replays records, ledger outcomes and
 owner statements frozen from the code that ran each of the two older rules
 (`tests/fixtures/settlement-old-rules.json`) and expects the same amounts. To
