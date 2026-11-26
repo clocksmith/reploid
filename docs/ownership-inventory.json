@@ -18,7 +18,7 @@
     "kernel/boot.js"
   ],
   "counts": {
-    "apps/poolday": 398,
+    "apps/poolday": 403,
     "self": 457,
     "shared": 2526
   },
@@ -2353,16 +2353,34 @@
       "basis": "Reached only from product entries."
     },
     {
+      "served": "host/decisions/computers.d.ts",
+      "source": "apps/poolday/host/decisions/computers.d.ts",
+      "owner": "apps/poolday",
+      "basis": "Describes host/decisions/computers.js. Product decisions and helpers the React bundle (ui/react/app.js) compiles in; the bundle is not traced by import."
+    },
+    {
       "served": "host/decisions/computers.js",
       "source": "apps/poolday/host/decisions/computers.js",
       "owner": "apps/poolday",
       "basis": "Product decisions and helpers the React bundle (ui/react/app.js) compiles in; the bundle is not traced by import."
     },
     {
+      "served": "host/decisions/conversation-controller.d.ts",
+      "source": "apps/poolday/host/decisions/conversation-controller.d.ts",
+      "owner": "apps/poolday",
+      "basis": "Describes host/decisions/conversation-controller.js. Product decisions and helpers the React bundle (ui/react/app.js) compiles in; the bundle is not traced by import."
+    },
+    {
       "served": "host/decisions/conversation-controller.js",
       "source": "apps/poolday/host/decisions/conversation-controller.js",
       "owner": "apps/poolday",
       "basis": "Product decisions and helpers the React bundle (ui/react/app.js) compiles in; the bundle is not traced by import."
+    },
+    {
+      "served": "host/decisions/conversation-details.d.ts",
+      "source": "apps/poolday/host/decisions/conversation-details.d.ts",
+      "owner": "apps/poolday",
+      "basis": "Describes host/decisions/conversation-details.js. Product decisions and helpers the React bundle (ui/react/app.js) compiles in; the bundle is not traced by import."
     },
     {
       "served": "host/decisions/conversation-details.js",
@@ -2389,10 +2407,22 @@
       "basis": "Product decisions and helpers the React bundle (ui/react/app.js) compiles in; the bundle is not traced by import."
     },
     {
+      "served": "host/decisions/prompt-disclosure.d.ts",
+      "source": "apps/poolday/host/decisions/prompt-disclosure.d.ts",
+      "owner": "apps/poolday",
+      "basis": "Describes host/decisions/prompt-disclosure.js. Reached only from product entries."
+    },
+    {
       "served": "host/decisions/prompt-disclosure.js",
       "source": "apps/poolday/host/decisions/prompt-disclosure.js",
       "owner": "apps/poolday",
       "basis": "Reached only from product entries."
+    },
+    {
+      "served": "host/decisions/settings.d.ts",
+      "source": "apps/poolday/host/decisions/settings.d.ts",
+      "owner": "apps/poolday",
+      "basis": "Describes host/decisions/settings.js. Product decisions and helpers the React bundle (ui/react/app.js) compiles in; the bundle is not traced by import."
     },
     {
       "served": "host/decisions/settings.js",

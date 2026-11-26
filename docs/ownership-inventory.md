@@ -18,10 +18,10 @@ Product entries: `index.html`, `pool-entry.html`, `design.html`, `document-study
 
 | Owner | Files |
 | --- | ---: |
-| apps/poolday | 398 |
+| apps/poolday | 403 |
 | self | 457 |
 | shared | 2526 |
-| total | 3381 |
+| total | 3386 |
 
 Every file lives in its owner's root.
 
@@ -425,13 +425,18 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `host/contributor-search.js` | `apps/poolday/host/contributor-search.js` | apps/poolday | Reached only from product entries. |
 | `host/credits/browser.js` | `apps/poolday/host/credits/browser.js` | apps/poolday | Reached only from product entries. |
 | `host/credits/local-sign-in.js` | `apps/poolday/host/credits/local-sign-in.js` | apps/poolday | Reached only from product entries. |
+| `host/decisions/computers.d.ts` | `apps/poolday/host/decisions/computers.d.ts` | apps/poolday | Describes host/decisions/computers.js. Product decisions and helpers the React bundle (ui/react/app.js) compiles in; the bundle is not traced by import. |
 | `host/decisions/computers.js` | `apps/poolday/host/decisions/computers.js` | apps/poolday | Product decisions and helpers the React bundle (ui/react/app.js) compiles in; the bundle is not traced by import. |
+| `host/decisions/conversation-controller.d.ts` | `apps/poolday/host/decisions/conversation-controller.d.ts` | apps/poolday | Describes host/decisions/conversation-controller.js. Product decisions and helpers the React bundle (ui/react/app.js) compiles in; the bundle is not traced by import. |
 | `host/decisions/conversation-controller.js` | `apps/poolday/host/decisions/conversation-controller.js` | apps/poolday | Product decisions and helpers the React bundle (ui/react/app.js) compiles in; the bundle is not traced by import. |
+| `host/decisions/conversation-details.d.ts` | `apps/poolday/host/decisions/conversation-details.d.ts` | apps/poolday | Describes host/decisions/conversation-details.js. Product decisions and helpers the React bundle (ui/react/app.js) compiles in; the bundle is not traced by import. |
 | `host/decisions/conversation-details.js` | `apps/poolday/host/decisions/conversation-details.js` | apps/poolday | Product decisions and helpers the React bundle (ui/react/app.js) compiles in; the bundle is not traced by import. |
 | `host/decisions/model-choices.js` | `apps/poolday/host/decisions/model-choices.js` | apps/poolday | Product decisions and helpers the React bundle (ui/react/app.js) compiles in; the bundle is not traced by import. |
 | `host/decisions/projected-store.d.ts` | `apps/poolday/host/decisions/projected-store.d.ts` | apps/poolday | Describes host/decisions/projected-store.js. Product decisions and helpers the React bundle (ui/react/app.js) compiles in; the bundle is not traced by import. |
 | `host/decisions/projected-store.js` | `apps/poolday/host/decisions/projected-store.js` | apps/poolday | Product decisions and helpers the React bundle (ui/react/app.js) compiles in; the bundle is not traced by import. |
+| `host/decisions/prompt-disclosure.d.ts` | `apps/poolday/host/decisions/prompt-disclosure.d.ts` | apps/poolday | Describes host/decisions/prompt-disclosure.js. Reached only from product entries. |
 | `host/decisions/prompt-disclosure.js` | `apps/poolday/host/decisions/prompt-disclosure.js` | apps/poolday | Reached only from product entries. |
+| `host/decisions/settings.d.ts` | `apps/poolday/host/decisions/settings.d.ts` | apps/poolday | Describes host/decisions/settings.js. Product decisions and helpers the React bundle (ui/react/app.js) compiles in; the bundle is not traced by import. |
 | `host/decisions/settings.js` | `apps/poolday/host/decisions/settings.js` | apps/poolday | Product decisions and helpers the React bundle (ui/react/app.js) compiles in; the bundle is not traced by import. |
 | `host/decisions/transcript.js` | `apps/poolday/host/decisions/transcript.js` | apps/poolday | Product decisions and helpers the React bundle (ui/react/app.js) compiles in; the bundle is not traced by import. |
 | `host/device-capability.js` | `apps/poolday/host/device-capability.js` | apps/poolday | Reached only from product entries. |
