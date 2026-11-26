@@ -2879,7 +2879,7 @@
     {
       "path": "self/host/chat-session.js",
       "owner": "self",
-      "sha256": "sha256:a8457dbf28f9762dc930e7dbc35fa78e2f3c524790de99a35416906ba941918d",
+      "sha256": "sha256:4f447d411325320bb2a0fc2833ba9c9795f7ae3391b301e6f2975e1d5038a253",
       "imports": [
         "../config/doppler-local-models.js",
         "../config/requester-weights.json",
@@ -4461,7 +4461,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:a0978d496e38809b22de13be4bc96cad9b6860ce034ed24eefa0814700228e7d",
+      "sha256": "sha256:d321b33868b5e5887c82fe74aafc7d36fe581e7c0f3421460d48ca9347486160",
       "imports": []
     },
     {
@@ -5575,7 +5575,7 @@
     {
       "path": "ui/react/app.js",
       "owner": "ui",
-      "sha256": "sha256:7c9b1064409325c30c9eb626877ff6c4a647219a3a9543116607a0489150823d",
+      "sha256": "sha256:161fe1f4956c94f0578f0059ded403ae9a8956d813eb5e72c76e9a210e1bf7c8",
       "imports": []
     },
     {
@@ -18484,7 +18484,7 @@
     {
       "path": "vendor/reploid/adapters/browser.js",
       "owner": "vendor",
-      "sha256": "sha256:84b27408dc84eafd97153b78969f76eecfedd82682c051cb07c6f6ce52c096bc",
+      "sha256": "sha256:d0dad1820d3ee55766321dca18140c3ca7cd9c303410b9fc91ee3c0648de2a46",
       "imports": [
         "../artifacts/identity.js",
         "../artifacts/receipt.js",
@@ -19024,7 +19024,7 @@
     {
       "path": "vendor/reploid/chat/workspace-history.js",
       "owner": "vendor",
-      "sha256": "sha256:60f8c432e9773a15d259d5574eca494fe37898c98601afe935267d493168d6c4",
+      "sha256": "sha256:67260b55c4d847296b9fd06568d6a659682a2b781794707fccc66c1fc4e709c5",
       "imports": [
         "./workspace-publication.js"
       ]
@@ -19041,7 +19041,7 @@
     {
       "path": "vendor/reploid/chat/workspace.js",
       "owner": "vendor",
-      "sha256": "sha256:52f695fb9463ef541a30ddda1d74b5df7d48b2d35e21c9f7640f4a5a565f3f88",
+      "sha256": "sha256:d2ee09e83b5eeb71a497fc851e22bccfce2ddc70099077822418e24f8ce26d06",
       "imports": [
         "../contracts/partition-activity.js",
         "../contracts/partition-publication.js",

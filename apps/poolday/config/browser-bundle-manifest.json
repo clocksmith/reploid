@@ -1416,7 +1416,7 @@
     {
       "path": "config/module-inventory.json",
       "byteLength": 697961,
-      "sha256": "sha256:f6043e343f894c2bff7955e438243d639f29e6baa53157b7b7d5521fd42ea31e"
+      "sha256": "sha256:0313bae4c5b015ce2c9d3988ce8486a86825b66ceb325b782b563cf43bf6e4a3"
     },
     {
       "path": "config/module-registry.json",
@@ -1870,8 +1870,8 @@
     },
     {
       "path": "host/chat-session.js",
-      "byteLength": 50457,
-      "sha256": "sha256:a8457dbf28f9762dc930e7dbc35fa78e2f3c524790de99a35416906ba941918d"
+      "byteLength": 51300,
+      "sha256": "sha256:4f447d411325320bb2a0fc2833ba9c9795f7ae3391b301e6f2975e1d5038a253"
     },
     {
       "path": "host/chat-view.js",
@@ -3860,8 +3860,8 @@
     },
     {
       "path": "ui/pool-home/app.bundle.js",
-      "byteLength": 2581381,
-      "sha256": "sha256:a0978d496e38809b22de13be4bc96cad9b6860ce034ed24eefa0814700228e7d"
+      "byteLength": 2582965,
+      "sha256": "sha256:d321b33868b5e5887c82fe74aafc7d36fe581e7c0f3421460d48ca9347486160"
     },
     {
       "path": "ui/pool-home/auto-download.js",
@@ -4415,8 +4415,8 @@
     },
     {
       "path": "ui/react/app.js",
-      "byteLength": 2185864,
-      "sha256": "sha256:7c9b1064409325c30c9eb626877ff6c4a647219a3a9543116607a0489150823d"
+      "byteLength": 2187361,
+      "sha256": "sha256:161fe1f4956c94f0578f0059ded403ae9a8956d813eb5e72c76e9a210e1bf7c8"
     },
     {
       "path": "ui/react/design.js",
@@ -11680,8 +11680,8 @@
     },
     {
       "path": "vendor/reploid/adapters/browser.js",
-      "byteLength": 6554,
-      "sha256": "sha256:84b27408dc84eafd97153b78969f76eecfedd82682c051cb07c6f6ce52c096bc"
+      "byteLength": 6776,
+      "sha256": "sha256:d0dad1820d3ee55766321dca18140c3ca7cd9c303410b9fc91ee3c0648de2a46"
     },
     {
       "path": "vendor/reploid/adapters/device-lane.js",
@@ -12025,8 +12025,8 @@
     },
     {
       "path": "vendor/reploid/chat/workspace-history.js",
-      "byteLength": 12940,
-      "sha256": "sha256:60f8c432e9773a15d259d5574eca494fe37898c98601afe935267d493168d6c4"
+      "byteLength": 13103,
+      "sha256": "sha256:67260b55c4d847296b9fd06568d6a659682a2b781794707fccc66c1fc4e709c5"
     },
     {
       "path": "vendor/reploid/chat/workspace-publication.js",
@@ -12035,8 +12035,8 @@
     },
     {
       "path": "vendor/reploid/chat/workspace.js",
-      "byteLength": 59568,
-      "sha256": "sha256:52f695fb9463ef541a30ddda1d74b5df7d48b2d35e21c9f7640f4a5a565f3f88"
+      "byteLength": 62488,
+      "sha256": "sha256:d2ee09e83b5eeb71a497fc851e22bccfce2ddc70099077822418e24f8ce26d06"
     },
     {
       "path": "vendor/reploid/config/defaults.json",
@@ -12541,7 +12541,7 @@
     {
       "path": "vendor/reploid/package-assets.json",
       "byteLength": 63715,
-      "sha256": "sha256:a7c7a59815c17a5000181d4a0fd0d0672357f3aa694ca2b756283379c12c42d6"
+      "sha256": "sha256:a25e807561ce252737baf7703805e5c1edac2030775ea5fea1394fe4e9dc236c"
     },
     {
       "path": "vendor/reploid/plugins/index.js",
@@ -12834,5 +12834,5 @@
       "sha256": "sha256:abb6c18f6167d6afc8ee1b3adfcbbb89c0e93fb4fc4e98d7a12250f78aab206a"
     }
   ],
-  "bundleHash": "sha256:1ed32966e69cfccadf5eca6b7360a16704753705d20d63d8db64200c72ea828f"
+  "bundleHash": "sha256:da0ed062cbeb127ce8b68911a6b43f86f8d4672286b90f87d0605911239347ec"
 }

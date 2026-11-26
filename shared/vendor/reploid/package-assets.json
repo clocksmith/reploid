@@ -106,8 +106,8 @@
     },
     {
       "path": "adapters/browser.js",
-      "bytes": 6554,
-      "sha256": "84b27408dc84eafd97153b78969f76eecfedd82682c051cb07c6f6ce52c096bc"
+      "bytes": 6776,
+      "sha256": "d0dad1820d3ee55766321dca18140c3ca7cd9c303410b9fc91ee3c0648de2a46"
     },
     {
       "path": "adapters/device-lane.d.ts",
@@ -581,8 +581,8 @@
     },
     {
       "path": "chat/index.d.ts",
-      "bytes": 16907,
-      "sha256": "be6c915a548dbfe615de4a88d6f34b613106b71cdc242877b1efc62f863fbacc"
+      "bytes": 17262,
+      "sha256": "f2b037249551fd28b5f8994a01fa0f1ae35fe439103ca28d210924ab59176445"
     },
     {
       "path": "chat/index.js",
@@ -651,8 +651,8 @@
     },
     {
       "path": "chat/workspace-history.js",
-      "bytes": 12940,
-      "sha256": "60f8c432e9773a15d259d5574eca494fe37898c98601afe935267d493168d6c4"
+      "bytes": 13103,
+      "sha256": "67260b55c4d847296b9fd06568d6a659682a2b781794707fccc66c1fc4e709c5"
     },
     {
       "path": "chat/workspace-publication.d.ts",
@@ -666,8 +666,8 @@
     },
     {
       "path": "chat/workspace.js",
-      "bytes": 59568,
-      "sha256": "52f695fb9463ef541a30ddda1d74b5df7d48b2d35e21c9f7640f4a5a565f3f88"
+      "bytes": 62488,
+      "sha256": "d2ee09e83b5eeb71a497fc851e22bccfce2ddc70099077822418e24f8ce26d06"
     },
     {
       "path": "config/defaults.json",

@@ -91,14 +91,16 @@ export function createIndexedDbStore({ databaseName, storeName, version, openTim
           counting.onsuccess = () => {
             try {
               if (reading.result === undefined && counting.result >= maxEntries) throw new Error('Entry admission is full');
-              const next = reducer(structuredClone(reading.result ?? null));
+              // The value IndexedDB hands back is already this transaction's own copy.
+              const next = reducer(reading.result ?? null);
               if (next && typeof next.then === 'function') {
                 Promise.resolve(next).catch(() => {}); throw new Error('Entry reducers must be synchronous');
               }
               if (!next || typeof next !== 'object' || !Object.hasOwn(next, 'state') || !Object.hasOwn(next, 'result')
                 || Object.keys(next).length !== 2) throw new Error('Entry reducer must return state and result');
               const state = snapshotJson(next.state), encoded = JSON.stringify(state);
-              if (encoded === undefined || new TextEncoder().encode(encoded).byteLength > maxBytes) {
+              // A UTF-16 unit is at most three UTF-8 bytes, so most entries are within bounds without being encoded.
+              if (encoded === undefined || encoded.length * 3 > maxBytes && new TextEncoder().encode(encoded).byteLength > maxBytes) {
                 throw new Error('Entry exceeds its byte admission');
               }
               result = structuredClone(next.result); store.put(state, key);
