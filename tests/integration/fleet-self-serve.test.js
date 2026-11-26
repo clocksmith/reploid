@@ -48,6 +48,9 @@ it('a new account pairs a computer by code, earns by serving, spends what it ear
   expect(host).toMatchObject({ schema: 'reploid.fleet-native/v1', computerId: alice.joined.computerId, roomId: 'reploid-swarm-fleet-test',
     serviceUrl: 'http://127.0.0.1/v1/fleet', browserBridge: { port: 18784, origins: [hosted.origin] } });
   expect(host.browserBridge.claim.codeDigest).toMatch(/^[a-f0-9]{64}$/);
+  // Starting the written host serves its first model; without a selection it would join no room.
+  expect(host).toMatchObject({ initialModel: 0, initialContribution: true, daemon: true });
+  expect(host.models[host.initialModel].mode).toBe('whole-model');
   // Every model entry carries the output bound a credited provider needs to start, within the service policy.
   expect(host.models.length).toBeGreaterThan(0);
   for (const entry of host.models) {

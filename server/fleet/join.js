@@ -111,6 +111,8 @@ export async function joinFleetByCode({ code: entered, service = DEFAULT_SERVICE
       directory: path.join(weightsDirectory, model.id), mode: 'whole-model' })),
     browserBridge: { port: bridgePort, tokenFile: files.bridgeTokenFile, origins: [origin],
       claim: { codeDigest: createHash('sha256').update(code).digest('hex'), expiresAt: now() + BRIDGE_CLAIM_MS } },
+    // Starting the host serves its first model: without a selected model it joins no room and answers nothing.
+    ...(confirmed.models.length ? { initialModel: 0, initialContribution: true } : {}),
     daemon: true
   };
   await writeOwnerFile(files.hostFile, JSON.stringify(host, null, 2) + '\n');

@@ -260,3 +260,18 @@ it('states the quote and what the requester’s own account can cover in the pai
     expect((await host.browserState()).models[0].creditCap).toEqual({ maximum: 48, unit: 'noncash-service-credit', spendable: 32 });
   } finally { await host?.close(); await service.close(); credits.close(); }
 });
+
+it('names the folder to download into when a served model has no files yet', async () => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'fleet-missing-model-')); roots.push(root);
+  const tokenFile = path.join(root, 'room.secret'), directory = path.join(root, 'weights', 'qwen-test');
+  await fs.writeFile(tokenFile, '0123456789abcdef0123456789abcdef', { mode: 0o600 });
+  const model = { id: 'qwen-test', identity: 'sha256:' + 'c'.repeat(64), generation: { maxTokens: 48 } };
+  const host = await openFleetNativeHost({ configuration: { schema: 'reploid.fleet-native/v1', computerId: 'laptop', name: 'Laptop',
+    identityFile: path.join(root, 'identity.json'), roomId: 'fleet-private-test', roomTokenFile: tokenFile,
+    models: [{ mode: 'whole-model', model, directory }] },
+  loadRtc: async () => ({ RTCPeerConnection: class {}, RTCSessionDescription: class {}, RTCIceCandidate: class {} }),
+  loadSocket: async () => ({ WebSocket: class {} }), loadGpu: async () => ({ globals: {}, create: () => ({}) }) });
+  try {
+    await expect(host.select(0, true)).rejects.toThrow(`No model files in ${directory}: download qwen-test there before serving it`);
+  } finally { await host.close(); }
+});

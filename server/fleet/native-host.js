@@ -315,7 +315,8 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
       const manifestIdentity = async () => 'sha256:' + createHash('sha256')
         .update(await fs.readFile(path.join(entry.directory, 'manifest.json'))).digest('hex');
       const present = await fs.access(path.join(entry.directory, 'manifest.json')).then(() => true, () => false);
-      if (present || !fillable) assert(await manifestIdentity() === entry.model.identity, 'Owner-selected model manifest changed');
+      assert(present || fillable, `No model files in ${entry.directory}: download ${entry.model.id} there before serving it`);
+      if (present) assert(await manifestIdentity() === entry.model.identity, 'Owner-selected model manifest changed');
       participant = await createNativeParticipant({ model: entry.model, modelDirectory: entry.directory, identity, rtc, WebSocket,
         signalingUrl: config.signalingUrl, roomId: config.roomId, roomToken, nativeGpu: request => gpu.open(request),
         ...(config.hostCandidatesOnly ? { getRtcConfig: () => ({ iceServers: [], iceTransportPolicy: 'all' }) } : {}),
