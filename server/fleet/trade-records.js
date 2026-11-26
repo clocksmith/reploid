@@ -19,8 +19,11 @@ const CLOSE = 'reploid.stage-receipt/v1';
  * remaining hold as the publisher's statement. The whole-model ledger does not replay the records, so for a charge of
  * zero it has no word for the replay's `settled` or `expired`: the export states the one the held records imply (a
  * provider's close is held, or not). The debit, the payout and the hold are the ledger's own.
+ *
+ * With `statement`, the coordinator's signed settlement statement for the reservation (settlement-statement.js), the
+ * export carries that instead of the unsigned amounts: the hold's release then rests on the coordinator's signature.
  */
-export function buildRecordsExport({ id, label, records, trace }) {
+export function buildRecordsExport({ id, label, records, trace, statement = null }) {
   if (!records?.records?.length) throw Error('This request has no signed records to export');
   if (!trace || trace.reservationId !== records.reservationId) throw Error('The ledger record of this reservation is required');
   const paid = new Map();
@@ -32,9 +35,9 @@ export function buildRecordsExport({ id, label, records, trace }) {
       reservationId: records.reservationId, requesterId: records.requesterId,
       enrollment: (trace.participants ?? []).map(row => ({ participantId: row.participantId, account: row.accountId })),
       enrollmentSource: 'the ledger\'s enrollment of the two keys', records: structuredClone(records.records),
-      stated: { settlementRules: null, status: (trace.charge ?? 0) > 0 || closed ? 'settled' : 'expired', debit: trace.charge ?? 0,
+      ...(statement ? { statement: structuredClone(statement) } : { stated: { settlementRules: null, status: (trace.charge ?? 0) > 0 || closed ? 'settled' : 'expired', debit: trace.charge ?? 0,
         payouts: [...paid].sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)).map(([account, amount]) => ({ account, amount })), forfeited: null,
-        hold: { placed: null, released: null, remaining: trace.held } } }] };
+        hold: { placed: null, released: null, remaining: trace.held } } }) }] };
 }
 
 export function buildTradeReceipt({ records, trace = null }) {

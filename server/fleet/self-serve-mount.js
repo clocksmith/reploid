@@ -13,11 +13,14 @@ import { openFleetCredits } from './credits.js';
 import { createFleetServiceHandler } from './service.js';
 import { openSelfServeFleet } from './self-serve.js';
 import { createSelfServeHttpHandler, firebaseSessionAuthenticator, testSessionAuthenticator } from './self-serve-http.js';
+import { coordinatorFor, coordinatorKeyFromSecret, openCoordinatorKey } from './coordinator-key.js';
 
 export const SELF_SERVE_SWITCH = 'REPLOID_FLEET_SELF_SERVE';
 export const SELF_SERVE_CONFIG = 'REPLOID_FLEET_SELF_SERVE_CONFIG';
 export const SELF_SERVE_ROOM_TOKEN = 'REPLOID_FLEET_ROOM_TOKEN';
 export const SELF_SERVE_TEST_SIGN_IN = 'REPLOID_FLEET_TEST_SIGN_IN';
+/** Optional: the coordinator key (coordinator-key.js) as a secret value, for a host that mounts no key file. */
+export const SELF_SERVE_COORDINATOR_KEY = 'REPLOID_FLEET_COORDINATOR_KEY';
 export const SELF_SERVE_CONFIG_SCHEMA = 'reploid.fleet-self-serve-config/v1';
 
 const refuse = message => { throw Error(`Self-serve fleet: ${message}`); };
@@ -32,16 +35,21 @@ async function firebaseVerifier() {
 }
 
 /** Open the ledger, accounts and handler from a configuration value. Exported for tests and other hosts. */
-export async function openHostedSelfServe(configuration, { roomToken, authenticate, now = Date.now, clientKey } = {}) {
+export async function openHostedSelfServe(configuration, { roomToken, authenticate, now = Date.now, clientKey, coordinatorKey = null } = {}) {
   if (configuration?.schema !== SELF_SERVE_CONFIG_SCHEMA) refuse(`configuration must use schema ${SELF_SERVE_CONFIG_SCHEMA}`);
   for (const name of ['databaseFile', 'accountsFile']) if (!path.isAbsolute(configuration[name] || '')) refuse(`${name} must be an absolute path`);
+  // The coordinator key is configured, never made here: the secret value, or the configuration's `coordinatorKeyFile`.
+  // Without either the ledger runs as before and signs no settlement statements.
+  if (coordinatorKey && configuration.coordinatorKeyFile !== undefined) refuse('name the coordinator key once: the secret or coordinatorKeyFile, not both');
+  const coordinator = await coordinatorFor(coordinatorKey ? await coordinatorKeyFromSecret(coordinatorKey)
+    : configuration.coordinatorKeyFile !== undefined ? await openCoordinatorKey(configuration.coordinatorKeyFile) : null, now);
   const credits = await openFleetCredits({ file: configuration.databaseFile, computers: [], policy: configuration.creditPolicy, now, openEnrollment: true });
   try {
     const selfServe = await openSelfServeFleet({ credits, file: configuration.accountsFile, models: configuration.models,
       network: { ...configuration.network, roomToken }, starterDebt: configuration.starterDebt, limits: configuration.limits, now });
-    const fleet = createFleetServiceHandler({ credits, models: configuration.models, placementPolicy: configuration.placementPolicy, now, directory: 'own' });
-    const handle = createSelfServeHttpHandler({ selfServe, fleet, authenticate, ...(clientKey ? { clientKey } : {}) });
-    return { credits, selfServe, fleet, handle, close() { selfServe.close(); credits.close(); } };
+    const fleet = createFleetServiceHandler({ credits, models: configuration.models, placementPolicy: configuration.placementPolicy, now, directory: 'own', coordinator });
+    const handle = createSelfServeHttpHandler({ selfServe, fleet, authenticate, coordinator, ...(clientKey ? { clientKey } : {}) });
+    return { credits, selfServe, fleet, handle, coordinator, close() { selfServe.close(); credits.close(); } };
   } catch (error) { credits.close(); throw error; }
 }
 
@@ -64,11 +72,11 @@ export async function mountSelfServeFleet(app, { env = process.env, readFile = f
   const clientKey = request => production
     ? String(request.headers['x-forwarded-for'] || '').split(',')[0].trim() || request.socket?.remoteAddress || 'unknown'
     : request.socket?.remoteAddress || 'unknown';
-  const hosted = await openHostedSelfServe(configuration, { roomToken, authenticate, clientKey });
+  const hosted = await openHostedSelfServe(configuration, { roomToken, authenticate, clientKey, coordinatorKey: env[SELF_SERVE_COORDINATOR_KEY] || null });
   app.use((request, response, next) => {
     const pathname = request.path;
     if (pathname === '/v1/fleet' || pathname.startsWith('/v1/fleet/')) return void hosted.handle(request, response);
     next();
   });
-  return { mounted: true, production, prefix: '/v1/fleet', close: () => hosted.close() };
+  return { mounted: true, production, prefix: '/v1/fleet', coordinatorId: hosted.coordinator?.publicKey.coordinatorId ?? null, close: () => hosted.close() };
 }

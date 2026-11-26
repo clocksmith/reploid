@@ -11,16 +11,25 @@ import { createNativeEarningStorage } from '../native-earning.js';
 import { openFleetCredits } from './credits.js';
 import { canonicalRouteAttemptBinding } from '../../shared/vendor/reploid/mesh/partitions/partition-contract.js';
 import { policyDigest } from './settlement-terms.js';
+import { issueSettlementStatement } from './settlement-statement.js';
+import { coordinatorFor, openCoordinatorKey } from './coordinator-key.js';
 
 
-/** Private to enrolled signers, using TLS outside loopback. */
+/** The coordinator's public key (coordinator-key.js) for anyone who asks: `GET /v1/fleet/coordinator`. It is public by design. */
+export function answerCoordinatorKey(response, coordinator) {
+  response.writeHead(coordinator ? 200 : 404, { 'content-type': 'application/json', 'cache-control': 'no-store' });
+  response.end(JSON.stringify(coordinator ? coordinator.publicKey : { error: 'This ledger signs no settlement statements: it has no coordinator key' }));
+}
+
+/** Private to enrolled signers, using TLS outside loopback. `coordinator` (coordinatorFor) lets it sign settlement statements. */
 export async function startFleetService({ credits, models, placementPolicy, port = 0, listenHost = '127.0.0.1', tls = null,
-  now = Date.now, maxBodyBytes = 1048576, directory = 'full' }) {
+  now = Date.now, maxBodyBytes = 1048576, directory = 'full', coordinator = null }) {
   assert(['127.0.0.1', '::1', 'localhost'].includes(listenHost) || tls?.key && tls?.cert,
     'Non-loopback fleet service requires TLS');
-  const fleet = createFleetServiceHandler({ credits, models, placementPolicy, now, maxBodyBytes, directory });
+  const fleet = createFleetServiceHandler({ credits, models, placementPolicy, now, maxBodyBytes, directory, coordinator });
   const handle = (request, response) => {
     if (request.method === 'POST' && request.url === '/v1/fleet') return fleet.handle(request, response);
+    if (request.method === 'GET' && request.url === '/v1/fleet/coordinator') return answerCoordinatorKey(response, coordinator);
     response.writeHead(400, { 'content-type': 'application/json', 'cache-control': 'no-store' });
     response.end(JSON.stringify({ error: 'Unknown fleet endpoint' }));
   };
@@ -35,8 +44,10 @@ export async function startFleetService({ credits, models, placementPolicy, port
  * `directory: 'own'` is for a self-serve ledger: `snapshot` returns only the caller's account and `computers`
  * lists accounts by their public labels, so one person cannot read every other account's balance.
  */
-export function createFleetServiceHandler({ credits, models, placementPolicy, now = Date.now, maxBodyBytes = 1048576, directory = 'full' }) {
+export function createFleetServiceHandler({ credits, models, placementPolicy, now = Date.now, maxBodyBytes = 1048576, directory = 'full', coordinator = null }) {
   assert(['full', 'own'].includes(directory), 'Fleet directory must be full or own');
+  assert(coordinator === null || typeof coordinator.signer?.sign === 'function' && coordinator.publicKey?.coordinatorId === coordinator.signer.participantId,
+    'Coordinator signer and its published key required');
   const observations = new Map(), demand = new Map(), links = new Map();
   const invoke = async (signer, operation, payload, envelope) => {
     const owner = credits.enrollment.byPeer.get(signer);
@@ -152,6 +163,14 @@ export function createFleetServiceHandler({ credits, models, placementPolicy, no
         const trace = credits.trace(payload.id);
         return { ...trace, policyDigest: await policyDigest(trace.policy) };
       }
+      case 'settlementStatement': {
+        // The coordinator's signed statement for a final reservation, to one of its participants presenting the signed
+        // records it holds (settlement-statement.js). The ledger signs only what its own journal and hold show.
+        const request = credits.request(payload?.id);
+        assert(request && (request.binding.consumer === signer || request.binding.providers.some(row => row.participantId === signer)), 'Not a participant in this request');
+        if (!coordinator) throw Object.assign(Error('This ledger signs no settlement statements: it was started without a coordinator key'), { statementRefusal: 'no-coordinator-key' });
+        return { statement: await issueSettlementStatement({ credits, signer: coordinator.signer, id: payload.id, records: payload.records, now }) };
+      }
       case 'request': {
         const request = credits.request(payload.id);
         assert(request && (request.binding.consumer === signer || request.binding.providers.some(row => row.participantId === signer)), 'Not a participant in this request');
@@ -226,7 +245,8 @@ export function createFleetServiceHandler({ credits, models, placementPolicy, no
       response.end(JSON.stringify({ result }));
     } catch (error) {
       response.writeHead(400, { 'content-type': 'application/json', 'cache-control': 'no-store' });
-      response.end(JSON.stringify({ error: error.message, ...(error.creditRefusal ? { refusal: error.creditRefusal } : {}) }));
+      response.end(JSON.stringify({ error: error.message, ...(error.creditRefusal ? { refusal: error.creditRefusal } : {}),
+        ...(typeof error.statementRefusal === 'string' ? { statementRefusal: error.statementRefusal } : {}) }));
     }
   };
   return { handle, invoke };
@@ -241,9 +261,11 @@ if (process.argv[1] && pathToFileURL(path.resolve(process.argv[1])).href === imp
   let service;
   try {
     const tls = configuration.tls ? { key: await fs.readFile(configuration.tls.keyFile), cert: await fs.readFile(configuration.tls.certFile) } : null;
+    // Optional. Named, the key file must already exist (coordinator-key.js create): the service never makes one.
+    const coordinator = configuration.coordinatorKeyFile === undefined ? null : await coordinatorFor(await openCoordinatorKey(configuration.coordinatorKeyFile));
     service = await startFleetService({ credits, models, placementPolicy: configuration.placementPolicy,
-      listenHost: configuration.listenHost, port: configuration.port, tls });
-    console.log(JSON.stringify({ ready: true, url: service.url }));
+      listenHost: configuration.listenHost, port: configuration.port, tls, coordinator });
+    console.log(JSON.stringify({ ready: true, url: service.url, coordinatorId: coordinator?.publicKey.coordinatorId ?? null }));
     await new Promise(resolve => { process.once('SIGINT', resolve); process.once('SIGTERM', resolve); });
   } finally { await service?.close(); credits.close(); }
 }
@@ -295,7 +317,8 @@ export function createFleetClient({ url, identity, fetchImpl = null, ca = null, 
       const refusal = Object.hasOwn(SERVICE_CREDIT_REFUSAL_STATUS, answer.refusal?.code ?? '') ? answer.refusal : null;
       throw Object.assign(Error(answer.error || 'Fleet request failed'),
         { code: response.status === 400 ? 'FLEET_REJECTED' : 'FLEET_UNAVAILABLE',
-          ...(refusal ? { creditRefusal: refusal, status: SERVICE_CREDIT_REFUSAL_STATUS[refusal.code] } : {}) });
+          ...(refusal ? { creditRefusal: refusal, status: SERVICE_CREDIT_REFUSAL_STATUS[refusal.code] } : {}),
+          ...(typeof answer.statementRefusal === 'string' ? { statementRefusal: answer.statementRefusal } : {}) });
     }
     return answer.result;
   };

@@ -20,6 +20,8 @@ import { createFleetRequester } from '../../server/fleet/requester.js';
 import { createFleetExecutionAdmission } from '../../server/fleet/execution-admission.js';
 import { startFleetTextApi } from '../../server/fleet/text-api.js';
 import { buildRecordsExport, buildTradeReceipt } from '../../server/fleet/trade-records.js';
+import { coordinatorFor } from '../../server/fleet/coordinator-key.js';
+import { issueSettlementStatement } from '../../server/fleet/settlement-statement.js';
 import { createWholeModelRequester } from '../../server/whole-model-requester.js';
 import { verifyTrade } from '../../scripts/settlement/verify-trade.js';
 import { exportFromReceipt } from '../../scripts/settlement/records-export.js';
@@ -34,7 +36,7 @@ const answer = (content, tokens) => ({ model: model.id, modelIdentity: model.ide
   completion: { schema: 'doppler.generation-completion/v1', promptTokenCount: 11, generatedTokenCount: tokens, stopReason: 'eos-token' } });
 const schemas = records => records.map(record => record.schema);
 
-let root, keys, credits, service, clients, clockOffset, cleanup;
+let root, keys, credits, service, clients, clockOffset, cleanup, coordinator;
 const ledgerNow = () => Date.now() + clockOffset;
 const account = index => credits.snapshot().accounts.find(row => row.id === `account-${index}`);
 const openRequests = () => credits.snapshot().accounts.reduce((sum, row) => sum + row.held, 0);
@@ -50,7 +52,9 @@ beforeEach(async () => {
     policy: { schema: 'reploid.service-credit-policy/v1', version: 'test/1', unit: 'noncash-service-credit',
       creditsPerOutputToken: PRICE, maxDebt: 100, maxOutputTokens: 16, maxPendingPerComputer: 2,
       maxClockSkewMs: 10000, maxRequestMs: 60000, allowSameOwner: false, wholeModelTerminalCharge: 0 } });
-  service = await startFleetService({ credits, models: [model],
+  // The ledger's own signing key, as its operator would configure it. Here it is a test key made for the run.
+  coordinator = await coordinatorFor(await createSigningIdentity({ algorithm: 'Ed25519' }));
+  service = await startFleetService({ credits, models: [model], coordinator,
     placementPolicy: { maxMeasurementAgeMs: 60000, maxObservationAgeMs: 10000, minResidencyMs: 1000, maxRouteCandidates: 100, queuedRequestsPerReplica: 2 } });
   clients = keys.map(identity => createFleetClient({ url: service.url, identity }));
 });
@@ -115,7 +119,15 @@ async function route({ requester, provider, execute, signs = true, requireVerifi
     expect(only.attempts[0].problems).toEqual([]);
     expect(only).toMatchObject({ ok: true, attempts: [{ facts: { status, debit, payouts: payout ? { [`account-${provider}`]: payout } : {},
       hold: { basis: 'publisher-stated', remaining: 0 } } }] });
-    return { trace, records, replay: full.attempts[0].facts, recordsOnly: only.attempts[0].facts };
+    // The ledger signs its statement for the same records, and the export that carries it shows the hold's release
+    // under the coordinator key a verifier was given.
+    const statement = await issueSettlementStatement({ credits, signer: coordinator.signer, id: reservationId, records: records.records, now: () => at });
+    const signed = await verifyRecords({ trade: buildRecordsExport({ id: 'drill', label: 'In-process drill with test keys', records, trace, statement }), at,
+      coordinatorKey: coordinator.publicKey });
+    expect(signed.attempts[0].problems).toEqual([]);
+    expect(signed).toMatchObject({ ok: true, holdReleaseShownByGivenKey: 1, attempts: [{ facts: { status, debit,
+      hold: { basis: 'coordinator-signed', coordinatorId: coordinator.publicKey.coordinatorId, placed: 16 * PRICE, released: 16 * PRICE, remaining: 0, releaseShown: true, keyChecked: true } } }] });
+    return { trace, records, statement, replay: full.attempts[0].facts, recordsOnly: only.attempts[0].facts };
   };
   return { ask, sent, exported, stored, providerRecords: kept, mesh, agree, wholeRequester };
 }
@@ -187,6 +199,24 @@ it('a requester with no weights spends credits it earned by serving, and both ve
   const trade = exportFromReceipt({ id: 'whole-model-test-trade', label: 'In-process whole-model trade with test keys', receipt });
   const recordsOnly = await verifyRecords({ trade, at: Date.now() });
   expect(recordsOnly.ok, JSON.stringify(recordsOnly)).toBe(true);
+
+  // The ledger's own statement of this reservation, asked for over the signed service by the requester and by the
+  // provider: the amounts it posted and the whole hold released, under the configured coordinator key.
+  const published = await (await fetch(service.url + '/coordinator')).json();
+  expect(published).toEqual(coordinator.publicKey);
+  for (const client of [clients[0], clients[1]]) {
+    const { statement } = await client.call('settlementStatement', { id: records.reservationId, records: records.records });
+    expect(statement).toMatchObject({ coordinatorId: published.coordinatorId, status: 'settled', debit: 3 * PRICE, payouts: [{ account: 'account-1', amount: 3 * PRICE }],
+      hold: { placed: 16 * PRICE, released: 16 * PRICE, remaining: 0 } });
+    const withStatement = buildRecordsExport({ id: 'trade', label: 'In-process trade with test keys', records, trace: await clients[0].call('trace', { id: records.reservationId }), statement });
+    expect(await verifyRecords({ trade: withStatement, at: Date.now(), coordinatorKey: published })).toMatchObject({ ok: true, holdReleaseShownByGivenKey: 1 });
+    // Another key in the verifier's hands refuses the same file.
+    const other = (await coordinatorFor(await createSigningIdentity({ algorithm: 'Ed25519' }))).publicKey;
+    expect((await verifyRecords({ trade: withStatement, at: Date.now(), coordinatorKey: other })).ok).toBe(false);
+  }
+  // The ledger signs nothing the records do not imply: without the acknowledgment they imply no charge, and it posted one.
+  await expect(clients[0].call('settlementStatement', { id: records.reservationId,
+    records: records.records.filter(row => !(row.schema === OUTPUT_ACKNOWLEDGMENT_SCHEMA && row.count > 0)) })).rejects.toMatchObject({ statementRefusal: 'ledger-differs' });
 
   // A ledger that posted another amount, or records without the acknowledgment, do not verify.
   const overcharged = structuredClone(receipt);
@@ -294,6 +324,9 @@ it('drill b2, a provider that dies silently cannot be told from a requester whos
   // Before the window has passed the records decide nothing: the replay is still open.
   const early = await verifyTrade({ receipt: buildTradeReceipt({ records: killed.stored.get(outcomes[0].reservationId)(), trace: credits.trace(outcomes[0].reservationId) }), at: Date.now() });
   expect(early).toMatchObject({ ok: false, attempts: [{ facts: { status: 'open' } }] });
+  // And the ledger signs no statement while the hold is placed.
+  await expect(clients[1].call('settlementStatement', { id: outcomes[0].reservationId, records: killed.stored.get(outcomes[0].reservationId)().records }))
+    .rejects.toMatchObject({ statementRefusal: 'not-final' });
 
   clockOffset = pastWindow();
   const read = [];

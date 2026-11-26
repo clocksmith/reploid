@@ -3,7 +3,11 @@
  * Checks a records-only trade export: signed settlement records and the publisher's stated amounts, with no prompt,
  * no answer text, no token IDs and no ledger journal (docs/verify-a-trade.md, "Records only").
  *
- *   node scripts/settlement/verify-records.js TRADE.json_or_DIRECTORY [--at ISO_TIME] [--json]
+ *   node scripts/settlement/verify-records.js TRADE.json_or_DIRECTORY [--coordinator-key KEY.json] [--at ISO_TIME] [--json]
+ *
+ * `--coordinator-key` names the coordinator's published key (`reploid.coordinator-key/v1`: its ID and public key),
+ * fetched from where the ledger's operator publishes it and not from whoever handed over the trade. With it, a signed
+ * statement must be by that key; without it, the hold line says the signing key was only the one the file carries.
  *
  * For each attempt it recomputes the debit and every stage's payout from the signed records and compares them with
  * what the publisher stated, checks the debit against the maximum the requester signed, checks each stage against
@@ -26,6 +30,7 @@ import { canonicalJson, digestOf, participantIdOf, replaySettlement } from './in
 export const RECORDS_EXPORT_SCHEMA = 'reploid.settlement-records-export/v1';
 const TERMS = 'reploid.settlement-terms/v1';
 const STATEMENT = 'reploid.settlement-statement/v1';
+export const COORDINATOR_KEY_SCHEMA = 'reploid.coordinator-key/v1';
 const PROVIDER_LOSS_FREE = 'reploid.unfinished-answer/provider-loss-free/v1';
 /** The unfinished-answer terms each ledger settlement version signs (docs/settlement-replay.md, "Unfinished answers" and "Older rules"). */
 const TERMS_OF_RULES = Object.freeze({
@@ -111,13 +116,27 @@ export function checkStatement(record) {
   } catch { return { problem: 'its signature does not verify' }; }
 }
 
+/**
+ * The coordinator's published key: exactly `{ schema, coordinatorId, publicJwk }`, the ID deriving from the key.
+ * Returns the key or throws with the reason.
+ */
+export function readCoordinatorKey(value) {
+  if (!exactly(value, ['schema', 'coordinatorId', 'publicJwk']) || value.schema !== COORDINATOR_KEY_SCHEMA || !text(value.coordinatorId) || !isObject(value.publicJwk)) {
+    throw Error(`not a coordinator key: it must be exactly { schema: "${COORDINATOR_KEY_SCHEMA}", coordinatorId, publicJwk }`);
+  }
+  let derived = null;
+  try { derived = participantIdOf(value.publicJwk); } catch { /* reported below */ }
+  if (derived !== value.coordinatorId) throw Error('not a coordinator key: its ID does not derive from its public key');
+  return value;
+}
+
 /** Reads a records-only export: the file itself, or `trade.json` in a directory. */
 export function readRecordsTrade(target) {
   const file = statSync(target).isDirectory() ? path.join(target, 'trade.json') : target;
   return JSON.parse(readFileSync(file, 'utf8'));
 }
 
-async function checkAttempt(attempt, { policy, at }) {
+async function checkAttempt(attempt, { policy, at, coordinatorKey }) {
   const problems = [], facts = {}, name = typeof attempt?.name === 'string' ? attempt.name : '?';
   const fail = line => problems.push(line);
   const done = () => ({ name, ok: problems.length === 0, problems, facts });
@@ -136,6 +155,12 @@ async function checkAttempt(attempt, { policy, at }) {
     const checked = checkStatement(attempt.statement);
     if (checked.problem) { fail(`the coordinator's statement is refused: ${checked.problem}`); return done(); }
     stated = checked.body; coordinatorId = checked.body.coordinatorId;
+    // The key a verifier was given from the operator's own publication decides whose statement counts.
+    const material = jwk => ['kty', 'crv', 'x', 'y'].map(member => jwk?.[member] ?? null);
+    if (coordinatorKey && (coordinatorId !== coordinatorKey.coordinatorId || !same(material(attempt.statement.publicJwk), material(coordinatorKey.publicJwk)))) {
+      fail(`the statement is signed by ${coordinatorId}, not by the coordinator key supplied (${coordinatorKey.coordinatorId})`);
+      return done();
+    }
   } else if (statedProblem(stated ?? {}, false)) { fail('the stated amounts are malformed'); return done(); }
 
   // The policy the requester signed.
@@ -236,7 +261,8 @@ async function checkAttempt(attempt, { policy, at }) {
     if (stated.reservationId !== attempt.reservationId || stated.attemptId !== row.attemptId || stated.requesterId !== row.requesterId) fail('the coordinator\'s statement is for another attempt');
     if (hold.placed !== agreed.maximum) fail(`the coordinator states a hold of ${hold.placed}; the signed maximum is ${agreed.maximum}`);
     if (hold.remaining !== 0) fail(`the coordinator states ${hold.remaining} still held`);
-    facts.hold = { basis: 'coordinator-signed', coordinatorId, ...hold, released: hold.released, releaseShown: hold.remaining === 0 && hold.placed === agreed.maximum };
+    facts.hold = { basis: 'coordinator-signed', coordinatorId, ...hold, released: hold.released, releaseShown: hold.remaining === 0 && hold.placed === agreed.maximum,
+      keyChecked: Boolean(coordinatorKey), signedAt: stated.signedAt };
   } else {
     if (hold.remaining !== null && hold.remaining !== 0) fail(`the publisher states ${hold.remaining} still held`);
     facts.hold = { basis: hold.remaining === null ? 'not-stated' : 'publisher-stated', coordinatorId: null, ...hold, releaseShown: false };
@@ -244,17 +270,23 @@ async function checkAttempt(attempt, { policy, at }) {
   return done();
 }
 
-/** Checks every attempt of a records-only export. Returns `{ ok, at, id, attempts, holdReleaseShown }`. */
-export async function verifyRecords({ trade, at = Date.now() }) {
+/**
+ * Checks every attempt of a records-only export. `coordinatorKey` is the coordinator's published key
+ * (readCoordinatorKey) or null. Returns `{ ok, at, id, attempts, holdReleaseShown, holdReleaseShownByGivenKey }`.
+ */
+export async function verifyRecords({ trade, at = Date.now(), coordinatorKey = null }) {
+  if (coordinatorKey) readCoordinatorKey(coordinatorKey);
   const problems = [];
   if (!only(trade, TRADE_KEYS) || trade.schema !== RECORDS_EXPORT_SCHEMA || !isObject(trade.policy) || !Array.isArray(trade.attempts) || trade.attempts.length === 0) {
     problems.push('not a records-only trade export, or it has a member a records-only export does not have');
     return { ok: false, at: new Date(at).toISOString(), id: trade?.id ?? null, attempts: [], problems };
   }
   const attempts = [];
-  for (const attempt of trade.attempts) attempts.push(await checkAttempt(attempt, { policy: trade.policy, at }));
+  for (const attempt of trade.attempts) attempts.push(await checkAttempt(attempt, { policy: trade.policy, at, coordinatorKey }));
   return { ok: attempts.every(row => row.ok), at: new Date(at).toISOString(), id: trade.id ?? null, attempts,
-    holdReleaseShown: attempts.filter(row => row.facts.hold?.releaseShown).length };
+    coordinatorKey: coordinatorKey?.coordinatorId ?? null,
+    holdReleaseShown: attempts.filter(row => row.facts.hold?.releaseShown).length,
+    holdReleaseShownByGivenKey: attempts.filter(row => row.facts.hold?.releaseShown && row.facts.hold.keyChecked).length };
 }
 
 /** The lines a person reads for one attempt. */
@@ -276,6 +308,8 @@ export function describeAttempt(row) {
   if (h.basis === 'coordinator-signed') {
     lines.push(`  hold: placed ${h.placed}, released ${h.released}, remaining ${h.remaining}; signed by the coordinator ${h.coordinatorId}`
       + (h.releaseShown ? ': the release is shown by that signature' : ': the release is NOT shown'));
+    lines.push(h.keyChecked ? '  coordinator key: the statement is signed by the coordinator key you supplied'
+      : '  coordinator key: none supplied; the signing key is the one the file itself carries, so this shows only that some key signed it (pass --coordinator-key)');
   } else if (h.basis === 'publisher-stated') {
     lines.push(`  hold: the publisher states ${h.remaining} held afterwards; no signed record covers the hold, so its release is NOT proven here`);
   } else lines.push('  hold: nothing stated; no signed record covers the hold, so its release is NOT proven here');
@@ -286,17 +320,23 @@ export function describeAttempt(row) {
 /** The command: `args` are TRADE.json_or_DIRECTORY and the flags. verify-trade.js --records runs the same. */
 export async function recordsCommand(args) {
   const flag = name => { const at = args.indexOf(`--${name}`); return at === -1 ? null : args[at + 1] ?? true; };
-  const target = args.find((value, index) => !value.startsWith('--') && args[index - 1] !== '--at');
+  const target = args.find((value, index) => !value.startsWith('--') && !['--at', '--coordinator-key'].includes(args[index - 1]));
   if (target && !existsSync(target)) { console.error(`There is no file or folder named ${target}. Name a trade.json or the folder that holds one.`); process.exitCode = 2; return; }
-  if (!target) { console.error('Usage: node scripts/settlement/verify-records.js TRADE.json_or_DIRECTORY [--at ISO_TIME] [--json]'); process.exitCode = 2; return; }
+  if (!target) { console.error('Usage: node scripts/settlement/verify-records.js TRADE.json_or_DIRECTORY [--coordinator-key KEY.json] [--at ISO_TIME] [--json]'); process.exitCode = 2; return; }
+  let coordinatorKey = null;
+  if (flag('coordinator-key')) {
+    try { coordinatorKey = readCoordinatorKey(JSON.parse(readFileSync(path.resolve(String(flag('coordinator-key'))), 'utf8'))); }
+    catch (error) { console.error(`--coordinator-key: ${error.message}`); process.exitCode = 2; return; }
+  }
   const at = flag('at') ? Date.parse(flag('at')) : Date.now();
   if (!Number.isFinite(at)) { console.error('--at needs an ISO time'); process.exitCode = 2; return; }
-  const verdict = await verifyRecords({ trade: readRecordsTrade(path.resolve(target)), at });
+  const verdict = await verifyRecords({ trade: readRecordsTrade(path.resolve(target)), at, coordinatorKey });
   if (flag('json')) console.log(JSON.stringify(verdict, null, 2));
   else {
     for (const row of verdict.attempts) for (const line of describeAttempt(row)) console.log(line);
     for (const problem of verdict.problems ?? []) console.log(`FAIL ${problem}`);
-    console.log(verdict.ok ? `The stated amounts follow from the signed records. Hold release shown by a signed statement in ${verdict.holdReleaseShown} of ${verdict.attempts.length} attempts.`
+    console.log(verdict.ok ? `The stated amounts follow from the signed records. Hold release shown by a signed statement in ${verdict.holdReleaseShown} of ${verdict.attempts.length} attempts`
+      + (coordinatorKey ? `, ${verdict.holdReleaseShownByGivenKey} of them by the coordinator key supplied.` : '.')
       : 'The stated amounts do NOT follow from the signed records.');
   }
   process.exitCode = verdict.ok ? 0 : 1;

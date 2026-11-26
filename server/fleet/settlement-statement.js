@@ -10,15 +10,17 @@
  * contradicts the coordinator's own signature.
  *
  * It proves what the coordinator signed, not what its database holds, and no participant record names the
- * coordinator's key. The live fleet service does not issue it yet; `scripts/settlement/failure-cases.js` signs it
- * from a real ledger's state with a test key.
+ * coordinator's key. The fleet service issues it for a reservation that is final (`issueSettlementStatement`, the
+ * `settlementStatement` operation of service.js) when it was started with a coordinator key;
+ * `scripts/settlement/failure-cases.js` signs it from a real ledger's state with a test key.
  */
 import { isSignedTime } from '../../shared/vendor/reploid/mesh/partitions/partition-attempt-evidence.js';
 import {
   isCanonicalParticipantProof, normalizeParticipantPublicKey, participantIdFor, verifyParticipantSignature
 } from '../../shared/vendor/reploid/artifacts/participant-proofs.js';
-import { SETTLEMENT_RULE_SETS } from './credit-shares.js';
-import { termsDigest, verifySettlementTerms } from './settlement-terms.js';
+import { SETTLEMENT_RULE_SETS, UNFINISHED_TERMS_OF_RULES } from './credit-shares.js';
+import { SETTLEMENT_TERMS_SCHEMA, policyDigest, termsDigest, verifySettlementTerms } from './settlement-terms.js';
+import { replaySettlement } from './settlement-replay.js';
 
 export const SETTLEMENT_STATEMENT_SCHEMA = 'reploid.settlement-statement/v1';
 
@@ -81,4 +83,73 @@ export async function verifySettlementStatement(record) {
   if (await participantIdFor(key) !== body.coordinatorId) return { ok: false, problem: 'signer_key_mismatch' };
   if (!await verifyParticipantSignature(key, SETTLEMENT_STATEMENT_SCHEMA, body, signature)) return { ok: false, problem: 'signature_invalid' };
   return { ok: true, body };
+}
+
+/** Why the ledger signed no statement: the code is stable, the message says what is missing. */
+export const STATEMENT_REFUSALS = Object.freeze(['not-final', 'never-dispatched', 'terms-missing', 'terms-differ', 'records-rejected', 'records-not-final',
+  'ledger-differs', 'hold-open']);
+const refuse = (code, message) => { throw Object.assign(Error(message), { statementRefusal: code }); };
+const MAX_PRESENTED_RECORDS = 4096;
+
+/**
+ * The ledger's side of the statement: signs it for reservation `id` from the ledger's own state, and only when the
+ * signed records a participant presents replay to exactly what the ledger posted.
+ *
+ * The ledger does not settle from these records (a whole-model reservation settles on the countersigned receipt, the
+ * requester's stop or the provider's terminal record; credits.js), so it replays them here, as an outsider would, and
+ * refuses unless the replay is final and its debit and per-account payouts are the journal's. The debit, the payouts
+ * and the hold in the statement are the ledger's own; `status` and `forfeited` are the replay's words for the records
+ * presented, which is what a verifier compares them with. Presented with fewer records (a close left out), the same
+ * reservation can be stated `expired` at zero where the full set reads `settled` at zero; no amount can differ.
+ *
+ * `credits` is the open ledger (credits.js), `signer` the coordinator's (createAttemptEvidenceSigner over its
+ * configured identity). Throws an error with `statementRefusal` (STATEMENT_REFUSALS) when it will not sign.
+ */
+export async function issueSettlementStatement({ credits, signer, id, records, now = Date.now }) {
+  if (!Array.isArray(records) || records.length === 0 || records.length > MAX_PRESENTED_RECORDS) refuse('terms-missing', 'Present the signed records of this reservation');
+  const trace = credits.trace(id), row = credits.request(id), binding = row.binding;
+  if (row.state === 'abandoned') refuse('never-dispatched', 'This reservation was released before anything was sent; no terms were signed for it');
+  if (row.state !== 'settled') refuse('not-final', `This reservation is not final yet (${row.state}); its hold of ${trace.held} is still placed`);
+  if (trace.held !== 0) refuse('hold-open', 'This reservation still holds credits');
+  const policy = credits.policy, digest = await policyDigest(policy);
+  let terms = null, body = null;
+  for (const record of records) {
+    if (record?.schema !== SETTLEMENT_TERMS_SCHEMA || record.reservationId !== id) continue;
+    const checked = await verifySettlementTerms(record);
+    if (checked.ok && checked.body.requesterId === binding.consumer && checked.body.attemptId === binding.executionId) { terms = record; body = checked.body; break; }
+  }
+  if (!terms) refuse('terms-missing', 'The presented records hold no terms signed by this reservation\'s requester for its attempt');
+  const account = peer => credits.enrollment.byPeer.get(peer)?.ownerId ?? peer;
+  const sameShares = body.shares.length === binding.providers.length
+    && body.shares.every((share, index) => share.participantId === binding.providers[index].participantId && share.weight === binding.providers[index].weight);
+  if (body.policyDigest !== digest || body.maximum !== binding.maximum || body.maxOutputTokens !== binding.maxOutputTokens
+    || body.creditsPerOutputToken !== (binding.creditsPerOutputToken ?? policy.creditsPerOutputToken) || !sameShares
+    || Object.hasOwn(body, 'debitAccount') && body.debitAccount !== trace.participants[0].accountId) {
+    refuse('terms-differ', 'The signed terms are not the terms this reservation was held under');
+  }
+  // A split reservation names the rules it settles under. A whole-model one names none: the statement then names the
+  // current rule set of the unfinished-answer terms the requester signed, which is the one this replay ran.
+  const settlementRules = binding.settlementRules ?? [...SETTLEMENT_RULE_SETS].reverse().find(rules => UNFINISHED_TERMS_OF_RULES[rules] === body.unfinishedTerms);
+  if (!settlementRules || UNFINISHED_TERMS_OF_RULES[settlementRules] !== body.unfinishedTerms) {
+    refuse('terms-differ', 'The signed terms name unfinished-answer terms this ledger does not settle under');
+  }
+  const replay = await replaySettlement({ records, policies: [policy], at: now(), accountOf: account });
+  if (replay.rejected.length) refuse('records-rejected', `${replay.rejected.length} presented record(s) failed their signature or shape checks`);
+  const replayed = replay.reservations.find(item => item.reservationId === id && item.requesterId === binding.consumer && item.attemptId === binding.executionId);
+  if (!replayed || !['settled', 'expired'].includes(replayed.status)) {
+    refuse('records-not-final', `The presented records do not decide this reservation yet: ${replayed?.status ?? 'no attempt'}${replayed?.reason ? ` (${replayed.reason})` : ''}`);
+  }
+  const perAccount = rows => {
+    const sums = new Map();
+    for (const item of rows) sums.set(item.account, (sums.get(item.account) ?? 0) + item.amount);
+    return JSON.stringify([...sums].filter(([, amount]) => amount !== 0).sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)));
+  };
+  const posted = trace.journalByAccount.filter(entry => entry.delta > 0).map(entry => ({ account: entry.accountId, amount: entry.delta }));
+  const implied = (replayed.credits ?? []).map((credit, index) => ({ account: replayed.accounts?.stages[index] ?? account(credit.participantId), amount: credit.amount }));
+  const charge = trace.charge ?? 0;
+  if (replayed.debit !== charge || perAccount(posted) !== perAccount(implied)) {
+    refuse('ledger-differs', `The ledger posted a debit of ${charge} and payouts ${perAccount(posted)}; the presented records imply ${replayed.debit} and ${perAccount(implied)}`);
+  }
+  return signSettlementStatement({ signer, terms, settlementRules, status: replayed.status, debit: charge, payouts: posted,
+    forfeited: (replayed.forfeited ?? []).map(item => item.partitionIndex), hold: { placed: binding.maximum, remaining: trace.held }, now });
 }

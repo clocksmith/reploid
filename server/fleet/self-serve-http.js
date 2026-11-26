@@ -3,6 +3,7 @@
  *
  *   POST /v1/fleet                         signed fleet operations (service.js), authenticated by enrolled keys
  *   GET  /v1/fleet/client                  public settings
+ *   GET  /v1/fleet/coordinator             the coordinator's public key, for checking settlement statements
  *   POST /v1/fleet/account                 create (or return) the session's account        [session]
  *   GET  /v1/fleet/account                 balance, held, debt limit, computers, open codes [session]
  *   POST /v1/fleet/pairings                a single-use pairing code                        [session]
@@ -18,6 +19,7 @@
  * Bodies are parsed here with a byte bound, so this handler mounts before any general body parser.
  */
 import { SelfServeError } from './self-serve.js';
+import { answerCoordinatorKey } from './service.js';
 
 const json = (response, status, value) => {
   response.writeHead(status, { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store', 'x-content-type-options': 'nosniff' });
@@ -43,7 +45,7 @@ export const testSessionAuthenticator = Object.assign(async token => {
   return { issuer: 'test', subject: match[1], provider: match[2] === 'verified' ? 'test-verified' : 'anonymous', verified: match[2] === 'verified' };
 }, { testOnly: true });
 
-export function createSelfServeHttpHandler({ selfServe, fleet, authenticate, clientKey = request => request.socket?.remoteAddress || 'unknown',
+export function createSelfServeHttpHandler({ selfServe, fleet, authenticate, coordinator = null, clientKey = request => request.socket?.remoteAddress || 'unknown',
   maxBodyBytes = 65536, fleetMaxBodyBytes = 1048576, fleetRequestsPerMinute = 600 }) {
   const fleetCounts = new Map();
   const readJson = async (request, limit = maxBodyBytes) => {
@@ -86,6 +88,7 @@ export function createSelfServeHttpHandler({ selfServe, fleet, authenticate, cli
       }
       const client = clientKey(request);
       if (route === '/v1/fleet/client' && method === 'GET') return json(response, 200, selfServe.client());
+      if (route === '/v1/fleet/coordinator' && method === 'GET') return answerCoordinatorKey(response, coordinator);
       if (route === '/v1/fleet/join' && method === 'POST') return json(response, 200, await selfServe.claim(await readJson(request), { client }));
       if (route === '/v1/fleet/join/status' && method === 'POST') return json(response, 200, await selfServe.poll(await readJson(request), { client }));
       if (route === '/v1/fleet/account' && method === 'POST') {
