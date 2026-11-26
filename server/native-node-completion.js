@@ -1,5 +1,5 @@
 // Embed the installed catalog once. Pressing Tab never runs npm or opens a provider.
-export function shellCompletion(shell, { commands, models, splitModels, flags, askFlags = [], doctorFlags = [] }) {
+export function shellCompletion(shell, { commands, models, splitModels, flags, askFlags = [], doctorFlags = [], peersFlags = [] }) {
   const words = items => {
     if (!items.every(item => /^[a-zA-Z0-9_.-]+$/.test(item))) throw Error('Invalid completion word');
     return [...new Set(items)].join(' ');
@@ -13,6 +13,7 @@ export function shellCompletion(shell, { commands, models, splitModels, flags, a
     doctor: [[], doctorFlags],
     completion: [['bash', 'zsh', 'fish'], ['--help']],
     ask: [models, askFlags],
+    peers: [models, peersFlags],
     split: [splitModels, ['--stage', '--weights', ...namedFlags]],
     serve: [models, common],
     connect: [models, common],
@@ -21,8 +22,8 @@ export function shellCompletion(shell, { commands, models, splitModels, flags, a
   const pathFlags = ['--weights', '--model-directory', '--identity-file', '--room-token-file', '--owner-policy', '--model-config',
     '--ordered-config', '--cache-directory', '--rtc-config-file', '--earning-config', '--readiness-log', '--shader-cache-root',
     '--browser-search-profile', '--runtime-source-config'];
-  const valueFlags = [...new Set([...pathFlags, ...flags, ...askFlags, ...doctorFlags, '--stage'])]
-    .filter(flag => !['--help', '--contribute', '--share-files', '--connect-only', '--canonical', '--web-search'].includes(flag));
+  const valueFlags = [...new Set([...pathFlags, ...flags, ...askFlags, ...doctorFlags, ...peersFlags, '--stage'])]
+    .filter(flag => !['--help', '--contribute', '--share-files', '--connect-only', '--canonical', '--web-search', '--json'].includes(flag));
   // Count positional words already entered, skipping flag values so '--room lab' does
   // not consume the model slot. Values are never evaluated or sent anywhere.
   const root = words([...commands, ...models, '--help']);

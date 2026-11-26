@@ -40,6 +40,11 @@ export function askExecution({ participants = [], protection = 'plaintext', rout
     participants: participants.length ? { kind: 'named', ids: [...new Set(participants)] } : { kind: 'open' }, allowMetadata: metadata };
 }
 
+/** A route `ask` may use now: ready, without an adapter, and for a split outside a private room, released.
+ * `reploid peers` counts "ready to serve" with this same test. */
+export const askableRoute = (candidate, executionClass) => candidate.availability === 'ready' && !candidate.adapters?.length
+  && (!candidate.partition || executionClass === 'private-pool' || availablePartitionRoute(candidate));
+
 /** One prompt through `reploid/inference`, the same API the browser and the SDK use. */
 export async function askMesh(participant, model, prompt, { signal, report = console.error, discoveryMs = 45000, generationMs = 120000,
   execution = DEFAULT_ASK_EXECUTION, anyModel = false, catalog = null, settleMs = 2000 } = {}) {
@@ -54,8 +59,7 @@ export async function askMesh(participant, model, prompt, { signal, report = con
     for (;;) {
       waiting.throwIfAborted();
       const eligible = (participant.getState().models || []).filter(candidate =>
-        (anyModel || candidate.id === model.id && candidate.identity === model.identity) && candidate.availability === 'ready'
-        && !candidate.adapters?.length && (!candidate.partition || participant.executionClass === 'private-pool' || availablePartitionRoute(candidate))
+        (anyModel || candidate.id === model.id && candidate.identity === model.identity) && askableRoute(candidate, participant.executionClass)
         // An explicit route is held exactly; auto may choose either.
         && (routeKind === 'auto' || (routeKind === 'split') === Boolean(candidate.partition)));
       route = anyModel ? smallestServed(eligible, catalog) : eligible.find(candidate => !candidate.partition) ?? eligible[0];
