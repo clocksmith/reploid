@@ -138,9 +138,11 @@ const ErrorStore = {
         addError('persistence', message, { details });
       });
 
-      // Listen for circuit breaker events
-      EventBus.on('tool:circuit_open', ({ tool, reason }) => {
-        addWarning('circuit:open', `Circuit open for ${tool}: ${reason}`, { tool });
+      // Listen for circuit breaker events. CircuitBreaker emits circuit:open with the breaker's
+      // name and the tripped key (nothing emits the tool:circuit_open this used to wait for).
+      EventBus.on('circuit:open', ({ breaker, key, failures, error }) => {
+        addWarning('circuit:open', `Circuit open for ${key} (${breaker}) after ${failures} failures${error ? `: ${error}` : ''}`,
+          { breaker, key, failures });
       });
 
       // Listen for agent errors
