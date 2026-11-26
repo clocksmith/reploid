@@ -433,3 +433,57 @@ it('lists a model nobody serves yet as Finding computers in the "Answer on" shee
     ]
   `);
 });
+
+it('waits for a remembered public pick during the discovery wait: Finding computers, then the pick answers, or stays unavailable', async () => {
+  // Listed but not served yet while another computer has settled discovery: the pick waits, it is not replaced.
+  const f = fixture({ storage: memory(pickOf(MEDIUM)) });
+  expect(chip(f).selectionId).toBe(key(MEDIUM));
+  f.publish({ discoveryPhase: 'observed', peerDiscoveryTimedOut: false, network: observed.network, models: [served(SMALL), MEDIUM] });
+  expect([chip(f).selectionId, chip(f).availability]).toEqual([key(MEDIUM), 'waiting']);
+  expect(f.view.composer().status.text).toBe('Finding computers…');
+  // Send holds the question for the pick, not for whichever model is served.
+  f.view.send('For the remembered pick');
+  expect(f.view.composer().nextAction).toBe('cancel-queued');
+  expect(f.view.composer().status.text).toBe(`Waiting for a computer running ${MEDIUM.name}…`);
+  await new Promise(resolve => setTimeout(resolve, 0));
+  expect(f.created).toHaveLength(0);
+  // Its computer arrives inside the wait: the held question goes to the pick.
+  f.publish({ models: [served(SMALL), served(MEDIUM)] });
+  await vi.waitFor(() => expect(f.created).toHaveLength(1));
+  expect(key(f.created[0].model)).toBe(key(MEDIUM));
+
+  // Its computer never arrives: when the wait ends the pick stays, unavailable, and Send stays off.
+  const g = fixture({ storage: memory(pickOf(MEDIUM)) });
+  g.publish({ discoveryPhase: 'observed', peerDiscoveryTimedOut: false, network: observed.network, models: [served(SMALL), MEDIUM] });
+  g.publish({ peerDiscoveryTimedOut: true });
+  expect([chip(g).selectionId, chip(g).availability]).toEqual([key(MEDIUM), 'unavailable']);
+  expect(g.view.composer().status.text).toBe('No eligible computer found for this model.');
+  expect(g.view.composer().send.disabled).toBe(true);
+  // A computer that turns up later still makes it the model that answers.
+  g.publish({ models: [served(SMALL), served(MEDIUM)] });
+  expect([chip(g).selectionId, chip(g).availability]).toEqual([key(MEDIUM), 'ready']);
+});
+
+it('drops a held Send when the draft changes, the sheet opens, search changes or the thread changes', async () => {
+  const held = () => { const f = fixture(); f.view.send('Held'); expect(f.view.composer().nextAction).toBe('cancel-queued'); return f; };
+  const settle = async f => {
+    f.publish({ ...observed, models: [served(SMALL), MEDIUM] });
+    await new Promise(resolve => setTimeout(resolve, 0));
+    return f.sent.length;
+  };
+  let f = held(); f.c.setDraft('Held, edited');
+  expect(f.view.composer().nextAction).not.toBe('cancel-queued');
+  expect(await settle(f)).toBe(0);
+  f = held(); f.c.openSheet();
+  expect(f.view.composer().nextAction).not.toBe('cancel-queued');
+  f.c.closeSheet();
+  expect(await settle(f)).toBe(0);
+  f = held(); f.c.toggleSearch();
+  expect(await settle(f)).toBe(0);
+  f = held(); f.c.newThread();
+  await new Promise(resolve => setTimeout(resolve, 0));
+  expect(await settle(f)).toBe(0);
+  // Untouched, the same hold is sent once a computer serves a model.
+  f = held();
+  expect(await settle(f)).toBe(1);
+});
