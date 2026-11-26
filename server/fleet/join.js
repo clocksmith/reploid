@@ -106,7 +106,8 @@ export async function joinFleetByCode({ code: entered, service = DEFAULT_SERVICE
     // Whole-model entries for the models this service credits; weights stay where `reploid serve` keeps them.
     // Each entry carries the output bound a credited provider requires at start (execution-admission.js): the
     // model's own bound when the service names one, never above the policy's maxOutputTokens.
-    models: confirmed.models.map(model => ({ model: { id: model.id, identity: model.identity, adapterIdentities: model.adapterIdentities ?? [],
+    // A native host executes with Doppler only; without provider the whole-model loader takes the hosted-provider path and stops.
+    models: confirmed.models.map(model => ({ model: { id: model.id, identity: model.identity, provider: 'doppler', adapterIdentities: model.adapterIdentities ?? [],
       generation: { ...model.generation, maxTokens: outputBound(model, policy) } },
       directory: path.join(weightsDirectory, model.id), mode: 'whole-model' })),
     browserBridge: { port: bridgePort, tokenFile: files.bridgeTokenFile, origins: [origin],

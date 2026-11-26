@@ -51,6 +51,8 @@ it('a new account pairs a computer by code, earns by serving, spends what it ear
   // Starting the written host serves its first model; without a selection it would join no room.
   expect(host).toMatchObject({ initialModel: 0, initialContribution: true, daemon: true });
   expect(host.models[host.initialModel].mode).toBe('whole-model');
+  // The native whole-model loader runs Doppler only; an entry without provider stops at load asking for hosted credentials.
+  expect(host.models.every(entry => entry.model.provider === 'doppler')).toBe(true);
   // Every model entry carries the output bound a credited provider needs to start, within the service policy.
   expect(host.models.length).toBeGreaterThan(0);
   for (const entry of host.models) {

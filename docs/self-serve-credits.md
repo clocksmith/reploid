@@ -274,7 +274,9 @@ mounts `/v1/fleet` before its general body parser and reads:
 - **Start serving.** `join` also writes `initialModel: 0` and
   `initialContribution: true`, so the host it prints the command for loads its
   first model and offers it on start. Before this, the host joined no room until
-  a `select` command arrived on its standard input. A whole-model entry whose
+  a `select` command arrived on its standard input. Each model entry also names
+  `provider: "doppler"`; without it the host stopped at load asking for hosted
+  credentials. A whole-model entry whose
   folder has no model files fails with that folder named; download the model
   there first.
 - **Test the enrolled host, not only the pairing.** The integration test checks
