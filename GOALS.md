@@ -6,9 +6,11 @@ capacity without pooled trust**: run a model no participating GPU can fit
 alone, across independently operated machines, without giving their operators
 the prompt, intermediate state, or answer; pay for it with compute you
 contributed; and let an outsider independently reproduce the debit and payouts.
-The **ordinary inference exchange** (whole-model and non-confidential split
-routes) is the **first launch**, so the broader pilot moves forward rather than
-blocking on confidential-compute breakthroughs.
+**Whole-model service is the first launch**: one ready peer runs the whole
+model for a requester that holds no weights, so the pilot moves forward rather
+than blocking on confidential-compute breakthroughs. **Ordinary (non-confidential)
+split is a separate route** and is not qualified; it joins the launch only when it
+passes the [route table](docs/product-specification.md#5-contribution-and-execution).
 
 **The ordinary exchange is executor-readable.** The computer that serves a
 request can read it and its answer. The recipients are disclosed before anything
@@ -25,8 +27,8 @@ not count, whatever the signatures say.
 
 **One hard bar for the long-term product goal (missing today).** A rented
 enclave demo, a slow encrypted toy, and a plaintext split are stepping
-stones—none proves the combined capability. Before freezing the test, **settle
-the no-signed-Stop policy**. One end-to-end run must establish all four
+stones—none proves the combined capability. Before freezing the test, **pin the
+signed terms for the acceptance run**. One end-to-end run must establish all four
 conditions together in the same request:
 1. **Earn by serving someone else.** A participant first earns spendable
    credits by serving another user's request.
@@ -70,7 +72,9 @@ every ordinary split route.
 
 **Where it stands.** This is an unmet long-term target, not a qualified
 capability.
-- No split route—and no confidential split route—is qualified for public use.
+- Route status lives in one place, the
+  [route table](docs/product-specification.md#5-contribution-and-execution);
+  no confidential split route exists yet.
 - Prior stepping stones (plaintext split earn/spend runs that fit solo on one
   machine, and separate non-colluding secret-sharing prototypes) do not prove
   the combined capability.

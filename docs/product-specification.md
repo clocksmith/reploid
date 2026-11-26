@@ -168,6 +168,14 @@ none retaining the complete weight set, and a requester without weights. Verify
 per-executor inventories and selective acquisition. Separately authorized storage
 suppliers may retain a complete model; preserve full-model seeding under REP-5.
 
+**Launch and north star.** Launch is whole-model service: the remote-solo route,
+one ready peer running the whole model for a requester with zero weights. Ordinary
+split, in either form below, is a separate route that is not qualified and is not
+part of launch until it qualifies here. The north star is confidential pooled
+split inference ([GOALS.md](../GOALS.md)); neither split row below is that, and
+qualifying one would not meet it. This table is the one place route qualification
+is stated; other documents link to it rather than repeat it.
+
 | Inference route | Execution | Requester weights | Current qualification |
 | --- | --- | --- | --- |
 | Local solo | Requester runs all layers | Loads full weights | Supported under the `local-execution` entry in the [claim index](status/surface-claim-index.json). A [27B run on a 24 GiB Metal requester](../reports/fleet-browser/20261111/README.md#4-qwen3-8-27b-text-q4k-ehaf16-placement-comparison) matched the reference answer while paging memory. |
