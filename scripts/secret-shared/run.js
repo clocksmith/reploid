@@ -12,7 +12,17 @@
  *      (its transcript digest of the shares it returned); the requester signs terms, acknowledgments and any stop;
  *   5. settle and verify: the ledger settles from the signed records, an independent replay of the same records must
  *      equal it, and `scripts/settlement/verify-trade.js` must pass. The same is done for a stop case (the requester
- *      stops mid-answer) and a failure case (one share operator dies mid-answer).
+ *      stops mid-answer), a failure case (one share operator dies mid-answer) and a stall case (one share operator is
+ *      frozen mid-answer, SIGSTOP: its connection stays open and it never replies).
+ *
+ * Stalls. The requester gives every operator reply a deadline (`jsRequester.roundTimeoutMs`, passed as
+ * `--round-timeout-ms`; `jsRequester.closeTimeoutMs` for the close). A missed deadline fails the request with a
+ * `failed` event naming the stalled stage and share, and the requester closes every operator connection at once. If the
+ * requester itself prints nothing for `limits.requesterSilenceMs` (default 15 min), it is killed and the attempt fails.
+ * Either way every stage then closes `failed` (the frozen operator's supervisor ends it with SIGKILL and still signs its
+ * close), the ledger settles under the reservation's rules (v3 for every new split reservation: an unattributed
+ * disconnect charges the acknowledged prefix), and the receipt records how long the stall took to fail and whether any
+ * credit stayed held. Speculation is off on this route: the requester decodes one position per step.
  *
  *   node scripts/secret-shared/run.js --hosts PRIVATE_FILE --work DIRECTORY --out RECEIPT_DIRECTORY
  *
@@ -144,6 +154,18 @@ export function validateSecretSharedConfig(config) {
     if (pair.some(op => op.machineId === config.requester.machineId)) refuse(`stage ${stage}: a share operator on the requester's machine`);
   }
   if (config.credit?.weights?.length !== config.operators.length + 2) refuse('credit.weights: edge-in, each share in stage order, edge-out');
+  for (const key of ['roundTimeoutMs', 'closeTimeoutMs']) {
+    const value = config.jsRequester[key];
+    if (value !== undefined && !(Number.isInteger(value) && value > 0)) refuse(`jsRequester.${key}: a positive integer of milliseconds`);
+  }
+  if (config.jsRequester.speculation !== undefined && config.jsRequester.speculation !== 'off') refuse('jsRequester.speculation: speculation stays off on the secret-shared route');
+  for (const kase of config.cases ?? []) {
+    if (!['split', 'stop', 'failure', 'stall'].includes(kase.name)) refuse(`cases: ${kase.name} is not split, stop, failure or stall`);
+    if (kase.name === 'stall' && (!config.operators.some(op => op.label === kase.freezeOperator) || !(Number.isInteger(kase.afterTokens) && kase.afterTokens > 0))) {
+      refuse('cases: the stall case names freezeOperator (an operator label) and afterTokens (a positive count)');
+    }
+    if (kase.name === 'stall' && config.jsRequester.roundTimeoutMs === undefined) refuse('cases: the stall case needs jsRequester.roundTimeoutMs, so its bound is stated before it runs');
+  }
   return config;
 }
 
@@ -192,10 +214,11 @@ export async function runSecretShared({ config, directory, log = () => {}, now =
 
   const receipt = { schema: SECRET_SHARED_RECEIPT_SCHEMA, startedAt: stamp(), finishedAt: null,
     release: { sha: (await fs.readFile(new URL('../../RELEASE_SHA', import.meta.url), 'utf8').catch(() => '')).trim() || null },
-    workload: { modelId: model.id, modelIdentity: model.identity, planId, planSchema: plan.schema, fixedPoint: { ring: 'Z_2^64', fx: plan.fx, fw: plan.fw },
+    workload: { modelId: model.id, modelIdentity: model.identity, planId, planSchema: plan.schema, speculation: 'off',
+      roundTimeoutMs: config.jsRequester.roundTimeoutMs ?? null, closeTimeoutMs: config.jsRequester.closeTimeoutMs ?? null, fixedPoint: { ring: 'Z_2^64', fx: plan.fx, fw: plan.fw },
       stages: plan.stages.map(stage => ({ index: stage.index, layers: stage.layers, groups: stage.groups.length,
         tensorDigests: 'sha256:' + sha256(JSON.stringify(stage.groups.flatMap(group => group.tensors.map(t => [t.name, t.sha256])))) })) },
-    participants: null, requester: null, hosts: null, earn: null, quote: null, split: null, stop: null, failure: null,
+    participants: null, requester: null, hosts: null, earn: null, quote: null, casesRun: null, split: null, stop: null, failure: null, stall: null,
     privacy: null, cost: null, cleanup: null, steps, error: null, verdict: null };
 
   const buyer = config.earner ? await createSigningIdentity({ algorithm: 'Ed25519' }) : null;
@@ -343,13 +366,22 @@ export async function runSecretShared({ config, directory, log = () => {}, now =
           requesterChild = spawn(process.execPath, [config.jsRequester.script, 'run', '--model', config.jsRequester.model, '--plan', config.plan,
             '--operators', opsFile, '--request', requestFile, '--out', reportFile, '--threads', String(config.jsRequester.threads ?? 1),
             ...(config.jsRequester.returnShift ? ['--return-shift', String(config.jsRequester.returnShift)] : []),
-            ...(config.jsRequester.prg ? ['--prg', config.jsRequester.prg] : [])], { stdio: ['pipe', 'pipe', 'pipe'] });
+            ...(config.jsRequester.prg ? ['--prg', config.jsRequester.prg] : []),
+            ...(config.jsRequester.roundTimeoutMs ? ['--round-timeout-ms', String(config.jsRequester.roundTimeoutMs)] : []),
+            ...(config.jsRequester.closeTimeoutMs ? ['--close-timeout-ms', String(config.jsRequester.closeTimeoutMs)] : [])], { stdio: ['pipe', 'pipe', 'pipe'] });
           const stderr = [];
           readline.createInterface({ input: requesterChild.stderr }).on('line', line => { if (stderr.length < 50 && !/fast path/.test(line)) stderr.push(line.slice(0, 300)); });
           signal.addEventListener('abort', () => requesterChild.stdin.write('stop\n'), { once: true });
           let ended = null, failed = null, stopSent = false;
+          // A requester that prints nothing for this long is killed: no attempt waits on it without bound.
+          const silenceMs = config.limits?.requesterSilenceMs ?? 900000;
+          let silence = null;
+          const quiet = () => { clearTimeout(silence); silence = setTimeout(() => { record.requesterSilent = { at: stamp(), afterMs: silenceMs }; requesterChild.kill('SIGKILL'); }, silenceMs); };
+          quiet();
           for await (const line of readline.createInterface({ input: requesterChild.stdout })) {
-            const event = JSON.parse(line);
+            quiet();
+            let event;
+            try { event = JSON.parse(line); } catch { continue; }
             record.events.push({ at: stamp(), ...Object.fromEntries(Object.entries(event).filter(([key]) => key !== 'delta')) });
             if (event.event === 'token') {
               held.edge.in.push(await edgeInReceipts.step({ step: event.step, inputTokenCount: event.inputTokens }));
@@ -376,11 +408,19 @@ export async function runSecretShared({ config, directory, log = () => {}, now =
                 const victim = proven.findIndex(op => op.label === kase.killOperator);
                 record.injected = { at: stamp(), operator: kase.killOperator, afterTokens: kase.afterTokens, result: await agents[victim].call('kill') };
               }
+              if (kase.freezeOperator && record.tokens.length === kase.afterTokens && !record.injected) {
+                const victim = proven.findIndex(op => op.label === kase.freezeOperator);
+                const atMs = now();
+                record.injected = { at: stamp(), atMs, kind: 'freeze', operator: kase.freezeOperator, stage: proven[victim].stage, share: proven[victim].share,
+                  afterTokens: kase.afterTokens, result: await agents[victim].call('freeze') };
+              }
             } else if (event.event === 'ready') record.promptTokens = event.promptTokens;
             else if (event.event === 'end') ended = event;
-            else if (event.event === 'failed') failed = event;
+            else if (event.event === 'failed') { failed = event; record.failedEvent = { at: stamp(), atMs: now(), ...event }; }
           }
+          clearTimeout(silence);
           await new Promise(resolve => requesterChild.exitCode !== null ? resolve() : requesterChild.once('exit', resolve));
+          record.requesterExitedAtMs = now();
           record.requesterStderr = stderr.slice(-10);
           record.requesterReport = JSON.parse(await fs.readFile(reportFile, 'utf8').catch(() => 'null'));
           if (failed || !ended) throw Object.assign(Error(`the secret-shared requester failed: ${failed?.error ?? 'no end event'}`), { secretShared: { freshness: null } });
@@ -403,7 +443,7 @@ export async function runSecretShared({ config, directory, log = () => {}, now =
       // Close every stage: the edges here, each share operator on its own host (a dead operator closes failed).
       const attemptFailed = result.status === 'failed';
       record.closing = await Promise.all(agents.map((session, index) => session.call('close', { failed: attemptFailed }).then(row => ({ label: proven[index].label, died: row.died,
-        operatorExit: row.operatorExit, status: row.receipt?.status ?? null })).catch(error => ({ label: proven[index].label, error: String(error?.message ?? error) }))));
+        frozen: row.frozen ?? false, operatorExit: row.operatorExit, status: row.receipt?.status ?? null })).catch(error => ({ label: proven[index].label, error: String(error?.message ?? error) }))));
       const closingIn = edgeInReceipts ? await edgeInReceipts.close({ failed: attemptFailed }) : null;
       const closingOut = edgeOutReceipts ? await edgeOutReceipts.close({ failed: attemptFailed }) : null;
       const agentRecords = await Promise.all(agents.map(session => session.call('records').catch(error => ({ records: [], deliveries: [], log: [{ error: String(error?.message ?? error) }] }))));
@@ -426,14 +466,14 @@ export async function runSecretShared({ config, directory, log = () => {}, now =
       const replay = await replaySettlement({ records: unique, policies: [credits.policy], at: now(), accountOf });
       record.settlementReplay = { policy: structuredClone(credits.policy), ledgerPolicyDigest: await policyDigest(credits.policy), recordCount: unique.length, records: unique, result: replay };
       record.account = { accountId: 'computer-requester', before: beforeBalance, after: balance('computer-requester') };
+      if (kase.name === 'stall') record.stall = stallEvidence(record, { roundTimeoutMs: config.jsRequester.roundTimeoutMs, proven, settledAtMs: now(),
+        held: credits.snapshot().accounts.reduce((sum, row) => sum + row.held, 0), reservation: credits.request(reservationId) });
       return record;
     };
 
     const cases = config.cases ?? [{ name: 'split', prompt: 'Explain why the sky is blue in one sentence.', maxTokens: 32 }];
-    for (const kase of cases) {
-      const key = kase.name === 'split' ? 'split' : kase.name === 'stop' ? 'stop' : 'failure';
-      receipt[key] = await step(`case ${kase.name}`, () => runCase(kase));
-    }
+    receipt.casesRun = cases.map(kase => kase.name);
+    for (const kase of cases) receipt[kase.name] = await step(`case ${kase.name}`, () => runCase(kase));
     receipt.quote = receipt.split?.quote ?? null;
     receipt.privacy = privacyStatement(receipt.split ?? receipt.stop, proven);
     receipt.cost = costSummary(receipt.split);
@@ -473,6 +513,31 @@ function privacyStatement(attempt, proven) {
     wire: 'Each operator request carries only { op, group, n, round, step, seeded } and a share payload; no token ID, text or plaintext tensor is ever sent to an operator.' };
 }
 
+/** Slack on top of the round deadline: the frozen share's round may be sent up to one round after the freeze. */
+export const STALL_BOUND_SLACK_MS = 5000;
+
+/**
+ * The stall case's evidence: when the freeze was injected, when the requester failed and whom it named, whether that
+ * was within the stated bound (round deadline + slack), how the stages closed, and whether the ledger kept any hold.
+ */
+export function stallEvidence(record, { roundTimeoutMs, proven, settledAtMs, held, reservation }) {
+  const injected = record.injected?.kind === 'freeze' ? record.injected : null;
+  const failed = record.failedEvent ?? null;
+  const boundMs = roundTimeoutMs + STALL_BOUND_SLACK_MS;
+  const toFailedMs = injected && failed ? failed.atMs - injected.atMs : null;
+  const named = failed?.stalled ?? [];
+  return { roundTimeoutMs, boundMs, injectedAt: injected?.at ?? null, operator: injected?.operator ?? null,
+    frozen: injected ? { stage: injected.stage, share: injected.share } : null,
+    failedAt: failed?.at ?? null, failedCode: failed?.code ?? null, named,
+    namedTheFrozenShare: Boolean(injected && named.some(row => row.stage === injected.stage && row.share === injected.share)),
+    toFailedMs, withinBound: toFailedMs !== null && toFailedMs <= boundMs,
+    requesterSilent: record.requesterSilent ?? null,
+    toRequesterExitMs: injected && record.requesterExitedAtMs ? record.requesterExitedAtMs - injected.atMs : null,
+    toSettledMs: injected ? settledAtMs - injected.atMs : null,
+    closes: record.closing, ledger: { state: reservation?.state ?? 'missing', reason: reservation?.outcome?.reason ?? null, heldAfterSettle: held },
+    operators: proven.map(op => op.label) };
+}
+
 function costSummary(attempt) {
   const events = attempt?.events?.filter(event => event.event === 'token') ?? [];
   if (!events.length) return null;
@@ -493,16 +558,28 @@ export async function checkSecretShared(receipt, { expectedTokens = null } = {})
   const fail = (code, detail) => problems.push({ code, detail: String(detail) });
   if (receipt.error) fail('run-error', receipt.error);
   if (receipt.earn && !(receipt.earn.accountAfter > receipt.earn.accountBefore)) fail('earn', 'the account did not earn');
-  for (const key of ['split', 'stop', 'failure']) {
+  for (const key of receipt.casesRun ?? ['split', 'stop', 'failure']) {
     const attempt = receipt[key];
     if (!attempt) { fail('missing-case', key); continue; }
     if (!attempt.quote?.quotedBeforeDispatch) fail('no-quote', key);
     if (attempt.settleError && key === 'split') fail('settle', attempt.settleError);
   }
-  if (receipt.split?.result?.status !== 'completed') fail('split-status', receipt.split?.result?.status);
+  if (receipt.split && receipt.split.result?.status !== 'completed') fail('split-status', receipt.split.result?.status);
+  if (!receipt.split && !receipt.casesRun) fail('missing-case', 'split');
   if (expectedTokens && JSON.stringify(receipt.split?.tokens) !== JSON.stringify(expectedTokens)) fail('tokens', 'the split answer differs from the reference tokens');
   if (receipt.stop && receipt.stop.result?.status !== 'cancelled') fail('stop-status', receipt.stop.result?.status);
   if (receipt.failure && receipt.failure.result?.status !== 'failed') fail('failure-status', receipt.failure.result?.status);
+  if (receipt.stall) {
+    const stall = receipt.stall.stall;
+    if (receipt.stall.result?.status !== 'failed') fail('stall-status', receipt.stall.result?.status);
+    if (!stall?.injectedAt) fail('stall-not-injected', 'the operator was never frozen');
+    else {
+      if (stall.failedCode !== 'operator-stalled' || !stall.namedTheFrozenShare) fail('stall-attribution', JSON.stringify({ code: stall.failedCode, named: stall.named, frozen: stall.frozen }));
+      if (!stall.withinBound) fail('stall-bound', `failed ${stall.toFailedMs} ms after the freeze; the bound is ${stall.boundMs} ms`);
+    }
+    if (stall?.ledger?.state !== 'settled') fail('stall-ledger', `reservation ${stall?.ledger?.state}`);
+    if (stall?.ledger?.heldAfterSettle !== 0) fail('stall-hold', `${stall?.ledger?.heldAfterSettle} credits held after the stall settled`);
+  }
   const fresh = receipt.privacy?.freshShares;
   if (!fresh || fresh.rounds !== fresh.distinctShareBDigests || !fresh.countersStrictlyIncreasing) fail('fresh-shares', JSON.stringify(fresh));
   const verdict = await verifyTrade({ receipt });

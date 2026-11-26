@@ -39,7 +39,7 @@ async function readIdentity(file) {
 export function createShareAgent({ spawnOperator = (command, args, env) => spawn(command, args, { env, stdio: ['pipe', 'pipe', 'pipe'] }), now = Date.now } = {}) {
   let identity = null, signer = null, child = null, receipts = null, attempt = null, closing = null;
   const records = [], deliveries = [], log = [];
-  let waiting = null, exited = null, ready = null;
+  let waiting = null, exited = null, ready = null, frozen = null;
   const acknowledged = () => receipts?.evidence().acknowledged?.acknowledgment.count ?? 0;
   // A waiting step goes ahead once the verified acknowledgments cover step - K; nothing else releases it.
   const release = () => {
@@ -108,20 +108,37 @@ export function createShareAgent({ spawnOperator = (command, args, env) => spawn
     },
     /** Failure injection for the failure case: the operator process dies mid-answer. */
     async kill() { child?.kill('SIGKILL'); return { killed: Boolean(child) }; },
+    /**
+     * Failure injection for the stall case: the operator process is stopped (SIGSTOP) mid-answer, so its connection
+     * stays open but it never replies. This supervisor stays alive and still signs this share's close.
+     */
+    async freeze() {
+      if (process.platform === 'win32') throw Error('freeze-unsupported: no SIGSTOP on Windows; freeze a Linux or macOS operator');
+      if (!child || child.exitCode !== null) throw Error('freeze: no running operator');
+      child.kill('SIGSTOP');
+      frozen = { at: iso(now()), pid: child.pid };
+      return { frozen: true, at: frozen.at };
+    },
     /** Close this share: settled, or failed when the operator died or the attempt failed. */
     async close({ failed = false } = {}) {
       closing ??= (async () => {
         const status = await Promise.race([exited, new Promise(resolve => setTimeout(() => resolve(null), 3000))]);
         await stepQueue;
         const died = Boolean(status && (status.signal || status.code !== 0));
-        if (child && !status) { child.stdin.end(); child.kill('SIGTERM'); }
+        // A stopped process holds a SIGTERM until it is continued, so a frozen operator is ended with SIGKILL.
+        if (child && !status) {
+          child.stdin.end();
+          child.kill(frozen ? 'SIGKILL' : 'SIGTERM');
+          const ended = await Promise.race([exited, new Promise(resolve => setTimeout(() => resolve(null), 2000))]);
+          if (!ended) child.kill('SIGKILL');
+        }
         // The supervisor signs this share's close, `failed` when its operator died or the attempt failed. Under the
         // decided rules a `failed` close is not a verified provider failure (it names no cause), so an unfinished
         // answer settles as an unattributed disconnect: the acknowledged prefix. Relief for a real provider failure
         // awaits an owner decision on a provider's signed statement of cause; leaving a close unsigned was rejected.
         const receipt = receipts ? await receipts.close({ failed: failed || died }) : null;
         if (receipt) records.push(receipt);
-        return { receipt, operatorExit: status, died, closed: Boolean(receipt) };
+        return { receipt, operatorExit: status, died, frozen: frozen !== null, closed: Boolean(receipt) };
       })();
       return closing;
     },
