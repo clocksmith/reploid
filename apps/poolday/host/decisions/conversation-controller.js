@@ -42,6 +42,19 @@ const modelKey = model => model?.selectionId || model?.id;
 const modelIdentity = model => JSON.stringify([modelKey(model), model?.identity, (model?.adapters || []).map(adapter => adapter.identity)]);
 const selectable = model => ['ready', 'busy', 'cached', 'loading', 'preparing'].includes(model.availability);
 
+/** Up to `count` distinct prompts drawn at random from `prompts` (a partial Fisher-Yates shuffle over a copy). */
+export function pickStartingPrompts(prompts, random = Math.random, count = 3) {
+  const pool = [...new Set((prompts || []).filter(text => typeof text === 'string' && text.trim()))];
+  const draw = () => Math.max(0, Math.min(0.999999999, Number(random()) || 0));
+  const picked = [];
+  for (let i = 0; i < Math.min(count, pool.length); i++) {
+    const j = i + Math.floor(draw() * (pool.length - i));
+    [pool[i], pool[j]] = [pool[j], pool[i]];
+    picked.push(pool[i]);
+  }
+  return picked;
+}
+
 /** The quoted ceiling for a priced route, shown before Send. A free route, or one with no accepted terms, states nothing. */
 export const creditCapText = model => {
   const maximum = model?.creditCap?.maximum, spendable = model?.creditCap?.spendable;
@@ -108,7 +121,9 @@ export function createConversationController(session, {
   let rename = { open: false, id: null, value: '' };
   let download = null;
   let attachmentHelp = false, focus = { target: null, seq: 0 };
-  const startingPrompt = chatPrompts[Math.floor(Math.max(0, Math.min(0.999999999, Number(random()) || 0)) * chatPrompts.length)] || '';
+  // Up to three distinct starters, chosen at random from the set and kept for this view's life so nothing moves.
+  const startingPrompts = pickStartingPrompts(chatPrompts, random);
+  const startingPrompt = startingPrompts[0] || '';
   const localPolicy = createExecutionPolicy();
   const openPolicy = () => createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'open', ids: [] }, computation: 'plaintext' });
   const requestFocus = target => { focus = { target, seq: focus.seq + 1 }; };
@@ -564,7 +579,8 @@ export function createConversationController(session, {
       routeAlternatives: routeAlternatives({ current: currentRoute(state), model: requestedModel, desktop: pairedDesktop(state), busy,
         closed: !!thread?.closed, searching: phase === 'searching', fresh: freshVisitor }),
       executionSettingsReset: thread?.executionSettingsReset === true,
-      startingPrompt: startingHidden ? null : { text: startingPrompt, inert: !!(draftText.trim() || files.length) },
+      startingPrompt: startingHidden || !startingPrompt ? null
+        : { text: startingPrompt, texts: startingPrompts, inert: !!(draftText.trim() || files.length) },
       error: errorText || state.storageError || '',
       answerLimit
     };

@@ -22,7 +22,11 @@ export const composer: ComposerView = {
   disclosure: 'Nothing leaves this device.',
   routeAlternatives: [],
   executionSettingsReset: false,
-  startingPrompt: { text: 'Suggest 3 clever sci-fi movies under two hours.', inert: false },
+  startingPrompt: {
+    text: 'Suggest 3 clever sci-fi movies under two hours.',
+    texts: ['Suggest 3 clever sci-fi movies under two hours.', 'Pick 3 podcasts for a long drive.', 'Recommend 3 board games for four players.'],
+    inert: false,
+  },
   error: '',
   answerLimit: '',
 };
@@ -43,7 +47,7 @@ export const composerQueued: ComposerView = {
   status: { text: 'Waiting for a computer running Gemma 27B…' },
   nextAction: 'cancel-queued',
   disclosure: 'A network provider could read your prompt.',
-  startingPrompt: { text: composer.startingPrompt?.text ?? '', inert: true },
+  startingPrompt: composer.startingPrompt ? { ...composer.startingPrompt, inert: true } : null,
 };
 
 export const composerDownloading: ComposerView = {

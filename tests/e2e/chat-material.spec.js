@@ -587,7 +587,7 @@ for (const viewport of [{ width: 1280, height: 720 }, { width: 390, height: 844 
     const area = await page.locator('[data-conversation-area]').boundingBox();
     expect(area.y + area.height - composer.y - composer.height).toBeLessThanOrEqual(24);
     expect(Math.abs(composer.x + composer.width / 2 - viewport.width / 2)).toBeLessThanOrEqual(1);
-    await expect(page.locator('[data-composer-area] [data-starting-prompt]')).toHaveCount(1);
+    await expect(page.locator('[data-composer-area] [data-starting-prompt]')).toHaveCount(3);
     const input = await page.locator('[data-composer-input]').boundingBox();
     const send = await page.locator('[data-composer-send]').boundingBox();
     // Send sits below the text, at the right end of the controls row.
@@ -875,10 +875,9 @@ test('typing and deleting preserve suggestion space without exposing draft-repla
   const bounds = () => prompts.evaluate(node => { const { y, height } = node.getBoundingClientRect(); return { y, height }; });
   const before = await bounds();
   await input.fill('a'); expect(await bounds()).toEqual(before);
-  await expect(prompts.locator('[data-starting-prompt]')).toHaveAttribute('aria-hidden', 'true');
-  await expect(prompts.locator('[data-starting-prompt]')).not.toBeVisible();
+  for (const chip of await prompts.locator('[data-starting-prompt]').all()) { await expect(chip).toHaveAttribute('aria-hidden', 'true'); await expect(chip).not.toBeVisible(); }
   await input.fill(''); expect(await bounds()).toEqual(before);
-  await expect(prompts.locator('[data-starting-prompt]')).toBeVisible();
+  for (const chip of await prompts.locator('[data-starting-prompt]').all()) await expect(chip).toBeVisible();
 });
 
 

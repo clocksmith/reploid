@@ -55,12 +55,15 @@ export function ComposerBar({
     <Stack gap="sm">
       {composer.startingPrompt && (
         <Row data={{ 'data-starting-prompts': true }}>
-          <Chip
-            label={composer.startingPrompt.text}
-            concealed={composer.startingPrompt.inert}
-            onPress={() => commands.useStartingPrompt(composer.startingPrompt?.text ?? '')}
-            data={{ 'data-starting-prompt': true }}
-          />
+          {composer.startingPrompt.texts.map((text) => (
+            <Chip
+              key={text}
+              label={text}
+              concealed={composer.startingPrompt?.inert ?? false}
+              onPress={() => commands.useStartingPrompt(text)}
+              data={{ 'data-starting-prompt': true }}
+            />
+          ))}
         </Row>
       )}
       {composer.routeAlternatives.length > 0 && (

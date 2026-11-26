@@ -39,7 +39,7 @@ export type ComposerView = {
   readonly disclosure: string;
   readonly routeAlternatives: ReadonlyArray<{ readonly key: 'device' | 'desktop' | 'contributors'; readonly title: string; readonly reads: string }>;
   readonly executionSettingsReset: boolean;
-  readonly startingPrompt: { readonly text: string; readonly inert: boolean } | null;
+  readonly startingPrompt: { readonly text: string; readonly texts: readonly string[]; readonly inert: boolean } | null;
   readonly error: string;
   readonly answerLimit: string;
 };
