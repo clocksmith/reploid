@@ -1,9 +1,25 @@
-import { USABLE_STATUSES, servesPublicAnswers, storedHere } from './decisions/model-state.js';
 // Projections remain import-free; this syntax check does not verify an artifact.
 const SHA256_PATTERN = /^sha256:[a-f0-9]{64}$/;
 /** Pure projections. Discovery describes availability; accepted attempts own history. */
-/** Whether a public computer can answer with this whole model now (decisions/model-state.js). */
-export { servesPublicAnswers };
+// The model checks the session's projections read. This file stays import-free (scripts/verify-layers.js), so they are
+// defined here and every other reader takes them from decisions/model-state.js, which re-exports them.
+/** Statuses of a computer that answers now: ready, or busy and taking requests. */
+export const SERVING_STATUSES = Object.freeze(['ready', 'busy']);
+/** Statuses a request can be sent on: serving, or stored here and loaded on Send. */
+export const USABLE_STATUSES = Object.freeze([...SERVING_STATUSES, 'cached']);
+/**
+ * Stored on this device, so a request for it can stay here: loaded, downloaded, or reported cached. A split route
+ * and a private pool's model never run here, whatever their flags: the session sends them on
+ * (host/chat-execution.js, `staysHere` and the private-pool branch of execute).
+ */
+export const storedHere = model => !!model && !model.partition && !model.fleet
+  && !!(model.localReady || model.localCached || model.availability === 'cached');
+/**
+ * Whether a public computer can answer with this whole model now. It is one predicate for two decisions that must
+ * agree: the evidence that ends "Finding computers…" early (chat-session.js) and the capacity a visitor who chose
+ * nothing is sent to (decisions/conversation-controller.js). A private pool's model and a split route are neither.
+ */
+export const servesPublicAnswers = model => !model.fleet && !model.partition && SERVING_STATUSES.includes(model.networkAvailability);
 
 export function selectAvailableChatModel(models, preference, location = 'auto') {
   // Application preference, not a quality claim or a priority advertised by peers.
