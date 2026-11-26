@@ -21,7 +21,9 @@ import { startFleetBrowserBridge } from './browser-bridge.js';
 import { startFleetTextApi } from './text-api.js';
 import { createFleetClient } from './service.js';
 import { createFleetRequester, buildFleetRequestOutcome } from './requester.js';
-import { buildTradeReceipt } from './trade-records.js';
+import { buildTradeExport, buildTradeReceipt } from './trade-records.js';
+import { openTradeRecordStore, summarizeTradeRecords } from './trade-record-store.js';
+import { MESH_OPERATION_SETTLEMENT_RECORDS_SCHEMA } from '../../shared/vendor/reploid/mesh/operation-envelope.js';
 import { createStageHistory } from './stage-history.js';
 import { openStageOwner } from './stage-owner.js';
 import { createFleetExecutionAdmission } from './execution-admission.js';
@@ -92,7 +94,10 @@ export function includeRequesterPresence(computers, state, at) {
 
 /** One process owns one GPU host. Model changes drain the old resident before preparing another. */
 export async function openFleetNativeHost({ configuration, loadRtc = () => import('@roamhq/wrtc'), loadSocket = () => import('ws'),
-  loadGpu = () => import('webgpu'), onChange = () => {} }) {
+  loadGpu = () => import('webgpu'), onChange = () => {},
+  // A rehearsal or a test replaces the whole-model runtime with a scripted one. It is a code argument only: no
+  // configuration file can name it, so a host started from its configuration always runs the real model.
+  createWholeModel = undefined }) {
   const config = structuredClone(configuration);
   assert(config.schema === 'reploid.fleet-native/v1' && text(config.computerId) && text(config.name)
     && Array.isArray(config.models) && config.models.length > 0
@@ -104,6 +109,8 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
   // Owner policy: send whole-model requests only to a contributor that signs the settlement records.
   assert(config.requireVerifiableCharge === undefined || typeof config.requireVerifiableCharge === 'boolean',
     'requireVerifiableCharge must be a boolean');
+  assert(config.tradeRecordsDirectory === undefined || typeof config.tradeRecordsDirectory === 'string' && path.isAbsolute(config.tradeRecordsDirectory),
+    'Absolute trade-records directory required');
   assert(config.cacheDirectory === undefined || path.isAbsolute(config.cacheDirectory), 'Absolute piece cache directory required');
   assert(config.maxCacheBytes === undefined || (config.cacheDirectory && Number.isSafeInteger(config.maxCacheBytes) && config.maxCacheBytes > 0),
     'maxCacheBytes requires a piece cache directory and a positive integer byte count');
@@ -125,12 +132,47 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
   // Opt-in: the coordinator's measured order over whole-model providers, refreshed before each credited request.
   const providerRanking = { order: [], estimates: [] };
   const requests = new Map(), outcomesByAttempt = new Map(), outcomesByReservation = new Map();
-  // The signed settlement records of this host's recent whole-model requests, by reservation, as their requester holds
-  // them. Kept in memory: after a restart an earlier request has no records here and exports as unverifiable.
-  const settlementRecords = new Map();
+  // The signed settlement records of the whole-model requests this host asked for or served, kept on disk beside its
+  // identity (trade-record-store.js): they survive a restart and are what `tradeRecords` exports. `settlementRecords`
+  // is the live view of this process's recent requests, whose records can still grow (a close that arrives after a stop).
+  const tradeStore = credits ? await openTradeRecordStore({
+    directory: config.tradeRecordsDirectory ?? path.join(path.dirname(config.identityFile), 'trade-records') }) : null;
+  const settlementRecords = new Map(), recordTimers = new Set();
+  const persistRecords = (role, value) => (tradeStore ? tradeStore.save({ role, ...value })
+    .catch(error => { onChange({ warning: 'Trade records were not saved: ' + error.message }); return null; }) : Promise.resolve(null));
+  const persistRequested = (reservationId, read) => {
+    const held = read();
+    return persistRecords('requester', { reservationId, records: held.records, policy: held.policy, reason: held.records.length ? null : held.reason ?? null });
+  };
   const keepSettlementRecords = ({ reservationId, read }) => {
     settlementRecords.delete(reservationId); settlementRecords.set(reservationId, read);
     while (settlementRecords.size > 128) settlementRecords.delete(settlementRecords.keys().next().value);
+    persistRequested(reservationId, read);
+    // The provider's acceptance and its close reach the live records after this call (the close even after a stop
+    // ended the request here), so the file is brought up to date a few times; each save only adds what is new.
+    for (const delay of [1000, 5000, 30000]) {
+      const timer = setTimeout(() => { recordTimers.delete(timer); if (!closed) persistRequested(reservationId, read); }, delay);
+      timer.unref?.(); recordTimers.add(timer);
+    }
+  };
+  /** One reservation's records as this host holds them on disk, in the shape the requester reports them (requester.js). */
+  const heldRecords = async id => {
+    const live = settlementRecords.get(id);
+    if (live) await persistRequested(id, live);
+    const file = await tradeStore?.read(id) ?? null;
+    const none = reason => ({ value: { reservationId: id, label: 'no-verifiable-receipt', reason, missing: ['terms', 'acceptance', 'close', 'acknowledgment'], policy: null, records: [] }, file: null });
+    if (file?.unreadable) return none('records-file-unreadable');
+    if (!file) {
+      // Nothing on disk: the live view if this process still has one (a store that could not be written), else nothing.
+      const held = live?.();
+      return held ? { value: held, file: null } : none('records-not-held');
+    }
+    if (!file.records.length) return none(file.reason ?? 'records-not-held');
+    const summary = summarizeTradeRecords(file.records, id);
+    return { file, value: { schema: MESH_OPERATION_SETTLEMENT_RECORDS_SCHEMA, reservationId: id, label: summary.complete ? 'signed-records' : 'no-verifiable-receipt',
+      attemptId: summary.attemptId, requesterId: summary.requesterId, providerId: summary.providerId, missing: summary.missing, acknowledged: summary.acknowledged,
+      stopped: summary.stopped, faulted: summary.faulted, ...(summary.complete ? {} : { reason: file.reason ?? 'provider-records-missing' }),
+      role: file.role, policy: file.policy, records: file.records } };
   };
 
   function recordOutcome(outcome) {
@@ -283,6 +325,9 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
         rankProviders: () => config.rankProviders === true && providerRanking.order.length ? providerRanking.order : null,
         onModelFill: progress => onChange({ modelFill: progress }),
         executionAdmission: credits ? createFleetExecutionAdmission({ credits, model: entry.model, stageOwner: entry.ordered?.stage ? stageOwner : null }) : null,
+        // As a provider: this host's own copy of each charged request's signed records, written as it signs them.
+        onSettlementRecords: value => persistRecords('provider', { reservationId: value.reservationId, records: value.records }),
+        ...(createWholeModel ? { createWholeModel } : {}),
         generationJournalFile: path.join(path.dirname(config.identityFile), 'generation.sqlite'),
         logger: { info() {}, log() {}, debug() {}, warn: (...args) => onChange({ warning: args.join(' ') }), error: (...args) => onChange({ error: args.join(' ') }) },
         onChange: () => { drainRequesterQueue(); onChange(state()); } });
@@ -578,20 +623,40 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
     },
     async receipt(id) { assert(credits, 'Service credits are not configured'); return credits.call('request', { id }); },
     /**
-     * One request's signed settlement records with the ledger's own record of it, as a file
-     * scripts/settlement/verify-trade.js checks (trade-records.js). A request whose contributor signed nothing, or one
-     * this process no longer holds records for, is returned labelled `no-verifiable-receipt`. A ledger that predates
-     * the `trace` operation is reported as `ledgerRecord: 'not-available'`, and the file then does not verify.
+     * One request's signed settlement records with the ledger's own record of it, read from this host's disk
+     * (trade-record-store.js), for a request it asked for or served. The default is the file
+     * scripts/settlement/verify-trade.js checks (trade-records.js, buildTradeReceipt). `format: 'records'` is the
+     * records-only file for an outsider (scripts/settlement/verify-records.js): the signed records, the ledger's stated
+     * enrollment, and the coordinator's signed statement once the reservation is final and the ledger signs one.
+     *
+     * A request whose contributor signed nothing, or whose records this host does not hold, is labelled
+     * `no-verifiable-receipt` with the reason and what is missing, and never verifies. A ledger that predates the
+     * `trace` operation is reported as `ledgerRecord: 'not-available'`; one that signs no statement leaves the hold's
+     * release unproven, and the export says so.
      */
-    async tradeRecords(id) {
+    async tradeRecords(id, { format = 'receipt' } = {}) {
       assert(credits, 'Service credits are not configured');
-      const read = settlementRecords.get(id);
-      const records = read ? read() : { reservationId: id, label: 'no-verifiable-receipt', reason: 'records-not-held',
-        missing: ['terms', 'acceptance', 'close', 'acknowledgment'], policy: null, records: [] };
+      assert(['receipt', 'records'].includes(format), 'Trade format must be receipt or records');
+      const { value: records, file } = await heldRecords(id);
       let trace = null;
-      try { trace = await credits.call('trace', { id }); } catch { /* An earlier ledger, or not this requester's reservation. */ }
-      return buildTradeReceipt({ records, trace });
+      try { trace = await credits.call('trace', { id }); } catch { /* An earlier ledger, or not a reservation this host took part in. */ }
+      // A provider's own copy carries no policy: the ledger's record names the one it ran.
+      if (records.records.length && !records.policy && trace?.policy) records.policy = structuredClone(trace.policy);
+      let statement = file?.statement ?? null, statementProblem = null;
+      if (!statement && records.records.length && trace) {
+        try {
+          ({ statement } = await credits.call('settlementStatement', { id, records: records.records }));
+          await persistRecords(file?.role ?? 'requester', { reservationId: id, statement });
+        } catch (error) {
+          statement = null;
+          statementProblem = error.statementRefusal ?? (/Unknown fleet operation/.test(error.message) ? 'ledger-predates-statements' : 'ledger-unreachable');
+        }
+      }
+      if (format === 'records') return buildTradeExport({ id, records, trace, statement, statementProblem });
+      return { ...buildTradeReceipt({ records, trace }), statement, ...(statementProblem ? { statementProblem } : {}) };
     },
+    /** The reservations this host holds signed records for on disk, most recently saved first. */
+    async trades() { return tradeStore ? tradeStore.list() : []; },
     async balances() { assert(credits, 'Service credits are not configured'); await reconcileCredits(); return credits.call('snapshot', {}); },
     async statement() { assert(credits, 'Service credits are not configured'); await reconcileCredits(); return credits.call('statementMine', {}); },
     /**
@@ -685,6 +750,9 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
     },
     async close() {
       closed = true;
+      for (const timer of recordTimers) clearTimeout(timer);
+      // What the live records hold now goes to disk before the process ends.
+      await Promise.allSettled([...settlementRecords].map(([reservationId, read]) => persistRequested(reservationId, read)));
       laneScheduler.close();
       for (const { controller } of requests.values()) controller.abort();
       try { await participant?.close(); } finally { await owner?.close(); await gpu.close(); }
@@ -827,6 +895,9 @@ export async function runFleetNativeCommands({ host, config, input = process.std
                   ...(route.admission ? { admission: route.admission } : {}) } })) });
           } else if (command.op === 'cancel') result = host.cancel(command.attemptId, { stop: true }) ?? { cancelled: true };
           else if (command.op === 'outcome') result = await host.inspectOutcome(command.targetId);
+          // One reservation's signed records from this host's disk (requester or provider), and the list of them.
+          else if (command.op === 'trade') result = await host.tradeRecords(command.id, { format: command.format === 'records' ? 'records' : 'receipt' });
+          else if (command.op === 'trades') result = await host.trades();
           else if (command.op === 'recover') result = await host.recover(command.input);
           else throw Error('Unknown native fleet command');
           console.log(JSON.stringify({ id: command.id, result }));

@@ -10,6 +10,8 @@
  * `label` and does not verify.
  */
 export const TRADE_RECEIPT_SCHEMA = 'reploid.whole-model-trade-receipt/v1';
+/** What a host returns instead of a records-only export when it cannot build one. It is not a trade and verifies as nothing. */
+export const INCOMPLETE_EXPORT_SCHEMA = 'reploid.settlement-records-incomplete/v1';
 
 const CLOSE = 'reploid.stage-receipt/v1';
 
@@ -38,6 +40,25 @@ export function buildRecordsExport({ id, label, records, trace, statement = null
       ...(statement ? { statement: structuredClone(statement) } : { stated: { settlementRules: null, status: (trace.charge ?? 0) > 0 || closed ? 'settled' : 'expired', debit: trace.charge ?? 0,
         payouts: [...paid].sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)).map(([account, amount]) => ({ account, amount })), forfeited: null,
         hold: { placed: null, released: null, remaining: trace.held } } }) }] };
+}
+
+/**
+ * The records-only file a person hands an outsider for one request (docs/verify-a-trade.md, "Run a trade"): the
+ * export above with the coordinator's statement when the ledger signed one. Its `label` says plainly when records are
+ * missing or no statement was signed, and why; the verifier still decides from the records alone. With no signed
+ * records, or no ledger record to state amounts from, there is nothing to export: the result then says so
+ * (INCOMPLETE_EXPORT_SCHEMA) and no verifier accepts it.
+ */
+export function buildTradeExport({ id, records, trace = null, statement = null, statementProblem = null }) {
+  const missing = [...(records?.missing ?? [])], reason = records?.reason ?? null;
+  if (!records?.records?.length || !trace || trace.reservationId !== id) {
+    return { schema: INCOMPLETE_EXPORT_SCHEMA, reservationId: id, complete: false, missing,
+      reason: !records?.records?.length ? reason ?? 'records-not-held' : 'ledger-record-not-available',
+      note: 'No signed records, or no ledger record, for this reservation. This file is not a trade and does not verify.' };
+  }
+  const held = missing.length ? `INCOMPLETE, missing ${missing.join(', ')}${reason ? ` (${reason})` : ''}` : 'signed-records';
+  const hold = statement ? 'coordinator statement included' : `no coordinator statement${statementProblem ? ` (${statementProblem})` : ''}: the hold's release is not proven`;
+  return buildRecordsExport({ id, label: `${held}; ${hold}`.slice(0, 256), records, trace, statement });
 }
 
 export function buildTradeReceipt({ records, trace = null }) {

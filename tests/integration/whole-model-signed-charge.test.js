@@ -177,7 +177,9 @@ it('a requester with no weights spends credits it earned by serving, and both ve
   expect(records).toMatchObject({ label: 'signed-records', missing: [], acknowledged: 3, stopped: false });
   expect(schemas(records.records)).toEqual([SETTLEMENT_TERMS_SCHEMA, OUTPUT_ACKNOWLEDGMENT_SCHEMA, SETTLEMENT_ACCEPTANCE_SCHEMA, STAGE_RECEIPT_SCHEMA, OUTPUT_ACKNOWLEDGMENT_SCHEMA]);
   // The provider holds the same attempt's records, with the requester's acknowledgment of its close.
-  expect(schemas(spending.providerRecords[0].records)).toEqual(schemas(records.records));
+  // It was handed them as it signed: at its acceptance, at its close, and at the acknowledgment.
+  expect(spending.providerRecords.map(row => schemas(row.records).length)).toEqual([3, 4, 5]);
+  expect(schemas(spending.providerRecords.at(-1).records)).toEqual(schemas(records.records));
 
   const receipt = await spending.exported(records.reservationId);
   expect(receipt).toMatchObject({ label: 'signed-records', ledgerRecord: 'included',

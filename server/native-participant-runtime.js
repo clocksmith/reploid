@@ -43,7 +43,7 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
   signalingUrl, roomId, roomToken, nativeGpu, cacheDirectory, maxCacheBytes, maxSupplyBytes, supplyTo = undefined, sourceFilePaths = undefined, canonical = null, ordered = null, onFileChange = () => {}, onChange = () => {}, logger = console,
   owner: ownerGate = null, onCustodyCertificate = () => {}, earning = null, shaderCache = null, readiness = null, executionMode = 'partition', webWorker = null,
   generationJournalFile = null, executionAdmission = null, ownerPairing = null, guestAccess = null, onModelFill = () => {}, createWholeModel = createNativeWholeModel,
-  onPartitionReceiveTiming, localStageWitness = null, privateCustodyPrefill = null, resolvePartitionSource = null, sourceRuntime = null, rankProviders = null, getRtcConfig = null,
+  onPartitionReceiveTiming, onSettlementRecords = null, localStageWitness = null, privateCustodyPrefill = null, resolvePartitionSource = null, sourceRuntime = null, rankProviders = null, getRtcConfig = null,
   requesterModels = null }) {
   requireValue(getRtcConfig === null || typeof getRtcConfig === 'function', 'RTC configuration provider must be a function');
   if (localStageWitness) requireValue(roomId && roomId !== bootstrap.publicRoomId && roomToken && ordered && !canonical && typeof localStageWitness.wrap === 'function',
@@ -149,6 +149,8 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
     // With a credit ledger this provider signs the settlement records of a charged request (mesh/operation-envelope.js),
     // naming the account it is paid into.
     ...(typeof executionAdmission?.settlementAccount === 'function' ? { settlementAccount: () => executionAdmission.settlementAccount() } : {}),
+    // This provider's own copy of a charged request's signed records, each time it signs or receives one (its host keeps them).
+    ...(typeof onSettlementRecords === 'function' ? { onSettlementRecords } : {}),
     authorize: async request => !closed && (request.action === 'mesh.connect'
       || request.action === 'mesh.admit' && whole?.getState().ready === true && wholeEarningReady
         && await allowedOwner(request)

@@ -99,6 +99,10 @@ export function createPeerGenerationMesh({ config, ports }) {
   const signsSettlement = admitsBeforeDisclosure && typeof ports.settlementAccount === 'function';
   // Provider side: the signed records of recent charged requests, until the requester's acknowledgment arrives.
   const settlementCharges = new Map();
+  // This provider's own copy of a charged request's signed records, handed to its host each time one is signed or
+  // received: at acceptance, at its close or fault, and at the requester's acknowledgment. The host's store is its own;
+  // a failure there never changes the request.
+  const keepSettlementRecords = charge => Promise.resolve().then(() => ports.onSettlementRecords?.({ reservationId: charge.reservationId, records: charge.records() })).catch(() => {});
   // Requester side: the charges of recent requests, so a provider's closing record that arrives after the request
   // ended here (a stop, a timeout) is still kept with the caller's records.
   const openCharges = new Map();
@@ -632,7 +636,7 @@ export function createPeerGenerationMesh({ config, ports }) {
     const charge = chargeKey && payload.settlementAcknowledgment ? settlementCharges.get(chargeKey) : null;
     if (charge && await charge.acknowledged(snapshotJson(payload.settlementAcknowledgment))) {
       settlementCharges.delete(chargeKey);
-      await Promise.resolve(ports.onSettlementRecords?.({ reservationId: charge.reservationId, records: charge.records() })).catch(() => {});
+      await keepSettlementRecords(charge);
     }
     await ports.onReceipt?.(snapshotJson(payload.receipt));
     await updateProviderContribution(payload.receipt);
@@ -864,6 +868,8 @@ export function createPeerGenerationMesh({ config, ports }) {
             recipient: identityBundle.peerId }) });
       } catch { return void refuse('The provider declined the settlement terms. The prompt was not sent.'); }
       if (closed || channel !== canonicalConnection(remotePeerId) || admitted.has(key) || inbound.has(key) || inboundQueued.has(key)) return;
+      await keepSettlementRecords(settlement);
+      if (closed || channel !== canonicalConnection(remotePeerId) || admitted.has(key) || inbound.has(key) || inboundQueued.has(key)) return;
     }
     const entry = { commitment: payload.promptCommitment, digest, channel, settlement,
       timer: setTimeout(() => { if (admitted.get(key) === entry) admitted.delete(key); }, policy.mesh.generationTimeoutMs) };
@@ -1075,6 +1081,7 @@ export function createPeerGenerationMesh({ config, ports }) {
         ? { units: measured.outputTokens, outputDigest: measured.outputDigest, stopReason: measured.stopReason, promptUnits: measured.inputTokens }
         : { failed: true }) : null;
       if (charged) {
+        await keepSettlementRecords(charged);
         settlementCharges.set(`${consumer}:${requestId}`, charged);
         while (settlementCharges.size > policy.mesh.maxRetainedJobs) settlementCharges.delete(settlementCharges.keys().next().value);
       }
@@ -1111,6 +1118,7 @@ export function createPeerGenerationMesh({ config, ports }) {
         const byRequester = reason?.code === 'REQUESTER_CANCELLED' || reason?.message === 'Requester disconnected';
         try { payload.settlement = byRequester ? { receipt: await charged.close({ failed: true }) } : { fault: await charged.fault() }; }
         catch { /* The request ends without it. */ }
+        await keepSettlementRecords(charged);
       }
       if (!closed) {
         completed.set(key, { type: 'reploid:generation-error', payload });
