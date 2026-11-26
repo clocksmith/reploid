@@ -7,11 +7,11 @@ const memory = (entries = {}) => {
 };
 
 it('keeps a model and Contributors or This device, and never a named computer', () => {
-  const storage = memory(), model = { id: 'qwen-small', identity: 'sha256:a' };
+  const storage = memory(), model = { id: 'qwen-small', identity: 'sha256:a', name: 'Qwen small' };
   writeAnswerChoice(storage, model, 'contributors');
-  expect(readAnswerChoice(storage)).toEqual({ selectionId: 'qwen-small', identity: 'sha256:a', route: 'contributors', picked: false });
+  expect(readAnswerChoice(storage)).toEqual({ selectionId: 'qwen-small', identity: 'sha256:a', route: 'contributors', picked: false, name: 'Qwen small' });
   writeAnswerChoice(storage, { ...model, selectionId: 'qwen-small/adapter' }, 'device', true);
-  expect(readAnswerChoice(storage)).toEqual({ selectionId: 'qwen-small/adapter', identity: 'sha256:a', route: 'device', picked: true });
+  expect(readAnswerChoice(storage)).toEqual({ selectionId: 'qwen-small/adapter', identity: 'sha256:a', route: 'device', picked: true, name: 'Qwen small' });
   writeAnswerChoice(storage, model, 'desktop');
   expect(readAnswerChoice(storage).route).toBeNull();
 });
@@ -22,6 +22,8 @@ it('reads a record as a pick only when it says so', () => {
   expect(readAnswerChoice(memory({ [ANSWER_CHOICE_STORAGE_KEY]: JSON.stringify(record) })).picked).toBe(false);
   expect(readAnswerChoice(memory({ [ANSWER_CHOICE_STORAGE_KEY]: JSON.stringify({ ...record, picked: 'yes' }) })).picked).toBe(false);
   expect(readAnswerChoice(memory({ [ANSWER_CHOICE_STORAGE_KEY]: JSON.stringify({ ...record, picked: true }) })).picked).toBe(true);
+  // The label is optional: a record without one, or with a malformed one, still reads.
+  expect(readAnswerChoice(memory({ [ANSWER_CHOICE_STORAGE_KEY]: JSON.stringify({ ...record, name: 7 }) }))).toMatchObject({ selectionId: 'qwen-small', name: null });
 });
 
 it('reads nothing from missing, malformed or unreadable storage, and writing never throws', () => {

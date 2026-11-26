@@ -225,3 +225,58 @@ it('carries a pick to New thread when the draft was typed before the pick', asyn
   await vi.waitFor(() => expect(f.created).toHaveLength(1));
   expect(key(f.created[0].model)).toBe(key(MEDIUM));
 });
+
+const POOL = { ...MEDIUM, selectionId: 'private:me:' + MEDIUM.id, name: 'Pool medium', source: undefined,
+  fleet: { poolIdentity: 'pool', requester: { participantId: 'me' } },
+  availability: 'ready', networkAvailability: 'ready', localReady: false, localCached: false, providerIds: [] };
+const pickOf = model => ({ [ANSWER_CHOICE_STORAGE_KEY]: JSON.stringify({ selectionId: key(model), identity: model.identity, name: model.name, route: 'contributors', picked: true }) });
+
+it('shows a remembered pick that is not listed yet as the chosen model, and sends its question nowhere else', async () => {
+  // A private pool's model is listed only once the pool's state has loaded; a public computer advertises first.
+  const f = fixture({ storage: memory(pickOf(POOL)), draft: 'For my own pool' });
+  expect([chip(f).selectionId, chip(f).name]).toEqual([key(POOL), POOL.name]);
+  expect(f.view.composer().send.disabled).toBe(true);
+  f.publish({ discoveryPhase: 'observed', peerDiscoveryTimedOut: false, network: observed.network, models: [served(SMALL), MEDIUM] });
+  expect([chip(f).selectionId, chip(f).availability]).toEqual([key(POOL), 'waiting']);
+  expect(f.view.composer().status.text).toBe('Finding computers…');
+  expect(f.view.composer().send.disabled).toBe(true);
+  f.c.send();
+  await new Promise(resolve => setTimeout(resolve, 0));
+  expect(f.created).toHaveLength(0);
+  // The sheet opens on the pick, listed as unavailable.
+  f.c.openSheet();
+  expect(f.view.sheet().selectedKey).toBe(key(POOL));
+  f.c.closeSheet();
+  f.publish({ models: [served(SMALL), MEDIUM, POOL] });
+  expect([chip(f).selectionId, chip(f).availability, chip(f).source]).toEqual([key(POOL), 'ready', 'Private computers']);
+  f.publish({ peerDiscoveryTimedOut: true });
+  f.c.send();
+  await vi.waitFor(() => expect(f.created).toHaveLength(1));
+  expect(key(f.created[0].model)).toBe(key(POOL));
+});
+
+it('keeps a remembered pick whose selection never appears: unavailable, Send off, the record kept, until it is listed', async () => {
+  const storage = memory(pickOf(POOL)), f = fixture({ storage });
+  f.publish({ ...observed, models: [served(SMALL), MEDIUM] });
+  expect([chip(f).selectionId, chip(f).name, chip(f).availability]).toEqual([key(POOL), POOL.name, 'unavailable']);
+  expect(f.view.composer().status.text).toBe('No eligible computer found for this model.');
+  expect(f.view.composer().send.disabled).toBe(true);
+  f.view.send('For my own pool');
+  await new Promise(resolve => setTimeout(resolve, 0));
+  expect(f.created).toHaveLength(0);
+  expect(JSON.parse(storage.saved.get(ANSWER_CHOICE_STORAGE_KEY))).toMatchObject({ selectionId: key(POOL), picked: true });
+  // New thread keeps showing it; a later listing makes it the model that answers.
+  f.c.newThread();
+  await new Promise(resolve => setTimeout(resolve, 0));
+  expect([chip(f).selectionId, chip(f).availability]).toEqual([key(POOL), 'unavailable']);
+  f.publish({ models: [served(SMALL), MEDIUM, POOL] });
+  expect([chip(f).selectionId, chip(f).availability]).toEqual([key(POOL), 'ready']);
+  f.c.send();
+  await vi.waitFor(() => expect(f.created).toHaveLength(1));
+  expect(key(f.created[0].model)).toBe(key(POOL));
+  // A pick whose build changed is not the model the person chose: it is shown unavailable, not swapped for the new build.
+  const rebuilt = fixture({ storage: memory(pickOf({ ...MEDIUM, identity: 'sha256:' + '0'.repeat(64) })) });
+  rebuilt.publish({ ...observed, models: [served(SMALL), served(MEDIUM)] });
+  expect([chip(rebuilt).selectionId, chip(rebuilt).availability]).toEqual([key(MEDIUM), 'unavailable']);
+  expect(rebuilt.view.composer().send.disabled).toBe(true);
+});

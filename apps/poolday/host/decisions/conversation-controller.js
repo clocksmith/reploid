@@ -250,13 +250,27 @@ export function createConversationController(session, {
     return execution.usable || ['loading', 'preparing'].includes(execution.status);
   };
   const choiceWaitOver = state => state.peerDiscoveryTimedOut === true && state.discoveryPhase === 'observed';
+  /**
+   * A remembered pick whose model the catalog does not list yet (a private pool's model before the pool's state has
+   * loaded, a split route that is down, a build that changed). It stands as the chosen model so the composer names
+   * it as unavailable and Send goes nowhere else; the catalog entry takes its place when it is listed.
+   */
+  const unlistedPick = (choice, models = []) => {
+    const sameBuild = choice.identity ? models.find(model => model.identity === choice.identity) : null;
+    return { id: choice.selectionId, selectionId: choice.selectionId, identity: choice.identity,
+      name: choice.name || sameBuild?.name || choice.selectionId, unlisted: true };
+  };
   const applyRememberedChoice = state => {
     if (state.activeThread) return;
-    if (rememberedChoice && !chosenModel && !viewState.draftModel) {
-      // Only a pick names a model for a later visit; any other record has already given its computer above.
-      const model = rememberedChoice.picked ? findAnswerChoice(rememberedChoice, state.models) : null;
-      if (model) { setChosen(model); provisionalChoice = true; rememberedChoice = null; }
-      else if (!rememberedChoice.picked || choiceWaitOver(state)) rememberedChoice = null;
+    // Only a pick names a model for a later visit; any other record has already given its computer above. A pick
+    // is the chosen model from the first render, whatever draft is in the composer and whether or not it is listed.
+    if (rememberedChoice?.picked && !chosenModel) {
+      setChosen(findAnswerChoice(rememberedChoice, state.models) || unlistedPick(rememberedChoice, state.models));
+      provisionalChoice = true; rememberedChoice = null;
+    } else if (rememberedChoice && !chosenModel && !viewState.draftModel) rememberedChoice = null;
+    if (chosenModel?.unlisted) {
+      const listed = findAnswerChoice(answerChoiceOf(chosenModel), state.models);
+      if (listed) setChosen(listed);
     }
     if (!provisionalChoice) return;
     const current = chosenModel && findAnswerChoice(answerChoiceOf(chosenModel), state.models);

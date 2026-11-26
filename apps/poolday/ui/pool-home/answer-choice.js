@@ -4,15 +4,19 @@
  * `picked` says whether the person chose that model themselves. A pick is kept as a pick: a later visit starts on
  * it, and when nothing serves or stores it the page says so and sends to no other model. A record without it (the
  * model came with the computer, or the record predates the field) carries only the route; the model is chosen
- * again from what is available. */
+ * again from what is available.
+ *
+ * `name` is the label the pick was shown under. A pick can be read back before its model is listed (a private pool
+ * loads after the page; a split route comes and goes), and the page then still names it, as unavailable. */
 export const ANSWER_CHOICE_STORAGE_KEY = 'reploid.answer-choice.v1';
 const ROUTES = new Set(['contributors', 'device']);
 const text = value => typeof value === 'string' && value.length > 0 && value.length <= 512;
+const labelOf = model => [...new Set([model?.name, ...(model?.adapters || []).map(adapter => adapter.name || adapter.id)].filter(Boolean))].join(' + ');
 
 export const answerChoiceOf = (model, route = null, picked = false) => {
   const selectionId = model?.selectionId || model?.id;
   return text(selectionId) ? { selectionId, identity: text(model.identity) ? model.identity : null, route: ROUTES.has(route) ? route : null,
-    picked: picked === true } : null;
+    picked: picked === true, name: text(labelOf(model)) ? labelOf(model) : null } : null;
 };
 
 export function readAnswerChoice(storage) {
@@ -20,7 +24,7 @@ export function readAnswerChoice(storage) {
     const value = JSON.parse(storage?.getItem(ANSWER_CHOICE_STORAGE_KEY) ?? 'null');
     if (!value || !text(value.selectionId) || !(value.identity === null || text(value.identity))) return null;
     return { selectionId: value.selectionId, identity: value.identity, route: ROUTES.has(value.route) ? value.route : null,
-      picked: value.picked === true };
+      picked: value.picked === true, name: text(value.name) ? value.name : null };
   } catch { return null; }
 }
 
