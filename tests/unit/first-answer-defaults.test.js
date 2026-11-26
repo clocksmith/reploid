@@ -22,7 +22,7 @@ const [SMALL, MEDIUM] = CANONICAL_CHAT_MODELS;
 
 /** The host's real chat session with discovery and capacity published by the test. `defaultModels` is derived the way
  * the session derives it (the first served model in catalog order), so the controller reads what the page reads. */
-function fixture({ storage = null, session: reuse = null } = {}) {
+function fixture({ storage = null, session: reuse = null, draft = null } = {}) {
   const session = reuse ?? createChatSession({ storage: null, service: createChatTestService(), models: [SMALL, MEDIUM] });
   if (!reuse) cleanups.push(() => session.close());
   const derive = state => {
@@ -47,12 +47,12 @@ function fixture({ storage = null, session: reuse = null } = {}) {
     },
     select: async id => publish({ selectedId: id, activeThread: (state.threads || []).find(thread => thread.id === id) ?? null }),
     send(threadId, content) { sent.push({ threadId, content }); const done = Promise.resolve({ status: 'completed' }); done.admitted = Promise.resolve(); return done; },
-    saveDraft: async () => {} };
+    // A draft left in the composer by an earlier visit, as the session keeps it.
+    getDraft: id => id == null && draft ? { text: draft, files: [] } : undefined, saveDraft: async () => {} };
   function publish(update) { state = derive({ ...state, ...update }); listeners.forEach(callback => callback(state)); }
   const view = openConversation(api, { storage, viewState: {} });
   cleanups.push(() => view.dispose());
-  return { api, view, c: view.controller, created, sent, session,
-publish, state: () => state };
+  return { api, view, c: view.controller, created, sent, session, publish, state: () => state };
 }
 const chip = f => f.view.composer().chip;
 
@@ -206,4 +206,22 @@ it('does not treat a model that came with the computer, or an older record, as a
   const old = fixture({ storage: legacy, session: f.session });
   old.publish({ ...observed, models: [SMALL, served(MEDIUM)] });
   expect([chip(old).source, chip(old).selectionId, chip(old).availability]).toEqual(['Contributors', key(MEDIUM), 'ready']);
+});
+
+it('carries a pick to New thread when the draft was typed before the pick', async () => {
+  const f = fixture({ storage: memory() });
+  f.publish({ ...observed, models: [served(SMALL), served(MEDIUM)] });
+  f.c.setDraft('Typed before picking');
+  expect(chip(f).selectionId).toBe(key(SMALL));
+  f.c.openSheet();
+  f.c.pickModel(key(MEDIUM));
+  await vi.waitFor(() => expect(f.view.sheet().open).toBe(false));
+  expect(chip(f).selectionId).toBe(key(MEDIUM));
+  f.c.newThread();
+  await new Promise(resolve => setTimeout(resolve, 0));
+  expect(chip(f).selectionId).toBe(key(MEDIUM));
+  f.publish({ models: [served(SMALL), served(MEDIUM)] });
+  f.c.send();
+  await vi.waitFor(() => expect(f.created).toHaveLength(1));
+  expect(key(f.created[0].model)).toBe(key(MEDIUM));
 });

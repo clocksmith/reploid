@@ -115,6 +115,9 @@ export function createConversationController(session, {
   let chosenAuto = !!viewState.chosenAuto, pickerPicked = false;
   const setChosen = (model, automatic = false) => {
     chosenModel = viewState.chosenModel = model || null; chosenAuto = viewState.chosenAuto = !!model && automatic;
+    // A chosen model replaces the model a draft was pinned to: a stale pin would otherwise outlive the choice and
+    // stand in for it after New thread.
+    if (model) viewState.draftModel = null;
   };
   let files = [], composerRevision = 0, queuedSend = null, draftText = '', currentKey = '';
   let contextPrompt = viewState.contextPrompt || null;
