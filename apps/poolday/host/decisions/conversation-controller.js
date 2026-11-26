@@ -467,18 +467,25 @@ export function createConversationController(session, {
       || !pinnedModel?.identity || modelIdentity(model) === modelIdentity(pinnedModel));
     if (pinnedModel && !models.some(model => modelKey(model) === modelKey(pinnedModel))) models.push(unavailableModelChoice(pinnedModel));
     const location = effectiveLocation(state);
-    const defaultModel = state.defaultModels?.[location] || state.defaultModel;
+    // While computers are still being found for a visitor who chose nothing, a split route or a private pool's model
+    // is not what the search is waiting for (publicAnswers): the composer does not name one, and a held Send keeps
+    // waiting on a whole model.
+    const whole = automaticContributors(state) && !pinnedModel && !catalogModels.some(publicAnswers)
+      ? models.filter(model => !model.fleet && !model.partition) : models;
+    const sessionDefault = state.defaultModels?.[location] || state.defaultModel;
+    const defaultModel = whole === models || whole.some(model => modelKey(model) === modelKey(sessionDefault)) ? sessionDefault
+      : whole.find(model => model.id === sessionDefault?.id) || whole[0];
     const freshVisitor = !thread && viewState.privacy === undefined && !viewState.privacyTouched && !lockedDestination(state);
     const downloadable = model => canDownloadModelHere(model, state, canDownload);
     const servedDownload = models.find(model => modelExecutionState(model, 'network').usable && downloadable(model));
     const localStart = !pinnedModel && location === 'local'
       ? startingLocalModel(models, { defaultModel: servedDownload || defaultModel, canDownloadHere: downloadable }) : null;
     const current = modelKey(pinnedModel) || modelKey(localStart)
-      || modelKey(models.find(model => modelKey(model) === modelKey(defaultModel) && selectable(model)))
-      || modelKey(models.find(selectable))
+      || modelKey(whole.find(model => modelKey(model) === modelKey(defaultModel) && selectable(model)))
+      || modelKey(whole.find(selectable))
       // While computers are being found for a visitor who chose nothing, a queued Send needs a whole model to wait on.
-      || (automaticContributors(state) || waitsForAnyModel(state) ? modelKey(models.find(model => modelKey(model) === modelKey(defaultModel))) : undefined)
-      || modelKey(models[0]);
+      || (automaticContributors(state) || waitsForAnyModel(state) ? modelKey(whole.find(model => modelKey(model) === modelKey(defaultModel))) : undefined)
+      || modelKey(whole[0]) || modelKey(models[0]);
     currentKey = current || '';
     const selectedModel = catalogModels.find(model => modelKey(model) === current
       && (!pinnedModel?.identity || modelIdentity(model) === modelIdentity(pinnedModel)));

@@ -367,3 +367,21 @@ it('chooses the automatic model by the session\'s preference order, not by catal
   await vi.waitFor(() => expect(f.sent).toHaveLength(1));
   expect(key(f.created[0].model)).toBe(chip(f).selectionId);
 });
+
+it('keeps finding computers, and keeps a held Send, when a split route or a private pool is seen before any public computer', async () => {
+  const SPLIT = { ...MEDIUM, selectionId: MEDIUM.id + '#split', name: 'Medium split', partition: { planId: 'p', participantA: 'a', participantB: 'b' },
+    availability: 'ready', networkAvailability: 'ready', providerIds: [], reachableProviderIds: [] };
+  const f = fixture();
+  f.view.send('Held while computers are found');
+  // The session keeps searching on this evidence (chat-session.js servedEvidence); the composer must not name a
+  // route the automatic path does not send to, nor drop the question.
+  f.publish({ models: [SMALL, MEDIUM, SPLIT, POOL] });
+  await new Promise(resolve => setTimeout(resolve, 0));
+  expect([chip(f).source, chip(f).name]).toEqual(['', 'Finding computers…']);
+  expect(f.view.composer().status.text).toBe('Finding computers…');
+  expect(f.view.composer().nextAction).toBe('cancel-queued');
+  expect(f.created).toHaveLength(0);
+  f.publish({ discoveryPhase: 'observed', peerDiscoveryTimedOut: false, network: observed.network, models: [served(SMALL), MEDIUM, SPLIT, POOL] });
+  await vi.waitFor(() => expect(f.sent).toHaveLength(1));
+  expect(key(f.created[0].model)).toBe(key(SMALL));
+});
