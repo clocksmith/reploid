@@ -79,7 +79,7 @@ function PeerRow({ peer, model, preferences, services, onError }: {
           {peer.status}
         </Badge>
       </Row>
-      <Facts items={[[model.label, model.value], ...(peer.hardware ? [[t.network.gpu, peer.hardware] as const] : []), ...peer.selection]} />
+      <Facts items={[[t.network.offers, peer.offers], [model.label, model.value], ...(peer.hardware ? [[t.network.gpu, peer.hardware] as const] : []), ...peer.selection]} />
       {peer.detail && (
         <Text variant="caption" muted data={{ 'data-computer-detail': true }}>
           {peer.detail}

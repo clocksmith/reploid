@@ -278,7 +278,7 @@ export function ThisComputer({ view, services, onStartSharing }: { readonly view
                 {device.localComputer}
               </Text>
             </Stack>
-            <Facts items={[[t.device.supplied, device.supplied], [t.device.consumed, device.consumed]]} />
+            <Facts items={[[t.device.offers, device.offers], [t.device.supplied, device.supplied], [t.device.consumed, device.consumed]]} />
             <Text variant="caption" muted data={{ 'data-device-usage-scope': true }}>
               {device.usageScope}
             </Text>
@@ -313,6 +313,23 @@ export function ThisComputer({ view, services, onStartSharing }: { readonly view
               {device.retryStop && (
                 <Row>
                   <Button label={t.device.retryStop} onPress={device.retryStopDisabled ? undefined : () => void services.device.retryStop()} data={{ 'data-retry-contribution-stop': true }} />
+                </Row>
+              )}
+              <Toggle
+                title={t.device.files}
+                status={device.filesLabel}
+                checked={device.filesOn}
+                disabled={device.filesDisabled}
+                onChange={(on) => void services.device.setFiles(on)}
+                controlData={{ 'data-toggle-device-files': true }}
+                data={{ 'data-device-files-row': true }}
+              />
+              <Text variant="caption" muted>
+                {t.device.filesHelp}
+              </Text>
+              {device.pauseAll && (
+                <Row>
+                  <Button variant="quiet" label={t.device.pauseAll} onPress={() => void services.device.pauseAll()} data={{ 'data-device-pause-all': true }} />
                 </Row>
               )}
               <Toggle

@@ -57,6 +57,7 @@ type Session = {
   readonly disconnect?: () => Promise<unknown>;
   readonly setIntroductionAssistance?: (on: boolean) => unknown;
   readonly setComputeContribution?: (on: boolean) => Promise<unknown>;
+  readonly setCachedFileContribution?: (on: boolean) => Promise<unknown>;
   readonly setSharing?: (on: boolean, selection: string | null, approved: boolean) => Promise<unknown>;
   readonly cancelModelDownload?: () => unknown;
   readonly getModelDownload?: (id: string, options: { signal: AbortSignal }) => Promise<{ sizeBytes?: number }>;
@@ -289,6 +290,12 @@ export function createComputersServices(product: { readonly host: object; readon
     },
     device: {
       setCompute: (on) => act(() => need(session.setComputeContribution, 'Compute contribution').call(session, on)),
+      setFiles: (on) => act(() => need(session.setCachedFileContribution, 'File sharing').call(session, on)),
+      pauseAll: () => act(async () => {
+        const device = projectView().device;
+        if (device.computeOn) await need(session.setComputeContribution, 'Compute contribution').call(session, false);
+        if (device.filesOn) await need(session.setCachedFileContribution, 'File sharing').call(session, false);
+      }),
       retryStop: () => act(() => need(session.setComputeContribution, 'Compute contribution').call(session, false)),
       cancelPreparation: async () => {
         if ((session.getState() as { acquisition?: { phase?: string } }).acquisition?.phase === 'downloading') return session.cancelModelDownload?.();

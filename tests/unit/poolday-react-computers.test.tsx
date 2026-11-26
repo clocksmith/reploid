@@ -30,6 +30,7 @@ function fixtureHost(initial: Record<string, unknown> = {}) {
     connect: vi.fn(async () => undefined),
     disconnect: vi.fn(async () => undefined),
     setComputeContribution: vi.fn(async () => undefined),
+    setCachedFileContribution: vi.fn(async () => undefined),
     setIntroductionAssistance: vi.fn(),
     ownerPairing: { state: () => ({ transportPath: 'relayed' }), pair: vi.fn(), unpair: vi.fn() },
   };
@@ -53,7 +54,20 @@ describe('Computers decisions', () => {
     expect(summary({ computeEnabled: false, filesEnabled: false })).toBe('· Not sharing');
     expect(summary({ computeEnabled: false, contributionChosen: true })).toBe('· Paused');
     expect(summary({ computeEnabled: true })).toBe('· Enabled · not serving');
+    // A switch that is on is never Paused, even before its files are offered.
+    expect(summary({ computeEnabled: false, contributionChosen: true, files: { enabled: true, sharing: false } })).toBe('· Files on · not sharing');
     expect(summary({ computeEnabled: false, contributionChosen: true, files: { enabled: true, sharing: true, model: { name: 'Qwen 3.5 0.8B' } } })).toBe('· Sharing');
+  });
+
+  it('states what every computer offers, with readiness for each, this device included', () => {
+    const view = projectComputers({ models: [], network: { consumer: { connectionState: 'connected',
+      peers: [peer('peer-ready', 'ready'), peer('peer-files', 'unknown', ''), peer('peer-idle', 'unknown', '')] },
+    files: { enabled: true, sharing: true, offering: ['peer-ready', 'peer-files'] }, computeEnabled: false } });
+    const offers = Object.fromEntries(view.peers.map((row: { id: string; offers: string }) => [row.id, row.offers]));
+    expect(offers).toEqual({ 'peer-ready': 'Compute · Ready / Model files · Sharing', 'peer-files': 'Model files · Sharing', 'peer-idle': 'Nothing' });
+    expect(view.device).toMatchObject({ offers: 'Model files · Sharing', filesOn: true, filesLabel: 'Sharing', computeOn: false, pauseAll: true });
+    const fresh = projectComputers({ models: [], network: { consumer: { connectionState: 'connected', peers: [] }, files: { enabled: false } } }).device;
+    expect(fresh).toMatchObject({ offers: 'Nothing', filesOn: false, filesLabel: 'Not sharing', pauseAll: false });
   });
 
   it('lists serving computers first, counts the ready ones and narrows to one model’s providers', () => {
@@ -93,6 +107,21 @@ describe('Computers pane', () => {
     expect(fixture.chat.setComputeContribution).toHaveBeenCalledWith(true);
     await userEvent.click(screen.getByRole('switch', { name: 'Help peers connect' }));
     expect(fixture.chat.setIntroductionAssistance).toHaveBeenCalledWith(true);
+  });
+
+  it('controls model files and compute for this device in one place, and pauses both at once', async () => {
+    const fixture = fixtureHost({ network: { consumer: { connectionState: 'connected', peers: [] }, files: { enabled: false } } });
+    mount(fixture.host);
+    await userEvent.click(screen.getByText('Contribute this computer'));
+    expect(screen.queryByRole('button', { name: 'Pause all' })).toBeNull();
+    await userEvent.click(screen.getByRole('switch', { name: 'Share model files' }));
+    expect(fixture.chat.setCachedFileContribution).toHaveBeenCalledWith(true);
+    // Settings writes the same swarm state; this switch reads it back, so the two never disagree.
+    act(() => fixture.set({ network: { consumer: { connectionState: 'connected', peers: [] }, computeEnabled: true, files: { enabled: true, sharing: true } } }));
+    expect(screen.getByRole('switch', { name: 'Share model files' }).getAttribute('aria-checked')).toBe('true');
+    await userEvent.click(screen.getByRole('button', { name: 'Pause all' }));
+    expect(fixture.chat.setComputeContribution).toHaveBeenCalledWith(false);
+    expect(fixture.chat.setCachedFileContribution).toHaveBeenCalledWith(false);
   });
 
   it('pairs a desktop from a pasted link and says to approve it there', async () => {

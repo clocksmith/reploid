@@ -38,6 +38,13 @@ const gib = bytes => (bytes / 1073741824).toLocaleString(undefined, { maximumFra
  * model and mode choices with their availability, the allowance field and the limits line.
  * `selection` is { modelId, mode, allowance } as staged in the options; the host owns the effect.
  */
+/** The file-sharing switch's status, read the same way in Settings and in Computers (one state, two places). */
+export function fileSharingStatus(network = {}) {
+  const files = network.files;
+  return files?.error || (files?.stopping ? 'Stopping' : files?.preparing ? 'Preparing' : files?.sharing ? 'Sharing'
+    : files?.enabled ? 'On · waiting for cached files' : 'Not sharing');
+}
+
 export function projectFileSharing(state, selection = {}) {
   const network = state.network || {}, catalogModels = (state.models || []).filter(model => !model.partition);
   const keyFor = model => model?.selectionId || model?.id;
@@ -61,8 +68,7 @@ export function projectFileSharing(state, selection = {}) {
   return {
     enabled: network.files?.enabled ?? sharingFiles,
     toggleDisabled: !!network.files?.stopping,
-    status: network.files?.error || (network.files?.stopping ? 'Stopping' : network.files?.preparing ? 'Preparing' : sharingFiles ? 'Sharing'
-      : network.files?.enabled ? 'On · waiting for cached files' : 'Not sharing'),
+    status: fileSharingStatus(network),
     progress: network.files?.progress?.message || '',
     models: catalogModels.map(model => ({ id: keyFor(model), name: model.name || model.id })),
     modelId,

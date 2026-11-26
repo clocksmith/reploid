@@ -66,6 +66,8 @@ export type PeerView = {
   readonly eligibility: string;
   /** Reachable, ready for the selected model, and why it is not used, as the host's admission decided them. */
   readonly selection: ReadonlyArray<Fact>;
+  /** What it offers, with readiness for each: compute, model files, both, or Nothing. */
+  readonly offers: string;
   /** The verified signing identity, when there is one: names and blocks attach to it. */
   readonly identity: string;
   readonly localName: string;
@@ -86,6 +88,14 @@ export type DeviceView = {
   readonly computeOn: boolean;
   readonly computeLabel: string;
   readonly computeDisabled: boolean;
+  /** The file-sharing switch: the same state Settings shows. */
+  readonly filesOn: boolean;
+  readonly filesLabel: string;
+  readonly filesDisabled: boolean;
+  /** What this device offers, as the roster states it for other computers. */
+  readonly offers: string;
+  /** Something is on, so Pause all has an effect. */
+  readonly pauseAll: boolean;
   readonly retryStop: boolean;
   readonly retryStopDisabled: boolean;
   readonly progress: string;
@@ -196,6 +206,10 @@ export type ComputersServices = {
   };
   readonly device: {
     readonly setCompute: (on: boolean) => Promise<unknown>;
+    /** Model files from this device's cache, the same switch as Settings' Share model files. */
+    readonly setFiles: (on: boolean) => Promise<unknown>;
+    /** Turns both off. */
+    readonly pauseAll: () => Promise<unknown>;
     readonly retryStop: () => Promise<unknown>;
     /** Cancels a download or stops a model being prepared for sharing. */
     readonly cancelPreparation: () => Promise<unknown>;

@@ -105,7 +105,8 @@ it('starts with model actions and hides empty production counters', () => {
   expect(view.production.models.map((row: { name: string }) => row.name)).toEqual(['Model']);
   expect(view.production.metrics).toEqual([]);
   expect(view.production.local).toEqual([]);
-  expect(view.device.summary).toBe('· Paused');
+  // A device that never chose to contribute is not paused: it offers nothing.
+  expect(view.device.summary).toBe('· Not sharing');
 });
 
 it('keeps one composer picker that changes the model and computer without starting work, preserving the draft', async () => {
@@ -266,11 +267,11 @@ it('blocks local model actions when the host reports missing browser support', a
   expect(onStartSharing).not.toHaveBeenCalled(); expect(session.getModelDownload).not.toHaveBeenCalled();
 });
 
-it('places compute sharing under Computers; file sharing is Settings storage', async () => {
+it('controls compute and model files for this device under Computers, reading the same file state Settings shows', async () => {
   mount(sessionOf({ models: [], network: { files: { enabled: true, sharing: true, suppliedBytes: 10, verifiedFiles: [{ artifactId: 'file' }] } } }));
   await openDevice();
   const device = document.querySelector('[data-this-computer]') as HTMLElement;
-  expect(within(device).queryByRole('switch', { name: 'Share model files' })).toBeNull();
+  expect(within(device).getByRole('switch', { name: 'Share model files' }).getAttribute('aria-checked')).toBe('true');
   expect(within(device).getByRole('switch', { name: 'Answer requests' })).toBeTruthy();
   expect(projectComputers({ models: [], network: { files: { enabled: true, sharing: true, suppliedBytes: 10 } } }).production.metrics.map(([term]: [string]) => term)).toContain('Files sent');
 });

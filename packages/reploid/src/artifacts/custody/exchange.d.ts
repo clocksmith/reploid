@@ -88,7 +88,8 @@ export function createCustodyExchange(options: {
   policy: CustodyExchangePolicy; ports: CustodyExchangePorts;
 }): {
   announce(peerId?: string): void;
-  getState(): { sharing: boolean; suppliedBytes: number; pending: number; peers: string[] };
+  /** `offering`: peers whose latest announced inventory is non-empty. */
+  getState(): { sharing: boolean; suppliedBytes: number; pending: number; peers: string[]; offering: string[] };
   has(file: FileDescriptor): boolean;
   offer(files: FileDescriptor[]): void;
   stopSupply(): void;

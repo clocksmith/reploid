@@ -9,6 +9,7 @@ import { projectNetworkPeers } from '../../ui/pool-home/network-controls.js';
 import { computerLabel } from '../../ui/pool-home/computer-labels.js';
 import { hardwareText } from '../../ui/pool-home/execution-ribbon.js';
 import { preparationStatus } from '../../ui/pool-home/model-preparation.js';
+import { fileSharingStatus } from './settings.js';
 import { projectProduction, modelSupplyText, suggestedModelId } from '../../ui/pool-home/contribution-models.js';
 import { fleetAccountText, fleetStarterText } from '../../ui/pool-home/fleet-account-view.js';
 import { hasBrowserModelOrigin, modelVariantLabel } from '../../ui/components/model-select.js';
@@ -167,9 +168,16 @@ function selectionFacts(state, selected) {
   };
 }
 
+/** What a computer offers, with readiness for each: "Compute · Ready / Model files · Sharing", or "Nothing". */
+export function offerText({ compute = '', files = '' } = {}) {
+  return [compute && 'Compute · ' + compute, files && 'Model files · ' + files].filter(Boolean).join(' / ') || 'Nothing';
+}
+
 /** The roster rows, filtered to one model's serving computers when a filter is set (network-controls.js renderPeerRows). */
 function peerRows(state, filter, names, selected) {
   const selection = selectionFacts(state, selected);
+  // Peers whose announced file inventory is non-empty (custody exchange); compute comes from the peer's own advertisement.
+  const filePeers = new Set(state.network?.files?.offering || []);
   const rows = projectNetworkPeers(state).filter(peer => !filter || (peer.executionType === 'whole-model' && !peer.blocked
     && (!filter.model || peer.modelId === filter.model.id && peer.modelIdentity === filter.model.identity) && filter.providers.includes(peer.id)));
   const byLabel = new Map();
@@ -192,6 +200,8 @@ function peerRows(state, filter, names, selected) {
       reachable: chosen.reachable,
       eligibility: chosen.eligibility,
       selection: chosen.facts,
+      offers: offerText({ compute: serving ? (['ready', 'executing'].includes(peer.phase) ? 'Ready' : 'Preparing') : '',
+        files: filePeers.has(peer.id) ? 'Sharing' : '' }),
       name: same.length > 1 ? `${label} · connection ${peer.id.slice(-suffix)}` : label,
       status: peer.status,
       tone: ['ready', 'executing'].includes(peer.phase) ? 'ready'
@@ -248,24 +258,34 @@ function deviceView(state, network) {
   const summary = [];
   if (network.sharing || network.stopping) summary.push((sharedName || 'Selected model') + (contribution.partition ? ' · partition compute' : ' · compute'));
   if (sharingFiles) summary.push((network.files?.model?.name || network.files?.model?.id || 'Model files') + ' · files');
+  const computeOn = network.computeEnabled ?? !!network.sharing;
+  const computeLabel = network.stopping ? 'Stopping' : cleanupPending ? 'Cleanup not confirmed' : network.sharing
+    ? (network.contribution?.phase === 'loading' ? preparationStatus(network.contribution.progress).status
+      : ({ ready: 'Ready', executing: 'Working', failed: 'Failed', waiting: 'Waiting for another contributor' }[network.contribution?.phase] || 'Sharing'))
+    : network.computeEnabled ? 'On · waiting for a downloaded model' : 'Not sharing';
+  // The same switch Settings shows: one swarm state (filesEnabled), read and written from both places.
+  const filesOn = !!(network.files?.enabled ?? sharingFiles), filesLabel = fileSharingStatus(network);
   return {
     summary: cleanupPending ? '· Cleanup not confirmed'
       : network.stopping ? '· Stopping' : network.contribution?.phase === 'loading' ? '· ' + preparationStatus(network.contribution.progress).status
         : network.contribution?.phase === 'executing' ? '· Working' : network.sharing ? '· ' + (network.contribution?.phase === 'ready' ? 'Ready' : 'Sharing')
           : network.computeEnabled ? '· Enabled · not serving'
             // Files alone are an offer too; "Paused" only after this browser chose to contribute and stopped.
-            : sharingFiles ? '· Sharing' : network.contributionChosen ? '· Paused' : '· Not sharing',
+            : sharingFiles ? '· Sharing' : network.files?.enabled ? '· Files on · not sharing'
+              : network.contributionChosen ? '· Paused' : '· Not sharing',
     localComputer: [id ? computerLabel(state, id) : null, hardwareText(hardware) ? `Reported GPU: ${hardwareText(hardware)}` : 'GPU not reported'].filter(Boolean).join(' · '),
     supplied: usage?.supplied?.available ? tokenText(usage.supplied) : '—',
     consumed: tokenText(usage?.consumed),
     usageScope: scope,
     usageError: usage?.error || '',
     sharingSummary: summary.join(' / '),
-    computeOn: network.computeEnabled ?? !!network.sharing,
-    computeLabel: network.stopping ? 'Stopping' : cleanupPending ? 'Cleanup not confirmed' : network.sharing
-      ? (network.contribution?.phase === 'loading' ? preparationStatus(network.contribution.progress).status
-        : ({ ready: 'Ready', executing: 'Working', failed: 'Failed', waiting: 'Waiting for another contributor' }[network.contribution?.phase] || 'Sharing'))
-      : network.computeEnabled ? 'On · waiting for a downloaded model' : 'Not sharing',
+    computeOn,
+    computeLabel,
+    filesOn,
+    filesLabel,
+    filesDisabled: !network.files || !!network.files.stopping,
+    offers: offerText({ compute: computeOn ? computeLabel : '', files: filesOn ? filesLabel : '' }),
+    pauseAll: computeOn || filesOn,
     computeDisabled: !!network.stopping || cleanupPending,
     retryStop: cleanupPending,
     retryStopDisabled: !!network.stopping,
