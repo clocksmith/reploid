@@ -209,7 +209,7 @@ describe('Conversation workspace', () => {
     expect(selected()).toBe(small.id);
     await chooseShared(medium.id);
     expect(selected()).toBe(medium.id); expect(composer().chip.source).toBe('Contributors');
-    expect(JSON.parse(saved.get('reploid.answer-choice.v1'))).toEqual({ selectionId: medium.id, identity: medium.identity, route: 'contributors', picked: true });
+    expect(JSON.parse(saved.get('reploid.answer-choice.v1'))).toEqual({ selectionId: medium.id, identity: medium.identity, route: 'contributors', picked: true, name: medium.name });
     // An answered thread, then New thread: the same model and computer, not the default.
     session.createThread({ model: medium, privacy: openPolicy, executionLocation: 'network' });
     await vi.waitFor(() => expect(session.getState().activeThread).not.toBeNull());
