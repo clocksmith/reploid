@@ -13,6 +13,7 @@ import { createSwarmTransport, createRoomIntroductionAdmission } from '../shared
 import { openNativeGenerationJournal } from './native-generation-journal.js';
 import { createModelAdapterResolver } from '../shared/vendor/reploid/adapters/model-adapter.js';
 import { attachTargetScoring, createAutomaticPartitions, createPeerGenerationMesh, createPartitionNetwork, requestTargetScore } from '../shared/vendor/reploid/mesh/index.js';
+import { attachMeshOperations, dispatchMeshOperation, requestMeshOperation } from '../shared/vendor/reploid/mesh/operation-envelope.js';
 import { createWholeModelRequester } from './whole-model-requester.js';
 import { signGenerationTerminal } from '../shared/vendor/reploid/artifacts/generation-terminal.js';
 import { openNativeCanonicalEpochs } from './native-canonical-epochs.js';
@@ -255,6 +256,13 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
     // Only the consumer of an answer this host produced can ask it to score a target against that answer.
     if (whole) attachTargetScoring({ transport, identity, verifyPeer: mesh.verifyPeerIdentity, currentPeer: mesh.getVerifiedPeerIdentity,
       score: request => whole.scoreTarget(request) });
+    // Mesh operations besides generation (mesh/operation-envelope.js) on the resident whole model: authorized against
+    // this provider's own offer, credit-admitted like generation, then run on the same device lane.
+    if (whole) attachMeshOperations({ transport, identity, verifyPeer: mesh.verifyPeerIdentity, currentPeer: mesh.getVerifiedPeerIdentity,
+      offer: () => ({ participantId: identity.peerId, protection: 'plaintext', route: 'remote', modelIdentity: whole.getState().ready ? whole.getState().modelIdentity : null,
+        supportedOperations: whole.supportedOperations() }),
+      ...(executionAdmission ? { admit: input => executionAdmission.operation(input) } : {}),
+      dispatch: (envelope, signal) => dispatchMeshOperation(whole, envelope, { signal }) });
     webNetwork = createWebAccessNetwork({ transport, worker: webWorker, enabled: () => !closed && webWorker !== null,
       verifyPeer: (peer, signal) => mesh.verifyPeerIdentity(peer, signal) });
     if (cacheDirectory) {
@@ -316,6 +324,16 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
         requireValue(providerPeer, 'The scoring provider is not connected');
         return requestTargetScore({ transport, verifyPeer: mesh.verifyPeerIdentity, currentPeer: mesh.getVerifiedPeerIdentity,
           providerPeer, providerParticipantId, receipt, messages, target, ...(signal ? { signal } : {}) });
+      },
+      /** Send an authorized mesh operation envelope to its granted recipient; returns its output and signed receipt. */
+      async sendMeshOperation(envelope, { signal } = {}) {
+        requireValue(!closed && transport, 'Native requester is unavailable');
+        const recipient = envelope.recipientGrant.recipient;
+        const providerPeer = (transport.getConnectedPeers?.() || []).map(peer => peer.id)
+          .find(peerId => mesh.getVerifiedPeerIdentity(peerId) === recipient);
+        requireValue(providerPeer, 'The granted recipient is not connected');
+        return requestMeshOperation({ transport, verifyPeer: mesh.verifyPeerIdentity, currentPeer: mesh.getVerifiedPeerIdentity,
+          providerPeer, envelope, ...(signal ? { signal } : {}) });
       },
       recoverGeneration(request, reference, controls) {
         requireValue(!closed && wholeRequester, 'Native whole-model recovery unavailable');

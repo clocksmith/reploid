@@ -568,16 +568,20 @@ it('scores a named reverse-prompt run only on its countersigned, settled, backen
     expect(f.row().binding.settingsDigest).toBe(result.receipt.settingsDigest);
     expect(result.score).toBeNull();
 
-    // With today's target, the same provider scores it after the answer, bound to that answer's receipt.
-    const scoreTarget = vi.fn(async ({ receipt }) => ({ receiptId: receipt.receiptId, totalLogProbHundredths: -33, tokenCount: 1 }));
-    const scoring = { ...f.host, textParticipant: { ...f.host.textParticipant, scoreTarget } };
+    // With today's target, the same named provider scores it after the answer: one accounted mesh operation on the
+    // pinned model artifact, with its own countersigned receipt.
+    const executeMeshOperation = vi.fn(async () => ({ acknowledgedUnits: 1, output: { schema: 'doppler.target-sequence-score/v1', roundedTotalLogProb: -0.33,
+      tokenCount: 1 }, providerReceipt: { receiptId: 'receipt:score' } }));
+    const scoring = { ...f.host, textParticipant: { ...f.host.textParticipant, executeMeshOperation } };
     const scored = await runDailyFleet(scoring, pins, { prompt, target: 'I resign.' });
-    expect(scoreTarget).toHaveBeenCalledOnce();
-    expect(scoreTarget.mock.calls[0][0]).toMatchObject({ providerParticipantId: keys[1].peerId, receipt: scored.receipt, target: 'I resign.',
-      messages: [{ role: 'system', content: PROFILE.system }, { role: 'user', content: prompt }] });
-    expect(scored.score).toMatchObject({ receiptId: scored.receipt.receiptId, totalLogProbHundredths: -33 });
+    expect(executeMeshOperation).toHaveBeenCalledOnce();
+    expect(executeMeshOperation.mock.calls[0][0]).toMatchObject({ schema: 'reploid.mesh-operation/v1', operation: 'scoreTargetSequence',
+      modelId: model.id, manifestDigest: model.identity, maxCostUnits: 1, recipientGrant: { recipient: keys[1].peerId, revokedAt: null },
+      execution: { protection: 'plaintext', route: 'remote' },
+      payload: { target: 'I resign.', messages: [{ role: 'system', content: PROFILE.system }, { role: 'user', content: prompt }] } });
+    expect(scored.score).toEqual({ receiptId: 'receipt:score', totalLogProbHundredths: -33, tokenCount: 1 });
     // A failed score never fails the turn.
-    const failing = { ...f.host, textParticipant: { ...f.host.textParticipant, scoreTarget: async () => { throw Error('no scoring'); } } };
+    const failing = { ...f.host, textParticipant: { ...f.host.textParticipant, executeMeshOperation: async () => { throw Error('no scoring'); } } };
     expect((await runDailyFleet(failing, pins, { prompt, target: 'I resign.' })).score).toBeNull();
 
     await expect(runDailyFleet(f.host, { ...pins, providerId: keys[0].peerId }, { prompt }))

@@ -31,6 +31,7 @@ import { assert, fleetCreditQuote, text, same } from './contract.js';
 import { openComputerIdentity, readOwnFile } from './computer-identity.js';
 import { partitionAdapterIdentities } from '../../shared/vendor/reploid/mesh/partitions/partition-contract.js';
 import { createAttemptEvidenceSigner } from '../../shared/vendor/reploid/mesh/partitions/partition-attempt-evidence.js';
+import { meshOperationOffer } from '../../shared/vendor/reploid/mesh/operation-envelope.js';
 
 export { openComputerIdentity, readOwnFile };
 
@@ -363,10 +364,22 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
       assert(participant && !closed && !preparing, 'Requester unavailable');
       return participant.recoverGeneration(request, reference, controls);
     },
-    /** After an answer: the same provider's signed score of a target, bound to that answer's receipt. */
+    /** After an answer: the same provider's signed score of a target, bound to that answer's receipt (the earlier Daily path). */
     scoreTarget: request => {
       assert(participant && !closed && !preparing, 'Requester unavailable');
       return participant.scoreTarget(request);
+    },
+    /**
+     * A mesh operation besides generation (mesh/operation-envelope.js), accounted like generation: authorized against
+     * the recipient's discovered offer before anything is held or sent, then reserved, sent, countersigned and settled
+     * on this host's credit service.
+     */
+    executeMeshOperation: (envelope, { signal } = {}) => {
+      assert(participant && !closed && !preparing, 'Requester unavailable');
+      assert(credits, 'Service credits are not configured');
+      const sender = { generate: textParticipant.generate, sendMeshOperation: (value, controls) => participant.sendMeshOperation(value, controls) };
+      return createFleetRequester(requesterPorts({ participant: sender })).executeOperation(envelope, { signal,
+        offer: value => meshOperationOffer({ models: participant.getState()?.models, peers: participant.getNetworkState()?.peers }, value) });
     }
   });
   const requesterPorts = extra => ({

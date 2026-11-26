@@ -47,6 +47,15 @@ export function createFleetExecutionAdmission({ credits, model, stageOwner = nul
       assert(result?.preadmitted === true, 'Exact credit preadmission is required before disclosure');
       return true;
     },
+    /** A mesh operation other than generation (mesh/operation-envelope.js): admitted for the base model this provider
+     * serves, the input digest it derives from the envelope it received and the units the requester reserved. */
+    async operation({ envelope, consumer, inputDigest }) {
+      assert(envelope.modelId === exact.id && envelope.manifestDigest === exact.identity && exact.adapterIdentities.length === 0,
+        'Operation names another model variant than this provider serves');
+      await credits.call('admit', { id: `service:${consumer}:${envelope.requestId}`, executionId: envelope.requestId, consumer,
+        mode: 'whole-model', model: exact, inputDigest, outputLimit: envelope.maxCostUnits });
+      return true;
+    },
     async partition(request) {
       assert(request.charge?.reservationId && request.identity?.requesterId, 'Credited stage requires signed admission');
       const payload = { id: request.charge.reservationId, executionId: request.identity.attemptId,

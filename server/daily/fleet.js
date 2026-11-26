@@ -11,6 +11,7 @@ import { matchesWholeModelReceipt } from '../../shared/vendor/reploid/artifacts/
 import { partitionAdapterIdentities } from '../../shared/vendor/reploid/mesh/partitions/partition-contract.js';
 import { assertSettingsSupported, effectiveRequestDigest, normalizeGenerationSettings } from '../../shared/vendor/reploid/mesh/generation-settings.js';
 import { hasReversePromptTemplate } from '../../shared/infrastructure/reverse-prompt-profile.js';
+import { createMeshOperationEnvelope, MESH_OPERATION_GRANT_SCHEMA } from '../../shared/vendor/reploid/mesh/operation-envelope.js';
 import { PROFILE } from './rules.js';
 
 const digest = /^sha256:[a-f0-9]{64}$/;
@@ -158,12 +159,18 @@ export async function runDailyFleet(host, pins, { prompt, target = null, signal 
       && await matchesWholeModelReceipt(receipt, messages, { content: result.content, modelIdentity, adapterIdentities: [],
         ownerPolicyDigest: result.ownerPolicyDigest, completion: result.execution.completion }, { settingsDigest }),
     'The daily execution receipt did not verify');
-    // Closeness is scored after the answer exists, by the same provider, bound to this receipt. It never blocks a turn.
+    // Closeness is scored after the answer exists, by the same named provider and model artifact, as one accounted
+    // mesh operation (one unit, its own countersigned receipt). It never blocks a turn.
     let score = null;
-    if (typeof target === 'string' && target && typeof host.textParticipant.scoreTarget === 'function') {
+    if (typeof target === 'string' && target && typeof host.textParticipant.executeMeshOperation === 'function') {
       try {
-        score = await host.textParticipant.scoreTarget({ providerParticipantId: providerId, receipt, messages, target,
-          signal: AbortSignal.timeout(30_000) });
+        const envelope = await createMeshOperationEnvelope({ requestId: randomUUID(), operation: 'scoreTargetSequence', modelId,
+          manifestDigest: modelIdentity, execution: dailyExecution(providerId), maxCostUnits: 1, payload: { messages, target },
+          recipientGrant: { schema: MESH_OPERATION_GRANT_SCHEMA, recipient: providerId, grantedAt: Date.now(), revokedAt: null } });
+        const scored = await host.textParticipant.executeMeshOperation(envelope, { signal: AbortSignal.timeout(30_000) });
+        const total = Math.round(scored.output.roundedTotalLogProb * 100);
+        score = Number.isSafeInteger(total) && total <= 0 && Number.isSafeInteger(scored.output.tokenCount) && scored.output.tokenCount > 0
+          ? { receiptId: scored.providerReceipt.receiptId, totalLogProbHundredths: total, tokenCount: scored.output.tokenCount } : null;
       } catch { score = null; }
     }
     return { output: result.content, receipt, score };

@@ -421,6 +421,20 @@ export function createTextRequester({ participant, authenticate, authorize, stat
       scope.finish();
     }
   };
-  return Object.freeze({ handle, getState: () => ({ closed: requests.closed, active: requests.size, scope: 'http-requests' }),
+  /**
+   * A mesh operation besides generation (mesh/operation-envelope.js), for an authenticated principal: the host's
+   * `authorize` port approves this exact envelope, then the requester's accounted path authorizes it against the
+   * recipient's offer, holds its cost, sends it and settles. A refusal at either step sends nothing and holds nothing.
+   */
+  async function executeMeshOperation(envelope, { principal, signal = AbortSignal.timeout(policy.controlChannel.timeoutMs) } = {}) {
+    if (typeof participant.executeMeshOperation !== 'function') throw fail(501, 'This requester runs generation only');
+    if (!object(principal) || typeof principal.subject !== 'string' || !principal.subject) throw fail(401, 'Authentication required');
+    if (await authorize({ action: 'mesh.operation', principal: freeze({ subject: principal.subject }), envelope, signal }) !== true) {
+      throw fail(403, 'Mesh operation denied');
+    }
+    signal.throwIfAborted();
+    return participant.executeMeshOperation(envelope, { signal });
+  }
+  return Object.freeze({ handle, executeMeshOperation, getState: () => ({ closed: requests.closed, active: requests.size, scope: 'http-requests' }),
     close: () => requests.close(() => Error('Text requester server closing'), () => Error('HTTP requester cleanup remains unsettled')) });
 }

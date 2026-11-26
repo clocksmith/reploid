@@ -11,6 +11,7 @@ import { forfeitRules, verifyCreditEvidence } from './credit-evidence.js';
 import { accountSettlement, settledCreditUnits, FORFEIT_REASON, SETTLEMENT_RULES, SETTLEMENT_RULES_INTERIM, SETTLEMENT_RULES_V1, SETTLEMENT_RULES_V2,
   UNFINISHED_ANSWER_TERMS, UNFINISHED_ANSWER_TERMS_V2, UNFINISHED_ANSWER_TERMS_V3 } from './credit-shares.js';
 import { MAX_UNACKNOWLEDGED_OUTPUTS } from '../../shared/vendor/reploid/mesh/partitions/partition-attempt-evidence.js';
+import { MESH_OPERATIONS } from '../../shared/vendor/reploid/mesh/operation-envelope.js';
 
 /** Balances are kept per owner account: every computer and key an owner enrolled spends and earns one balance. */
 export const FLEET_ACCOUNT_UNIT = 'owner/v1';
@@ -199,6 +200,9 @@ export async function openFleetCredits({ file, computers, policy: supplied, now 
         && (value.admission === undefined || value.mode === 'whole-model' && value.admission?.schema === 'reploid.credit-preadmission/v1'
           && digest(value.admission.commitment) && Object.keys(value.admission).length === 2)
         && integer(value.maxOutputTokens) && value.maxOutputTokens > 0 && value.maxOutputTokens <= policy.maxOutputTokens
+        // Optional, whole-model only: a mesh operation other than generation, whose units the hold counts.
+        && (value.operation === undefined || value.mode === 'whole-model' && value.operation !== 'generate'
+          && Object.hasOwn(MESH_OPERATIONS, value.operation) && value.settingsDigest === undefined && value.admission === undefined)
         && Array.isArray(value.providers) && value.providers.length > 0 && value.providers.length <= 128,
       'Invalid credit reservation');
       let weight = 0;

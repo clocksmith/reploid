@@ -4,6 +4,8 @@ import { createAttemptEvidenceSigner, openOutputAcknowledgments } from '../../sh
 import { partitionAdapterIdentities } from '../../shared/vendor/reploid/mesh/partitions/partition-contract.js';
 import { effectiveRequestDigest, normalizeGenerationSettings } from '../../shared/vendor/reploid/mesh/generation-settings.js';
 import { signSettlementStop } from './settlement-terms.js';
+import { countersignReceipt } from '../../shared/vendor/reploid/artifacts/receipt.js';
+import { executeMeshOperation } from '../../shared/vendor/reploid/mesh/operation-envelope.js';
 
 export function buildFleetRequestOutcome({
   attemptId = null, threadId = null, reservationId = null, executionId = null,
@@ -439,6 +441,38 @@ export function createFleetRequester({
       const settled = await credits.collect(reservationId, { terminal: recovered.terminal });
       const outcome = emit(true, settled, 0, targetProviderId);
       return { status: recovered.terminal.status, serviceCredit: settled, outcome };
+    },
+    /**
+     * A mesh operation other than generation (mesh/operation-envelope.js), on the same ledger, enrollment and stop
+     * as `generate`: the envelope is authorized against `offer(envelope)` before anything is held or sent (a refusal
+     * throws synchronously), the granted recipient must still be enrolled, the hold is the operation's
+     * `maxCostUnits` at the accepted price, and the provider's receipt is countersigned and settled. Cancelling through
+     * `signal` settles the hold at zero with the requester's signed stop; any other failure fences it.
+     */
+    executeOperation(envelope, { signal, offer }) {
+      return executeMeshOperation(envelope, { signal }, {
+        offer,
+        async reserve(value, inputDigest) {
+          const recipient = value.recipientGrant.recipient;
+          const network = await credits.call('computers', {});
+          assert((network.computers || []).some(row => row.participantIds?.includes(recipient)),
+            'The granted recipient is not enrolled; nothing was sent');
+          const terms = await credits.call('terms', { id: value.modelId, identity: value.manifestDigest });
+          const binding = { id: `service:${identity.peerId}:${value.requestId}`, executionId: value.requestId, consumer: identity.peerId,
+            mode: 'whole-model', operation: value.operation, model: { id: value.modelId, identity: value.manifestDigest, adapterIdentities: [] },
+            inputDigest, maxOutputTokens: value.maxCostUnits, acceptedQuote: fleetCreditQuote(terms.policy, value.maxCostUnits, 'whole-model'),
+            providers: [{ participantId: recipient, weight: 1 }] };
+          const reservation = await credits.reserve(binding);
+          try { await credits.dispatch(reservation.id, identity.peerId); }
+          catch (error) { await credits.abandonBeforeDispatch(reservation.id, identity.peerId).catch(() => {}); throw error; }
+          return reservation;
+        },
+        send: (value, controls) => participant.sendMeshOperation(value, controls),
+        countersign: receipt => countersignReceipt(receipt, identity),
+        settle: (reservation, receipt) => credits.settle(reservation.id, receipt),
+        // Nothing was countersigned, so the requester's own stop at zero is the whole settlement of a cancelled call.
+        cancel: reservation => (signal?.aborted ? settleStop(reservation) : credits.fence(reservation.id, identity.peerId))
+      });
     }
   });
 }

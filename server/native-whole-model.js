@@ -58,7 +58,8 @@ export function createNativeWholeModel({ model, modelDirectory, nativeGpu, owner
     if (resident && !confirmed && (state.ready || state.phase === 'ready')) state = { ...state, phase: 'loading', ready: false };
     return { ...state, mode: 'whole-model', offering: enabled,
       ready: enabled && !closed && ownerAllows() && state.ready,
-      modelId: model.id, modelIdentity: state.modelIdentity ?? null };
+      modelId: model.id, modelIdentity: state.modelIdentity ?? null,
+      supportedOperations: typeof resident?.supportedOperations === 'function' ? resident.supportedOperations() : ['generate'] };
   };
   const notify = () => onChange(getState());
   const advertisedPhase = state => {
@@ -182,11 +183,17 @@ export function createNativeWholeModel({ model, modelDirectory, nativeGpu, owner
         ...(settings ? { settings } : {}), ...(limit === null ? {} : { maxOutputTokens: limit }) }))
         .then(result => ({ ...result, ownerPolicyDigest }));
     },
-    /** Score a target against the prepared base model; adapters never apply to scoring. */
+    /** The mesh operations this model serves besides generation; adapters never apply to them. */
+    supportedOperations: () => getState().supportedOperations,
+    /** Score a target against the prepared base model for the receipt-bound score; adapters never apply to scoring. */
     scoreTarget({ messages, target, signal }) {
+      return this.executeOperation({ operation: 'scoreTargetSequence', payload: { messages, target }, signal });
+    },
+    /** One non-generation mesh operation on the prepared base model. */
+    executeOperation(request) {
       if (!getState().ready) throw Object.assign(new Error('Whole-model capacity unavailable'), { code: 'CAPACITY_UNAVAILABLE' });
-      if (typeof resident?.scoreTarget !== 'function') throw new Error('This runtime cannot score a target sequence');
-      return resident.scoreTarget({ messages, target, signal });
+      if (typeof resident?.executeOperation !== 'function') throw new Error(`This runtime cannot run ${request?.operation}`);
+      return resident.executeOperation(request);
     },
     stop,
     async close() { closed = true; await stop(); }

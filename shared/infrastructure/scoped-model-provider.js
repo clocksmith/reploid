@@ -98,18 +98,48 @@ export async function openScopedModelProvider({ model, service, scope, signal, c
         catch (error) { healthy = false; throw error; }
       }
     },
-    /** Teacher-forced log-probability of `target` after `messages` (base model, chat template, non-thinking). */
-    async scoreTarget({ messages, target, signal: attemptSignal }) {
+    /** Teacher-forced log-probability of `target` after `messages`, for the receipt-bound score (mesh/target-scoring.js). */
+    scoreTarget({ messages, target, signal: attemptSignal }) {
+      return this.executeOperation({ operation: 'scoreTargetSequence', payload: { messages, target }, signal: attemptSignal });
+    },
+    /** The mesh operations this session runs besides generation (mesh/operation-envelope.js), from what it exposes. */
+    supportedOperations: () => ['generate', ...(session?.supports?.('targetScoring') === true && typeof session.scoreTargetSequence === 'function'
+      ? ['scoreTargetSequence'] : []), ...(typeof session?.scoreChoices === 'function' ? ['scoreChoices'] : []),
+    ...(session?.supports?.('embed') === true && typeof session.embed === 'function' ? ['embed'] : [])],
+    /**
+     * One non-generation mesh operation on the base model, as DopplerX defines it: `scoreTargetSequence` (teacher-forced
+     * log-probability of `target` after `messages` or `prompt`), `scoreChoices` (next-token logits of each choice after
+     * `prompt`) and `embed` (`input`). The context bound is the session's own. Returns DopplerX's result with `modelIdentity`.
+     */
+    async executeOperation({ operation, payload, signal: attemptSignal }) {
       const combined = AbortSignal.any([signal, attemptSignal]);
       combined.throwIfAborted();
-      requireValue(session?.supports?.('targetScoring') === true && typeof session.scoreTargetSequence === 'function',
-        'This runtime cannot score a target sequence; install DopplerX 0.1.6 or later');
       const identity = executionIdentity();
       const geometry = session.supports?.('advanced') === false ? null : session.advanced?.getGenerationGeometry?.();
       const maxSeqLen = Number.isSafeInteger(geometry?.maxSeqLen) && geometry.maxSeqLen > 0 ? geometry.maxSeqLen : 4096;
-      const result = await session.scoreTargetSequence({ messages: structuredClone(messages), target, maxSeqLen }, { signal: combined });
-      requireValue(result?.schema === 'doppler.target-sequence-score/v1' && Number.isFinite(result.roundedTotalLogProb)
-        && Number.isSafeInteger(result.tokenCount) && result.tokenCount > 0, 'Doppler returned an invalid target score');
+      let result;
+      if (operation === 'scoreTargetSequence') {
+        requireValue(session?.supports?.('targetScoring') === true && typeof session.scoreTargetSequence === 'function',
+          'This runtime cannot score a target sequence; install DopplerX 0.1.6 or later');
+        const { messages, prompt, target } = payload ?? {};
+        result = await session.scoreTargetSequence({ ...(messages === undefined ? { prompt } : { messages: structuredClone(messages) }), target, maxSeqLen },
+          { signal: combined });
+        requireValue(result?.schema === 'doppler.target-sequence-score/v1' && Number.isFinite(result.roundedTotalLogProb)
+          && Number.isSafeInteger(result.tokenCount) && result.tokenCount > 0, 'Doppler returned an invalid target score');
+      } else if (operation === 'scoreChoices') {
+        requireValue(typeof session?.scoreChoices === 'function', 'This runtime cannot score choices');
+        result = await session.scoreChoices({ prompt: payload?.prompt, choices: structuredClone(payload?.choices), maxSeqLen }, { signal: combined });
+        requireValue(result?.schema === 'doppler.choice-scores/v1' && Array.isArray(result.choices), 'Doppler returned invalid choice scores');
+      } else if (operation === 'embed') {
+        requireValue(session?.supports?.('embed') === true && typeof session.embed === 'function', 'This runtime cannot embed');
+        requireValue(typeof payload?.input === 'string' && payload.input.length > 0, 'Embedding input text is required');
+        const evidence = await session.embed(payload.input, {});
+        requireValue(evidence?.schema === 'doppler_embedding_evidence/v1' && ArrayBuffer.isView(evidence.embedding), 'Doppler returned an invalid embedding');
+        // Carried as JSON: the vector as numbers, with Doppler's own input and output hashes.
+        result = { schema: evidence.schema, embedding: Array.from(evidence.embedding), tokenCount: evidence.tokens?.length ?? null,
+          seqLen: evidence.seqLen, embeddingMode: evidence.embeddingMode, inputHash: evidence.inputHash, outputHash: evidence.outputHash };
+      } else throw new Error(`Unsupported mesh operation ${operation}`);
+      combined.throwIfAborted();
       return { ...result, modelIdentity: identity.modelIdentity };
     },
     async generate(messages, onUpdate = () => {}, { signal: attemptSignal, adapters = [], maxOutputTokens, contextOwner, contextId, settings, onUsage }) {

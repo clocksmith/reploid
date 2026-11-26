@@ -6,6 +6,7 @@ import {
 import { canonicalRouteAttemptBinding } from '../../shared/vendor/reploid/mesh/partitions/partition-contract.js';
 import { normalizeParticipantPublicKey } from '../../shared/vendor/reploid/artifacts/participant-proofs.js';
 import { assert, same, integer } from './contract.js';
+import { MESH_OPERATION_UNITS } from '../../shared/vendor/reploid/mesh/operation-envelope.js';
 import { SETTLEMENT_STOP_SCHEMA, verifySettlementFault, verifySettlementStop } from './settlement-terms.js';
 import { SETTLEMENT_RULES, SETTLEMENT_RULES_INTERIM, SETTLEMENT_RULES_V2, SETTLEMENT_RULE_SETS, UNFINISHED_ANSWER_TERMS } from './credit-shares.js';
 
@@ -281,6 +282,9 @@ export async function verifyCreditEvidence(request, evidence, enrollment, now, s
       && receipt.consumer === request.consumer && receipt.jobHash === `request:${request.executionId}`
       && receipt.model === request.model.id && receipt.modelIdentity === request.model.identity
       && same(receipt.adapterIdentities, request.model.adapterIdentities) && receipt.inputDigest === request.inputDigest
+      // A mesh operation other than generation (mesh/operation-envelope.js) counts units, and its receipt names it.
+      && (request.operation === undefined ? receipt.usage === 'raw-model-tokens/v1'
+        : receipt.usage === MESH_OPERATION_UNITS && receipt.stopReason === `operation:${request.operation}`)
       && within(receipt.timestamp) && integer(receipt.outputTokens) && receipt.outputTokens <= request.maxOutputTokens,
     'Completed receipt does not match the accepted request');
     assert(same(normalizeParticipantPublicKey(receipt.providerKey), enrollment.byPeer.get(receipt.provider).publicJwk)
