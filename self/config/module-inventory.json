@@ -1395,10 +1395,11 @@
     {
       "path": "pool/doppler-browser-observation.js",
       "owner": "pool",
-      "sha256": "sha256:0c1f596b2c056101a44f976bd85e60536bfed29786ba5a03e8866be69e1944ae",
+      "sha256": "sha256:f25ddb2588138ab0a99f566f941c5706c736584a0779e243f718203da014046b",
       "imports": [
         "./browser-qualification.js",
-        "./model-contract.js"
+        "./model-contract.js",
+        "./sequence-workload.js"
       ]
     },
     {
@@ -2636,7 +2637,7 @@
     {
       "path": "pool/sequence-result.js",
       "owner": "pool",
-      "sha256": "sha256:8d32244a43516b46239624aaa6528315d164cde92c7921c462335957a5dbb112",
+      "sha256": "sha256:20478ffb615ba9f668e0b889d49ed87a1e58ef1cc5d0ec75d67430367de643f9",
       "imports": [
         "../vendor/reploid/adapters/doppler-session.js",
         "./inference-receipt.js",
@@ -2646,7 +2647,7 @@
     {
       "path": "pool/sequence-workload.js",
       "owner": "pool",
-      "sha256": "sha256:026bd1944e69ce4bfb931489d216ebfe22add4ed4ecefb9fe7348d4ed2feec3c",
+      "sha256": "sha256:c834ef61f1d583e347f2caf7b81897fe959dff866c6c288847939b5c74627ede",
       "imports": []
     },
     {
@@ -4462,7 +4463,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:b7ea9dc142dbbfde2cfca3c9e57da5c8984b2560a8201c40b908bb54c96dec81",
+      "sha256": "sha256:3fa4a8ef779c9fe7724ee83c654a92684ea748ff80098c5c8d4b3e2f1c47f42e",
       "imports": []
     },
     {
@@ -5576,13 +5577,13 @@
     {
       "path": "ui/react/app.js",
       "owner": "ui",
-      "sha256": "sha256:5cfa32fad589865989a46f5f718a23dd751e9d6cc2ef3181193d1431b10ee23e",
+      "sha256": "sha256:9e171e05c511bdb528b71356685e5c2a6e47322f2e638dbcc2eedbcb954009f5",
       "imports": []
     },
     {
       "path": "ui/react/design.js",
       "owner": "ui",
-      "sha256": "sha256:a5283f4873a280987e221d970d40cb2bd590db684610a08dc6424bd96687abb7",
+      "sha256": "sha256:fe97072aafd7e86095238f6dd1f0a0caabdcc61faa4a3f60081547532915a7ec",
       "imports": []
     },
     {

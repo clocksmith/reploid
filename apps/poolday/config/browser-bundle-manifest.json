@@ -1415,8 +1415,8 @@
     },
     {
       "path": "config/module-inventory.json",
-      "byteLength": 698567,
-      "sha256": "sha256:d6a022ec121117487f3c905032d5ec27b9169d2f42615e6154476b6354a2e34a"
+      "byteLength": 698601,
+      "sha256": "sha256:180cb7789d0780464638b36c46fb62077c344fe2189fbc7e52939daa58108e2d"
     },
     {
       "path": "config/module-registry.json",
@@ -2675,8 +2675,8 @@
     },
     {
       "path": "pool/doppler-browser-observation.js",
-      "byteLength": 7655,
-      "sha256": "sha256:0c1f596b2c056101a44f976bd85e60536bfed29786ba5a03e8866be69e1944ae"
+      "byteLength": 7937,
+      "sha256": "sha256:f25ddb2588138ab0a99f566f941c5706c736584a0779e243f718203da014046b"
     },
     {
       "path": "pool/doppler-runtime.js",
@@ -3235,13 +3235,13 @@
     },
     {
       "path": "pool/sequence-result.js",
-      "byteLength": 14118,
-      "sha256": "sha256:8d32244a43516b46239624aaa6528315d164cde92c7921c462335957a5dbb112"
+      "byteLength": 14178,
+      "sha256": "sha256:20478ffb615ba9f668e0b889d49ed87a1e58ef1cc5d0ec75d67430367de643f9"
     },
     {
       "path": "pool/sequence-workload.js",
-      "byteLength": 11153,
-      "sha256": "sha256:026bd1944e69ce4bfb931489d216ebfe22add4ed4ecefb9fe7348d4ed2feec3c"
+      "byteLength": 11770,
+      "sha256": "sha256:c834ef61f1d583e347f2caf7b81897fe959dff866c6c288847939b5c74627ede"
     },
     {
       "path": "prompts/kernel.md",
@@ -3860,8 +3860,8 @@
     },
     {
       "path": "ui/pool-home/app.bundle.js",
-      "byteLength": 2599358,
-      "sha256": "sha256:b7ea9dc142dbbfde2cfca3c9e57da5c8984b2560a8201c40b908bb54c96dec81"
+      "byteLength": 2599523,
+      "sha256": "sha256:3fa4a8ef779c9fe7724ee83c654a92684ea748ff80098c5c8d4b3e2f1c47f42e"
     },
     {
       "path": "ui/pool-home/auto-download.js",
@@ -4415,13 +4415,13 @@
     },
     {
       "path": "ui/react/app.js",
-      "byteLength": 2206396,
-      "sha256": "sha256:5cfa32fad589865989a46f5f718a23dd751e9d6cc2ef3181193d1431b10ee23e"
+      "byteLength": 2206553,
+      "sha256": "sha256:9e171e05c511bdb528b71356685e5c2a6e47322f2e638dbcc2eedbcb954009f5"
     },
     {
       "path": "ui/react/design.js",
-      "byteLength": 1160315,
-      "sha256": "sha256:a5283f4873a280987e221d970d40cb2bd590db684610a08dc6424bd96687abb7"
+      "byteLength": 1160414,
+      "sha256": "sha256:fe97072aafd7e86095238f6dd1f0a0caabdcc61faa4a3f60081547532915a7ec"
     },
     {
       "path": "ui/reploid-home/index.js",
@@ -12839,5 +12839,5 @@
       "sha256": "sha256:abb6c18f6167d6afc8ee1b3adfcbbb89c0e93fb4fc4e98d7a12250f78aab206a"
     }
   ],
-  "bundleHash": "sha256:b0878681bacf8e2692915d61ec4a4b2a969419b845d5ec7db1be1fa80f548852"
+  "bundleHash": "sha256:ca0abca63115931fd105675a76033cf3c1d6edc7d6d9976f816f636ff728f4b5"
 }
