@@ -2913,10 +2913,8 @@
     {
       "path": "self/host/chat-view.js",
       "owner": "self",
-      "sha256": "sha256:76d8df935a6b59bba233dd458257c52873d919ce07fa7638bc5952d5a909954a",
-      "imports": [
-        "./decisions/model-state.js"
-      ]
+      "sha256": "sha256:8e0e479b5e4f184aed7196a305635907bf467a7aaa282f50c08bfce7a10c624c",
+      "imports": []
     },
     {
       "path": "self/host/circle-http-client.js",
@@ -3077,8 +3075,10 @@
     {
       "path": "self/host/decisions/model-state.js",
       "owner": "self",
-      "sha256": "sha256:b52db7a7dd059d5bfa6c13c1c3b6c10b61b35fb1d40b276f88f5ac92af315203",
-      "imports": []
+      "sha256": "sha256:b0059c8d746702a9206ebfb257962409d511d8c529992908821cbae14429399b",
+      "imports": [
+        "../chat-view.js"
+      ]
     },
     {
       "path": "self/host/decisions/projected-store.js",
@@ -4496,7 +4496,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:ac6c4c50a894a255ad12b80b27ea5040d3ba0277ae797545b26f3901cc5b88e3",
+      "sha256": "sha256:fdf1f1dff93cb00300bc5e0c315060ca30a1f3d7ddc94731164e56f8a1ebf5c3",
       "imports": []
     },
     {
@@ -5619,13 +5619,13 @@
     {
       "path": "ui/react/app.js",
       "owner": "ui",
-      "sha256": "sha256:15a296ebda360412873f33ea7fd21ba98efeca6838305deacbf0fc00b8b685ef",
+      "sha256": "sha256:a4585782fee42168a453943676c9287388d5c9d98e9865038004e4937b648b25",
       "imports": []
     },
     {
       "path": "ui/react/design.js",
       "owner": "ui",
-      "sha256": "sha256:400241f62c4a00dbf4beb18fc78164b70a3c7c4d2a1fb5bbe97bbafd14636101",
+      "sha256": "sha256:4b03b8e946e8dc8ef93937aa5bd4815f08a4703b223ab02e98cd17d2fcae12c6",
       "imports": []
     },
     {
