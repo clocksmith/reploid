@@ -895,8 +895,8 @@
     },
     {
       "path": "blueprints/0x0000AF-reploid-rooms-distributed-cognition.md",
-      "byteLength": 31622,
-      "sha256": "sha256:8bfad1bf090b93946e05b54d3d42c5a83f0ab5af1e752b1184a8afc74374449e"
+      "byteLength": 18187,
+      "sha256": "sha256:cb1be96c430725d77cae2a7a498867f9beb65d7c4bd79048e6a22ecab845012a"
     },
     {
       "path": "blueprints/blueprint-index-contract.md",
@@ -12839,5 +12839,5 @@
       "sha256": "sha256:abb6c18f6167d6afc8ee1b3adfcbbb89c0e93fb4fc4e98d7a12250f78aab206a"
     }
   ],
-  "bundleHash": "sha256:436011e511d7a1336fa5a4b9f16398d7fb2498f624d310041d79a5e9d3704d71"
+  "bundleHash": "sha256:39c540665d95251daf588480b524eb4330b7fd8e9e9c69e81c55b697ddc07dc7"
 }
