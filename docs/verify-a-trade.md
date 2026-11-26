@@ -5,6 +5,19 @@ computers each computed part of it, the requester was debited and each stage was
 credited. This page lets someone outside the project check a published trade
 receipt without trusting whoever ran the ledger.
 
+Two things to hold on to before reading a result.
+
+- **These trades are executor-readable.** On the ordinary routes checked here,
+  each serving computer can read what it is sent; the requester is shown the
+  recipients before anything leaves. A verified charge says nothing about
+  confidentiality, and this is not confidential pooling.
+- **An independent trade needs independent people.** A trade shows two parties
+  only when the provider is a second human operator on their own machine with
+  their own signing key. The check is independent only when the person running
+  it is someone else again. Two local accounts under one operator do not count,
+  and neither does an operator verifying their own receipt: signatures show
+  which key signed, never who holds it.
+
 ## What you need
 
 - Node 22 or later. No npm packages, no keys, no account and no network.

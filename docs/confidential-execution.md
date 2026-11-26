@@ -116,6 +116,13 @@ strength. A protection this route cannot use is shown disabled with its reason.
 | Compute on encrypted data | `homomorphic` | Your device keeps the key. Remote computers compute on encrypted values. |
 | Verified hardware | `attested` | Approved software can read your data inside protected hardware. You're trusting that hardware and software. |
 
+Secret sharing protects a request only against **non-colluding operators**: the
+two operators that hold the shares of one stage, if they combine them, read that
+stage's intermediate data and from it the prompt and the answer. It is never
+protection against everyone but the requester, and no label or description may
+say so; that property belongs to `homomorphic` alone. The value
+`secret-sharing` is a wire name and stays as it is.
+
 No label promises speed. A latency estimate is shown only from a relevant
 measurement (`listCapabilities` returns one only when the host has it).
 

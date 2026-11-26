@@ -60,6 +60,8 @@ export const EXECUTION_BACKENDS = freeze({
  * How data is processed (`execution.protection`). `plaintext` always compiles; `secret-sharing` and `homomorphic` fail
  * closed unless a host enables their unreviewed routes (inference/secret-shared.js, inference/protected.js); `attested`
  * is reserved and always refused: its route is parked and no verified hardware is qualified in this build.
+ * `secret-sharing` holds only against non-colluding operators: a stage's two share holders, combining their shares,
+ * read its data. It is not protection against everyone but the requester; only `homomorphic` aims at that.
  */
 export const PROTECTIONS = Object.freeze(['plaintext', 'secret-sharing', 'homomorphic', 'attested']);
 /**

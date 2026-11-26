@@ -10,6 +10,17 @@ The **ordinary inference exchange** (whole-model and non-confidential split
 routes) is the **first launch**, so the broader pilot moves forward rather than
 blocking on confidential-compute breakthroughs.
 
+**The ordinary exchange is executor-readable.** The computer that serves a
+request can read it and its answer. The recipients are disclosed before anything
+is sent, and that disclosure is the whole of its privacy: it is never
+confidential pooling and must not be described as such.
+
+**An independent trade needs independent people.** It counts only when a second
+human operator serves on their own machine with their own signing key, and an
+outside verifier who is a different person from both replays the records. Two
+local accounts under one operator, or one operator checking their own trade, do
+not count, whatever the signatures say.
+
 ## Operating mission
 
 **One hard bar for the long-term product goal (missing today).** A rented

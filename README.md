@@ -80,7 +80,7 @@ A contributor advertises a prepared model or stage. Reploid selects an eligible 
 
 ## Credits and accounting
 
-Configured fleet services can quote a request and reserve non-cash service credits. Settlement is bound to accepted terms and verified evidence, with distinct rules for completed, cancelled, and interrupted work. A tested cancellation does not establish that every interruption route settles. Public token sales, cash payouts, and open marketplace settlement are not established features. [Product contract](docs/product-specification.md) · [Fleet service](docs/fleet-service.md) · [Goals](GOALS.md)
+Configured fleet services can quote a request and reserve non-cash service credits. This ordinary exchange is executor-readable: the serving computer can read the request and its answer, the recipients are shown before anything is sent, and it is not confidential pooling. Settlement is bound to accepted terms and verified evidence, with distinct rules for completed, cancelled, and interrupted work. An independent trade means a second human operator on their own machine with their own key and an outside verifier who is a different person; two local accounts under one operator do not count. A tested cancellation does not establish that every interruption route settles. Public token sales, cash payouts, and open marketplace settlement are not established features. [Product contract](docs/product-specification.md) · [Fleet service](docs/fleet-service.md) · [Goals](GOALS.md)
 
 ## Read next
 
