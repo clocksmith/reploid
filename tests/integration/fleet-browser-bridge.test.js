@@ -100,7 +100,7 @@ it('rejects enrollment changes and never substitutes public capacity or download
     expect(native.generate).not.toHaveBeenCalled();
   } finally { client.close(); await bridge.close(); }
 });
-it('cancels the owned request on stream loss without inventing a refund or completion', async () => {
+it('ends a request the person stopped with their Stop, although the page also aborts the answer stream, without inventing a refund or completion', async () => {
   const native = host(); let rejectRun;
   native.generate.mockImplementation(async (_, delta, route) => { route({ recipientIdentity: provider, requestId: 'work' }); delta('Partial'); await new Promise((_, reject) => { rejectRun = reject; }); });
   native.cancel.mockImplementation(() => rejectRun?.(Error('Stopped')));
@@ -110,11 +110,30 @@ it('cancels the owned request on stream loss without inventing a refund or compl
     await client.connect(bridge.url, token); const controller = new AbortController(), states = [];
     await expect(client.execute({ threadId: 't', attemptId: 'cancel', model: client.models()[0], messages: [{ role: 'user', content: 'x' }], permissions: { sharingScope: 'mesh' }, privacy: plaintextPolicy() },
       { signal: controller.signal, requestApproval: async () => true, onState: row => states.push(row), onDelta: () => controller.abort() })).rejects.toThrow();
-    await vi.waitFor(() => expect(native.cancel).toHaveBeenCalledWith('cancel'));
+    await vi.waitFor(() => expect(native.cancel).toHaveBeenCalled());
+    // The first thing the host hears is the person's Stop, which it signs; the stream's close is not what ends the request.
+    expect(native.cancel.mock.calls[0]).toEqual(['cancel', { stop: true }]);
     expect(states.at(-1).execution.serviceCredit.status).toBe('pending');
   } finally { client.close(); await bridge.close(); }
 });
 
+it('ends a request whose page went away, with no stop, once the wait for one is over', async () => {
+  const native = host(); let rejectRun;
+  native.generate.mockImplementation(async (_, delta, route) => { route({ recipientIdentity: provider, requestId: 'work' }); delta('Partial'); await new Promise((_, reject) => { rejectRun = reject; }); });
+  native.cancel.mockImplementation(() => rejectRun?.(Error('Stopped')));
+  const bridge = await startFleetBrowserBridge({ host: native, origins: [origin], token, stopGraceMs: 20 });
+  try {
+    const controller = new AbortController();
+    const response = await fetch(bridge.url + '/generate', { method: 'POST', signal: controller.signal, headers: { Origin: origin, Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ threadId: 't', attemptId: 'gone', model: { id: model.id, identity }, poolIdentity: snapshot.poolIdentity, messages: [{ role: 'user', content: 'x' }],
+        privacy: plaintextPolicy(), privacyBinding: await (await import('../../packages/reploid/src/chat/execution-policy.js')).bindExecutionRoute({ model: { id: model.id, identity }, privacy: plaintextPolicy() }, wholeRoute) }) });
+    expect(response.status).toBe(200);
+    await response.body.getReader().read();
+    controller.abort();
+    await vi.waitFor(() => expect(native.cancel).toHaveBeenCalled());
+    expect(native.cancel.mock.calls).toEqual([['gone']]);
+  } finally { await bridge.close(); }
+});
 it('pairs over authenticated HTTPS /bridge via the Cloudflare tunnel Worker with strict secret/origin isolation and live queue state', async () => {
   const apiToken = 'text-api-bearer-secret-separate-from-browser-5678';
   const hostedOrigin = 'https://replo.id';

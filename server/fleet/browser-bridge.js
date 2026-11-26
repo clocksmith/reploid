@@ -18,7 +18,7 @@ function normalizeBasePath(basePath = '') {
 /** `claim` (optional) hands the pairing secret once to an allowed origin that presents the account pairing code this
  * host joined with (`join.js`): `{ codeDigest: sha256 hex of the code, expiresAt }`. Five wrong codes close it. */
 export function createFleetBrowserBridgeHandler({ host, token, origins, basePath = '', maxBodyBytes = 262144, maxConcurrent = 8, maxSeenAttempts = 10000,
-  claim = null, now = Date.now }) {
+  claim = null, now = Date.now, stopGraceMs = 250 }) {
   assert(claim === null || /^[a-f0-9]{64}$/.test(claim.codeDigest) && Number.isSafeInteger(claim.expiresAt), 'Pairing claim needs a code digest and expiry');
   let claimOpen = claim !== null, claimFailures = 0;
   assert(typeof token === 'string' && token.length >= 32, 'Strong pairing secret required');
@@ -172,7 +172,13 @@ export function createFleetBrowserBridgeHandler({ host, token, origins, basePath
       // This host's clock at each step, so the browser can say where the time before the first character went.
       const step = (name, at = Date.now()) => emit({ timing: { step: name, at } });
       step('host-received', receivedAt); step('route-checked');
-      response.on('close', () => { if (pending.has(attemptId)) host.cancel(attemptId); });
+      // A person's Stop reaches this host twice: the page posts /cancel and also aborts this stream, and the stream's
+      // close usually lands first. Ending the request on the close would end it as a lost page, with no stop signed
+      // by the requester. So a close waits briefly for the /cancel that names it; a closed page has none and ends here.
+      response.on('close', () => {
+        const lost = setTimeout(() => { if (pending.has(attemptId)) host.cancel(attemptId); }, stopGraceMs);
+        lost.unref?.();
+      });
       let lastAdmission = null, firstDelta = true;
       const operation = host.generate(
         { threadId: body.threadId, attemptId, model: selectedModel, messages: body.messages,
@@ -213,10 +219,11 @@ export function createFleetBrowserBridgeHandler({ host, token, origins, basePath
   };
 }
 
-export async function startFleetBrowserBridge({ host, token, origins, listenHost = '127.0.0.1', port = 0, tls = null, basePath = '', maxBodyBytes = 262144, maxConcurrent = 8, maxSeenAttempts = 10000, claim = null }) {
+export async function startFleetBrowserBridge({ host, token, origins, listenHost = '127.0.0.1', port = 0, tls = null, basePath = '', maxBodyBytes = 262144, maxConcurrent = 8, maxSeenAttempts = 10000, claim = null, stopGraceMs = undefined }) {
   const loopback = ['127.0.0.1', '::1', 'localhost'].includes(listenHost);
   assert(loopback || Boolean(tls?.key && tls?.cert), 'Non-loopback browser bridge requires TLS');
-  const bridge = createFleetBrowserBridgeHandler({ host, token, origins, basePath, maxBodyBytes, maxConcurrent, maxSeenAttempts, claim });
+  const bridge = createFleetBrowserBridgeHandler({ host, token, origins, basePath, maxBodyBytes, maxConcurrent, maxSeenAttempts, claim,
+    ...(stopGraceMs === undefined ? {} : { stopGraceMs }) });
   const server = tls ? https.createServer(tls, bridge.handle) : http.createServer(bridge.handle);
   server.requestTimeout = 30000;
   await new Promise((resolve, reject) => { server.once('error', reject); server.listen(port, listenHost, resolve); });
