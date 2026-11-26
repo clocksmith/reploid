@@ -797,6 +797,28 @@ describe('Conversation workspace', () => {
     expect(service.calls).toHaveLength(0);
   });
 
+  it('names storage-only sharing on the button and never starts compute for it', async () => {
+    const events = [], setSharing = vi.fn();
+    open(withoutIssue(session, { setSharing, getLocalModelFit: async () => null, getModelDownload: async id => ({ id, sizeBytes: 123000000 }),
+      setComputeContribution: async enabled => events.push(['compute', enabled]),
+      setCachedFileContribution: async enabled => events.push(['files', enabled]),
+      downloadLocalModel: async id => events.push(['download', id]) }));
+    c().startSharing(CANONICAL_CHAT_MODELS[1].id);
+    await vi.waitFor(() => expect(view.snapshot().download?.ready).toBe(true));
+    c().setDownloadSharing(['files']);
+    expect(view.snapshot().download.confirm).toBe('Download and share model files');
+    expect(view.snapshot().download.explanation).toContain('does not answer requests');
+    c().setDownloadSharing([]);
+    expect(view.snapshot().download.confirm).toBe('Download model');
+    c().setDownloadSharing(['files']);
+    c().confirmDownload();
+    await vi.waitFor(() => expect(events).toContainEqual(['download', CANONICAL_CHAT_MODELS[1].id]));
+    expect(events).toContainEqual(['files', true]);
+    expect(events).not.toContainEqual(['compute', true]);
+    expect(setSharing).not.toHaveBeenCalled();
+    expect(service.calls).toHaveLength(0);
+  });
+
   it('starts directly, appends followups and pins the conversation model', async () => {
     session.setCachedModels([CANONICAL_CHAT_MODELS[1]]);
     session.createThread({ sharingScope: 'local' });

@@ -897,8 +897,22 @@ export function createConversationController(session, {
   // ---- the reviewed download (the vanilla model setup dialog in its local mode) ----
   let downloadRequest = null, downloadReview = null;
   // `mode` is 'local' (store it to answer here) or 'contribute' (Computers' Start sharing: answer public requests).
-  const confirmLabel = (mode, compute, cached) => mode === 'contribute' && compute ? (cached ? 'Start sharing' : 'Download & share')
-    : cached ? 'Apply settings' : 'Download model';
+  // The button and explanation name what confirming does: answering requests (compute), sharing model files only
+  // (storage), or neither. Storage alone never starts compute.
+  const confirmLabel = (mode, sharingValues, cached) => {
+    const compute = sharingValues.includes('compute'), files = sharingValues.includes('files');
+    if (compute && (mode === 'contribute' || !cached)) return cached ? 'Start sharing' : 'Download & share';
+    if (files && !compute) return cached ? 'Share model files' : 'Download and share model files';
+    return cached ? 'Apply settings' : 'Download model';
+  };
+  const downloadExplanation = (mode, sharingValues, cached) => {
+    if (mode === 'local') return 'Store this model on this device to answer when network capacity is unavailable. Sharing choices apply to cached models on this device when you confirm.';
+    const compute = sharingValues.includes('compute'), files = sharingValues.includes('files');
+    if (compute) return cached ? 'Answer public requests while this page is open. Pause anytime.' : 'Download a model to answer public requests while this page is open. Pause anytime.';
+    if (files) return cached ? 'Share this model\u2019s files with other computers while this page is open. This device does not answer requests. Pause anytime.'
+      : 'Download this model and share its files with other computers while this page is open. This device does not answer requests. Pause anytime.';
+    return cached ? 'This device shares nothing for this model.' : 'Download this model without sharing it. This device does not answer requests or share files.';
+  };
   const openDownload = (modelId, review = null, mode = 'local') => {
     downloadReview = review;
     const state = sessionState;
@@ -912,14 +926,12 @@ export function createConversationController(session, {
     download = { open: true, mode, cached, modelId: chosen ? modelKey(chosen) : modelKey(models[0]) ?? null, choose: !chosen,
       title: chosen ? (mode === 'local' ? `Download ${chosen.name || chosen.id}` : chosen.name || chosen.id) : mode === 'local' ? 'Download model' : 'Start sharing',
       models: models.map(model => ({ value: modelKey(model), title: modelVariantLabel(model) })),
-      explanation: mode === 'local'
-        ? 'Store this model on this device to answer when network capacity is unavailable. Sharing choices apply to cached models on this device when you confirm.'
-        : cached ? 'Answer public requests while this page is open. Pause anytime.' : 'Download a model to answer public requests while this page is open. Pause anytime.',
+      explanation: downloadExplanation(mode, [...(compute ? ['compute'] : []), ...(filesShared ? ['files'] : [])], cached),
       sharing: sharingOptionChoices({ canShareCompute: !!session.setComputeContribution, canShareFiles: !!session.setCachedFileContribution, compute, files: filesShared })
         .map(option => ({ value: option.value, title: option.title, status: option.status, disabled: !!option.disabled })),
       sharingValues: [...(compute ? ['compute'] : []), ...(filesShared ? ['files'] : [])],
       size: cached ? 'Downloaded' : 'Checking download size…', ready: cached, retry: false, fit: '', info: cached ? { cached: true } : null,
-      confirm: confirmLabel(mode, compute, cached) };
+      confirm: confirmLabel(mode, [...(compute ? ['compute'] : []), ...(filesShared ? ['files'] : [])], cached) };
     requestFocus('download');
     notify();
     if (!cached) void checkDownload();
@@ -1133,7 +1145,8 @@ export function createConversationController(session, {
     selectDownloadModel(modelId) { if (download) { download = { ...download, modelId }; void checkDownload(); } },
     setDownloadSharing(values) {
       if (!download) return;
-      download = { ...download, sharingValues: [...values], confirm: confirmLabel(download.mode, values.includes('compute'), download.cached) };
+      download = { ...download, sharingValues: [...values], confirm: confirmLabel(download.mode, values, download.cached),
+        explanation: downloadExplanation(download.mode, values, download.cached) };
       notify();
     },
     /** Computers' Start sharing: the same reviewed download, sharing this device's compute with the model. */
