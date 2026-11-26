@@ -18,7 +18,7 @@
     "kernel/boot.js"
   ],
   "counts": {
-    "apps/poolday": 403,
+    "apps/poolday": 405,
     "self": 457,
     "shared": 2526
   },
@@ -2393,6 +2393,18 @@
       "source": "apps/poolday/host/decisions/model-choices.js",
       "owner": "apps/poolday",
       "basis": "Product decisions and helpers the React bundle (ui/react/app.js) compiles in; the bundle is not traced by import."
+    },
+    {
+      "served": "host/decisions/model-state.d.ts",
+      "source": "apps/poolday/host/decisions/model-state.d.ts",
+      "owner": "apps/poolday",
+      "basis": "Describes host/decisions/model-state.js. Reached only from product entries."
+    },
+    {
+      "served": "host/decisions/model-state.js",
+      "source": "apps/poolday/host/decisions/model-state.js",
+      "owner": "apps/poolday",
+      "basis": "Reached only from product entries."
     },
     {
       "served": "host/decisions/projected-store.d.ts",
