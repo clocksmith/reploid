@@ -91,7 +91,7 @@ export function createConversationController(session, {
 } = {}) {
   const listeners = new Set();
   let disposed = false, snapshot = null, sessionState = session.getState();
-  const notify = () => { if (disposed) return; snapshot = project(); for (const listener of listeners) listener(); };
+  const notify = () => { if (disposed) return; snapshot = project(advance()); for (const listener of listeners) listener(); };
 
   // ---- view state: what the person has staged on this page (the vanilla page's viewState and closures) ----
   /**
@@ -354,19 +354,38 @@ export function createConversationController(session, {
       && model.reachableProviderIds?.length > 0;
   }
 
-  // ---- the projection: the vanilla render(), producing a record instead of DOM writes ----
+  // ---- the state transition and the projection ----
+  // advance() moves what the page has staged on with the session (the remembered pick, the automatic choice, the draft
+  // pin, the held Send, the sheet's staged model) and returns the frame project() reads. project() only reads: it
+  // builds the snapshot record from that frame and changes nothing. notify() runs both.
   let fitRequest, fitKey, fitInfo, sendDisabled = true;
-  function projectSheet(snapshotState, finding) {
+  const localFitShown = model => !!model?.source && !model.partition && !model.fleet
+    && (hasBrowserModelOrigin(model) || model.localCached || model.localReady);
+  /** The sheet's staged computer and model follow the session until the person touches them; details fetch the fit. */
+  function advanceSheet(state) {
     if (pickerLocation === 'local') pickerChoice = 'device';
     else if (!pickerChoice || pickerChoice === 'device') pickerChoice = 'contributors';
-    const state = snapshotState.computerLabels ? snapshotState : withComputerLabels(snapshotState, session);
-    const block = blockFor(state), locked = lockedDestination(state);
+    const block = blockFor(state);
     if (pickerModelImplied && pickerLocation === 'network' && pickerChoice === 'contributors' && !block) {
       const current = state.models?.find(model => modelKey(model) === modelKey(pickerModel)) || pickerModel;
       pickerModel = modelForLocation(state.models, current, 'network', { state, canDownload });
       if (modelKey(pickerModel) !== modelKey(current)) pickerPicked = false;
     }
     if (!pickerTouched) pickerModel = (state.models || []).find(model => modelKey(model) === currentKey) || pickerModel;
+    const key = localFitShown(pickerModel) && sheet.detailsOpen ? modelIdentity(pickerModel) : null;
+    if (fitKey !== key) {
+      fitRequest?.abort(); fitInfo = null; fitKey = key;
+      if (key && session.getLocalModelFit) {
+        const request = fitRequest = new AbortController(), model = pickerModel;
+        session.getLocalModelFit(model, { signal: request.signal }).then(info => {
+          if (!request.signal.aborted && !disposed) { fitInfo = info; notify(); }
+        }).catch(() => {});
+      }
+    }
+  }
+  function projectSheet(snapshotState, finding) {
+    const state = snapshotState.computerLabels ? snapshotState : withComputerLabels(snapshotState, session);
+    const block = blockFor(state), locked = lockedDestination(state);
     const models = [...(state.models || [])];
     const selected = (state.models || []).find(model => modelKey(model) === modelKey(pickerModel));
     if (pickerModel && !models.some(model => modelKey(model) === modelKey(pickerModel))) models.push(selected || unavailableModelChoice(pickerModel));
@@ -399,18 +418,7 @@ export function createConversationController(session, {
     const disclosure = promptDisclosure({ site: 'sheet', local: pickerLocation === 'local',
       operator: pickerChoice === 'desktop' && locked ? locked.label : null, blocked: !!block,
       stages: !!pickerModel?.partition, pool: !!pickerModel?.fleet });
-    const showLocalFit = pickerModel?.source && !pickerModel.partition && !pickerModel.fleet
-      && (hasBrowserModelOrigin(pickerModel) || pickerModel.localCached || pickerModel.localReady);
-    const key = showLocalFit && sheet.detailsOpen ? modelIdentity(pickerModel) : null;
-    if (fitKey !== key) {
-      fitRequest?.abort(); fitInfo = null; fitKey = key;
-      if (key && session.getLocalModelFit) {
-        const request = fitRequest = new AbortController(), model = pickerModel;
-        session.getLocalModelFit(model, { signal: request.signal }).then(info => {
-          if (!request.signal.aborted && !disposed) { fitInfo = info; notify(); }
-        }).catch(() => {});
-      }
-    }
+    const showLocalFit = localFitShown(pickerModel);
     const changeDisabled = changingModel || !outcome.action || attachmentReader.pending || (!!recoverySelection && !matchesRecovery(state));
     return {
       open: true, title: sheet.title, computers, disclosure, threadNote: !!state.activeThread, sections,
@@ -424,8 +432,8 @@ export function createConversationController(session, {
     };
   }
 
-  function project() {
-    let state = withComputerLabels(sessionState, session);
+  function advance() {
+    const state = withComputerLabels(sessionState, session);
     applyPairedDesktopDefault(state);
     applyRememberedChoice(state);
     const finding = searchingNow(state);
@@ -479,6 +487,43 @@ export function createConversationController(session, {
       && !choosingStill(state)) viewState.draftModel = selectedModel;
     const prepareHere = location === 'local' && selectedModel?.localCached === true;
     const usable = explicitPrivacy(state).computation === 'plaintext' && (execution.usable || prepareHere);
+    const busy = runningIds.includes(thread?.id) || !!state.comparisonPhase;
+    privacyChoice.follow(state, busy || !!thread?.closed);
+    // The queued Send: it waits for a computer running this model while discovery runs, and lapses when that can't happen.
+    const permitted = !busy && canWaitForPublicModel(state, selectedModel, location);
+    if (held() && (!permitted || held().scope !== queueScope(state, selectedModel))) dropHold();
+    // A Send held for whichever model turns up ends with the wait when none did: the status says so.
+    if (held() && waitsForAnyModel(state) && choiceWaitOver(state) && !usable) dropHold();
+    const intent = held(), ready = !!intent && readyForQueuedSend(state, intent);
+    // The hold is bounded by the discovery wait; once it is over, the held Send goes the way a Send pressed now would.
+    if (intent && !intent.scheduled && (ready || usable && choiceWaitOver(state))) {
+      intent.scheduled = true;
+      queueMicrotask(() => {
+        intent.scheduled = false;
+        if (disposed || send !== intent) return;
+        const latest = sessionState;
+        if (readyForQueuedSend(latest, intent)) submitDraft(intent);
+        else if (choiceWaitOver(latest) && !sendDisabled
+          && modelExecutionState(latest.models?.find(item => modelKey(item) === currentKey), effectiveLocation(latest)).usable) {
+          dropHold(); submitDraft();
+        }
+      });
+    }
+    const invite = viewState.guestInvite, guest = state.guestAccess;
+    const inviteJoined = !!invite && guest?.joined && guest.hostParticipantId === invite.hostPeerId;
+    const queueable = !busy && !usable && finding && canWaitForPublicModel(state, selectedModel, location);
+    const askFirst = !thread && !busy && !usable && !queueable && viewState.privacy === undefined && !viewState.privacyTouched && !lockedDestination(state);
+    sendDisabled = attachmentReader.pending || !(usable || queueable || askFirst) || !!thread?.closed || !!state.storageError || (!!invite && !inviteJoined);
+    // What the composer reads of the sheet is its staging before the sheet follows this change.
+    const frame = { state, finding, thread, catalogModels, runningIds, pinnedModel, models, location, freshVisitor, current, selectedModel,
+      execution, usable, busy, ready, invite, guest, inviteJoined, sheetModel: pickerModel, sheetChoice: pickerChoice };
+    if (sheet.open) advanceSheet(state);
+    threadList.follow(state);
+    return frame;
+  }
+
+  function project({ state, finding, thread, catalogModels, runningIds, pinnedModel, models, location, freshVisitor, current, selectedModel,
+    execution, usable, busy, ready, invite, guest, inviteJoined, sheetModel, sheetChoice }) {
     const localPreparing = state.localModel?.phase === 'loading';
     const requestedModel = selectedModel || pinnedModel || models.find(model => modelKey(model) === current)
       || catalogModels.find(model => modelKey(model) === current)
@@ -505,11 +550,9 @@ export function createConversationController(session, {
     if (acquiring && execution.source === 'network' && execution.status === 'ready') acquisitionText += ' Network model ready.';
     const progress = !acquiring ? null : acquisition?.progress?.totalBytes && acquisition.progress.receivedBytes !== null
       ? { value: acquisition.progress.receivedBytes, max: acquisition.progress.totalBytes } : { value: null, max: null };
-    const busy = runningIds.includes(thread?.id) || !!state.comparisonPhase;
     const privacy = explicitPrivacy(state);
     const privacyDisabled = busy || !!thread?.closed;
     const named = namedPrivacyPreset(privacy, presetContext(state));
-    privacyChoice.follow(state, privacyDisabled);
     const shared = !busy && !usable && !preparing && !thread?.closed && !acquiring ? recoverySharedModel(state, current, location, privacy) : null;
     let statusText = '';
     if (!busy) {
@@ -519,7 +562,7 @@ export function createConversationController(session, {
         if (execution.source === 'network') statusText = execution.status === 'busy' ? 'Waiting for capacity.' : creditCapText(selectedModel);
         else if (execution.status === 'cached') statusText = 'Model downloaded.';
       } else if (preparing) statusText = state.localModel?.progress?.message || 'Model preparing…';
-      else if (state.ownerPairing?.status === 'offline' && state.ownerPairing.hostLabel && pickerChoice !== 'device'
+      else if (state.ownerPairing?.status === 'offline' && state.ownerPairing.hostLabel && sheetChoice !== 'device'
         && phase !== 'paused' && phase !== 'searching') {
         statusText = `${state.ownerPairing.hostLabel} is offline. Open Reploid on ${state.ownerPairing.hostLabel}.`;
       } else if (freshVisitor && phase === 'searching') statusText = 'Finding computers…';
@@ -542,33 +585,10 @@ export function createConversationController(session, {
       local: privacy.recipients.kind === 'none' && !usable || location === 'local' || execution.usable && execution.source === 'local',
       operator: pairedOperator(state), named: privacy.recipients.kind === 'named', stages: !!selectedModel?.partition,
       usable, pool: !!selectedModel?.fleet });
-    // The queued Send: it waits for a computer running this model while discovery runs, and lapses when that can't happen.
-    const permitted = !busy && canWaitForPublicModel(state, selectedModel, location);
-    if (held() && (!permitted || held().scope !== queueScope(state, selectedModel))) dropHold();
-    // A Send held for whichever model turns up ends with the wait when none did: the status below says so.
-    if (held() && waitsForAnyModel(state) && choiceWaitOver(state) && !usable) dropHold();
-    if (held()) {
-      const intent = held(), ready = readyForQueuedSend(state, intent);
-      // The hold is bounded by the discovery wait. While the composer names a model that can answer but whose
-      // computer is busy or not reachable yet, it says so; once the wait is over, the held Send goes the way a
-      // Send pressed now would.
-      statusText = usable && !ready ? 'Waiting for capacity.'
-        : waitsForAnyModel(state) ? 'Finding computers…' : `Waiting for a computer running ${modelVariantLabel(selectedModel)}…`;
-      if (!intent.scheduled && (ready || usable && choiceWaitOver(state))) {
-        intent.scheduled = true;
-        queueMicrotask(() => {
-          intent.scheduled = false;
-          if (disposed || send !== intent) return;
-          const latest = sessionState;
-          if (readyForQueuedSend(latest, intent)) submitDraft(intent);
-          else if (choiceWaitOver(latest) && !sendDisabled
-            && modelExecutionState(latest.models?.find(item => modelKey(item) === currentKey), effectiveLocation(latest)).usable) {
-            dropHold(); submitDraft();
-          }
-        });
-      }
-    }
-    const detailModel = sheet.open ? pickerModel : requestedModel;
+    // While a Send is held, the composer names what it waits for: capacity on the model shown, or a computer for it.
+    if (held()) statusText = usable && !ready ? 'Waiting for capacity.'
+      : waitsForAnyModel(state) ? 'Finding computers…' : `Waiting for a computer running ${modelVariantLabel(selectedModel)}…`;
+    const detailModel = sheet.open ? sheetModel : requestedModel;
     const cells = state.answerLimits?.find(entry => entry.selectionId === modelKey(detailModel || {}))?.cells || [];
     const bounds = [...new Map(cells.map(cell => [cell.maxPromptTokens + '/' + cell.maxAnswerTokens, cell])).values()].sort((a, b) => a.maxPromptTokens - b.maxPromptTokens);
     const configuredAnswerTokens = catalogModels.find(model => model.id === detailModel?.id && !model.partition)?.generation?.maxTokens;
@@ -586,8 +606,6 @@ export function createConversationController(session, {
     const availabilityText = { ready: 'Ready', waiting: preparing ? 'Loading' : 'Finding computers', unavailable: 'Unavailable' }[availability];
     const modelDigest = findingFirst ? '' : activeModel ? `${computerName} · ${modelVariantLabel(activeModel)}` : '';
     // An invite link offers one action: join that computer. Until it is joined, nothing can be sent anywhere.
-    const invite = viewState.guestInvite, guest = state.guestAccess;
-    const inviteJoined = !!invite && guest?.joined && guest.hostParticipantId === invite.hostPeerId;
     const joiningHost = !!invite && guest?.status === 'joining';
     let statusHidden = !statusText || !!acquisitionText;
     if (held()) statusHidden = false;
@@ -607,9 +625,6 @@ export function createConversationController(session, {
       ['retry', !busy && !usable && !preparing && location !== 'local' && exhausted && !thread?.closed]
     ];
     const nextAction = nextActions.find(([, eligible]) => eligible)?.[0] ?? null;
-    const queueable = !busy && !usable && finding && canWaitForPublicModel(state, selectedModel, location);
-    const askFirst = !thread && !busy && !usable && !queueable && viewState.privacy === undefined && !viewState.privacyTouched && !lockedDestination(state);
-    sendDisabled = attachmentReader.pending || !(usable || queueable || askFirst) || !!thread?.closed || !!state.storageError || (!!invite && !inviteJoined);
     const startingHidden = !!(thread?.messages.length || thread?.closed || runningIds.includes(thread?.id) || state.comparisonPhase);
     const searchVisible = searchAvailable();
     const composer = {
@@ -915,7 +930,7 @@ export function createConversationController(session, {
     searchOn = state.enabled && (!!state.url || !!search?.available() || deviceSearchOn());
     notify();
   }) : () => {};
-  snapshot = project();
+  snapshot = project(advance());
 
   const thread = () => sessionState.activeThread;
   const approval = createRemoteApproval({ session, thread, act });

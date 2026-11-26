@@ -37,14 +37,23 @@ export function createThreadList({ session, getState, notify, now, act, requestF
   let archived = false, rename = CLOSED_RENAME, clock = null;
   viewState.seen ??= new Map();
   const tick = () => notify();
+  const listed = state => (state.threads || []).filter(item => !!item.closed === archived);
+  const completionOf = item => { const attempt = item.attempts.at(-1); return `${attempt?.id || ''}:${attempt?.status || ''}`; };
   return {
-    /** The list as the snapshot shows it. It also marks the selected thread's answer as seen. */
+    /** Marks the selected thread's answer as seen, and runs the clock while any listed thread has an age to show. */
+    follow(state) {
+      const items = listed(state), selected = items.find(item => item.id === state.selectedId);
+      if (selected) viewState.seen.set(selected.id, completionOf(selected));
+      // Ages ("3m") move on while threads are listed, without any other change; nothing ticks with no threads.
+      const aged = items.some(item => Number.isFinite(activityTime(item)));
+      if (aged && !clock && !disposed()) clock = setInterval(tick, 60000);
+      else if (!aged && clock) { clearInterval(clock); clock = null; }
+    },
+    /** The list as the snapshot shows it. */
     project(state, catalogModels) {
       const time = now();
-      const items = (state.threads || []).filter(item => !!item.closed === archived).sort((a, b) => recent(b) - recent(a)).map(item => {
-        const attempt = item.attempts.at(-1), status = attempt?.status || '';
-        const completion = `${attempt?.id || ''}:${status}`;
-        if (item.id === state.selectedId) viewState.seen.set(item.id, completion);
+      const items = listed(state).sort((a, b) => recent(b) - recent(a)).map(item => {
+        const status = item.attempts.at(-1)?.status || '', completion = completionOf(item);
         const label = statusLabel(status, viewState.seen.get(item.id) === completion);
         const firstInput = item.messages.find(message => message.role === 'user')?.content;
         const sources = firstInput && session.getDocumentSources?.(firstInput);
@@ -57,9 +66,6 @@ export function createThreadList({ session, getState, notify, now, act, requestF
           // How much of the model's advertised context the last answer used, when the record says.
           context: (({ percent, text }) => percent === null ? null : { percent: Math.round(percent), text })(projectThreadContext(item, catalogModels)) };
       });
-      // Ages ("3m") move on while threads are listed, without any other change; nothing ticks with no threads.
-      if (items.some(item => item.time) && !clock && !disposed()) clock = setInterval(tick, 60000);
-      else if (!items.some(item => item.time) && clock) { clearInterval(clock); clock = null; }
       return { archived, items, empty: archived ? 'No archived threads.' : 'No threads yet.' };
     },
     renameView: () => ({ ...rename }),
