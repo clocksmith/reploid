@@ -1416,7 +1416,7 @@
     {
       "path": "config/module-inventory.json",
       "byteLength": 698540,
-      "sha256": "sha256:6c778c5962fef39f75ac82c7ce3c4699b64df5f3f249fe0b4f9abbba8c83e378"
+      "sha256": "sha256:bf31eae4c79d855c1cdad4a3e188aa3fc729c66aad67a55f70460d5f4bbac8ba"
     },
     {
       "path": "config/module-registry.json",
@@ -1935,8 +1935,8 @@
     },
     {
       "path": "host/decisions/conversation-controller.js",
-      "byteLength": 85197,
-      "sha256": "sha256:82d37eac5adc00de16ed974933e78c5743a44de7da1f82c69aa985480a290a6b"
+      "byteLength": 86504,
+      "sha256": "sha256:2b6b92946df9058e533ccb8a192b705cdb1b408c324cb860a73055b6d0880fc2"
     },
     {
       "path": "host/decisions/conversation-details.js",
@@ -4415,13 +4415,13 @@
     },
     {
       "path": "ui/react/app.js",
-      "byteLength": 2202856,
-      "sha256": "sha256:71b73edd982466d7cc1204f0562f1f131873906eb5e865b2894b082811025fa1"
+      "byteLength": 2203609,
+      "sha256": "sha256:c02e0a9838c7321f5789037a8cdafc6f7be8d91749eead33462b6acf3b81616d"
     },
     {
       "path": "ui/react/design.js",
-      "byteLength": 1158481,
-      "sha256": "sha256:392d423ee5dfb7ac07e2c476983a505ea7d7cc650648d7b90c17a9f13a623073"
+      "byteLength": 1159217,
+      "sha256": "sha256:052e0f68422246e79415040d7d2c0109ec8b0bac6d20eadeeef5a9de1b5a141b"
     },
     {
       "path": "ui/reploid-home/index.js",
@@ -12839,5 +12839,5 @@
       "sha256": "sha256:abb6c18f6167d6afc8ee1b3adfcbbb89c0e93fb4fc4e98d7a12250f78aab206a"
     }
   ],
-  "bundleHash": "sha256:aa655c23f0c824d2511ee4319631e24b0507fcac908ca460aeac96e9260cb606"
+  "bundleHash": "sha256:27e0353f853be0c51498d3a695f54e1640a7f6947e69aac6f66a73ef6501d3ef"
 }
