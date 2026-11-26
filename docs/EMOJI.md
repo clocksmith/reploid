@@ -30,12 +30,12 @@ This codebase follows a **strict no-emoji policy**. Use Unicode symbols for visu
 | ☗ | U+2617 | `&#9751;` | Folder |
 | ☐ | U+2610 | `&#9744;` | Document, file |
 | ☑ | U+2611 | `&#9745;` | Checked |
-| ⎈ | U+2388 | `&#9032;` | Settings, helm |
+| ⎈ | U+2388 | `&#9096;` | Settings, helm |
 | ☰ | U+2630 | `&#9776;` | Code file |
 | ƒ | U+0192 | `&#402;` | Function, script |
-| ☷ | U+2637 | `&#9719;` | Data, JSON, inventory |
+| ☷ | U+2637 | `&#9783;` | Data, JSON, inventory |
 | ☊ | U+260A | `&#9738;` | HTML |
-| ☲ | U+2632 | `&#9714;` | CSS |
+| ☲ | U+2632 | `&#9778;` | CSS |
 | ☻ | U+263B | `&#9787;` | Media |
 | ⛝ | U+26DD | `&#9949;` | Package |
 | ☙ | U+2619 | `&#9753;` | Text, log |
@@ -55,7 +55,7 @@ This codebase follows a **strict no-emoji policy**. Use Unicode symbols for visu
 | ✗ | U+2717 | `&#10007;` | Cancel, reject |
 | ⚑ | U+2691 | `&#9873;` | HITL gate, flag |
 | ⚿ | U+26BF | `&#9919;` | Lock, auth |
-| ☈ | U+2608 | `&#9800;` | Clear, reset, dismiss |
+| ☈ | U+2608 | `&#9736;` | Clear, reset, dismiss |
 | ↑ | U+2191 | `&#8593;` | Sort ascending |
 | ↓ | U+2193 | `&#8595;` | Sort descending |
 | ▼ | U+25BC | `&#9660;` | Disclosure |

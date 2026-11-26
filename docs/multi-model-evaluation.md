@@ -1,5 +1,9 @@
 # Generic Multi-Model Evaluation
 
+> **Paused research.** Zero and X are a separate research track, paused under the current
+> validation boundary ([GOALS.md](../GOALS.md#separate-research-track-zero-and-x)). This page
+> describes that work; it is not a product commitment.
+
 Implementation reference for the registered optional `MultiModelEvaluator` DI module.
 Registration does not establish an integrated product workflow or qualification.
 
@@ -9,7 +13,7 @@ It is not a Poolday scientific-fitness evaluation, a protein-model comparison,
 or evidence for model promotion.
 
 Poolday scientific promotion uses the separate
-`pool/scientific-evaluation.js` and `pool/scientific-fitness.js` contracts. A
+`apps/poolday/pool/scientific-evaluation.js` and `apps/poolday/pool/scientific-fitness.js` contracts. A
 candidate requires a frozen public cohort, family-disjoint partition, exact
 model contracts, adjudication, model result sets, and a persisted manifest
 whose contents and hash match the scientific-fitness receipt. This generic
@@ -19,7 +23,7 @@ harness cannot supply those gates.
 
 ## Module
 
-**Path:** `core/multi-model-evaluator.js`
+**Path:** `self/core/multi-model-evaluator.js`
 
 **Primary API:** `evaluate(tasks, modelConfigs, options)`
 

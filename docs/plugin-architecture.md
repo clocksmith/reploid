@@ -13,7 +13,7 @@ participant view ← private session state ← recorded result or failure
 ```
 
 The first built-in is `/experiments`, **Spot the imitation**. Its rules live in
-`self/plugins/model-imitation`; they do not import a network, DOM, storage or
+`apps/poolday/plugins/model-imitation`; they do not import a network, DOM, storage or
 model provider. A game can use the same lifecycle with different actions,
 state, scoring and host capabilities; the engine tests exercise a dice game
 capability independently of model generation.

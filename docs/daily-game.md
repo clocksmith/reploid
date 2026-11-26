@@ -114,7 +114,7 @@ An operator can serve two ranked circles together. Prepare a second config with 
 npm run daily -- serve --config /private/friends/circle.json --also /private/public/circle.json
 ~~~
 
-Set `publicChallenge` to `true`, `auth.type` to `device`, and `bootstrapPlayers` to an empty array in the public config. Set its `origin` to the exact HTTPS address of the tunnel or reverse proxy and send that endpoint to the public loopback port. Keep the private circle on its original origin and separate port. Visitors register on the public origin. The private owner launcher and its three-turn allowance remain attached to the private circle. The databases persist across a coordinated restart; a new public hostname starts a new set of players, because device keys are stored per origin and each signature names its origin.
+Set `publicChallenge` to `true`, `auth.type` to `device`, and `bootstrapPlayers` to an empty array in the public config. Set its `origin` to the exact HTTPS address of the tunnel or reverse proxy and send that endpoint to the public loopback port. Keep the private circle on its original origin and separate port. Visitors register on the public origin. The private owner launcher and its five-turn daily allowance (`TURNS_PER_DAY` in `server/daily/rules.js`) remain attached to the private circle. The databases persist across a coordinated restart; a new public hostname starts a new set of players, because device keys are stored per origin and each signature names its origin.
 
 ### Device-key sign-in
 

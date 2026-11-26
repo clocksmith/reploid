@@ -46,9 +46,11 @@ promotion decision, and generation rollback. See
 
 ## Boot Sequence
 
-### 1. Entry Point (`index.html` + `entry/seed-vfs.js`)
+### 1. Entry Point (`apps/poolday/index.html` + `entry/seed-vfs.js`)
 
-The boot UI allows operators to configure:
+The served page `apps/poolday/index.html` boots Zero on `/zero` (`self/zero/boot.js`) and X on
+`/x` (`self/kernel/boot.js`); `/` is the Poolday product. `self/entry/seed-vfs.js` forwards to
+`self/host/seed-vfs.js`. The boot UI allows operators to configure:
 - **Genesis Level**: `tabula` through `full`
 - **Primary Reploid Launch**: attach a local executor, enable remote ring slots, or optionally unlock a sponsor access window
 - **Research Connection Type**: direct cloud API, proxy server, or Doppler local model
@@ -71,14 +73,14 @@ Modules are imported from VFS based on `config/genesis-levels.json` for the sele
 
 ### 3. Genesis Levels (`config/genesis-levels.json`)
 
-| Level | Modules | Description |
-|-------|---------|-------------|
-| **tabula** | 7 cumulative | Bootstrap substrate core |
-| **spark** | 21 cumulative | Minimal agent core |
-| **reflection** | 27 cumulative | Streaming, verification, HITL |
-| **cognition** | 38 cumulative | Semantic and symbolic cognition |
-| **substrate** | 50 cumulative | Runtime infrastructure and workers |
-| **full** | 68 cumulative | Arena, swarm, multi-model systems, and signed improvement episodes |
+[`self/config/genesis-levels.json`](../self/config/genesis-levels.json) is the source for the
+levels, their order (`tabula`, `capsule`, `spark`, `reflection`, `cognition`, `substrate`,
+`full`; each `extends` the previous one), their descriptions and their module lists. To print
+the cumulative module count of each level:
+
+```sh
+node -e 'const L=require("./self/config/genesis-levels.json").levels;const all=k=>[...(L[k].extends?all(L[k].extends):[]),...L[k].modules];for(const k in L)console.log(k,all(k).length)'
+```
 
 Each level defines:
 - `modules`: Files to hydrate for that cumulative boot tier
@@ -192,7 +194,7 @@ Parses LLM output for tool calls:
 
 ## Infrastructure
 
-### `infrastructure/event-bus.js`
+### `shared/infrastructure/event-bus.js`
 
 Pub/sub system for decoupled communication:
 
@@ -362,7 +364,6 @@ All tools loaded from `/tools/` at boot. No hardcoded tools.
 | **EditFile** | Edit (literal match/replace) |
 | **Version Control** | Git (VFS-scoped shim) |
 | **Analysis** | FileOutline |
-| **External** | Python (via Pyodide Web Worker) |
 
 ### Tool Interface
 
@@ -386,8 +387,8 @@ export const schema = {
 
 ```
 reploid/
-├── self/index.html          # Entry point
-├── self/entry/seed-vfs.js   # VFS hydration + SW activation
+├── apps/poolday/index.html  # Served page; boots Zero on /zero and X on /x
+├── self/entry/seed-vfs.js   # Forwards to self/host/seed-vfs.js (VFS hydration + SW activation)
 ├── self/entry/start-app.js  # Boot orchestrator (runs from VFS)
 ├── self/sw-module-loader.js # Service worker for VFS modules
 │
@@ -402,7 +403,6 @@ reploid/
 │   └── verification-manager.js  # Pre-flight checks
 │
 ├── self/infrastructure/     # Support services
-│   ├── event-bus.js        # Pub/sub system
 │   ├── di-container.js     # Dependency injection
 │   ├── hitl-controller.js  # Human-in-the-loop
 │   ├── audit-logger.js     # Execution logging
@@ -411,17 +411,19 @@ reploid/
 │
 ├── self/ui/                 # User interface
 │   ├── proto/              # Main proto UI
-│   └── dashboard/          # Dashboard helpers and explorer components
+│   ├── boot-wizard/        # Boot and goal setup
+│   └── panels/             # Panel components
 │
 ├── self/tools/              # Agent tools (all CamelCase)
 │   ├── ReadFile.js, WriteFile.js, ...
-│   ├── SpawnWorker.js, ListWorkers.js, AwaitWorkers.js
-│   └── python/             # Pyodide runtime
+│   └── SpawnWorker.js, ListWorkers.js, AwaitWorkers.js
 │
 ├── self/config/             # Configuration
 │   ├── genesis-levels.json # Module/worker/role definitions
 │   ├── module-registry.json
 │   └── vfs-manifest.json
+│
+├── shared/infrastructure/   # Shared browser services (event-bus.js and others)
 │
 ├── self/testing/            # Test infrastructure
 │   └── arena/              # Arena harness and sandbox
@@ -445,4 +447,4 @@ For module development guidelines, see [style-guide.md](./style-guide.md) and th
 
 ---
 
-*Last updated: March 2026*
+*Last updated: November 2026*

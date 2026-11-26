@@ -34,7 +34,9 @@ reconnects, persists opt-out, and is distinct from Stop sharing.
 
 `node scripts/vendor-doppler.js [archive]` verifies the archive's SHA-512 against
 `package-lock.json`, checks its package identity and paths, and extracts the entire
-`doppler-gpu@0.6.2` package under `shared/vendor/doppler/0.6.2/` (then `self/vendor/doppler/0.6.2/`). The original archive
+pinned Doppler package (`node_modules/dopplerx` in `package-lock.json`, matching
+[`shared/config/doppler-package.json`](../shared/config/doppler-package.json)) under
+`shared/vendor/doppler/<version>/`. The original archive
 is also retained under `deploy/artifacts/` for integrity-checked offline npm cache
 seeding during the backend build. No dependency declarations are changed.
 

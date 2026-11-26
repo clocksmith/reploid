@@ -38,15 +38,19 @@ used as substitute artifact or geometry evidence.
 
 | Catalog row | Current host policy / remaining duplication |
 | --- | --- |
-| Qwen 3.5 0.8B | No declared partition cut; offers a pinned adapter choice. |
+| Qwen 3.5 0.8B | No declared partition cut; lists one pinned optional adapter in `availableAdapters`. |
 | Qwen 3.5 2B | Legacy `partitionSplitLayer: 4`; no compact v3 contract. |
 | Qwen 3.8 27B | Whole model and partition; compact `splitLayers: [1]`, F32 and pinned `a000b91d…d882c`; explicit generation, load and per-stage budgets. |
 | Qwen 3.6 35B A3B | Whole model; explicit generation and load settings, no cut. |
 | Qwen 3.8 Flash-Next | Whole model; explicit generation, load and gather budgets, no cut. |
 
+Every row in `shared/config/chat-models.json` has `adapters: []`: no adapter is applied by
+default.
+
 ### Remaining pre-disclosure qualification
 
-After execution-policy v2 (#164) is integrated on the exact candidate release,
+Execution policy v2 (`reploid.execution-policy/v2` in
+`packages/reploid/src/chat/execution-policy.js`) is on `main`. On the exact candidate release,
 test both browser and native requesters against an instrumented old-protocol
 peer and a compatible peer that explicitly declines admission. Capture sends at
 the requester and receipt/dispatch at the peers. Use distinct synthetic

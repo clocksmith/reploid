@@ -1,5 +1,11 @@
 # Browser library extraction
 
+> **Dated record (September 2026), superseded in part.** Complete peer jobs, custody, the
+> durable job journal and replay have since been extracted into the package
+> ([`packages/reploid/src/mesh/jobs/CATSCAN.md`](../packages/reploid/src/mesh/jobs/CATSCAN.md),
+> [`packages/reploid/src/artifacts/custody/CATSCAN.md`](../packages/reploid/src/artifacts/custody/CATSCAN.md)).
+> The [package README](../packages/reploid/README.md) and `CATSCAN.md` files are current.
+
 ## Ownership
 
 packages/reploid is the publishable browser package. The root package is the
@@ -8,7 +14,7 @@ surface; server/, packages/functions/ and deployment tooling remain outside the 
 
 JavaScript implementations and declaration files live together in the package.
 Schemas, profiles and selectable policies are JSON. Application-only configuration
-is self/config/reploid-library.json. Legacy URL, localStorage, credential and
+is shared/config/reploid-library.json. Legacy URL, localStorage, credential and
 instance translation is confined to application adapters.
 
 ## Extracted owners
@@ -29,9 +35,11 @@ while their broader dependency graph is migrated.
 
 ## Deliberately unfinished boundaries
 
-Complete signed Pack-job scheduling, artifact custody, durable replay and result
-acceptance still need extraction from their current application owners. The legacy
-generation duplicate cache is not a substitute. Multi-model experimental
+Complete peer jobs (request, provider, cancellation, replay and episode verification) now
+live in `packages/reploid/src/mesh/jobs/`, custody in `packages/reploid/src/artifacts/custody/`,
+and the durable job journal in `packages/reploid/src/artifacts/job-journal.js`. The host
+still supplies operation contracts, policy, consent, model admission and execution ports. The
+legacy generation duplicate cache is not a substitute for the journal. Multi-model experimental
 coordination has not been repackaged or qualified.
 
 The improvement ledger moved without making its recorder an independent evaluator.

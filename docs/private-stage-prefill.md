@@ -1,6 +1,6 @@
 # Fill one stage from an enrolled supplier
 
-Use the qualification checkout on the receiver. Supply and compute run separately. The inventory generator is in commit `d4ac192d1` on `qualification/private-split-request`. Generate the inventory once, save its SHA-256 independently, and carry the same inventory to both stages.
+Use a checkout of `main` on the receiver. Supply and compute run separately. The inventory generator, `tests/fixtures/partition-source-preflight.mjs` (added in commit `d4ac192d1`), is on `main`. Generate the inventory once, save its SHA-256 independently, and carry the same inventory to both stages.
 
 ```sh
 node tests/fixtures/partition-source-preflight.mjs "$MODEL" --piece-inventory > inventory.json

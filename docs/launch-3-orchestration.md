@@ -48,10 +48,12 @@ outside this arrangement.
 | Useful replicas | `replicas: { queueBound, bottleneckRatio }`, with `autoStage` | Once every stage is supplied, an automatic contributor joins a stage whose advertised queue exceeds `queueBound`. Failing that, it joins a stage that a ranking coordinator's advertised `stageCosts` show at least `bottleneckRatio` times slower than every other stage. An idle contributor moves there only if its own stage keeps another supplier. Coordinators with ranking route new attempts to either replica; existing attempts stay. |
 
 Where admission is enforced without these switches: Doppler's device budget
-(`configureDeviceMemoryBudget` in `apps/poolday/host/work-partitions.js` and
-`server/native-participant.js`) rejects allocations above 1,420,000,000 bytes while executing,
-not at admission. Slots are counted per resident (`createPartitionReservations` in
-`resident-partition.js`) and per route runner (`partition-route-execution.js`). Nothing charges
+(`configureDeviceMemoryBudget`, called in `apps/poolday/host/work-partitions.js` and
+`server/native-partition.js` with `maxGpuBufferBytes` from
+`apps/poolday/config/partition-policy.json`, 1,420,000,000 bytes) rejects allocations above
+that budget while executing, not at admission. Slots are counted per resident
+(`createPartitionReservations`, used by `packages/reploid/src/mesh/partitions/resident-partition.js`)
+and per route runner (`packages/reploid/src/mesh/partitions/partition-route-execution.js`). Nothing charges
 bytes at admission or shares slots across residents.
 
 ### Preparation capacity recovery

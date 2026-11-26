@@ -1,5 +1,9 @@
 # Maverick Hunting and Bug Hinting Guide
 
+> **Paused research in part.** The X and Zero rules below belong to a separate research track,
+> paused under the current validation boundary
+> ([GOALS.md](../GOALS.md#separate-research-track-zero-and-x)). The Poolday rules are current.
+
 Maverick hunting is Reploid's surface-specific practice for detecting and containing evidence-backed deviation. It is not a named runtime subsystem and it is not a claim that Reploid can prove browser hardware or GPU execution was honest.
 
 A maverick is an actor, candidate, execution, or state transition that conflicts with the evidence and policy for its surface. A bug hint is narrower: it identifies an observed failure and the next safe corrective action. Neither label proves root cause by itself.

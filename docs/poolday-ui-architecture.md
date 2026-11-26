@@ -30,8 +30,47 @@ The bridge, the host and the runtime do not move.
   (`scripts/build-product-entry.js`), checked by `npm run verify:browser-bundle:local`.
 - `packages/reploid/src`: the API bridge. Framework-free, typed by its `.d.ts` entries.
 
-Who may import what is in [AGENTS.md](../AGENTS.md#poolday-design-system) and, as checked
-policy, `scripts/poolday-ui-architecture.json`.
+## Layers and rules
+
+This section is the canonical contract; `scripts/poolday-ui-architecture.json` is the checked
+policy. Paths in `features/`, `app/` and `l10n/` are under `apps/poolday-react/src/`.
+
+| Layer | Path | May import |
+| --- | --- | --- |
+| ui | `packages/poolday-ui/src/` | ui, `react`; may render markup, use platform globals and set `--pool-param-*` styles |
+| domain | `features/<f>/domain/` | domain |
+| application | `features/<f>/application/` (when a feature needs one) | domain, application |
+| infrastructure | `features/<f>/infrastructure/` | domain, infrastructure, platform globals, the API bridge's public entries, `apps/poolday/host/` and `apps/poolday/pool/` |
+| presentation | `features/<f>/presentation/` | ui, domain, application, presentation, l10n; from `react` only hooks, `createContext`, `memo` and `ReactNode` |
+| composition | `app/`, `main-*.tsx` | every layer, `react`, `react-dom/client`, platform globals |
+| l10n | `l10n/` | l10n |
+
+Features never import each other; the composition layer joins them.
+
+- **One library.** `packages/poolday-ui` (import `@reploid/poolday-ui`, nothing deeper) is the
+  design system. Its components render the primitive classes over `tokens.css`; those
+  stylesheets are the implementation and the single source of every value. No second component
+  set, no page CSS.
+- **Outside `packages/poolday-ui`:** no HTML elements (so no raw `button`, `input`, `select`,
+  `textarea` or `a`), no `className`, `style` or `dangerouslySetInnerHTML`, no literal
+  colours, sizes or durations. **Inside it:** values come from tokens, and `style` may set only
+  `--pool-param-*`.
+- **Choice controls by decision** ([style guide](style-guide.md#choosing-the-right-control)):
+  exactly one is `SingleChoice`, several is `MultiChoice`, on/off is `Toggle`.
+- **The API bridge stays pure.** `packages/reploid/src` has no React, JSX, DOM rendering or
+  presentation state, and every public entry has `.d.ts` types. Only infrastructure adapts it.
+
+### Adding a primitive
+
+1. Add the component to `packages/poolday-ui/src` and export it from `index.ts`.
+2. Put any new look in a primitives stylesheet using tokens (`npm run verify:pool:css`).
+3. Add it to `PRIMITIVE_ORDER` in `scripts/build-poolday-design-index.mjs`, a specimen in
+   `apps/poolday-react/src/features/design/presentation/primitiveSpecimens.tsx`, and an
+   interaction and accessibility test in `tests/unit/poolday-ui/components.test.tsx`.
+4. Run `npm run build:browser-bundle`. The primitive then appears on `/design` with its tokens
+   and compositions.
+
+The checks a contributor runs are listed in [AGENTS.md](../AGENTS.md#poolday-design-system).
 
 ## What the checks enforce
 
@@ -56,19 +95,23 @@ and fails if a count rises. `tests/unit/poolday-ui-checks.test.js` holds one fai
 per rule.
 
 These are syntactic checks, not a sandbox. Review owns meaning; behaviour tests own correctness.
-Do not add exemptions: move a boundary by changing the policy, this document and AGENTS.md together.
+Do not add exemptions: move a boundary by changing the policy and this document together.
 
 ## The design page
 
-`/design` (`apps/poolday/design.html`, `apps/poolday-react/src/main-design.tsx`) is built only
-from the library. `scripts/build-poolday-design-index.mjs` reads tokens, the components and the
-screens and records who uses what; the page reads token values from the served `tokens.css`.
-The Zero / X RD specimen is at `/x/design`.
+`/design` (`apps/poolday/design.html`, `apps/poolday-react/src/main-design.tsx`; locally
+`npm start`, then `http://localhost:8000/design`) is built only from the library.
+`scripts/build-poolday-design-index.mjs` reads tokens, the components and the screens and
+records who uses what; the page reads token values from the served `tokens.css`. It shows
+tokens (raw scales, then semantic values per theme, with use counts and unused tokens marked),
+then primitives from simplest to most complex, then compositions from small pieces to whole
+screens. Each token lists the primitives that read it, and each primitive lists its tokens and
+the compositions that use it. The Zero / X RD specimen is at `/x/design`.
 
 ## Migration status
 
 The conversation workspace is the React product. `index.html` and `pool-entry.html` load
-`/ui/react/app.js` on `/` and `/network` and the vanilla bundle only on the specialist routes.
+`/ui/react/app.js` on `/`, `/network` and its `/work` alias, and the vanilla bundle only on the specialist routes.
 `apps/poolday-react/src/main-app.tsx` keeps the vanilla entry contract (`initPoolHome`) and adds
 `mountPoolday(root, { host, viewState })`, which the browser journeys use to mount the product on
 a fixture host.

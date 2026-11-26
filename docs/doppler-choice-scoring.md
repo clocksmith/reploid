@@ -12,7 +12,7 @@ actual host; a generation-qualified model is insufficient. Then borrow that
 session through Reploid's public operation provider:
 
 ```js
-import * as runtime from 'doppler-gpu';
+import * as runtime from 'dopplerx';
 import { createDopplerOperationProvider } from 'reploid/doppler';
 import { resolveConfig } from 'reploid/config';
 
@@ -55,10 +55,10 @@ complete-job providers/requesters. Registration creates no disclosure grant. The
 new operation admits public text under the existing signed consent, byte limits,
 deadlines, cancellation and receipt verification.
 
-Use actual matching runtime exports. The currently pinned split.13 chat library
-does not provide this scoring contract. It remains pinned while its replacement's
-partition qualification is unresolved; the new operation is explicitly injected
-with the tested installed runtime. This does not silently upgrade deployed chat.
+Use the exports of the runtime you inject. The package Reploid pins is named in
+[`shared/config/doppler-package.json`](../shared/config/doppler-package.json); its public entry
+exports the choice-scoring contract and `validateChoiceScoringResult`. The operation is
+injected explicitly; registering it does not change deployed chat.
 
 ## Evidence and limits
 

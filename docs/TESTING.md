@@ -49,16 +49,12 @@ its own metadata.
 
 ---
 
-## Quick Reference
+## Which checks to run
 
-| Command | Purpose | When to Use |
-|---------|---------|-------------|
-| `npm test` | Default Vitest suite (excludes heavy/process evidence and Node runner tests) | Explicit full-suite validation |
-| `npx vitest run --config tests/vitest.config.js <file>` | Focused tests | Changed behavior |
-| `npm run test:integration` | Integration suite | Explicit integration-wide validation |
-| `npm run test:e2e` | Browser E2E suite | Explicit browser-wide validation |
-| `npm run test:watch` | Watch mode | During development |
-| `npm run test:coverage` | Coverage report | A named coverage question |
+[AGENTS.md "Run and verify"](../AGENTS.md#run-and-verify) lists which check to run for which
+change, the contract checks per behavior, and what opens a GPU device. The scripts are in
+`package.json` (`test`, `test:unit`, `test:integration`, `test:heavy`, `test:e2e`,
+`test:watch`, `test:coverage`, `test:scripts`).
 
 ---
 
@@ -149,7 +145,9 @@ Representative browser specs:
 npm run test:e2e
 ```
 
-**Environment Variables:**
+**Debug console controller.** `node tests/e2e/debug-console.js` is a standalone script, not a
+Playwright spec: it streams the browser console to the terminal. It reads these variables
+(`npm run test:e2e` does not):
 
 | Variable | Description | Default |
 |----------|-------------|---------|
@@ -158,7 +156,7 @@ npm run test:e2e
 | `GOAL` | Goal preset or custom text | - |
 | `TIMEOUT` | Test timeout in ms | `60000` |
 | `GENESIS` | Genesis level to use | `full` |
-| `BASE_URL` | Server URL | `http://localhost:8000` |
+| `BASE_URL` | Server URL | `http://localhost:8080` |
 
 **Goal Presets:**
 - `hello` - Basic greeting
@@ -178,10 +176,10 @@ npm run test:e2e
 **Example:**
 ```bash
 # Run with visible browser and RSI goal
-HEADLESS=false GOAL=rsi npm run test:e2e
+HEADLESS=false TEST_AWAKEN=true GOAL=rsi node tests/e2e/debug-console.js
 ```
 
-### 4. Arena Testing (`testing/arena/`)
+### 4. Arena Testing (`self/testing/arena/`)
 
 Multi-model consensus for RSI safety validation.
 
@@ -245,54 +243,15 @@ describe('AgentLoop Integration', () => {
 
 ---
 
-## CI/CD
+## CI
 
-GitHub Actions: `.github/workflows/test.yml` has one automatic job on Ubuntu
-and Node.js 22. It installs the non-optional dependencies, runs
-`npm run build:browser-bundle` to rebuild the product entry bundle, module
-inventory and browser manifest from the commit's source, then runs
-`npm run package:hosting` to build the Firebase hosting payload from that
-output. The packager parses the Doppler module dependency closure, rejects
-missing assets, verifies the pinned archive and projected bytes, validates the
-browser manifest, and writes exactly the validated bytes to
-`.firebase-hosting/reploid`. A build or packaging failure fails CI. The job
-does not deploy, and it does not check whether the committed bundle and
-manifest are current: a stale committed bundle passes CI.
-
-Reproduce the job on Node.js 22 (the build rewrites the tracked bundle,
-inventory and manifest in the working tree):
-
-```bash
-npm ci --omit=optional --no-audit --no-fund
-npm run build:browser-bundle
-npm run package:hosting
-```
-
-Freshness of the committed bundle is checked before a deployment by
-`npm run prepare:hosting`, which runs `npm run verify:browser-bundle:local` and
-fails on a stale bundle or manifest. For changes to browser assets, update them
-with `npm run build:browser-bundle` and review the generated diff.
-A successful packaging check is not browser execution, model/GPU qualification,
-physical peer acceptance, or production deployment evidence.
-
-Lint, Vitest, installed-package acceptance, browser journeys, heavy tests and
-release qualification remain available on demand, not on every push. Install
-full dependencies with `npm ci`, then choose the checks relevant to the change:
-`npm run lint`, `npm test`, `node tests/library-package-acceptance.js`, or
-`npm run test:e2e:smoke` (the latter two require
-`npx playwright install --with-deps chromium`). Existing release acceptance
-thresholds remain unchanged. Run `verify:*` config, mirror and freshness checks
-when editing what they check, not as a blanket gate. The separate blueprint
-snapshot workflow is manual-only via `workflow_dispatch`.
-
-**Coverage Thresholds:**
-
-| Metric | Threshold |
-|--------|-----------|
-| Lines | 60% |
-| Functions | 60% |
-| Branches | 60% |
-| Statements | 60% |
+The automatic checks are in [`.github/workflows/test.yml`](../.github/workflows/test.yml)
+(workflow `Smoke`, jobs `smoke` and `design-system`), summarized in
+[AGENTS.md "Run and verify"](../AGENTS.md#run-and-verify). CI does not deploy and runs no
+browser or GPU. Before a deployment, `npm run prepare:hosting` runs
+`verify:browser-bundle:local` and `package:hosting`. A successful packaging check is not
+browser execution, model/GPU qualification, physical peer acceptance, or production deployment
+evidence.
 
 ---
 
@@ -300,36 +259,18 @@ snapshot workflow is manual-only via `workflow_dispatch`.
 
 ### tests/vitest.config.js
 
-```javascript
-import { defineConfig } from 'vitest/config';
-import { resolve } from 'path';
+Read the file for the exact settings. In outline:
 
-const src = resolve('src');
-
-export default defineConfig({
-  resolve: {
-    alias: [
-      // Tests import ../../core/ etc. — rewrite to self/
-      { find: /^(\.\.\/)+(?=(core|infrastructure|capabilities|testing|tools|ui)\/)/, replacement: src + '/' },
-    ]
-  },
-  test: {
-    include: ['tests/**/*.test.js'],
-    environment: 'happy-dom',
-    globals: true,
-    coverage: {
-      provider: 'v8',
-      reporter: ['text', 'html'],
-      thresholds: {
-        lines: 60,
-        functions: 60,
-        branches: 60,
-        statements: 60
-      }
-    }
-  }
-});
-```
+- `root` is the repository root. A resolver plugin maps older test imports such as
+  `../../core/...` to whichever served browser root (`BROWSER_ROOTS` in
+  `server/browser-roots.js`) holds the path.
+- `@reploid/poolday-ui` resolves to `packages/poolday-ui/src/index.ts`, with automatic JSX.
+- `include`: `tests/**/*.test.js` and `tests/**/*.test.tsx`. `exclude`: `tests/scripts/**`
+  (the `node:test` runner) and the exported `heavyTests` list, which
+  `tests/vitest.heavy.config.js` runs.
+- `environment: happy-dom`, `globals: true`, a 5 s test timeout (20 s under CI).
+- Coverage (`npm run test:coverage`): provider `v8`, thresholds 60% for lines, functions,
+  branches and statements.
 
 ---
 

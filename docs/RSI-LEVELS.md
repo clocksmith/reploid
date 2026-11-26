@@ -1,5 +1,9 @@
 # RSI Levels
 
+> **Paused research.** Zero and X are a separate research track, paused under the current
+> validation boundary ([GOALS.md](../GOALS.md#separate-research-track-zero-and-x)). This page
+> describes that work; it is not a product commitment.
+
 This document explains the `L0` through `L4` ladder used by Reploid goal presets.
 
 These levels are not guarantees about what the system can safely do in every session. They are a shorthand for how ambitious a goal is and how much self-modification it implies.
@@ -45,4 +49,4 @@ For the runtime safety and governance interpretation of the same ladder, see [SE
 
 ---
 
-*Last updated: March 2026*
+*Last updated: November 2026*

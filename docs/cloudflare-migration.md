@@ -1,12 +1,17 @@
 # Cloudflare discovery and TURN migration
 
+**Migration record (September 2026).** This records how signaling rendezvous and TURN
+credential issuance moved to Cloudflare. The current owner is
+[`server/cloudflare/CATSCAN.md`](../server/cloudflare/CATSCAN.md); the live browser
+configuration is [`shared/config/swarm-bootstrap.json`](../shared/config/swarm-bootstrap.json).
+
 ## Boundary
 
-Cloudflare owns signaling rendezvous and temporary TURN credential issuance, not
-inference. Firebase Hosting, identity, Firestore and other Poolday APIs keep their
-existing owners. The conversation interface and resource grants stay unchanged.
+The migration gave Cloudflare signaling rendezvous and temporary TURN credential issuance,
+not inference. Firebase Hosting, identity, Firestore and the other Poolday APIs kept their
+owners. The conversation interface and resource grants did not change.
 
-Each public/private namespace routes to its own SQLite-backed `SwarmRoom` Durable
+Each public/private namespace was routed to its own SQLite-backed `SwarmRoom` Durable
 Object. Hibernating WebSocket attachments retain membership and limits; a private
 capability hash persists after clients leave. `SwarmAdmission` coordinates only
 bounded admission leases and credential quotas, not messages or conversations.
@@ -30,9 +35,9 @@ credentials, never the signing key. Credential failure remains explicit.
 - Worker health is public and returns its release marker; all discovery/credential
   requests enforce the bootstrap policy's exact origins.
 
-The browser cutover changes only `signalingUrl` and `rtcConfigUrl` in
+The browser cutover changed only `signalingUrl` and `rtcConfigUrl` in
 `shared/config/swarm-bootstrap.json`, followed by inventory/bundle regeneration and
-Hosting deployment. Explicit private invitation endpoints remain explicit. A
+Hosting deployment. Explicit private invitation endpoints remained explicit. A
 room ID in the WebSocket URL selects the object, not its admission capability.
 
 ## Commands and qualification
@@ -46,36 +51,38 @@ node scripts/verify-cloudflare-swarm.js
 node scripts/verify-cloudflare-swarm.js --deployed
 ```
 
-The staged browser check substitutes the SDK, join policy, generated transport and bootstrap JSON
-inside isolated contexts of the existing `https://replo.id` application. It does
-not change production Hosting and never manually starts discovery. Default mode
+The staged browser check substituted the SDK, join policy, generated transport and
+bootstrap JSON inside isolated contexts of the existing `https://replo.id` application. It
+did not change production Hosting and never manually started discovery. Default mode
 requires Cloudflare TURN and relay candidate pairs with transferred bytes.
-`--discovery-only` explicitly retains the existing Poolday credential issuer. It
+`--discovery-only` explicitly retains the previous Poolday credential issuer. It
 qualifies discovery integration only, not Cloudflare TURN.
 
-Tests cover automatic discovery, private isolation, contribution remaining off,
+The tests covered automatic discovery, private isolation, contribution remaining off,
 no implicit weight download, persistent disconnect, deliberate reconnect and a
-simulated network interruption. Three contexts share one physical machine. They
+simulated network interruption. Three contexts shared one physical machine. They
 do not establish different-network connectivity, inference, LoRA or layer splitting.
 The runtime suite separately checks hibernation, admission, rejection and limits.
 
 ## Rollback
 
-Retain the previous source overlay and bundle record in
-`artifacts/chat-files-2026-09-25/`. Do not assume remote main reconstructs it.
-Keep Cloud Run and the old TURN service intact until an operator authorizes their
-retirement. Before cutover, no rollback of the browser is needed.
+The previous source overlay and bundle record were retained as
+`artifacts/chat-files-2026-09-25/`, now listed in the
+[evidence catalog](evidence-catalog/README.md) and restorable with
+`node scripts/restore-evidence.js artifacts/chat-files-2026-09-25`. Remote `main` does not
+reconstruct it. Cloud Run and the old TURN service were to stay intact until an operator
+authorized their retirement.
 
-After cutover, an explicit rollback restores the previous bootstrap signaling URL
-`wss://reploid-pool-kbxuhkisna-uc.a.run.app/swarm` and removes `rtcConfigUrl`, then
-regenerates the browser bundle and redeploys Hosting. The SDK then uses the
-authenticated `/pool/rtc-config` route. Do not add runtime fallback between issuers.
+An explicit rollback restores the previous bootstrap signaling URL
+(`wss://<cloud-run-service>.run.app/swarm`) and removes
+`rtcConfigUrl`, then regenerates the browser bundle and redeploys Hosting. The SDK then uses
+the authenticated `/pool/rtc-config` route. Do not add runtime fallback between issuers.
 Worker code rollback does not undo Durable Object data or migration bindings.
 
-## Current release evidence
+## Release evidence
 
 See [the migration handoff](https://github.com/clocksmith/reploid/blob/e543183bed54dfdf2b6e6139dd4c31c8686f47bd/artifacts/cloudflare-2026-09-26/README.md) for the
 deployed Worker, completed browser qualification, retained failures and rollback.
 Configuration alone is not a deployment or end-to-end capability claim.
 
-*Last updated: September 2026*
+*Last updated: November 2026*

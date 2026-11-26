@@ -40,22 +40,14 @@ browser; an embedding host must supply that connection.
 
 Expand "Advanced options" in the boot UI to access these settings.
 
-Primary `/` Reploid keeps boot minimal:
-- `Configure` attaches your own inference to this browser
-- `Swarm` toggles provider or consumer launch
-- Expandable `Sponsor access` details appear only when a provisioned browser-cloud window exists
-
-Zero and X keep the broader research configuration surface.
+`/` is the Poolday product and has no boot UI; its settings live in the product's Settings
+view. The keys below belong to the Zero (`/zero`) and X (`/x`) research surfaces and the
+legacy Reploid boot home.
 
 ### Zero Managed Proxy Admission
 
-The hosted `/zero/gemini` function requires both Firebase Auth and Firebase App Check. Enable anonymous Firebase Auth, enable the Firebase App Check API, and register the hosted web app with its reCAPTCHA v3 provider using the [Firebase setup procedure](https://firebase.google.com/docs/app-check/web/recaptcha-provider).
-
-Publish the provider's public site key in `self/config/zero-access.json` under `appCheck.siteKey`. Its `projectId` and `appId` must match the hosted `/__/firebase/init.json`. The checked-in null key deliberately blocks managed requests until provisioned. Never put a reCAPTCHA secret, service-account key, or Gemini API key in this public file. Deployment must include this file and the matching client module.
-
-Zero reads that configuration before initializing Firebase Auth and App Check. An existing `window.REPLOID_ZERO_APP_CHECK_SITE_KEY` remains an explicit operator override. A failed initialization can retry on the next request after configuration is corrected; missing configuration never disables authentication or App Check. Local Doppler does not require these managed-proxy credentials. A populated public file does not establish that the project API, provider registration, or token exchange works; verify the deployed exchange separately.
-
-The function accepts only `GEMINI_MODEL` by default. Set `ZERO_GEMINI_ALLOWED_MODELS` to an explicit comma-separated allowlist only when additional models are intentionally sponsored. `ZERO_GEMINI_MAX_RATE_BUCKETS` bounds retained authenticated-client rate-limit state.
+The hosted `/zero/gemini` function's Firebase Auth, App Check and model allowlist settings are in
+[compact Zero capsules](zero-capsules.md#managed-proxy-admission).
 
 ### Runtime Mode
 
@@ -94,8 +86,7 @@ Settings stored in `REPLOID_HITL_CONFIG` as JSON object.
 | Setting | localStorage Key | Values | Default |
 |---------|------------------|--------|---------|
 | Goal | `REPLOID_GOAL` | Free text | `''` |
-| Include bootstrapper within self | `REPLOID_INCLUDE_BOOTSTRAPPER_WITHIN_SELF` | `'true'`, `'false'` | `'false'` |
-| Use your own inference on `/` | `REPLOID_USE_OWN_INFERENCE` | `'true'`, `'false'` | `'false'` |
+| Use your own inference (legacy Reploid boot home) | `REPLOID_USE_OWN_INFERENCE` | `'true'`, `'false'` | `'false'` |
 
 ### Cognition
 
@@ -109,21 +100,6 @@ Settings stored in `REPLOID_COGNITION_CONFIG` as JSON object.
 | Top-K results | `topK` | `1` - `20` | `5` |
 
 **Read via:** `window.getCognitionConfig()`
-
-### GEPA Evolution
-
-Settings stored in `REPLOID_GEPA_CONFIG` as JSON object.
-
-| Setting | Config Key | Values | Default |
-|---------|------------|--------|---------|
-| Population size | `populationSize` | `2` - `20` | `6` |
-| Max generations | `maxGenerations` | `1` - `50` | `5` |
-| Mutation rate | `mutationRate` | `0.0` - `1.0` | `0.3` |
-| Crossover rate | `crossoverRate` | `0.0` - `1.0` | `0.5` |
-| Elite count | `eliteCount` | `1` - `populationSize` | `2` |
-| Match mode | `matchMode` | `'exact'`, `'includes'` | `'exact'` |
-
-**Read via:** `window.getGEPAConfig()`
 
 ### Swarm / P2P
 
@@ -163,7 +139,6 @@ See [SECURITY.md](./SECURITY.md) for details.
 ```javascript
 // Read configs
 window.getCognitionConfig()   // → { semantic, symbolic, minSimilarity, topK }
-window.getGEPAConfig()        // → { populationSize, maxGenerations, ... }
 window.getExecutionLimits()   // → { maxIterations, approvalInterval }
 window.getReploidMode()       // → 'reploid' | 'zero' | 'x'
 window.getGenesisLevel()      // → 'capsule' | 'spark' | 'tabula' | 'reflection' | 'cognition' | 'substrate' | 'full'
@@ -177,11 +152,6 @@ Modules read config at factory initialization:
 // cognition-api.js, semantic-memory.js
 const bootConfig = typeof window !== 'undefined' && window.getCognitionConfig
   ? window.getCognitionConfig()
-  : {};
-
-// gepa-optimizer.js
-const bootConfig = typeof window !== 'undefined' && window.getGEPAConfig
-  ? window.getGEPAConfig()
   : {};
 ```
 

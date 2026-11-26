@@ -16,18 +16,13 @@ reachable inference service separately.
 
 ## Choose inference
 
-- **Fresh Zero on loopback** uses Connected agent when the bounded reasoning mailbox
-  is enabled and a controller is present. The connected agent proposes model output;
-  it does not gain shell access or execution authority. See the
-  [connection contract](x/external-brain.md). A disabled host fails clearly; it does
-  not silently switch to a paid provider.
-- **Fresh Zero on a public origin** uses the existing managed Gemini endpoint with
-  Firebase Auth and App Check. The host must supply valid access configuration and
-  its deployed inference function. The checked-in App Check site key is unset;
-  this source release does not create credentials or establish live inference.
+- **Fresh Zero** uses Connected agent on loopback and the managed Gemini endpoint on a
+  public origin. Prerequisites and limits are in
+  [compact Zero capsules](zero-capsules.md#providers-and-prerequisites) and the
+  [connection contract](x/external-brain.md).
 - **X and returning legacy instances** retain their provider setup interfaces,
-  including supported proxy/local Doppler choices. The fresh capsule seed does not
-  preload Doppler, models or a general provider picker. Credentials are not exported.
+  including proxy and local Doppler choices; see [Local models](#local-models-x-and-returning-instances).
+  Credentials are not exported.
 
 ## Awaken Zero
 
@@ -81,15 +76,49 @@ workspace look minimal.
 
 ## Reproduce from source
 
-Use **Export self-source** in Inspect. The JSON image contains declared source,
-hashes and the installed tool sources selected by this action, not arbitrary
-workspace artifacts, browser settings or credentials.
+Use **Export self-source** in Inspect. Fresh Zero exports `reploid.zero.image/v1`
+([compact Zero contract](zero-capsules.md#source-only-reproduction)). X and returning legacy
+instances retain their existing self-image format
+([legacy/X self-source contract](x/self-source.md)). Older fieldless exports retain historical
+routing; they are not silently relabelled.
 
-Fresh Zero uses the distinct `reploid.zero.image/v1` envelope and
-`materializeZeroImage` in `self/zero/image.js`. X and returning legacy instances
-retain their existing self-image format. Older fieldless exports retain historical
-routing; they are not silently relabelled. Materialize the matching format and boot
-its static host tree on a new origin with explicit browser/provider prerequisites.
-A repository checkout is not a runtime prerequisite for the descendant. See the
-[compact Zero contract](zero-capsules.md) and the
-[legacy/X self-source contract](x/self-source.md).
+## Local models (X and returning instances)
+
+Fresh Zero does not bundle the provider picker or the Doppler runtime. The X boot wizard
+offers two local paths.
+
+### Proxy-local with Ollama
+
+1. Start Ollama (`ollama serve`, default `http://localhost:11434`) and pull a model, for
+   example `ollama pull qwen2.5-coder:7b`.
+2. Optionally set `LOCAL_MODEL_ENDPOINT` in `.env` (the default is
+   `http://localhost:11434`), plus any cloud keys for hybrid use (`GEMINI_API_KEY`,
+   `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`).
+3. `npm start`, open `http://localhost:8000/x` and choose **Proxy**. The wizard probes the
+   proxy and Ollama (`/api/tags` on port 11434). Choosing Ollama stores `hostType: proxy-local`
+   and routes inference through the proxy.
+4. Check the path with `curl http://localhost:8000/api/health`,
+   `/api/proxy-status`, `/api/ollama/models` and `curl http://localhost:11434/api/tags`.
+
+The proxy is Ollama-first. Other local servers work only if they expose Ollama-style
+endpoints (`/api/tags`, `/api/chat`, `/api/generate`); generic OpenAI-compatible local
+servers are not a supported path.
+
+### Doppler in the browser
+
+Needs a WebGPU browser and a reachable Doppler asset base (default `/doppler`). Choose
+**Doppler** in the wizard, select the detected model, verify and awaken; the choice is stored
+as `hostType: browser-local`, `provider: doppler`. Override the asset base with
+`http://localhost:8000/x?dopplerBase=http://localhost:9000/doppler`.
+
+### Troubleshooting
+
+- Ollama not detected: `curl http://localhost:11434/api/tags`; start `ollama serve` and check
+  `LOCAL_MODEL_ENDPOINT` and the port.
+- Proxy up but no models: open `/api/health` and `/api/ollama/models`, then read the proxy log.
+- Doppler option disabled: confirm WebGPU and the asset base, try `dopplerBase`, or use a clean
+  browser profile if service-worker state looks stale.
+- Storage pressure: Doppler assets and VFS state share browser storage; export artifacts
+  before clearing site storage.
+
+Local models do not bypass verification, HITL or arena gates; VFS mutation stays in the browser.

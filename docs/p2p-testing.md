@@ -132,10 +132,10 @@ controller and worker configuration:
 ```json
 {
   "packageArchive": {
-    "path": "/path/on/this/host/doppler-gpu-exact.tgz",
+    "path": "/path/on/this/host/dopplerx-exact.tgz",
     "sha256": "REPLACE_WITH_REVIEWED_64_CHARACTER_LOWERCASE_SHA256"
   },
-  "installedPackage": "/path/on/this/host/node_modules/doppler-gpu"
+  "installedPackage": "/path/on/this/host/node_modules/dopplerx"
 }
 ```
 

@@ -1,32 +1,11 @@
 # REPLOID Substrate Architecture
 
-This document consolidates the developer documentation for the REPLOID substrate.
+The Zero/X boot sequence, genesis levels, core modules, infrastructure, safety stack, tools and
+file layout are in [system-architecture.md](system-architecture.md). This page keeps what is
+specific to the substrate: the Doppler contract, HITL modes, capability modules, proxy CORS,
+blueprints and the module pattern.
 
-## Directory Structure
-
-```
-reploid/
-├── self/               # Browser runtime (VFS root)
-│   ├── entry/         # Entry points (seed VFS, start app)
-│   ├── boot-helpers/  # Boot orchestration helpers
-│   ├── core/          # Core substrate modules (cognitive kernel)
-│   ├── capabilities/  # Extended capabilities (reflection, cognition, communication)
-│   ├── infrastructure/ # Support services (event-bus, DI, rate-limiting)
-│   ├── tools/         # Dynamic tools (agent-created)
-│   ├── ui/            # User interface components
-│   │   └── boot-wizard/  # Boot wizard UI
-│   ├── styles/        # UI styles
-│   ├── config/        # Runtime configuration + manifests
-│   ├── blueprints/    # Architectural blueprints
-│   └── testing/       # Browser-side harnesses
-├── server/            # Server-side (proxy, signaling)
-├── tests/             # Test suites (unit, integration, e2e, benchmarks)
-├── docs/              # Documentation
-└── ../doppler/        # Sibling engine repo in the workspace
-```
-
-Runtime note: the VFS root `/` maps to `self/` on disk. Paths like `/core/agent-loop.js`
-refer to `self/core/agent-loop.js`.
+The VFS root `/` maps to `self/` on disk: `/core/agent-loop.js` is `self/core/agent-loop.js`.
 
 ---
 
@@ -74,97 +53,45 @@ See `../../doppler/docs/architecture.md` for Doppler's engine design details.
 
 ---
 
-## Core Modules
+## HITL Modes
 
-The core provides fundamental capabilities for REPLOID's recursive self-improvement system.
-
-### Cognitive Kernel
-
-| File | Purpose |
-|------|---------|
-| `agent-loop.js` | Main cognitive cycle - decision making, tool selection, execution |
-| `context-manager.js` | Memory management, token estimation, context compaction |
-| `response-parser.js` | Robust JSON extraction and tool call parsing |
-| `llm-client.js` | Multi-provider LLM communication (Gemini, Claude, OpenAI, Ollama, WebLLM) |
-
-### File System & Tooling
-
-| File | Purpose |
-|------|---------|
-| `vfs.js` | Virtual filesystem (IndexedDB) - persistent storage for evolved code |
-| `tool-runner.js` | Tool execution engine - validates and runs tools in sandbox |
-| `tool-writer.js` | Tool creation system - generates, validates, registers new tools |
-| `substrate-loader.js` | Hot-reload system - loads evolved code as living modules from VFS |
-| `improvement-episode.js` | Signed causal ledger for frozen baseline, paired evaluation, promotion, generations, rollback, and reflection |
-
-### Capability Levels
-
-Definitions maintained in internal vision materials.
-
----
-
-## Infrastructure
-
-Support services providing communication and safety backbone.
-
-| File | Purpose |
-|------|---------|
-| `event-bus.js` | Pub/sub event system for module communication |
-| `di-container.js` | Dependency injection container |
-| `rate-limiter.js` | API rate limiting |
-| `audit-logger.js` | Security audit logging to VFS |
-| `hitl-controller.js` | Human-in-the-loop oversight modes |
-| `circuit-breaker.js` | Failure tracking and recovery |
-
-### Key Events
-
-```javascript
-EventBus.emit('agent:status', { state: 'RUNNING' });
-EventBus.on('tool:file_written', (data) => { ... });
-```
-
-Event namespaces: `agent:*`, `tool:*`, `worker:*`, `vfs:*`, `reflection:*`, `goal:*`, `swarm:*`
-
-### HITL Modes
+`self/infrastructure/hitl-controller.js` defines these modes:
 
 | Mode | Behavior |
 |------|----------|
-| **AUTONOMOUS** | No approval required |
+| **AUTONOMOUS** | No approval required (the default) |
 | **HITL** | Queue actions for approval |
 | **EVERY_N** | Checkpoint every N steps |
+| **INHERIT** | A per-module override that follows the global mode |
 
 ---
 
 ## Capabilities
 
-### Reflection
+Under `self/capabilities/`:
+
+### Reflection (`reflection/`)
 - `reflection-store.js` - Persistent storage for insights, errors, success patterns
 - `reflection-analyzer.js` - Analyzes history to detect failure patterns
 - Hypothesis reflections separate observation, suspected cause, alternatives,
   diagnostic, intervention, expected result, and falsifier. Saving text alone
   is not evidence that behavior improved.
 
-### Cognition
-- `semantic-memory.js` - Vector-based semantic search
-- `knowledge-graph.js` - Entity-relationship storage
-- `rule-engine.js` - Symbolic reasoning
+### Cognition (`cognition/`)
+- `semantic/` - Vector-based semantic search
+- `symbolic/` - Entity-relationship storage and symbolic reasoning
+- `episodic-memory.js`, `hybrid-retrieval.js`, `knowledge-tree.js`, and the GEPA modules
 
-### Communication (Multi-Tab Coordination)
+### Communication (`communication/`, multi-tab coordination)
 - `webrtc-swarm.js` - WebRTC P2P transport with session-scoped rooms
 - `swarm-sync.js` - LWW state synchronization with Lamport clocks
 
 ---
 
-## Server Components
+## Proxy CORS
 
-| File | Purpose |
-|------|---------|
-| `proxy.js` | HTTP proxy for API requests and CORS handling |
-| `signaling-server.js` | WebRTC signaling for peer-to-peer swarm |
-
-### CORS Configuration
-
-Set `CORS_ORIGINS` environment variable or add to config:
+`server/proxy-app.js` takes allowed origins from `server.corsOrigins` in the app config, then
+the comma-separated `CORS_ORIGINS` environment variable, then its defaults:
 
 ```json
 {
@@ -178,49 +105,22 @@ Set `CORS_ORIGINS` environment variable or add to config:
 
 ## Blueprints
 
-The `self/blueprints/` directory (VFS path `/blueprints/`) contains maintained
-architectural decisions plus legacy generated compatibility stubs. The generated
-stubs are not architecture specifications. `self/config/module-inventory.json`
-is the authoritative generated inventory for source paths, ownership, imports,
-and hashes. Maintained blueprints are organized into these seven domains:
-
-1. **Core Infrastructure** - Bootstrapping, DI, configuration
-2. **State & Memory** - VFS, persistence, context management
-3. **Agent Cognition** - Reasoning, planning, LLM interaction
-4. **Tooling & Runtime** - Execution engines, tool orchestration
-5. **User Interface** - Panels, modals, interaction components
-6. **Visualization** - Charts, graphs, introspection visuals
-7. **Recursive Self-Improvement** - Introspection, evolution
+`self/blueprints/` (VFS path `/blueprints/`) holds maintained architectural decisions, not one
+document per module; generated stubs were removed and the verifier forbids them. See the
+[blueprint atlas](../self/blueprints/README.md) and
+[canonical inventory](../self/blueprints/canonical-inventory.md).
+`self/config/module-inventory.json` is the generated inventory for source paths, ownership,
+imports and hashes.
 
 Key blueprints:
 - `0x000008` - Agent Cognitive Cycle
-- `0x000035` - Reflection Store Architecture
-- `0x00003E` - WebRTC Swarm Transport
-- `0x000047` - Verification Manager
+- `0x000032` - Reflection Store Architecture
+- `0x000038` - WebRTC Swarm Transport
+- `0x000040` - Verification Manager
 
 ---
 
-## Testing
-
-```bash
-npm test              # Run all tests
-npm run test:watch    # Watch mode
-npm run test:coverage # Generate coverage report
-```
-
-Test structure:
-- `tests/unit/` - Unit tests for individual modules
-- `tests/integration/` - Integration tests for system behavior
-- `tests/e2e/` - End-to-end browser tests (Playwright)
-- `tests/benchmarks/` - Performance benchmarks
-
-Coverage varies by module. See `tests/` for current suites.
-
----
-
-## Development
-
-### Adding New Modules
+## Adding New Modules
 
 Use the factory pattern:
 
@@ -250,12 +150,7 @@ const MyModule = {
 export default MyModule;
 ```
 
-### Module Loading
-
-Modules are loaded based on Genesis Level in `config/genesis-levels.json`:
-- **tabula** - Bootstrap substrate core (7 modules)
-- **spark** - Minimal agent core (+11 modules)
-- **reflection** - Spark + self-awareness (+6 modules)
-- **cognition** - Reflection + memory and reasoning (+11 modules)
-- **substrate** - Cognition + runtime infrastructure (+12 modules)
-- **full** - Substrate + multi-agent systems (+11 modules)
+Which genesis level loads a module is set in
+[`self/config/genesis-levels.json`](../self/config/genesis-levels.json); see
+[system-architecture.md](system-architecture.md#3-genesis-levels-configgenesis-levelsjson).
+Tests are described in [TESTING.md](TESTING.md).

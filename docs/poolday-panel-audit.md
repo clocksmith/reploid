@@ -1,5 +1,7 @@
 # Poolday panel audit
 
+> **Dated record (24 November 2026).** The conversation workspace panels have since moved to React components from `@reploid/poolday-ui`; the current contract is [poolday-ui-architecture.md](poolday-ui-architecture.md).
+
 An audit of every Poolday panel, dialog, sheet, menu and settings surface at
 replo.id, made on 24 November 2026 from `main` at `b002443b6`. Each surface was
 opened with Playwright at desktop (1440 × 900) and mobile (390 × 844) widths, in

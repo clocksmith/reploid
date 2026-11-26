@@ -2,6 +2,10 @@
 
 > Security architecture for safe recursive self-improvement research.
 
+> **Paused research.** Zero and X are a separate research track, paused under the current
+> validation boundary ([GOALS.md](../GOALS.md#separate-research-track-zero-and-x)). This page
+> describes that work; it is not a product commitment.
+
 **Foundational thesis:** Constraints aren't limitations; they're the engine that makes browser-native RSI work. The browser sandbox, VFS containment, and graduated gates create stable pressure toward compact, efficient self-modifications.
 
 This document provides a high-level overview of REPLOID's security model. For coordinator, WebSocket signaling, UDP/TURN relay, and serving-computer wire visibility across live inference routes, see [Wire Visibility: Who Can Read What](./wire-visibility.md). For detailed implementation specifications, see the referenced blueprints.
@@ -12,15 +16,15 @@ Current defaults are intentionally permissive for experimentation: `REPLOID_SECU
 
 ## RSI Level Policy
 
-Graduated operation with automated gates:
+The levels are defined in [RSI-LEVELS.md](./RSI-LEVELS.md). This section covers only their gates:
 
-| Level | Scope | Mode | Gate |
-|-------|-------|------|------|
-| **L0** | Basic Functions (CreateTool, Web APIs, new tools) | AUTONOMOUS | Verification Worker sandbox |
-| **L1** | Meta Tooling (modify tool-writer, improve CreateTool) | AUTONOMOUS | Verification Worker sandbox (VFSSandbox + VerificationManager) |
-| **L2** | Self-Modification (Substrate) (edit core modules, runtime patches) | AUTONOMOUS | Verification Worker sandbox + GenesisSnapshot rollback |
-| **L3** | Weak RSI (Iterative) (bounded feedback loops, self-improvement) | GOVERNED | Signed improvement episode + protected evaluator + paired evaluation + generation rollback + explicit promotion |
-| **L4** | Weak AGI (broad autonomous planning, system-building, self-directed experimentation) | N/A | N/A |
+| Level | Mode | Gate |
+|-------|------|------|
+| **L0** | AUTONOMOUS | Verification Worker sandbox |
+| **L1** | AUTONOMOUS | Verification Worker sandbox (VFSSandbox + VerificationManager) |
+| **L2** | AUTONOMOUS | Verification Worker sandbox + GenesisSnapshot rollback |
+| **L3** | GOVERNED | Signed improvement episode + protected evaluator + paired evaluation + generation rollback + explicit promotion |
+| **L4** | N/A | N/A |
 
 Gating is enforced via automated verification and rollback:
 - The Verification Worker sandbox for L1 changes: the candidate is applied to a
@@ -80,12 +84,11 @@ REPLOID studies RSI (recursive self-improvement) without giving agents access to
 - Modify their own substrate (with gates)
 - Spawn sub-workers with restricted permissions
 - Call LLM APIs (rate-limited)
-- Request sponsored inference from swarm sponsor peers (free tier)
 
 ### What Agents CANNOT Do
 - Access the underlying filesystem
 - Execute operating-system binaries
-- Make arbitrary network requests (except scoped Gemini calls by sponsor peers)
+- Make arbitrary network requests
 - Access browser APIs directly
 - Escape browser sandbox
 - Modify Service Worker directly
@@ -93,94 +96,17 @@ REPLOID studies RSI (recursive self-improvement) without giving agents access to
 
 ---
 
-## Sponsored Inference (Free Tier)
+## Sponsored Inference (proposed, not implemented)
 
-Reploid supports a pure P2P free tier where opted-in peers form small custody committees for one or more shared demo Gemini keys. This enables zero-install, zero-config demo usage without backend key custody.
+[Blueprint 0x00007E](../self/blueprints/0x00007E-sponsor-peer-protocol.md) proposes a peer-to-peer
+free tier: a shared demo Gemini key split across small custody committees, released to one
+executor per request after quorum, with per-peer quotas. It is not built. The blueprint is
+`In-Progress` and its planned modules (`community-key.js`, `gemini-relay.js`,
+`peer-identity.js`) do not exist, so no peer can request or serve sponsored inference and no
+agent has a network exception for it. The blueprint holds the proposed trust model, scaling
+rules, quotas and limitations.
 
-See [Blueprint 0x00007E: Sponsor-Peer Protocol](../self/blueprints/0x00007E-sponsor-peer-protocol.md) for the canonical specification. The blueprint is the source of truth for topology, routing, quotas, and scaling. This section summarizes policy only.
-
-### Trust Model
-
-This is a flat swarm with dynamic sponsor roles, not a permanent privileged class:
-
-| Role | Holds Full Key At Rest | Holds Shares | Makes API Calls |
-|------|------------------------|--------------|-----------------|
-| **Requester** | No | No | No |
-| **Custodian** | No | Yes | No |
-| **Executor** | No | Optional | Yes (scoped to Gemini) |
-
-- Shared keys are split into shares and distributed across small committees
-- No peer stores the full Gemini key at rest
-- Requesters never see the full key
-- Executors reconstruct a key in memory only after quorum, then zeroize
-- Quotas are enforced per peer identity and per key bucket
-- Peers hold a persistent ECDSA P-256 identity keypair (Web Crypto API, stored in IndexedDB)
-- Peer ID = SHA-256 fingerprint of public key
-
-### Scaling Policy
-
-Sponsored inference must follow these scaling rules:
-
-- Keep custody committees small: `3-10` peers
-- Never split one shared key across the whole swarm
-- Scale capacity by adding key buckets, not by adding more custodians to one key
-- Route requesters to a key bucket, not to the full swarm
-- Isolate failure domains per key bucket
-
-### Network Exception
-
-Authorized executors are granted a **scoped network exception** to the "no arbitrary network requests" rule:
-
-- **Scope**: HTTPS calls to `generativelanguage.googleapis.com` only
-- **Trigger**: Only in response to a valid, signed lease and quorum-backed share release
-- **Constraint**: Only allowlisted demo models and bounded sponsored-mode quotas
-- **Audit**: All forwarded requests logged with peer ID, key ID, token count, timestamp
-
-This is not a general network hole. The exception is:
-1. Scoped to a single API endpoint
-2. Gated behind sponsor opt-in and committee quorum
-3. Metered per peer identity
-4. Constrained to the weakest model tier
-
-### Quota Enforcement
-
-Quota enforcement is keyed by public-key fingerprint and key bucket.
-
-Default demo quotas, lease limits, and stream limits are defined in the blueprint. Security policy requires that sponsored inference remain bounded, low-priority, and separately metered from BYOK or local inference.
-
-### Sponsored Mode Constraints
-
-Sponsored inference is intentionally limited:
-
-- Flash Lite tier only
-- Low max output tokens
-- Slower queue priority
-- Small daily quota
-- No long context
-- No batch jobs
-- No arena / heavy self-improvement paths
-- Small custody committees only
-- Capacity scales by adding more shared keys, not more custodians per key
-
-### Upgrade Nudges
-
-| Usage | Action |
-|-------|--------|
-| 50% | Show usage meter in UI |
-| 80% | "Add your own Gemini key for full speed" prompt |
-| 100% | Hard stop. Offer: BYOK, local Doppler, or wait for sponsor refill |
-
-### Limitations (Explicit)
-
-This is soft enforcement for a demo tier, not a secure production secret:
-
-- **Sybil identities**: A peer can generate new keypairs. Mitigate with per-key quotas and sponsor-side heuristics.
-- **Executor compromise**: A malicious executor can abuse a reconstructed key in memory. Mitigate with short-lived leases, scoped model restrictions, key rotation, and monitoring.
-- **Replay attacks**: Signed leases require expiry timestamps and nonces.
-- **No backend authority**: Without a server, there is no single source of truth for quota state. Executors gossip usage receipts for soft consistency.
-- **No global Shamir mesh**: A single shared key must never be split across a large open swarm. Scaling comes from multiple key buckets with small committees.
-
-The right product framing is sponsored serverless demo capacity, not a secure shared-production secret.
+The access-window mechanism in `self/cloud-access.js` is separate; it ships with no windows.
 
 ---
 
@@ -192,8 +118,6 @@ The right product framing is sponsored serverless demo capacity, not a secure sh
 | Code Injection | `eval()`, dynamic imports | [0x000040](../self/blueprints/0x000040-verification-manager.md) |
 | Resource Exhaustion | Infinite loops, API flooding | [0x00005C](../self/blueprints/0x00005C-circuit-breaker-pattern.md), [0x000029](../self/blueprints/0x000029-rate-limiting-strategies.md) |
 | Data Exfiltration | Arbitrary fetch | VFS containment, no network access |
-| Sponsor Key Abuse | Sybil peers, quota bypass | [0x00007E](../self/blueprints/0x00007E-sponsor-peer-protocol.md) - signed leases, per-key quotas, sharded key buckets |
-| Sponsor Compromise | Malicious executor/custodian | Short-lived leases, committee quorum, key rotation, monitoring |
 
 ---
 
@@ -233,7 +157,7 @@ For implementation details, see:
 - **[0x000049: HITL Controller](../self/blueprints/0x000049-hitl-controller.md)** - Human oversight modes
 - **[0x00005C: Circuit Breaker](../self/blueprints/0x00005C-circuit-breaker-pattern.md)** - Failure isolation
 - **[0x00003C: Genesis Snapshots](../self/blueprints/0x00003C-genesis-snapshot-system.md)** - Rollback system
-- **[0x00007E: Sponsor-Peer Protocol](../self/blueprints/0x00007E-sponsor-peer-protocol.md)** - P2P free tier inference
+- **[0x00007E: Sponsor-Peer Protocol](../self/blueprints/0x00007E-sponsor-peer-protocol.md)** - Proposed P2P free tier (not implemented)
 
 ---
 

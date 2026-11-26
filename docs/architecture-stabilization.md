@@ -1,5 +1,11 @@
 # Architecture stabilization
 
+> **Dated record (September 2026), superseded in part.** This describes the September 2026
+> stabilization merge. Current ownership is in the `CATSCAN.md` files
+> ([component index](component-index.md)); the checks CI runs today are in
+> [AGENTS.md "Run and verify"](../AGENTS.md#run-and-verify) and
+> [`.github/workflows/test.yml`](../.github/workflows/test.yml).
+
 The stabilization reconciles application baseline `7efa8f9ef22817f65149b9246f2e759c28ec0bc7`
 with accepted integration `19bc359ef1b7606fde3132ab2f37920f4891e6e5` through a merge.
 Application Work composition is retained alongside the accepted Doppler streaming,
@@ -75,9 +81,10 @@ including when commit/reveal was selected automatically.
 CI requires JavaScript correctness lint, strict public declaration checks and JavaScript checking of the execution engine, lifecycle, dispatcher and recovery policies,
 parsed import/reexport/dynamic-import boundaries, declared dynamic loaders,
 cycle detection and byte-identical generated library delivery. The dependency
-check rejects mandatory X capabilities in Zero. Browser and installed-package
-checks are mandatory; generated registry validation must report zero unresolved
-issues.
+check rejects mandatory X capabilities in Zero. Generated registry validation must
+report zero unresolved issues. CI runs no browser and no installed-package
+acceptance; the Playwright and `library-package-acceptance.js` commands below are
+run on demand.
 
 Reproduction commands:
 

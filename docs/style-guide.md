@@ -128,17 +128,16 @@ Use `loadVfsModule` for VFS blob imports: its import rewriter resolves relative 
 
 ## Poolday design system
 
-Poolday is built in three layers, and each layer uses only the one below it. React screens reach
-them only through `@reploid/poolday-ui` ([contract](poolday-ui-architecture.md)): its components
-render these primitive classes, so the stylesheets below are its implementation. The live
-catalog is `/design`.
-
+The component library, its import layers and its rules are in
+[poolday-ui-architecture.md](poolday-ui-architecture.md), the canonical contract. This section
+covers the CSS beneath the components and how to choose and lay out controls. The CSS is built in
+three layers, and each layer uses only the one below it.
 
 - **Tokens** (`apps/poolday/styles/poolday/tokens.css`) are every value: one neutral gray
   ramp named by lightness (`--pool-gray-44` is `#717171`), the prism palette (obsidian
   void for dark, silica for light, one spectrum), alpha steps, and scales for
   size, radius, border, text, line height, weight and tracking. Semantic tokens
-  (`--pool-color-page`, `--pool-color-ink-48`, `--pool-shadow-raised`) map them per
+  (`--pool-color-page`, `--pool-color-muted`, `--pool-shadow-raised`) map them per
   theme. Every Poolday custom property is a token.
 - **Primitives** (`primitives/*.css`) are the building blocks, written as classes
   that consume tokens: surfaces, cards, wells, dividers, buttons, fields, switches,
@@ -167,19 +166,19 @@ its root carries `class="pool-page"` so the page shell uses the same tokens.
 
 ### Choosing the right control
 
-Pick the control from the kind of decision, never from the look. The markup helpers
-in `apps/poolday/ui/components/choices.js` render each one; use them rather than
-writing the markup by hand.
+Pick the control from the kind of decision, never from the look. The components in
+`@reploid/poolday-ui` (`packages/poolday-ui/src/choices.tsx`, `rows.tsx`) render each one. The
+vanilla specialist routes use the matching helpers in `apps/poolday/ui/components/choices.js`
+until they move to React.
 
 | Decision | Control | Semantics |
 |----------|---------|-----------|
-| Exactly one of 2 to 4 modes, short labels (Appearance, route preference) | `renderSegmented` | `role="radiogroup"` of native radios |
-| Exactly one of a list, or options that need a status line (Answer on, Who can read it, Files to share) | `renderOptions({ type: 'radio' })` | `role="radiogroup"` of native radios |
-| Any number of independent options (sharing choices) | `renderOptions({ type: 'checkbox' })` | `role="group"` of native checkboxes; add "select all" only when the options are alike and numerous |
-| On or off, taking effect immediately (network answers, Share model files) | `renderToggleRow` | `role="switch"` button with `aria-checked` |
-| Show or hide more detail | `pool-disclosure` | native `details` and `summary` |
-| Do something, or go somewhere (a model to share, an app shortcut) | `renderActionRow`, or a `pool-button` | a button for an action, a link with a trailing chevron for a destination |
-| A long, open-ended list (every catalog model) | a native `select` in `pool-input` | keep it only when the list is too long for rows |
+| Exactly one of 2 to 4 modes, short labels (Appearance, route preference) | `SingleChoice` with `layout="segmented"` | `role="radiogroup"` of native radios |
+| Exactly one of a list, or options that need a status line (Answer on, Who can read it, Files to share) | `SingleChoice` (with `groups` for options under headings) | `role="radiogroup"` of native radios |
+| Any number of independent options (sharing choices) | `MultiChoice` | `role="group"` of native checkboxes; add "select all" only when the options are alike and numerous |
+| On or off, taking effect immediately (network answers, Share model files) | `Toggle` | `role="switch"` with `aria-checked` |
+| Show or hide more detail | `Disclosure` | native `details` and `summary` |
+| Do something, or go somewhere (a model to share, an app shortcut) | `ListItem` with `onPress` or `href`, or a `Button` | a button for an action, a link with a trailing chevron for a destination |
 
 Buttons come in three weights: `btn-primary` for the one commitment on a surface,
 plain `pool-button` (secondary) for other actions that change something, and
@@ -245,7 +244,7 @@ same place can share one cell in `pool-reserve`, where the tallest sets the
 height; text that only repeats a chosen row belongs in a collapsed disclosure
 instead. Badges have a fixed height and never wrap.
 
-Dialogs use the shell from `renderDialog`: a fixed header (title and Close), a
+Dialogs use the `Dialog` shell (`renderDialog` on the vanilla routes): a fixed header (title and Close), a
 scrolling body and a pinned footer. A dialog whose body shows live data
 (discovery, download checks) adds `pool-dialog-fixed`, which sets its height at
 first paint. On narrow screens every dialog becomes a bottom sheet with the same
@@ -307,11 +306,7 @@ checks token references, structural-only literals, converted compositions, the
 legacy count and product inline styles. `tests/e2e/chat-rail-layout.spec.js` covers
 the conversation screen in both themes and at narrow widths.
 
-The design system page, `/design` (`npm start`, then `http://localhost:8000/design`), is built
-only from `@reploid/poolday-ui`. It shows tokens (raw scales, then semantic values per theme,
-with use counts and unused tokens marked), then primitives from simplest to most complex, then
-compositions from small pieces to whole screens. Each token lists the primitives that read it,
-and each primitive lists its tokens and the compositions that use it. The Zero / X RD specimen
-is at `/x/design`.
+The live catalog is `/design`; what it shows is described in
+[poolday-ui-architecture.md](poolday-ui-architecture.md#the-design-page).
 
 *Last updated: November 2026*

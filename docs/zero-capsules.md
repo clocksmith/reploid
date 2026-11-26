@@ -51,6 +51,16 @@ security policies that this compact host cannot satisfy fail closed.
   Existing saved instances and X keep those interfaces. Source export never packages
   provider tokens, API keys or authentication state.
 
+## Managed proxy admission
+
+The hosted `/zero/gemini` function requires both Firebase Auth and Firebase App Check. Enable anonymous Firebase Auth, enable the Firebase App Check API, and register the hosted web app with its reCAPTCHA v3 provider using the [Firebase setup procedure](https://firebase.google.com/docs/app-check/web/recaptcha-provider).
+
+Publish the provider's public site key in `self/config/zero-access.json` under `appCheck.siteKey`. Its `projectId` and `appId` must match the hosted `/__/firebase/init.json`. The checked-in null key deliberately blocks managed requests until provisioned. Never put a reCAPTCHA secret, service-account key, or Gemini API key in this public file. Deployment must include this file and the matching client module.
+
+Zero reads that configuration before initializing Firebase Auth and App Check. An existing `window.REPLOID_ZERO_APP_CHECK_SITE_KEY` remains an explicit operator override. A failed initialization can retry on the next request after configuration is corrected; missing configuration never disables authentication or App Check. Local Doppler does not require these managed-proxy credentials. A populated public file does not establish that the project API, provider registration, or token exchange works; verify the deployed exchange separately.
+
+The function accepts only `GEMINI_MODEL` by default. Set `ZERO_GEMINI_ALLOWED_MODELS` to an explicit comma-separated allowlist only when additional models are intentionally sponsored. `ZERO_GEMINI_MAX_RATE_BUCKETS` bounds retained authenticated-client rate-limit state.
+
 ## Source-only reproduction
 
 Inspect → **Export self-source** emits `reploid.zero.image/v1`: the declared source,
@@ -65,7 +75,11 @@ Inspect intentionally authored tool source before sharing it: path allowlisting 
 not a general secret detector for arbitrary strings embedded in source code.
 Legacy `self/image/` export/restore contracts are separate and unchanged.
 
-## Measured readable source
+## Measured readable source (qualification record, as of 2026-10-22)
+
+These figures were measured on 2026-10-22 and are not current: the descriptor
+(`self/zero/source.json`) has changed since, so its hash, file count and line counts no longer
+match the numbers below. Measure again before quoting a size.
 
 Bound to descriptor SHA-256
 `e0830ee5d23da74fa2c3c2e27d8908b17ac447259dd532117051738d8e2c77fe`:

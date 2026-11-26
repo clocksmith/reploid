@@ -179,8 +179,8 @@ two isolated browser contexts. Candidate code is supplied by the test, not a mod
 `tests/e2e/peer-tool-offer.spec.js` adds real WebRTC delivery, recipient refusal,
 restart recovery, local evaluation, adoption and rollback. Protocol unit tests
 exercise redelivery, lost receipts, failed persistence, tampering, expiry and
-identity binding. The required CI test job runs these product suites alongside
-storage, boot and peer-job contracts, and archives browser and package evidence.
+identity binding. The browser specs run on demand (`npm run test:e2e`); CI runs no browser
+and archives no browser evidence ([test.yml](../.github/workflows/test.yml)).
 
 Cancellation stops observation before borrowed model work necessarily finishes.
 The agent's `settle()` operation waits for that work; the Work host then checkpoints

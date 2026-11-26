@@ -1,5 +1,9 @@
 # RSI Improvement Episodes
 
+> **Paused research.** Zero and X are a separate research track, paused under the current
+> validation boundary ([GOALS.md](../GOALS.md#separate-research-track-zero-and-x)). This page
+> describes that work; it is not a product commitment.
+
 Reploid treats mutation, successful execution, and a higher aggregate score as
 insufficient evidence of self-improvement. The canonical internal proof object
 is `rsi.improvement-episode/v1`, implemented by
