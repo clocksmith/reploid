@@ -440,3 +440,21 @@ it('keeps the signing participant separate from fresh contribution observation s
   expect(f.ads.at(-1).observationSession).toBe(next.instanceId);
   await f.swarm.close();
 });
+
+it('starts paused when the stored network choice is off, and connects again only when asked to', async () => {
+  values.set('REPLOID_NETWORK_ENABLED_V2', 'false');
+  ports.ensure.mockResolvedValue({ peerId: 'fixture', contribution: {} });
+  ports.createTransport.mockReturnValue({ init: vi.fn(async () => true), disconnect: vi.fn(), onMessage: vi.fn(), broadcast: vi.fn(),
+    getConnectionState: () => 'connecting', getTransportType: () => 'webrtc' });
+  const swarm = fixture();
+  // The page reads this as "Network paused." with Reconnect, not as a search that then fails.
+  expect(swarm.getState().paused).toBe(true);
+  expect(swarm.autoConnectEnabled()).toBe(false);
+  await swarm.connect({ automatic: true });
+  expect(ports.ensure).not.toHaveBeenCalled();
+  expect(swarm.getState().paused).toBe(true);
+  await swarm.connect().catch(() => {});
+  expect(swarm.getState().paused).toBe(false);
+  expect(values.get('REPLOID_NETWORK_ENABLED_V2')).toBe('true');
+  await swarm.close();
+});

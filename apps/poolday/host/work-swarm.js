@@ -85,7 +85,9 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
   let filesEnabled = storage?.getItem(PRODUCER_FILES_CHOICE) === 'true';
   let cachedSharing = null, cachedModels = [];
 
-  let disconnecting = null, sharingConnection = null, generation = 0, paused = false;
+  // A network the person turned off stays off across a reload, and reads as paused (with Reconnect), not as a
+  // search that never connects. disconnect() and connect() below write this setting.
+  let disconnecting = null, sharingConnection = null, generation = 0, paused = storage?.getItem?.('REPLOID_NETWORK_ENABLED_V2') === 'false';
   let automaticAllowed = options.autoConnect !== false;
   const requests = new Map(), cleanupDebt = new Set(), contributionDebt = new Set(), closingOwners = new WeakMap(), settledOwners = new WeakSet();
   const closeOwner = owner => {

@@ -328,3 +328,24 @@ it('bounds a held Send by the discovery wait: it says it is waiting for capacity
   expect(f.sent[0].content).toBe('Held while the only computer is busy');
   expect(f.view.composer().nextAction).not.toBe('cancel-queued');
 });
+
+it('holds no Send while the network is turned off: the composer says it is paused and offers Reconnect', async () => {
+  // A stored "network off" choice: the swarm starts paused (work-swarm.js), which the session reports as this phase.
+  const paused = { discoveryPhase: 'paused', peerDiscoveryTimedOut: true, network: { paused: true, consumer: null } };
+  const returning = fixture({ storage: memory({ [ANSWER_CHOICE_STORAGE_KEY]: JSON.stringify({ selectionId: key(SMALL), identity: SMALL.identity, route: 'contributors' }) }) });
+  returning.publish(paused);
+  expect(returning.view.composer().status.text).toBe('Network paused.');
+  expect([returning.view.composer().nextAction, returning.view.composer().nextLabels.retry]).toEqual(['retry', 'Reconnect']);
+  returning.view.send('Typed with the network off');
+  await new Promise(resolve => setTimeout(resolve, 0));
+  expect(returning.view.composer().nextAction).toBe('retry');
+  expect(returning.created).toHaveLength(0);
+  // A first visitor is not told computers are being found, and nothing is held either.
+  const first = fixture();
+  first.publish(paused);
+  expect(chip(first).name).not.toBe('Finding computers…');
+  first.view.send('Typed with the network off');
+  await new Promise(resolve => setTimeout(resolve, 0));
+  expect(first.view.composer().nextAction).not.toBe('cancel-queued');
+  expect(first.created).toHaveLength(0);
+});
