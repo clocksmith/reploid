@@ -500,3 +500,47 @@ it('an answer recovered after its result frame was lost is acknowledged before i
   const { records } = await fixture.agree(reservationId, { status: 'settled', debit: 3 * PRICE, payout: 3 * PRICE });
   expect(records).toMatchObject({ label: 'signed-records', acknowledged: 3, stopped: false });
 });
+
+it('an answer the host would reject is refused before anything is countersigned: a final text that differs from the stream, or a completion the host cannot read', async () => {
+  const cases = {
+    'final text differs from the stream': async (_messages, update) => { update('The capital is Paris.'); return answer('The capital is Lyon.', 3); },
+    'made-up stop reason': async (_messages, update) => { update('1 2 3'); return { ...answer('1 2 3', 3), completion: { ...answer('', 3).completion, stopReason: 'made-up' } }; }
+  };
+  for (const [name, execute] of Object.entries(cases)) {
+    const fixture = await route({ requester: 1, provider: 0, execute });
+    const outcome = await fixture.ask().then(result => ({ resolved: true, ...result }), settled);
+    expect(outcome.resolved, name).toBeUndefined();
+    expect(outcome.settlementRecords.acknowledged, name).toBeNull();
+    await nothingCharged(fixture, outcome.settlementRecords.reservationId);
+  }
+});
+
+// The host's own result check (packages/reploid/src/inference) runs after the executor has settled the charge.
+it('the inference result never hides a charge: a stop after the executor finished stays completed, and a result refused afterwards still states what was settled', async () => {
+  const peer = 'peer:' + 'a'.repeat(24);
+  const charged = { id: 'service:x', charge: 6, outputTokens: 3, settledAt: 1 };
+  const inferenceModel = { id: 'm-1', identity: model.identity, adapterIdentities: [] };
+  const run = async kind => {
+    const controller = new AbortController();
+    const inference = createInference({
+      resolveRoute: () => ({ shape: 'remote', backend: 'doppler-plaintext/v1', participants: [peer], selection: 'one-of', maxCharge: { kind: 'capped', maximum: 32, unit: 'noncash-service-credit' } }),
+      async execute({ policy }, controls) {
+        const request = { model: { id: inferenceModel.id, identity: inferenceModel.identity, adapters: [] }, privacy: policy };
+        const privacyBinding = await bindExecutionRoute(request, plaintextExecutionRoute(request, { recipients: [peer],
+          route: { schema: 'reploid.mesh-route/v1', providerId: peer, offerId: 'ordinary-generation', backend: 'doppler-plaintext/v1' } }));
+        expect(await controls.requestApproval({ privacyBinding })).toBe(true);
+        controls.onDelta({ text: kind === 'stream-differs' ? 'The capital is Paris.' : '1 2 3' });
+        // The answer completed and the ledger settled the charge; the person stops as the executor returns.
+        if (kind === 'stop-after-settle') controller.abort(Object.assign(new Error('Stopped'), { requesterStop: true }));
+        return { content: kind === 'stream-differs' ? 'The capital is Lyon.' : '1 2 3', model: inferenceModel.id, modelIdentity: inferenceModel.identity, adapterIdentities: [],
+          usage: { inputTokens: 11, outputTokens: 3 }, serviceCredit: charged, execution: { stopReason: kind === 'odd-stop-reason' ? 'provider-made-this-up' : 'eos-token' } };
+      } });
+    const plan = await inference.prepare({ model: inferenceModel, execution: { protection: 'plaintext', route: 'remote', participants: { kind: 'named', ids: [peer] },
+      allowMetadata: ['model-id', 'timing', 'length', 'access-patterns'] } });
+    return (await inference.run({ planId: plan.id, requestId: 'request-' + kind, input: { messages: [{ role: 'user', content: 'hi' }] } }, { signal: controller.signal })).result;
+  };
+  expect(await run('stop-after-settle')).toMatchObject({ status: 'completed', output: { text: '1 2 3' }, settlement: { charge: 6 } });
+  for (const kind of ['stream-differs', 'odd-stop-reason']) {
+    expect(await run(kind), kind).toMatchObject({ status: 'failed', output: null, error: { code: 'RESULT_UNVERIFIED' }, settlement: { charge: 6 } });
+  }
+});

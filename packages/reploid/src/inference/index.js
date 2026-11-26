@@ -277,10 +277,14 @@ export function createInference({ resolveRoute, execute, now = Date.now, planTtl
     };
     const job = freezeDeep({ plan, policy: entry.request.policy, request: { requestId, attemptId, messages, generation: entry.request.generation } });
     const result = (async () => {
+      // Once the executor has resolved, the answer is finished and whatever it settled is settled: the signal is not
+      // read again (a stop that arrives now cannot undo a charge), and a result refused below still states that charge.
+      let resolved = false, settled = null;
       try {
         if (plan.route.shape === 'local') admit(admitLocalRoute(plan));
         const raw = await execute(job, controls, runContext);
-        runSignal.throwIfAborted();
+        resolved = true;
+        settled = raw?.serviceCredit ?? raw?.execution?.serviceCredit ?? null;
         if (refusal) throw refusal;
         if (!admitted) throw executionError('RESULT_UNVERIFIED', 'The executor answered without admitting a route');
         const read = readExecutorResult(plan, raw, streamed);
@@ -291,12 +295,13 @@ export function createInference({ resolveRoute, execute, now = Date.now, planTtl
         return value;
       } catch (cause) {
         const error = refusal ?? cause;
-        const status = !refusal && runSignal.aborted ? 'cancelled' : 'failed';
+        const status = !refusal && !resolved && runSignal.aborted ? 'cancelled' : 'failed';
+        const charged = error?.serviceCredit ?? settled;
         // Partial text is never a successful result: it is dropped from the result.
         const value = freezeDeep({ requestId, attemptId, status, output: null, usage: null,
-          settlement: structuredClone(error?.serviceCredit ?? null), error: errorRecord(error),
+          settlement: structuredClone(charged), error: errorRecord(error),
           executionReceipt: await executionReceipt({ plan, requestId, attemptId, status, admitted,
-            timeline: deliveryTimeline(cause?.delivery), settlement: error?.serviceCredit ?? null, at: now() }) });
+            timeline: deliveryTimeline(cause?.delivery), settlement: charged, at: now() }) });
         emit({ type: status, result: value });
         return value;
       } finally { channel.end(); plans.delete(planId); }

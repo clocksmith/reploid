@@ -123,6 +123,15 @@ export function createWholeModelRequester({ mesh, models }) {
       }
       const id = randomUUID(), item = { request, requested, controls, providerId: null }; pending.set(id, item);
       let sequence = 0, observedInputTokens = null;
+      // Every check this requester makes of a completed answer. The mesh runs it before it countersigns the provider's
+      // receipt, so an answer refused here was never charged; nothing after the mesh resolves may refuse it.
+      const project = result => {
+        const projected = projectResult(request, result, item.providerId, item.providerIdentity);
+        requireValue(observedInputTokens === null || projected.usage.inputTokens === observedInputTokens,
+          'Whole-model input token count differs from the provider\'s early observation');
+        if (requested) tokenUsage(projected.usage.inputTokens, projected.usage.outputTokens, requested);
+        return projected;
+      };
       try {
         const result = await mesh.generate(request.messages, text => {
           controls.signal.throwIfAborted();
@@ -133,6 +142,7 @@ export function createWholeModelRequester({ mesh, models }) {
           ...(settings ? { settings: request.settings } : {}),
           // The caller's port for the signed records of a charged request (mesh/operation-envelope.js).
           ...(controls.settlement ? { settlement: controls.settlement } : {}),
+          acceptResult: result => { project(result); return true; },
           // Asked of the mesh only for a caller that publishes the provider's input count before its text.
           ...(typeof controls.onUsage === 'function' ? { onUsage: ({ inputTokens }) => {
             controls.signal.throwIfAborted();
@@ -147,13 +157,9 @@ export function createWholeModelRequester({ mesh, models }) {
             recoverable: true,
             ...(typeof threadId === 'string' && threadId.length > 0 && threadId.length <= 256 ? { contextId: threadId } : {})
           } });
-        controls.signal.throwIfAborted();
-        const projected = projectResult(request, result, item.providerId, item.providerIdentity);
-        // The mesh refuses this before countersigning; the caller was told the early count, so it is checked here too.
-        requireValue(observedInputTokens === null || projected.usage.inputTokens === observedInputTokens,
-          'Whole-model input token count differs from the provider\'s early observation');
-        if (requested) tokenUsage(projected.usage.inputTokens, projected.usage.outputTokens, requested);
-        return projected;
+        // The answer completed and its receipt was countersigned: a stop that arrives now is too late to undo it, so
+        // the signal is not read again (docs/settlement-replay.md, "Whole-model operations").
+        return project(result);
       } finally { pending.delete(id); }
     },
     async recover(request, reference, controls) {
@@ -165,7 +171,9 @@ export function createWholeModelRequester({ mesh, models }) {
       // Keep the acceptance binding private from caller edits and transport callbacks.
       const outcome = await mesh.recoverGeneration({ ...reference, modelId: request.model.id, modelIdentity: request.model.identity,
         adapterIdentities: partitionAdapterIdentities(request.model) }, structuredClone(request.messages), signal,
-      request.settings ? { settings: request.settings } : undefined);
+      { ...(request.settings ? { settings: request.settings } : {}),
+        // Checked before the recovered receipt is countersigned, as a delivered answer is.
+        acceptResult: result => { projectResult(request, result, reference.providerId, reference.providerIdentity); return true; } });
       signal.throwIfAborted();
       return outcome.status === 'completed' ? { status: 'completed', result: projectResult(request, outcome.response,
         reference.providerId, reference.providerIdentity) } : outcome;

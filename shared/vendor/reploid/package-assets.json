@@ -941,8 +941,8 @@
     },
     {
       "path": "inference/index.js",
-      "bytes": 25121,
-      "sha256": "f814111ec617c0b2f0c21770caf331a92f837da7874dcdb88e59e56072b32aa7"
+      "bytes": 25500,
+      "sha256": "6e6b5c3a71d98679fc014d5a13185c29bfb62e5c3703dcc75639150b67d1912b"
     },
     {
       "path": "inference/protected.d.ts",
@@ -1531,13 +1531,13 @@
     },
     {
       "path": "mesh/peer-generation.d.ts",
-      "bytes": 7110,
-      "sha256": "0589d8e5e17397ac7efa1e673bed83b226b030648b4df282440d3394a5b33673"
+      "bytes": 7727,
+      "sha256": "396a0251d7ca2997d532fd2bb7fa0286fd1e08cb19680a6e42e462217a691af6"
     },
     {
       "path": "mesh/peer-generation.js",
-      "bytes": 99529,
-      "sha256": "63c525fabdaa3b59502fb2466796bc008c257d5000a2f06e898444dac3e6b220"
+      "bytes": 101238,
+      "sha256": "68bb82bf00b613627bfee5289758c25fb3f11971e3e26d49e62574205c444b72"
     },
     {
       "path": "mesh/peer-identity.js",

@@ -827,7 +827,9 @@ export function createOwnerInference({ host, config }) {
     if (result.status === 'completed') return { ...context.raw, executionReceipt: result.executionReceipt };
     // The executor's own error keeps its credit outcome unless the inference API refused first.
     if (context.failure && !Object.hasOwn(EXECUTION_ERROR_CODES, result.error.code)) throw context.failure;
-    throw Object.assign(new Error(result.error.message), { code: result.error.code });
+    // A result refused after the executor finished keeps what the executor settled, so a charge is never hidden.
+    throw Object.assign(new Error(result.error.message), { code: result.error.code,
+      ...(result.settlement ? { serviceCredit: structuredClone(result.settlement) } : {}) });
   };
 }
 

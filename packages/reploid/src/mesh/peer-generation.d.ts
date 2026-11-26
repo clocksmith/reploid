@@ -12,7 +12,9 @@ export interface PeerGenerationMesh extends GenerationProvider {
     storage?: { getItem(key: string): string | null | Promise<string | null>; setItem(key: string, value: string): unknown };
   }): Promise<import('./computer-identity.js').ComputerIdentity>;
   recoverGeneration(reference: { requestId: string; providerId: string; providerIdentity: string; modelId: string; modelIdentity: string; adapterIdentities: string[] },
-    messages: Message[], signal?: AbortSignal, options?: { settings?: GenerationSettingsInput }): Promise<{ status: string; response?: GenerationResult; terminal?: Record<string, unknown> }>;
+    messages: Message[], signal?: AbortSignal, options?: { settings?: GenerationSettingsInput;
+      /** The caller's own check of the recovered answer, run before its receipt is countersigned. */
+      acceptResult?: (response: GenerationResult) => boolean | void | Promise<boolean | void> }): Promise<{ status: string; response?: GenerationResult; terminal?: Record<string, unknown> }>;
   refreshAdvertisement(): Record<string, unknown>;
   generate(messages: Message[], onUpdate?: ((chunk: string) => void) | null,
     control?: { offerId?: string | null; privacy?: import('../chat/execution-policy.js').ExecutionPolicy | null; signal?: AbortSignal; modelId?: string; modelIdentity?: string | null; adapterIdentities?: string[]; requestContext?: import('../config/index.js').Json;
@@ -21,7 +23,11 @@ export interface PeerGenerationMesh extends GenerationProvider {
       /** Called at most once, before any chunk, with the remote provider's own prompt token count when it reports one.
        * Once delivered, a completion or receipt that reports another input count is refused before countersigning.
        * A provider that predates the observation never calls it. */
-      onUsage?: (usage: { inputTokens: number }) => void }): Promise<GenerationResult>;
+      onUsage?: (usage: { inputTokens: number }) => void;
+      /** Remote execution only: the caller's own check of a completed answer, run before the provider's receipt is
+       * countersigned or its closing record acknowledged. Throwing or returning false fails the request with nothing
+       * countersigned, so a caller never refuses an answer it was already charged for. */
+      acceptResult?: (response: GenerationResult) => boolean | void | Promise<boolean | void> }): Promise<GenerationResult>;
   rotateIdentity(input?: object): Promise<unknown>; getSwarmSnapshot(): Record<string, unknown>; hasAvailableProvider(modelId?: string): boolean;
   on(event: string, handler: (event: unknown) => void): () => void;
 }

@@ -1112,6 +1112,13 @@ every step above applies unchanged. Source:
   signed `inTime`, a close or a fault signed `closesInTime` (step 4), and
   its own acknowledgment only while its clock is inside the window. An
   acceptance outside the window is refused before the prompt is sent.
+- **Every check of the answer comes before the charge.** Before it
+  acknowledges or countersigns, the requester refuses a final text that differs
+  from the text the provider streamed, and any result its own host would
+  refuse (completion metadata it cannot read, a count above the caller's
+  limit). Such an answer fails with nothing charged. After the acknowledgment
+  nothing refuses the answer: a host check that still fails reports the failure
+  together with the charge that was settled, never without it.
 - **A provider that signed the acceptance is charged for only with its close.**
   When its closing receipt is missing, late, `failed`, or commits to another
   count or chain than the output that arrived, the requester acknowledges

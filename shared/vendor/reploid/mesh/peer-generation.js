@@ -483,7 +483,7 @@ export function createPeerGenerationMesh({ config, ports }) {
     pending.delivery?.acknowledge('request');
     const chunk = String(payload.chunk || '');
     try {
-      if (chunk) { pending.streamed = true; pending.onUpdate?.(chunk); return; }
+      if (chunk) { pending.streamed = true; pending.streamedText = (pending.streamedText ?? '') + chunk; pending.onUpdate?.(chunk); return; }
       // The provider's input token count, for a caller that asked for it: one positive count before
       // any text. A late, repeated or malformed observation is ignored and the stream is unaffected.
       const inputTokens = payload.usage?.inputTokens;
@@ -550,6 +550,17 @@ export function createPeerGenerationMesh({ config, ports }) {
           || payload.receipt && payload.receipt.inputTokens !== pending.observedInputTokens)) {
         throw new Error('Provider input token count differs from its early observation');
       }
+      // What the caller was shown is what it is charged for: a final text that differs from the text this provider
+      // streamed is refused. So is a result the caller's own reading refuses (its completion metadata, its limits).
+      // Both run before anything is countersigned or acknowledged, so an answer refused here is never charged.
+      const acceptedByCaller = async () => {
+        if (pending.streamedText !== undefined && response.content !== pending.streamedText) {
+          throw new Error('Provider final answer differs from the text it streamed');
+        }
+        if (pending.acceptResult && await pending.acceptResult(snapshotJson(response)) === false) {
+          throw new Error('The caller refused the provider result');
+        }
+      };
       if (payload.receipt) {
         const verified = await verifyReceipt(payload.receipt);
         if (!current()) return;
@@ -570,6 +581,8 @@ export function createPeerGenerationMesh({ config, ports }) {
           || !await matchesWholeModelReceipt(payload.receipt, pending.messages, response, bound))) {
           throw new Error('Measured receipt differs from the admitted request or provider output');
         }
+        await acceptedByCaller();
+        if (!current()) return;
         // The whole output arrived and matches the provider's measured receipt. For a request that signed settlement
         // terms, the provider's closing record of the same count is acknowledged first. A closing record that is
         // missing, late or commits to anything else fails the request here, whether or not the caller required a
@@ -591,6 +604,9 @@ export function createPeerGenerationMesh({ config, ports }) {
       } else if (policy.models.contract !== null || pending.settings || pending.settlement) {
         // A request with settings, or one that signed settlement terms, is accepted only with signed evidence.
         throw new Error('Remote execution receipt is missing');
+      } else {
+        await acceptedByCaller();
+        if (!current()) return;
       }
       remoteRequests.settle(pending, { response });
     } catch (error) { remoteRequests.settle(pending, { error }); }
@@ -1273,8 +1289,11 @@ export function createPeerGenerationMesh({ config, ports }) {
    * `open({ requestId, recipientIdentity, modelId, modelIdentity, planDigest })` returns the requester's charge
    * (openMeshOperationCharge) once the host has approved the disclosure, or null for none; `required: true` sends only
    * to a provider that advertises it signs those records and refuses, before anything is held or sent, when none does.
+   * `acceptResult(response)` (optional, remote execution only) is the caller's own check of a completed answer. It runs
+   * before the provider's receipt is countersigned or its close acknowledged; throwing or returning false fails the
+   * request with nothing countersigned, so a caller never refuses an answer it has already been charged for.
    */
-  const generate = async (messages, onUpdate, { signal, modelId, modelIdentity = null, adapterIdentities = [], requestContext = null, privacy = null, offerId = null, settings = undefined, onUsage = undefined, settlement = null } = {}) => {
+  const generate = async (messages, onUpdate, { signal, modelId, modelIdentity = null, adapterIdentities = [], requestContext = null, privacy = null, offerId = null, settings = undefined, onUsage = undefined, settlement = null, acceptResult = undefined } = {}) => {
     if (closed) throw new Error('Mesh is closed');
     privacy = assertAvailableExecutionPolicy(privacy === null && modelConfig
       ? createExecutionPolicy() : requestExecutionPolicy({ privacy }));
@@ -1445,6 +1464,7 @@ export function createPeerGenerationMesh({ config, ports }) {
       const result = await remoteRequests.start({ requestId, modelId, modelIdentity, adapterIdentities,
         providerPeerId: provider.peerId, providerIdentity: recipientIdentity, messages, onUpdate, signal,
         ...(typeof onUsage === 'function' ? { onUsage } : {}),
+        ...(typeof acceptResult === 'function' ? { acceptResult } : {}),
         ...(settings ? { settings, settingsDigest } : {}), admission, ...(charge ? { settlement: charge } : {}),
         ...(delivery ? { delivery } : {}), ...(paths ? { paths } : {}) }, () => {
         if (charge) {
@@ -1473,7 +1493,7 @@ export function createPeerGenerationMesh({ config, ports }) {
     }
   };
 
-  const recoverGeneration = async (reference, messages, signal, { settings = undefined } = {}) => {
+  const recoverGeneration = async (reference, messages, signal, { settings = undefined, acceptResult = undefined } = {}) => {
     await initialize(); signal?.throwIfAborted();
     reference = snapshotJson(reference); messages = snapshotJson(messages);
     settings = normalizeGenerationSettings(settings);
@@ -1505,6 +1525,8 @@ export function createPeerGenerationMesh({ config, ports }) {
       || receipt.jobHash !== `request:${binding.requestId}` || receipt.modelIdentity !== binding.modelIdentity
       || JSON.stringify(receipt.adapterIdentities) !== JSON.stringify(binding.adapterIdentities)
       || !await matchesWholeModelReceipt(receipt, messages, response, bound)) throw Error('Unverified recovered completion');
+    // The caller's own check of the answer, before anything is countersigned, as for a delivered one.
+    if (typeof acceptResult === 'function' && await acceptResult(snapshotJson(response)) === false) throw Error('The caller refused the recovered result');
     // A recovered answer of a request that signed settlement terms is acknowledged as a delivered one is, before
     // anything is countersigned. When this requester no longer holds that request's charge (it restarted since), it
     // cannot acknowledge the provider's close, so it countersigns nothing and the hold is released unclaimed.
