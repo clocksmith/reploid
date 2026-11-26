@@ -896,7 +896,7 @@ export async function runFleetNativeCommands({ host, config, input = process.std
           } else if (command.op === 'cancel') result = host.cancel(command.attemptId, { stop: true }) ?? { cancelled: true };
           else if (command.op === 'outcome') result = await host.inspectOutcome(command.targetId);
           // One reservation's signed records from this host's disk (requester or provider), and the list of them.
-          else if (command.op === 'trade') result = await host.tradeRecords(command.id, { format: command.format === 'records' ? 'records' : 'receipt' });
+          else if (command.op === 'trade') result = await host.tradeRecords(command.reservationId, { format: command.format === 'records' ? 'records' : 'receipt' });
           else if (command.op === 'trades') result = await host.trades();
           else if (command.op === 'recover') result = await host.recover(command.input);
           else throw Error('Unknown native fleet command');
