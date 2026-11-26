@@ -76,17 +76,52 @@ assessment behind it are in [docs/poolday-ui-architecture.md](docs/poolday-ui-ar
 
 - `npm start` starts the local application; `npm run start:signaling` starts the
   signaling server. See [README.md](README.md) for setup and local routes.
-- Run a focused unit test with
-  `npx vitest run --config tests/vitest.config.js <test-file>`. The test-value
-  guidance lives in [docs/style-guide.md](docs/style-guide.md#test-value).
+- **Install per checkout.** A new worktree has no `node_modules`: run `npm ci` in it (about
+  6 s with a warm cache) and again when `package-lock.json` changes. Do not borrow another
+  checkout's install. An install older than the lockfile is what makes `npm run lint` fail
+  with React/JSX type errors and `verify:doppler-generation` fail on the wrong Doppler.
+
+Match the check to the risk. Times are from one laptop; CI runs the same commands on Linux.
+
+| When | Run | Time |
+| --- | --- | --- |
+| Editing, once the behavior is ready to verify | The test file for the module you changed: `npx vitest run --config tests/vitest.config.js <test-file>` | 1-3 s a file |
+| Before every push | `npm run lint`: ESLint, the new-module rules applied to your work against `origin/main` (uncommitted and untracked files included), JavaScript-only, and the design-system boundaries and types. It is the lint CI runs | 15 s |
+| Before a push that changes served source (`packages/reploid/src`, `apps/poolday`, `shared`, `self`) | `npm run build`, and commit what it writes as its own commit. Rebuild after rebasing onto `main`: the bundles and inventories embed every source change, so a rebase makes them stale | 5-13 s |
+| Before merge | The contract checks for each behavior you changed (next table) and, for a page change, the journey for that surface under `tests/e2e/` | 1-5 s a row |
+| Every push and pull request | CI `Smoke` ([test.yml](.github/workflows/test.yml)): named contract tests, generated-file checks, the bundle and the hosting package. No GPU and no browser | 2 min |
+| Release, hardware work, or a change that justifies it | `npm test`, `npm run test:heavy`, `npm run test:e2e`, and the physical controllers (`tests/fixtures/*-physical.js`, `tests/contracts/`) | not in CI |
+
+These checks stay when their behavior changes; replace one only with a stronger test at the same boundary.
+
+| Behavior | Checks |
+| --- | --- |
+| Privacy | `tests/unit/execution-privacy.test.js`, `auxiliary-privacy.test.js`, `privacy-controls.test.js`; `tests/integration/execution-privacy-routes.test.js`, `retrieval-privacy.test.js` |
+| Authorization | `tests/unit/self-authorization.test.js`, `chat-thread-grants.test.js`, `conversation-remote-permission.test.js`, `ordered-partition-grants.test.js` |
+| Cancellation | `tests/unit/chat-execution-lifecycle.test.js`, `native-complete-lifecycle.test.js`, `operation-participation-lifecycle.test.js`, `browser-library-cancellation.test.js` |
+| Settlement | `npm run verify:fleet-receipts`; `tests/unit/settlement-*.test.js`, `credit-ledger.test.js`; `tests/integration/whole-model-signed-charge.test.js` |
+| Model parity with Doppler | `npm run verify:doppler-generation`; `tests/unit/doppler-runtime-service.test.js`, `doppler-partition-contract.test.js` |
+| Deployment compatibility | `npm run verify:library`, `verify:browser-bundle:local`, `package:hosting`; `tests/unit/pool-hash-compatibility.test.js`, `hosting-file-set.test.js` |
+| Conversation journey | `tests/e2e/conversation-acceptance.spec.js` (scripted executor, real page) |
+
+**What opens a GPU device.** Three things, and nothing else:
+
+1. Anything under `tests/e2e/` or any script that launches a browser: `tests/playwright.config.js`
+   starts Chromium with WebGPU enabled.
+2. The physical controllers above: they load a real model on a real device.
+3. A Node test that loads the `webgpu` package: `grep -rlE "import\('webgpu'\)|from 'webgpu'" server tests scripts`
+   lists Reploid's entry points, and Doppler's Node provider loads the same package.
+   `webgpu` is an optional dependency, so a checkout installed with
+   `npm ci --omit=optional`, as CI installs, cannot open a device from Node. In a default
+   install the whole `npm test` can; do not run it on a machine whose GPU someone is timing.
+
+Other commands:
+
 - `npm run verify:library-types` checks library declarations;
   `npm run verify:poolday-types` checks Poolday declarations.
-- `npm run build` regenerates the complete application build. For a narrower
-  change, use the matching `build:*` / `verify:*` script in `package.json`;
-  `npm run verify:library`, `npm run verify:ownership-inventory` and
-  `npm run verify:browser-bundle:local` check their respective generated inputs.
+- For a narrower regeneration than `npm run build`, use the matching `build:*` / `verify:*`
+  script in `package.json`.
 - `npm run verify:catscan` checks component-map links and inventory after
   component-map or boundary changes. `catscan:chain` is an optional lookup.
-- Choose browser journeys for the actual changed surface. Fake-buffer or unit
-  tests do not establish real inference, physical peer recovery or production
-  readiness.
+- Fake-buffer or unit tests do not establish real inference, physical peer recovery or
+  production readiness.
