@@ -4462,7 +4462,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:1e24aba8e343fa466f456ece2ead9ebc82c8be2a440bb9f75a365dcfd10ebc50",
+      "sha256": "sha256:2236b0a7026e1a55ddd6ea2867ef995d183d3a8e7b6fa6a46644bca67a540cbd",
       "imports": []
     },
     {
@@ -5576,7 +5576,7 @@
     {
       "path": "ui/react/app.js",
       "owner": "ui",
-      "sha256": "sha256:4b31da3eac1036ab5e40de93b971d9a598c1371a568acf3a600fd26f88e3ea8c",
+      "sha256": "sha256:e04a185d03d8375301def86aac3c8def53f4b93859a55d6bd6b3c8556d5ed97b",
       "imports": []
     },
     {
@@ -19192,7 +19192,7 @@
     {
       "path": "vendor/reploid/inference/index.js",
       "owner": "vendor",
-      "sha256": "sha256:f814111ec617c0b2f0c21770caf331a92f837da7874dcdb88e59e56072b32aa7",
+      "sha256": "sha256:6e6b5c3a71d98679fc014d5a13185c29bfb62e5c3703dcc75639150b67d1912b",
       "imports": [
         "../artifacts/signatures.js",
         "../chat/execution-policy.js",
@@ -19406,7 +19406,7 @@
     {
       "path": "vendor/reploid/mesh/operation-envelope.js",
       "owner": "vendor",
-      "sha256": "sha256:6e1b0c8731a80630563842de29db2717095bd80c597ac32eed9a18100d54c9ad",
+      "sha256": "sha256:3f402ed532f87bc76a7949e01f66ca5f967f12b682987ec0c1e58e394ca97d8e",
       "imports": [
         "../artifacts/receipt.js",
         "../artifacts/signatures.js",
@@ -19800,7 +19800,7 @@
     {
       "path": "vendor/reploid/mesh/peer-generation.js",
       "owner": "vendor",
-      "sha256": "sha256:cf7a0af2f30ccce0e5c7321a8a7168ec8714ccb45d92fda5c6a3e1aebc367380",
+      "sha256": "sha256:58eb1fea66fad3ec684104efa71aa26f1b768ffe5572345ac55ae074c395e066",
       "imports": [
         "../artifacts/generation-terminal.js",
         "../artifacts/receipt.js",
