@@ -576,8 +576,8 @@
     },
     {
       "path": "chat/execution-policy.js",
-      "bytes": 27652,
-      "sha256": "bddfe2685ac9befff014055d075d67aaedacede06e6a3f2db39a4af7d806bd4e"
+      "bytes": 27877,
+      "sha256": "78a47e02287562776a98f6d3603b91ddb52ec09f4db2c39da7bab92c07901597"
     },
     {
       "path": "chat/index.d.ts",
@@ -1146,13 +1146,13 @@
     },
     {
       "path": "mesh/operation-envelope.d.ts",
-      "bytes": 9233,
-      "sha256": "884a68c0e75a1d6021fbc7401f055cd4da1c7f97952506245184fed1238e625c"
+      "bytes": 9467,
+      "sha256": "2ec63daf5f1cfd50291a1d712f7924c766abb0aa2dc9289c340c39ea38f9814d"
     },
     {
       "path": "mesh/operation-envelope.js",
-      "bytes": 33267,
-      "sha256": "aa664fcc6058e3fba33bdf820fb103e0f85b0a43ed5bf08e041093bfadea0d5b"
+      "bytes": 35288,
+      "sha256": "6e1b0c8731a80630563842de29db2717095bd80c597ac32eed9a18100d54c9ad"
     },
     {
       "path": "mesh/partitions/automatic-ordered-partitions.d.ts",
@@ -1536,8 +1536,8 @@
     },
     {
       "path": "mesh/peer-generation.js",
-      "bytes": 97024,
-      "sha256": "7707bee5b6ed44965ecc57ef983a4e0e83f969cecdb53aca32faf04f3a7bb3c9"
+      "bytes": 97570,
+      "sha256": "74952cf2e873081467e9d24f26eb296654af5d71a8d31877ea5689c481ecd48a"
     },
     {
       "path": "mesh/peer-identity.js",

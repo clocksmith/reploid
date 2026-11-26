@@ -244,6 +244,7 @@ var BUNDLE_KEYS = Object.freeze(["schema", "reservationId", "attemptId", "identi
 var SETTLEMENT_TERMS_SCHEMA = "reploid.settlement-terms/v1";
 var SETTLEMENT_ACCEPTANCE_SCHEMA = "reploid.settlement-acceptance/v1";
 var SETTLEMENT_STOP_SCHEMA = "reploid.settlement-stop/v1";
+var SETTLEMENT_FAULT_SCHEMA = "reploid.settlement-stage-fault/v1";
 var TERMS_KEYS = Object.freeze([
   "schema",
   "reservationId",
@@ -292,6 +293,7 @@ var MESH_OPERATION_SETTLEMENT_RECORD_SCHEMAS = Object.freeze([
   OUTPUT_ACKNOWLEDGMENT_SCHEMA,
   SETTLEMENT_ACCEPTANCE_SCHEMA,
   STAGE_RECEIPT_SCHEMA,
+  SETTLEMENT_FAULT_SCHEMA,
   SETTLEMENT_STOP_SCHEMA
 ]);
 
