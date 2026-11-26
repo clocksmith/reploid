@@ -589,6 +589,7 @@
     "self/host/decisions/conversation-controller.js",
     "self/host/decisions/conversation-details.js",
     "self/host/decisions/model-choices.js",
+    "self/host/decisions/projected-store.js",
     "self/host/decisions/settings.js",
     "self/host/decisions/transcript.js",
     "self/host/device-capability.js",

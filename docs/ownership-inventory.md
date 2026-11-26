@@ -18,10 +18,10 @@ Product entries: `index.html`, `pool-entry.html`, `design.html`, `document-study
 
 | Owner | Files |
 | --- | ---: |
-| apps/poolday | 395 |
+| apps/poolday | 397 |
 | self | 457 |
 | shared | 2526 |
-| total | 3378 |
+| total | 3380 |
 
 Every file lives in its owner's root.
 
@@ -429,6 +429,8 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `host/decisions/conversation-controller.js` | `apps/poolday/host/decisions/conversation-controller.js` | apps/poolday | Product decisions and helpers the React bundle (ui/react/app.js) compiles in; the bundle is not traced by import. |
 | `host/decisions/conversation-details.js` | `apps/poolday/host/decisions/conversation-details.js` | apps/poolday | Product decisions and helpers the React bundle (ui/react/app.js) compiles in; the bundle is not traced by import. |
 | `host/decisions/model-choices.js` | `apps/poolday/host/decisions/model-choices.js` | apps/poolday | Product decisions and helpers the React bundle (ui/react/app.js) compiles in; the bundle is not traced by import. |
+| `host/decisions/projected-store.d.ts` | `apps/poolday/host/decisions/projected-store.d.ts` | apps/poolday | Describes host/decisions/projected-store.js. Product decisions and helpers the React bundle (ui/react/app.js) compiles in; the bundle is not traced by import. |
+| `host/decisions/projected-store.js` | `apps/poolday/host/decisions/projected-store.js` | apps/poolday | Product decisions and helpers the React bundle (ui/react/app.js) compiles in; the bundle is not traced by import. |
 | `host/decisions/settings.js` | `apps/poolday/host/decisions/settings.js` | apps/poolday | Product decisions and helpers the React bundle (ui/react/app.js) compiles in; the bundle is not traced by import. |
 | `host/decisions/transcript.js` | `apps/poolday/host/decisions/transcript.js` | apps/poolday | Product decisions and helpers the React bundle (ui/react/app.js) compiles in; the bundle is not traced by import. |
 | `host/device-capability.js` | `apps/poolday/host/device-capability.js` | apps/poolday | Reached only from product entries. |

@@ -3068,6 +3068,12 @@
       ]
     },
     {
+      "path": "self/host/decisions/projected-store.js",
+      "owner": "self",
+      "sha256": "sha256:9aed2c405fd3be668c34203593dbec8aa1f5af2fa9efc65018df1d62d27de18a",
+      "imports": []
+    },
+    {
       "path": "self/host/decisions/settings.js",
       "owner": "self",
       "sha256": "sha256:3f1958e42af096dd98c5fe5dccd365ea609861c41e65741d642de118cc0c99d8",
@@ -5578,13 +5584,13 @@
     {
       "path": "ui/react/app.js",
       "owner": "ui",
-      "sha256": "sha256:a9e79b7078047636cc57a9027598280337b20aa5c40a6da306f5d26d559dcb20",
+      "sha256": "sha256:6b33611b187763478fdde6eee79d740c8f3ce6e7b6eef3a3963f80a65848c7b3",
       "imports": []
     },
     {
       "path": "ui/react/design.js",
       "owner": "ui",
-      "sha256": "sha256:2794efba643691de25ea7f5363da10d0c4a30325134b881f8d561bd353e11e6d",
+      "sha256": "sha256:5b71bb8db4a0f09b69f83139952e71ec9d63531ca9e8aa5431cc1c3ad1841181",
       "imports": []
     },
     {

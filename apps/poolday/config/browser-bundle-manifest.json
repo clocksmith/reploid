@@ -1415,8 +1415,8 @@
     },
     {
       "path": "config/module-inventory.json",
-      "byteLength": 698667,
-      "sha256": "sha256:dbd23ed42d2f7f878ebc1a0f9abde88dad42ea25b8dd58ed17a32eb3325c6980"
+      "byteLength": 698870,
+      "sha256": "sha256:2b1dbbda49f14601ac739225bfc85c79c4a7ed25b270e952f44ec3f95d66739e"
     },
     {
       "path": "config/module-registry.json",
@@ -1510,8 +1510,8 @@
     },
     {
       "path": "config/vfs-manifest.json",
-      "byteLength": 149955,
-      "sha256": "sha256:daab85f168564f5bafa0f7b063569877dac3aa3d70e2dc9c0cc23642875ed2f3"
+      "byteLength": 150001,
+      "sha256": "sha256:027a725f9f1aaf426721b0037403d112b55beed174610094ef445c3966825c51"
     },
     {
       "path": "config/vfs-policy.js",
@@ -1947,6 +1947,11 @@
       "path": "host/decisions/model-choices.js",
       "byteLength": 3806,
       "sha256": "sha256:a67ff2c53e8b48a43004947d26f68a4fa187a2f0ad0378c039826ca7eab71f38"
+    },
+    {
+      "path": "host/decisions/projected-store.js",
+      "byteLength": 1340,
+      "sha256": "sha256:9aed2c405fd3be668c34203593dbec8aa1f5af2fa9efc65018df1d62d27de18a"
     },
     {
       "path": "host/decisions/settings.js",
@@ -4415,13 +4420,13 @@
     },
     {
       "path": "ui/react/app.js",
-      "byteLength": 2209446,
-      "sha256": "sha256:a9e79b7078047636cc57a9027598280337b20aa5c40a6da306f5d26d559dcb20"
+      "byteLength": 2210140,
+      "sha256": "sha256:6b33611b187763478fdde6eee79d740c8f3ce6e7b6eef3a3963f80a65848c7b3"
     },
     {
       "path": "ui/react/design.js",
-      "byteLength": 1162299,
-      "sha256": "sha256:2794efba643691de25ea7f5363da10d0c4a30325134b881f8d561bd353e11e6d"
+      "byteLength": 1162608,
+      "sha256": "sha256:5b71bb8db4a0f09b69f83139952e71ec9d63531ca9e8aa5431cc1c3ad1841181"
     },
     {
       "path": "ui/reploid-home/index.js",
@@ -12839,5 +12844,5 @@
       "sha256": "sha256:abb6c18f6167d6afc8ee1b3adfcbbb89c0e93fb4fc4e98d7a12250f78aab206a"
     }
   ],
-  "bundleHash": "sha256:62b8916780480d1e841de776fdeff24d7df103fd1ca175df488587ff51fdf3b6"
+  "bundleHash": "sha256:5bd5992be11bd8ffd6ab8af2d2819f5f6a4b7cf347e0f354c1a3eccff9ff5c41"
 }
