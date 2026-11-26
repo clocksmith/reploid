@@ -3,11 +3,16 @@
  * Checks a records-only trade export: signed settlement records and the publisher's stated amounts, with no prompt,
  * no answer text, no token IDs and no ledger journal (docs/verify-a-trade.md, "Records only").
  *
- *   node scripts/settlement/verify-records.js TRADE.json_or_DIRECTORY [--coordinator-key KEY.json] [--at ISO_TIME] [--json]
+ *   node scripts/settlement/verify-records.js TRADE.json_or_DIRECTORY [--coordinator-key KEY.json [--coordinator-fingerprint FP]] [--at ISO_TIME] [--json]
+ *   node scripts/settlement/verify-records.js --publication PUBLICATION.json
  *
  * `--coordinator-key` names the coordinator's published key (`reploid.coordinator-key/v1`: its ID and public key),
  * fetched from where the ledger's operator publishes it and not from whoever handed over the trade. With it, a signed
  * statement must be by that key; without it, the hold line says the signing key was only the one the file carries.
+ * `--coordinator-fingerprint` is the fingerprint the ledger's operator published somewhere else (coordinatorFingerprint;
+ * `trade.js coordinator-fingerprint` prints it): when the key file does not have that fingerprint, nothing is checked
+ * and the command fails. `--publication` checks the operator's signed publication statement on its own and prints its
+ * fingerprint and date.
  *
  * For each attempt it recomputes the debit and every stage's payout from the signed records and compares them with
  * what the publisher stated, checks the debit against the maximum the requester signed, checks each stage against
@@ -21,7 +26,7 @@
  * does not show who owns a key, that any computation was correct, that nobody withheld a record, or when a record was
  * really signed. The hold line says exactly what it rests on.
  */
-import { createPublicKey, verify } from 'node:crypto';
+import { createHash, createPublicKey, verify } from 'node:crypto';
 import { existsSync, readFileSync, realpathSync, statSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -31,6 +36,8 @@ export const RECORDS_EXPORT_SCHEMA = 'reploid.settlement-records-export/v1';
 const TERMS = 'reploid.settlement-terms/v1';
 const STATEMENT = 'reploid.settlement-statement/v1';
 export const COORDINATOR_KEY_SCHEMA = 'reploid.coordinator-key/v1';
+export const COORDINATOR_PUBLICATION_SCHEMA = 'reploid.coordinator-publication/v1';
+const PUBLICATION_KEYS = ['schema', 'coordinatorId', 'publicJwk', 'fingerprint', 'ledger', 'publishedAt', 'statement'];
 const PROVIDER_LOSS_FREE = 'reploid.unfinished-answer/provider-loss-free/v1';
 /** The unfinished-answer terms each ledger settlement version signs (docs/settlement-replay.md, "Unfinished answers" and "Older rules"). */
 const TERMS_OF_RULES = Object.freeze({
@@ -128,6 +135,58 @@ export function readCoordinatorKey(value) {
   try { derived = participantIdOf(value.publicJwk); } catch { /* reported below */ }
   if (derived !== value.coordinatorId) throw Error('not a coordinator key: its ID does not derive from its public key');
   return value;
+}
+
+/**
+ * The coordinator key's fingerprint: the first 128 bits of the SHA-256 that its ID is the first 96 bits of (over
+ * `{ kty, crv, x, y, n, e }`, absent members null, canonical JSON), as eight groups of four hex digits. The ID's 24
+ * hex digits are the fingerprint's first six groups.
+ */
+export function coordinatorFingerprint(publicJwk) {
+  const { kty = null, crv = null, x = null, y = null, n = null, e = null } = publicJwk ?? {};
+  const hex = createHash('sha256').update(canonicalJson({ kty, crv, x, y, n, e }), 'utf8').digest('hex').slice(0, 32);
+  return hex.match(/.{4}/g).join('-');
+}
+
+/** A fingerprint as a person may type it: any case, with or without the hyphens (spaces and colons are dropped too). */
+export function readFingerprint(value) {
+  const hex = String(value ?? '').toLowerCase().replace(/[\s:-]/g, '');
+  if (!/^[0-9a-f]{32}$/.test(hex)) throw Error('a coordinator fingerprint is 32 hex digits, for example 1a2b-3c4d-5e6f-7a8b-9c0d-1e2f-3a4b-5c6d');
+  return hex.match(/.{4}/g).join('-');
+}
+
+/** Throws unless `key` (readCoordinatorKey) has the fingerprint published elsewhere. Returns that fingerprint. */
+export function checkCoordinatorFingerprint(key, fingerprint) {
+  const wanted = readFingerprint(fingerprint), actual = coordinatorFingerprint(key.publicJwk);
+  if (actual !== wanted) {
+    throw Error(`the coordinator key ${key.coordinatorId} has fingerprint ${actual}, not the published ${wanted}: it is not the key its operator published, so nothing was checked`);
+  }
+  return actual;
+}
+
+/**
+ * The ledger operator's signed publication of its coordinator key (trade.js coordinator-fingerprint): the key, its
+ * fingerprint, the ledger it names, the time, a sentence, and an Ed25519 signature by that same key over
+ * `{ signatureDomain: schema, payload }`. The signature shows only that whoever holds the key made the statement; the
+ * place it is posted is what ties it to the operator. Returns `{ body }` or `{ problem }`.
+ */
+export function checkPublication(record) {
+  if (!isObject(record)) return { problem: 'not a JSON object' };
+  const { signature, ...body } = record;
+  const jwk = body.publicJwk;
+  if (!exactly(body, PUBLICATION_KEYS) || body.schema !== COORDINATOR_PUBLICATION_SCHEMA || !text(body.coordinatorId) || !time(body.publishedAt)
+    || !(body.ledger === null || text(body.ledger, 512)) || !text(body.statement, 1024) || !text(body.fingerprint, 64)) {
+    return { problem: `not a coordinator publication: it must be exactly { ${PUBLICATION_KEYS.join(', ')}, signature } with schema ${COORDINATOR_PUBLICATION_SCHEMA}` };
+  }
+  if (!(exactly(jwk, ['kty', 'crv', 'x']) && jwk.kty === 'OKP' && jwk.crv === 'Ed25519' && base64url(jwk.x, 32)) || !base64url(signature, 64)) {
+    return { problem: 'its key or signature is not a canonical Ed25519 one' };
+  }
+  if (participantIdOf(jwk) !== body.coordinatorId) return { problem: 'its coordinator ID does not derive from its key' };
+  if (body.fingerprint !== coordinatorFingerprint(jwk)) return { problem: `it states fingerprint ${body.fingerprint}; its key's fingerprint is ${coordinatorFingerprint(jwk)}` };
+  try {
+    const bytes = Buffer.from(canonicalJson({ signatureDomain: COORDINATOR_PUBLICATION_SCHEMA, payload: body }), 'utf8');
+    return verify(null, bytes, createPublicKey({ key: jwk, format: 'jwk' }), Buffer.from(signature, 'base64url')) ? { body } : { problem: 'its signature does not verify' };
+  } catch { return { problem: 'its signature does not verify' }; }
 }
 
 /** Reads a records-only export: the file itself, or `trade.json` in a directory. */
@@ -329,19 +388,42 @@ export function describeAttempt(row) {
 /** The command: `args` are TRADE.json_or_DIRECTORY and the flags. verify-trade.js --records runs the same. */
 export async function recordsCommand(args) {
   const flag = name => { const at = args.indexOf(`--${name}`); return at === -1 ? null : args[at + 1] ?? true; };
-  const target = args.find((value, index) => !value.startsWith('--') && !['--at', '--coordinator-key'].includes(args[index - 1]));
+  if (flag('publication')) {
+    let checked;
+    try { checked = checkPublication(JSON.parse(readFileSync(path.resolve(String(flag('publication'))), 'utf8'))); }
+    catch (error) { checked = { problem: error.message }; }
+    if (checked.problem) { console.log(`FAIL the publication is refused: ${checked.problem}`); process.exitCode = 1; return; }
+    const { body } = checked;
+    console.log(`The publication is signed by the coordinator key it names.\n  coordinator ${body.coordinatorId}\n  fingerprint ${body.fingerprint}\n  ledger      ${body.ledger ?? '(not named)'}\n  dated       ${body.publishedAt} (the signer's own clock; the place it is posted dates it)`
+      + `\nCheck trades with: --coordinator-key KEY.json --coordinator-fingerprint ${body.fingerprint}`);
+    return;
+  }
+  const valued = ['--at', '--coordinator-key', '--coordinator-fingerprint'];
+  const target = args.find((value, index) => !value.startsWith('--') && !valued.includes(args[index - 1]));
   if (target && !existsSync(target)) { console.error(`There is no file or folder named ${target}. Name a trade.json or the folder that holds one.`); process.exitCode = 2; return; }
-  if (!target) { console.error('Usage: node scripts/settlement/verify-records.js TRADE.json_or_DIRECTORY [--coordinator-key KEY.json] [--at ISO_TIME] [--json]'); process.exitCode = 2; return; }
-  let coordinatorKey = null;
+  if (!target) { console.error('Usage: node scripts/settlement/verify-records.js TRADE.json_or_DIRECTORY [--coordinator-key KEY.json [--coordinator-fingerprint FP]] [--at ISO_TIME] [--json]'); process.exitCode = 2; return; }
+  let coordinatorKey = null, fingerprint = null;
   if (flag('coordinator-key')) {
     try { coordinatorKey = readCoordinatorKey(JSON.parse(readFileSync(path.resolve(String(flag('coordinator-key'))), 'utf8'))); }
     catch (error) { console.error(`--coordinator-key: ${error.message}`); process.exitCode = 2; return; }
   }
+  if (flag('coordinator-fingerprint')) {
+    if (!coordinatorKey) { console.error('--coordinator-fingerprint needs --coordinator-key KEY.json: the key you fetched, whose fingerprint it checks'); process.exitCode = 2; return; }
+    try { fingerprint = checkCoordinatorFingerprint(coordinatorKey, flag('coordinator-fingerprint')); }
+    catch (error) {
+      if (/32 hex digits/.test(error.message)) { console.error(`--coordinator-fingerprint: ${error.message}`); process.exitCode = 2; return; }
+      console.log(`FAIL ${error.message}.`); process.exitCode = 1; return;
+    }
+  }
   const at = flag('at') ? Date.parse(flag('at')) : Date.now();
   if (!Number.isFinite(at)) { console.error('--at needs an ISO time'); process.exitCode = 2; return; }
-  const verdict = await verifyRecords({ trade: readRecordsTrade(path.resolve(target)), at, coordinatorKey });
+  const verdict = { ...await verifyRecords({ trade: readRecordsTrade(path.resolve(target)), at, coordinatorKey }), coordinatorFingerprint: fingerprint };
   if (flag('json')) console.log(JSON.stringify(verdict, null, 2));
   else {
+    if (coordinatorKey) {
+      console.log(fingerprint ? `coordinator key ${coordinatorKey.coordinatorId}: its fingerprint ${fingerprint} is the published one`
+        : `coordinator key ${coordinatorKey.coordinatorId}, fingerprint ${coordinatorFingerprint(coordinatorKey.publicJwk)}: compare it with the one its operator published (or pass --coordinator-fingerprint)`);
+    }
     for (const row of verdict.attempts) for (const line of describeAttempt(row)) console.log(line);
     for (const problem of verdict.problems ?? []) console.log(`FAIL ${problem}`);
     console.log(verdict.ok ? `The stated amounts follow from the signed records. Hold release shown by a signed statement in ${verdict.holdReleaseShown} of ${verdict.attempts.length} attempts`

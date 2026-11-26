@@ -18,7 +18,7 @@ import { signSettlementStatement, verifySettlementStatement } from '../../server
 import { replaySettlement as secondReplay } from '../../scripts/settlement/independent/replay.js';
 import { assertRecordsOnly, exportFailureCases, exportFromReceipt } from '../../scripts/settlement/records-export.js';
 import { POLICY, createParties, runAttempt } from '../../scripts/settlement/scenario.js';
-import { checkStatement, signedShares, verifyRecords } from '../../scripts/settlement/verify-records.js';
+import { checkCoordinatorFingerprint, checkStatement, coordinatorFingerprint, readFingerprint, signedShares, verifyRecords } from '../../scripts/settlement/verify-records.js';
 import { readTrade } from '../../scripts/settlement/verify-trade.js';
 
 const DIRECTORY = fileURLToPath(new URL('../fixtures/stage1-trade', import.meta.url));
@@ -178,6 +178,42 @@ describe('the simulated v3 trades with the coordinator\'s signed statement', () 
     expect(await withStatement(await sign(0, { forfeited: [2] }))).toMatch(/states forfeits \[2\]/);
     expect(await withStatement(await sign(0, { settlementRules: 'reploid.settlement-replay/v2' }))).toMatch(/does not settle under the signed terms/);
     expect(await withStatement(await sign(1, {}))).toMatch(/names terms that are not the agreed ones/);
+  });
+
+  // The outsider fetches the key from the ledger and checks it against the fingerprint its operator published
+  // elsewhere (trade.js coordinator-fingerprint): a key with another fingerprint stops the check before any trade.
+  it('check the fetched coordinator key against the published fingerprint, and refuse any other', () => {
+    const directory = mkdtempSync(path.join(tmpdir(), 'verify-fingerprint-'));
+    const run = args => {
+      try { return { code: 0, out: execFileSync(process.execPath, [SCRIPT('verify-records.js'), path.join(directory, 'trade.json'), '--at', new Date(AT).toISOString(), ...args], { encoding: 'utf8', stdio: 'pipe' }) }; }
+      catch (error) { return { code: error.status, out: `${error.stdout}${error.stderr}` }; }
+    };
+    try {
+      const { coordinatorId, publicJwk } = trade.attempts[0].statement;
+      writeFileSync(path.join(directory, 'trade.json'), JSON.stringify(trade));
+      writeFileSync(path.join(directory, 'key.json'), JSON.stringify({ schema: 'reploid.coordinator-key/v1', coordinatorId, publicJwk }));
+      const fingerprint = coordinatorFingerprint(publicJwk);
+      expect(fingerprint).toMatch(/^([0-9a-f]{4}-){7}[0-9a-f]{4}$/);
+      expect(fingerprint.replace(/-/g, '').slice(0, 24)).toBe(coordinatorId.slice(5));
+      const key = ['--coordinator-key', path.join(directory, 'key.json')];
+      for (const typed of [fingerprint, fingerprint.toUpperCase().replace(/-/g, ' ')]) {
+        const pass = run([...key, '--coordinator-fingerprint', typed]);
+        expect(pass.out).toContain(`its fingerprint ${fingerprint} is the published one`);
+        expect(pass.out).toContain('Hold release verified in 4 of 4.');
+        expect(pass.code).toBe(0);
+      }
+      const other = `${fingerprint.slice(0, -1)}${fingerprint.endsWith('0') ? '1' : '0'}`;
+      const refused = run([...key, '--coordinator-fingerprint', other]);
+      expect(refused.code).toBe(1);
+      expect(refused.out).toContain(`has fingerprint ${fingerprint}, not the published ${other}`);
+      expect(refused.out).not.toContain('PASS');
+      expect(run(['--coordinator-fingerprint', fingerprint])).toMatchObject({ code: 2, out: expect.stringContaining('needs --coordinator-key') });
+      expect(run([...key, '--coordinator-fingerprint', 'abc'])).toMatchObject({ code: 2, out: expect.stringContaining('32 hex digits') });
+      // Without a fingerprint the key is still used, and its fingerprint printed to compare by eye.
+      expect(run(key).out).toContain(`fingerprint ${fingerprint}: compare it with the one its operator published`);
+      expect(() => checkCoordinatorFingerprint({ coordinatorId, publicJwk }, other)).toThrow(/not the key its operator published/);
+      expect(readFingerprint(fingerprint.replace(/-/g, ':'))).toBe(fingerprint);
+    } finally { rmSync(directory, { recursive: true, force: true }); }
   });
 
   it('carry a statement the service\'s own check accepts, which neither replay reads as a record', async () => {

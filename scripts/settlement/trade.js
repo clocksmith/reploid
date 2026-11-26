@@ -6,7 +6,8 @@
  *   node scripts/settlement/trade.js earner   --state DIR --service URL --signaling URL --room ROOM --room-token-file FILE --model MODEL.json --weights DIR
  *   node scripts/settlement/trade.js spender  --state DIR --service URL --signaling URL --room ROOM --room-token-file FILE --model MODEL.json
  *   node scripts/settlement/trade.js export   --state DIR --out TRADE.json [--id RESERVATION]
- *   node scripts/settlement/trade.js outsider TRADE.json --coordinator-key KEY.json
+ *   node scripts/settlement/trade.js outsider TRADE.json --coordinator-key KEY.json [--coordinator-fingerprint FP]
+ *   node scripts/settlement/trade.js coordinator-fingerprint --key COORDINATOR_KEY.json [--ledger URL]
  *
  * `key` makes this computer's signing key once and prints its public enrollment entry, which the person sends to
  * whoever runs the ledger. `earner` and `spender` check the ledger before starting anything: that this key is
@@ -14,6 +15,10 @@
  * coordinator key. They then write an owner-only host configuration and start the real native host
  * (server/fleet/native-host.js). `export` asks the spender's running host for the records-only file of a request.
  * `outsider` is scripts/settlement/verify-records.js.
+ * `coordinator-fingerprint` is for the ledger's operator: given the coordinator key file (server/fleet/coordinator-key.js
+ * create), it prints the public key, its fingerprint and a dated publication statement signed by that key, to post
+ * somewhere outside the ledger (docs/verify-a-trade.md, "The ledger operator"). Given only the public part
+ * (`coordinator-key.js public`, or what the ledger serves), it prints the fingerprint and signs nothing.
  *
  * Optional flags: `--ca FILE` (a private certificate authority for the ledger), `--lan` (the two computers reach each
  * other directly; no relay servers), `--name NAME`, `--page-origin ORIGIN` (the page the spender pairs, and for both
@@ -28,13 +33,15 @@ import fs from 'node:fs/promises';
 import https from 'node:https';
 import os from 'node:os';
 import path from 'node:path';
-import { createHash, randomBytes } from 'node:crypto';
+import { createHash, createPrivateKey, randomBytes, sign } from 'node:crypto';
 import { existsSync, realpathSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
 import { openComputerIdentity } from '../../server/fleet/computer-identity.js';
+import { openCoordinatorKey, publicCoordinatorKey } from '../../server/fleet/coordinator-key.js';
 import { createFleetClient } from '../../server/fleet/service.js';
-import { readCoordinatorKey, recordsCommand } from './verify-records.js';
+import { canonicalJson } from './independent/replay.js';
+import { COORDINATOR_PUBLICATION_SCHEMA, checkPublication, coordinatorFingerprint, readCoordinatorKey, recordsCommand } from './verify-records.js';
 
 const repo = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const assert = (ok, message) => { if (!ok) throw Error(message); };
@@ -63,6 +70,55 @@ export function releaseWindowNotes(policy) {
   return [`This route's signed terms and the ledger both use the whole-model release window, ${policy.wholeModelUnclaimedReleaseMs} ms; `
     + `the split window (${policy.partitionUnclaimedReleaseMs} ms) does not apply. A requester host older than reploid 5935063ab would sign the split one instead: `
     + 'both people must run the same commit.'];
+}
+
+/**
+ * The coordinator key's publication (verify-records.js checkPublication). `identity` is the coordinator key file's
+ * content; the publication is signed with it, so anyone holding the two verifier files can check it. `ledger` names
+ * the ledger address it is the key of, or null.
+ */
+export function coordinatorPublication({ identity, ledger = null, now = Date.now }) {
+  assert(identity?.publicJwk?.kty === 'OKP' && identity.publicJwk.crv === 'Ed25519' && identity.privateJwk,
+    'The publication is signed with an Ed25519 coordinator key file (server/fleet/coordinator-key.js create)');
+  const key = readCoordinatorKey(publicCoordinatorKey(identity));
+  const fingerprint = coordinatorFingerprint(key.publicJwk), publishedAt = new Date(now()).toISOString();
+  const statement = `On ${publishedAt.slice(0, 10)} the operator of ${ledger ?? 'this Reploid ledger'} publishes this as its coordinator key: `
+    + `its settlement statements are signed by ${key.coordinatorId}, fingerprint ${fingerprint}. A statement signed by any other key is not this ledger's.`;
+  // Only the key's own members: the published JWK carries others (alg, ext, key_ops) that the fingerprint ignores.
+  const publicJwk = { kty: key.publicJwk.kty, crv: key.publicJwk.crv, x: key.publicJwk.x };
+  const body = { schema: COORDINATOR_PUBLICATION_SCHEMA, coordinatorId: key.coordinatorId, publicJwk, fingerprint, ledger, publishedAt, statement };
+  const bytes = Buffer.from(canonicalJson({ signatureDomain: COORDINATOR_PUBLICATION_SCHEMA, payload: body }), 'utf8');
+  const publication = { ...body, signature: sign(null, bytes, createPrivateKey({ key: identity.privateJwk, format: 'jwk' })).toString('base64url') };
+  const checked = checkPublication(publication);
+  assert(!checked.problem, `The publication does not verify after signing: ${checked.problem}`);
+  return publication;
+}
+
+/** The DNS TXT value for a publication: one TXT string, well under 255 characters. */
+export const coordinatorTxtRecord = ({ coordinatorId, fingerprint, publishedAt }) => `reploid-coordinator=v1 id=${coordinatorId} fp=${fingerprint} date=${publishedAt.slice(0, 10)}`;
+
+/** `coordinator-fingerprint --key FILE [--ledger URL]`: the JSON to publish on stdout, what to do with it on stderr. */
+async function printCoordinatorFingerprint(args) {
+  const { values } = parseArgs({ args, options: { key: { type: 'string' }, ledger: { type: 'string' } } });
+  assert(values.key, 'Usage: node scripts/settlement/trade.js coordinator-fingerprint --key COORDINATOR_KEY.json [--ledger URL]');
+  const file = path.resolve(values.key), content = JSON.parse(await fs.readFile(file, 'utf8'));
+  const say = line => console.error(line);
+  if (!content.privateJwk) {
+    // The public part only (coordinator-key.js public, or GET /v1/fleet/coordinator): the fingerprint, nothing signed.
+    const key = readCoordinatorKey(content), fingerprint = coordinatorFingerprint(key.publicJwk);
+    console.log(JSON.stringify({ ...key, fingerprint }, null, 2));
+    say(`\nCoordinator ${key.coordinatorId}\nFingerprint ${fingerprint}`);
+    say('This file holds the public part only, so nothing was signed. To sign a publication, run this on the key file itself.');
+    return;
+  }
+  const publication = coordinatorPublication({ identity: await openCoordinatorKey(file), ledger: values.ledger ?? null });
+  console.log(JSON.stringify(publication, null, 2));
+  say(`\nCoordinator ${publication.coordinatorId}\nFingerprint ${publication.fingerprint}\nDated       ${publication.publishedAt}\n`);
+  say('Post the JSON above, unchanged, somewhere dated that you control and the ledger does not serve (a public gist, a signed git tag),');
+  say('and/or this as a DNS TXT record on a domain you control:');
+  say(`  ${coordinatorTxtRecord(publication)}`);
+  say('Tell both people and the outsider where. The outsider checks the JSON with "node verify-records.js --publication FILE" and every trade with');
+  say(`  --coordinator-key coordinator-key.json --coordinator-fingerprint ${publication.fingerprint}`);
 }
 
 /** The ledger's published coordinator key, or null when it publishes none. */
@@ -194,10 +250,12 @@ export async function exportTrade({ state, id = null }) {
 async function main(argv) {
   const [command, ...rest] = argv;
   if (command === 'outsider') return recordsCommand(rest);
+  if (command === 'coordinator-fingerprint') return printCoordinatorFingerprint(rest);
   const { values } = parseArgs({ args: rest, options: { state: { type: 'string' }, name: { type: 'string' }, service: { type: 'string' }, signaling: { type: 'string' },
     room: { type: 'string' }, 'room-token-file': { type: 'string' }, model: { type: 'string' }, weights: { type: 'string' }, manifest: { type: 'string' }, ca: { type: 'string' },
     lan: { type: 'boolean' }, verbose: { type: 'boolean' }, 'bridge-port': { type: 'string' }, 'page-origin': { type: 'string' }, 'allow-unsigned-hold': { type: 'boolean' }, out: { type: 'string' }, id: { type: 'string' } } });
-  assert(['key', 'earner', 'spender', 'export'].includes(command) && values.state, 'Usage: node scripts/settlement/trade.js key|earner|spender|export --state DIR ... (see the top of this file), or outsider TRADE.json --coordinator-key KEY.json');
+  assert(['key', 'earner', 'spender', 'export'].includes(command) && values.state, 'Usage: node scripts/settlement/trade.js key|earner|spender|export --state DIR ... (see the top of this file), outsider TRADE.json --coordinator-key KEY.json, '
+    + 'or coordinator-fingerprint --key COORDINATOR_KEY.json');
   const state = path.resolve(values.state);
   const sendThis = (entry, participantId) => {
     console.log(JSON.stringify(entry, null, 2));
@@ -226,7 +284,8 @@ async function main(argv) {
   }
   const say = line => console.error(line);
   say(`Key ${prepared.participantId}, enrolled as ${prepared.computerId}. ${command === 'earner' ? 'Payout account' : 'Account charged'}: ${prepared.account}.`);
-  say(prepared.coordinator ? `The ledger's coordinator key is ${prepared.coordinator.coordinatorId}. Compare it with the one its operator published elsewhere.` : 'The ledger publishes NO coordinator key.');
+  say(prepared.coordinator ? `The ledger's coordinator key is ${prepared.coordinator.coordinatorId}, fingerprint ${coordinatorFingerprint(prepared.coordinator.publicJwk)}. `
+    + 'Compare the fingerprint with the one its operator published elsewhere.' : 'The ledger publishes NO coordinator key.');
   say(`Signed records are kept in ${prepared.config.tradeRecordsDirectory}. Settings: ${prepared.hostFile}`);
   for (const note of prepared.notes) say(`Note: ${note}`);
   if (prepared.bridge) say(`Pair the page (${prepared.bridge.origin}, Computers, your private computers) with ${prepared.bridge.url} and the secret in ${prepared.bridge.secretFile}.`);

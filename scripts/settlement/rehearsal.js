@@ -131,6 +131,10 @@ export async function runRehearsal({ out = null, keep = false, print = line => c
     await fs.mkdir(dir('ledger'), { recursive: true, mode: 0o700 });
     const made = JSON.parse((await run(process.execPath, [path.join(repo, 'server/fleet/coordinator-key.js'), 'create', coordinatorKeyFile])).stdout);
     log(`coordinator key made with coordinator-key.js create: ${made.coordinatorId}`);
+    // What the operator posts outside the ledger. Here it stays on this disk: a stand-in for a gist or a DNS record.
+    const publication = JSON.parse((await run(process.execPath, [path.join(repo, 'scripts/settlement/trade.js'), 'coordinator-fingerprint', '--key', coordinatorKeyFile, '--ledger', serviceUrl])).stdout);
+    await fs.writeFile(path.join(dir('ledger'), 'publication.json'), JSON.stringify(publication, null, 2) + '\n');
+    log(`publication signed with trade.js coordinator-fingerprint: fingerprint ${publication.fingerprint} (kept on this disk, a stand-in for a place outside the ledger)`);
     await fs.writeFile(path.join(dir('ledger'), 'enrollment.json'), JSON.stringify(Object.values(parties).map(party => ({ id: party.computerId, name: party.role,
       ownerId: party.account, providers: [{ participantId: party.participantId, publicJwk: party.publicJwk }] })), null, 2));
     await fs.writeFile(path.join(dir('ledger'), 'models.json'), JSON.stringify([model], null, 2));
@@ -220,11 +224,11 @@ export async function runRehearsal({ out = null, keep = false, print = line => c
     await fs.copyFile(path.join(repo, 'scripts/settlement/independent/replay.js'), path.join(outsider, 'independent/replay.js'));
     const published = await (await fetch(`${serviceUrl}/coordinator`)).json();
     await fs.writeFile(path.join(outsider, 'coordinator-key.json'), JSON.stringify(published, null, 2));
-    log(`outsider directory holds the two verifier files and the coordinator key fetched from the ledger service (${published.coordinatorId})`);
+    log(`outsider directory holds the two verifier files and the coordinator key fetched from the ledger service (${published.coordinatorId}); every check names the published fingerprint`);
     const verify = async (name, trade) => {
       const file = `${name}.json`;
       await fs.writeFile(path.join(outsider, file), JSON.stringify(trade, null, 2) + '\n');
-      const result = await run(process.execPath, ['verify-records.js', file, '--coordinator-key', 'coordinator-key.json', '--json'], { cwd: outsider })
+      const result = await run(process.execPath, ['verify-records.js', file, '--coordinator-key', 'coordinator-key.json', '--coordinator-fingerprint', publication.fingerprint, '--json'], { cwd: outsider })
         .then(value => ({ code: 0, stdout: value.stdout }), error => ({ code: error.code, stdout: error.stdout ?? '' }));
       let verdict = null;
       try { verdict = JSON.parse(result.stdout); } catch { /* reported below */ }
