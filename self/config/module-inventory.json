@@ -5576,13 +5576,13 @@
     {
       "path": "ui/react/app.js",
       "owner": "ui",
-      "sha256": "sha256:de98ea41dff3c76d07287da590fe40c77c25dadf31ae7a93e978d5b3fa014a55",
+      "sha256": "sha256:5cfa32fad589865989a46f5f718a23dd751e9d6cc2ef3181193d1431b10ee23e",
       "imports": []
     },
     {
       "path": "ui/react/design.js",
       "owner": "ui",
-      "sha256": "sha256:176d59f42bed1b1536a39bc8ca3725d10b9bdf7553d1185d757c957120395d94",
+      "sha256": "sha256:a5283f4873a280987e221d970d40cb2bd590db684610a08dc6424bd96687abb7",
       "imports": []
     },
     {
