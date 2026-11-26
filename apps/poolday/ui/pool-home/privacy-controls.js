@@ -4,6 +4,7 @@ import {
 import { protectionLabel } from '../../../../shared/vendor/reploid/inference/protections.js';
 import { computerLabel } from './computer-labels.js';
 import { executionRouteFor } from '../../host/execution-route.js';
+import { promptDisclosure } from '../../host/decisions/prompt-disclosure.js';
 
 /**
  * "Who can read it?" Two separate choices, each a set of inference API requirements the thread sends on every request:
@@ -16,9 +17,6 @@ import { executionRouteFor } from '../../host/execution-route.js';
 export const EXECUTION_PRESETS = Object.freeze(['standard', 'own-devices']);
 const METADATA_WORDS = { 'model-id': 'model identity', timing: 'timing', length: 'message sizes', 'access-patterns': 'access patterns' };
 const words = items => items.map(item => METADATA_WORDS[item] || item);
-const sentence = items => items.length < 2 ? items.join('') : `${items.slice(0, -1).join(', ')} and ${items.at(-1)}`;
-// A plaintext executor reads the content, so it also sees access patterns; the rest can reach the carriers too.
-const NETWORK_METADATA = words(EXECUTION_BACKENDS['doppler-plaintext/v1'].metadata.filter(item => item !== 'access-patterns'));
 
 const requirementsOf = policy => { try { return executionRequirementsFor(policy); } catch { return null; } };
 
@@ -42,12 +40,8 @@ export function policyForPreset(preset, current, ownDevices = []) {
 
 /** What else can be seen, stated before Send. `desktop` is this device's paired desktop label, if one is paired. */
 export function presetDisclosure(preset, { desktop = null } = {}) {
-  if (preset === 'standard') {
-    return `The computer that answers reads your content in plaintext and can see its access patterns, and you approve it before anything is sent. The request's ${sentence(NETWORK_METADATA)} can also be visible to the coordinators, credit ledgers and relays that carry the request.`;
-  }
-  return desktop
-    ? `This device and ${desktop} run the model and read your content in plaintext, so they can also see its access patterns; no other computer can read it. When ${desktop} answers, a relay that carries the connection can see its timing and message sizes. ${desktop} counts as yours because you approved its pairing code.`
-    : 'Only this device runs the model. Nothing leaves this device, and no network participant sees its metadata.';
+  if (preset === 'standard') return promptDisclosure({ site: 'preset' });
+  return desktop ? promptDisclosure({ site: 'preset', desktop }) : promptDisclosure({ site: 'preset', local: true });
 }
 
 export function allowsOpenPlaintext(policy) {

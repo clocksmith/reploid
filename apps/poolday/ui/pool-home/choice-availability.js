@@ -5,6 +5,7 @@
  * a fix only opens the place where the person decides.
  */
 import { ROUTE_PREFERENCES } from '../../host/route-preference.js';
+import { promptDisclosure } from '../../host/decisions/prompt-disclosure.js';
 import { PROTECTION_DISPLAY, ROUTE_DISPLAY, PARTICIPANTS_DISPLAY, gatedCapabilities } from '../../../../shared/vendor/reploid/inference/protections.js';
 
 const LOCKED = 'This conversation’s requirements are fixed.';
@@ -17,11 +18,13 @@ const LOCKED = 'This conversation’s requirements are fixed.';
 export function protectionChoices({ capabilities = gatedCapabilities({ enabled: ['plaintext'] }), editable = true, value = 'plaintext' } = {}) {
   return capabilities.map(({ protection, status, reason }) => {
     const unavailable = status === 'unavailable';
+    // Standard is the plaintext row: its line is the who-can-read sentence of that row.
+    const line = protection === 'plaintext' ? promptDisclosure({ site: 'protection' }) : PROTECTION_DISPLAY[protection].line;
     return { value: protection, title: PROTECTION_DISPLAY[protection].label, checked: protection === value,
       disabled: unavailable || !editable,
       // The line always shows; an unavailable protection adds "Unavailable" and its reason after it.
-      status: unavailable ? `${PROTECTION_DISPLAY[protection].line} Unavailable: ${reason[0].toUpperCase()}${reason.slice(1)}.`
-        : !editable ? LOCKED : PROTECTION_DISPLAY[protection].line };
+      status: unavailable ? `${line} Unavailable: ${reason[0].toUpperCase()}${reason.slice(1)}.`
+        : !editable ? LOCKED : line };
   });
 }
 
@@ -46,7 +49,7 @@ export function routeChoices({ model = null, canRunHere = true, editable = true,
   });
 }
 const ROUTE_LINES = {
-  local: 'This device runs the whole model. Nothing leaves it.',
+  local: promptDisclosure({ site: 'route', local: true }),
   remote: 'One other computer runs the whole model.',
   split: 'Several computers run the model in stages.',
   'split-local-edges': 'Several computers run the model; your own devices run the first and last stage.',
@@ -55,7 +58,7 @@ const ROUTE_LINES = {
 
 /** "Only your devices": a participants choice, not a route. It needs a paired desktop and a network route. */
 export function ownDevicesChoice({ desktop = null, route = 'auto', editable = true, checked = false } = {}) {
-  const reason = route === 'local' ? 'This device runs it; nothing leaves it.' : !desktop ? 'Pair a desktop in Computers to add it.' : null;
+  const reason = route === 'local' ? promptDisclosure({ site: 'own-devices', local: true }) : !desktop ? 'Pair a desktop in Computers to add it.' : null;
   return { value: 'own-devices', title: PARTICIPANTS_DISPLAY['own-devices'].label, checked: checked && !reason,
     disabled: !!reason || !editable,
     status: reason ? `Unavailable: ${reason}` : !editable ? LOCKED : `This device and ${desktop} process your request. No other computer can.` };

@@ -11,6 +11,7 @@ import { formatHostDisclosure } from '../../server/circles/admission.js';
 import { presetDisclosure } from '../../apps/poolday/ui/pool-home/privacy-controls.js';
 import { ownDevicesChoice, protectionChoices, routeChoices } from '../../apps/poolday/ui/pool-home/choice-availability.js';
 import { SPLIT_DISPLAY, splitReadersLine } from '../../shared/vendor/reploid/inference/protections.js';
+import { DISCLOSURE_WORDING, promptDisclosure } from '../../apps/poolday/host/decisions/prompt-disclosure.js';
 import { describeAnswerChoice } from '../../apps/poolday/ui/pool-home/conversation-model-picker.js';
 
 const cleanups = [];
@@ -167,4 +168,17 @@ it('states who can read it in the sheet outcome sentence', () => {
 it('states the invite notice the same way on the page and on the host that admits the guest', () => {
   expect(describeCircleHost('Ada’s laptop').notice).toMatchInlineSnapshot(`"This runs on Ada’s laptop. Its operator can read your prompt."`);
   expect(formatHostDisclosure({ hostPeerId: DESKTOP, hostLabel: 'Ada’s laptop' }).notice).toBe(describeCircleHost('Ada’s laptop').notice);
+});
+
+it('draws every wording from promptDisclosure, one table of cases by site', () => {
+  const facts = { operator: 'Studio', desktop: 'Studio', stageCount: 2 };
+  const table = Object.fromEntries(Object.entries(DISCLOSURE_WORDING).map(([name, sites]) =>
+    [name, Object.fromEntries(Object.keys(sites).map(site => [site, typeof sites[site] === 'function' ? sites[site](facts) : sites[site]]))]));
+  // The composer names no private pool: it states that case as the answering computer.
+  expect(promptDisclosure({ site: 'composer', pool: true })).toBe(table.answering.composer);
+  expect(promptDisclosure({ site: 'sheet', pool: true })).toBe(table.pool.sheet);
+  expect(() => promptDisclosure({ site: 'invite', named: true })).toThrow(/states no disclosure/);
+  // The cases whose sites state them in different words: the owner picks one wording for each.
+  const differing = Object.entries(table).filter(([, sites]) => new Set(Object.values(sites)).size > 1).map(([name]) => name);
+  expect(differing).toEqual(['local', 'operator', 'blocked', 'blocked-pool', 'stages', 'answering']);
 });

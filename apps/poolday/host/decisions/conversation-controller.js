@@ -10,7 +10,7 @@
  * list projects a few fields per thread, and each message keeps its projection until its own record changes.
  */
 import { createExecutionPolicy, executionRequirementsFor, validateExecutionPolicy } from '../../../../shared/vendor/reploid/chat/execution-policy.js';
-import { PROTECTION_DISPLAY, SPLIT_DISPLAY, splitReadersLine } from '../../../../shared/vendor/reploid/inference/protections.js';
+import { PROTECTION_DISPLAY } from '../../../../shared/vendor/reploid/inference/protections.js';
 import { locationForRoute } from '../execution-route.js';
 import { describeCircleHost, parseCircleInviteUrl } from '../circle-invites.js';
 import {
@@ -33,6 +33,7 @@ import { ADAPTER_GUIDE_URL, projectModelRoutes } from '../../ui/pool-home/model-
 import { remotePermissionText, remotePermissionWording } from '../../ui/pool-home/remote-permission.js';
 import { answerChoiceOf, findAnswerChoice, readAnswerChoice, writeAnswerChoice } from '../../ui/pool-home/answer-choice.js';
 import { projectModelChoices } from './model-choices.js';
+import { promptDisclosure } from './prompt-disclosure.js';
 import { servesPublicAnswers } from '../chat-view.js';
 import { createTranscript } from './transcript.js';
 import workProfile from '../../config/work-profile.json' with { type: 'json' };
@@ -217,7 +218,7 @@ export function createConversationController(session, {
       protections: protectionChoices({ editable, value: protection }).map(({ value, title, status, disabled }) => ({ value, title, status, disabled })),
       routes: routeChoices({ model: context.model, canRunHere: true, editable, value: route }).map(({ value, title, status, disabled }) => ({ value, title, status, disabled })),
       ownDevicesOption: { value: own.value, title: own.title, status: own.status, disabled: own.disabled },
-      splitNote: !split ? '' : route === 'split-local-edges' ? SPLIT_DISPLAY['requester-edges'].line : splitReadersLine(stageCount(context.model)),
+      splitNote: !split ? '' : promptDisclosure({ site: 'split-note', stages: true, edges: route === 'split-local-edges', stageCount: stageCount(context.model) }),
       preset, note: presetDisclosure(preset, { desktop: route === 'local' ? null : context.desktop?.label ?? null }),
       // Both statements stay in the page, the chosen one shown, as the vanilla dialog keeps them.
       notes: Object.fromEntries(['standard', 'own-devices'].map(name => [name, presetDisclosure(name, { desktop: route === 'local' ? null : context.desktop?.label ?? null })]))
@@ -294,11 +295,12 @@ export function createConversationController(session, {
   };
   const withChoiceWait = state => provisionalChoice && !state.activeThread && state.discoveryPhase === 'observed' && !choiceWaitOver(state)
     ? { ...state, discoveryPhase: 'searching' } : state;
-  const pairedDesktopSummary = state => {
+  /** The paired desktop or invited host the draft is named to alone: its operator can read the prompt. */
+  const pairedOperator = state => {
     const destination = lockedDestination(state), privacy = explicitPrivacy(state);
     if (!destination || privacy.recipients?.kind !== 'named' || privacy.recipients.ids.length !== 1
       || privacy.recipients.ids[0] !== destination.id) return null;
-    return `Sending to ${destination.label}. Its operator can read your prompt.`;
+    return destination.label;
   };
   const recoveryAlternative = state => recoverySharedModel(state, currentKey, effectiveLocation(state), explicitPrivacy(state));
   const matchesRecovery = state => {
@@ -412,12 +414,9 @@ export function createConversationController(session, {
     const sections = projectModelChoices(models, { value: modelKey(pickerModel), grouped: true, preferNetwork: false, variants: true, compact: true,
       location: side === 'local' ? 'local' : 'auto', describe: describeModelChoice(state), keep, inspectable: true, disabled: changingModel });
     const detailModel = selected || pickerModel;
-    const disclosure = pickerLocation === 'local' ? 'Nothing leaves this device.'
-      : pickerChoice === 'desktop' && locked ? `Sending to ${locked.label}. Its operator can read your prompt.`
-        : block ? 'Nothing leaves this device unless you choose Use contributors.'
-          : pickerModel?.partition ? 'Computers on this route can read the input for their own stages.'
-            : pickerModel?.fleet ? 'The answering computer in your private pool can read your prompt.'
-              : 'The answering computer can read your prompt.';
+    const disclosure = promptDisclosure({ site: 'sheet', local: pickerLocation === 'local',
+      operator: pickerChoice === 'desktop' && locked ? locked.label : null, blocked: !!block,
+      stages: !!pickerModel?.partition, pool: !!pickerModel?.fleet });
     const showLocalFit = pickerModel?.source && !pickerModel.partition && !pickerModel.fleet
       && (hasBrowserModelOrigin(pickerModel) || pickerModel.localCached || pickerModel.localReady);
     const key = showLocalFit && sheet.detailsOpen ? modelIdentity(pickerModel) : null;
@@ -557,14 +556,10 @@ export function createConversationController(session, {
       const recipient = webSearchRecipient({ personalRecipient: personal?.url ? personal.recipient : null, route: searchRouteNow(), provider: search?.state?.().provider });
       statusText = [statusText, recipient ? `Web search sends your question to ${recipient}.` : 'Web search recipient is not confirmed.'].filter(Boolean).join(' ');
     }
-    const pairedSummary = pairedDesktopSummary(state);
-    const disclosure = privacy.computation !== 'plaintext' ? 'The required computation mode is unavailable.'
-      : privacy.recipients.kind === 'none' && !usable ? 'Nothing leaves this device.'
-        : location === 'local' || execution.usable && execution.source === 'local' ? 'Nothing leaves this device.'
-          : pairedSummary ? pairedSummary
-            : privacy.recipients.kind === 'named' ? 'Named computers can read your prompt.'
-              : selectedModel?.partition ? 'Computers on this route can read the input for their own stages.'
-                : usable ? 'The answering computer can read your prompt.' : 'A network provider could read your prompt.';
+    const disclosure = promptDisclosure({ site: 'composer', computation: privacy.computation,
+      local: privacy.recipients.kind === 'none' && !usable || location === 'local' || execution.usable && execution.source === 'local',
+      operator: pairedOperator(state), named: privacy.recipients.kind === 'named', stages: !!selectedModel?.partition,
+      usable, pool: !!selectedModel?.fleet });
     // The queued Send: it waits for a computer running this model while discovery runs, and lapses when that can't happen.
     const permitted = !busy && canWaitForPublicModel(state, selectedModel, location);
     if (queuedSend && (!permitted || queuedSend.scope !== queueScope(state, selectedModel))) queuedSend = null;

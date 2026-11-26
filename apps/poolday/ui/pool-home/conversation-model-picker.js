@@ -1,6 +1,7 @@
 /** Model-picker presentation only. Selection and execution remain with the caller. */
 import { isDownloadableBaseModel, modelExecutionState, modelVariantKey } from '../components/model-select.js';
 import { allowsOpenPlaintext } from './privacy-controls.js';
+import { promptDisclosure } from '../../host/decisions/prompt-disclosure.js';
 
 export const canDownloadModelHere = (model, state, canDownload) => canDownload && isDownloadableBaseModel(model)
   && !model.fleet && !model.localReady && !model.localCached && model.availability !== 'cached' && !state.localDownloadIssue;
@@ -71,9 +72,7 @@ export function modelForLocation(models, model, location, { state = {}, canDownl
   return model;
 }
 
-const blockText = model => model?.fleet
-  ? 'Only your devices can read this chat, so your private pool can’t answer. Using it lets the answering pool computer read your messages.'
-  : 'Only your devices can read this chat, so contributors can’t answer. Using contributors lets the answering computer read your messages.';
+const blockText = model => promptDisclosure({ site: 'outcome', blocked: true, pool: !!model?.fleet });
 
 /**
  * What the sheet's selection means, as one sentence beside the chosen model and the one action that fixes it.
@@ -105,11 +104,11 @@ export function describeAnswerChoice(model, location, { state = {}, block = null
     if (downloadable) return fix(acquiring?.phase === 'failed' ? acquiring.error : 'Not on this device yet. You see its size before it downloads.', 'download', downloadLabel);
     if ((there || model.fleet) && block !== 'guest') {
       return block ? fix(blockText(model), 'use-contributors', useRemote)
-        : fix(`This model runs on ${model.fleet ? 'your private computers' : 'contributors’ computers'}, not this device. The answering computer reads your messages.`, 'use-contributors', useRemote);
+        : fix(`This model runs on ${model.fleet ? 'your private computers' : 'contributors’ computers'}, not this device. ${promptDisclosure({ site: 'outcome' })}`, 'use-contributors', useRemote);
     }
     return stuck(state.localDownloadIssue || 'Nothing can run this model right now. Choose a model marked Ready or On this device.');
   }
-  if (block === 'guest') return there || choice === 'desktop' ? ready : stuck(`Only ${locked?.label || 'the inviting computer'} may read your messages. Choose a model it runs.`);
+  if (block === 'guest') return there || choice === 'desktop' ? ready : stuck(promptDisclosure({ site: 'outcome', operator: locked?.label || 'the inviting computer' }));
   if (block && there) return fix(blockText(model), 'use-contributors', useRemote);
   if (there || choice === 'desktop') return ready;
   if (here) return fix('No contributor serves this model now. It is on this device.', 'use-device', 'Use this device');

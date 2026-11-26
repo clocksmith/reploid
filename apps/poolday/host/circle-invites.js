@@ -1,4 +1,5 @@
 import { ownerPairingRoomId } from '../../../shared/vendor/reploid/transport/index.js';
+import { promptDisclosure } from './decisions/prompt-disclosure.js';
 // Browser entry points for host invitations and the guest's admitted HTTP turn.
 export { sendCircleChat } from './circle-http-client.js';
 
@@ -13,7 +14,7 @@ export function describeCircleHost(hostLabel, hostPeerId = '') {
   return Object.freeze({
     hostLabel: label,
     readableBy: `Readable by: ${label}`,
-    notice: `This runs on ${label}. Its operator can read your prompt.`
+    notice: promptDisclosure({ site: 'invite', operator: label })
   });
 }
 
