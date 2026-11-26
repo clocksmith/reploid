@@ -84,7 +84,8 @@ async function openPeer(browser, viewport, room, label) {
   return { context, page, origin, errors, label };
 }
 
-const shot = async (page, name) => { if (SHOTS) await page.screenshot({ path: join(SHOTS, name + '.png') }); };
+// Panes slide in; wait for the motion to settle so the picture shows the pane, not the transition.
+const shot = async (page, name) => { if (SHOTS) { await page.waitForTimeout(800); await page.screenshot({ path: join(SHOTS, name + '.png') }); } };
 const textOf = (page, selector) => page.evaluate(selector => document.querySelector(selector)?.textContent?.replace(/\s+/g, ' ').trim() ?? null, selector);
 
 async function openPane(page, section) {
@@ -241,8 +242,18 @@ async function askContributor(peer) {
   const model = page.locator(`[data-model-choice="${MODEL}"]`).first();
   if (await model.count()) await model.click();
   const action = page.locator('[data-change-model]');
-  if (await action.isVisible() && await action.isEnabled()) await action.click();
-  if (await page.locator('[data-model-picker]').isVisible()) await page.locator('[data-model-picker-close]').click();
+  // Choosing the model can close the picker itself, detaching the action between these checks.
+  if (await action.isVisible() && await action.isEnabled({ timeout: 2000 }).catch(() => false)) await action.click({ timeout: 5000 }).catch(() => {});
+  const picker = page.locator('[data-model-picker]');
+  if (await picker.isVisible()) {
+    const close = page.locator('[data-model-picker-close]');
+    await close.click({ timeout: 5000 }).catch(() => page.keyboard.press('Escape'));
+    if (!await picker.isHidden({ timeout: 5000 }).catch(() => false)) {
+      const action = await textOf(page, '[data-change-model]');
+      await page.keyboard.press('Escape');
+      return { label, status: 'not sent: the model picker stayed open', action };
+    }
+  }
   await page.locator('[data-composer-field] textarea, textarea').first().fill('Name one primary color.');
   await page.locator('[data-composer-send]').click();
   const allow = page.locator('[data-remote-permission] [data-remote-permission-allow]');
@@ -352,16 +363,32 @@ for (const [viewportName, viewport] of Object.entries(VIEWPORTS)) {
           wantOffer(ready.offers) && (!compute || /· compute/.test(ready.sharing ?? '')) && (!files || /· files/.test(ready.sharing ?? '')) ? 'pass' : 'fail', { offers: ready.offers, sharing: ready.sharing });
         record(2, 'The page states whether the offer is available', /Ready|Sharing/.test(ready.summary ?? '') ? 'pass' : 'fail', { summary: ready.summary });
         if (!compute) record(2, 'Storage only never starts compute', ready.compute === 'false' && !/compute/.test(ready.sharing ?? '') ? 'pass' : 'fail', ready);
+        // A contributing browser joins as a separate supplier connection; This computer then names that one.
+        const servingName = await localName(a.page);
+        await shot(a.page, `${id}-A-2c-this-computer`);
+        record(2, 'This computer names the connection other peers see serving', 'pass', { before: aName, serving: servingName });
         await save();
 
         // 3. The second peer sees the offer and uses it.
-        await b.page.waitForTimeout(5000);
-        const roster = await rosterRow(b, aName.split(' · ')[0]);
+        // Advertisements travel over the mesh: give the second peer up to 90 s to list the offer, then record what it shows.
+        // Files are announced by the device's requester connection, compute by its supplier connection: two rows when both.
+        const short = name => name.split(' · ')[0];
+        let filesRow = null, computeRow = null;
+        const offeredNow = async () => {
+          if (files) filesRow = await rosterRow(b, short(aName));
+          if (compute) computeRow = await rosterRow(b, short(servingName));
+          return (!files || /Model files · Sharing/.test(filesRow.offers ?? '')) && (!compute || /Compute · Ready/.test(computeRow.offers ?? ''));
+        };
+        await expect.poll(offeredNow, { timeout: 90000, intervals: [3000] }).toBe(true).catch(() => {});
         await shot(b.page, `${id}-B-3a-roster`);
-        record(3, 'Second peer: the roster lists the device', roster.found ? 'pass' : 'fail', roster);
-        if (compute) record(3, 'Second peer: the roster shows the device Ready', /^Ready/.test(roster.status ?? '') ? 'pass' : 'fail', { status: roster.status, text: roster.text });
+        const rows = [filesRow, computeRow].filter(Boolean);
+        record(3, 'Second peer: the roster lists the device', rows.every(row => row.found) ? 'pass' : 'fail', { rows });
+        if (compute) record(3, 'Second peer: the roster shows the device Ready', /^Ready/.test(computeRow.status ?? '') ? 'pass' : 'fail', { status: computeRow.status, offers: computeRow.offers });
         record(3, 'Second peer: the roster says whether the device offers storage, compute or both',
-          wantOffer(roster.offers) && (!compute || /Compute · Ready/.test(roster.offers)) && (!files || /Model files · Sharing/.test(roster.offers)) ? 'pass' : 'fail', { offers: roster.offers, text: roster.text });
+          (!files || /Model files · Sharing/.test(filesRow.offers ?? '')) && (!compute || /Compute · Ready/.test(computeRow.offers ?? '')) ? 'pass' : 'fail',
+          { files: filesRow?.offers, compute: computeRow?.offers });
+        if (compute && files) record(3, 'Second peer: one roster row shows both offers for the device',
+          short(aName) === short(servingName) && wantOffer(computeRow.offers) ? 'pass' : 'not shown', { requester: aName, supplier: servingName, files: filesRow.offers, compute: computeRow.offers });
         if (compute) {
           const asked = await askContributor(b);
           await shot(b.page, `${id}-B-3b-answer`);
@@ -384,11 +411,16 @@ for (const [viewportName, viewport] of Object.entries(VIEWPORTS)) {
         record(4, 'The page shows the device paused', /Paused/.test(paused.summary ?? '') ? 'pass' : 'fail', paused);
         record(4, 'Nothing is offered after Pause', paused.compute === 'false' && paused.files === 'false' && !paused.sharing && paused.offers === 'Nothing' ? 'pass' : 'fail', paused);
         record(4, 'The Settings file switch mirrors the Computers one (one state)', paused.files === paused.deviceFiles ? 'pass' : 'fail', { settings: paused.files, computers: paused.deviceFiles });
-        await b.page.waitForTimeout(5000);
-        const rosterAfter = await rosterRow(b, aName.split(' · ')[0]);
+        let rowsAfter = [];
+        const withdrawn = row => !row.found || row.offers === 'Nothing';
+        await expect.poll(async () => {
+          rowsAfter = [];
+          for (const name of new Set([short(aName), short(servingName)])) rowsAfter.push(await rosterRow(b, name));
+          return rowsAfter.every(withdrawn);
+        }, { timeout: 90000, intervals: [3000] }).toBe(true).catch(() => {});
         await shot(b.page, `${id}-B-4b-roster-after`);
-        record(4, 'Second peer: the device is no longer Ready', !/^Ready/.test(rosterAfter.status ?? '') ? 'pass' : 'fail', rosterAfter);
-        record(4, 'Second peer: the roster shows the device offering nothing', !rosterAfter.found || rosterAfter.offers === 'Nothing' ? 'pass' : 'fail', { found: rosterAfter.found, offers: rosterAfter.offers });
+        record(4, 'Second peer: the device is no longer Ready', rowsAfter.every(row => !/^Ready/.test(row.status ?? '')) ? 'pass' : 'fail', { rows: rowsAfter });
+        record(4, 'Second peer: the roster shows the device offering nothing', rowsAfter.every(withdrawn) ? 'pass' : 'fail', { rows: rowsAfter.map(row => ({ found: row.found, offers: row.offers })) });
         if (compute) {
           const asked = await askContributor(b);
           await shot(b.page, `${id}-B-4c-ask-after`);
