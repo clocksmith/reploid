@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-13T18:17:09.582Z",
+  "generatedAt": "2026-11-26T21:47:16.500Z",
   "modules": {
     "AgentLoop": {
       "id": "AgentLoop",
@@ -207,7 +207,7 @@
           "optional": false
         },
         {
-          "id": "StateManager",
+          "id": "VFS",
           "optional": false
         }
       ],

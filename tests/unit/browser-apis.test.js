@@ -9,7 +9,7 @@ describe('BrowserAPIs', () => {
   let browserApis;
   let mockUtils;
   let mockEventBus;
-  let mockStateManager;
+  let mockVFS;
 
   beforeEach(() => {
     mockUtils = {
@@ -27,8 +27,10 @@ describe('BrowserAPIs', () => {
       off: vi.fn()
     };
 
-    mockStateManager = {
-      getArtifactContent: vi.fn()
+    // Artifacts live in the VFS (the module used to ask StateManager for a method it lacks).
+    mockVFS = {
+      exists: vi.fn(),
+      read: vi.fn()
     };
 
     // Setup Notification mock first (needs to be available for window reference)
@@ -86,7 +88,7 @@ describe('BrowserAPIs', () => {
     browserApis = BrowserAPIsModule.factory({
       Utils: mockUtils,
       EventBus: mockEventBus,
-      StateManager: mockStateManager
+      VFS: mockVFS
     });
   });
 
@@ -189,7 +191,7 @@ describe('BrowserAPIs', () => {
       browserApis = BrowserAPIsModule.factory({
         Utils: mockUtils,
         EventBus: mockEventBus,
-        StateManager: mockStateManager
+        VFS: mockVFS
       });
 
       await browserApis.init();
@@ -449,6 +451,38 @@ describe('BrowserAPIs', () => {
       expect(mockUtils.logger.info).toHaveBeenCalledWith(
         '[BrowserAPIs] User cancelled share'
       );
+    });
+  });
+  describe('syncArtifactToFilesystem', () => {
+    const directoryWith = written => ({
+      name: 'out',
+      getDirectoryHandle: async () => directoryWith(written),
+      getFileHandle: async name => ({
+        createWritable: async () => ({ write: async content => { written[name] = content; }, close: async () => {} })
+      })
+    });
+
+    it('writes the artifact read from the VFS into the chosen directory', async () => {
+      const written = {};
+      global.window.showDirectoryPicker = vi.fn().mockResolvedValue(directoryWith(written));
+      browserApis = BrowserAPIsModule.factory({ Utils: mockUtils, EventBus: mockEventBus, VFS: mockVFS });
+      await browserApis.init();
+      await browserApis.requestDirectoryAccess();
+      mockVFS.exists.mockResolvedValue(true);
+      mockVFS.read.mockResolvedValue('export const x = 1;\n');
+      expect(await browserApis.syncArtifactToFilesystem('/tools/x.js')).toBe(true);
+      expect(mockVFS.read).toHaveBeenCalledWith('/tools/x.js');
+      expect(written['x.js']).toBe('export const x = 1;\n');
+    });
+
+    it('reports a missing artifact without throwing', async () => {
+      global.window.showDirectoryPicker = vi.fn().mockResolvedValue(directoryWith({}));
+      browserApis = BrowserAPIsModule.factory({ Utils: mockUtils, EventBus: mockEventBus, VFS: mockVFS });
+      await browserApis.init();
+      await browserApis.requestDirectoryAccess();
+      mockVFS.exists.mockResolvedValue(false);
+      expect(await browserApis.syncArtifactToFilesystem('/missing.js')).toBe(false);
+      expect(mockVFS.read).not.toHaveBeenCalled();
     });
   });
 });

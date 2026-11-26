@@ -6,13 +6,13 @@ const BrowserAPIs = {
     id: 'BrowserAPIs',
     version: '1.0.0',
     genesis: { introduced: 'substrate' },
-    dependencies: ['Utils', 'EventBus', 'StateManager'],
+    dependencies: ['Utils', 'EventBus', 'VFS'],
     async: true,
     type: 'capability'
   },
 
   factory: (deps) => {
-    const { Utils, EventBus, StateManager } = deps;
+    const { Utils, EventBus, VFS } = deps;
     const { logger } = Utils;
 
     let fileSystemHandle = null;
@@ -186,8 +186,9 @@ const BrowserAPIs = {
       }
 
       try {
-        const content = await StateManager.getArtifactContent(artifactPath);
-        if (!content) {
+        // Artifacts live in the VFS; StateManager holds only agent state.
+        const content = await VFS.exists(artifactPath) ? await VFS.read(artifactPath) : null;
+        if (content == null) {
           logger.error(`[BrowserAPIs] Artifact not found: ${artifactPath}`);
           return false;
         }
