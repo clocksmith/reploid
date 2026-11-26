@@ -4462,7 +4462,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:2236b0a7026e1a55ddd6ea2867ef995d183d3a8e7b6fa6a46644bca67a540cbd",
+      "sha256": "sha256:b7ea9dc142dbbfde2cfca3c9e57da5c8984b2560a8201c40b908bb54c96dec81",
       "imports": []
     },
     {
@@ -5576,7 +5576,7 @@
     {
       "path": "ui/react/app.js",
       "owner": "ui",
-      "sha256": "sha256:e04a185d03d8375301def86aac3c8def53f4b93859a55d6bd6b3c8556d5ed97b",
+      "sha256": "sha256:de98ea41dff3c76d07287da590fe40c77c25dadf31ae7a93e978d5b3fa014a55",
       "imports": []
     },
     {
@@ -19406,7 +19406,7 @@
     {
       "path": "vendor/reploid/mesh/operation-envelope.js",
       "owner": "vendor",
-      "sha256": "sha256:3f402ed532f87bc76a7949e01f66ca5f967f12b682987ec0c1e58e394ca97d8e",
+      "sha256": "sha256:e9e81f79886d4960d4167762e13fa7f93e6f41b43939b7b04fc1e00ce591fcad",
       "imports": [
         "../artifacts/receipt.js",
         "../artifacts/signatures.js",
@@ -19880,7 +19880,7 @@
     {
       "path": "vendor/reploid/mesh/settlement-terms.js",
       "owner": "vendor",
-      "sha256": "sha256:1eedff194108a5755fbee5aacbcebdd2d541717064f739e52be13743ef42220e",
+      "sha256": "sha256:60524853e490ee6e070a6babfda150278c7f4f479a0c4af4aba8b853a2daeac6",
       "imports": [
         "../artifacts/canonical-json.js",
         "../artifacts/participant-proofs.js",
