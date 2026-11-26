@@ -196,6 +196,85 @@ var AUTO_ROUTES = Object.freeze({
 });
 var plaintextBackends = Object.keys(EXECUTION_BACKENDS);
 
+// shared/vendor/reploid/transport/introductions.js
+var INTRODUCTION_CONTACT = "reploid:introduction-contact";
+var INTRODUCTION_SIGNAL = "reploid:introduction-signal";
+
+// shared/vendor/reploid/transport/owner-pairing.js
+var OWNER_PAIRING_REQUEST = "reploid:owner-pairing-request";
+var OWNER_PAIRING_RESULT = "reploid:owner-pairing-result";
+
+// shared/vendor/reploid/transport/circle-join.js
+var CIRCLE_JOIN_REQUEST = "reploid:circle-join-request";
+var CIRCLE_JOIN_RESULT = "reploid:circle-join-result";
+
+// shared/vendor/reploid/transport/message-types.js
+var MESH_OPERATION_REQUEST = "reploid:mesh-operation-request";
+var MESH_OPERATION_RESULT = "reploid:mesh-operation-result";
+var MESH_OPERATION_CANCEL = "reploid:mesh-operation-cancel";
+var APPLICATION_MESSAGE_TYPES = Object.freeze([
+  "sync-request",
+  "sync-response",
+  "goal-update",
+  "reflection-share",
+  "artifact-announce",
+  "artifact-request",
+  "artifact-chunk",
+  "artifact-ack",
+  "reploid:peer-advertisement",
+  "reploid:identity-challenge",
+  "reploid:identity-proof",
+  "reploid:generation-admit",
+  "reploid:generation-admitted",
+  // Delivery protocol 1: a provider acknowledges a request frame on arrival (see mesh/request-delivery.js).
+  "reploid:request-received",
+  "reploid:generation-request",
+  "reploid:generation-update",
+  "reploid:generation-result",
+  "reploid:generation-error",
+  "reploid:generation-cancel",
+  "reploid:generation-recover",
+  "reploid:generation-recovery",
+  "reploid:receipt",
+  "reploid:target-score-request",
+  "reploid:target-score-result",
+  MESH_OPERATION_REQUEST,
+  MESH_OPERATION_RESULT,
+  MESH_OPERATION_CANCEL,
+  "reploid:web-offer",
+  "reploid:web-request",
+  "reploid:web-response",
+  "reploid:web-cancel",
+  "reploid:tool-offer",
+  "reploid:tool-offer-ack",
+  "reploid:custody-request",
+  "reploid:custody-response",
+  "reploid:custody-offer",
+  "ping",
+  "pong",
+  "raft:request-vote",
+  "raft:request-vote-response",
+  "raft:append-entries",
+  "raft:append-entries-response",
+  "raft:client-request",
+  "raft:client-response",
+  "fl:hello",
+  "fl:round-start",
+  "fl:update",
+  "fl:round-commit",
+  "fl:round-failed"
+]);
+var RTC_MESSAGE_TYPES = Object.freeze([
+  ...APPLICATION_MESSAGE_TYPES,
+  INTRODUCTION_CONTACT,
+  INTRODUCTION_SIGNAL,
+  OWNER_PAIRING_REQUEST,
+  OWNER_PAIRING_RESULT,
+  CIRCLE_JOIN_REQUEST,
+  CIRCLE_JOIN_RESULT
+]);
+var ROOM_MESSAGE_TYPES = Object.freeze([...APPLICATION_MESSAGE_TYPES, "peer-announce", "peer-leave"]);
+
 // shared/vendor/reploid/artifacts/participant-proofs.js
 var DEVICE_HOSTS = Object.freeze(["browser", "native"]);
 var PROOF_KEYS = Object.freeze(["schema", "challengeId", "nonce", "accountId", "audience", "participantId", "publicJwk", "host", "signature"]);

@@ -10,6 +10,7 @@
  */
 import { createReceiptDraft, signReceiptDraft, verifyReceipt } from '../artifacts/receipt.js';
 import { hashJson } from '../artifacts/signatures.js';
+import { MESH_OPERATION_CANCEL, MESH_OPERATION_REQUEST, MESH_OPERATION_RESULT } from '../transport/message-types.js';
 import { AUTO_ROUTES, PROTECTIONS, PROTECTION_ROUTES } from '../chat/execution-policy.js';
 import {
   MAX_UNACKNOWLEDGED_OUTPUTS, OUTPUT_ACKNOWLEDGMENT_SCHEMA, STAGE_RECEIPT_SCHEMA, extendOutputChain, outputChainGenesis,
@@ -24,9 +25,8 @@ export const MESH_OPERATION_SCHEMA = 'reploid.mesh-operation/v1';
 export const MESH_OPERATION_GRANT_SCHEMA = 'reploid.mesh-operation-grant/v1';
 /** The unit a non-generation receipt counts in (its signed `usage`); generation keeps `raw-model-tokens/v1`. */
 export const MESH_OPERATION_UNITS = 'reploid.mesh-operation-units/v1';
-export const MESH_OPERATION_REQUEST = 'reploid:mesh-operation-request';
-export const MESH_OPERATION_RESULT = 'reploid:mesh-operation-result';
-export const MESH_OPERATION_CANCEL = 'reploid:mesh-operation-cancel';
+// The frame types are registered with the transports, which own their names (transport/message-types.js).
+export { MESH_OPERATION_REQUEST, MESH_OPERATION_RESULT, MESH_OPERATION_CANCEL };
 
 /**
  * Every operation the envelope carries. `costUnit` is what one charged unit is; `orderedSplit` says whether an

@@ -47,6 +47,14 @@ const promptCommitment = (salt, messages, settings) => {
 };
 /** Version of the signed settlement records a provider advertises it produces (operation-envelope.js). */
 const SETTLEMENT_PROTOCOL = 1;
+/**
+ * Codes on the reason an admitted job is aborted with when its requester ended it: a stop frame, or its connection
+ * going away (a closed tab sends no frame). What the provider signs for an unfinished answer is decided on these codes
+ * alone, never on the reason's message, which is for people and may be reworded.
+ */
+export const REQUESTER_CANCELLED = 'REQUESTER_CANCELLED';
+export const REQUESTER_DISCONNECTED = 'REQUESTER_DISCONNECTED';
+const requesterEnded = (code, message) => Object.assign(new Error(message), { code });
 const admissionSalt = () => Array.from(crypto.getRandomValues(new Uint8Array(32)), byte => byte.toString(16).padStart(2, '0')).join('');
 
 // Whole-request generation by authorized peers over the swarm protocol: advertisement,
@@ -99,6 +107,8 @@ export function createPeerGenerationMesh({ config, ports }) {
   const signsSettlement = admitsBeforeDisclosure && typeof ports.settlementAccount === 'function';
   // Provider side: the signed records of recent charged requests, until the requester's acknowledgment arrives.
   const settlementCharges = new Map();
+  // Served receipts already counted (consumer and job), so a resent receipt adds nothing.
+  const countedReceipts = new Set();
   // This provider's own copy of a charged request's signed records, handed to its host each time one is signed or
   // received: at acceptance, at its close or fault, and at the requester's acknowledgment. The host's store is its own;
   // a failure there never changes the request.
@@ -568,6 +578,11 @@ export function createPeerGenerationMesh({ config, ports }) {
           || payload.receipt.consumer !== identityBundle?.peerId || payload.receipt.model !== response.model) {
           throw new Error('Remote receipt is invalid or does not bind this request');
         }
+        // Every receipt version names the provider this request was admitted to. Version 1 does not tie the signing
+        // key to that name (verifyReceipt), so this binding is what keeps another key's receipt from being accepted.
+        if (!pending.providerIdentity || payload.receipt.provider !== pending.providerIdentity) {
+          throw new Error('The receipt does not come from the admitted provider');
+        }
         const bound = await expectedReceiptBinding(pending.settings, pending.settingsDigest);
         if (!current()) return;
         if (!receiptBindsRequest(payload.receipt, response, pending.settings, bound)) {
@@ -577,8 +592,7 @@ export function createPeerGenerationMesh({ config, ports }) {
           throw new Error('Provider output violates the generation settings of this request');
         }
         if (!current()) return;
-        if ([2, 3].includes(Number(payload.receipt.version)) && (!pending.providerIdentity || payload.receipt.provider !== pending.providerIdentity
-          || !await matchesWholeModelReceipt(payload.receipt, pending.messages, response, bound))) {
+        if ([2, 3].includes(Number(payload.receipt.version)) && (!await matchesWholeModelReceipt(payload.receipt, pending.messages, response, bound))) {
           throw new Error('Measured receipt differs from the admitted request or provider output');
         }
         await acceptedByCaller();
@@ -671,7 +685,19 @@ export function createPeerGenerationMesh({ config, ports }) {
     remoteRequests.settle(pending, { error });
   };
 
-  const handleReceipt = async (_remotePeerId, payload = {}) => {
+  // Whether `receipt` is the one this provider signed for a request it served: the same provider signature as the
+  // result it sent, found among recent results or in the journal. Version 1 binds no key to the provider field, so a
+  // receipt naming this provider proves nothing by itself.
+  const servedReceipt = async (remotePeerId, receipt) => {
+    const requestId = typeof receipt.jobHash === 'string' && receipt.jobHash.startsWith('request:') ? receipt.jobHash.slice('request:'.length) : null;
+    if (!requestId || typeof receipt.providerSignature !== 'string') return false;
+    const signedBy = outcome => outcome?.type === 'reploid:generation-result' && outcome.payload?.receipt?.providerSignature === receipt.providerSignature;
+    if (signedBy(completed.get(`${remotePeerId}:${requestId}`))) return true;
+    const journaled = await generationJournal.get({ provider: identityBundle.peerId, consumer: receipt.consumer, requestId }).catch(() => null);
+    return signedBy(journaled?.outcome);
+  };
+
+  const handleReceipt = async (remotePeerId, payload = {}) => {
     if (!payload?.receipt || !identityBundle) return;
     const verification = await verifyReceipt(payload.receipt);
     if (!verification.valid || !verification.consumerValid) return;
@@ -684,6 +710,12 @@ export function createPeerGenerationMesh({ config, ports }) {
       settlementCharges.delete(chargeKey);
       await keepSettlementRecords(charge);
     }
+    // Only a receipt this provider issued for a request it served reaches the host and its contribution, and once.
+    if (!await servedReceipt(remotePeerId, payload.receipt)) return;
+    const servedKey = `${payload.receipt.consumer}:${payload.receipt.jobHash}`;
+    if (countedReceipts.has(servedKey)) return;
+    countedReceipts.add(servedKey);
+    while (countedReceipts.size > policy.mesh.maxRetainedJobs) countedReceipts.delete(countedReceipts.values().next().value);
     await ports.onReceipt?.(snapshotJson(payload.receipt));
     await updateProviderContribution(payload.receipt);
   };
@@ -1148,7 +1180,7 @@ export function createPeerGenerationMesh({ config, ports }) {
       // (a closed tab sends no frame). Everything signed below uses this one answer, so a requester's leaving is never
       // signed as this provider failing (docs/settlement-replay.md, "What an unfinished whole-model answer settles").
       const ending = controller.signal.aborted ? controller.signal.reason : null;
-      const endedByRequester = ending?.code === 'REQUESTER_CANCELLED' || ending?.message === 'Requester disconnected';
+      const endedByRequester = ending?.code === REQUESTER_CANCELLED || ending?.code === REQUESTER_DISCONNECTED;
       if (claimedRecovery && !retainedResult && typeof ports.settleGeneration === 'function') {
         try {
           // A rejected promise alone cannot prove GPU cleanup. The owning host
@@ -1227,7 +1259,7 @@ export function createPeerGenerationMesh({ config, ports }) {
         swarmTransport.onMessage('reploid:generation-error', handleGenerationError);
         swarmTransport.onMessage('reploid:generation-cancel', (peerId, payload = {}) => {
           const key = `${peerId}:${String(payload.requestId || '')}`;
-          const reason = Object.assign(new Error('Requester stopped this job'), { code: 'REQUESTER_CANCELLED' });
+          const reason = requesterEnded(REQUESTER_CANCELLED, 'Requester stopped this job');
           forgetAdmission(key);
           validatingInbound.get(key)?.abort(reason);
           if (!cancelQueuedInbound(key, reason, true)) inbound.get(key)?.abort(reason);
@@ -1256,9 +1288,10 @@ export function createPeerGenerationMesh({ config, ports }) {
           unresponsivePeers.delete(peerId);
           remoteRequests.retirePeer(peerId);
           for (const key of [...admitted.keys(), ...admitting]) if (key.startsWith(`${peerId}:`)) forgetAdmission(key);
-          for (const [key, controller] of validatingInbound) if (key.startsWith(`${peerId}:`)) controller.abort(new Error('Requester disconnected'));
-          for (const key of [...inboundQueued.keys()]) if (key.startsWith(`${peerId}:`)) cancelQueuedInbound(key, new Error('Requester disconnected'), false);
-          for (const [key, controller] of inbound) if (key.startsWith(`${peerId}:`)) controller.abort(new Error('Requester disconnected'));
+          const gone = () => requesterEnded(REQUESTER_DISCONNECTED, 'Requester disconnected');
+          for (const [key, controller] of validatingInbound) if (key.startsWith(`${peerId}:`)) controller.abort(gone());
+          for (const key of [...inboundQueued.keys()]) if (key.startsWith(`${peerId}:`)) cancelQueuedInbound(key, gone(), false);
+          for (const [key, controller] of inbound) if (key.startsWith(`${peerId}:`)) controller.abort(gone());
           emitSwarmState();
         };
         subscriptions.push(eventBus.on('swarm:peer-left', retirePeer, 'self-bridge'));

@@ -73,4 +73,7 @@ export interface PeerGenerationMeshPorts {
   identity: { ensure(options: object): Promise<SigningIdentity>; save(identity: SigningIdentity): unknown | Promise<unknown>;
     rotate(options: object): Promise<SigningIdentity>; sync(identity: SigningIdentity, context: object): Promise<unknown> };
 }
+/** Codes on the abort reason of a job its requester ended (a stop frame, or its connection going away). */
+export const REQUESTER_CANCELLED: 'REQUESTER_CANCELLED';
+export const REQUESTER_DISCONNECTED: 'REQUESTER_DISCONNECTED';
 export function createPeerGenerationMesh(options: { config: ResolvedConfig; ports: PeerGenerationMeshPorts }): PeerGenerationMesh;
