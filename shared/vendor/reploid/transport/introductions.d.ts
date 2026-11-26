@@ -30,6 +30,8 @@ export interface IntroductionTransport {
   connectIntroducedPeer(peerId: string, exchange: IntroductionExchange): Promise<void>;
   acceptIntroductionSignal(peerId: string, payload: Record<string, unknown>, exchange: IntroductionExchange): Promise<void>;
   cancelIntroduction?(peerId: string, attemptId: string): void;
+  /** True while a direct negotiation with the peer through healthy discovery is still opening. */
+  isOpeningDirectly?(peerId: string): boolean;
 }
 export interface IntroductionOptions {
   getIdentity(): SigningIdentity | Promise<SigningIdentity>;

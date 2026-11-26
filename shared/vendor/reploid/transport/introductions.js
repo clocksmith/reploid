@@ -87,13 +87,17 @@ export async function createPeerIntroductions({ transport, identity, roomId, aut
     attempts.set(remote, attempt);
     return attempt;
   }
+  // A peer already connected, already being introduced, or still opening a direct negotiation needs no introduction.
+  // Replacing an opening direct negotiation trades a path both peers are completing for one through an introducer.
+  const reachable = remote => transport.getConnectedPeers().some(peer => peer.id === remote) || attempts.has(remote)
+    || transport.isOpeningDirectly?.(remote) === true;
   async function connectRecord(record, route, signal) {
     signal?.throwIfAborted();
-    if (transport.getConnectedPeers().some(peer => peer.id === record.body.peerId) || attempts.has(record.body.peerId)) return;
+    if (reachable(record.body.peerId)) return;
     assert(transport.getConnectedPeers().length < policy.maxContacts, 'Connected peer allocation exhausted');
     await permitted('connect', { contact: record });
     signal?.throwIfAborted();
-    if (attempts.has(record.body.peerId)) return;
+    if (reachable(record.body.peerId)) return;
     const remote = record.body.peerId, attempt = allocate(remote, crypto.randomUUID(), route);
     const aborted = () => {
       if (attempts.get(remote) !== attempt) return;

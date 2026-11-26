@@ -184,3 +184,25 @@ it('closes owned pending introductions while preserving established channels', a
     expect(a.transport.cancelIntroduction).toHaveBeenCalledTimes(1);
   } finally { a.controller.close(); b.controller.close(); c.controller.close(); }
 });
+
+it('never replaces a direct negotiation that is still opening with an introduction', async () => {
+  // A fresh page learns each directory peer's contact from the first browser whose channel opens, while its own
+  // direct negotiations to those peers are still opening. Introducing them then tore those negotiations down.
+  const opening = new Set(['b']);
+  const a = await endpoint('a', { transport: { isOpeningDirectly: remote => opening.has(remote) } });
+  const b = await endpoint('b'), c = await endpoint('c');
+  try {
+    await a.controller.receive('relay', INTRODUCTION_CONTACT, { contact: b.controller.exportContact(), forwarded: true });
+    expect(a.transport.connectIntroducedPeer).not.toHaveBeenCalled();
+    expect(a.controller.getState()).toMatchObject({ contacts: 1, pending: 0 });
+    // The control: a peer this side is not opening directly is still introduced.
+    await a.controller.receive('relay', INTRODUCTION_CONTACT, { contact: c.controller.exportContact(), forwarded: true });
+    expect(a.transport.connectIntroducedPeer).toHaveBeenCalledOnce();
+    expect(a.transport.connectIntroducedPeer.mock.calls[0][0]).toBe('c');
+    // Once the direct negotiation has ended without opening, the introduction is the remaining route.
+    opening.delete('b');
+    await a.controller.receive('relay', INTRODUCTION_CONTACT, { contact: b.controller.exportContact(), forwarded: true });
+    expect(a.transport.connectIntroducedPeer.mock.calls.map(([remote]) => remote)).toEqual(['c', 'b']);
+    expect(a.errors).toEqual([]);
+  } finally { a.controller.close(); b.controller.close(); c.controller.close(); }
+});

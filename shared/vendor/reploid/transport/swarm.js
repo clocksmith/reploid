@@ -81,6 +81,9 @@ const WebRTCSwarm = {
     // Who the directory last said is in the room, and the bounded direct reconnections to them.
     const _roomPeers = new Set(), _directRetries = new Map();
     const MAX_DIRECT_RETRIES = 5;
+    // Peers whose channel opened while direct negotiations were still opening, waiting for this page's contact.
+    const _unannounced = new Set();
+    let _joiningRoom = false;
     const auxiliaryHandlers = new Map(), auxiliaryChannels = new WeakMap();
     const retainAuxiliary = (peer, channel) => {
       let channels = auxiliaryChannels.get(peer);
@@ -568,11 +571,15 @@ const WebRTCSwarm = {
           logger.info(`[WebRTCSwarm] Joined room ${message.roomId}, existing peers: ${message.peers?.length || 0}`);
           _roomPeers.clear(); cancelDirectRetries();
           for (const remotePeerId of (message.peers || [])) _roomPeers.add(remotePeerId);
-          // Connect to existing peers
-          for (const remotePeerId of (message.peers || [])) {
-            if (_manualStop) return;
-            await connectToPeer(remotePeerId);
-          }
+          // Connect to existing peers. Their negotiations count as opening until each has started.
+          _joiningRoom = true;
+          try {
+            for (const remotePeerId of (message.peers || [])) {
+              if (_manualStop) return;
+              await connectToPeer(remotePeerId);
+            }
+          } finally { _joiningRoom = false; }
+          announceContact();
           break;
 
         case 'peer-joined':
@@ -931,7 +938,7 @@ const WebRTCSwarm = {
         introductions?.settled(remotePeerId);
         startHeartbeat();
         if (!_signalingWs && !adapter) setConnectionState('connected');
-        introductions?.announce(remotePeerId).catch(error => logger.warn('[WebRTCSwarm] Contact announcement failed:', error));
+        announceContact(remotePeerId);
         EventBus.emit('swarm:peer-connected', { peerId: remotePeerId });
 
         // Request initial sync
@@ -1032,6 +1039,7 @@ const WebRTCSwarm = {
      */
     const removePeer = (remotePeerId, preserveIntroduction = false) => {
       clearTimeout(negotiationTimers.get(remotePeerId)); negotiationTimers.delete(remotePeerId);
+      _unannounced.delete(remotePeerId);
       const peer = _peers.get(remotePeerId);
       if (peer) {
         clearTimeout(peer.probeTimer); peer.probeTimer = null;
@@ -1054,6 +1062,25 @@ const WebRTCSwarm = {
       }
       _pendingIceCandidates.delete(remotePeerId);
       _latencyByPeer.delete(remotePeerId);
+      // An ended negotiation may have been the last one holding this page's contact back.
+      if (!_manualStop && _unannounced.size) announceContact();
+    };
+
+    // A direct negotiation through discovery that has not opened its channel yet.
+    const directOpening = peer => isDirectPeer(peer) && !peer.exchange && peer.status === 'connecting';
+    // This page's contact lets an introducer forward it, and a peer that receives it forwarded while its own
+    // direct negotiation with this page is still opening replaces that negotiation with an introduction through
+    // the introducer. On a fresh page every directory peer is still opening when the first channel opens, so the
+    // contact is announced only once no direct negotiation is opening; the heartbeat refreshes it after.
+    const announceContact = (remotePeerId = null) => {
+      if (!introductions || _manualStop) return;
+      if (remotePeerId) _unannounced.add(remotePeerId);
+      if (_joiningRoom || [..._peers.values()].some(directOpening)) return;
+      for (const remote of [..._unannounced]) {
+        _unannounced.delete(remote);
+        if (_peers.get(remote)?.status !== 'connected') continue;
+        introductions.announce(remote).catch(error => logger.warn('[WebRTCSwarm] Contact announcement failed:', error));
+      }
     };
 
     // Discovery is joined and its socket (or adapter) is up, so it can still carry a new offer.
@@ -1067,8 +1094,10 @@ const WebRTCSwarm = {
     };
     // One peer reconnects to one peer through the discovery connection it already has, with its own bounded
     // backoff. Only the lower peer ID offers, so the two sides never cross offers; the other waits for it.
-    const scheduleDirectRetry = (remotePeerId, retryAfterMs = 0) => {
-      if (!_roomPeers.has(remotePeerId) || !(_peerId < remotePeerId)) return;
+    // After a failed introduction either side offers: the other side may not fall back at all, and crossing
+    // offers resolve in handleOffer (the lower peer ID keeps its own).
+    const scheduleDirectRetry = (remotePeerId, retryAfterMs = 0, { eitherSide = false } = {}) => {
+      if (!_roomPeers.has(remotePeerId) || !eitherSide && !(_peerId < remotePeerId)) return;
       const entry = _directRetries.get(remotePeerId) || { attempt: 0, timer: null };
       if (entry.timer || entry.attempt >= MAX_DIRECT_RETRIES) return;
       entry.attempt++;
@@ -1091,7 +1120,14 @@ const WebRTCSwarm = {
       if (_peers.get(remotePeerId) !== peer) return;
       peer.phase = phase; peer.failure = failure;
       removePeer(remotePeerId);
-      if (peer.exchange || peer.transport === 'signaling-relay') return;
+      if (peer.transport === 'signaling-relay') return;
+      // An introduced connection to a peer that is still in the directory falls back to a direct offer; without
+      // it, a fresh page that lost the introduction (an introducer's rate limit, a peer that ignored it) never
+      // reaches that peer while both stay up.
+      if (peer.exchange) {
+        if (signalingHealthy()) scheduleDirectRetry(remotePeerId, retryAfterMs, { eitherSide: true });
+        return;
+      }
       // A credential issuer's retry deadline still bounds either path.
       if (signalingHealthy()) scheduleDirectRetry(remotePeerId, retryAfterMs);
       else scheduleReconnect(retryAfterMs);
@@ -1235,9 +1271,11 @@ const WebRTCSwarm = {
     /**
      * Broadcast message to all connected peers
      */
+    // Peers still opening are skipped: each one hears what it needs once its own channel opens.
     const broadcast = (type, payload) => {
       let sent = 0;
-      for (const [peerId] of _peers) {
+      for (const [peerId, peer] of _peers) {
+        if (peer.transport !== 'signaling-relay' && peer.dataChannel?.readyState !== 'open') continue;
         if (sendToPeer(peerId, type, payload)) {
           sent++;
         }
@@ -1336,7 +1374,7 @@ const WebRTCSwarm = {
         clearTimeout(_reconnectTimer);
         _reconnectTimer = null;
       }
-      cancelDirectRetries(); _roomPeers.clear();
+      cancelDirectRetries(); _roomPeers.clear(); _unannounced.clear();
       setConnectionState('stopping');
       stopHeartbeat();
 
@@ -1415,6 +1453,8 @@ const WebRTCSwarm = {
       getPeerId: () => _peerId,
       _getPeerId: () => _peerId, getConnectedPeers, onMessage, sendToPeer,
       connectIntroducedPeer: connectToPeer,
+      // A direct negotiation through healthy discovery is still opening: an introduction would only replace it.
+      isOpeningDirectly: remote => directOpening(_peers.get(remote)) && signalingHealthy(),
       cancelIntroduction(remote, attemptId) {
         if (!_peers.has(remote)) _pendingIceCandidates.delete(remote);
         if (_peers.get(remote)?.exchange?.attemptId === attemptId) removePeer(remote);
