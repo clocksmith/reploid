@@ -412,3 +412,32 @@ it('hands the paired page one request’s signed settlement records and refuses 
     expect(native.tradeRecords).toHaveBeenCalledWith(trade.reservationId);
   } finally { client.close(); await bridge.close(); }
 });
+
+it('carries the per-request verifiable-charge requirement to the host, refuses any other value, and exports the records-only file', async () => {
+  const exported = { schema: 'reploid.settlement-records-export/v1', id: 'service:requester:request-1', attempts: [] };
+  const native = { ...host(), tradeRecords: vi.fn(async (_id, options) => (options?.format === 'records' ? structuredClone(exported) : { schema: 'reploid.whole-model-trade-receipt/v1' })),
+    trades: vi.fn(async () => [{ reservationId: exported.id, role: 'requester', records: 5, statement: true }]) };
+  const bridge = await startFleetBrowserBridge({ host: native, origins: [origin], token });
+  const client = createPrivateComputers({ storage: null, fetchImpl });
+  const post = (route, body) => fetch(bridge.url + route, { method: 'POST', body: JSON.stringify(body), headers: { Origin: origin, Authorization: 'Bearer ' + token } });
+  try {
+    await client.connect(bridge.url, token);
+    const request = attemptId => ({ threadId: 't', attemptId, model: client.models()[0], messages: [{ role: 'user', content: 'x' }], permissions: { sharingScope: 'mesh' }, privacy: plaintextPolicy() });
+    const controls = { signal: new AbortController().signal, requestApproval: async () => true, onState() {}, onDelta() {} };
+    await client.execute({ ...request('plain') }, controls);
+    expect(native.generate.mock.calls.at(-1)[0].verifiableCharge).toBeUndefined();
+    await client.execute({ ...request('strict'), verifiableCharge: 'required' }, controls);
+    expect(native.generate.mock.calls.at(-1)[0]).toMatchObject({ attemptId: 'strict', verifiableCharge: 'required' });
+    // Anything but the one word is refused before the host is asked.
+    const calls = native.generate.mock.calls.length;
+    const refused = await post('/generate', { threadId: 't', attemptId: 'loose', messages: [{ role: 'user', content: 'x' }], verifiableCharge: true });
+    expect(refused.status).toBe(400);
+    expect((await refused.json()).error).toMatch(/verifiableCharge may only be "required"/);
+    expect(native.generate.mock.calls.length).toBe(calls);
+
+    expect(await client.tradeRecords(exported.id, { format: 'records' })).toEqual(exported);
+    expect(native.tradeRecords).toHaveBeenLastCalledWith(exported.id, { format: 'records' });
+    expect((await post('/trade', { id: exported.id, format: 'everything' })).status).toBe(400);
+    expect(await (await post('/trades', {})).json()).toEqual({ trades: [{ reservationId: exported.id, role: 'requester', records: 5, statement: true }] });
+  } finally { client.close(); await bridge.close(); }
+});

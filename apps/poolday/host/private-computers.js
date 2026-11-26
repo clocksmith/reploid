@@ -88,7 +88,8 @@ export function createPrivateComputers({ storage = globalThis.sessionStorage, fe
      * Saved as `receipt.json`, it is what scripts/settlement/verify-trade.js checks. Its `label` is `signed-records`
      * or `no-verifiable-receipt`; nothing here decides or recomputes an amount.
      */
-    async tradeRecords(id) { return (await call('/trade', { id })).json(); },
+    /** One request's signed settlement records; `format: 'records'` is the records-only file for an outsider. */
+    async tradeRecords(id, { format } = {}) { return (await call('/trade', { id, ...(format ? { format } : {}) })).json(); },
     async accounts() { return (await call('/accounts')).json(); },
     /** This requester's own account statement, checkable offline with server/fleet/credit-statement.js. */
     async statement() { return (await call('/statement')).json(); },
@@ -187,7 +188,9 @@ export function createPrivateComputers({ storage = globalThis.sessionStorage, fe
         assertCurrent();
         dispatched = true;
         mark('sent-to-host');
-        const response = await call('/generate', { privacy: input.privacy, privacyBinding, model: { id: model.id, identity: model.identity }, poolIdentity: binding.poolIdentity, threadId, attemptId, messages }, signal, target);
+        const response = await call('/generate', { privacy: input.privacy, privacyBinding, model: { id: model.id, identity: model.identity }, poolIdentity: binding.poolIdentity, threadId, attemptId, messages,
+          // The person may require, for this request, a contributor that signs the settlement records: refused before any hold otherwise.
+          ...(input.verifiableCharge === 'required' ? { verifiableCharge: 'required' } : {}) }, signal, target);
         assertCurrent();
         reader = response.body.getReader(); const decoder = new TextDecoder(); let buffer = '', sequence = 0, result = null;
         for (;;) {

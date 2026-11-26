@@ -72,8 +72,16 @@ export function createFleetBrowserBridgeHandler({ host, token, origins, basePath
       }
       if (routePath === '/trade') {
         // One request's signed settlement records and the ledger's record of it, for the person to save and check.
+        // `format: "records"` is the records-only file for an outsider, with the coordinator's statement.
         assert(typeof body.id === 'string' && body.id.length < 512 && typeof host.tradeRecords === 'function', 'Receipt identity required');
-        response.setHeader('Content-Type', 'application/json'); response.end(JSON.stringify(await host.tradeRecords(body.id))); return;
+        assert(body.format === undefined || ['receipt', 'records'].includes(body.format), 'Trade format must be receipt or records');
+        response.setHeader('Content-Type', 'application/json');
+        response.end(JSON.stringify(body.format === undefined ? await host.tradeRecords(body.id) : await host.tradeRecords(body.id, { format: body.format }))); return;
+      }
+      if (routePath === '/trades') {
+        // The reservations this host holds signed records for on its disk, most recently saved first.
+        assert(typeof host.trades === 'function', 'Trade records are not available on this host');
+        response.setHeader('Content-Type', 'application/json'); response.end(JSON.stringify({ trades: await host.trades() })); return;
       }
       if (routePath === '/accounts') {
         response.setHeader('Content-Type', 'application/json'); response.end(JSON.stringify(await host.balances())); return;
@@ -126,6 +134,9 @@ export function createFleetBrowserBridgeHandler({ host, token, origins, basePath
       assert(typeof body.attemptId === 'string' && body.attemptId.length <= 128 && typeof body.threadId === 'string'
         && body.threadId.length <= 128 && Array.isArray(body.messages) && body.messages.length > 0
         && body.messages.every(row => ['user', 'assistant', 'system'].includes(row.role) && typeof row.content === 'string'), 'Invalid conversation request');
+      // Optional, per request: send only to a contributor that signs the settlement records, and refuse before any
+      // hold or disclosure otherwise (requester.js). The host's own `requireVerifiableCharge` setting applies either way.
+      assert(body.verifiableCharge === undefined || body.verifiableCharge === 'required', 'verifiableCharge may only be "required"');
       const privacy = assertAvailableExecutionPolicy(requestExecutionPolicy(body));
       assert(body.privacyBinding, 'Paired execution binding required');
       const state = await host.browserState();
@@ -165,7 +176,7 @@ export function createFleetBrowserBridgeHandler({ host, token, origins, basePath
       let lastAdmission = null, firstDelta = true;
       const operation = host.generate(
         { threadId: body.threadId, attemptId, model: selectedModel, messages: body.messages,
-          privacy, privacyBinding },
+          privacy, privacyBinding, ...(body.verifiableCharge === 'required' ? { verifiableCharge: 'required' } : {}) },
         delta => { if (firstDelta) { firstDelta = false; step('first-delta'); } emit({ delta }); },
         disclosure => {
           const route = disclosure.route;
@@ -183,7 +194,8 @@ export function createFleetBrowserBridgeHandler({ host, token, origins, basePath
       );
       pending.set(attemptId, operation);
       try { emit({ result: await operation }); }
-      catch (error) { emit({ error: error.message, serviceCredit: error.serviceCredit || null, ...(error.disconnect ? { disconnect: error.disconnect } : {}) }); }
+      catch (error) { emit({ error: error.message, ...(typeof error.code === 'string' ? { code: error.code } : {}), serviceCredit: error.serviceCredit || null,
+        ...(error.disconnect ? { disconnect: error.disconnect } : {}) }); }
       finally { pending.delete(attemptId); response.end(); }
     } catch (error) {
       if (attemptId) pending.delete(attemptId);

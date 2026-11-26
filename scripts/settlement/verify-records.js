@@ -277,6 +277,11 @@ async function checkAttempt(attempt, { policy, at, coordinatorKey }) {
 export async function verifyRecords({ trade, at = Date.now(), coordinatorKey = null }) {
   if (coordinatorKey) readCoordinatorKey(coordinatorKey);
   const problems = [];
+  // What a host returns when it holds no signed records, or no ledger record, for a request (trade-records.js).
+  if (trade?.schema === 'reploid.settlement-records-incomplete/v1') {
+    problems.push(`this file says it is incomplete (${typeof trade.reason === 'string' ? trade.reason.slice(0, 64) : 'no reason given'}): it is not a trade and nothing in it verifies`);
+    return { ok: false, at: new Date(at).toISOString(), id: null, attempts: [], problems };
+  }
   if (!only(trade, TRADE_KEYS) || trade.schema !== RECORDS_EXPORT_SCHEMA || !isObject(trade.policy) || !Array.isArray(trade.attempts) || trade.attempts.length === 0) {
     problems.push('not a records-only trade export, or it has a member a records-only export does not have');
     return { ok: false, at: new Date(at).toISOString(), id: trade?.id ?? null, attempts: [], problems };
