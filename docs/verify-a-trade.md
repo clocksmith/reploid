@@ -290,11 +290,12 @@ request with `"verifiableCharge": "required"` in the body of
    printed address and secret. A page served over HTTPS reaches the host on
    this computer only with the browser's permission: Chrome asks whether the
    site may reach apps on this device, and the page shows `Failed to fetch`
-   until that is allowed. Computers then lists both enrolled computers. The
-   earner's is shown as `Offline` even while it serves (a host started by
-   this command does not report its presence to the ledger); what shows it can
-   answer is the model listed as `Ready` under "Your private computers" when
-   you choose a model.
+   until that is allowed. Computers then lists both enrolled computers. While
+   the earner's host serves it reports its presence to the ledger every few
+   seconds; a self-serve ledger lists another account's computer only while it
+   does, and the spender's host sends only to computers its ledger lists. What
+   shows the earner can answer is the model listed as `Ready` under "Your
+   private computers" when you choose a model.
 2. Pick that model. Above the message box the page shows
    `This answer costs at most N service credits.` and, on the line directly
    above the box, who can read the prompt:
@@ -316,6 +317,15 @@ request with `"verifiableCharge": "required"` in the body of
    label that starts `INCOMPLETE` names what is missing and why. `NOT A TRADE`
    means the host holds no signed records for it; that file verifies as
    nothing. `--id RESERVATION` exports an earlier request.
+
+Without the page, the spender's host takes the same request as an owner
+command on its standard input, one JSON line:
+`{"id":"1","op":"generate","request":{"threadId":"T","attemptId":"A","model":{"id":"…","identity":"sha256:…"},"messages":[{"role":"user","content":"…"}]}}`.
+It sends only to computers the ledger lists for the spender's account. If the
+computer serving the model is not one of them (its host predates presence
+reports, or the ledger lists other accounts only while they report), it ends at
+once with `NO_PERMITTED_PROVIDER`, naming that computer's key, and nothing is
+held or sent. `trade.js export` exports such a request like any other.
 
 Give `trade.json` to the outsider. It holds signed records, the ledger's
 statement and the public policy: no prompt and no answer.
@@ -411,8 +421,10 @@ node scripts/settlement/rehearsal.js --out /absolute/new-directory
 
 This runs the ledger service, a signaling server, an earner host and a spender
 host as four processes with separate key files and data directories, and
-drives the spender's bridge over HTTP with the page's own client module. It
-does a completed trade and the three drills, restarts both hosts, and checks
+drives the spender's bridge over HTTP with the page's own client module. Its
+ledger lists other accounts as a self-serve ledger does, only while they report
+capacity or presence. It does a completed trade, the same trade through the
+spender host's `generate` command on its standard input, the three drills, restarts both hosts, and checks
 every export in a directory that holds only the export, the coordinator key
 fetched from the ledger service, and the two verifier files. It takes under a
 minute because its policy uses a 20 s deadline and an 8 s release window.

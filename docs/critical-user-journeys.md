@@ -124,8 +124,14 @@ them is the conversation controller
   only when, on each viewport, a fresh visitor opts in to storage, compute or both from the same
   page; the device reports ready for exactly that choice; another peer sees the device offering
   it; and Pause stops it and the other peer sees it stop. Storage-only must never start compute.
-  This check is not automated yet, and no retained run shows it passing; until one does,
-  journey 3 is unproven beyond discoverability.
+  It is automated as an opt-in browser check,
+  [`tests/e2e/contribution-journey.spec.js`](../tests/e2e/contribution-journey.spec.js)
+  (`REPLOID_E2E_CONTRIBUTION=1`): real page, private room on the local signaling server, the
+  smallest catalog model (Qwen 3.5 0.8B) and real WebGPU inference, desktop and mobile, storage,
+  compute and both. It downloads about 1.2 GB and uses the GPU, so it is not in CI. Each journey
+  sentence is recorded as pass, fail or not shown; a run on 2026-11-26 on one Mac passed every
+  combination, with one sentence not shown in the two "both" runs: one roster row showing both
+  offers (the contributing browser is listed as two rows, one per offer).
 - [`tests/unit/first-answer-defaults.test.js`](../tests/unit/first-answer-defaults.test.js) holds
   the decisions behind journey 2 (FIRST-02): the automatic computer and model, following
   availability, a held Send while computers are being found, and kept picks.
