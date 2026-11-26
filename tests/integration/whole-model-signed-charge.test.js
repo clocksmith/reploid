@@ -643,3 +643,21 @@ it('a fault the provider signs after its acknowledged close is refused and not k
   expect(pair.charge.summary()).toMatchObject({ closed: false, faulted: true, acknowledged: null });
   expect(schemas(pair.charge.records())).not.toContain(STAGE_RECEIPT_SCHEMA);
 });
+
+it('a requester whose connection drops mid-answer is recorded as cancelled, not as the provider failing', async () => {
+  const stream = midStream();
+  const fixture = await route({ requester: 1, provider: 0, execute: stream.execute });
+  const asking = fixture.ask().catch(error => error);
+  await stream.running;
+  await expect.poll(() => fixture.stored.size).toBe(1);
+  const reservationId = [...fixture.stored.keys()][0];
+  // No cancel frame: the provider only hears that the requester's connection is gone.
+  fixture.mesh.buses[1].emit('swarm:peer-disconnected', { peerId: fixture.mesh.channels[0] });
+  await expect.poll(() => credits.request(reservationId).state).toBe('settled');
+  expect(credits.request(reservationId).outcome).toMatchObject({ status: 'cancelled', charge: 0 });
+  expect(fixture.providerRecords.at(-1).records.find(row => row.schema === STAGE_RECEIPT_SCHEMA)).toMatchObject({ status: 'failed', steps: 0 });
+  expect(schemas(fixture.providerRecords.at(-1).records)).not.toContain(SETTLEMENT_FAULT_SCHEMA);
+  fixture.mesh.buses[0].emit('swarm:peer-disconnected', { peerId: fixture.mesh.channels[1] });
+  await asking;
+  expect(account(0).balance).toBe(0);
+});

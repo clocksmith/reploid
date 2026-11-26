@@ -1144,13 +1144,17 @@ export function createPeerGenerationMesh({ config, ports }) {
         error: error?.message || String(error),
         ...(error?.code === 'CONTEXT_LENGTH_EXCEEDED' ? { code: 'CONTEXT_LENGTH_EXCEEDED' } : {})
       };
+      // Who ended the answer, decided once: the requester did when it sent a cancellation or its connection went away
+      // (a closed tab sends no frame). Everything signed below uses this one answer, so a requester's leaving is never
+      // signed as this provider failing (docs/settlement-replay.md, "What an unfinished whole-model answer settles").
+      const ending = controller.signal.aborted ? controller.signal.reason : null;
+      const endedByRequester = ending?.code === 'REQUESTER_CANCELLED' || ending?.message === 'Requester disconnected';
       if (claimedRecovery && !retainedResult && typeof ports.settleGeneration === 'function') {
         try {
           // A rejected promise alone cannot prove GPU cleanup. The owning host
           // must confirm reset/disposal before this terminal record is signed.
           if (await ports.settleGeneration() === true) {
-            payload.terminal = await signGenerationTerminal(recoveryBinding,
-              controller.signal.reason?.code === 'REQUESTER_CANCELLED' ? 'cancelled' : 'failed', identityBundle);
+            payload.terminal = await signGenerationTerminal(recoveryBinding, endedByRequester ? 'cancelled' : 'failed', identityBundle);
             await generationJournal.finish(recoveryBinding, { type: 'reploid:generation-error', payload });
             await ports.onGenerationTerminal?.(snapshotJson(payload.terminal));
           }
@@ -1160,9 +1164,7 @@ export function createPeerGenerationMesh({ config, ports }) {
       // connection going away), a close that claims no output. When the provider itself failed, its stage fault: it is
       // owed nothing and nobody waits for a close. A provider that dies signs neither (docs/settlement-replay.md).
       if (charged) {
-        const reason = controller.signal.aborted ? controller.signal.reason : null;
-        const byRequester = reason?.code === 'REQUESTER_CANCELLED' || reason?.message === 'Requester disconnected';
-        try { payload.settlement = byRequester ? { receipt: await charged.close({ failed: true }) } : { fault: await charged.fault() }; }
+        try { payload.settlement = endedByRequester ? { receipt: await charged.close({ failed: true }) } : { fault: await charged.fault() }; }
         catch { /* The request ends without it. */ }
         await keepSettlementRecords(charged);
       }
