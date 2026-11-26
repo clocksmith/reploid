@@ -1,10 +1,12 @@
 #!/usr/bin/env node
-// Deploy and verify one pushed revision from an isolated, ordinary checkout.
+// Deploy and verify exactly origin/main, as fetched now, from an isolated, ordinary checkout.
+// Usage: node scripts/deploy.js [--ref <revision>]  (the ref must be origin/main's tip, else refused)
 import { spawn } from 'node:child_process';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { mkdir, mkdtemp, readFile, writeFile, rm } from 'node:fs/promises';
 import { resolve } from 'node:path';
+import { parseDeployArgs, resolveDeployRevision } from './deploy-revision.js';
 
 const root = resolve(import.meta.dirname, '..');
 const exec = promisify(execFile);
@@ -17,13 +19,19 @@ async function run(command, args, cwd, env = {}) {
 }
 let checkout;
 try {
-  const revision = (await exec('git', ['rev-parse', 'HEAD'], { cwd: root })).stdout.trim();
-  const pushed = (await exec('git', ['ls-remote', 'origin', 'refs/heads/main'], { cwd: root })).stdout.split(/\s/)[0];
-  if (revision !== pushed) throw new Error('Push the intended main revision before deployment');
+  const { ref } = parseDeployArgs(process.argv.slice(2));
+  const git = async args => (await exec('git', args, { cwd: root })).stdout;
+  const revision = await resolveDeployRevision({ git, ref });
+  console.log(`[deploy] deploying origin/main ${revision}`);
   const directory = resolve(root, '.deployment-checkouts');
   await mkdir(directory, { recursive: true });
   checkout = await mkdtemp(resolve(directory, 'release-'));
-  await run('git', ['clone', '--no-local', '--depth', '1', '--single-branch', '--branch', 'main', root, checkout], root);
+  // Fetch that exact commit, not a branch: the local `main` of a shared checkout can be commits behind.
+  await run('git', ['init', '--quiet', checkout], root);
+  await run('git', ['fetch', '--quiet', '--depth', '1', root, revision], checkout);
+  await run('git', ['-c', 'advice.detachedHead=false', 'checkout', '--quiet', '--detach', 'FETCH_HEAD'], checkout);
+  const checkedOut = (await exec('git', ['rev-parse', 'HEAD'], { cwd: checkout })).stdout.trim();
+  if (checkedOut !== revision) throw new Error(`Release checkout is at ${checkedOut}, expected ${revision}`);
   await run('npm', ['ci', '--ignore-scripts'], checkout);
   await run('npm', ['ci', '--ignore-scripts'], resolve(checkout, 'packages/functions'));
   await run('npm', ['run', 'verify:pool'], checkout);

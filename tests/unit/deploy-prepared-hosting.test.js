@@ -12,7 +12,7 @@ describe('isolated deployment preparation', () => {
       await mkdir(path.join(root, 'scripts'));
       await mkdir(path.join(root, 'bin'));
       await writeFile(path.join(root, 'package.json'), '{"type":"module"}');
-      await copyFile(path.resolve('scripts/deploy.js'), path.join(root, 'scripts/deploy.js'));
+      for (const file of ['deploy.js', 'deploy-revision.js']) await copyFile(path.resolve('scripts', file), path.join(root, 'scripts', file));
       const config = await readFile(path.resolve('firebase.json'), 'utf8');
       await writeFile(path.join(root, 'firebase.json'), config);
       const command = `#!/usr/bin/env node
@@ -20,9 +20,8 @@ import fs from 'node:fs'; import path from 'node:path';
 const command = path.basename(process.argv[1]), args = process.argv.slice(2);
 const event = { command, args };
 if (command === 'git') {
-  if (args[0] === 'rev-parse') process.stdout.write('revision\\n');
-  if (args[0] === 'ls-remote') process.stdout.write('revision\\trefs/heads/main\\n');
-  if (args[0] === 'clone') { fs.mkdirSync(path.join(args.at(-1), 'packages/functions'), {recursive:true}); fs.copyFileSync(process.env.FIXTURE_CONFIG, path.join(args.at(-1), 'firebase.json')); }
+  if (args[0] === 'rev-parse') process.stdout.write('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\\n');
+  if (args.includes('checkout')) { fs.mkdirSync('packages/functions', {recursive:true}); fs.copyFileSync(process.env.FIXTURE_CONFIG, 'firebase.json'); }
 }
 if (command === 'firebase') {
   const config = JSON.parse(fs.readFileSync(args[args.indexOf('--config') + 1]));
