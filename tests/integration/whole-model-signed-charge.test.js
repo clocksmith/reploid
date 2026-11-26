@@ -13,12 +13,13 @@ import { promisify } from 'node:util';
 import { createSigningIdentity } from '../../packages/reploid/src/artifacts/identity.js';
 import { createExecutionPolicy } from '../../packages/reploid/src/chat/execution-policy.js';
 import { STAGE_RECEIPT_SCHEMA, OUTPUT_ACKNOWLEDGMENT_SCHEMA } from '../../packages/reploid/src/mesh/partitions/partition-attempt-evidence.js';
-import { SETTLEMENT_ACCEPTANCE_SCHEMA, SETTLEMENT_STOP_SCHEMA, SETTLEMENT_TERMS_SCHEMA } from '../../packages/reploid/src/mesh/settlement-terms.js';
+import { SETTLEMENT_ACCEPTANCE_SCHEMA, SETTLEMENT_FAULT_SCHEMA, SETTLEMENT_STOP_SCHEMA, SETTLEMENT_TERMS_SCHEMA } from '../../packages/reploid/src/mesh/settlement-terms.js';
 import { openFleetCredits } from '../../server/fleet/credits.js';
 import { startFleetService, createFleetClient } from '../../server/fleet/service.js';
 import { createFleetRequester } from '../../server/fleet/requester.js';
 import { createFleetExecutionAdmission } from '../../server/fleet/execution-admission.js';
-import { buildTradeReceipt } from '../../server/fleet/trade-records.js';
+import { startFleetTextApi } from '../../server/fleet/text-api.js';
+import { buildRecordsExport, buildTradeReceipt } from '../../server/fleet/trade-records.js';
 import { createWholeModelRequester } from '../../server/whole-model-requester.js';
 import { verifyTrade } from '../../scripts/settlement/verify-trade.js';
 import { exportFromReceipt } from '../../scripts/settlement/records-export.js';
@@ -64,7 +65,7 @@ afterEach(async () => {
  * One requester and one provider on the shared ledger. `signs: false` is a contributor on code that predates the
  * signed records: it has no payout-account port, so it advertises nothing and is sent exactly the earlier wire.
  */
-async function route({ requester, provider, execute, signs = true, requireVerifiableCharge = false, drop = () => false }) {
+async function route({ requester, provider, execute, signs = true, requireVerifiableCharge = false, drop = () => false, meshConfig = () => ({}) }) {
   const kept = [];
   const admission = createFleetExecutionAdmission({ credits: clients[provider], model });
   let wholeRequester;
@@ -76,7 +77,9 @@ async function route({ requester, provider, execute, signs = true, requireVerifi
       if (input.action === 'mesh.execute') return admission.whole({ request: input.request, consumer: keys[requester].peerId });
       return true;
     },
-    execute, drop,
+    execute, drop, meshConfig,
+    // The provider's host hands its signed terminal record (cancelled or failed) to the ledger, as the native host does.
+    onGenerationTerminal: proof => admission.terminal(proof),
     // The provider's host settles the countersigned receipt, as the native host does.
     ports: index => (index ? { onReceipt: receipt => admission.receipt(receipt),
       ...(signs ? { settlementAccount: () => admission.settlementAccount(), onSettlementRecords: value => { kept.push(value); } } : {}) } : {})
@@ -94,8 +97,39 @@ async function route({ requester, provider, execute, signs = true, requireVerifi
   /** What the page exports for one request: the requester's records with the ledger's own record of the reservation. */
   const exported = async reservationId => buildTradeReceipt({ records: stored.get(reservationId)(),
     trace: await clients[requester].call('trace', { id: reservationId }) });
-  return { ask, sent, exported, stored, providerRecords: kept, mesh };
+  /**
+   * The three readings of one finished request: the ledger's own record, the trade receipt under both replays
+   * (verify-trade.js), and the records-only export under the second verifier alone (verify-records.js). All three
+   * must give `debit` and `payout`, no hold may remain, and the replay must read `status`.
+   */
+  const agree = async (reservationId, { status, debit = 0, payout = 0, at = Date.now(), trace = null }) => {
+    trace ??= await clients[requester].call('trace', { id: reservationId });
+    const records = stored.get(reservationId)();
+    expect(trace).toMatchObject({ state: 'settled', held: 0, charge: debit });
+    expect(trace.journalByAccount.filter(row => row.delta > 0).reduce((sum, row) => sum + row.delta, 0)).toBe(payout);
+    expect(openRequests()).toBe(0);
+    const full = await verifyTrade({ receipt: buildTradeReceipt({ records, trace }), at });
+    expect(full.attempts[0].problems).toEqual([]);
+    expect(full).toMatchObject({ ok: true, attempts: [{ facts: { status, debit, payouts: payout ? { [keys[provider].peerId]: payout } : {} } }] });
+    const only = await verifyRecords({ trade: buildRecordsExport({ id: 'drill', label: 'In-process drill with test keys', records, trace }), at });
+    expect(only.attempts[0].problems).toEqual([]);
+    expect(only).toMatchObject({ ok: true, attempts: [{ facts: { status, debit, payouts: payout ? { [`account-${provider}`]: payout } : {},
+      hold: { basis: 'publisher-stated', remaining: 0 } } }] });
+    return { trace, records, replay: full.attempts[0].facts, recordsOnly: only.attempts[0].facts };
+  };
+  return { ask, sent, exported, stored, providerRecords: kept, mesh, agree, wholeRequester };
 }
+
+/** A provider that streams some output and then waits: `running` resolves once the requester has been sent text. */
+function midStream(text = '1 2') {
+  let started;
+  const running = new Promise(resolve => { started = resolve; });
+  return { running, execute: (_messages, update, controls) => new Promise((_, reject) => {
+    update(text); started();
+    controls.signal.addEventListener('abort', () => reject(controls.signal.reason), { once: true });
+  }) };
+}
+const pastWindow = () => credits.policy.maxRequestMs + credits.policy.partitionUnclaimedReleaseMs + credits.policy.maxClockSkewMs + 1000;
 
 it('a requester with no weights spends credits it earned by serving, and both verifiers reproduce the debit and payout from the exported records', async () => {
   // Earn. Account 0 cannot spend yet: no starter credit and nothing earned.
@@ -163,68 +197,120 @@ it('a requester with no weights spends credits it earned by serving, and both ve
   expect((await verifyTrade({ receipt: unacknowledged, at: Date.now() })).ok).toBe(false);
 });
 
-it('a stopped answer leaves no hold and its records reproduce a charge of zero', async () => {
-  let started;
-  const running = new Promise(resolve => { started = resolve; });
-  const stopped = await route({ requester: 1, provider: 0, execute: (_messages, update, controls) => new Promise((_, reject) => {
-    update('1 2'); started();
-    controls.signal.addEventListener('abort', () => reject(controls.signal.reason), { once: true });
-  }) });
+// The drills of docs/settlement-replay.md, "Whole-model operations": what each way of not finishing settles. On this
+// route output the requester already received is never charged: there is no acknowledged prefix.
+
+it('drill a1, the person stops mid-stream: the signed stop releases the full hold at once and nothing is charged', async () => {
+  const stream = midStream();
+  const stopped = await route({ requester: 1, provider: 0, execute: stream.execute });
   const controller = new AbortController();
-  const asking = stopped.ask({ signal: controller.signal });
+  let received = '';
+  const asking = stopped.ask({ signal: controller.signal, onDelta: delta => { received += delta.text; } });
   asking.catch(() => {});
-  await running;
+  await stream.running;
+  await expect.poll(() => received).toBe('1 2');
   controller.abort(Object.assign(new Error('Stopped'), { requesterStop: true }));
   const failure = await asking.catch(error => error);
+  // Output had arrived, and the charge is still zero: the whole hold of 16 tokens is back.
   expect(failure.serviceCredit).toMatchObject({ charge: 0 });
   expect(typeof failure.serviceCredit.settledAt).toBe('number');
   expect(openRequests()).toBe(0);
   expect(account(0).balance).toBe(0);
 
   const reservationId = failure.settlementRecords.reservationId;
-  // The provider's own failed close arrives after the request ended at the requester and is still kept.
+  // The provider's close, which claims nothing, arrives after the request ended at the requester and is still kept.
   await expect.poll(() => schemas(stopped.stored.get(reservationId)().records)).toContain(STAGE_RECEIPT_SCHEMA);
-  const records = stopped.stored.get(reservationId)();
-  expect(records).toMatchObject({ label: 'signed-records', stopped: true, acknowledged: null });
+  const { records } = await stopped.agree(reservationId, { status: 'settled' });
+  expect(records).toMatchObject({ label: 'signed-records', stopped: true, faulted: false, acknowledged: null });
   expect(schemas(records.records)).toEqual([SETTLEMENT_TERMS_SCHEMA, OUTPUT_ACKNOWLEDGMENT_SCHEMA, SETTLEMENT_ACCEPTANCE_SCHEMA, STAGE_RECEIPT_SCHEMA, SETTLEMENT_STOP_SCHEMA]);
   expect(records.records.find(row => row.schema === STAGE_RECEIPT_SCHEMA)).toMatchObject({ status: 'failed', steps: 0 });
-  const verdict = await verifyTrade({ receipt: await stopped.exported(reservationId), at: Date.now() });
-  expect(verdict.attempts[0].problems).toEqual([]);
-  expect(verdict).toMatchObject({ ok: true, attempts: [{ facts: { status: 'settled', debit: 0, payouts: {} } }] });
 });
 
-it('a lost connection leaves no hold once the release window has passed, and nothing is charged', async () => {
-  let started;
-  const running = new Promise(resolve => { started = resolve; });
-  // The provider never answers and never hears the requester again (its cancellation is lost on the link), so no
-  // close reaches the requester.
-  const lost = await route({ requester: 1, provider: 0, drop: type => type === 'reploid:generation-cancel',
+it('drill a2, the tab closes mid-stream and the provider hears it: the provider\'s signed cancellation releases the full hold, nothing is charged', async () => {
+  const stream = midStream();
+  const closed = await route({ requester: 1, provider: 0, execute: stream.execute });
+  const controller = new AbortController();
+  const asking = closed.ask({ signal: controller.signal });
+  asking.catch(() => {});
+  await stream.running;
+  controller.abort(new Error('Page closed'));
+  const failure = await asking.catch(error => error);
+  const reservationId = failure.settlementRecords.reservationId;
+  // No stop was signed. The provider signs its cancelled terminal record for the ledger and a close that claims nothing.
+  await expect.poll(() => credits.request(reservationId).state).toBe('settled');
+  await expect.poll(() => schemas(closed.stored.get(reservationId)().records)).toContain(STAGE_RECEIPT_SCHEMA);
+  expect(credits.request(reservationId).outcome).toMatchObject({ status: 'cancelled', charge: 0 });
+  const { records } = await closed.agree(reservationId, { status: 'settled' });
+  expect(records).toMatchObject({ label: 'signed-records', stopped: false, faulted: false });
+  expect(schemas(records.records)).toEqual([SETTLEMENT_TERMS_SCHEMA, OUTPUT_ACKNOWLEDGMENT_SCHEMA, SETTLEMENT_ACCEPTANCE_SCHEMA, STAGE_RECEIPT_SCHEMA]);
+  expect(account(0).balance).toBe(0);
+});
+
+it('drill b1, the provider fails and signs its fault: the hold is released at once, nobody is charged or paid, and the records name the provider', async () => {
+  const failing = await route({ requester: 1, provider: 0, execute: async (_messages, update) => { update('1'); throw new Error('GPU device lost'); } });
+  const failure = await failing.ask().catch(error => error);
+  expect(failure.message).toMatch(/GPU device lost/);
+  const reservationId = failure.settlementRecords.reservationId;
+  expect(credits.request(reservationId).outcome).toMatchObject({ status: 'failed', charge: 0 });
+  const { records, replay } = await failing.agree(reservationId, { status: 'expired' });
+  // The fault decides the outcome now: nobody waits for the release window.
+  expect(records).toMatchObject({ label: 'signed-records', faulted: true, stopped: false, missing: [] });
+  expect(schemas(records.records)).toEqual([SETTLEMENT_TERMS_SCHEMA, OUTPUT_ACKNOWLEDGMENT_SCHEMA, SETTLEMENT_ACCEPTANCE_SCHEMA, SETTLEMENT_FAULT_SCHEMA]);
+  expect(records.records.at(-1)).toMatchObject({ participantId: keys[0].peerId, partitionIndex: 0 });
+  expect(replay.status).toBe('expired');
+  expect(account(0).balance).toBe(0);
+});
+
+it('drill b2, a provider that dies silently cannot be told from a requester whose connection was lost: both expire unattributed, with nobody charged or paid', async () => {
+  // b2: the provider process is gone mid-answer. Nothing it would send arrives, and it signs nothing.
+  let dead = false;
+  const killed = await route({ requester: 1, provider: 0, meshConfig: index => (index === 0 ? { generationTimeoutMs: 400 } : {}),
+    drop: (type, _payload, sender) => dead && (sender === 1 || type === 'reploid:generation-cancel'),
     execute: (_messages, update, controls) => new Promise((_, reject) => {
-      update('1'); started();
+      update('1'); dead = true;
       controls.signal.addEventListener('abort', () => reject(controls.signal.reason), { once: true });
     }) });
+  const silence = await killed.ask().catch(error => error);
+  // The other side of the same picture: the requester's connection is lost and the provider never hears of it.
+  const stream = midStream('1');
+  const lost = await route({ requester: 1, provider: 0, drop: type => type === 'reploid:generation-cancel', execute: stream.execute });
   const controller = new AbortController();
   const asking = lost.ask({ signal: controller.signal });
   asking.catch(() => {});
-  await running;
+  await stream.running;
   controller.abort(new Error('Connection lost'));
-  const failure = await asking.catch(error => error);
-  // Not a stop: the hold stays until the deadline plus the release window, then the ledger releases it itself.
-  expect(failure.serviceCredit.settledAt).toBeUndefined();
-  expect(openRequests()).toBe(16 * PRICE);
-  const reservationId = failure.settlementRecords.reservationId;
-  expect(failure.settlementRecords).toMatchObject({ label: 'no-verifiable-receipt', missing: ['close', 'acknowledgment'] });
+  const dropped = await asking.catch(error => error);
 
-  clockOffset = credits.policy.maxRequestMs + credits.policy.partitionUnclaimedReleaseMs + credits.policy.maxClockSkewMs + 1000;
-  const trace = credits.trace(reservationId);
-  expect(trace).toMatchObject({ state: 'settled', status: 'expired', held: 0, journal: [] });
-  expect(openRequests()).toBe(0);
+  const outcomes = [];
+  for (const [fixture, failure] of [[killed, silence], [lost, dropped]]) {
+    const reservationId = failure.settlementRecords.reservationId;
+    // Neither is a stop: the hold stays until the deadline plus the release window.
+    expect(failure.serviceCredit.settledAt).toBeUndefined();
+    expect(credits.request(reservationId).state).not.toBe('settled');
+    expect(failure.settlementRecords).toMatchObject({ label: 'no-verifiable-receipt', missing: ['close'], stopped: false, faulted: false });
+    outcomes.push({ fixture, reservationId });
+  }
+  expect(openRequests()).toBe(2 * 16 * PRICE);
+  // Before the window has passed the records decide nothing: the replay is still open.
+  const early = await verifyTrade({ receipt: buildTradeReceipt({ records: killed.stored.get(outcomes[0].reservationId)(), trace: credits.trace(outcomes[0].reservationId) }), at: Date.now() });
+  expect(early).toMatchObject({ ok: false, attempts: [{ facts: { status: 'open' } }] });
+
+  clockOffset = pastWindow();
+  const read = [];
+  for (const { fixture, reservationId } of outcomes) {
+    const trace = credits.trace(reservationId);
+    expect(trace).toMatchObject({ status: 'expired', journal: [] });
+    const { records, recordsOnly } = await fixture.agree(reservationId, { status: 'expired', at: ledgerNow(), trace: { ...trace, policyDigest: null } });
+    // The replay lists the one stage as having no close in both cases. On a one-provider route that entry is not
+    // attribution: the same list is read whichever side went away.
+    expect(recordsOnly.forfeited).toEqual([0]);
+    read.push(schemas(records.records));
+  }
+  // The same records in both cases, so no party is named as the cause.
+  expect(read[0]).toEqual([SETTLEMENT_TERMS_SCHEMA, OUTPUT_ACKNOWLEDGMENT_SCHEMA, SETTLEMENT_ACCEPTANCE_SCHEMA]);
+  expect(read[1]).toEqual(read[0]);
   expect(account(0).balance).toBe(0);
-  // The records alone give the same answer once the window has passed: expired, nobody charged or paid.
-  const receipt = buildTradeReceipt({ records: lost.stored.get(reservationId)(), trace: { ...trace, policyDigest: null } });
-  const verdict = await verifyTrade({ receipt, at: ledgerNow() });
-  expect(verdict.attempts[0].problems).toEqual([]);
-  expect(verdict).toMatchObject({ ok: true, attempts: [{ facts: { status: 'expired', debit: 0, payouts: {} } }] });
+  expect(account(1).balance).toBe(0);
 });
 
 it('a contributor that does not sign is served and labelled, or refused before any hold when a verifiable charge is required', async () => {
@@ -253,4 +339,35 @@ it('a contributor that does not sign is served and labelled, or refused before a
   // The same policy against a contributor that signs is served with its records.
   const signing = await route({ requester: 1, provider: 0, execute, requireVerifiableCharge: true });
   expect((await signing.ask()).settlementRecords.label).toBe('signed-records');
+});
+
+it('the HTTP text API carries the settlement port: a request through it signs the same records', async () => {
+  const token = 'synthetic-fleet-api-bearer-secret-0123456789abcdef';
+  const served = await route({ requester: 1, provider: 0, execute: async (_messages, update) => { update('1 2'); return answer('1 2', 2); } });
+  const reservations = [];
+  const requesterOf = participant => createFleetRequester({ participant, identity: keys[1], credits: clients[1], maxOutputTokens: 16,
+    onSettlementRecords: ({ reservationId, read }) => served.stored.set(reservationId, read) });
+  // The ports the native host gives the text API (native-host.js): its accounted run wraps the adapter's own executor.
+  const host = { identity: keys[1], credits: clients[1], allowsModel: candidate => candidate?.id === model.id && candidate?.identity === model.identity,
+    async enrolledRecipients() { return new Set(((await clients[1].call('computers', {})).computers || []).flatMap(row => row.participantIds || [])); },
+    textParticipant: { roomId: 'reploid-swarm-fleet-fixture', executionClass: 'private-pool', getState: () => ({ models: served.wholeRequester.getModels() }),
+      getNetworkState: () => served.mesh.requesterMesh.getSwarmSnapshot(),
+      generate: (request, controls) => served.wholeRequester.generate(request, controls),
+      recoverGeneration: (request, reference, controls) => served.wholeRequester.recover(request, reference, controls) },
+    chargeCeiling: request => requesterOf({ generate: () => { throw Error('not sent'); } }).chargeCeiling(request),
+    async runAccountedGeneration(request, controls, run) {
+      const result = await requesterOf({ generate: run }).generate(request, { ...controls, onReservation(id) { reservations.push(id); controls.onReservation?.(id); } });
+      return { ...result, execution: { ...result.execution, serviceCredit: result.serviceCredit } };
+    } };
+  const api = await startFleetTextApi({ host, token, allowedRecipients: [keys[0].peerId] });
+  cleanup.push(() => api.close());
+  const response = await fetch(`${api.url}/chat/completions`, { method: 'POST',
+    headers: { authorization: `Bearer ${token}`, 'content-type': 'application/json' }, body: JSON.stringify({ model: model.id, messages }) });
+  const body = await response.json();
+  expect(response.status, JSON.stringify(body)).toBe(200);
+  expect(body.choices[0].message.content).toBe('1 2');
+  expect(served.sent('reploid:generation-admit')[0].settlement.terms).toMatchObject({ schema: SETTLEMENT_TERMS_SCHEMA, requesterId: keys[1].peerId });
+  expect(served.sent('reploid:generation-admitted')[0].settlementAcceptance).toMatchObject({ schema: SETTLEMENT_ACCEPTANCE_SCHEMA });
+  const { records } = await served.agree(reservations[0], { status: 'settled', debit: 2 * PRICE, payout: 2 * PRICE });
+  expect(records.label).toBe('signed-records');
 });

@@ -1059,25 +1059,65 @@ every step above applies unchanged. Source:
   receipt: `steps` and `output.count` are the output tokens it measured (one
   unit for an operation that is not generation), and the chain value is the
   starting value extended once per unit, with no text for every step but the
-  last and the digest of the whole output for the last. A request that did not
-  complete closes with status `failed`, zero steps and the starting chain.
+  last and the digest of the whole output for the last.
 - The requester signs one acknowledgment of that count, after the whole output
-  has arrived and matches the provider's execution receipt. A person who stops
-  the answer signs a stop with `acknowledged` 0.
+  has arrived and matches the provider's execution receipt.
 
-A whole-model operation is therefore charged whole or not at all, as its ledger
-hold always was: a completed and acknowledged answer settles at its output
-tokens, and a stopped, failed or lost one at zero. The terms still carry the
-policy's `maxUnacknowledgedOutputs`, which the replay requires of any terms, but a single
-whole-model stage does not enforce it: it delivers the whole answer before any
-acknowledgment and bears that risk, as it did before these records existed.
+### What an unfinished whole-model answer settles
+
+**There is no acknowledged prefix on this route.** The provider signs its count
+once, at the end, and the requester acknowledges once, after the whole answer.
+Text the requester already received from an answer that did not finish is never
+charged: every outcome below except a completed and acknowledged answer charges
+the requester nothing, pays the provider nothing and releases the whole hold.
+The terms still carry the policy's `maxUnacknowledgedOutputs`, which the replay
+requires of any terms, but a single whole-model stage does not enforce it. It
+delivers the whole answer before any acknowledgment and bears that risk, as it
+did before these records existed.
+
+| What happened | What is signed | Ledger | Replay |
+| --- | --- | --- | --- |
+| Completed and acknowledged | provider: closing receipt with `done`; requester: acknowledgment of its count | charges the output tokens on the countersigned execution receipt, at once | `settled`, that charge |
+| The person stops mid-answer | requester: stop with `acknowledged` 0; provider, when the cancellation reaches it: a closing receipt with status `failed`, zero steps and the starting chain | settles at zero on the signed stop, at once | `settled` at zero once the provider's close is held; without it `open`, then `expired` |
+| The requester goes away mid-answer (page closed) and the provider hears it | provider: the same `failed` close, and its signed cancelled terminal record for the ledger | settles at zero on that terminal record, at once | `settled` at zero |
+| The provider fails and says so | provider: a stage fault (`reploid.settlement-stage-fault/v1`), no closing receipt, and its signed failed terminal record for the ledger | settles at zero on that terminal record, at once | `expired` at zero at once; the fault is listed (step 6) |
+| Either side goes silent: the provider dies, or the requester's connection is lost and the provider never hears | nothing further | holds until the deadline plus the release window, then releases the hold unclaimed | `open` until then, then `expired` at zero |
+| The provider finished but the requester never acknowledged | provider: closing receipt with `done` | as the row above | `settled` at zero (step 9: only acknowledged outputs are owed) |
+
+Three things follow, and none is hidden by the records.
+
+- **A silent provider and a silent requester look the same.** A split answer
+  has other stages whose receipts show who stopped; a single provider has no
+  witness. When neither a close, a fault nor a stop was signed, the records are
+  the terms, the charge binding and the acceptance in both cases, and the
+  outcome is unattributed. The replay still lists the one stage under
+  `forfeited` with cause `no-close`, because that is how step 6 words a stage
+  without a close; on this route that entry does not show the provider was at
+  fault, and nothing should be built on it. Only a provider's own signed fault
+  attributes a failure to the provider.
+- **A provider signs a fault only for its own failure.** When the requester
+  ended the answer it signs a close that claims nothing instead, so a stop is
+  never recorded as the provider failing.
+- **A requester can take a finished answer and not acknowledge it.** The
+  provider is then paid nothing, as it was under the countersigned receipt
+  alone. Its closing receipt and the unanswered acceptance are its evidence for
+  reputation, not for payment.
 
 The ledger still settles such a request from the countersigned execution
-receipt and the requester's stop. It does not read the terms, so the records are
-an outsider's check on the amounts it posted, not its input. A provider that
-runs code from before these records signs none of them; the request is then
-served and labelled `no-verifiable-receipt`, or refused before any hold when
-the requester requires a verifiable charge.
+receipt, the requester's stop, or the provider's signed terminal record. It does
+not read the terms, so the records are an outsider's check on the amounts it
+posted, not its input. It also has no word for the replay's `settled` and
+`expired` when the charge is zero (its own outcomes are `cancelled`, `failed`
+and `expired`), so a records-only export of such a request states the word the
+held records imply, and the debit, the payout and the remaining hold from the
+ledger. A provider that runs code from before these records signs none of them;
+the request is then served and labelled `no-verifiable-receipt`, or refused
+before any hold when the requester requires a verifiable charge.
+
+The drills are separate tests in
+[`whole-model-signed-charge.test.js`](../tests/integration/whole-model-signed-charge.test.js):
+each ends with no hold, and the ledger, both replays and the records-only check
+give the same debit and payout.
 
 ## Checking it
 

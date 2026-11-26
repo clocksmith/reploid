@@ -120,11 +120,12 @@ export interface MeshOperationCharge {
   accept(acceptance: unknown): Promise<true>;
   /** Signs the acknowledgment of the provider's closing receipt; throws when it commits to another output. */
   acknowledge(delivered: { receipt: unknown; units: number; outputDigest: string }): Promise<SignedSettlementRecord>;
-  close(receipt: unknown): Promise<true>;
+  /** Keeps the provider's closing receipt, or its stage fault, of an answer that did not complete. */
+  close(record: unknown): Promise<true>;
   stop(): Promise<SignedSettlementRecord>;
   records(): SignedSettlementRecord[];
   summary(): { reservationId: string; attemptId: string; routeHash: string; requesterId: string; providerId: string; accepted: boolean;
-    closed: boolean; acknowledged: number | null; stopped: boolean; complete: boolean; missing: string[] };
+    closed: boolean; faulted: boolean; acknowledged: number | null; stopped: boolean; complete: boolean; missing: string[] };
 }
 /** Requester side: signs the terms and charge binding of one whole-model attempt and keeps its records. */
 export function openMeshOperationCharge(options: {
@@ -138,6 +139,8 @@ export function acceptMeshOperationCharge(options: {
 }): Promise<Readonly<{
   acceptance: SignedSettlementRecord; reservationId: string; routeHash: string; maxCostUnits: number;
   close(output?: { units?: number; outputDigest?: string | null; stopReason?: string | null; promptUnits?: number | null; failed?: boolean }): Promise<SignedSettlementRecord>;
+  /** The provider's own signed fault; refused once it has closed. */
+  fault(): Promise<SignedSettlementRecord>;
   acknowledged(acknowledgment: unknown): Promise<boolean>;
   records(): SignedSettlementRecord[];
 }>>;

@@ -11,6 +11,32 @@
  */
 export const TRADE_RECEIPT_SCHEMA = 'reploid.whole-model-trade-receipt/v1';
 
+const CLOSE = 'reploid.stage-receipt/v1';
+
+/**
+ * The same request as a records-only export (scripts/settlement/verify-records.js; docs/verify-a-trade.md, "Records
+ * only"): the signed records, the enrollment the ledger states for the two keys, and the ledger's amounts and
+ * remaining hold as the publisher's statement. The whole-model ledger does not replay the records, so for a charge of
+ * zero it has no word for the replay's `settled` or `expired`: the export states the one the held records imply (a
+ * provider's close is held, or not). The debit, the payout and the hold are the ledger's own.
+ */
+export function buildRecordsExport({ id, label, records, trace }) {
+  if (!records?.records?.length) throw Error('This request has no signed records to export');
+  if (!trace || trace.reservationId !== records.reservationId) throw Error('The ledger record of this reservation is required');
+  const paid = new Map();
+  for (const entry of trace.journalByAccount ?? []) if (entry.delta > 0) paid.set(entry.accountId, (paid.get(entry.accountId) ?? 0) + entry.delta);
+  const closed = records.records.some(record => record.schema === CLOSE);
+  return { schema: 'reploid.settlement-records-export/v1', id, label, simulated: null,
+    source: 'one whole-model request: the requester host\'s signed records and its ledger\'s trace of the reservation', policy: structuredClone(records.policy),
+    attempts: [{ name: 'answer', what: 'A whole-model answer from one computer. For a zero charge the status word is read from the records; the amounts and the hold are the ledger\'s.',
+      reservationId: records.reservationId, requesterId: records.requesterId,
+      enrollment: (trace.participants ?? []).map(row => ({ participantId: row.participantId, account: row.accountId })),
+      enrollmentSource: 'the ledger\'s enrollment of the two keys', records: structuredClone(records.records),
+      stated: { settlementRules: null, status: (trace.charge ?? 0) > 0 || closed ? 'settled' : 'expired', debit: trace.charge ?? 0,
+        payouts: [...paid].sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)).map(([account, amount]) => ({ account, amount })), forfeited: null,
+        hold: { placed: null, released: null, remaining: trace.held } } }] };
+}
+
 export function buildTradeReceipt({ records, trace = null }) {
   if (!records || typeof records.reservationId !== 'string') throw Error('The signed records of one request are required');
   if (trace && trace.reservationId !== records.reservationId) throw Error('The ledger record names another reservation');

@@ -589,8 +589,9 @@ export function createPeerGenerationMesh({ config, ports }) {
 
   const handleGenerationError = async (remotePeerId, payload = {}) => {
     // The provider's closing record of an answer that did not complete, kept even when the request already ended here.
-    const ended = payload?.settlement?.receipt ? openCharges.get(`${remotePeerId}:${payload.requestId}`) : null;
-    if (ended) await ended.close(payload.settlement.receipt).catch(() => {});
+    const signed = payload?.settlement?.receipt ?? payload?.settlement?.fault;
+    const ended = signed ? openCharges.get(`${remotePeerId}:${payload.requestId}`) : null;
+    if (ended) await ended.close(signed).catch(() => {});
     const pending = remoteRequests.get(payload.requestId, remotePeerId);
     if (!pending || pending.processing || !onAdmittedConnection(pending, remotePeerId)) return;
     const error = new Error(String(payload.error || 'Remote generation failed'));
@@ -1102,9 +1103,14 @@ export function createPeerGenerationMesh({ config, ports }) {
           }
         } catch { /* No terminal proof: retain the admission fence and uncertainty. */ }
       }
-      // The provider's own signed close of an answer that did not complete: it claims no output.
+      // What the provider signs for an answer that did not complete. When the requester ended it (a stop, or its
+      // connection going away), a close that claims no output. When the provider itself failed, its stage fault: it is
+      // owed nothing and nobody waits for a close. A provider that dies signs neither (docs/settlement-replay.md).
       if (charged) {
-        try { payload.settlement = { receipt: await charged.close({ failed: true }) }; } catch { /* The request ends without it. */ }
+        const reason = controller.signal.aborted ? controller.signal.reason : null;
+        const byRequester = reason?.code === 'REQUESTER_CANCELLED' || reason?.message === 'Requester disconnected';
+        try { payload.settlement = byRequester ? { receipt: await charged.close({ failed: true }) } : { fault: await charged.fault() }; }
+        catch { /* The request ends without it. */ }
       }
       if (!closed) {
         completed.set(key, { type: 'reploid:generation-error', payload });

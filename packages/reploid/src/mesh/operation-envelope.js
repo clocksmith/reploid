@@ -16,8 +16,8 @@ import {
   verifyOutputAcknowledgment, verifyStageReceipt
 } from './partitions/partition-attempt-evidence.js';
 import {
-  SETTLEMENT_ACCEPTANCE_SCHEMA, SETTLEMENT_STOP_SCHEMA, SETTLEMENT_TERMS_SCHEMA, acceptSettlementTerms, signSettlementStop,
-  signSettlementTermsFor, termsDigest, verifySettlementAcceptance, verifySettlementTerms
+  SETTLEMENT_ACCEPTANCE_SCHEMA, SETTLEMENT_FAULT_SCHEMA, SETTLEMENT_STOP_SCHEMA, SETTLEMENT_TERMS_SCHEMA, acceptSettlementTerms, signSettlementStop,
+  signSettlementTermsFor, signStageFaultRecord, termsDigest, verifySettlementAcceptance, verifySettlementFault, verifySettlementTerms
 } from './settlement-terms.js';
 
 export const MESH_OPERATION_SCHEMA = 'reploid.mesh-operation/v1';
@@ -307,7 +307,8 @@ export async function requestMeshOperation({ transport, verifyPeer, currentPeer,
  *
  *   requester  terms (price, cost cap, the one stage, its own account) and the charge binding, before any input leaves
  *   provider   acceptance of exactly those terms (with its payout account), before it is sent the input
- *   provider   one closing stage receipt: the units it delivered and a chain value that commits to the output
+ *   provider   one closing stage receipt: the units it delivered and a chain value that commits to the output; a close
+ *              that claims nothing when the requester ended the answer; or a stage fault when the provider itself failed
  *   requester  one acknowledgment of those units, once the whole output has arrived and matches
  *   requester  a stop, when the person ends the answer first
  *
@@ -341,6 +342,8 @@ export async function meshOperationOutputChain({ reservationId, routeHash, units
 const settlementRefusal = message => meshOperationError('OPERATION_RESULT_INVALID', message);
 const iso = ms => new Date(ms).toISOString();
 const units = value => Number.isSafeInteger(value) && value >= 0;
+/** True for a closing receipt that claims a delivered output. */
+const claimsOutput = receipt => receipt.status === 'settled' && receipt.output?.done === true;
 
 /**
  * Requester side. Signs the terms and the charge binding for one whole-model attempt, then keeps every record of it.
@@ -359,7 +362,13 @@ export async function openMeshOperationCharge({ signer, requestId, planDigest, r
   const acknowledgment = (count, chain) => signer.sign(OUTPUT_ACKNOWLEDGMENT_SCHEMA, { schema: OUTPUT_ACKNOWLEDGMENT_SCHEMA, reservationId,
     attemptId: requestId, routeHash, requesterId: signer.participantId, count, chain, signedAt: iso(now()) });
   const charge = await acknowledgment(0, genesis);
-  const held = { acceptance: null, receipt: null, acknowledged: null, stop: null };
+  const held = { acceptance: null, receipt: null, fault: null, acknowledged: null, stop: null };
+  const ownFault = async fault => {
+    const checked = await verifySettlementFault(fault);
+    const row = checked.body;
+    if (!checked.ok || row.reservationId !== reservationId || row.attemptId !== requestId || row.routeHash !== routeHash
+      || row.partitionIndex !== 0 || row.participantId !== recipient) throw settlementRefusal('The provider\'s fault is not its signed fault of this attempt');
+  };
   const ownReceipt = async receipt => {
     const checked = await verifyStageReceipt(receipt);
     const row = checked.body;
@@ -398,10 +407,14 @@ export async function openMeshOperationCharge({ signer, requestId, planDigest, r
       held.acknowledged = delivered === 0 ? structuredClone(charge) : await acknowledgment(delivered, row.output.chain);
       return structuredClone(held.acknowledged);
     },
-    /** Keeps the provider's closing receipt of an answer that did not complete (nothing is acknowledged). */
-    async close(receipt) {
-      await ownReceipt(receipt);
-      held.receipt ??= structuredClone(receipt);
+    /**
+     * Keeps what the provider signed for an answer that did not complete: its closing receipt, or its stage fault when
+     * it failed itself. Nothing is acknowledged.
+     */
+    async close(record) {
+      if (record?.schema === SETTLEMENT_FAULT_SCHEMA) { await ownFault(record); held.fault ??= structuredClone(record); return true; }
+      await ownReceipt(record);
+      held.receipt ??= structuredClone(record);
       return true;
     },
     /** The requester's signed stop of this attempt: a whole-model answer has no acknowledged prefix, so it stops at zero. */
@@ -410,13 +423,19 @@ export async function openMeshOperationCharge({ signer, requestId, planDigest, r
       return structuredClone(held.stop);
     },
     /** Every record this requester holds of the attempt, in the order they were signed. */
-    records: () => structuredClone([terms, charge, held.acceptance, held.receipt, held.acknowledged, held.stop]
+    records: () => structuredClone([terms, charge, held.acceptance, held.receipt, held.fault, held.acknowledged, held.stop]
       .filter((record, index, all) => record && all.findIndex(other => other?.signature === record.signature) === index)),
-    /** What is held, and what an outsider would still miss: `complete` only with terms, acceptance, close and acknowledgment. */
+    /**
+     * What is held, and what an outsider would still miss. `complete` means the records decide the outcome now: the
+     * acceptance, and either the provider's close with this requester's acknowledgment, its close that claims nothing,
+     * or its fault. Without any of the provider's three the outcome is decided only once the release window has passed.
+     */
     summary() {
-      const missing = [...(held.acceptance ? [] : ['acceptance']), ...(held.receipt ? [] : ['close']), ...(held.acknowledged || held.stop ? [] : ['acknowledgment'])];
+      const delivered = held.receipt && (claimsOutput(held.receipt));
+      const missing = [...(held.acceptance ? [] : ['acceptance']), ...(held.receipt || held.fault ? [] : ['close']),
+        ...(delivered && !held.acknowledged ? ['acknowledgment'] : [])];
       return { reservationId, attemptId: requestId, routeHash, requesterId: signer.participantId, providerId: recipient,
-        accepted: Boolean(held.acceptance), closed: Boolean(held.receipt), acknowledged: held.acknowledged?.count ?? null, stopped: Boolean(held.stop),
+        accepted: Boolean(held.acceptance), closed: Boolean(held.receipt), faulted: Boolean(held.fault), acknowledged: held.acknowledged?.count ?? null, stopped: Boolean(held.stop),
         complete: missing.length === 0, missing };
     }
   });
@@ -448,7 +467,7 @@ export async function acceptMeshOperationCharge({ signer, settlement, consumer, 
     // Accounts are signed by both parties or by neither (settlement-terms.js).
     ...(Object.hasOwn(body, 'debitAccount') ? { payoutAccount } : {}) });
   const reservedAt = iso(now());
-  const held = { receipt: null, acknowledged: null };
+  const held = { receipt: null, fault: null, acknowledged: null };
   return Object.freeze({
     acceptance: structuredClone(acceptance), reservationId, routeHash, maxCostUnits: body.maxOutputTokens,
     /**
@@ -457,6 +476,7 @@ export async function acceptMeshOperationCharge({ signer, settlement, consumer, 
      */
     async close({ units: delivered = 0, outputDigest = null, stopReason = null, promptUnits = null, failed = false } = {}) {
       if (held.receipt) return structuredClone(held.receipt);
+      if (held.fault) throw invalid('A stage that signed a fault signs no closing receipt');
       const done = failed !== true;
       if (done && !(units(delivered) && DIGEST.test(outputDigest ?? ''))) throw invalid('A closing receipt needs the delivered units and the output digest');
       const count = done ? delivered : 0, at = iso(now());
@@ -467,6 +487,15 @@ export async function acceptMeshOperationCharge({ signer, settlement, consumer, 
         output: { count, chain: done ? await meshOperationOutputChain({ reservationId, routeHash, units: count, outputDigest }) : genesis, done,
           stopReason: done && typeof stopReason === 'string' ? stopReason.slice(0, 64) : null }, signedAt: at });
       return structuredClone(held.receipt);
+    },
+    /**
+     * This provider's own signed fault: it failed, signs no closing receipt and is owed nothing for this attempt.
+     * Signed only when the provider itself failed, never because the requester ended the answer.
+     */
+    async fault() {
+      if (held.receipt) throw invalid('A stage that closed signs no fault');
+      held.fault ??= await signStageFaultRecord({ signer, reservationId, attemptId: requestId, routeHash, partitionIndex: 0, now });
+      return structuredClone(held.fault);
     },
     /** Keeps the requester's acknowledgment of this provider's closing receipt; false when it is not one. */
     async acknowledged(acknowledgment) {
@@ -479,11 +508,11 @@ export async function acceptMeshOperationCharge({ signer, settlement, consumer, 
       return true;
     },
     /** Every record this provider holds of the attempt. */
-    records: () => structuredClone([settlement.terms, settlement.charge, acceptance, held.receipt, held.acknowledged]
+    records: () => structuredClone([settlement.terms, settlement.charge, acceptance, held.receipt, held.fault, held.acknowledged]
       .filter((record, index, all) => record && all.findIndex(other => other?.signature === record.signature) === index))
   });
 }
 
 /** The schemas an exported record set may contain, for a reader that sorts them. */
 export const MESH_OPERATION_SETTLEMENT_RECORD_SCHEMAS = Object.freeze([SETTLEMENT_TERMS_SCHEMA, OUTPUT_ACKNOWLEDGMENT_SCHEMA,
-  SETTLEMENT_ACCEPTANCE_SCHEMA, STAGE_RECEIPT_SCHEMA, SETTLEMENT_STOP_SCHEMA]);
+  SETTLEMENT_ACCEPTANCE_SCHEMA, STAGE_RECEIPT_SCHEMA, SETTLEMENT_FAULT_SCHEMA, SETTLEMENT_STOP_SCHEMA]);

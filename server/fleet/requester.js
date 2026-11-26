@@ -20,7 +20,7 @@ export function settlementRecordsOf({ reservationId, charge, policy, reason = nu
   return { schema: MESH_OPERATION_SETTLEMENT_RECORDS_SCHEMA, reservationId,
     label: summary?.complete ? VERIFIABLE_CHARGE_LABELS.signed : VERIFIABLE_CHARGE_LABELS.none,
     ...(summary ? { attemptId: summary.attemptId, requesterId: summary.requesterId, providerId: summary.providerId, missing: summary.missing,
-      acknowledged: summary.acknowledged, stopped: summary.stopped } : { missing: ['terms', 'acceptance', 'close', 'acknowledgment'] }),
+      acknowledged: summary.acknowledged, stopped: summary.stopped, faulted: summary.faulted } : { missing: ['terms', 'acceptance', 'close', 'acknowledgment'] }),
     ...(reason ? { reason } : {}), policy: charge ? structuredClone(policy) : null, records: charge ? charge.records() : [] };
 }
 
