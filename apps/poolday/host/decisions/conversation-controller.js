@@ -114,10 +114,21 @@ export function createConversationController(session, {
     // stand in for it after New thread.
     if (model) viewState.draftModel = null;
   };
-  let files = [], composerRevision = 0, queuedSend = null, draftText = '', currentKey = '';
+  let files = [], composerRevision = 0, draftText = '', currentKey = '';
   let contextPrompt = viewState.contextPrompt || null;
   let executionLocation = viewState.executionLocation || 'auto';
-  let errorText = '', searchOn = false, submitting = false, retryPending = false, retryDeadline = null;
+  let errorText = '', searchOn = false, retryPending = false, retryDeadline = null;
+  /**
+   * Send, as one record: `idle`; `held` while it waits for a computer during discovery (`scope` is what it was
+   * pressed for, `scheduled` that its release is already queued); `submitting` from the press until the session
+   * admitted it. A held Send and a submitting one never coexist.
+   */
+  const IDLE = Object.freeze({ kind: 'idle' }), SUBMITTING = Object.freeze({ kind: 'submitting' });
+  let send = IDLE;
+  const held = () => send.kind === 'held' ? send : null;
+  const dropHold = () => { if (send.kind === 'held') send = IDLE; };
+  const submitting = () => send.kind === 'submitting';
+  const endSubmit = () => { if (send.kind === 'submitting') send = IDLE; };
   let sendAfterDestination = false, pickerChoice = null, stagedDestination = null;
   let sheet = { open: false, title: 'Answer on' };
   let attachmentHelp = false, focus = { target: null, seq: 0 };
@@ -333,7 +344,7 @@ export function createConversationController(session, {
       && (!state.activeThread || location === 'network') && allowsOpenPlaintext(privacy)
       && !searching() && !attachmentReader.pending
       && !state.storageError && !state.activeThread?.closed && !state.comparisonPhase
-      && !(state.runningIds || []).includes(state.selectedId) && !submitting
+      && !(state.runningIds || []).includes(state.selectedId) && !submitting()
       && ['observed', 'searching'].includes(state.discoveryPhase);
   }
   function readyForQueuedSend(state, intent) {
@@ -533,11 +544,11 @@ export function createConversationController(session, {
       usable, pool: !!selectedModel?.fleet });
     // The queued Send: it waits for a computer running this model while discovery runs, and lapses when that can't happen.
     const permitted = !busy && canWaitForPublicModel(state, selectedModel, location);
-    if (queuedSend && (!permitted || queuedSend.scope !== queueScope(state, selectedModel))) queuedSend = null;
+    if (held() && (!permitted || held().scope !== queueScope(state, selectedModel))) dropHold();
     // A Send held for whichever model turns up ends with the wait when none did: the status below says so.
-    if (queuedSend && waitsForAnyModel(state) && choiceWaitOver(state) && !usable) queuedSend = null;
-    if (queuedSend) {
-      const intent = queuedSend, ready = readyForQueuedSend(state, intent);
+    if (held() && waitsForAnyModel(state) && choiceWaitOver(state) && !usable) dropHold();
+    if (held()) {
+      const intent = held(), ready = readyForQueuedSend(state, intent);
       // The hold is bounded by the discovery wait. While the composer names a model that can answer but whose
       // computer is busy or not reachable yet, it says so; once the wait is over, the held Send goes the way a
       // Send pressed now would.
@@ -547,12 +558,12 @@ export function createConversationController(session, {
         intent.scheduled = true;
         queueMicrotask(() => {
           intent.scheduled = false;
-          if (disposed || queuedSend !== intent) return;
+          if (disposed || send !== intent) return;
           const latest = sessionState;
           if (readyForQueuedSend(latest, intent)) submitDraft(intent);
           else if (choiceWaitOver(latest) && !sendDisabled
             && modelExecutionState(latest.models?.find(item => modelKey(item) === currentKey), effectiveLocation(latest)).usable) {
-            queuedSend = null; submitDraft();
+            dropHold(); submitDraft();
           }
         });
       }
@@ -579,8 +590,8 @@ export function createConversationController(session, {
     const inviteJoined = !!invite && guest?.joined && guest.hostParticipantId === invite.hostPeerId;
     const joiningHost = !!invite && guest?.status === 'joining';
     let statusHidden = !statusText || !!acquisitionText;
-    if (queuedSend) statusHidden = false;
-    if (acquisitionText && !queuedSend) statusHidden = true;
+    if (held()) statusHidden = false;
+    if (acquisitionText && !held()) statusHidden = true;
     if (invite && !inviteJoined) {
       statusHidden = false; acquisitionText = '';
       statusText = joiningHost ? `Connecting to ${guest.hostLabel}…` : guest?.error || 'Invited. Join to send messages to this computer.';
@@ -588,7 +599,7 @@ export function createConversationController(session, {
     const nextActions = [
       ['join', !!invite && !inviteJoined && !joiningHost],
       ['cancel-download', acquiring],
-      ['cancel-queued', !!queuedSend],
+      ['cancel-queued', !!held()],
       ['review-shared', !!shared],
       ['network-opt-in', !busy && !usable && !preparing && !acquiring && !thread?.closed
         && (publicCanAnswer || (!!thread && (privacy.placement === 'local-only' || privacy.recipients.kind === 'none')))],
@@ -661,7 +672,7 @@ export function createConversationController(session, {
     // A closed screen sends nothing, whether the Send was pressed or held for a computer.
     if (disposed) return;
     const content = draftText.trim(), state = sessionState, original = draftText, finding = searchingNow(state);
-    if (!content || attachmentReader.pending || submitting || (state.runningIds || []).includes(state.selectedId)) return;
+    if (!content || attachmentReader.pending || submitting() || (state.runningIds || []).includes(state.selectedId)) return;
     if (intent ? !readyForQueuedSend(state, intent) : sendDisabled) return;
     const model = state.models.find(item => modelKey(item) === currentKey);
     if (!intent && !state.activeThread && viewState.privacy === undefined && !viewState.privacyTouched && !lockedDestination(state)
@@ -672,7 +683,7 @@ export function createConversationController(session, {
     }
     if (!intent && finding && !modelExecutionState(model, effectiveLocation(state)).usable
       && canWaitForPublicModel(state, model, effectiveLocation(state))) {
-      queuedSend = { scope: queueScope(state, model), scheduled: false };
+      send = { kind: 'held', scope: queueScope(state, model), scheduled: false };
       notify();
       return;
     }
@@ -681,8 +692,7 @@ export function createConversationController(session, {
     const location = intent ? 'network' : effectiveLocation(state);
     const searched = searching();
     if (searched && files.length) { error("Search-backed answers don't include files. Remove the files or turn off search for this answer."); return; }
-    queuedSend = null;
-    submitting = true;
+    send = SUBMITTING;
     const revision = composerRevision, origin = state.selectedId, attachments = files.map(file => ({ ...file }));
     const dispatch = async () => {
       try {
@@ -723,8 +733,8 @@ export function createConversationController(session, {
             drafts.delete(threadId);
           }
         }
-        submitting = false; notify(); await completion;
-      } finally { submitting = false; notify(); }
+        endSubmit(); notify(); await completion;
+      } finally { endSubmit(); notify(); }
     };
     notify();
     void dispatch().catch(error);
@@ -732,7 +742,7 @@ export function createConversationController(session, {
 
   const openPicker = (alternative = null) => {
     pickerRevision++;
-    queuedSend = null;
+    dropHold();
     recoverySelection = alternative;
     pickerTouched = !!alternative;
     pickerModelImplied = false;
@@ -886,8 +896,8 @@ export function createConversationController(session, {
 
   // ---- "Who can read it?" (privacy-dialog.js) ----
   const privacyChoice = createPrivacyDialog({ session, getState: () => sessionState, viewState, notify, requestFocus, presetContext, explicitPrivacy,
-    blocked: () => submitting || privacyDisabledNow(),
-    beforeOpen: () => { queuedSend = null; if (sheet.open) sheet = { open: false, title: 'Answer on' }; },
+    blocked: () => submitting() || privacyDisabledNow(),
+    beforeOpen: () => { dropHold(); if (sheet.open) sheet = { open: false, title: 'Answer on' }; },
     setDraftLocation: location => { executionLocation = viewState.executionLocation = location; } });
 
   // ---- the Threads list (threads.js) ----
@@ -916,7 +926,7 @@ export function createConversationController(session, {
     setDraft(text) {
       draftText = text; composerRevision++;
       if (text.trim()) pinDraftModel(sessionState);
-      queuedSend = null;
+      dropHold();
       try { observe(saveDraft()); } catch (cause) { error(cause); }
       notify();
     },
@@ -928,12 +938,12 @@ export function createConversationController(session, {
     },
     showAttachmentHelp() { if (!attachmentHelp) { attachmentHelp = true; notify(); } },
     removeFile(index) { files.splice(index, 1); composerRevision++; void act(async () => { await saveDraft(); notify(); }); },
-    toggleSearch() { queuedSend = null; searchOn = !searching(); notify(); },
+    toggleSearch() { dropHold(); searchOn = !searching(); notify(); },
     send() { submitDraft(); },
     stop() { void act(() => session.cancel(sessionState.selectedId)); },
-    cancelQueuedSend() { queuedSend = null; notify(); },
+    cancelQueuedSend() { dropHold(); notify(); },
     retryConnection() {
-      queuedSend = null; retryPending = true; notify();
+      dropHold(); retryPending = true; notify();
       clearTimeout(retryDeadline);
       const deadline = retryDeadline = setTimeout(() => { retryPending = false; notify(); }, 8000);
       void Promise.resolve().then(() => session.connect()).catch(cause => error(cause.message))
@@ -1017,7 +1027,7 @@ export function createConversationController(session, {
     closeDownload: downloads.close, confirmDownload: downloads.confirm,
     // Threads.
     newThread() {
-      queuedSend = null;
+      dropHold();
       try {
         observe(after(saveDraft(), () => after(session.select(null), () => {
           // A pick carries to the new thread; an automatic choice is made again from what is available.
@@ -1028,7 +1038,7 @@ export function createConversationController(session, {
       } catch (cause) { error(cause); }
     },
     selectThread(id) {
-      queuedSend = null;
+      dropHold();
       try { observe(after(saveDraft(), () => session.select(id))); } catch (cause) { error(cause); }
     },
     showArchived: threadList.showArchived, archiveThread: threadList.archiveThread,
@@ -1061,7 +1071,7 @@ export function createConversationController(session, {
     dispose() {
       if (disposed) return;
       try { observe(saveDraft()); } catch (cause) { error(cause); }
-      queuedSend = null;
+      dropHold();
       disposed = true;
       clearTimeout(retryDeadline);
       fitRequest?.abort(); downloads.dispose(); attachmentReader.close(); threadList.dispose();
