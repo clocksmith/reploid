@@ -40,12 +40,14 @@ const hashCore = async (value) => {
 
 const withHash = async (core, field) => ({ ...core, [field]: await hashCore(core) });
 
-const buildAdmission = async () => {
+// spelling: 'snake' for receipts from DopplerX 0.1.x tooling, 'kebab' for 0.2.0 and later.
+const buildAdmission = async ({ spelling = 'snake' } = {}) => {
+  const doppler = (value) => (spelling === 'kebab' ? value.replace(/_/g, '-') : value);
   const identity = await withHash({
     schema: 'doppler.trainer-artifact-handoff-verification/v1',
     bridgeId: 'bridge.tinker.unit',
     sourceContractId: 'gamma.same-r.tinker.unit',
-    artifactKind: 'peft_adapter',
+    artifactKind: doppler('peft_adapter'),
     artifactRole: 'selected_candidate',
     ok: true,
     artifactIdentitySha256: HASHES.artifactIdentity,
@@ -67,7 +69,7 @@ const buildAdmission = async () => {
   const parity = await withHash({
     schema: 'doppler.trainer-artifact-parity-receipt/v1',
     bridgeId: identity.bridgeId,
-    profile: 'tinker_peft_browser_adapter',
+    profile: doppler('tinker_peft_browser_adapter'),
     artifactIdentitySha256: HASHES.artifactIdentity,
     identityReceiptHash: identity.receiptHash,
     decision: 'pass',
@@ -177,6 +179,19 @@ describe('trained adapter admission', () => {
     await expect(verifyTrainedAdapterAdmission(contaminated, MANIFEST)).rejects.toThrow(
       'independent promotion verification'
     );
+  });
+
+  it('accepts Doppler receipts in the 0.1.x and the 0.2.0 spelling and rejects another kind', async () => {
+    for (const spelling of ['snake', 'kebab']) {
+      const verified = await verifyTrainedAdapterAdmission(await buildAdmission({ spelling }), MANIFEST);
+      expect(verified.artifact.adapterSha256).toBe(HASHES.adapter);
+    }
+    const wrongKind = await buildAdmission({ spelling: 'kebab' });
+    wrongKind.dopplerIdentityReceipt.artifactKind = 'full-checkpoint';
+    const identityCore = { ...wrongKind.dopplerIdentityReceipt };
+    delete identityCore.receiptHash;
+    wrongKind.dopplerIdentityReceipt.receiptHash = await hashCore(identityCore);
+    await expect(verifyTrainedAdapterAdmission(wrongKind, MANIFEST)).rejects.toThrow();
   });
 
   it('accepts a Doppler-trained adapter through the Doppler parity profile', async () => {

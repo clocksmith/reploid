@@ -15,6 +15,11 @@ const TRAINER_PROFILES = Object.freeze({
 
 const SHA256_PATTERN = /^[0-9a-f]{64}$/;
 
+// Doppler handoff and parity receipts spell artifact kinds and parity profiles in
+// snake_case up to DopplerX 0.1.x and in kebab-case from 0.2.0; recorded receipts keep
+// the spelling they were hashed with. Compare in Reploid's own (snake_case) vocabulary.
+const fromDopplerSpelling = (value) => (typeof value === 'string' ? value.replace(/-/g, '_') : value);
+
 const stableJson = (value) => {
   if (typeof value === 'number' && !Number.isFinite(value)) {
     const token = Number.isNaN(value) ? 'NaN' : value > 0 ? 'Infinity' : '-Infinity';
@@ -151,7 +156,7 @@ export async function verifyTrainedAdapterAdmission(admission, manifest, cryptoA
 
   if (identity.schema !== 'doppler.trainer-artifact-handoff-verification/v1'
     || identity.ok !== true
-    || identity.artifactKind !== 'peft_adapter'
+    || fromDopplerSpelling(identity.artifactKind) !== 'peft_adapter'
     || identity.artifactRole !== 'selected_candidate'
     || identity.selection?.authority !== 'clocksmith/gamma'
     || identity.selection?.status !== 'selected'
@@ -160,7 +165,7 @@ export async function verifyTrainedAdapterAdmission(admission, manifest, cryptoA
     throw new Error('Trained adapter admission rejected the Doppler identity decision');
   }
   if (parity.schema !== 'doppler.trainer-artifact-parity-receipt/v1'
-    || parity.profile !== parityProfile
+    || fromDopplerSpelling(parity.profile) !== parityProfile
     || parity.decision !== 'pass'
     || parity.bridgeId !== identity.bridgeId
     || parity.identityReceiptHash !== identityReceiptHash
