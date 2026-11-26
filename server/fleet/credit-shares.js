@@ -6,7 +6,11 @@
  * Integer arithmetic with a stable stage-order remainder: every credited unit has a matching debit. Work a
  * requester's own account did for its own request is neither charged nor credited.
  */
-export const UNFINISHED_ANSWER_TERMS = 'reploid.unfinished-answer/provider-loss-free/v1';
+// The rule names are signed into settlement terms, so they are defined with the terms (mesh/settlement-terms.js).
+import { UNFINISHED_ANSWER_TERMS, UNFINISHED_ANSWER_TERMS_V2, UNFINISHED_ANSWER_TERMS_V3 } from '../../shared/vendor/reploid/mesh/settlement-terms.js';
+
+/** The older provider-loss-free terms: an unfinished answer with no signed stop costs nothing. */
+export { UNFINISHED_ANSWER_TERMS };
 /**
  * The unfinished-answer terms of reservations under SETTLEMENT_RULES_V2, signed into the requester's settlement
  * terms so the replay applies the same rule from the records alone (docs/settlement-replay.md, step 9). An unfinished
@@ -14,7 +18,7 @@ export const UNFINISHED_ANSWER_TERMS = 'reploid.unfinished-answer/provider-loss-
  * prefix; a verified provider failure (a stage with no closing receipt, or a stage owner's interruption claim) charges
  * nothing.
  */
-export const UNFINISHED_ANSWER_TERMS_V2 = 'reploid.unfinished-answer/acknowledged-prefix-provider-relief/v1';
+export { UNFINISHED_ANSWER_TERMS_V2 };
 /**
  * The unfinished-answer terms the owner decided on 2026-11-25 after the relief of UNFINISHED_ANSWER_TERMS_V2 proved
  * to be a way to take an answer for nothing (docs/settlement-replay.md, "Failed stages"). A stage that fails, by its
@@ -23,7 +27,7 @@ export const UNFINISHED_ANSWER_TERMS_V2 = 'reploid.unfinished-answer/acknowledge
  * exactly those shares. A stage on the requester's own account is never charged or paid, so its failure relieves
  * nothing.
  */
-export const UNFINISHED_ANSWER_TERMS_V3 = 'reploid.unfinished-answer/acknowledged-prefix-failed-stage-forfeits/v1';
+export { UNFINISHED_ANSWER_TERMS_V3 };
 /** Terms under which a stage owner's interruption claim settles the answer at zero. */
 export const PROVIDER_RELIEF_TERMS = Object.freeze([UNFINISHED_ANSWER_TERMS, UNFINISHED_ANSWER_TERMS_V2]);
 /**
