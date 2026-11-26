@@ -11,9 +11,11 @@ import os from 'node:os';
 import path from 'node:path';
 import { promisify } from 'node:util';
 import { createSigningIdentity } from '../../packages/reploid/src/artifacts/identity.js';
-import { createExecutionPolicy } from '../../packages/reploid/src/chat/execution-policy.js';
-import { STAGE_RECEIPT_SCHEMA, OUTPUT_ACKNOWLEDGMENT_SCHEMA } from '../../packages/reploid/src/mesh/partitions/partition-attempt-evidence.js';
-import { SETTLEMENT_ACCEPTANCE_SCHEMA, SETTLEMENT_FAULT_SCHEMA, SETTLEMENT_STOP_SCHEMA, SETTLEMENT_TERMS_SCHEMA } from '../../packages/reploid/src/mesh/settlement-terms.js';
+import { bindExecutionRoute, createExecutionPolicy, plaintextExecutionRoute } from '../../packages/reploid/src/chat/execution-policy.js';
+import { createInference } from '../../packages/reploid/src/inference/index.js';
+import { acceptMeshOperationCharge, openMeshOperationCharge, wholeModelOperationPlanDigest } from '../../packages/reploid/src/mesh/operation-envelope.js';
+import { STAGE_RECEIPT_SCHEMA, OUTPUT_ACKNOWLEDGMENT_SCHEMA, createAttemptEvidenceSigner } from '../../packages/reploid/src/mesh/partitions/partition-attempt-evidence.js';
+import { SETTLEMENT_ACCEPTANCE_SCHEMA, SETTLEMENT_FAULT_SCHEMA, SETTLEMENT_STOP_SCHEMA, SETTLEMENT_TERMS_SCHEMA, acceptSettlementTerms, signStageFaultRecord } from '../../packages/reploid/src/mesh/settlement-terms.js';
 import { openFleetCredits } from '../../server/fleet/credits.js';
 import { startFleetService, createFleetClient } from '../../server/fleet/service.js';
 import { createFleetRequester } from '../../server/fleet/requester.js';
@@ -69,7 +71,8 @@ afterEach(async () => {
  * One requester and one provider on the shared ledger. `signs: false` is a contributor on code that predates the
  * signed records: it has no payout-account port, so it advertises nothing and is sent exactly the earlier wire.
  */
-async function route({ requester, provider, execute, signs = true, requireVerifiableCharge = false, drop = () => false, meshConfig = () => ({}) }) {
+async function route({ requester, provider, execute, signs = true, requireVerifiableCharge = false, drop = () => false, meshConfig = () => ({}),
+  intercept = null, onIdentitySave = undefined }) {
   const kept = [];
   const admission = createFleetExecutionAdmission({ credits: clients[provider], model });
   let wholeRequester;
@@ -81,7 +84,7 @@ async function route({ requester, provider, execute, signs = true, requireVerifi
       if (input.action === 'mesh.execute') return admission.whole({ request: input.request, consumer: keys[requester].peerId });
       return true;
     },
-    execute, drop, meshConfig,
+    execute, drop, meshConfig, intercept, ...(onIdentitySave ? { onIdentitySave } : {}),
     // The provider's host hands its signed terminal record (cancelled or failed) to the ledger, as the native host does.
     onGenerationTerminal: proof => admission.terminal(proof),
     // The provider's host settles the countersigned receipt, as the native host does.
@@ -405,4 +408,95 @@ it('the HTTP text API carries the settlement port: a request through it signs th
   expect(served.sent('reploid:generation-admitted')[0].settlementAcceptance).toMatchObject({ schema: SETTLEMENT_ACCEPTANCE_SCHEMA });
   const { records } = await served.agree(reservations[0], { status: 'settled', debit: 2 * PRICE, payout: 2 * PRICE });
   expect(records.label).toBe('signed-records');
+});
+
+// Review of 2026-11-26. Anything short of a completed, acknowledged answer charges nothing and pays nothing; the
+// ledger, the replay and the exported records agree; and a requester's stop is never recorded as the provider failing.
+
+const settled = error => ({ error: error.message, code: error.code, serviceCredit: error.serviceCredit, settlementRecords: error.settlementRecords });
+const providerSigner = (index, at = Date.now()) => createAttemptEvidenceSigner({ identity: keys[index], now: () => at });
+/** Signs `change(body)` of a record again with the key of account `index`, as a provider that signs something else would. */
+const resign = (index, record, change) => {
+  const { publicJwk: _key, signature: _signature, ...body } = record;
+  const next = change(structuredClone(body));
+  return providerSigner(index, Date.parse(next.signedAt)).sign(next.schema, next);
+};
+/** Nothing was charged or paid for `reservationId`, now or once the release window has passed, and every reading agrees. */
+async function nothingCharged(fixture, reservationId, { provider = 0 } = {}) {
+  // Time for a provider that was sent a countersigned receipt to settle it.
+  await new Promise(resolve => setTimeout(resolve, 150));
+  expect(fixture.sent('reploid:receipt')).toHaveLength(0);
+  expect(credits.request(reservationId).outcome?.charge ?? 0).toBe(0);
+  expect(account(provider).balance).toBe(0);
+  expect(account(1 - provider).balance).toBe(0);
+  if (credits.request(reservationId).state === 'settled') return;
+  clockOffset = pastWindow();
+  const trace = credits.trace(reservationId);
+  expect(trace).toMatchObject({ status: 'expired', journal: [] });
+  await fixture.agree(reservationId, { status: 'expired', at: ledgerNow(), trace: { ...trace, policyDigest: null } });
+  clockOffset = 0;
+}
+
+const honest = async (_messages, update) => { update('1 2 3'); return answer('1 2 3', 3); };
+
+it('a signing provider whose closing record is missing or commits to something else is not charged, whether or not a verifiable charge is required', async () => {
+  const closes = {
+    missing: payload => { delete payload.settlement; },
+    'claims nothing': async payload => { payload.settlement.receipt = await resign(0, payload.settlement.receipt, body => ({ ...body, status: 'failed', steps: 0,
+      output: { ...body.output, count: 0, done: false } })); },
+    'another count': async payload => { payload.settlement.receipt = await resign(0, payload.settlement.receipt, body => ({ ...body, steps: 2, output: { ...body.output, count: 2 } })); },
+    'another chain': async payload => { payload.settlement.receipt = await resign(0, payload.settlement.receipt, body => ({ ...body, output: { ...body.output, chain: 'sha256:' + 'c'.repeat(64) } })); },
+    'signed outside the window': async payload => { payload.settlement.receipt = await resign(0, payload.settlement.receipt, body => {
+      const at = new Date(Date.now() - 10 * 86400000).toISOString();
+      return { ...body, signedAt: at, timing: { ...body.timing, closedAt: at } };
+    }); }
+  };
+  for (const requireVerifiableCharge of [true, false]) {
+    for (const [name, alter] of Object.entries(closes)) {
+      const fixture = await route({ requester: 1, provider: 0, requireVerifiableCharge, execute: honest,
+        intercept: (type, payload, sender) => (sender === 1 && type === 'reploid:generation-result' ? alter(payload) : undefined) });
+      const outcome = await fixture.ask().then(result => ({ resolved: true, ...result }), settled);
+      expect(outcome.resolved, name).toBeUndefined();
+      expect(outcome.serviceCredit?.charge ?? 0, name).toBe(0);
+      // Never charged-and-labelled-verified: the records hold no acknowledgment.
+      expect(outcome.settlementRecords.acknowledged, name).toBeNull();
+      await nothingCharged(fixture, outcome.settlementRecords.reservationId);
+    }
+  }
+});
+
+it('an acceptance signed outside the terms\' window is refused before the prompt is sent, as the replay refuses it', async () => {
+  let terms;
+  const fixture = await route({ requester: 1, provider: 0, requireVerifiableCharge: true, execute: honest,
+    intercept: async (type, payload, sender) => {
+      if (sender === 0 && type === 'reploid:generation-admit') terms = payload.settlement.terms;
+      if (sender === 1 && type === 'reploid:generation-admitted') payload.settlementAcceptance = await acceptSettlementTerms({ signer: createAttemptEvidenceSigner({ identity: keys[0] }),
+        terms, partitionIndex: 0, maxUnacknowledgedOutputs: terms.maxUnacknowledgedOutputs, payoutAccount: 'account-0', now: () => Date.now() - 10 * 86400000 });
+    } });
+  const outcome = await fixture.ask().then(result => ({ resolved: true, ...result }), settled);
+  expect(outcome).toMatchObject({ code: 'VERIFIABLE_CHARGE_UNAVAILABLE' });
+  expect(fixture.sent('reploid:generation-request')).toHaveLength(0);
+  expect(outcome.settlementRecords).toMatchObject({ label: 'no-verifiable-receipt', acknowledged: null });
+  expect(outcome.settlementRecords.missing).toContain('acceptance');
+  expect(outcome.serviceCredit?.charge ?? 0).toBe(0);
+  await new Promise(resolve => setTimeout(resolve, 150));
+  expect(credits.request(outcome.settlementRecords.reservationId).outcome?.charge ?? 0).toBe(0);
+  expect(account(0).balance).toBe(0);
+});
+
+it('an answer recovered after its result frame was lost is acknowledged before it is countersigned, so the charge has its signed records', async () => {
+  const fixture = await route({ requester: 1, provider: 0, execute: honest, meshConfig: index => (index === 0 ? { generationTimeoutMs: 400 } : {}),
+    drop: type => type === 'reploid:generation-result' });
+  const lost = await fixture.ask().then(result => ({ resolved: true, ...result }), settled);
+  expect(lost.resolved).toBeUndefined();
+  const reservationId = lost.settlementRecords.reservationId;
+  expect(lost.settlementRecords).toMatchObject({ label: 'no-verifiable-receipt', missing: ['close'], acknowledged: null });
+  expect(credits.request(reservationId).state).not.toBe('settled');
+  const recovering = createFleetRequester({ participant: { generate: () => { throw Error('not sent'); } }, identity: keys[1], credits: clients[1], maxOutputTokens: 16 });
+  const recovered = await recovering.recover({ reservationId, messages, providerId: fixture.mesh.reference.providerId }, { signal: new AbortController().signal },
+    (request, reference, controls) => fixture.wholeRequester.recover(request, reference, controls));
+  expect(recovered).toMatchObject({ status: 'completed', content: '1 2 3', serviceCredit: { charge: 3 * PRICE } });
+  expect(fixture.sent('reploid:receipt').map(frame => Boolean(frame.settlementAcknowledgment))).toEqual([true]);
+  const { records } = await fixture.agree(reservationId, { status: 'settled', debit: 3 * PRICE, payout: 3 * PRICE });
+  expect(records).toMatchObject({ label: 'signed-records', acknowledged: 3, stopped: false });
 });

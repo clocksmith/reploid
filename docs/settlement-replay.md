@@ -1104,7 +1104,23 @@ every step above applies unchanged. Source:
   starting value extended once per unit, with no text for every step but the
   last and the digest of the whole output for the last.
 - The requester signs one acknowledgment of that count, after the whole output
-  has arrived and matches the provider's execution receipt.
+  has arrived and matches the provider's execution receipt, and before it
+  countersigns that receipt. The countersigned receipt and the acknowledgment
+  leave in one frame, so the ledger is never handed a receipt whose
+  acknowledgment was not signed.
+- The requester holds a record only if the replay would count it: an acceptance
+  signed `inTime`, a close or a fault signed `closesInTime` (step 4), and
+  its own acknowledgment only while its clock is inside the window. An
+  acceptance outside the window is refused before the prompt is sent.
+- **A provider that signed the acceptance is charged for only with its close.**
+  When its closing receipt is missing, late, `failed`, or commits to another
+  count or chain than the output that arrived, the requester acknowledges
+  nothing, countersigns nothing and fails the request, whether or not the
+  caller required a verifiable charge. Nothing is charged and the hold is
+  released as in the table's last row. The same holds for an answer recovered
+  after a lost connection: it is acknowledged before it is countersigned, and a
+  requester that no longer holds the attempt's terms (it restarted) countersigns
+  nothing.
 
 ### What an unfinished whole-model answer settles
 
@@ -1125,7 +1141,7 @@ did before these records existed.
 | The requester goes away mid-answer (page closed) and the provider hears it | provider: the same `failed` close, and its signed cancelled terminal record for the ledger | settles at zero on that terminal record, at once | `settled` at zero |
 | The provider fails and says so | provider: a stage fault (`reploid.settlement-stage-fault/v1`), no closing receipt, and its signed failed terminal record for the ledger | settles at zero on that terminal record, at once | `expired` at zero at once; the fault is listed (step 6) |
 | Either side goes silent: the provider dies, or the requester's connection is lost and the provider never hears | nothing further | holds until the deadline plus the release window, then releases the hold unclaimed | `open` until then, then `expired` at zero |
-| The provider finished but the requester never acknowledged | provider: closing receipt with `done` | as the row above | `settled` at zero (step 9: only acknowledged outputs are owed) |
+| The provider finished but the requester never acknowledged, including when the provider's close was missing or did not commit to the output that arrived | provider: closing receipt with `done`, or none the requester accepts | as the row above: nothing was countersigned | `settled` at zero when a close is held (step 9: only acknowledged outputs are owed), otherwise `open`, then `expired` at zero |
 
 Three things follow, and none is hidden by the records.
 
@@ -1162,7 +1178,10 @@ ledger releases a silent whole-model hold after
 differ, the ledger and the replay reach the same zero outcome at different
 times, and a statement is issued only once both have. A provider that runs code from before these records signs none of them;
 the request is then served and labelled `no-verifiable-receipt`, or refused
-before any hold when the requester requires a verifiable charge.
+before any hold when the requester requires a verifiable charge. That label is
+only ever given to a charge from a provider that signed nothing: a provider
+that signed the acceptance is either charged with its close and the
+acknowledgment held, or not charged.
 
 Both hosts keep these records on disk
 ([verify-a-trade.md](verify-a-trade.md#where-the-records-are-kept)): the

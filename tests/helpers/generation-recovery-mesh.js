@@ -17,11 +17,13 @@ export async function createRecoveryMesh(cleanup, { execute, settle = async () =
   // False models a provider host that predates admission: it does not advertise it and is never asked.
   admitsBeforeDisclosure = true,
   // Mesh settings for mesh `i` (0 requester, 1 provider), merged over the fixture's own.
-  meshConfig = () => ({}) } = {}) {
+  meshConfig = () => ({}),
+  // Awaited whenever mesh `i` saves its identity document (its receipt counts), for a test that acts in that gap.
+  onIdentitySave = async () => {} } = {}) {
   const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'generation-recovery-'));
   cleanup.push(() => fs.rm(directory, { recursive: true, force: true }));
   const identities = suppliedIdentities || await Promise.all(['ECDSA', 'Ed25519'].map(algorithm => createSigningIdentity({ algorithm })));
-  const handlers = [new Map(), new Map()], channels = ['connection-0', 'connection-1'], wire = [], errors = [], meshes = [];
+  const handlers = [new Map(), new Map()], channels = ['connection-0', 'connection-1'], wire = [], errors = [], meshes = [], buses = [];
   let dropResults = false, journal, reference, executions = 0, tamper = false, channelEpoch = 0;
   const response = result || { model: modelId, modelIdentity, adapterIdentities: [], content: 'actual answer',
     completion: { schema: 'doppler.generation-completion/v1', promptTokenCount: 7, generatedTokenCount: 3, stopReason: 'eos-token' } };
@@ -45,13 +47,14 @@ export async function createRecoveryMesh(cleanup, { execute, settle = async () =
       on(name, fn) { if (!listeners.has(name)) listeners.set(name, new Set()); listeners.get(name).add(fn); return () => listeners.get(name).delete(fn); },
       emit(name, value) { for (const fn of listeners.get(name) || []) fn(value); }
     };
+    buses[i] = events;
     meshes[i] = createPeerGenerationMesh({ config: resolveConfig({ overrides: { mesh: { enabled: true, executeJobs: true, roomId: 'recovery', ...meshConfig(i) } } }), ports: {
       instanceId: 'instance-' + i, modelConfig: i ? { id: modelId } : null, admitsBeforeDisclosure,
       getExecutionState: () => ({ phase: i ? 'ready' : 'idle', modelIdentity, adapterIdentities: [] }),
       authorize: async input => { if (input.action === 'mesh.dispatch') reference = { requestId: input.requestId, providerId: input.peerId,
         providerIdentity: input.recipientIdentity, modelId: input.modelId, modelIdentity, adapterIdentities: [] }; return authorize(input); },
       events, eventBus: events, utils: { generateId: () => crypto.randomUUID() },
-      identity: { ensure: async () => identities[i], sync: async () => {}, save: async () => {} },
+      identity: { ensure: async () => identities[i], sync: async () => {}, save: async () => { await onIdentitySave(i); } },
       generationJournal: i ? journal : null, settleGeneration: settle, onGenerationTerminal,
       // Extra host ports for mesh `i` (0 requester, 1 provider), for example a settings capability.
       ...ports(i),
@@ -68,7 +71,10 @@ export async function createRecoveryMesh(cleanup, { execute, settle = async () =
   await open(0); await open(1); meshes[1].refreshAdvertisement();
   cleanup.push(async () => { await Promise.all(meshes.map(mesh => mesh.close())); journal?.close(); });
   await vi.waitFor(() => expect(meshes[0].getSwarmSnapshot().peers.some(peer => peer.readiness === 'ready')).toBe(true));
-  return { requesterMesh: meshes[0], wire, errors, identities, messages, response, get reference() { return reference; }, get executions() { return executions; },
+  return { requesterMesh: meshes[0], wire, errors,
+    // The raw frame handlers, connection names and event buses of mesh `i`, for a test that delivers a frame or a
+    // connection event itself.
+    handlers, channels, buses, identities, messages, response, get reference() { return reference; }, get executions() { return executions; },
     drop: () => { dropResults = true; }, tamper: () => { tamper = true; },
     // Mesh `i` (0 requester, 1 provider) broadcasts its current advertisement again.
     readvertise: (i = 1) => meshes[i].refreshAdvertisement(),

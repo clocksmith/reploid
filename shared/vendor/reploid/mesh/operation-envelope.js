@@ -363,18 +363,29 @@ export async function openMeshOperationCharge({ signer, requestId, planDigest, r
     attemptId: requestId, routeHash, requesterId: signer.participantId, count, chain, signedAt: iso(now()) });
   const charge = await acknowledgment(0, genesis);
   const held = { acceptance: null, receipt: null, fault: null, acknowledged: null, stop: null };
+  // The windows the replay counts a record in (docs/settlement-replay.md, steps 4 to 9): an acceptance and an
+  // acknowledgment from notBefore to the deadline, a close or a fault until the release window has also passed, each
+  // with the policy's clock allowance. A record outside its window would be held here and ignored by the replay, so the
+  // ledger would charge what the records do not show; it is refused instead.
+  const skew = Number.isFinite(policy?.maxClockSkewMs) && policy.maxClockSkewMs > 0 ? policy.maxClockSkewMs : 0;
+  const opensAt = Date.parse(body.notBefore) - skew, endsAt = Date.parse(body.deadline) + skew;
+  const inTime = value => Date.parse(value) >= opensAt && Date.parse(value) <= endsAt;
+  const closesInTime = value => Date.parse(value) >= opensAt && Date.parse(value) <= endsAt + body.releaseWindowMs;
   const ownFault = async fault => {
     const checked = await verifySettlementFault(fault);
     const row = checked.body;
     if (!checked.ok || row.reservationId !== reservationId || row.attemptId !== requestId || row.routeHash !== routeHash
-      || row.partitionIndex !== 0 || row.participantId !== recipient) throw settlementRefusal('The provider\'s fault is not its signed fault of this attempt');
+      || row.partitionIndex !== 0 || row.participantId !== recipient || !closesInTime(row.signedAt)) {
+      throw settlementRefusal('The provider\'s fault is not its signed, in-time fault of this attempt');
+    }
   };
   const ownReceipt = async receipt => {
     const checked = await verifyStageReceipt(receipt);
     const row = checked.body;
     if (!checked.ok || row.reservationId !== reservationId || row.attemptId !== requestId || row.routeHash !== routeHash
-      || row.partitionIndex !== 0 || row.participantId !== recipient || row.timing.closedAt === null || row.status === 'executing') {
-      throw settlementRefusal('The provider\'s closing record is not its signed close of this attempt');
+      || row.partitionIndex !== 0 || row.participantId !== recipient || row.timing.closedAt === null || row.status === 'executing'
+      || !closesInTime(row.signedAt)) {
+      throw settlementRefusal('The provider\'s closing record is not its signed, in-time close of this attempt');
     }
     return row;
   };
@@ -386,8 +397,8 @@ export async function openMeshOperationCharge({ signer, requestId, planDigest, r
       const row = checked.body;
       if (!checked.ok || row.termsDigest !== digest || row.reservationId !== reservationId || row.attemptId !== requestId
         || row.participantId !== recipient || row.partitionIndex !== 0
-        || Object.hasOwn(body, 'debitAccount') !== Object.hasOwn(row, 'payoutAccount')) {
-        throw settlementRefusal('The provider did not sign an acceptance of these settlement terms');
+        || Object.hasOwn(body, 'debitAccount') !== Object.hasOwn(row, 'payoutAccount') || !inTime(row.signedAt)) {
+        throw settlementRefusal('The provider did not sign an in-time acceptance of these settlement terms');
       }
       held.acceptance = structuredClone(acceptance);
       return true;
@@ -395,10 +406,14 @@ export async function openMeshOperationCharge({ signer, requestId, planDigest, r
     /**
      * The provider's closing receipt for a delivered output of `delivered` units whose digest is `outputDigest` (both
      * from the provider's execution receipt, which the caller has verified against what arrived). Signs and returns the
-     * acknowledgment of exactly that count; throws when the receipt commits to anything else.
+     * acknowledgment of exactly that count; throws when the receipt commits to anything else, or when this requester's
+     * own clock is past the window an acknowledgment counts in. Asked again for the receipt it already acknowledged,
+     * it returns the same acknowledgment.
      */
     async acknowledge({ receipt, units: delivered, outputDigest }) {
+      if (held.acknowledged && held.receipt?.signature === receipt?.signature) return structuredClone(held.acknowledged);
       const row = await ownReceipt(receipt);
+      if (!inTime(iso(now()))) throw settlementRefusal('The answer arrived outside the window its settlement terms cover');
       if (!units(delivered) || delivered > maxCostUnits || row.status !== 'settled' || row.steps !== delivered || row.output?.count !== delivered
         || row.output.done !== true || row.output.chain !== await meshOperationOutputChain({ reservationId, routeHash, units: delivered, outputDigest })) {
         throw settlementRefusal('The provider\'s closing record does not commit to the output that arrived');

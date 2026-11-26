@@ -570,21 +570,26 @@ export function createPeerGenerationMesh({ config, ports }) {
           || !await matchesWholeModelReceipt(payload.receipt, pending.messages, response, bound))) {
           throw new Error('Measured receipt differs from the admitted request or provider output');
         }
+        // The whole output arrived and matches the provider's measured receipt. For a request that signed settlement
+        // terms, the provider's closing record of the same count is acknowledged first. A closing record that is
+        // missing, late or commits to anything else fails the request here, whether or not the caller required a
+        // verifiable charge: nothing is countersigned, so nothing is charged, and the hold is released as for any
+        // answer the requester never acknowledged (docs/settlement-replay.md, "Whole-model operations").
+        let acknowledgment = null;
+        if (pending.settlement) {
+          if (![2, 3].includes(Number(payload.receipt.version))) throw new Error('The provider signed settlement terms and sent no measured receipt. Nothing was countersigned or charged.');
+          acknowledgment = await pending.settlement.acknowledge({ receipt: payload.settlement?.receipt, units: payload.receipt.outputTokens,
+            outputDigest: payload.receipt.outputDigest });
+          if (!current()) return;
+        }
         const countersigned = await countersignReceipt(payload.receipt, identityBundle);
-        if (!current()) return;
-        // The whole output arrived and matches the provider's measured receipt: acknowledge the provider's closing
-        // record of the same count. A closing record that is missing or commits to anything else is not acknowledged;
-        // the answer stands and its records stay incomplete, which the caller reports as no verifiable receipt.
-        const acknowledgment = pending.settlement && [2, 3].includes(Number(payload.receipt.version))
-          ? await pending.settlement.acknowledge({ receipt: payload.settlement?.receipt, units: payload.receipt.outputTokens,
-            outputDigest: payload.receipt.outputDigest }).catch(() => null) : null;
         if (!current()) return;
         swarmTransport.sendToPeer(remotePeerId, 'reploid:receipt', { receipt: countersigned, ...(acknowledgment ? { settlementAcknowledgment: acknowledgment } : {}) },
           pending.paths?.path ? { path: pending.paths.path } : undefined);
         await updateConsumerReceiptCount();
         response.executionReceipt = countersigned;
-      } else if (policy.models.contract !== null || pending.settings) {
-        // A request with settings is accepted only with signed evidence of what was applied.
+      } else if (policy.models.contract !== null || pending.settings || pending.settlement) {
+        // A request with settings, or one that signed settlement terms, is accepted only with signed evidence.
         throw new Error('Remote execution receipt is missing');
       }
       remoteRequests.settle(pending, { response });
@@ -1500,10 +1505,18 @@ export function createPeerGenerationMesh({ config, ports }) {
       || receipt.jobHash !== `request:${binding.requestId}` || receipt.modelIdentity !== binding.modelIdentity
       || JSON.stringify(receipt.adapterIdentities) !== JSON.stringify(binding.adapterIdentities)
       || !await matchesWholeModelReceipt(receipt, messages, response, bound)) throw Error('Unverified recovered completion');
+    // A recovered answer of a request that signed settlement terms is acknowledged as a delivered one is, before
+    // anything is countersigned. When this requester no longer holds that request's charge (it restarted since), it
+    // cannot acknowledge the provider's close, so it countersigns nothing and the hold is released unclaimed.
+    const charge = [...openCharges].find(([key]) => key.endsWith(`:${reference.requestId}`))?.[1] ?? null;
+    if (!charge && payload.settlement?.receipt) throw Error('Recovered completion signed settlement records this requester no longer holds; nothing was countersigned or charged');
+    const acknowledgment = charge ? await charge.acknowledge({ receipt: payload.settlement?.receipt, units: receipt.outputTokens,
+      outputDigest: receipt.outputDigest }) : null;
     response.executionReceipt = await countersignReceipt(receipt, identityBundle);
     signal?.throwIfAborted();
     if (closed) throw Error('Mesh closed during recovery');
-    swarmTransport.sendToPeer(reference.providerId, 'reploid:receipt', { receipt: response.executionReceipt });
+    swarmTransport.sendToPeer(reference.providerId, 'reploid:receipt', { receipt: response.executionReceipt,
+      ...(acknowledgment ? { settlementAcknowledgment: acknowledgment } : {}) });
     return { status: 'completed', response };
   };
 
