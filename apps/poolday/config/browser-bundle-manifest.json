@@ -1416,7 +1416,7 @@
     {
       "path": "config/module-inventory.json",
       "byteLength": 698667,
-      "sha256": "sha256:b6b45bdf4b8c1c392467527c3ea86787c2c472f94fba1e70977317715168b0cf"
+      "sha256": "sha256:12695e04d94e7c5697b04aff85f1327be222d3c7a80c15c21bfcf1a7d45d6e83"
     },
     {
       "path": "config/module-registry.json",
@@ -1870,8 +1870,8 @@
     },
     {
       "path": "host/chat-session.js",
-      "byteLength": 51482,
-      "sha256": "sha256:8a6e1ca0024ec03426d12d41662d29130de78896eaf55689c3581387751054a3"
+      "byteLength": 51671,
+      "sha256": "sha256:e9edac44b00b4e5b2820105afd8e68c29ea146668c9c36209c0c91320abcf833"
     },
     {
       "path": "host/chat-view.js",
@@ -2200,8 +2200,8 @@
     },
     {
       "path": "host/work-model-files.js",
-      "byteLength": 35348,
-      "sha256": "sha256:e0ddc0d43feaeb8a74ff2dfd08dc89f0e45d932b48f4fe5c036874ec1eafade9"
+      "byteLength": 35915,
+      "sha256": "sha256:492c0c2b41dd64cebe283be25e6eb72b813f8d8453f8a4e7571845db613fbe96"
     },
     {
       "path": "host/work-partition-artifact-source.js",
@@ -2255,8 +2255,8 @@
     },
     {
       "path": "host/work-swarm.js",
-      "byteLength": 41792,
-      "sha256": "sha256:c656763e1191264208328c2fe22c815fc226a53241861a4292ff27b0c1f80dbe"
+      "byteLength": 41998,
+      "sha256": "sha256:67a7ba12e3e218ce64403f4a7925bc78d2d812526588c54dbee02ae4f40c6211"
     },
     {
       "path": "host/work-task.js",
@@ -3860,8 +3860,8 @@
     },
     {
       "path": "ui/pool-home/app.bundle.js",
-      "byteLength": 2602357,
-      "sha256": "sha256:9cbb103b265383aee12a6580c6c3eea53f4b2c893defdf8f239e7439a4fa5721"
+      "byteLength": 2602827,
+      "sha256": "sha256:7ec636ce33caac464fa02abab1a126352d74528d75dfbf8d3e09a478817aa55f"
     },
     {
       "path": "ui/pool-home/auto-download.js",
@@ -4415,8 +4415,8 @@
     },
     {
       "path": "ui/react/app.js",
-      "byteLength": 2208976,
-      "sha256": "sha256:da8d3d2b1bceb01f1dc2d5192bdc2bb401d04b156e4683859b9f7df9b58ed1fb"
+      "byteLength": 2209446,
+      "sha256": "sha256:a9e79b7078047636cc57a9027598280337b20aa5c40a6da306f5d26d559dcb20"
     },
     {
       "path": "ui/react/design.js",
@@ -12839,5 +12839,5 @@
       "sha256": "sha256:abb6c18f6167d6afc8ee1b3adfcbbb89c0e93fb4fc4e98d7a12250f78aab206a"
     }
   ],
-  "bundleHash": "sha256:c4a832858e40850fb5b5d264be8021a057371eb6ceb5fa8eba27b0ed9982a874"
+  "bundleHash": "sha256:fe86d3d1fbff24a679b6d1c0ff95587e886707d76a5abf5997f0f1614de22b0d"
 }

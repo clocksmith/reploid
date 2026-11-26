@@ -2880,7 +2880,7 @@
     {
       "path": "self/host/chat-session.js",
       "owner": "self",
-      "sha256": "sha256:8a6e1ca0024ec03426d12d41662d29130de78896eaf55689c3581387751054a3",
+      "sha256": "sha256:e9edac44b00b4e5b2820105afd8e68c29ea146668c9c36209c0c91320abcf833",
       "imports": [
         "../config/doppler-local-models.js",
         "../config/requester-weights.json",
@@ -3562,7 +3562,7 @@
     {
       "path": "self/host/work-model-files.js",
       "owner": "self",
-      "sha256": "sha256:e0ddc0d43feaeb8a74ff2dfd08dc89f0e45d932b48f4fe5c036874ec1eafade9",
+      "sha256": "sha256:492c0c2b41dd64cebe283be25e6eb72b813f8d8453f8a4e7571845db613fbe96",
       "imports": [
         "../config/chat-files.json",
         "../config/doppler-local-models.js",
@@ -3703,7 +3703,7 @@
     {
       "path": "self/host/work-swarm.js",
       "owner": "self",
-      "sha256": "sha256:c656763e1191264208328c2fe22c815fc226a53241861a4292ff27b0c1f80dbe",
+      "sha256": "sha256:67a7ba12e3e218ce64403f4a7925bc78d2d812526588c54dbee02ae4f40c6211",
       "imports": [
         "../capabilities/communication/library-adapter.js",
         "../config/doppler-local-models.js",
@@ -4464,7 +4464,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:9cbb103b265383aee12a6580c6c3eea53f4b2c893defdf8f239e7439a4fa5721",
+      "sha256": "sha256:7ec636ce33caac464fa02abab1a126352d74528d75dfbf8d3e09a478817aa55f",
       "imports": []
     },
     {
@@ -5578,7 +5578,7 @@
     {
       "path": "ui/react/app.js",
       "owner": "ui",
-      "sha256": "sha256:da8d3d2b1bceb01f1dc2d5192bdc2bb401d04b156e4683859b9f7df9b58ed1fb",
+      "sha256": "sha256:a9e79b7078047636cc57a9027598280337b20aa5c40a6da306f5d26d559dcb20",
       "imports": []
     },
     {
