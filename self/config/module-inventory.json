@@ -2911,7 +2911,7 @@
     {
       "path": "self/host/chat-view.js",
       "owner": "self",
-      "sha256": "sha256:7e4a8806a528a665315f44bd1bc8c7ec576bc719a3793ec050b637eb95467cd2",
+      "sha256": "sha256:8abe04edabadd1efbd09dbe50a0beba64e7dbbbe7436df87af3f6701be444aa7",
       "imports": []
     },
     {
@@ -2997,7 +2997,7 @@
     {
       "path": "self/host/decisions/computers.js",
       "owner": "self",
-      "sha256": "sha256:3bd4255d895056d8568aff5a56ea3e1b6c532d7b64beaa886e2a5c4f99612063",
+      "sha256": "sha256:905463c8bb71d8b4463097cda42b4b7d5794bb535c5756710e16fe7b8946ca38",
       "imports": [
         "../../capabilities/communication/library-adapter.js",
         "../../pool/model-contract.js",
@@ -3011,7 +3011,8 @@
         "../../ui/pool-home/model-preparation.js",
         "../../ui/pool-home/model-providers.js",
         "../../ui/pool-home/network-controls.js",
-        "../../ui/pool-home/service-credit-text.js"
+        "../../ui/pool-home/service-credit-text.js",
+        "../chat-view.js"
       ]
     },
     {
@@ -4460,7 +4461,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:4f18b736c049626c219339c0aaeb02ae378f7d765dec59fc0a2259fb2fce3b17",
+      "sha256": "sha256:a0978d496e38809b22de13be4bc96cad9b6860ce034ed24eefa0814700228e7d",
       "imports": []
     },
     {
@@ -5574,13 +5575,13 @@
     {
       "path": "ui/react/app.js",
       "owner": "ui",
-      "sha256": "sha256:4d4f369a3446554f22917bc64d66c56fe2f128f51a7dcd5e253ba9835d1c6df2",
+      "sha256": "sha256:7c9b1064409325c30c9eb626877ff6c4a647219a3a9543116607a0489150823d",
       "imports": []
     },
     {
       "path": "ui/react/design.js",
       "owner": "ui",
-      "sha256": "sha256:f2e99cd7dfb1dfbd4b669bfa5f0dd217d95b0dd539e64076c58de39512d60e77",
+      "sha256": "sha256:b48053a9c8982ca055b4fd483fc088596e93d80a1591258aa289a9cf7f0ae68c",
       "imports": []
     },
     {
