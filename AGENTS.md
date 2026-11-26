@@ -74,6 +74,11 @@ assessment behind it are in [docs/poolday-ui-architecture.md](docs/poolday-ui-ar
 
 ## Run and verify
 
+- **Commit and push to `main`.** Every verified change, settlement and ledger changes
+  included, goes straight to `main`: rebase, push, confirm CI is green, fix forward if it
+  goes red. Do not open pull requests; if a direct push is refused, open one and merge it
+  immediately yourself, then delete the branch. Never leave a PR or branch waiting for review.
+
 - `npm start` starts the local application; `npm run start:signaling` starts the
   signaling server. See [README.md](README.md) for setup and local routes.
 - **Install per checkout.** A new worktree has no `node_modules`: run `npm ci` in it (about
@@ -88,8 +93,8 @@ Match the check to the risk. Times are from one laptop; CI runs the same command
 | Editing, once the behavior is ready to verify | The test file for the module you changed: `npx vitest run --config tests/vitest.config.js <test-file>` | 1-3 s a file |
 | Before every push | `npm run lint`: ESLint, the new-module rules applied to your work against `origin/main` (uncommitted and untracked files included), JavaScript-only, and the design-system boundaries and types. It is the lint CI runs | 15 s |
 | Before a push that changes served source (`packages/reploid/src`, `apps/poolday`, `shared`, `self`) | `npm run build`, and commit what it writes as its own commit. Rebuild after rebasing onto `main`: the bundles and inventories embed every source change, so a rebase makes them stale | 5-13 s |
-| Before merge | The contract checks for each behavior you changed (next table) and, for a page change, the journey for that surface under `tests/e2e/` | 1-5 s a row |
-| Every push and pull request | CI `Smoke` ([test.yml](.github/workflows/test.yml)): named contract tests, generated-file checks, the bundle and the hosting package. No GPU and no browser | 2 min |
+| Before pushing to `main` | The contract checks for each behavior you changed (next table) and, for a page change, the journey for that surface under `tests/e2e/` | 1-5 s a row |
+| Every push to `main` | CI `Smoke` ([test.yml](.github/workflows/test.yml)): named contract tests, generated-file checks, the bundle and the hosting package. No GPU and no browser | 2 min |
 | Release, hardware work, or a change that justifies it | `npm test`, `npm run test:heavy`, `npm run test:e2e`, and the physical controllers (`tests/fixtures/*-physical.js`, `tests/contracts/`) | not in CI |
 
 These checks stay when their behavior changes; replace one only with a stronger test at the same boundary.
