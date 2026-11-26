@@ -209,6 +209,33 @@ describe('poolday home navigation', () => {
     expect(renderAppShortcuts('records')).toContain('data-open-network');
   });
 
+  it('serves every product route the same way from the page loader, the local server and the hosting rewrites', () => {
+    // The route set is written by hand in several files that cannot import each other (an inline boot script,
+    // the Node server, firebase.json). A route missing from one works in some places only: /experiments once
+    // served locally and booted the kernel on replo.id. Every list must be the vanilla shell's PRODUCT_ROUTES.
+    const sorted = list => [...new Set(list)].sort();
+    const stringList = source => JSON.parse(source.replaceAll("'", '"').replace(/,\s*\]$/, ']'));
+    const expected = sorted(Object.keys(PRODUCT_ROUTES));
+    const loader = readFileSync('apps/poolday/index.html', 'utf8');
+    const loaderPaths = stringList(loader.match(/const productPaths = new Set\((\[[^\]]+\])\)/)[1]);
+    const server = readFileSync('server/proxy-static.js', 'utf8');
+    const serverPaths = stringList(server.match(/const PRODUCT_ROUTES = (\[[^\]]+\]);/)[1]);
+    const substrate = stringList(server.match(/const SUBSTRATE_ROUTES = (\[[^\]]+\]);/)[1]);
+    const hosting = [].concat(JSON.parse(readFileSync('firebase.json', 'utf8')).hosting)
+      .find(site => site.public?.endsWith('/reploid'));
+    const rewritten = hosting.rewrites.filter(rule => rule.destination === '/index.html').map(rule => rule.source);
+    expect(sorted(loaderPaths)).toEqual(expected);
+    expect(sorted(serverPaths)).toEqual(expected);
+    expect(sorted(rewritten.filter(path => !substrate.includes(path)))).toEqual(expected);
+    expect(sorted(rewritten.filter(path => substrate.includes(path)))).toEqual(sorted(substrate));
+    // The React workspace is a subset, named the same in both loaders.
+    for (const file of ['apps/poolday/index.html', 'apps/poolday/pool-entry.html']) {
+      const react = stringList(readFileSync(file, 'utf8').match(/const productBundle = (\[[^\]]+\])\.includes/)[1]);
+      expect(react, file).toEqual([...WORKSPACE_PATHS]);
+    }
+    for (const path of WORKSPACE_PATHS) expect(expected).toContain(path);
+  });
+
   it('keeps a path back from focused routes without legacy drawer chrome', () => {
     const html = renderNav('improve', { open: true });
     expect(html).toContain('aria-label="Reploid home"');

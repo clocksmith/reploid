@@ -58,6 +58,8 @@
       type="module"
     >
       const pathname = (window.location.pathname || '/').replace(/\/+$/, '') || '/';
+      // Keep in step with PRODUCT_ROUTES (ui/pool-home/constants.js), server/proxy-static.js and the firebase.json
+      // rewrites; tests/unit/pool-home-nav.test.js fails when they differ.
       const productPaths = new Set([
         '/',
         '/compute',
@@ -68,7 +70,8 @@
         '/network',
         '/work',
         '/improve',
-        '/examples'
+        '/examples',
+        '/experiments'
       ]);
       const productRoute = productPaths.has(pathname);
       // Keep this synchronous boot list aligned with styles/poolday/layers.json.
