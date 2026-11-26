@@ -6,19 +6,19 @@ Parent: [Reploid](../CATSCAN.md)
 Bounded authenticated services and native participation, without browser authority.
 
 ## Authority
-Owns HTTP, discovery, relay, composition and durable services. Ledger owns credits/settlements; rewards owns issuance; payments owns purchases; Community Access owns funding pools; scheduler owns obligations. Earning composition connects them without changing domain authority.
+Owns HTTP, discovery, relay, composition and durable services. Ledger owns service credits/settlements; fleet owns non-cash credits; pool owns points; rewards owns issuance; payments owns purchases; Community Access owns funding pools; scheduler owns obligations. Earning composition connects them without changing authority.
 
 ## Scope
 This directory.
 
 ## Contracts
-Inputs: [proxy.js](proxy.js), [signaling](reploid-signaling.js), [admission](public-inference-guard.js), library public entries and [declared wire/host contracts](../scripts/server-library-imports.json) from `shared/vendor/reploid`, shared browser contracts and Poolday host/pool/config adapters. Product presentation and substrate execution implementations are forbidden.
+Inputs: [proxy.js](proxy.js), [signaling](reploid-signaling.js), [admission](public-inference-guard.js), library public entries and [declared wire/host contracts](../scripts/server-library-imports.json) from `shared/vendor/reploid`, shared browser contracts and Poolday host/pool/config adapters. Product presentation/substrate execution are forbidden.
 Outputs: bounded responses, accounting and delivery records.
 
 ## Invariants
 - Auth/transport never prove model/scientific validity. Relay acknowledgement proves receipt, not acceptance.
 - Inference requires auth, exact disclosure and accounting; unbilled execution is test-only. Trial reservations survive restarts without issuance.
-- Non-cash fleet credits require bounded debt, same-owner consent, signed work and requester acknowledgement. Purchases/payouts remain separate.
+- Fleet credits need bounded debt, same-owner consent, signed work, requester acknowledgement.
 - Recovery binds account/device, input digest and signing identities without replacement inference. Journals omit prompts and preserve uncertainty; signed unmetered cleanup permits fixed terminal formulas only.
 - Doppler computes; native adapters own lifetime, files and settlement. Receipts retain opening/runtime/provider identities.
 - File supply requires separate consent. Verify every piece/file hash; quarantine corruption and restart partials. Only pinned immutable model origins may supply missing bytes; never origin manifests.

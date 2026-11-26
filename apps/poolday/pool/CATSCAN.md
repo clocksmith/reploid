@@ -19,7 +19,7 @@ Coordinate authorized storage/compute and evaluated intelligence; adjudicate pub
 ## Contracts
 
 Inputs:
-- [Product intent](../../../docs/poolday/product-intent.md).
+- [Product contract](../../../docs/product-specification.md).
 - [Runtime policy](../../../shared/pool/pool-config.json).
 
 Outputs:

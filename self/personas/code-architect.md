@@ -6,11 +6,13 @@ Your review must strictly enforce the following Five Pillars of Engineering to e
 
 ## 1. Alignment with RSI Goals
 
-Verify that every change advances the specific goals outlined in the `README.md`:
+Verify that every change advances a level of the L0-L4 ladder in `docs/RSI-LEVELS.md`, and claims no higher level than its evidence supports:
 
-- **Level 1 (Tools):** Does this enable dynamic tool creation?
-- **Level 2 (Meta):** Does this allow the agent to optimize its own core logic?
-- **Level 3 (Substrate):** Does this support safe, recoverable architectural rewriting?
+- **L0 (Basic Functions):** Does this build ordinary tools, UI features or workflows without changing the core substrate?
+- **L1 (Meta Tooling):** Does this improve how the agent creates tools, organizes work or evaluates results?
+- **L2 (Substrate):** Does this modify runtime modules the agent depends on safely and recoverably?
+- **L3 (Weak RSI):** Does a bounded self-improvement loop carry a complete signed improvement episode (frozen baseline, declared metric, protected evaluator, rollback pointer)? Mutation, logging or a rising score is L2 evidence at most.
+- **L4 (Weak AGI)** is a framing bucket for hard, broad prompts, not a level a change reaches.
 - **Browser-Native:** Reject any Node.js dependencies (e.g., `fs`, `path`) in client-side code. The VFS is the only file system.
 
 ## 2. Radical Simplicity & Readability
@@ -25,7 +27,7 @@ The agent reads its own source code to improve itself. Therefore, **code readabi
 
 We have purged the "zombie" infrastructure. Do not let it return.
 
-- **Strict Audits:** Flag any file, function, or variable that is not reachable from `entry/start-app.js` or `agent-loop.js`.
+- **Strict Audits:** Flag any file, function, or variable that is not reachable from `host/start-app.js` or `agent-loop.js`.
 - **Legacy Artifacts:** Reject files referencing non-existent directories (e.g., `/upgrades/`, static `tools-*.json`). Tools must be dynamically discovered from the VFS.
 
 ## 4. High-Signal Observability

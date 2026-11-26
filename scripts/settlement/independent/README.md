@@ -9,7 +9,7 @@ verifier. This directory tests that sentence.
 | [DOC-GAPS.md](DOC-GAPS.md) | Every place the document did not decide the behaviour, listed by the verifier's author before any comparison. |
 | [differential.js](differential.js) | Runs this verifier and the service's (`server/fleet/settlement-replay.js`) on the same signed record sets and reports every difference. |
 | [receipts/differential.json](receipts/differential.json) | The committed output of that run. |
-| [ledger-differential.js](ledger-differential.js) | Drives the live ledger (`server/fleet/credits.js`) through the same attempts and compares what it posts with what the service's replay computes. |
+| [ledger-differential.js](ledger-differential.js) | Drives the fleet credit service that posts non-cash fleet credits (`server/fleet/credits.js`) through the same attempts and compares what it posts with what the service's replay computes. |
 | [receipts/ledger-differential.json](receipts/ledger-differential.json) | The committed output of that run. |
 
 ```sh
@@ -31,7 +31,7 @@ Plain Node, about 10 seconds, no model, no GPU, no network.
   git and no code search. It was told not to open the service's verifier, the signers, the tests, the
   scenario builder, the attack matrix, this directory's comparison or any diff, and it reported opening none of
   them. That boundary is self-reported. Each later round, the last for the requester's own stages under the
-  failed-stage terms (the 1,055-line text), was done the same way by a fresh session.
+  failed-stage terms (a 1,055-line text), was done the same way by a fresh session.
 - **What the author could not test.** It had no signer, so before the comparison it could only check the verifier
   against records it signed itself.
 - **Who wrote the comparison.** Another session, which did read the service's code. `differential.js` builds its base
@@ -44,7 +44,9 @@ does, and only from the document's text. A fix prompted by the service's code wo
 ## Result on main
 
 The document with the owner's decided unfinished-answer rule, the older terms shape, signed accounts, the
-failed-stage terms and the requester's own stages under them (the 1,055-line text). 22 base attempts (two added for the older provider-loss-free
+failed-stage terms and the requester's own stages under them: a 1,055-line text, which the author read without a commit
+hash. The [receipt](receipts/differential.json) records commit 6275e8df1, when the document stood at bd52ef90a;
+later revisions of the document and of `replay.js` have not been run through this comparison. 22 base attempts (two added for the older provider-loss-free
 terms), 28 mutation families, Ed25519 and P-256 keys, seven clock values
 around the deadline, the release window and the instant an attempt is decided. The document reports one row per
 reservation and requester, and the comparison is keyed the same way.
@@ -193,9 +195,9 @@ difference between implementations.
 
 ## What the document still leaves open
 
-[DOC-GAPS.md](DOC-GAPS.md) lists 79 items, numbered across all seven versions of the document. Against the text
-with the decided rule its author counts 48 settled, 10 partly settled and 19 still standing of the first 77, and 2
-new. None of the open ones changed a result in this run. Those most likely to matter to another implementer:
+[DOC-GAPS.md](DOC-GAPS.md) numbers its items across every version of the document; the status paragraphs at its head
+give the current counts. This section was written for the text with the decided rule. None of the open ones changed
+a result in that run. Those most likely to matter to another implementer:
 
 - **Which rule a row was decided under (78).** No row member names the unfinished-answer terms applied, and the
   result's `schema` is `v2` even over older terms; only `reason` says. A verifier reading a result needs the signed

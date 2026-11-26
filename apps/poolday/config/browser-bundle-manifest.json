@@ -1055,8 +1055,8 @@
     },
     {
       "path": "capabilities/cognition/README.md",
-      "byteLength": 2539,
-      "sha256": "sha256:0f4bec968c0fae46b88d78135b7a43cc9dd9168f0cad8ab56913d1f794e0fe85"
+      "byteLength": 1605,
+      "sha256": "sha256:734aaf9d03832972470d6e16b6420bb765a7423bc296394d4689410b554677ab"
     },
     {
       "path": "capabilities/cognition/semantic/embedding-store.js",
@@ -1145,8 +1145,8 @@
     },
     {
       "path": "capabilities/README.md",
-      "byteLength": 2791,
-      "sha256": "sha256:83cb9a9d3c3e19a9005ddb24d601884087f689bd03bedef11cd752fc0a3e1cc9"
+      "byteLength": 1585,
+      "sha256": "sha256:0f555c875cbc448b9db87691f898e1852ba52020d33a154f0c46a911c8cf6210"
     },
     {
       "path": "capabilities/reflection/prompt-score-map.js",
@@ -1175,8 +1175,8 @@
     },
     {
       "path": "capabilities/system/README.md",
-      "byteLength": 1037,
-      "sha256": "sha256:9aa7dc498d06d8b3b4c96a55ac0aeb28a0be9ecd5b7c4d8c6e525480c5654c76"
+      "byteLength": 1263,
+      "sha256": "sha256:4a5df248aad552382552661a6673254763da670a54ee8537748ed7673d552aea"
     },
     {
       "path": "capabilities/system/substrate-loader.js",
@@ -1645,8 +1645,8 @@
     },
     {
       "path": "core/README.md",
-      "byteLength": 2464,
-      "sha256": "sha256:e74bfe7d8b2ab82b3a7cb56fd4b023faf49c94f0a83bb33b1c1edc97a948fee5"
+      "byteLength": 1317,
+      "sha256": "sha256:21779ac5a7a46f5d956c555311c437b669420062d801eb017aa1ecfeb8949217"
     },
     {
       "path": "core/response-parser.js",
@@ -2400,8 +2400,8 @@
     },
     {
       "path": "infrastructure/README.md",
-      "byteLength": 2054,
-      "sha256": "sha256:f491359f0a4a5c1919b359db9db10b0a9c5f118fb31a770665d8ac0e1f3012b5"
+      "byteLength": 1371,
+      "sha256": "sha256:ab329b4f6ccd08d6191db275eb667f7db8c212391a6d247d4bd1ea79d156dfde"
     },
     {
       "path": "infrastructure/replay-engine.js",
@@ -2500,8 +2500,8 @@
     },
     {
       "path": "personas/code-architect.md",
-      "byteLength": 3301,
-      "sha256": "sha256:8bbdc2814456d05d3f864685d4cc124a9f08a48171140978d5713d78a99ac4ec"
+      "byteLength": 3792,
+      "sha256": "sha256:970b690d68cb7bf64c7a866c42b9303ef13009781389126d4314f4fd655065f0"
     },
     {
       "path": "personas/config.json",
@@ -3640,8 +3640,8 @@
     },
     {
       "path": "tools/README.md",
-      "byteLength": 3140,
-      "sha256": "sha256:a9e1a0efda4647c4a22238468f48d72dfc4850d06ffe0e0280c6afef345f62a2"
+      "byteLength": 1128,
+      "sha256": "sha256:46631a72570defb78e4d5760a612f1d4cce25a1536a2e4a4d9ab455b06c72b0d"
     },
     {
       "path": "tools/RunGEPA.js",
@@ -12839,5 +12839,5 @@
       "sha256": "sha256:abb6c18f6167d6afc8ee1b3adfcbbb89c0e93fb4fc4e98d7a12250f78aab206a"
     }
   ],
-  "bundleHash": "sha256:39c540665d95251daf588480b524eb4330b7fd8e9e9c69e81c55b697ddc07dc7"
+  "bundleHash": "sha256:9eb0094c62ff856dfb6f8ab9f4af6c1bbe2ee4088cf5ae6f23dca16c502b9f80"
 }

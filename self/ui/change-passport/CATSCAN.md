@@ -1,6 +1,6 @@
 # CATSCAN: Change Passport Interface
 
-Parent: [Browser Interface](../CATSCAN.md)
+Parent: [Browser Interfaces](../CATSCAN.md)
 
 ## Target
 

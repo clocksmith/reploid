@@ -4,13 +4,13 @@ Parent: [Reploid Browser Library](../../../CATSCAN.md)
 
 ## Target
 
-Coordinate conversations.
+Step requests through Doppler-defined partitions on authorized peers.
 
 ## Authority
 
 Discovery observes capabilities/channels; placement selects; residents admit;
 runners sequence attempts/grants/settlement. Doppler owns computation/positions/generation/stopping.
-Hosts own sessions. [Training](../../training/CATSCAN.md) owns `reploid-training` grants/execution over shared authenticated channels. `partition-contract.js` holds validators;
+[Training](../../training/CATSCAN.md) owns `reploid-training` grants/execution over shared authenticated channels. `partition-contract.js` holds validators;
 discovery/placement/reservations stay independent.
 
 ## Scope
@@ -43,8 +43,6 @@ Session: [contract](../../../../../docs/chat-mvp.md#resident-integration-contrac
 - FIFO leases share weights: legacy per traversal, ordered per stage.
   Weightless requesters bind identity/placement generation.
 - Bound every stage call; deadlines precede grant expiry; envelopes refuse before disclosure.
-- No import-time connections/downloads/Doppler.
-
 ## Acceptance
 
 Evidence: [partition](../../../../../tests/unit/partition-api.test.js), [publication](../../../../../tests/unit/ordered-publication.test.js), [evidence](../../../../../tests/unit/ordered-attempt-evidence.test.js).

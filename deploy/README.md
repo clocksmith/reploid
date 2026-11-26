@@ -4,14 +4,9 @@ This directory keeps production deployment settings in source control.
 
 ## File roles
 
-| File | Format | Reason |
-|------|--------|--------|
-| `env.production.json` | JSON | JavaScript-friendly source of deployment constants and required env values. |
-| `cloud-run-service.yaml` | YAML | Native Cloud Run service import/export format. |
-| `cloudbuild.yaml` | YAML | Native Cloud Build pipeline format. |
-| `turn/provision.sh` | Shell | Idempotent TURN relay, secret, address, firewall, and service-account provisioning. |
-
-The project uses JSON where Firebase/GCP accepts JSON directly. YAML is used only where Google Cloud tools expect it as the normal config surface.
+[CATSCAN.md](CATSCAN.md) names the inputs and outputs this directory owns and the
+boundaries they keep. The project uses JSON where Firebase/GCP accepts JSON directly.
+YAML is used only where Google Cloud tools expect it as the normal config surface.
 
 ## Required manual one-time setup
 
@@ -24,8 +19,15 @@ gcloud artifacts repositories create reploid \
   --location=us-central1
 ```
 
-Provision the credentialed WebRTC relay once, or rerun the same command to
-repair its declarative resources:
+Browsers take discovery and temporary TURN credentials from the Cloudflare
+Worker named in `shared/config/swarm-bootstrap.json` (`signalingUrl` and
+`rtcConfigUrl`), configured by `cloudflare/wrangler.jsonc`; see
+[the Cloudflare migration](../docs/cloudflare-migration.md) for its deployment
+inputs and checks. The Google Cloud signaling route and TURN relay below remain
+in place for operator rollback, not as a runtime fallback.
+
+To keep the rollback relay available, provision it once, or rerun the same
+command to repair its declarative resources:
 
 ```bash
 TURN_HOST="$(./deploy/turn/provision.sh)"
@@ -36,7 +38,8 @@ Write the returned public IP to `REPLOID_TURN_HOST` in
 `deploy/cloud-run-service.yaml`. CI verifies this projection. Cloud Build
 binds `REPLOID_TURN_SHARED_SECRET` from Secret Manager. Browsers receive only
 short-lived TURN REST credentials from the authenticated `/pool/rtc-config`
-endpoint. The shared secret never enters source control or Firebase Hosting.
+endpoint, which they call only after a rollback removes `rtcConfigUrl`.
+The shared secret never enters source control or Firebase Hosting.
 
 Create a dedicated private adapter bucket with uniform bucket-level access,
 public access prevention, versioning, retention, and browser CORS for the exact
@@ -84,20 +87,24 @@ Cloud Run remains authoritative for:
 - Provider registry and admission lane.
 - Model capability claims.
 - Policy assignment.
-- Signaling rendezvous metadata.
 - Commit-reveal evidence.
 - Receipt anchoring.
 - Requester acceptance.
 - Points and reputation ledger.
 - Abuse controls.
 
-Prompt, output, token, and full receipt payload envelopes can move over P2P DataChannel after the configured reveal gates. Cloud signaling must stay metadata-only.
+Signaling rendezvous and temporary TURN credentials come from the Cloudflare
+Worker (`server/cloudflare/`); the Cloud Run `/swarm` route remains for
+rollback. Prompt, output, token, and full receipt payload envelopes can move over P2P DataChannel after the configured reveal gates. Signaling must stay metadata-only.
 
 ## Historical Doppler packages
 
 The current browser pin remains in `package-lock.json` and
-`shared/config/doppler-package.json`; only its integrity-pinned archive remains
-in the current tree. Historical packages and run output are indexed in the
+`shared/config/doppler-package.json`; its integrity-pinned archive
+(`artifacts/dopplerx-0.1.7.tgz`) is in the current tree, and so is
+`artifacts/dopplerx-0.1.5.tgz`, which `retention.json` lists among the archived
+versions and the [0.1.5 qualification receipts](../reports/release-015-qualification/README.md)
+name. Other historical packages and run output are indexed in the
 [evidence catalog](../docs/evidence-catalog/README.md), backed by immutable
 published Git revisions. Local bytes are preserved when they are untracked.
 

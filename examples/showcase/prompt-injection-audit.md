@@ -1,6 +1,6 @@
 # Prompt Injection Self-Audit Report
 
-**Date:** December 10, 2024
+**Date:** December 10, 2025
 **Model:** Gemini 3 Pro Preview
 **Cycles:** 50
 **Curated run summary (not replayable):** [reploid-export-1765420266028.json](https://github.com/clocksmith/reploid/blob/main/examples/showcase/runs/reploid-export-1765420266028.json)

@@ -16,10 +16,7 @@ Inputs: immutable policy and explicit host ports.
 Outputs: bounded operations, state, failures and retained evidence.
 
 ## Invariants
-- Imports are inert and application independent.
-- Candidates cannot expand permissions or approve their own output.
-- Cancellation does not claim termination of borrowed work.
-- Preserve record identities and recovery compatibility.
+- [Library invariants](../../../CATSCAN.md#invariants) apply.
 - Whole-request delegation does not prove model partitioning. Doppler owns valid layer/expert partitions; placement cannot change model semantics or expert selection.
 - Batch subdivision requires Doppler-defined independent-input semantics and an explicitly approved application/reference. Aggregation commits at most one outcome per unit, rejects superseded attempts, and preserves original input positions; it does not promise exactly-once execution.
 

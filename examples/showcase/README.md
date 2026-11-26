@@ -1,6 +1,12 @@
 # REPLOID Showcase Runs
 
-This directory contains twelve demonstration runs showcasing Reploid's autonomous RSI (Recursive Self-Improvement) capabilities.
+> **Historical and unqualified.** These are write-ups of past Reploid agent sessions.
+> None was independently evaluated, most run files were not kept, and the levels
+> below are how each run was labelled, capped by [the RSI ladder](../../docs/RSI-LEVELS.md): no run here
+> carries the signed improvement episode that `L3` requires. Read them as
+> examples of attempts, not as evidence of capability.
+
+This directory contains write-ups of twelve demonstration runs of Reploid's RSI (Recursive Self-Improvement) experiments.
 
 ## The Browser as an Adaptive Substrate
 
@@ -43,14 +49,14 @@ The agent successfully attacked itself, identified 4 security vulnerabilities, a
 
 > **Insight:** Use the agent to secure the agent. A closed loop of Red Team (Attack) -> Blue Team (Patch) -> Verification.
 
-### 4. The Manager: [Three-Persona Debate](three-persona-debate.md) (L3)
+### 4. The Manager: [Three-Persona Debate](three-persona-debate.md) (L2 at most)
 
 _Setting policy and governance._
 The agent built a "committee" (DebateLoop) to resolve a difficult policy decision: "Should we auto-rollback on failure?" It decided **NO**, prioritizing learning opportunities over stability.
 
 > **Insight:** Governance as Code. The agent can build structures to make better decisions than it could make alone.
 
-### 5. The Scientist: [Persona Tuner](persona-tuner-optimization.md) (L3)
+### 5. The Scientist: [Persona Tuner](persona-tuner-optimization.md) (L2 at most)
 
 _Discovering new knowledge._
 The agent built an evolutionary feedback loop to empirically optimize sub-agent prompts. It found that "skepticism" improved performance by 15%—a counter-intuitive discovery found through data, not intuition.
@@ -62,17 +68,16 @@ The agent built an evolutionary feedback loop to empirically optimize sub-agent 
 ## Other Experiments
 
 <details>
-<summary>Click to see 7 additional demonstration runs</summary>
+<summary>Click to see 6 additional write-ups (7 runs)</summary>
 
 ### ☖ Substrate & Security
 
 - **[GEPA Security](gepa-security-hardening.md) - L2:** Autonomous debugging of an infinite loop in `gepa-optimizer.js`.
 - **[Quine](quine-self-replication.md) - L2:** Serialized its entire state into a self-replicating seed.
-- **[Security Red-Team](security-analysis.md) - L2:** Probed boundaries effectively (no fix applied).
 
 ### ✓ Standard Tools (L0/L1)
 
-- **[Self-Study](self-study-report.md) - L1:** Created tools to map its own code.
+- **[Agent Loop Self-Description](self-study-report.md) - L0:** Two runs in which the agent read and summarized its own loop; nothing was changed.
 - **[RSI Blocker Refactor](rsi-blocker-refactor.md) - L1:** Created `code_intel.js` to optimize token usage.
 - **[Iframe Inception](iframe-inception.md) - L0:** Spawned child instances via iframes.
 - **[Neural Interface](neural-interface-rebuild.md) - L0:** A cautionary failure case where it broke its own UI.
@@ -106,10 +111,11 @@ showcase/
 ├── rear-sort-novelty.md
 ├── gepa-security-hardening.md
 ├── quine-self-replication.md
-├── security-analysis.md
-├── self-study-report.md
+├── security-analysis.md         # Pointer to self-study-report.md
+├── self-study-report.md         # Agent loop self-description (two runs)
 ├── rsi-blocker-refactor.md
 ├── iframe-inception.md
 ├── neural-interface-rebuild.md
+├── prime-visualizer.html        # Standalone page; no write-up
 └── runs/                        # Privacy-curated summaries
 ```

@@ -203,8 +203,6 @@ The baseline run record was written before the harness was committed. It names t
 - **The search items.** They are unexercised. Citation support is not judged.
 - **Variation.** Each run is one greedy generation; there is no confidence interval.
 
-*Last updated: November 2026*
-
 ## Retained 250-token context candidate
 
 `context-candidates/whole-passages-250.json` retains the original prompts, two
@@ -249,3 +247,5 @@ host/campaign approval. The retained 184–242 token counts apply to their recor
 text path; the selected target must record its own actual prompt counts and limit
 failures. Reload, cancellation and provider-replacement tests remain separate from
 answer checks (`tests/unit/chat-retrieval.test.js` and `chat-workspace.test.js`).
+
+*Last updated: November 2026*

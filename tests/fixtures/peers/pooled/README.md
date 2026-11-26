@@ -19,8 +19,6 @@ identical to the pinned archive. Its kernel registry therefore keeps historical
 reachability labels from that archive; those labels do not select runtime paths.
 Hosting rejects a reintroduced profile, and archive verification remains mandatory.
 
-The runner defaults to metadata checks:
-
 Owned model processes clear ambient `POOLED_*`, `DOPPLER_*`, `DAWN_OPTS`,
 `UV_THREADPOOL_SIZE`, and `RN_DEBUG` settings, then apply only that arm's frozen
 `environment` map. Omitting an SDK override retains its ordinary default;
@@ -40,6 +38,8 @@ startup, any protocol preflight, and the complete open response. Its scope is
 remain separately labeled because they cover different setup boundaries; do not
 compare those fields as matched setup or silently apply the new clock to an old
 receipt that did not record it.
+
+The runner defaults to metadata checks:
 
 ```sh
 node compare-complete.js /absolute/freeze.json \

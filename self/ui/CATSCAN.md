@@ -21,7 +21,7 @@ Inputs:
 - State from the owning runtime component.
 
 Outputs:
-- User-visible Poolday, Zero, and X interfaces in their child components.
+- User-visible Zero and X interfaces in their child components; Poolday interfaces belong to [Poolday](../../apps/poolday/CATSCAN.md).
 
 ## Invariants
 - UI labels and status cannot imply stronger evidence than the underlying record.

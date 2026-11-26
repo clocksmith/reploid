@@ -20,10 +20,7 @@ Partitions pipeline authorized requests/bounded replies under receiver credit; r
 - Introduction availability is separate from established direct channel liveness.
 - Introductions authenticate contacts, encrypt negotiation and bound separately authorized forwarding.
 - Replaceable bootstrap ports grant no admission/compute/disclosure. Qualify WebRTC Direct separately.
-- Imports are inert, application independent.
-- Candidates cannot expand permissions or approve their own output.
-- Cancellation does not claim termination of borrowed work.
-- Preserve record identities and recovery compatibility.
+- [Library invariants](../../CATSCAN.md#invariants) apply.
 - Discovery joins only after matching acknowledgement; peer counts require open channels. Disconnect cancels joins and reconnects.
 - WebRTC-only callers never silently fall back to BroadcastChannel.
 - Reconnection honors trusted host retry deadlines; disconnect cancels that wait.

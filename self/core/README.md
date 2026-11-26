@@ -4,62 +4,23 @@ Purpose: Foundational runtime modules for bootstrap storage, agent loop, and sha
 
 ## Scope
 
-- TABULA and SPARK modules used for boot and minimal agent operation.
-- Core services shared across reflection, cognition, and substrate layers.
+- Bootstrap storage and state, from the `tabula` level.
+- The minimal agent core (agent loop, model client, tool runner, persona and context
+  management), from the `capsule` and `spark` levels.
+- Core services that higher levels use: verification, memory, workers and schema validation.
 
-**Primary Genesis Level:** SPARK (minimal agent core)
+## Modules and genesis levels
 
-This directory contains foundational modules. Bootstrap storage and state live at `tabula`, the minimal agent core starts at `spark`, and higher levels add reflection, cognition, and substrate features.
-
-## TABULA Level (Bootstrap)
-
-| Module | File | Description |
-|--------|------|-------------|
-| StateHelpersPure | `state-helpers-pure.js` | Deterministic state logic |
-| StateManager | `state-manager.js` | VFS and session persistence |
-| Utils | `utils.js` | Shared utilities and error classes |
-| VFS | `vfs.js` | Virtual file system (IndexedDB) |
-
-## SPARK Level (Minimal Agent Core)
-
-| Module | File | Description |
-|--------|------|-------------|
-| AgentLoop | `agent-loop.js` | Primary think-act cognitive cycle |
-| ContextManager | `context-manager.js` | Token window optimization |
-| LLMClient | `llm-client.js` | LLM API transport layer |
-| PersonaManager | `persona-manager.js` | System prompt composition |
-| ResponseParser | `response-parser.js` | LLM response extraction |
-| SchemaRegistry | `schema-registry.js` | Tool schema storage |
-| ToolRunner | `tool-runner.js` | Tool execution engine |
-| ToolWriter | `tool-writer.js` | Dynamic tool creation |
-
-## REFLECTION Level
-
-| Module | File | Description |
-|--------|------|-------------|
-| VerificationManager | `verification-manager.js` | Test execution orchestrator |
-
-## COGNITION Level
-
-| Module | File | Description |
-|--------|------|-------------|
-| MemoryManager | `memory-manager.js` | Working memory orchestration |
-| TransformersClient | `transformers-client.js` | Browser-native model inference (WebGPU) |
-
-## SUBSTRATE Level
-
-| Module | File | Description |
-|--------|------|-------------|
-| SchemaValidator | `schema-validator.js` | Schema validation utilities |
-| WorkerManager | `worker-manager.js` | Sub-agent worker spawning |
-
-## FULL Level
-
-| Module | File | Description |
-|--------|------|-------------|
-| (none) | - | Full-level modules live in capabilities and infrastructure |
+[genesis-levels.json](../config/genesis-levels.json) is the one list of which module loads
+at which genesis level. The levels are `tabula`, `capsule`, `spark`, `reflection`,
+`cognition`, `substrate` and `full`, each extending the one before: `moduleFiles` maps
+each module to its files and `levels.<level>.modules` names what each level adds.
+[module-inventory.json](../config/module-inventory.json) lists every file with its owner
+and imports (`npm run build:module-inventory`). Their paths are served paths: one URL tree
+overlays `self/`, `shared/` and `apps/poolday/`, so a module listed under `core/` may
+live in `shared/core/`. [The ownership inventory](../../docs/ownership-inventory.md) gives
+each file's source. This README does not copy those lists.
 
 ## Related
 
-- [Genesis Levels Config](../config/genesis-levels.json)
 - [Blueprint 0x000002: Application Orchestration](../blueprints/0x000002-application-orchestration.md)

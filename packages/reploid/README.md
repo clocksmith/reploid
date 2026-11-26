@@ -7,32 +7,36 @@ these software contract checks.
 
 ## Public entries
 
-| Entry | Owns |
-| --- | --- |
-| reploid | Compatibility root, including the legacy export |
-| reploid/agent | Minimal task agent entry and shared execution lifecycle |
-| reploid/diagnostics | Optional finite belief model, diagnostic action selection and shared-engine investigation |
-| reploid/legacy | Lab strategy compatibility adapter |
-| reploid/tool-runner | Minimal tool execution for the agent loop and its hosts |
-| reploid/response-parser | Tool-call extraction from model text using the REPLOID/0 line protocol |
-| reploid/cycle-artifacts | Recursive GEPA Ring cycle artifact writer |
-| reploid/jobs | Complete-job contracts, requester, provider, verification, durable journals and independent embedding units |
-| reploid/custody | Authorized artifact transfer and reconstruction |
-| reploid/errors | Shared local operational error identity; domain codes and wire validation remain owned by their components |
-| reploid/config | Immutable configuration resolution and provenance |
-| reploid/config/schema.json | Executed structural configuration schema |
-| reploid/config/profiles/local.json | Explicit local-only profile asset |
-| reploid/webrtc | Assignment signaling/WebRTC and separate legacy swarm transport |
-| reploid/mesh | Placement policy and whole-request peer generation coordination |
-| reploid/browser | Explicit IndexedDB, memory stores and VFS adapters |
-| reploid/doppler | Optional public Doppler Capsule-session integration |
-| reploid/resident | Scoped resident model execution adapter |
-| reploid/improve | Existing signed improvement episode ledger and promotion-readiness checks |
-| reploid/retrieval | Search provider, passage extractor and support checker interfaces; bounded provenance records, numbered source context and mechanical citation checks |
-| reploid/chat | Concurrent authorized conversations, threads, attempts and grants; no global objective |
-| reploid/training | Explicitly authorized individual training and one pooled gradient round |
-| reploid/plugins | Versioned research and game sessions through host-owned capabilities |
-| reploid/measurement | Capacity-weighted readiness utilization from exported readiness spans, admission records, attempt outcomes and readiness contracts; a host readiness recorder, its record fold and a bounded record store; unknown stays unknown |
+Each entry is listed in `package.json` `exports`. Where a component has a charter, the
+charter states what it owns and guarantees; the table only says where to look.
+
+| Entry | Owns | Charter |
+| --- | --- | --- |
+| reploid | Compatibility root, including the legacy export | [library](CATSCAN.md) |
+| reploid/agent | Minimal task agent entry and shared execution lifecycle | [agent](src/agent/CATSCAN.md) |
+| reploid/diagnostics | Optional finite belief model, diagnostic action selection and shared-engine investigation |  |
+| reploid/legacy | Lab strategy compatibility adapter |  |
+| reploid/tool-runner | Minimal tool execution for the agent loop and its hosts |  |
+| reploid/response-parser | Tool-call extraction from model text using the REPLOID/0 line protocol |  |
+| reploid/cycle-artifacts | Recursive GEPA Ring cycle artifact writer |  |
+| reploid/jobs | Complete-job contracts, requester, provider, verification, durable journals and independent embedding units | [jobs](src/mesh/jobs/CATSCAN.md) |
+| reploid/custody | Authorized artifact transfer and reconstruction | [custody](src/artifacts/custody/CATSCAN.md) |
+| reploid/errors | Shared local operational error identity; domain codes and wire validation remain owned by their components |  |
+| reploid/config | Immutable configuration resolution and provenance |  |
+| reploid/config/schema.json | Executed structural configuration schema |  |
+| reploid/config/profiles/local.json | Explicit local-only profile asset |  |
+| reploid/webrtc | Assignment signaling/WebRTC and separate legacy swarm transport | [transport](src/transport/CATSCAN.md) |
+| reploid/mesh | Placement policy, whole-request peer generation and partition coordination | [partitions](src/mesh/partitions/CATSCAN.md) |
+| reploid/browser | Explicit IndexedDB, memory stores and VFS adapters |  |
+| reploid/doppler | Optional public Doppler Capsule-session integration |  |
+| reploid/resident | Scoped resident model execution adapter |  |
+| reploid/improve | Existing signed improvement episode ledger and promotion-readiness checks |  |
+| reploid/inference | Requester-side inference API shared by the browser, the CLI and the SDK | [inference](src/inference/CATSCAN.md) |
+| reploid/retrieval | Search provider, passage extractor and support checker interfaces; provenance records and citation checks | [retrieval](src/retrieval/CATSCAN.md) |
+| reploid/chat | Conversations, threads, attempts and grants | [chat](src/chat/CATSCAN.md) |
+| reploid/training | Individual and pooled training | [training](src/training/CATSCAN.md) |
+| reploid/plugins | Research and game sessions | [plugins](src/plugins/CATSCAN.md) |
+| reploid/measurement | Readiness utilization from exported records | [measurement](src/measurement/CATSCAN.md) |
 
 `reploid/retrieval` includes no search provider. Its fixed-document provider and
 lexical-overlap checker are deterministic test doubles. Whether a cited source
@@ -196,11 +200,13 @@ assignment (or null) and input/output/deadline limits. Generation settings and
 tokenizer rules stay owned by Doppler. No sampling defaults are added here.
 `generate(messages, onUpdate, { signal, adapterArtifactStore })` forwards the
 request's `adapterSet` and its host artifact store through `executeOperation()`.
+The peer dependency is `dopplerx`; the repository's pinned 0.1.7 accepts both
+request schemas below.
 
 | Request format | Display callback | Completion |
 | --- | --- | --- |
-| v1, including published Doppler 0.6.1 | Verified final text once; cumulative partial decoding can revise Unicode | Event chain, request, output and receipt verified |
-| Explicitly adopted v2 runtime | Stable additions as they arrive, using Doppler's public accumulator | Reconstructed output and complete final receipt verified |
+| `doppler.capsule-operation-request/v1` | Verified final text once; cumulative partial decoding can revise Unicode | Event chain, request, output and receipt verified |
+| `doppler.capsule-operation-request/v2` | Stable additions as they arrive, using Doppler's public accumulator | Reconstructed output and complete final receipt verified |
 
 Append additions to a text node (`textNode.appendData(addition)`). A callback
 may return a promise: the provider awaits it before requesting another event.
@@ -281,7 +287,8 @@ Dynamic tool loading requires an explicit host loader and path authorization;
 it does not take over the embedding site's root or register its service worker.
 No generated-candidate worker is supplied or represented as a security boundary.
 
-self/ consumes a generated, byte-preserving copy of this package's source through
+The application consumes a generated, byte-preserving copy of this package's source
+in shared/vendor/reploid (written by scripts/sync-reploid-library.js) through
 public entry modules. Run npm run sync:library from the repository root after
 package edits. The copy is not a second implementation. Temporary application
 adapters retain instance-storage translation, seed prompts and existing profiles.
@@ -300,7 +307,8 @@ adapters retain instance-storage translation, seed prompts and existing profiles
 
 These are the complete acceptance requirements. Retained reports identify the
 tested subset and exact archives in
-[the integration record](https://github.com/clocksmith/reploid/blob/codex/consumer-streaming-closure/artifacts/reusable-products-2026-09-14/README.md).
+[the integration record](https://github.com/clocksmith/reploid/blob/242764831d21d79d89b4a90c54c9b24f93e3d45e/artifacts/reusable-products-2026-09-14/README.md)
+(pinned to the last revision before it left the current tree).
 The current ownership and reproduction commands are in
 [architecture stabilization](../../docs/architecture-stabilization.md).
 Package existence does not establish publication or deployment readiness.

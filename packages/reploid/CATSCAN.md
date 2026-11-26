@@ -12,12 +12,11 @@ and collective methods through evaluated changes.
 Owns orchestration/evolution/lifecycle/protocols. Hosts own credentials,
 permissions, sessions, isolation and activation. Doppler defines/executes
 layer groups, experts, tensor interfaces and continuation state; Reploid selects
-eligible placements; Poolday transfers authorized data.
+eligible placements.
 
 ## Scope
 
-Source, declarations, schemas and assets. Browser/native hosts
-share contracts; support is separately qualified.
+Source, declarations, schemas and assets.
 
 ## Contracts
 
@@ -27,21 +26,23 @@ Outputs: explicit ESM APIs, distinct assignment/swarm protocols and signed
 rsi.improvement-episode/v1 evidence.
 
 [Inference](src/inference/CATSCAN.md). Distinct: [weight-shard custody](src/artifacts/custody/CATSCAN.md),
-[whole requests](src/mesh/jobs/CATSCAN.md), Doppler-defined computational partitions,
+[whole requests](src/mesh/jobs/CATSCAN.md), [Doppler-defined computational partitions](src/mesh/partitions/CATSCAN.md),
 and [agent subtasks](src/agent/CATSCAN.md). [Transport](src/transport/CATSCAN.md)
 moves artifacts, intermediate results and messages with bounded recovery.
 
 ## Invariants
 
-- Inert imports; no application/server dependencies or global credentials.
+- Every component: inert imports without application/server dependencies or global credentials;
+  candidates never expand permissions or self-approve; cancellation never claims borrowed-work
+  termination; record identities and recovery stay compatible.
 - JSON owns policy; JavaScript orchestrates.
 - Isolate instances; close owned resources, never borrowed ones.
 - Configuration cannot broaden grants; custody, execution and candidate sharing require distinct grants.
 - Eligibility precedes ranking; Bayesian estimates retain priors, uncertainty, dependencies,
   provenance and costs. Duplicates are not independent observations.
 - Freeze objectives, workloads, thresholds and independent evaluators before generation.
-- Algorithm changes require protected evaluation and reversible grants; candidates cannot self-approve.
-- Migration preserves protocols; ancestry/adoption prove no capability.
+- Algorithm changes require protected evaluation and reversible grants.
+- Ancestry/adoption prove no capability.
 
 ## Acceptance
 

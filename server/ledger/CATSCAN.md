@@ -28,12 +28,12 @@ Outputs:
 - Balances never expire; quantity, purchase price, reward and service price differ.
 - Subsidized reward lots keep provenance, never reported earned.
 - Atomic, idempotent mutations; replays cause no second effect.
-- Charges follow accepted terms to their maximum; more needs new acceptance.
+- Charges never exceed accepted terms; more needs new acceptance.
 - One acceptance's attempts share one billable event; reports never name outcomes or charges.
 - Acknowledgments override understated or missing reports; at most K + 1 unacknowledged outputs stay disputed.
 - Expired reservations release; failed quality awaits review.
 - Transfers stay disabled pending approval.
-- Separate from Poolday points, compute reservations and allowances.
+- Separate from Poolday points, [fleet credits](../fleet/CATSCAN.md), compute reservations, allowances.
 - Spending adds no disclosure review.
 - Reversals remove purchased lots' unspent credit; spent credit follows declared treatment.
 

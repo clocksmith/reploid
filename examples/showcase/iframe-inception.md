@@ -1,6 +1,6 @@
 # Iframe Inception Report
 
-**Date:** December 4, 2024
+**Date:** December 4, 2025
 **Cycles:** 50
 **Size:** 2.4MB
 **Curated run summary (not replayable):** [reploid-export-1764910293555.json](https://github.com/clocksmith/reploid/blob/main/examples/showcase/runs/reploid-export-1764910293555.json)

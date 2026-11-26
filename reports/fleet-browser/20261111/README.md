@@ -67,7 +67,7 @@ Physical campaign across `Computer A` (`peer:74f39d0c31c02e162acede13`),
   Submitting `[1a, 1b]` from conversation `1` alongside `2a` and `3a` behind a
   single replica dispatched in `[1a, 2a, 3a, 1b]` order instead of FIFO
   `[1a, 1b, 2a, 3a]`, surfaced `queuedRequests: 3` (`Online · requester · 3 queued`
-  in `apps/poolday/ui/pool-home/private-computers-view.js`), and closed all holds
+  in `apps/poolday/ui/pool-home/private-computers-view.js`[^removed]), and closed all holds
   to `0`.
 - **Decode batching (`doppler-gpu@0.7.0` on `Computer B`, `qwen-3-5-2b-q4k-ehaf16`, 64 greedy output tokens)**:
   - `batchSize: 1, readbackInterval: 1`: `10.64` mean decode `tok/s` (`10.60` median),
@@ -129,7 +129,7 @@ Verified on native release `sha256:f633fe407f8e9227b56d6759442f51c0fb3eb93790600
 - **Replay-window cap (`server/fleet/browser-bridge.js`)**:
   `createFleetBrowserBridgeHandler` enforces `maxSeenAttempts = 10000`, evicting the oldest
   settled `attemptId` entries while preserving active `pending` attempts.
-- **Poolday UI telemetry (`apps/poolday/ui/pool-home/private-computers-view.js`)**:
+- **Poolday UI telemetry (`apps/poolday/ui/pool-home/private-computers-view.js`[^removed])**:
   Online contributors with live resident metrics render
   `Resident GPU use` (`<GB> · <N> cached thread(s)`) in the per-computer details disclosure.
 
@@ -216,3 +216,5 @@ node tests/fixtures/fleet-credit-replay.js \
 - Private non-cash service credits remain separate from public chat. The public
   `27B` provider remained untouched throughout all tests. Public partitioning and
   public payouts remain separately gated pending economic qualification.
+
+[^removed]: `apps/poolday/ui/pool-home/private-computers-view.js` was deleted in 5187f2a18 (2026-11-25), when the vanilla workspace screens were replaced by the React workspace in `apps/poolday-react`. The results above were recorded against the file as it stood on 2026-11-11.

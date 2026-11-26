@@ -4,69 +4,31 @@ Purpose: Higher-level agent capabilities layered on top of the core runtime.
 
 ## Scope
 
-- Reflection and FULL-level feature modules organized by domain.
-- Cognition, communication, performance, system, and intelligence capabilities.
+Capabilities are organized by domain. None loads at the `tabula` level; the first ones
+load at `reflection`.
 
-**Genesis Levels:** REFLECTION and FULL
+| Subdirectory | Domain |
+|--------------|--------|
+| `reflection/` | Self-awareness and learning |
+| `cognition/` | Semantic and symbolic reasoning, prompt evolution |
+| `communication/` | Swarm and P2P collaboration |
+| `performance/` | Monitoring and metrics |
+| `system/` | Substrate management and Doppler tooling |
+| `intelligence/` | Multi-model coordination |
 
-This directory contains advanced capabilities organized by domain. These are NOT loaded at `tabula` level.
+## Modules and genesis levels
 
-## Directory Structure
-
-| Subdirectory | Genesis Level | Description |
-|--------------|---------------|-------------|
-| `reflection/` | REFLECTION | Self-awareness and learning |
-| `cognition/` | FULL | Semantic and symbolic reasoning |
-| `communication/` | FULL | Swarm and P2P collaboration |
-| `performance/` | FULL | Monitoring and metrics |
-| `system/` | FULL | Substrate management |
-| `intelligence/` | FULL | Multi-model coordination |
-
-## REFLECTION Level Modules
-
-### reflection/
-| Module | File | Description |
-|--------|------|-------------|
-| ReflectionStore | `reflection-store.js` | Long-term episodic memory |
-| ReflectionAnalyzer | `reflection-analyzer.js` | Pattern detection in experiences |
-
-## FULL Level Modules
-
-### cognition/
-| Module | File | Description |
-|--------|------|-------------|
-| CognitionAPI | `cognition-api.js` | Unified semantic/symbolic interface |
-| GEPAOptimizer | `gepa-optimizer.js` | Genetic-Pareto prompt evolution |
-| EmbeddingStore | `semantic/embedding-store.js` | Vector embedding storage |
-| SemanticMemory | `semantic/semantic-memory.js` | Long-term retrieval by meaning |
-| KnowledgeGraph | `symbolic/knowledge-graph.js` | Entities and relationships |
-| RuleEngine | `symbolic/rule-engine.js` | IF-THEN deterministic reasoning |
-| SymbolGrounder | `symbolic/symbol-grounder.js` | Symbol-to-action mapping |
-
-### communication/
-| Module | File | Description |
-|--------|------|-------------|
-| SwarmTransport | `swarm-transport.js` | P2P message transport |
-| WebRTCSwarm | `webrtc-swarm.js` | WebRTC peer connections |
-| SwarmSync | `swarm-sync.js` | State synchronization |
-
-### performance/
-| Module | File | Description |
-|--------|------|-------------|
-| PerformanceMonitor | `performance-monitor.js` | Metrics collection and analysis |
-
-### system/
-| Module | File | Description |
-|--------|------|-------------|
-| SubstrateLoader | `substrate-loader.js` | Dynamic module loading |
-
-### intelligence/
-| Module | File | Description |
-|--------|------|-------------|
-| IntentBundleLoRA | `intelligence/intent-bundle-lora.js` | Intent bundle gate for LoRA adapters |
+[genesis-levels.json](../config/genesis-levels.json) is the one list of which module loads
+at which genesis level. The levels are `tabula`, `capsule`, `spark`, `reflection`,
+`cognition`, `substrate` and `full`, each extending the one before: `moduleFiles` maps
+each module to its files and `levels.<level>.modules` names what each level adds.
+[module-inventory.json](../config/module-inventory.json) lists every file with its owner
+and imports (`npm run build:module-inventory`). Their paths are served paths: one URL tree
+overlays `self/`, `shared/` and `apps/poolday/`, so a module listed under `core/` may
+live in `shared/core/`. [The ownership inventory](../../docs/ownership-inventory.md) gives
+each file's source. This README does not copy those lists.
 
 ## Related
 
-- [Genesis Levels Config](../config/genesis-levels.json)
 - [Blueprint 0x000067: GEPA Prompt Evolution](../blueprints/0x000067-gepa-prompt-evolution.md)
 - [Blueprint 0x000068: Hierarchical Memory](../blueprints/0x000068-hierarchical-memory-architecture.md)

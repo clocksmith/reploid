@@ -16,17 +16,20 @@ description: Validate Reploid's generated registry graph, or regenerate it from 
 For validation-only work, run:
 
 ```bash
-node scripts/validate-registry.js
+npm run verify:registry
 ```
 
-For an authorized regeneration, run the generators in dependency order:
+It checks that the blueprint registry is current (`build-blueprint-registry.js --check`)
+and runs `validate-registry.js`.
+
+For an authorized regeneration, run the package scripts in dependency order:
 
 ```bash
-node scripts/build-genesis-manifest.js
-node scripts/build-blueprint-registry.js
-node scripts/build-module-registry.js
-node scripts/build-vfs-manifest.js
-node scripts/validate-registry.js
+npm run build:genesis
+npm run build:blueprints        # module inventory, then blueprint registry
+npm run build:module-registry
+npm run build:vfs-manifest
+npm run verify:registry
 ```
 
 Inspect changes under `self/config/`. Classify every reported circular dependency,
@@ -37,7 +40,7 @@ its reported issue count is part of the result.
 ## Validation
 
 Validation passes only when all generators exit successfully, generated JSON parses,
-the second generator run is idempotent, and `validate-registry.js` reports zero
+the second generator run is idempotent, and `npm run verify:registry` reports zero
 unresolved issues. Report unresolved findings even when the validator exits zero.
 
 ## Stop Conditions

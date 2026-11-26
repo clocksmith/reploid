@@ -4,14 +4,14 @@
 **Model:** Gemini 3 Flash
 **Cycles:** 98
 **VFS Files:** 161
-**Run JSON:** [reploid-export-1767320786702.json](https://github.com/clocksmith/reploid/blob/main/examples/showcase/runs/reploid-export-1767320786702.json)
+**Run JSON:** The run file was not kept in [runs/](runs/README.md).
 **Goal:** Optimize the REPLOID security prompt using GEPA genetic evolution
 
 ---
 
 ## Executive Summary
 
-Follow-up to [Prompt Injection Self-Audit](prompt-injection-audit.md). REPLOID used GEPA (Genetic Evolution of Prompt Architectures) to genetically evolve hardened security prompts through multi-objective optimization.
+Follow-up to [Prompt Injection Self-Audit](prompt-injection-audit.md). REPLOID used GEPA (Genetic-Pareto) to genetically evolve hardened security prompts through multi-objective optimization.
 
 **Key accomplishments:**
 1. Fixed NSGA-II infinite loop bug in `gepa-optimizer.js`
@@ -23,7 +23,7 @@ Follow-up to [Prompt Injection Self-Audit](prompt-injection-audit.md). REPLOID u
 
 ## What is GEPA?
 
-[GEPA (Genetic Evolution of Prompt Architectures)](https://arxiv.org/abs/2507.19457) is a reflective prompt optimizer from UC Berkeley/Stanford/MIT that merges textual reflection with multi-objective evolutionary search.
+[GEPA (Genetic-Pareto)](https://arxiv.org/abs/2507.19457) is a reflective prompt optimizer from UC Berkeley/Stanford/MIT that merges textual reflection with multi-objective evolutionary search.
 
 **Paper:** [arxiv 2507.19457](https://arxiv.org/abs/2507.19457)
 **Code:** [github.com/gepa-ai/gepa](https://github.com/gepa-ai/gepa)

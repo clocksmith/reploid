@@ -30,10 +30,7 @@ Hosts supply diagnostic likelihood provenance, costs, tools and authorization.
 
 ## Invariants
 
-- Imports are inert and application independent.
-- Candidates cannot expand permissions or approve themselves.
-- Cancellation does not prove borrowed-work termination.
-- Preserve identities and recovery compatibility.
+- [Library invariants](../../CATSCAN.md#invariants) apply.
 - Preferences cannot alter likelihoods. Completed observations update beliefs;
   retain uncertainty, dependencies and provenance; duplicates count once.
 - Apply permissions and participant limits before ranking expected task value,

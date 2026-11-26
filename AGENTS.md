@@ -17,11 +17,12 @@ Where each surface keeps its owner docs (a lookup, not a reading list):
 | Conversations, threads, attempts, grants | [`packages/reploid/src/chat/CATSCAN.md`](packages/reploid/src/chat/CATSCAN.md), [`docs/style-guide.md`](docs/style-guide.md#execution-and-lifecycle-code) |
 | Discovery, placement, partitions, agent work | [`packages/reploid/CATSCAN.md`](packages/reploid/CATSCAN.md), [`packages/reploid/src/mesh/partitions/CATSCAN.md`](packages/reploid/src/mesh/partitions/CATSCAN.md), [`packages/reploid/src/mesh/jobs/CATSCAN.md`](packages/reploid/src/mesh/jobs/CATSCAN.md), [`docs/open-mesh-architecture.md`](docs/open-mesh-architecture.md) |
 | Custody, transport, or peer delivery | [`packages/reploid/src/artifacts/custody/CATSCAN.md`](packages/reploid/src/artifacts/custody/CATSCAN.md), [`packages/reploid/src/transport/CATSCAN.md`](packages/reploid/src/transport/CATSCAN.md) |
-| Poolday product routes, UI, or CSS layers | [`apps/poolday/CATSCAN.md`](apps/poolday/CATSCAN.md), [`apps/poolday/ui/pool-home/CATSCAN.md`](apps/poolday/ui/pool-home/CATSCAN.md), [`docs/style-guide.md`](docs/style-guide.md#poolday-design-system) |
+| Poolday product routes, UI, or CSS layers | [`apps/poolday/CATSCAN.md`](apps/poolday/CATSCAN.md); the React workspace on `/`, `/network` and `/work`: [`apps/poolday-react/CATSCAN.md`](apps/poolday-react/CATSCAN.md); the vanilla specialist routes: [`apps/poolday/ui/pool-home/CATSCAN.md`](apps/poolday/ui/pool-home/CATSCAN.md); [`docs/poolday-ui-architecture.md`](docs/poolday-ui-architecture.md), [`docs/style-guide.md`](docs/style-guide.md#poolday-design-system) |
 | Poolday host composition, sessions, or earning | [`apps/poolday/host/CATSCAN.md`](apps/poolday/host/CATSCAN.md), [`apps/poolday/host/earning/CATSCAN.md`](apps/poolday/host/earning/CATSCAN.md) |
 | Zero / X agent substrate, VFS, tools, or HITL | [`self/CATSCAN.md`](self/CATSCAN.md), [`self/blueprints/`](self/blueprints/), [`docs/rsi-improvement-episodes.md`](docs/rsi-improvement-episodes.md), [`docs/maverick-hunting.md`](docs/maverick-hunting.md) |
 | Shared browser code or Doppler package pin | [`shared/CATSCAN.md`](shared/CATSCAN.md), [`shared/config/doppler-package.json`](shared/config/doppler-package.json), [`docs/ownership-inventory.md`](docs/ownership-inventory.md) |
-| Server, signaling, relay, or native host | [`server/CATSCAN.md`](server/CATSCAN.md), [`server/rewards/CATSCAN.md`](server/rewards/CATSCAN.md) |
+| Server, signaling, relay, or native host | [`server/CATSCAN.md`](server/CATSCAN.md), [`server/cloudflare/CATSCAN.md`](server/cloudflare/CATSCAN.md) |
+| Contribution rewards | [`server/rewards/CATSCAN.md`](server/rewards/CATSCAN.md) |
 | Documentation, symbols, or status claims | [`docs/INDEX.md`](docs/INDEX.md), [`docs/EMOJI.md`](docs/EMOJI.md), [`docs/status/surface-claim-index.json`](docs/status/surface-claim-index.json) |
 
 ## Surface and authority guardrails
@@ -36,41 +37,16 @@ Where each surface keeps its owner docs (a lookup, not a reading list):
 
 ## Poolday design system
 
-Poolday UI code composes `@reploid/poolday-ui` components only. The full contract and the
-assessment behind it are in [docs/poolday-ui-architecture.md](docs/poolday-ui-architecture.md).
+Poolday UI code composes `@reploid/poolday-ui` components only. The layers, import rules and the
+steps for adding a primitive are in [docs/poolday-ui-architecture.md](docs/poolday-ui-architecture.md).
+Before pushing a Poolday UI change, run:
 
-- **One library.** `packages/poolday-ui` (import `@reploid/poolday-ui`, nothing deeper) is the
-  design system. Its components render the primitive classes in
-  `apps/poolday/styles/poolday/primitives/*.css` over `tokens.css`; those stylesheets are the
-  implementation and the single source of every value. No second component set, no page CSS.
-- **Layers** (`apps/poolday-react/src`, checked by `scripts/poolday-ui-architecture.json`):
+- `npm run verify:poolday-ui`: boundaries, the legacy ratchet (`scripts/poolday-ui-ratchet.json`,
+  which may only go down), the design index and types. `npm run lint` includes it.
+- `npm run verify:pool:css`: the CSS layer manifest and token references.
+- `npm run test:poolday-ui`: component and check tests.
 
-  | Layer | Path | May import |
-  | --- | --- | --- |
-  | ui | `packages/poolday-ui/src/` | ui, `react` |
-  | domain | `features/<f>/domain/` | domain |
-  | infrastructure | `features/<f>/infrastructure/` | domain, platform globals, the API bridge's public entries and `apps/poolday/host/` |
-  | presentation | `features/<f>/presentation/` | ui, domain, application, l10n, React hooks, types and `memo` |
-  | composition | `app/`, `main-*.tsx` | everything, `react-dom/client`, platform globals |
-  | l10n | `l10n/` | l10n |
-
-  Features never import each other; the composition layer joins them.
-- **Rules.** Outside `packages/poolday-ui`: no HTML elements (so no raw `button`, `input`,
-  `select`, `textarea` or `a`), no `className`, `style` or `dangerouslySetInnerHTML`, no
-  literal colours, sizes or durations. Inside it: values come from tokens, and `style` may set
-  only `--pool-param-*`. Pick choice controls by the decision (style guide table): exactly one
-  is `SingleChoice`, several is `MultiChoice`, on/off is `Toggle`.
-- **The API bridge stays pure.** `packages/reploid/src` has no React, JSX, DOM rendering or
-  presentation state, and every public entry has `.d.ts` types. Only infrastructure adapts it.
-- **Adding a primitive.** Add the component to `packages/poolday-ui/src` and export it from
-  `index.ts`; put any new look in a primitives stylesheet using tokens (`npm run verify:pool:css`);
-  add it to `PRIMITIVE_ORDER` in `scripts/build-poolday-design-index.mjs`, a specimen in
-  `apps/poolday-react/src/features/design/presentation/primitiveSpecimens.tsx` and an interaction
-  and accessibility test in `tests/unit/poolday-ui/components.test.tsx`; then
-  `npm run build:browser-bundle`. It appears on `/design` with its tokens and compositions.
-- **Checks.** `npm run verify:poolday-ui` (boundaries, the legacy ratchet, the design index,
-  types; part of `npm run lint` and the CI `design-system` job) and `npm run test:poolday-ui`.
-  The ratchet (`scripts/poolday-ui-ratchet.json`) counts the legacy vanilla UI and may only go down.
+The CI `design-system` job runs all three.
 
 ## Run and verify
 
@@ -94,7 +70,7 @@ Match the check to the risk. Times are from one laptop; CI runs the same command
 | Before every push | `npm run lint`: ESLint, the new-module rules applied to your work against `origin/main` (uncommitted and untracked files included), JavaScript-only, and the design-system boundaries and types. It is the lint CI runs | 15 s |
 | Before a push that changes served source (`packages/reploid/src`, `apps/poolday`, `shared`, `self`) | `npm run build`, and commit what it writes as its own commit. Rebuild after rebasing onto `main`: the bundles and inventories embed every source change, so a rebase makes them stale | 5-13 s |
 | Before pushing to `main` | The contract checks for each behavior you changed (next table) and, for a page change, the journey for that surface under `tests/e2e/` | 1-5 s a row |
-| Every push to `main` | CI `Smoke` ([test.yml](.github/workflows/test.yml)): named contract tests, generated-file checks, the bundle and the hosting package. No GPU and no browser | 2 min |
+| Every push to `main` | CI `Smoke` ([test.yml](.github/workflows/test.yml)), two jobs. `smoke`: named contract tests, `npm run lint`, generated-file checks (`verify:browser-bundle:local` and the rest), the bundle and the hosting package. `design-system`: `verify:poolday-ui`, `verify:pool:css`, `test:poolday-ui`. No GPU and no browser | 2 min |
 | Release, hardware work, or a change that justifies it | `npm test`, `npm run test:heavy`, `npm run test:e2e`, and the physical controllers (`tests/fixtures/*-physical.js`, `tests/contracts/`) | not in CI |
 
 These checks stay when their behavior changes; replace one only with a stronger test at the same boundary.

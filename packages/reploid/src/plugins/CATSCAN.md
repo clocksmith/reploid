@@ -1,6 +1,6 @@
 # CATSCAN: Plugin Sessions
 
-Parent: [Browser Library](../../CATSCAN.md)
+Parent: [Reploid Browser Library](../../CATSCAN.md)
 
 ## Target
 Run versioned research and game sessions through host-owned capabilities.
