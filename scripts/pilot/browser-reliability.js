@@ -14,9 +14,10 @@
  * separately as `sendEnabledMs`.
  *
  * Before the measured requests, the script waits for the page to finish "Finding computers…" (recorded as the setup's
- * `discoveryMs`), then sends one unmeasured setup request that takes the "Where should this run?" sheet and the
- * remote-contributor permission, which a person meets once. If the sheet or the permission prompt appears again
- * during a measured request, the script answers it and the time it took stays in that request's measurement.
+ * `discoveryMs`), then sends one unmeasured setup request that chooses the run's model and takes the
+ * remote-contributor permission, where the page asks for one. A first visitor's Send asks nothing
+ * (docs/first-visit-journeys.md); if a sheet or a permission prompt does appear during a measured request, the
+ * script answers it and the time it took stays in that request's measurement.
  *
  *   node scripts/pilot/browser-reliability.js --url http://127.0.0.1:8000/ [--model SELECTION_ID] \
  *     [--requests 100] [--interval-ms 25000] [--timeout-ms 120000] [--prompts FILE.json [--only-model MODEL_ID]] \
@@ -144,7 +145,7 @@ const answerOnLabel = page => page.locator('[data-open-model]').getAttribute('ar
 const pickerOpen = page => page.evaluate(() => Boolean(globalThis.document.querySelector('[data-model-picker]')?.open));
 const rowCount = page => page.evaluate(() => globalThis.document.querySelectorAll('[data-message-stream] [data-message-role]').length);
 
-/** The "Where should this run?" sheet is modal: left open, it blocks every later request. */
+/** The "Answer on" sheet is modal: left open, it blocks every later request. */
 async function closeSheet(page) {
   if (!await pickerOpen(page)) return;
   await page.locator('[data-model-picker-close]').click({ timeout: 3000 }).catch(() => page.keyboard.press('Escape'));

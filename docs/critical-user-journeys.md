@@ -6,6 +6,8 @@ ordering remain in the owner's private roadmap; completion checkboxes and full
 acceptance criteria remain in the canonical requirements (private roadmap). The
 [chat contract](chat-mvp.md) and [mesh architecture](open-mesh-architecture.md)
 explain the product and its mechanisms; neither advances acceptance by itself.
+The owner's four [first-visit journeys](first-visit-journeys.md) are the bar for the
+public page and are kept in their own file, in the owner's words.
 
 Each journey has one stable ID, actor/trigger, starting conditions, a
 main flow, observable success, interruption/recovery, deployment variants and

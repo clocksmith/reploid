@@ -192,6 +192,7 @@ Checking one published trade receipt from outside the project: [Verify a trade](
 ## Releases and evidence
 
 - **[docs/status/surface-claim-index.json](./status/surface-claim-index.json)** - Machine-checked surface status, evidence, blockers, and claim permission
+- **[docs/first-visit-journeys.md](./first-visit-journeys.md)** - The owner's four first-visit journeys for replo.id, the rules that follow from them, and the check that walks them
 - **[docs/critical-user-journeys.md](./critical-user-journeys.md)** - Outcome-based Reploid journey catalogue, coverage variants, and retained Poolday/Zero/X registries
 - **[docs/status/poolday-critical-user-journeys.json](./status/poolday-critical-user-journeys.json)** - Canonical Poolday user outcomes, prerequisites, evidence, limitations, and remaining work
 - **[docs/poolday/critical-user-journeys.md](./poolday/critical-user-journeys.md)** - Human-readable Poolday journey status

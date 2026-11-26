@@ -45,10 +45,11 @@ try {
   await rm(resolve(checkout, preparedConfig), { force: true });
   await run('npm', ['run', 'verify:pool:release', '--', '--url', 'https://replo.id', '--channel=chrome'], checkout);
   console.log(`[deploy] verified https://replo.id at ${revision}`);
-  // A catalog change disconnects every provider still on an older package and no other check sees it. The site is
-  // already deployed and correct at this point, so an unanswered question is reported, not treated as a failed deploy.
+  // The first-visit journeys (docs/first-visit-journeys.md), walked once on the deployed page. A catalog change
+  // disconnects every provider still on an older package and no other check sees it. The site is already deployed at
+  // this point, so a failure is reported with what did not hold (the JSON line's `failed`), not treated as a failed deploy.
   try { await run('npm', ['run', '--silent', 'verify:public-answer', '--', '--channel=chrome'], checkout); }
-  catch { console.error('[deploy] WARNING: no public computer answered a first-visitor question on https://replo.id. Compare the providers\' packages with the deployed model catalog.'); }
+  catch { console.error('[deploy] WARNING: the first-visit journey check did not pass on https://replo.id; its JSON line above lists what failed. If no public computer answered, compare the providers\' packages with the deployed model catalog.'); }
 } catch (error) {
   console.error(`[deploy] ${error.message}`); process.exitCode = 1;
 } finally {
