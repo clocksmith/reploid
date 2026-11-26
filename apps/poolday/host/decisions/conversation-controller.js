@@ -9,14 +9,10 @@
  * Cost per notification grows with the active thread's new output, not with how many threads exist: the thread
  * list projects a few fields per thread, and each message keeps its projection until its own record changes.
  */
-import { createExecutionPolicy, executionRequirementsFor, validateExecutionPolicy } from '../../../../shared/vendor/reploid/chat/execution-policy.js';
-import { PROTECTION_DISPLAY } from '../../../../shared/vendor/reploid/inference/protections.js';
-import { locationForRoute } from '../execution-route.js';
+import { createExecutionPolicy } from '../../../../shared/vendor/reploid/chat/execution-policy.js';
 import { describeCircleHost, parseCircleInviteUrl } from '../circle-invites.js';
-import {
-  allowsOpenPlaintext, conversationRoute, namedPrivacyPreset, presetForPolicy, policyForPreset, presetDisclosure
-} from '../../ui/pool-home/privacy-controls.js';
-import { ownDevicesChoice, protectionChoices, routeChoices, startingLocalModel } from '../../ui/pool-home/choice-availability.js';
+import { allowsOpenPlaintext, namedPrivacyPreset } from '../../ui/pool-home/privacy-controls.js';
+import { startingLocalModel } from '../../ui/pool-home/choice-availability.js';
 import { withComputerLabels } from '../../ui/pool-home/computer-labels.js';
 import {
   hasBrowserModelOrigin, isDownloadableBaseModel, modelExecutionState, modelVariantLabel, unavailableModelChoice, modelFacts
@@ -37,6 +33,7 @@ import { modelKey, preparingStatus, selectableStatus, servesPublicAnswers, store
 import { createTranscript } from './transcript.js';
 import { createDownloadDialog } from './download-dialog.js';
 import { createThreadList } from './threads.js';
+import { createPrivacyDialog } from './privacy-dialog.js';
 
 export { relativeTime } from './threads.js';
 import workProfile from '../../config/work-profile.json' with { type: 'json' };
@@ -111,11 +108,9 @@ export function createConversationController(session, {
   let files = [], composerRevision = 0, queuedSend = null, draftText = '', currentKey = '';
   let contextPrompt = viewState.contextPrompt || null;
   let executionLocation = viewState.executionLocation || 'auto';
-  let errorText = '', searchOn = false, submitting = false, applyingPrivacy = false, editingThread;
+  let errorText = '', searchOn = false, submitting = false;
   let sendAfterDestination = false, pickerChoice = null, stagedDestination = null;
   let sheet = { open: false, title: 'Answer on' };
-  // "Who can read it?": the staged protection, route and own-devices choice; they apply only with Apply.
-  let privacyDialog = { open: false, protection: null, route: null, ownDevices: false, editable: true, error: '' };
   let attachmentHelp = false, focus = { target: null, seq: 0 };
   // Up to three distinct starters, chosen at random from the set and kept for this view's life so nothing moves.
   const startingPrompts = pickStartingPrompts(chatPrompts, random);
@@ -185,29 +180,6 @@ export function createConversationController(session, {
     ? { id: state.ownerPairing.hostParticipantId, label: state.ownerPairing.hostLabel || 'your desktop' } : null,
   model: state.activeThread?.model ?? chosenModel ?? null,
   location: state.activeThread?.permissions?.executionLocation ?? executionLocation });
-  const ownDevicesOf = context => context?.desktop?.id ? [context.desktop.id] : [];
-  const requirementsOf = policy => { try { return executionRequirementsFor(policy); } catch { return null; } };
-  const stageCount = model => new Set(model?.partition?.route?.stages?.map(stage => stage.participantId)
-    ?? [model?.partition?.participantA, model?.partition?.participantB].filter(Boolean)).size;
-  /** The dialog's rows, lines and notes for what is staged (privacy-controls.js showPrivacyChoices, without markup). */
-  const projectPrivacy = state => {
-    const context = presetContext(state), { editable } = privacyDialog;
-    const protection = privacyDialog.protection ?? 'plaintext', route = privacyDialog.route ?? 'auto';
-    const own = ownDevicesChoice({ desktop: context.desktop?.label ?? null, route, editable, checked: privacyDialog.ownDevices });
-    const split = protection === 'plaintext' && (route === 'split' || route === 'split-local-edges');
-    const preset = route === 'local' || own.checked ? 'own-devices' : 'standard';
-    return {
-      open: privacyDialog.open, editable, error: privacyDialog.error, applying: applyingPrivacy,
-      protection: privacyDialog.protection, route: privacyDialog.route, ownDevices: own.checked,
-      protections: protectionChoices({ editable, value: protection }).map(({ value, title, status, disabled }) => ({ value, title, status, disabled })),
-      routes: routeChoices({ model: context.model, canRunHere: true, editable, value: route }).map(({ value, title, status, disabled }) => ({ value, title, status, disabled })),
-      ownDevicesOption: { value: own.value, title: own.title, status: own.status, disabled: own.disabled },
-      splitNote: !split ? '' : promptDisclosure({ site: 'split-note', stages: true, edges: route === 'split-local-edges', stageCount: stageCount(context.model) }),
-      preset, note: presetDisclosure(preset, { desktop: route === 'local' ? null : context.desktop?.label ?? null }),
-      // Both statements stay in the page, the chosen one shown, as the vanilla dialog keeps them.
-      notes: Object.fromEntries(['standard', 'own-devices'].map(name => [name, presetDisclosure(name, { desktop: route === 'local' ? null : context.desktop?.label ?? null })]))
-    };
-  };
   const currentRoute = state => {
     const key = destinationKey(state), ids = explicitPrivacy(state).recipients?.ids;
     return key === 'named' && ids?.length === 1 && ids[0] === state.ownerPairing?.hostParticipantId ? 'desktop' : key;
@@ -512,7 +484,7 @@ export function createConversationController(session, {
     const privacy = explicitPrivacy(state);
     const privacyDisabled = busy || !!thread?.closed;
     const named = namedPrivacyPreset(privacy, presetContext(state));
-    if (privacyDialog.open && (privacyDisabled || editingThread !== state.selectedId)) privacyDialog = { ...privacyDialog, open: false };
+    privacyChoice.follow(state, privacyDisabled);
     const shared = !busy && !usable && !preparing && !thread?.closed && !acquiring ? recoverySharedModel(state, current, location, privacy) : null;
     let statusText = '';
     if (!busy) {
@@ -659,7 +631,7 @@ export function createConversationController(session, {
       selectedId: state.selectedId, threadClosed: !!thread?.closed, busy, hasMessages: !!thread?.messages.length,
       composer,
       sheet: sheet.open ? projectSheet(state) : { open: false },
-      privacy: projectPrivacy(state),
+      privacy: privacyChoice.project(state),
       rename: threadList.renameView(),
       download: downloads.view(),
       remotePermission: pendingApproval ? {
@@ -903,6 +875,12 @@ export function createConversationController(session, {
     });
   };
 
+  // ---- "Who can read it?" (privacy-dialog.js) ----
+  const privacyChoice = createPrivacyDialog({ session, getState: () => sessionState, viewState, notify, requestFocus, presetContext, explicitPrivacy,
+    blocked: () => submitting || privacyDisabledNow(),
+    beforeOpen: () => { queuedSend = null; if (sheet.open) sheet = { open: false, title: 'Answer on' }; },
+    setDraftLocation: location => { executionLocation = viewState.executionLocation = location; } });
+
   // ---- the Threads list (threads.js) ----
   const threadList = createThreadList({ session, getState: () => sessionState, notify, now, act, requestFocus, saveDraft, viewState,
     disposed: () => disposed });
@@ -1016,62 +994,9 @@ export function createConversationController(session, {
       const model = sessionState.models?.find(item => modelKey(item) === key);
       return model?.providerIds?.length ? { providerIds: [...model.providerIds], label: modelVariantLabel(model) } : null;
     },
-    // "Who can read it".
-    openPrivacy() {
-      if (submitting || applyingPrivacy || privacyDisabledNow()) return;
-      queuedSend = null;
-      if (sheet.open) sheet = { open: false, title: 'Answer on' };
-      const state = sessionState, context = presetContext(state), policy = explicitPrivacy(state);
-      editingThread = state.selectedId;
-      let preset = null, requirements = null;
-      try { requirements = executionRequirementsFor(validateExecutionPolicy(policy)); preset = presetForPolicy(policy, ownDevicesOf(context)); } catch { /* read-only below */ }
-      const route = requirements ? conversationRoute(policy, context) : null;
-      const editable = preset === 'standard' || preset === 'own-devices';
-      privacyDialog = { open: true, protection: requirements?.protection ?? null, route, ownDevices: route !== 'local' && preset === 'own-devices', editable,
-        error: editable ? '' : 'This conversation has requirements these choices cannot express. It is read-only here.' };
-      notify();
-    },
-    pickProtection(value) { if (PROTECTION_DISPLAY[value]) { privacyDialog = { ...privacyDialog, protection: value, error: '' }; notify(); } },
-    pickRoute(value) { privacyDialog = { ...privacyDialog, route: value, error: '' }; notify(); },
-    setOwnDevices(on) { privacyDialog = { ...privacyDialog, ownDevices: !!on, error: '' }; notify(); },
-    closePrivacy() { privacyDialog = { ...privacyDialog, open: false }; requestFocus('privacy'); notify(); },
-    applyPrivacy() {
-      const state = sessionState;
-      if (!privacyDialog.open || applyingPrivacy || submitting || editingThread !== state.selectedId || privacyDisabledNow() || !privacyDialog.editable) return;
-      applyingPrivacy = true; notify();
-      void (async () => {
-        try {
-          // privacy-controls.js readPrivacyControls, from the staged choices.
-          const { protection, route } = privacyDialog;
-          if (!protection) throw new Error('Choose who can read your content.');
-          if (protection !== 'plaintext') throw new Error(`${PROTECTION_DISPLAY[protection]?.label ?? protection} is unavailable here. Nothing was changed.`);
-          if (!route) throw new Error('Choose where it runs.');
-          const context = presetContext(state);
-          const own = ownDevicesChoice({ desktop: context.desktop?.label ?? null, route, editable: true, checked: privacyDialog.ownDevices });
-          const preset = route === 'local' || own.checked ? 'own-devices' : 'standard';
-          const devices = route === 'local' ? [] : ownDevicesOf(context);
-          const stored = explicitPrivacy(state);
-          const current = stored && (requirementsOf(stored)?.route === 'local') === (route === 'local') ? stored : null;
-          const privacy = policyForPreset(preset, current, devices);
-          viewState.privacyTouched = true;
-          // The route is stored as the thread's execution location; the request derives `execution.route` from it.
-          const location = locationForRoute(route), model = context.model;
-          if (!state.activeThread) viewState.privacyPreset = privacy.placement === 'local-only' || privacy.recipients.kind === 'named' ? 'own-devices' : 'standard';
-          if (state.activeThread) {
-            await session.setExecutionPrivacy(state.activeThread.id, privacy);
-            if (!(location === 'local' && model?.partition) && state.activeThread.permissions?.executionLocation !== location) {
-              await session.setExecutionLocation(state.activeThread.id, location);
-            }
-          } else {
-            viewState.privacy = privacy;
-            executionLocation = viewState.executionLocation = location;
-          }
-          privacyDialog = { ...privacyDialog, open: false }; requestFocus('privacy');
-        } catch (cause) {
-          privacyDialog = { ...privacyDialog, error: cause.message };
-        } finally { applyingPrivacy = false; notify(); }
-      })();
-    },
+    // "Who can read it" (privacy-dialog.js).
+    openPrivacy: privacyChoice.open, pickProtection: privacyChoice.pickProtection, pickRoute: privacyChoice.pickRoute,
+    setOwnDevices: privacyChoice.setOwnDevices, closePrivacy: privacyChoice.close, applyPrivacy: privacyChoice.apply,
     // The reviewed download.
     selectDownloadModel: downloads.selectModel,
     setDownloadSharing: downloads.setSharing,
