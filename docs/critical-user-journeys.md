@@ -74,7 +74,7 @@ to figure out how the network works.
   3. Sees the device report ready for exactly that choice; storage-only never starts compute.
   4. Is seen by another peer as offering it.
   5. Presses Pause; the device stops, and the other peer sees it stop.
-- **Evidence status:** not shown. Only criterion 1 is shown: the public-answer walk on the deployed page checks that the path to contribute is visible. No retained run shows criteria 2 to 5 passing; until one does, this journey is unproven beyond discoverability.
+- **Evidence status:** source integration. All five criteria hold in the local contribution journey check ([tests/e2e/contribution-journey.spec.js](../tests/e2e/contribution-journey.spec.js), 2026-11-26, on 14bbff6f7 with the piece-index change of 555f3a20f; one Mac, a local server and a private room, headless Chromium profiles, the real Qwen 3.5 0.8B model and WebGPU; mobile is an emulated 390 px viewport): all six combinations of desktop or mobile with storage, compute or both pass (mobile with both on its second attempt; the first stopped on "Insufficient browser storage" in the headless profile). A fresh device reports Not sharing and the download dialog ticks no sharing choice; the device reports ready for exactly the chosen offer and storage alone never starts compute; another peer lists the offer and, for compute, gets an answer from it, and for storage, fetches verified pieces from it with no catalog weight request; Pause all in Computers stops both and the other peer then lists the device offering nothing. Criterion 1 also holds in the public-answer walk on the deployed page. Not shown: the deployed page, a physical phone, and peers on separate machines or networks.
 
 ### FIRST-04 — Inspect the mesh
 
@@ -84,7 +84,7 @@ to figure out how the network works.
   1. From the same page, a visitor can open a view of the mesh and see which computers are ready.
   2. Each listed computer shows what it offers: the model it serves, and whether it supplies model files.
   3. Opening the view is optional: Send stays usable while it is open and after it closes, and nothing in it is required before Ask.
-- **Evidence status:** not shown. Criteria 1 and 3, and criterion 2 for served models, hold in the public-answer walk on the deployed 9aa668035. The view does not show which computers supply model files, so criterion 2 is not shown for storage. The catalogue had no journey for this outcome; MESH-06 was added for it.
+- **Evidence status:** source integration. Criteria 1 and 3, and criterion 2 for served models, hold in the public-answer walk on the deployed 9aa668035. Criterion 2 for model files holds only in the local contribution journey check ([tests/e2e/contribution-journey.spec.js](../tests/e2e/contribution-journey.spec.js), 2026-11-26, on 14bbff6f7 with the piece-index change of 555f3a20f; one Mac, a local server and a private room, headless Chromium profiles, the real Qwen 3.5 0.8B model and WebGPU; mobile is an emulated 390 px viewport): each row's Offers fact names compute, model files or both, with readiness for each. A device offering both appears as two rows, one per connection (files on its requester connection, compute on its supplier connection). Not shown on the deployed page.
 
 ### Rules that follow from them
 
@@ -396,7 +396,7 @@ by [RD-CANON/1](roadmap/rd-canon-1.md).
   3. It serves admitted work within its limits and idles when no work needs it.
   4. Failed preparation and missing supply are shown; readiness is never advertised falsely, and a rejected offer is withdrawn.
   5. Stop is responsive and does not cancel the owner's own conversations.
-- **Evidence status:** source integration ([host lifecycle tests](../tests/unit/work-swarm-lifecycle.test.js)). Physical acceptance on an older package: bounded contribution 7/7 in the [installed journeys on the faster candidate](https://github.com/clocksmith/reploid/blob/d77f295967c5cf064cf16c9978fed0be7765ae7f/artifacts/faster-candidate-20261015/journeys/README.md). Not shown on the current page end to end (see FIRST-03).
+- **Evidence status:** source integration ([host lifecycle tests](../tests/unit/work-swarm-lifecycle.test.js)). Physical acceptance on an older package: bounded contribution 7/7 in the [installed journeys on the faster candidate](https://github.com/clocksmith/reploid/blob/d77f295967c5cf064cf16c9978fed0be7765ae7f/artifacts/faster-candidate-20261015/journeys/README.md). On the current page, the local contribution journey check ([tests/e2e/contribution-journey.spec.js](../tests/e2e/contribution-journey.spec.js), 2026-11-26, on 14bbff6f7 with the piece-index change of 555f3a20f; one Mac, a local server and a private room, headless Chromium profiles, the real Qwen 3.5 0.8B model and WebGPU; mobile is an emulated 390 px viewport) shows criteria 1 and 2 and Stop from criterion 5 for a browser whole-model contributor on desktop and mobile, and it served one admitted answer; idling, failed preparation and stopping during work are not exercised. Not shown: the deployed page, a physical phone, and peers on separate machines or networks.
 
 ### CONTRIB-02 — Offer verified model files
 
@@ -413,7 +413,7 @@ by [RD-CANON/1](roadmap/rd-canon-1.md).
   3. Full-model seeding is a separate grant that shows its resource scope before approval; neither cached-only nor bounded sharing implies it.
   4. After a reload or interruption the inventory is rebuilt from verified metadata and actual cached bytes; stale inventory is not proof of custody.
   5. A restart does not silently renew the allowance, and Stop aborts an in-flight transfer while keeping its charges.
-- **Evidence status:** source integration ([transfer-budget tests](../tests/unit/native-supply-budget.test.js)). Physical acceptance on an older package: bounded contribution 7/7 and full-model seeding 7/7 in the [installed journeys on the faster candidate](https://github.com/clocksmith/reploid/blob/d77f295967c5cf064cf16c9978fed0be7765ae7f/artifacts/faster-candidate-20261015/journeys/README.md). Not shown on the current page (see FIRST-03).
+- **Evidence status:** source integration ([transfer-budget tests](../tests/unit/native-supply-budget.test.js)). Physical acceptance on an older package: bounded contribution 7/7 and full-model seeding 7/7 in the [installed journeys on the faster candidate](https://github.com/clocksmith/reploid/blob/d77f295967c5cf064cf16c9978fed0be7765ae7f/artifacts/faster-candidate-20261015/journeys/README.md). On the current page, the local contribution journey check ([tests/e2e/contribution-journey.spec.js](../tests/e2e/contribution-journey.spec.js), 2026-11-26, on 14bbff6f7 with the piece-index change of 555f3a20f; one Mac, a local server and a private room, headless Chromium profiles, the real Qwen 3.5 0.8B model and WebGPU; mobile is an emulated 390 px viewport) shows cached-only sharing of a model downloaded for answering supplying verified pieces to a fresh peer with no catalog weight request, and Pause withdrawing the offer; the downloaded model stores its piece index with the approved download, so cached-only sharing fetches nothing. Allowance persistence, interrupted transfers, full-model seeding and restarts are not exercised by it. Not shown: the deployed page, a physical phone, and peers on separate machines or networks.
 
 ### CONTRIB-03 — Ask while contributing
 
@@ -461,7 +461,7 @@ by [RD-CANON/1](roadmap/rd-canon-1.md).
   2. Overlapping stops coalesce, and an older stop cannot close a newer contribution.
   3. Failed cleanup stays owned and retryable; file supply follows its own permission.
   4. Unrelated conversations survive.
-- **Evidence status:** source integration ([host lifecycle tests](../tests/unit/work-swarm-lifecycle.test.js)). Physical acceptance on an older package: [scoped physical cleanup/retry](https://github.com/clocksmith/reploid/blob/e543183bed54dfdf2b6e6139dd4c31c8686f47bd/artifacts/cleanup-failure-20261012/README.md). Pause on the current page is not shown (see FIRST-03).
+- **Evidence status:** source integration ([host lifecycle tests](../tests/unit/work-swarm-lifecycle.test.js)). Physical acceptance on an older package: [scoped physical cleanup/retry](https://github.com/clocksmith/reploid/blob/e543183bed54dfdf2b6e6139dd4c31c8686f47bd/artifacts/cleanup-failure-20261012/README.md). On the current page, the local contribution journey check ([tests/e2e/contribution-journey.spec.js](../tests/e2e/contribution-journey.spec.js), 2026-11-26, on 14bbff6f7 with the piece-index change of 555f3a20f; one Mac, a local server and a private room, headless Chromium profiles, the real Qwen 3.5 0.8B model and WebGPU; mobile is an emulated 390 px viewport) shows Pause all in Computers stopping compute and file sharing together, the Settings file switch reading the same state, and another peer listing the device offering nothing within 90 s; overlapping stops and failed cleanup are not exercised by it. Not shown: the deployed page, a physical phone, and peers on separate machines or networks.
 
 ## Share network capacity
 
@@ -558,7 +558,7 @@ by [RD-CANON/1](roadmap/rd-canon-1.md).
   2. Each ready computer shows the model it serves, and whether it supplies model files.
   3. This device's own state (sharing or not) is shown.
   4. Send stays usable while the view is open and after it closes.
-- **Evidence status:** not shown. Criteria 1, 3 and 4, and criterion 2 for served models, hold in the public-answer walk on the deployed 9aa668035; the view does not show which computers supply model files.
+- **Evidence status:** source integration. Criteria 1, 3 and 4, and criterion 2 for served models, hold in the public-answer walk on the deployed 9aa668035. Whether a computer supplies model files (criterion 2) and this device's own offers (criterion 3) are shown by the Offers fact in the local contribution journey check ([tests/e2e/contribution-journey.spec.js](../tests/e2e/contribution-journey.spec.js), 2026-11-26, on 14bbff6f7 with the piece-index change of 555f3a20f; one Mac, a local server and a private room, headless Chromium profiles, the real Qwen 3.5 0.8B model and WebGPU; mobile is an emulated 390 px viewport). A device offering both appears as two rows, one per connection. Not shown on the deployed page.
 
 ## Delegate work
 
