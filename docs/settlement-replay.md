@@ -963,6 +963,82 @@ above describe, with `K` from the receiver policy, and reaches the amounts it
 reached when they were signed
 (`tests/unit/settlement-terms-before-k.test.js`).
 
+## The coordinator's statement
+
+The records above decide the debit and every payout. They cannot show one
+thing: what the ledger did with the hold. Before a request is sent, the ledger
+places a hold of the signed `maximum` on the requester's account and releases
+it when the attempt settles or expires. A hold is ledger state. No requester
+and no stage signs it, so no set of participant records can show that it was
+released.
+
+The smallest record that makes it checkable without the ledger is a statement
+signed by whoever keeps the ledger, the **coordinator**, once an attempt is
+final:
+
+| Record | Signed by | When | Binds |
+| --- | --- | --- | --- |
+| Settlement statement (`reploid.settlement-statement/v1`) | coordinator | when the attempt is settled or expired | the agreed terms' digest, the ledger's settlement-rules id, the outcome, the debit, each credited account's payout, the stages that forfeited, and the hold it placed, released and still holds for the reservation |
+
+It is **not an input of the replay**: `replaySettlement` neither reads nor
+needs it, a record with this schema in its input is rejected like any unknown
+record, and nothing in "Deciding an outcome" changes. It is checked beside the
+replay's result.
+
+- **Fields** (signer: `coordinatorId`; every member required, no other
+  allowed; text, count and time as under [Record fields](#record-fields)):
+  `schema`; `reservationId` text 160; `attemptId`; `requesterId`; `termsDigest`
+  digest, of the agreed terms' body; `coordinatorId`; `settlementRules`
+  text 128, the ledger's settlement-rules id for the reservation
+  (`reploid.settlement-replay/v1`, `.../v1+acknowledged-prefix`, `.../v2` or
+  `.../v3`, see [Older rules](#older-rules)); `status`, `settled` or `expired`;
+  `debit` count; `payouts`, at most 128 entries of exactly `{ account, amount }`
+  with `account` text 128 and `amount` positive, one per account credited more
+  than 0, in ascending order of `account` by UTF-16 code unit; `forfeited`, the
+  partition indexes that forfeited, ascending, `[]` when none; `hold`, exactly
+  `{ placed, released, remaining }`, each a count in credits, with
+  `released + remaining` equal to `placed`; `signedAt` time.
+- **Encoding.** As every other record ([Encoding](#encoding)): the body plus
+  `publicJwk` and `signature`, the signed bytes carrying this schema as their
+  `signatureDomain`, canonical base64url, an exact key, low-S for P-256, and
+  `coordinatorId` equal to the participant ID of the carried key.
+- **Checks.** Beside a replay row that is `settled` or `expired`, a verifier
+  requires: the signature holds; `reservationId`, `attemptId` and `requesterId`
+  are the row's; `termsDigest` is the digest of the agreed terms; the
+  `settlementRules` is one whose unfinished-answer terms are the agreed terms'
+  `unfinishedTerms`; `status` is the row's; `debit` is the row's `debit`;
+  `payouts` equal the row's credits summed per account (signed accounts,
+  step 8, or the caller's `accountOf`), zero amounts left out; `forfeited`
+  lists the row's `forfeited` stages; `hold.placed` is the terms' `maximum`;
+  and `hold.remaining` is 0. For a row that carries the one older known
+  difference ([Older rules](#older-rules)) the `debit` and `payouts` are the
+  acknowledged prefix split by the signed weights instead.
+
+What it establishes: the coordinator committed, under its own key, to having
+released the whole hold and to the amounts it posted. A hold that outlives the
+statement, or a posting that differs from it, contradicts the coordinator's own
+signature, and anyone holding the statement can show that.
+
+What it does not establish:
+- **The ledger's actual state.** The statement is the coordinator's word about
+  its own database. A verifier without the ledger cannot see whether the hold
+  is really gone, only that the coordinator can no longer deny having said so.
+- **Whose key it is.** No participant record names the coordinator: terms do
+  not carry a coordinator ID, so a verifier learns the key from whoever
+  publishes the statement. Binding it would need the requester to sign the
+  coordinator's ID into its terms, which is a change to the terms' shape and is
+  not made here.
+- **Other reservations.** It speaks for one reservation's hold, not for the
+  account's total.
+
+`server/fleet/settlement-statement.js` signs and checks the record. The live
+fleet service does not issue it yet: its ledger has no signing key, and which
+key speaks for a coordinator is an operator decision. Today only
+`scripts/settlement/failure-cases.js` produces it, from a real ledger's state in
+one process and with a test key, and every trade settled before 2026-11-26 has
+none. For those, the release of the hold is the publisher's unsigned statement
+and is not proven by any record.
+
 ## Checking it
 
 ```sh
@@ -994,7 +1070,9 @@ machine.
 owner statements frozen from the code that ran each of the two older rules
 (`tests/fixtures/settlement-old-rules.json`) and expects the same amounts. To
 check one published trade without this repository's tests, see
-[verify-a-trade.md](verify-a-trade.md).
+[verify-a-trade.md](verify-a-trade.md); its records-only check
+(`scripts/settlement/verify-records.js`) uses only the second verifier and
+reads the coordinator's statement.
 
 The attack matrix judges the same attempts three ways with real signatures: the
 replay; an operator-signed usage log (B1); and a usage log that the requester and
