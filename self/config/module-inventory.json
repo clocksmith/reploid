@@ -92,7 +92,7 @@
     {
       "path": "capabilities/cognition/gepa-optimizer.js",
       "owner": "capabilities",
-      "sha256": "sha256:a00456d1c44941250d2ebcfa2229029c55e401f00cb6fc19a1c960a8a4be3486",
+      "sha256": "sha256:ff7158e9b46ed4d6c283f87354f6a52693f150caad4bf97d1a18b7a0cf680f38",
       "imports": [
         "./gepa-evaluation.js",
         "./gepa-reflection.js",
@@ -302,7 +302,7 @@
     {
       "path": "capabilities/system/substrate-loader.js",
       "owner": "capabilities",
-      "sha256": "sha256:f14e8e9574b69adec787fd098266cd92d8e50e42f5d800bc71a50140d5c0a211",
+      "sha256": "sha256:8fbc862c0dd63dcedfbf8d7bb62091df7ee25c53ac41f3a442fd196dd67a4bda",
       "imports": [
         "../../core/security-config.js",
         "../../core/vfs-module-loader.js"
@@ -560,7 +560,7 @@
     {
       "path": "core/functiongemma-orchestrator.js",
       "owner": "core",
-      "sha256": "sha256:1416ba6905cf642dcbe17f7d0589468a36ca3dc75046b8435b4d8fd96d3227c8",
+      "sha256": "sha256:cfe5b49407a0bcf3af95ee3d50c5566672e56431901cbad0cb64a12fe144527a",
       "imports": [
         "./functiongemma-network.js",
         "./tool-argument-validation.js"
@@ -701,7 +701,7 @@
     {
       "path": "core/tool-runner.js",
       "owner": "core",
-      "sha256": "sha256:f0bfb9bd4f1e75a1e62b442c83dd64dd76fbdadcc9563ef8ad7f63d7921671a8",
+      "sha256": "sha256:5a874ddcd81e2800255fff404a98758142d09c0c534507926f578590a22c87ac",
       "imports": [
         "../config/lab-upgrades.js",
         "../config/tool-surfaces.js",
@@ -921,7 +921,7 @@
     {
       "path": "infrastructure/error-store.js",
       "owner": "infrastructure",
-      "sha256": "sha256:e6c9d916b259e5ddbab2694a1f876f5653e420f9ddca0a6eedf2d295e2bb50e3",
+      "sha256": "sha256:cd77356e277ea0d126e79ba5a522438c449056c310eb0a0b7968baec13238e20",
       "imports": []
     },
     {
@@ -5534,7 +5534,7 @@
     {
       "path": "ui/proto/replay.js",
       "owner": "ui",
-      "sha256": "sha256:f50b53ff44a5df77dc8eb8252974efe45de7d03b89c00060572be4add5f1b123",
+      "sha256": "sha256:c37712fcd57c6996c6cd9a5d3c9c93b98dc7e648e0415ed900b94428c4392bc3",
       "imports": [
         "./utils.js"
       ]

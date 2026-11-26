@@ -45,8 +45,8 @@
     },
     {
       "path": "blueprints/0x000005-state-management-architecture.md",
-      "byteLength": 2818,
-      "sha256": "sha256:e3cd0bc794761a04c9d8bc21c00a4fe8dfce82125ba53c5aa068034905a5f2b0"
+      "byteLength": 2873,
+      "sha256": "sha256:31210ecfd645bb6648c7d0f0d621eafb2c87601def227fd8a72214b5fb58cb7e"
     },
     {
       "path": "blueprints/0x000006-pure-state-helpers.md",
@@ -270,8 +270,8 @@
     },
     {
       "path": "blueprints/0x000032-reflection-store-architecture.md",
-      "byteLength": 6007,
-      "sha256": "sha256:908574680d9c8211b5a7c0088e4c8b1a21839f33567c57abd5232d9e4177497f"
+      "byteLength": 6138,
+      "sha256": "sha256:3c1a1f4ebf92df753121e4e0c1ca7f2b9297c956e5f64c465d83d5e1e6e2996a"
     },
     {
       "path": "blueprints/0x000033-tool-usage-analytics.md",
@@ -295,8 +295,8 @@
     },
     {
       "path": "blueprints/0x000037-browser-api-integration.md",
-      "byteLength": 3529,
-      "sha256": "sha256:f16853ecd44badc8cd4c45deed48e2fe19d30002e794315b1312adec0f9e2505"
+      "byteLength": 3516,
+      "sha256": "sha256:def05fe8c067fc9f79daf36b9af0902ab94e4e181d2c13575bdee1adc96b246e"
     },
     {
       "path": "blueprints/0x000038-webrtc-swarm-transport.md",
@@ -340,8 +340,8 @@
     },
     {
       "path": "blueprints/0x000040-verification-manager.md",
-      "byteLength": 8826,
-      "sha256": "sha256:4939de7d5d64d619b7add06aca1aae41998ec453a195f20a2d313027fdf31b28"
+      "byteLength": 8874,
+      "sha256": "sha256:dc1bf2157d29b7f687421a0287ef6862cadbb325dbbd431d05b2393e335411ac"
     },
     {
       "path": "blueprints/0x000041-module-widget-protocol.md",
@@ -375,8 +375,8 @@
     },
     {
       "path": "blueprints/0x000047-worker-pool-parallelization.md",
-      "byteLength": 5732,
-      "sha256": "sha256:cc2fde86fddacf679ef1dff6754e6ae297bb25ce60ed4f49686c2c9d61a3ada8"
+      "byteLength": 5615,
+      "sha256": "sha256:7be709b113cf2ce1c998b4a64e82efabbd3bf9692dd866b9fd4b961c7cbd662d"
     },
     {
       "path": "blueprints/0x000048-diff-viewer-ui.md",
@@ -385,8 +385,8 @@
     },
     {
       "path": "blueprints/0x000049-hitl-controller.md",
-      "byteLength": 5748,
-      "sha256": "sha256:b76ec4b296b5ed377805310f3120fd26a0db8b974adf008ba217989731e90ba4"
+      "byteLength": 5799,
+      "sha256": "sha256:345761f416dc6fe2b2f28eebe434ccbb159dbede59580909d10eae56d6acccc4"
     },
     {
       "path": "blueprints/0x00004A-hot-module-reload.md",
@@ -415,8 +415,8 @@
     },
     {
       "path": "blueprints/0x00004F-event-bus-infrastructure.md",
-      "byteLength": 3440,
-      "sha256": "sha256:5421014671c133af2302fe78eb0a75de6dc22f4e70f9062d1e39a47212dd7c38"
+      "byteLength": 3347,
+      "sha256": "sha256:53c5fb894d2e72f30d9b46cec069fe31c544e7e1591ccd33d1744b831f1bbcbb"
     },
     {
       "path": "blueprints/0x000050-sentinel-fsm.md",
@@ -485,8 +485,8 @@
     },
     {
       "path": "blueprints/0x00005D-transformers-client.md",
-      "byteLength": 4267,
-      "sha256": "sha256:bc3f72ee4f2391342f7cb185ad13a78a602a8115e55d5bace4357b9bcba318c0"
+      "byteLength": 4181,
+      "sha256": "sha256:0f7ad3c97e4a9fffa334ece5243881ffe69db42dec39100f921640791b9579e7"
     },
     {
       "path": "blueprints/0x00005E-embedding-store.md",
@@ -535,8 +535,8 @@
     },
     {
       "path": "blueprints/0x000067-gepa-prompt-evolution.md",
-      "byteLength": 25844,
-      "sha256": "sha256:1a1bb1c81d6697b48475570770917d2cabc245705ef9dbc43b9ca46399e9fd01"
+      "byteLength": 26058,
+      "sha256": "sha256:747721974b05fba798323e6571dc425a30aca657064c7c2a074a774a398ad2eb"
     },
     {
       "path": "blueprints/0x000068-hierarchical-memory-architecture.md",
@@ -560,8 +560,8 @@
     },
     {
       "path": "blueprints/0x00006C-error-store.md",
-      "byteLength": 3499,
-      "sha256": "sha256:773b018819a53a771aeefe831048c1e0e8837c135255b303893ca60b97d8727c"
+      "byteLength": 3507,
+      "sha256": "sha256:e35c58490f6bb3ec7d7cd2dd4779ce8b1e729eb59931fb0689aa03482d5af095"
     },
     {
       "path": "blueprints/0x00006D-observability.md",
@@ -570,8 +570,8 @@
     },
     {
       "path": "blueprints/0x00006E-replay-engine.md",
-      "byteLength": 6465,
-      "sha256": "sha256:66f1d1123e614a256724a568354cfcda5e660d2e8506a7642737cae564ee9286"
+      "byteLength": 6455,
+      "sha256": "sha256:eba945d63067842d4f1151b63853799b6e8436b11512cc7d51740ccda92bcf3d"
     },
     {
       "path": "blueprints/0x00006F-telemetry-timeline.md",
@@ -585,8 +585,8 @@
     },
     {
       "path": "blueprints/0x000071-substrate-loader.md",
-      "byteLength": 5735,
-      "sha256": "sha256:fa795490573b639d41b107d6155bafa96a502a7f06d35de068e29941371be3e1"
+      "byteLength": 5755,
+      "sha256": "sha256:ebc246e3c7c204c0a9afef346e5ca3cae220948b9756e4c188385f4410b72181"
     },
     {
       "path": "blueprints/0x000072-agent-bridge.md",
@@ -645,8 +645,8 @@
     },
     {
       "path": "blueprints/0x00007D-capabilities-intelligence-functiongemma-orchestrator.md",
-      "byteLength": 6033,
-      "sha256": "sha256:4f2fc3c8f799ed871f2b4514e27240ee9fb39eea155787f6fb6320ed01c78b2a"
+      "byteLength": 6180,
+      "sha256": "sha256:b60abb5628290b8b9969c8733faa73f3c55faa6964d99f876b6b60d04ccafc9a"
     },
     {
       "path": "blueprints/0x00007E-sponsor-peer-protocol.md",
@@ -1021,7 +1021,7 @@
     {
       "path": "capabilities/cognition/gepa-optimizer.js",
       "byteLength": 34124,
-      "sha256": "sha256:a00456d1c44941250d2ebcfa2229029c55e401f00cb6fc19a1c960a8a4be3486"
+      "sha256": "sha256:ff7158e9b46ed4d6c283f87354f6a52693f150caad4bf97d1a18b7a0cf680f38"
     },
     {
       "path": "capabilities/cognition/gepa-reflection.js",
@@ -1180,8 +1180,8 @@
     },
     {
       "path": "capabilities/system/substrate-loader.js",
-      "byteLength": 4794,
-      "sha256": "sha256:f14e8e9574b69adec787fd098266cd92d8e50e42f5d800bc71a50140d5c0a211"
+      "byteLength": 4931,
+      "sha256": "sha256:8fbc862c0dd63dcedfbf8d7bb62091df7ee25c53ac41f3a442fd196dd67a4bda"
     },
     {
       "path": "capsule/index.js",
@@ -1416,7 +1416,7 @@
     {
       "path": "config/module-inventory.json",
       "byteLength": 698667,
-      "sha256": "sha256:12695e04d94e7c5697b04aff85f1327be222d3c7a80c15c21bfcf1a7d45d6e83"
+      "sha256": "sha256:dbd23ed42d2f7f878ebc1a0f9abde88dad42ea25b8dd58ed17a32eb3325c6980"
     },
     {
       "path": "config/module-registry.json",
@@ -1601,7 +1601,7 @@
     {
       "path": "core/functiongemma-orchestrator.js",
       "byteLength": 38882,
-      "sha256": "sha256:1416ba6905cf642dcbe17f7d0589468a36ca3dc75046b8435b4d8fd96d3227c8"
+      "sha256": "sha256:cfe5b49407a0bcf3af95ee3d50c5566672e56431901cbad0cb64a12fe144527a"
     },
     {
       "path": "core/import-rewrite.js",
@@ -1700,8 +1700,8 @@
     },
     {
       "path": "core/tool-runner.js",
-      "byteLength": 26529,
-      "sha256": "sha256:f0bfb9bd4f1e75a1e62b442c83dd64dd76fbdadcc9563ef8ad7f63d7921671a8"
+      "byteLength": 26615,
+      "sha256": "sha256:5a874ddcd81e2800255fff404a98758142d09c0c534507926f578590a22c87ac"
     },
     {
       "path": "core/tool-writer.js",
@@ -2330,8 +2330,8 @@
     },
     {
       "path": "infrastructure/error-store.js",
-      "byteLength": 3968,
-      "sha256": "sha256:e6c9d916b259e5ddbab2694a1f876f5653e420f9ddca0a6eedf2d295e2bb50e3"
+      "byteLength": 4213,
+      "sha256": "sha256:cd77356e277ea0d126e79ba5a522438c449056c310eb0a0b7968baec13238e20"
     },
     {
       "path": "infrastructure/event-bus.js",
@@ -4385,8 +4385,8 @@
     },
     {
       "path": "ui/proto/replay.js",
-      "byteLength": 7641,
-      "sha256": "sha256:f50b53ff44a5df77dc8eb8252974efe45de7d03b89c00060572be4add5f1b123"
+      "byteLength": 7478,
+      "sha256": "sha256:c37712fcd57c6996c6cd9a5d3c9c93b98dc7e648e0415ed900b94428c4392bc3"
     },
     {
       "path": "ui/proto/telemetry.js",
@@ -12839,5 +12839,5 @@
       "sha256": "sha256:abb6c18f6167d6afc8ee1b3adfcbbb89c0e93fb4fc4e98d7a12250f78aab206a"
     }
   ],
-  "bundleHash": "sha256:fe86d3d1fbff24a679b6d1c0ff95587e886707d76a5abf5997f0f1614de22b0d"
+  "bundleHash": "sha256:4689a53eb50ee145cae39530c9ecc99a3e82959253803ea97e82284996896847"
 }
