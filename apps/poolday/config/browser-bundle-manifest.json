@@ -1416,7 +1416,7 @@
     {
       "path": "config/module-inventory.json",
       "byteLength": 698667,
-      "sha256": "sha256:417cc64f38a35913118ceb2f53a23e02a236feb9297b4596121b3359c09b0255"
+      "sha256": "sha256:2f01c2060f70094789862beac97a41c9ef38704735c78042d242d1092aeb8577"
     },
     {
       "path": "config/module-registry.json",
@@ -1810,8 +1810,8 @@
     },
     {
       "path": "experimental/intelligence/neural-compiler.js",
-      "byteLength": 30020,
-      "sha256": "sha256:0e0d155a98afe35c3dc3c86cc01691de4a37c082ddff8ef7d97196be775d5dd5"
+      "byteLength": 30426,
+      "sha256": "sha256:bcfc54d3f88e80e08f72c202779056fbefcfc95b96a0d78e0c7670a9fbc0e814"
     },
     {
       "path": "experimental/openclaw-audit/audit-mesh.js",
@@ -12839,5 +12839,5 @@
       "sha256": "sha256:abb6c18f6167d6afc8ee1b3adfcbbb89c0e93fb4fc4e98d7a12250f78aab206a"
     }
   ],
-  "bundleHash": "sha256:f214f486dd05b1ade03143dbc3edaf08edd74da351199c2f548886c8fc4f6d3c"
+  "bundleHash": "sha256:2a2098a5c393ea66b79faff57202aef6ed6a2001ee701e897298e22a18a5a27f"
 }

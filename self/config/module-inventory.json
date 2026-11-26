@@ -837,7 +837,7 @@
     {
       "path": "experimental/intelligence/neural-compiler.js",
       "owner": "experimental",
-      "sha256": "sha256:0e0d155a98afe35c3dc3c86cc01691de4a37c082ddff8ef7d97196be775d5dd5",
+      "sha256": "sha256:bcfc54d3f88e80e08f72c202779056fbefcfc95b96a0d78e0c7670a9fbc0e814",
       "imports": []
     },
     {
