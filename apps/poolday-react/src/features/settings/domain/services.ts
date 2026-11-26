@@ -128,6 +128,8 @@ export type WebSearchPort = Store<WebSearchView> & {
 export type AppShortcut = { readonly id: 'improve' | 'examples' | 'experiments'; readonly href: string };
 
 export type SettingsServices = {
+  /** Detaches every store from the host; the screens call it when they go away. */
+  readonly dispose: () => void;
   readonly snapshot: Store<SettingsSnapshot>;
   readonly setRoutePreference: (value: string) => void;
   readonly setRemoteAnswersEnabled: (enabled: boolean) => Promise<unknown>;

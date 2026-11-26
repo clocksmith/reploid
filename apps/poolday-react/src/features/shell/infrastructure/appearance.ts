@@ -1,5 +1,6 @@
 // Appearance: System, Light or Dark, stored for this browser as the vanilla shell stores it
 // (reploid.appearance.v1). System follows the operating system and changes with it.
+import { createProjectedStore } from '../../../../../poolday/host/decisions/projected-store.js';
 import type { Appearance, ResolvedTheme } from '../domain/appearance';
 
 const KEY = 'reploid.appearance.v1';
@@ -10,6 +11,8 @@ export type AppearanceStore = {
   readonly getTheme: () => ResolvedTheme;
   readonly setChoice: (choice: Appearance) => void;
   readonly subscribe: (listener: () => void) => () => void;
+  /** Stops following the system scheme. */
+  readonly dispose: () => void;
 };
 
 export function createAppearanceStore(storage: Storage | null = safeStorage()): AppearanceStore {
@@ -25,16 +28,24 @@ export function createAppearanceStore(storage: Storage | null = safeStorage()): 
   const media = window.matchMedia?.('(prefers-color-scheme: light)');
   const resolve = (): ResolvedTheme => (choice !== 'system' ? choice : media && !media.matches ? 'dark' : 'light');
   let theme = resolve();
-  const listeners = new Set<() => void>();
+  // The system scheme is followed only while someone shows the theme; a new reader catches up on any change missed.
+  const store = createProjectedStore({
+    attach: () => {
+      const onChange = () => {
+        if (choice === 'system') publish();
+      };
+      media?.addEventListener?.('change', onChange);
+      if (resolve() !== theme) queueMicrotask(publish);
+      return () => media?.removeEventListener?.('change', onChange);
+    },
+    project: () => theme,
+  });
   const publish = () => {
     theme = resolve();
     // The page root carries the theme too, for the page material outside the Poolday scope.
     document.documentElement.dataset.reploidTheme = theme;
-    for (const listener of listeners) listener();
+    store.changed();
   };
-  media?.addEventListener?.('change', () => {
-    if (choice === 'system') publish();
-  });
   document.documentElement.dataset.reploidTheme = theme;
   return {
     getChoice: () => choice,
@@ -48,10 +59,8 @@ export function createAppearanceStore(storage: Storage | null = safeStorage()): 
       }
       publish();
     },
-    subscribe(listener) {
-      listeners.add(listener);
-      return () => listeners.delete(listener);
-    },
+    subscribe: store.subscribe,
+    dispose: store.dispose,
   };
 }
 

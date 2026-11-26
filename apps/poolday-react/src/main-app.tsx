@@ -22,6 +22,7 @@ function mount(root: HTMLElement, services: AppServices) {
   const unmount = () => {
     if (unmountCurrent === unmount) unmountCurrent = null;
     react.unmount();
+    services.appearance.dispose();
   };
   unmountCurrent = unmount;
   return unmount;

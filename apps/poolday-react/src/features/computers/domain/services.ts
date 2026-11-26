@@ -193,6 +193,8 @@ export type OperationView = { readonly phase: 'idle' | 'starting' | 'sharing' | 
 
 /** What the composition root supplies to the Computers screens. Every command resolves or rejects with the host's error. */
 export type ComputersServices = {
+  /** Detaches from the host and stops the work these services started; the screens call it when they go away. */
+  readonly dispose: () => void;
   readonly subscribe: (listener: () => void) => () => void;
   /** One view per host notification; the same object until the next one, for a given filter. */
   readonly getView: () => ComputersView;

@@ -3,6 +3,7 @@
 // file only reads host snapshots, calls host commands and hands files to the browser.
 import * as decisions from '../../../../../poolday/host/decisions/computers.js';
 import * as ownerPairingHost from '../../../../../poolday/host/owner-pairing.js';
+import { createProjectedStore } from '../../../../../poolday/host/decisions/projected-store.js';
 import type {
   ComputersFilter,
   ComputersServices,
@@ -130,21 +131,15 @@ export function createComputersServices(product: { readonly host: object; readon
   const host = product.host as Host;
   const session = host.chat ?? EMPTY_SESSION;
   const preferences = host.computers ?? null;
-  const listeners = new Set<() => void>();
   const sizes = new Map<string, { sizeBytes?: number; error?: string }>();
   const sizeRequests = new AbortController();
   let filter: ComputersFilter | null = null;
   let selected: string | null = null;
   let actionError = '';
   let notice = '';
-  let view: ComputersView | null = null;
   let fleetKey = '';
-  let detach: (() => void) | null = null;
-
-  const changed = () => {
-    view = null;
-    for (const listener of listeners) listener();
-  };
+  // Declared before the store reads them through attach and project.
+  const changed = () => store.changed();
 
   // The participation module is created on first read; read it only once the pane asks for it.
   const participation = () => {
@@ -221,13 +216,14 @@ export function createComputersServices(product: { readonly host: object; readon
     const timer = setInterval(() => {
       if (!document.hidden) void session.fleetAccount?.reread().catch(() => undefined);
     }, 5000);
-    detach = () => {
+    return () => {
       offSession();
       offPreferences();
       window.removeEventListener('reploid:relay-state', changed);
       clearInterval(timer);
     };
   };
+  const store = createProjectedStore({ attach, project });
 
   /** A network action: its error shows on the pane's network line until the next action. */
   const act = async <T>(work: () => Promise<T> | T): Promise<T | undefined> => {
@@ -249,18 +245,12 @@ export function createComputersServices(product: { readonly host: object; readon
   };
 
   return {
-    subscribe(listener) {
-      listeners.add(listener);
-      if (!detach) attach();
-      return () => {
-        listeners.delete(listener);
-        if (!listeners.size && detach) {
-          detach();
-          detach = null;
-        }
-      };
+    dispose() {
+      store.dispose();
+      sizeRequests.abort();
     },
-    getView: () => (view ??= project()),
+    subscribe: store.subscribe,
+    getView: store.getSnapshot,
     setFilter(next) {
       if (next === filter || (next && filter && next.label === filter.label && next.providerIds.join('\n') === filter.providerIds.join('\n'))) return;
       filter = next;
@@ -407,7 +397,7 @@ export function createComputersServices(product: { readonly host: object; readon
   };
 
   function projectView() {
-    return (view ??= project());
+    return store.getSnapshot();
   }
 }
 

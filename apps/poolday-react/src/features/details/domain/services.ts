@@ -51,6 +51,8 @@ export type ContextSelection = { readonly enabled: boolean; readonly maxWords: n
 export type ContextView = ContextSelection & { readonly wordCount: number; readonly content: string };
 
 export type DetailsServices = {
+  /** Detaches from the host; the screens call it when they go away. */
+  readonly dispose: () => void;
   readonly subscribe: (listener: () => void) => () => void;
   /** The details of the current thread; `attemptId` inspects that answer instead of the last one. */
   readonly project: (attemptId: string | null) => DetailsView;

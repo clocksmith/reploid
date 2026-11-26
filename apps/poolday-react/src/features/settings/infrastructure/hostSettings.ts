@@ -5,6 +5,7 @@ import * as decisions from '../../../../../poolday/host/decisions/settings.js';
 import * as localDataModule from '../../../../../poolday/host/local-data.js';
 import * as context from '../../../../../poolday/host/product-context.js';
 import * as peerRoom from '../../../../../poolday/pool/peer-room.js';
+import { createProjectedStore, type ProjectedStore } from '../../../../../poolday/host/decisions/projected-store.js';
 import type {
   CreditAccountPort,
   CreditAccountView,
@@ -86,30 +87,22 @@ const { createLocalData, LOCAL_DATA_MAX_BYTES } = localDataModule as unknown as 
 const { getPeerRoomId } = context as unknown as { readonly getPeerRoomId: () => string };
 const { DEFAULT_PEER_ROOM_ID } = peerRoom as unknown as { readonly DEFAULT_PEER_ROOM_ID: string };
 
+/** The stores these services opened, so disposing the services detaches all of them. */
+type Opened = Set<ProjectedStore<unknown>>;
+
 /** A store over a host subscription, projecting each notification once. */
-function store<S, T>(source: Subscribable<S> | null | undefined, initial: T, project: (state: S) => T): Store<T> {
+function store<S, T>(opened: Opened, source: Subscribable<S> | null | undefined, initial: T, project: (state: S) => T): Store<T> {
   let value = initial;
-  const listeners = new Set<() => void>();
-  let detach: (() => void) | null = null;
-  return {
-    getState: () => value,
-    subscribe(listener) {
-      listeners.add(listener);
-      if (!detach && source) {
-        detach = source.subscribe((state) => {
-          value = project(state);
-          for (const each of listeners) each();
-        });
-      }
-      return () => {
-        listeners.delete(listener);
-        if (!listeners.size && detach) {
-          detach();
-          detach = null;
-        }
-      };
-    },
-  };
+  const projected = createProjectedStore({
+    attach: (changed) =>
+      source?.subscribe((state) => {
+        value = project(state);
+        changed();
+      }),
+    project: () => value,
+  });
+  opened.add(projected);
+  return { getState: () => value, subscribe: projected.subscribe };
 }
 
 const plural = (count: number, word: string) => `${count} ${word}${count === 1 ? '' : 's'}`;
@@ -143,16 +136,16 @@ function snapshotOf(session: Session | undefined, state: State): SettingsSnapsho
   };
 }
 
-function creditAccountPort(earning: NonNullable<Earning>): CreditAccountPort {
+function creditAccountPort(opened: Opened, earning: NonNullable<Earning>): CreditAccountPort {
   const { account, signIn } = earning;
   const local = earning.flow?.flow === 'local_test_subject';
   void signIn.start?.().catch(() => undefined);
   const emptyAccount = settings.projectCreditAccount({ phase: 'signed_out', topUps: [], journal: [] });
   return {
     local,
-    account: store(account, emptyAccount, settings.projectCreditAccount),
-    signIn: store(signIn, settings.projectSignIn({ phase: 'idle' }), settings.projectSignIn),
-    localSignedIn: store(signIn, '', (state) => (state.phase === 'signed_in' ? settings.localSignInText(state) : '')),
+    account: store(opened, account, emptyAccount, settings.projectCreditAccount),
+    signIn: store(opened, signIn, settings.projectSignIn({ phase: 'idle' }), settings.projectSignIn),
+    localSignedIn: store(opened, signIn, '', (state) => (state.phase === 'signed_in' ? settings.localSignInText(state) : '')),
     requestLink: (email) => signIn.requestLink?.(email) ?? Promise.reject(new Error('Sign-in is not available on this server.')),
     useSubject: (name) => signIn.useSubject?.(name) ?? Promise.reject(new Error('Sign-in is not available on this server.')),
     signOut: () => signIn.signOut(),
@@ -162,34 +155,22 @@ function creditAccountPort(earning: NonNullable<Earning>): CreditAccountPort {
   };
 }
 
-function webSearchPort(webSearch: WebSearch, search: SearchStatus | null | undefined): WebSearchPort {
-  let view = settings.projectWebSearch(webSearch.state(), search);
-  const listeners = new Set<() => void>();
-  const refresh = () => {
-    view = settings.projectWebSearch(webSearch.state(), search);
-    for (const listener of listeners) listener();
-  };
-  let detach: (() => void) | null = null;
-  return {
-    getState: () => view,
-    subscribe(listener) {
-      listeners.add(listener);
-      if (!detach) {
-        const offSearch = webSearch.subscribe(refresh);
-        const offStatus = search?.subscribe(refresh) ?? (() => undefined);
-        detach = () => {
-          offSearch();
-          offStatus();
-        };
-      }
+function webSearchPort(opened: Opened, webSearch: WebSearch, search: SearchStatus | null | undefined): WebSearchPort {
+  const projected = createProjectedStore({
+    attach: (changed) => {
+      const offSearch = webSearch.subscribe(changed);
+      const offStatus = search?.subscribe(changed) ?? (() => undefined);
       return () => {
-        listeners.delete(listener);
-        if (!listeners.size && detach) {
-          detach();
-          detach = null;
-        }
+        offSearch();
+        offStatus();
       };
     },
+    project: () => settings.projectWebSearch(webSearch.state(), search),
+  });
+  opened.add(projected);
+  return {
+    getState: projected.getSnapshot,
+    subscribe: projected.subscribe,
     setEnabled: (enabled) => webSearch.setEnabled(enabled, { serverAvailable: !!search?.available() }),
     configure: ({ url, tool, token }) => {
       webSearch.configure({ url, tool, ...(token ? { token } : {}) });
@@ -199,29 +180,29 @@ function webSearchPort(webSearch: WebSearch, search: SearchStatus | null | undef
   };
 }
 
-function changesStore(host: Host): Store<number> {
+function changesStore(opened: Opened, host: Host): Store<number> {
   let count = 0;
-  const listeners = new Set<() => void>();
   let revision = 0;
-  const refresh = () => {
-    const current = ++revision;
-    void host.evolution?.list().then(
-      (candidates) => {
-        if (current !== revision) return;
-        count = candidates.filter((item) => item.status === 'awaiting-approval').length;
-        for (const listener of listeners) listener();
-      },
-      (error: unknown) => console.warn('[Reploid] Could not read changes awaiting review', error),
-    );
-  };
-  return {
-    getState: () => count,
-    subscribe(listener) {
-      listeners.add(listener);
-      if (listeners.size === 1) refresh();
-      return () => listeners.delete(listener);
+  // Read again each time the count gains its first reader; a read finishing after the last one left is dropped.
+  const projected = createProjectedStore({
+    attach: (changed) => {
+      const current = ++revision;
+      void host.evolution?.list().then(
+        (candidates) => {
+          if (current !== revision) return;
+          count = candidates.filter((item) => item.status === 'awaiting-approval').length;
+          changed();
+        },
+        (error: unknown) => console.warn('[Reploid] Could not read changes awaiting review', error),
+      );
+      return () => {
+        revision += 1;
+      };
     },
-  };
+    project: () => count,
+  });
+  opened.add(projected);
+  return { getState: projected.getSnapshot, subscribe: projected.subscribe };
 }
 
 export function createSettingsServices(product: { readonly host: object; readonly earning?: Promise<unknown> }): SettingsServices {
@@ -230,7 +211,8 @@ export function createSettingsServices(product: { readonly host: object; readonl
   const chat: Subscribable<State> | null = session ?? null;
   const initial = session ? session.getState() : ({} as State);
   let latest = initial;
-  const snapshot = store<State, SettingsSnapshot>(chat, snapshotOf(session, initial), (state) => {
+  const opened: Opened = new Set();
+  const snapshot = store<State, SettingsSnapshot>(opened, chat, snapshotOf(session, initial), (state) => {
     latest = state;
     return snapshotOf(session, state);
   });
@@ -267,7 +249,12 @@ export function createSettingsServices(product: { readonly host: object; readonl
           };
         })()
       : null;
+  let disposed = false;
   return {
+    dispose() {
+      disposed = true;
+      for (const each of opened) each.dispose();
+    },
     snapshot,
     setRoutePreference: (value) => {
       if (value !== session?.getRoutePreference?.()) session?.setRoutePreference?.(value);
@@ -284,17 +271,17 @@ export function createSettingsServices(product: { readonly host: object; readonl
     localData,
     creditAccount: Promise.resolve(product.earning ?? null).then(
       (earning) => {
-        const opened = earning as Earning;
-        return opened?.account ? creditAccountPort(opened) : null;
+        const ready = earning as Earning;
+        return ready?.account && !disposed ? creditAccountPort(opened, ready) : null;
       },
       () => null,
     ),
-    webSearch: host.webSearch ? webSearchPort(host.webSearch, host.search) : null,
+    webSearch: host.webSearch ? webSearchPort(opened, host.webSearch, host.search) : null,
     apps: [
       { id: 'improve', href: roomHref('/improve') },
       { id: 'examples', href: '/examples' },
       { id: 'experiments', href: '/experiments' },
     ],
-    changesAwaiting: changesStore(host),
+    changesAwaiting: changesStore(opened, host),
   };
 }

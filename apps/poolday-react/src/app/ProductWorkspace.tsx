@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { BarButton, Drawer, Workspace, WorkspaceBar } from '@reploid/poolday-ui';
 import { createConversation } from '../features/chat/infrastructure/conversation';
 import { ConversationProvider } from '../features/chat/presentation/ConversationProvider';
@@ -7,6 +7,8 @@ import { useConversation } from '../features/chat/presentation/conversationConte
 import { ThreadsPanel } from '../features/chat/presentation/ThreadsPanel';
 import { createComputersServices } from '../features/computers/infrastructure/hostComputers';
 import type { ComputersServices } from '../features/computers/domain/services';
+import type { DetailsServices } from '../features/details/domain/services';
+import type { SettingsServices } from '../features/settings/domain/services';
 import { ComputersPanel, type ComputersFilter } from '../features/computers/presentation/ComputersPanel';
 import { PairingLinkDialog } from '../features/computers/presentation/PairingLinkDialog';
 import { createDetailsServices } from '../features/details/infrastructure/hostDetails';
@@ -33,26 +35,49 @@ const PANE: Record<EndView, string> = { conversation: 'conversation', computers:
  */
 export function ProductWorkspace({ product, services }: { readonly product: OpenedProduct; readonly services: AppServices }) {
   const createChat = useCallback(() => createConversation(product, services.viewState), [product, services.viewState]);
-  const computers = useMemo(() => createComputersServices(product), [product]);
+  const computers = useOwned(useCallback(() => createComputersServices(product), [product]));
+  const details = useOwned(useCallback(() => createDetailsServices(product), [product]));
+  const settings = useOwned(useCallback(() => createSettingsServices(product), [product]));
+  if (!computers || !details || !settings) return null;
   return (
     <>
       {/* A pairing link is read from the address on the first render, before the workspace rewrites the address. */}
       <PairingLinkDialog services={computers} />
       <ConversationProvider create={createChat}>
-        <WorkspaceBody product={product} services={services} computers={computers} />
+        <WorkspaceBody product={product} services={services} computers={computers} details={details} settings={settings} />
       </ConversationProvider>
     </>
   );
 }
 
-function WorkspaceBody({ product, services, computers }: { readonly product: OpenedProduct; readonly services: AppServices; readonly computers: ComputersServices }) {
+/**
+ * Services the workspace owns for as long as it is mounted: created when it mounts and disposed when it goes away,
+ * as ConversationProvider owns the controller. StrictMode's doubled mount gets a fresh set the second time.
+ */
+function useOwned<T extends { readonly dispose: () => void }>(create: () => T): T | null {
+  const [owned, setOwned] = useState<T | null>(null);
+  useEffect(() => {
+    const made = create();
+    setOwned(made);
+    return () => made.dispose();
+  }, [create]);
+  return owned;
+}
+
+type WorkspaceBodyProps = {
+  readonly product: OpenedProduct;
+  readonly services: AppServices;
+  readonly computers: ComputersServices;
+  readonly details: DetailsServices;
+  readonly settings: SettingsServices;
+};
+
+function WorkspaceBody({ product, services, computers, details, settings }: WorkspaceBodyProps) {
   const [location, setLocation] = useState<WorkspaceLocation>(() => restore(readLocation(), isWide()));
   const [visited, setVisited] = useState<ReadonlySet<EndView>>(() => new Set(endView(location) ? [endView(location) as EndView] : []));
   const [computersFilter, setComputersFilter] = useState<ComputersFilter | null>(null);
   const [inspected, setInspected] = useState<string | null>(null);
   const [conversation, port] = useConversation();
-  const details = useMemo(() => createDetailsServices(product), [product]);
-  const settings = useMemo(() => createSettingsServices(product), [product]);
 
   const go = useCallback((next: WorkspaceLocation, { replace = false } = {}) => {
     writeLocation(next, { replace });

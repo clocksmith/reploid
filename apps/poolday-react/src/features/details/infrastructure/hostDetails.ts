@@ -2,6 +2,7 @@
 // apps/poolday/host/decisions/conversation-details.js, shared with the vanilla inspector's wording; the session
 // records, revokes and exports, and the paired host's ledger issues receipts.
 import * as projections from '../../../../../poolday/host/decisions/conversation-details.js';
+import { createProjectedStore } from '../../../../../poolday/host/decisions/projected-store.js';
 import type { ContextSelection, ContextView, DetailsServices, DetailsView } from '../domain/services';
 
 type Attempt = { readonly id: string; readonly error?: string };
@@ -40,29 +41,21 @@ export function createDetailsServices(product: { readonly host: object }): Detai
   const session = (product.host as { readonly chat: Session }).chat;
   // One snapshot per notification: the host builds a new state on every getState call.
   let state: State = session.getState();
-  const listeners = new Set<() => void>();
-  let detach: (() => void) | null = null;
   // Every notification is a change, even when a host (or a fixture) delivers the same state object again.
   let revision = 0;
   const cache = new Map<string | null, { revision: number; view: DetailsView }>();
+  const store = createProjectedStore({
+    attach: (changed) =>
+      session.subscribe((next) => {
+        state = next;
+        revision += 1;
+        changed();
+      }),
+    project: () => revision,
+  });
   return {
-    subscribe(listener) {
-      listeners.add(listener);
-      if (!detach) {
-        detach = session.subscribe((next) => {
-          state = next;
-          revision += 1;
-          for (const each of listeners) each();
-        });
-      }
-      return () => {
-        listeners.delete(listener);
-        if (!listeners.size && detach) {
-          detach();
-          detach = null;
-        }
-      };
-    },
+    dispose: store.dispose,
+    subscribe: store.subscribe,
     project(attemptId) {
       const cached = cache.get(attemptId);
       if (cached?.revision === revision) return cached.view;
