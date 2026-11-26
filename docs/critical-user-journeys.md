@@ -84,8 +84,8 @@ by [RD-CANON/1](roadmap/rd-canon-1.md).
 ### CHAT-01 — Ask without downloading model weights
 
 - **Actor and trigger:** A requester opens Reploid to ask a question.
-- **Starting conditions:** A supported model has eligible prepared capacity; disclosure is authorized.
-- **Main flow:** 1. Open chat and choose an available model → 2. Submit a question and authorize its actual recipients → 3. Read the streamed, durably accepted answer.
+- **Starting conditions:** A supported model has eligible prepared capacity. No model pick, approval screen, charge or budget step is required.
+- **Main flow:** 1. Open replo.id; the page joins the mesh and names the automatically chosen model, the computer kind and that the answering computer can read the prompt → 2. Type and press Send once; Send authorizes the disclosed attempt → 3. Read the streamed, durably accepted answer. Picking a model is optional; a pick stays pinned and is never replaced ([first-visit rules](first-visit-journeys.md#rules-that-follow-from-them)).
 - **Successful outcome:** A useful, complete answer addresses the question accurately, or explicitly identifies insufficient knowledge instead of inventing facts. It remains in history; the requester acquires no weights. Prepared contributors reuse resident weights without downloading them again per request. Basic-chat acceptance does not depend on attachment qualification.
 - **Interruption and recovery:** Unavailable capacity is explicit. Interrupted published output remains; retry is a new authorized attempt.
 - **Variants:** Phone/desktop requester; browser/native contributors; 1/2/N stages; prepared service or waiting for cold acquisition through MESH-04; unfamiliar first use without coaching. Record the separate readiness and service phases above.

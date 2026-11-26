@@ -8,17 +8,14 @@ Reploid turns participating computers into shared inference capacity. The [publi
 
 [Play Reploid Daily](https://reploid-daily.reploid.workers.dev/) — get the model to say today's target in five tries, then dare a friend to beat your word count.
 
-<picture>
-  <source media="(max-width: 640px)" srcset="docs/diagrams/readme-architecture-mobile.svg">
-  <img src="docs/diagrams/readme-architecture.svg" alt="A requester sends a prompt. Two contributors run successive layers of one model with Doppler, and the answer returns to the requester.">
-</picture>
+<img src="docs/diagrams/readme-whole-model.svg" alt="A requester types a question and presses Send once. One ready peer that already holds the whole model runs it with Doppler and streams the answer back. The serving computer can read the prompt.">
 
 ## Try it
 
 ### Browser (zero weight downloads)
 
-1. Open [replo.id](https://replo.id/) and pick a shared model with a ready computer.
-2. Check where the request will run before sending. The serving computer can read the input it executes. The qualification below tested reconnect to the same verified identity and fresh consent for a replacement.
+1. Open [replo.id](https://replo.id/), type, and press Send. Reploid joins the mesh and picks an available model automatically. You can change it.
+2. Before you send, the composer names the computer kind and the model. The serving computer can read the input it executes. The qualification below tested reconnect to the same verified identity and fresh consent for a replacement.
 3. Watch the answer stream. You can stop a response. The [claim index](docs/status/surface-claim-index.json) and [fleet service](docs/fleet-service.md) distinguish cancellation, interruptions, and settlement evidence.
 
 ### Command line (`npx reploid`)
@@ -67,6 +64,15 @@ Open [http://localhost:8000](http://localhost:8000), or expose `/v1/chat/complet
 ### Component ownership
 
 Reploid handles discovery, permissions, placement, verified piece custody, and accounting. Doppler executes the model on each participating GPU. The [technical architecture diagram](docs/open-mesh-architecture.md#component-ownership) follows a request across several stages.
+
+## Long-term goal
+
+Launch serves each request from one ready peer that holds the whole model. The goal beyond that is a request split across independent peers, each running a different range of layers. Ordinary split routes are separate and not yet qualified; see the [route table](docs/product-specification.md#5-contribution-and-execution).
+
+<picture>
+  <source media="(max-width: 640px)" srcset="docs/diagrams/readme-architecture-mobile.svg">
+  <img src="docs/diagrams/readme-architecture.svg" alt="Goal, not yet qualified: a requester sends a prompt. Two contributors run successive layers of one model with Doppler, and the answer returns to the requester.">
+</picture>
 
 ## How a model is stored and split
 

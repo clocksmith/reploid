@@ -22,19 +22,30 @@ Cloud-provider keys are not a prerequisite for prepared peer execution.
 
 ## Ask through prepared capacity
 
-1. Start a conversation and choose a model with an available execution path.
-   The configured public mesh discovers participants without an invitation,
-   manual room setup or selecting individual computers.
-2. Enter your question and press Send. This authorizes that attempt's messages,
-   attached text and derived model data to verified eligible executors for the
-   selected model. It creates no future-message grant and authorizes no local
+1. Open the page. It joins the configured public mesh and discovers participants
+   without a Join button, invitation, manual room setup or selecting individual
+   computers.
+2. Type your question and press Send once. There is no required model pick,
+   approval dialog, charge or budget step. Before you send, the composer names
+   the computer kind and the model, and says the answering computer can read
+   your prompt. Send authorizes that attempt's messages, attached text and
+   derived model data to verified eligible executors for the model shown. It creates no future-message grant and authorizes no local
    contribution, candidate evaluation or adoption.
 3. Watch the answer stream into its originating conversation. Using an already
    prepared remote path requires no requester weights. Preparation on
    contributors is separate from the requester’s conversation.
 
-If nothing eligible is ready, leave the draft intact and wait or explicitly
-select a different available model. Local model download is an optional,
+Choosing a model is optional:
+
+- **Automatic choice.** With no pick, the page chooses an available model and
+  the shown default follows availability as computers come and go. The model
+  shown before Send, the model named on the answer and the model that served
+  it are the same.
+- **Explicit pick.** A model you pick stays pinned, including across a reload
+  and for new threads. When nothing serves it, the page says so, keeps the
+  draft and sends to no other model; wait or pick another model yourself.
+
+If nothing eligible is ready, the draft stays intact. Local model download is an optional,
 separate action; failure must not silently move your request to a cloud provider,
 a different model or another recipient.
 
@@ -50,10 +61,22 @@ not assumed to survive contributor disconnection, reload or replacement.
 
 ## Your computer
 
-Open **Computers**. **This computer** appears first. Answer requests is enabled
-by default for downloaded models; an explicit off choice persists. Review a
-model's download separately before acquiring it. Cached sharing does not approve
-new downloads. Pause contribution here; unrelated conversations keep running.
+Open **Computers**. **This computer** appears first. Contribution has three
+separate actions, and downloading alone does not opt in:
+
+1. **Download weights.** A reviewed download stores a model on this device. It
+   does not make the device answer requests or share files.
+2. **Opt in.** Choose to share model storage, compute, or both. Both switches
+   start off. Storage only shares verified model files and never starts compute;
+   compute answers other people's requests while the page is open. The confirm
+   button names the choice (for example *Share model files* or *Download &
+   share*).
+3. **Resume.** A contribution you authorized earlier resumes under that choice.
+   Cached weights or an old automatic-sharing flag never count as that choice,
+   and an explicit off choice persists.
+
+Cached sharing does not approve new downloads. Pause contribution here;
+unrelated conversations keep running.
 
 ## What the evidence establishes
 

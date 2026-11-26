@@ -57,7 +57,15 @@ them is the conversation controller
   answer, that the composer, the answer row, the conversation and the stored execution record
   name one model, that a provider-signed receipt verifies when one was sent, and that the
   Computers view lists ready computers, shows where to contribute and shows this device as not
-  sharing. It never starts a contribution. `npm run deploy` runs it after each deploy.
+  sharing. It never starts a contribution. `npm run deploy` runs it after each deploy. For
+  journey 3 it checks **discoverability only**: that the path to contribute is visible, not
+  that a visitor can start contributing and become ready.
+- **Contribution acceptance (separate check, desktop and mobile).** Journey 3 passes only when,
+  on each viewport, a fresh visitor opts in to storage, compute or both from the same page; the
+  device reports ready for exactly that choice; another peer sees the device offering it; and
+  Pause stops it and the other peer sees it stop. Storage-only must never start compute. This
+  check is not automated yet, and no retained run shows it passing; until one does, journey 3
+  is unproven beyond discoverability.
 - [`tests/unit/first-answer-defaults.test.js`](../tests/unit/first-answer-defaults.test.js) holds
   the decisions behind journey 2: the automatic computer and model, following availability,
   a held Send while computers are being found, and kept picks.
