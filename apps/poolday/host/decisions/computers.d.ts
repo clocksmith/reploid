@@ -64,6 +64,7 @@ export type PeerView = {
   readonly selection: ReadonlyArray<Fact>;
   readonly offers: string;
   readonly identity: string;
+  readonly members: ReadonlyArray<{ readonly id: string; readonly identity: string }>;
   readonly localName: string;
   readonly blockNote: string;
   readonly connection: ReadonlyArray<Fact>;

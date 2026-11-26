@@ -70,6 +70,8 @@ export type PeerView = {
   readonly offers: string;
   /** The verified signing identity, when there is one: names and blocks attach to it. */
   readonly identity: string;
+  /** Every connection of this computer, the one that names it first (a computer may join as requester and contributor). */
+  readonly members: ReadonlyArray<{ readonly id: string; readonly identity: string }>;
   readonly localName: string;
   readonly blockNote: string;
   readonly connection: ReadonlyArray<Fact>;

@@ -148,6 +148,64 @@ describe('Computers pane', () => {
   });
 });
 
+describe('one computer that joins on two connections', () => {
+  // A browser offering files and compute joins as its requester connection (files) and a contributor connection
+  // (compute). The mesh reports `computerId` on the contributor only for a link its requester key signed for the key
+  // that connection proved (peer-identity.js); the roster groups on that and on verified keys, nothing else.
+  const key = (c: string) => `peer:${c.repeat(24)}`;
+  const IDENTITY = `sha256:${'a'.repeat(64)}`;
+  const verified = (peerId: string, participantId: string, change: Record<string, unknown> = {}) => ({ peerId, model: '', readiness: 'idle', availableSlots: 0,
+    identityProtocol: 1, admissionProtocol: 2, attemptId: `try-${peerId}`, identityVerified: true, participantId, computerId: null, ...change });
+  const compute = (peerId: string, participantId: string, computerId: string | null, change: Record<string, unknown> = {}) => verified(peerId, participantId,
+    { model: 'qwen-0-8b', modelIdentity: IDENTITY, readiness: 'ready', hasInference: true, availableSlots: 1, computerId, ...change });
+  const peers = [
+    verified('desk-files', key('a')),
+    compute('desk-compute', key('b'), key('a')),
+    // Another computer: its compute links to its own requester key, never to the desk's.
+    verified('lab-files', key('c')),
+    compute('lab-compute', key('d'), key('e')),
+    // An unverified connection that claims the desk's computer stays on its own.
+    { ...compute('mimic', key('f'), key('a')), identityVerified: false, participantId: null },
+  ];
+  const link = (id: string) => ({ id, phase: 'connected', channelState: 'open', iceState: 'connected', attemptId: `try-${id}` });
+  const connections = peers.map((row) => link(row.peerId));
+  const network = (rows = peers) => ({ connections, consumer: { connectionState: 'connected', peers: rows, connections },
+    files: { enabled: false, offering: ['desk-files', 'lab-files'] } });
+  type Row = { id: string; name: string; offers: string; eligibility: string; selection: string[][]; members: Array<{ id: string }> };
+
+  it('shows one row that offers compute and model files, with readiness for each; other computers keep their rows', () => {
+    const rows = projectComputers({ models: [], network: network() }).peers as Row[];
+    const offers = Object.fromEntries(rows.map((row) => [row.members.map((member) => member.id).join('+'), row.offers]));
+    expect(offers).toEqual({
+      'desk-files+desk-compute': 'Compute · Ready / Model files · Sharing',
+      'lab-files': 'Model files · Sharing',
+      'lab-compute': 'Compute · Ready',
+      mimic: 'Compute · Ready',
+    });
+    // The merged row is the connection routing uses, named by the computer's own (requester) connection.
+    const desk = rows.find((row) => row.members.length === 2) as Row;
+    expect(desk.id).toBe('desk-compute');
+    const alone = projectComputers({ models: [], network: network([peers[0] as never]) }).peers as Row[];
+    expect(desk.name).toBe(alone[0]?.name);
+  });
+
+  it('keeps the routing connection\'s reason on the merged row', () => {
+    const busy = peers.map((row) => (row.peerId === 'desk-compute' ? { ...row, availableSlots: 0 } : row));
+    const catalog = projectChatCatalog({ models: [{ id: 'qwen-0-8b', name: 'Qwen 0.8B', identity: IDENTITY }], peers: busy, connections });
+    const rows = projectComputers({ models: catalog, network: network(busy) }, { selected: 'qwen-0-8b' }).peers as Row[];
+    const desk = rows.find((row) => row.members.length === 2) as Row;
+    // Routing considered desk-compute (busy), not the requester connection that offers no model.
+    expect(desk.eligibility).toBe('busy');
+    expect(desk.selection.find(([term]) => term === 'Why not used')?.[1]).toBe('Busy: every request slot is in use');
+    expect(rows.find((row) => row.id === 'lab-files')?.eligibility).toBe('no-model');
+  });
+
+  it('names this computer by its requester connection while it also contributes', () => {
+    const device = (supplier: object | null) => projectComputers({ models: [], network: { consumer: { connectionState: 'connected', peerId: 'own-requests', peers: [] }, supplier } }).device.localComputer;
+    expect(device({ peerId: 'own-compute', peers: [] })).toBe(device(null));
+  });
+});
+
 describe('the roster against the selected model', () => {
   // One computer per reason the catalog's admission can refuse it, plus two it admits.
   const IDENTITY = `sha256:${'a'.repeat(64)}`;

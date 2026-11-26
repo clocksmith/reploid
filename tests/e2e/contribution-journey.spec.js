@@ -363,7 +363,8 @@ for (const [viewportName, viewport] of Object.entries(VIEWPORTS)) {
           wantOffer(ready.offers) && (!compute || /· compute/.test(ready.sharing ?? '')) && (!files || /· files/.test(ready.sharing ?? '')) ? 'pass' : 'fail', { offers: ready.offers, sharing: ready.sharing });
         record(2, 'The page states whether the offer is available', /Ready|Sharing/.test(ready.summary ?? '') ? 'pass' : 'fail', { summary: ready.summary });
         if (!compute) record(2, 'Storage only never starts compute', ready.compute === 'false' && !/compute/.test(ready.sharing ?? '') ? 'pass' : 'fail', ready);
-        // A contributing browser joins as a separate supplier connection; This computer then names that one.
+        // A contributing browser joins as a separate supplier connection, linked to its requester key; This computer
+        // keeps the requester's name, which other peers give the one row for both connections.
         const servingName = await localName(a.page);
         await shot(a.page, `${id}-A-2c-this-computer`);
         record(2, 'This computer names the connection other peers see serving', 'pass', { before: aName, serving: servingName });
@@ -371,7 +372,8 @@ for (const [viewportName, viewport] of Object.entries(VIEWPORTS)) {
 
         // 3. The second peer sees the offer and uses it.
         // Advertisements travel over the mesh: give the second peer up to 90 s to list the offer, then record what it shows.
-        // Files are announced by the device's requester connection, compute by its supplier connection: two rows when both.
+        // Files are announced by the device's requester connection, compute by its supplier connection; other peers
+        // list both under one row for the computer.
         const short = name => name.split(' · ')[0];
         let filesRow = null, computeRow = null;
         const offeredNow = async () => {

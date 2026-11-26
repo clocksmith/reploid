@@ -10,9 +10,11 @@ function LocalPreferences({ peer, services, onError }: { readonly peer: PeerView
   const [name, setName] = useState(peer.localName);
   const [edited, setEdited] = useState(false);
   const [busy, setBusy] = useState(false);
+  // The connection that names this computer; a block covers every connection of it.
+  const own = peer.members[0] ?? { id: peer.id, identity: peer.identity };
   useEffect(() => {
     if (!edited) setName(peer.localName);
-  }, [peer.localName, peer.identity, edited]);
+  }, [peer.localName, own.identity, edited]);
   const run = (work: () => Promise<unknown>) => {
     setBusy(true);
     work()
@@ -21,7 +23,7 @@ function LocalPreferences({ peer, services, onError }: { readonly peer: PeerView
   };
   return (
     <Disclosure quiet summary={t.network.preferences} data={{ 'data-computer-preferences': true }}>
-      {peer.identity && (
+      {own.identity && (
         <Stack gap="xs" data={{ 'data-computer-rename': true }}>
           <Field
             label={t.network.localName}
@@ -38,7 +40,7 @@ function LocalPreferences({ peer, services, onError }: { readonly peer: PeerView
           />
           <Row>
             <Button variant="quiet" label={t.network.saveName} onPress={busy ? undefined : () => run(async () => {
-              await services.preferences.rename(peer.id, name, peer.identity);
+              await services.preferences.rename(own.id, name, own.identity);
               setEdited(false);
             })} />
           </Row>
@@ -49,7 +51,9 @@ function LocalPreferences({ peer, services, onError }: { readonly peer: PeerView
           <Button
             variant="quiet"
             label={peer.blocked ? t.network.unblock : t.network.block}
-            onPress={busy ? undefined : () => run(() => services.preferences.setBlocked(peer.id, !peer.blocked, peer.identity))}
+            onPress={busy ? undefined : () => run(async () => {
+              for (const member of peer.members.length ? peer.members : [{ id: peer.id, identity: peer.identity }]) await services.preferences.setBlocked(member.id, !peer.blocked, member.identity);
+            })}
             data={{ 'data-computer-block-toggle': true }}
           />
         </Row>
@@ -70,7 +74,7 @@ function PeerRow({ peer, model, preferences, services, onError }: {
   readonly onError: (message: string) => void;
 }) {
   return (
-    <Stack gap="xs" data={{ 'data-computer-id': peer.id, 'data-peer-phase': peer.phase, 'data-computer-state': peer.state, 'data-blocked': String(peer.blocked), 'data-quiet': String(peer.quiet), 'data-computer-reachable': String(peer.reachable), 'data-computer-eligibility': peer.eligibility }}>
+    <Stack gap="xs" data={{ 'data-computer-id': peer.id, 'data-computer-connections': peer.members.map((member) => member.id).join(' '), 'data-peer-phase': peer.phase, 'data-computer-state': peer.state, 'data-blocked': String(peer.blocked), 'data-quiet': String(peer.quiet), 'data-computer-reachable': String(peer.reachable), 'data-computer-eligibility': peer.eligibility }}>
       <Row justify="between">
         <Text variant="small" data={{ 'data-computer-name': true }}>
           {peer.name}

@@ -174,36 +174,72 @@ export function offerText({ compute = '', files = '' } = {}) {
   return [compute && 'Compute · ' + compute, files && 'Model files · ' + files].filter(Boolean).join(' / ') || 'Nothing';
 }
 
-/** The roster rows, filtered to one model's serving computers when a filter is set (network-controls.js renderPeerRows). */
+/**
+ * Connections that are one computer, by what each connection proves: its verified signing key, or a verified link
+ * from its computer's requester key to that key (peer-identity.js signComputerLink, the snapshot's `computerId`).
+ * An advertised name, GPU or unverified field never groups. Unverified connections stay on their own.
+ */
+function computerKeys(state) {
+  const keys = new Map();
+  for (const source of [state.network?.consumer, state.network?.supplier]) for (const peer of source?.peers || []) {
+    if (peer.identityVerified !== true || !PEER_IDENTITY.test(peer.participantId || '')) continue;
+    const key = PEER_IDENTITY.test(peer.computerId || '') ? peer.computerId : peer.participantId;
+    if (!keys.has(peer.peerId) || key !== peer.participantId) keys.set(peer.peerId, { key, participantId: peer.participantId });
+  }
+  return keys;
+}
+
+const SERVING = ['ready', 'executing', 'loading', 'preparing'];
+const computeText = phase => SERVING.includes(phase) ? (['ready', 'executing'].includes(phase) ? 'Ready' : 'Preparing') : '';
+
+/** The roster rows, one per computer, filtered to one model's serving computers when a filter is set (network-controls.js renderPeerRows). */
 function peerRows(state, filter, names, selected) {
   const selection = selectionFacts(state, selected);
   // Peers whose announced file inventory is non-empty (custody exchange); compute comes from the peer's own advertisement.
   const filePeers = new Set(state.network?.files?.offering || []);
-  const rows = projectNetworkPeers(state).filter(peer => !filter || (peer.executionType === 'whole-model' && !peer.blocked
-    && (!filter.model || peer.modelId === filter.model.id && peer.modelIdentity === filter.model.identity) && filter.providers.includes(peer.id)));
-  const byLabel = new Map();
-  for (const peer of rows) {
-    const label = computerLabel(state, peer.id);
-    if (!byLabel.has(label)) byLabel.set(label, []);
-    byLabel.get(label).push(peer.id);
+  const serves = peer => !filter || (peer.executionType === 'whole-model' && !peer.blocked
+    && (!filter.model || peer.modelId === filter.model.id && peer.modelIdentity === filter.model.identity) && filter.providers.includes(peer.id));
+  const keys = computerKeys(state);
+  const groups = new Map();
+  for (const peer of projectNetworkPeers(state)) {
+    const key = keys.get(peer.id)?.key || 'connection:' + peer.id;
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(peer);
   }
-  const views = rows.map(peer => {
-    const label = computerLabel(state, peer.id), same = byLabel.get(label);
+  const computers = [...groups].map(([key, members]) => {
+    const choices = new Map(members.map(peer => [peer.id, selection(peer.id)]));
+    const offers = id => !!choices.get(id).facts.some(([term, value]) => term.startsWith('Ready for') && value === 'Yes');
+    // The connection routing considers for the selected model (it serves a model), else the computer's own connection.
+    const primary = members.find(peer => offers(peer.id)) || members.find(peer => SERVING.includes(peer.phase))
+      || members.find(peer => peer.modelId) || members.find(peer => keys.get(peer.id)?.participantId === key) || members[0];
+    // The computer is named by its own connection: the one holding the key every other connection links to.
+    const own = members.find(peer => keys.get(peer.id)?.participantId === key) || primary;
+    return { key, members, primary, own, choices };
+  }).filter(computer => computer.members.some(serves));
+  const byLabel = new Map();
+  for (const { own } of computers) {
+    const label = computerLabel(state, own.id);
+    if (!byLabel.has(label)) byLabel.set(label, []);
+    byLabel.get(label).push(own.id);
+  }
+  const views = computers.map(({ members, primary: peer, own, choices }) => {
+    const label = computerLabel(state, own.id), same = byLabel.get(label);
     let suffix = 6;
-    while (suffix < peer.id.length && same.some(id => id !== peer.id && id.slice(-suffix) === peer.id.slice(-suffix))) suffix++;
-    const serving = ['ready', 'executing', 'loading', 'preparing'].includes(peer.phase);
-    const participant = state.computerIdentities?.get(peer.id) || '';
-    const identity = PEER_IDENTITY.test(participant) ? participant : '';
+    while (suffix < own.id.length && same.some(id => id !== own.id && id.slice(-suffix) === own.id.slice(-suffix))) suffix++;
+    const serving = SERVING.includes(peer.phase);
+    const identityOf = id => { const participant = state.computerIdentities?.get(id) || ''; return PEER_IDENTITY.test(participant) ? participant : ''; };
+    const identity = identityOf(peer.id), ownIdentity = identityOf(own.id);
     const contribution = peer.contribution;
-    const chosen = selection(peer.id);
+    const chosen = choices.get(peer.id);
+    const blocked = members.some(member => member.blocked === true);
     return {
       id: peer.id,
       reachable: chosen.reachable,
       eligibility: chosen.eligibility,
       selection: chosen.facts,
-      offers: offerText({ compute: serving ? (['ready', 'executing'].includes(peer.phase) ? 'Ready' : 'Preparing') : '',
-        files: filePeers.has(peer.id) ? 'Sharing' : '' }),
-      name: same.length > 1 ? `${label} · connection ${peer.id.slice(-suffix)}` : label,
+      offers: offerText({ compute: members.map(member => computeText(member.phase)).sort((a, b) => (b === 'Ready') - (a === 'Ready'))[0] || '',
+        files: members.some(member => filePeers.has(member.id)) ? 'Sharing' : '' }),
+      name: same.length > 1 ? `${label} · connection ${own.id.slice(-suffix)}` : label,
       status: peer.status,
       tone: ['ready', 'executing'].includes(peer.phase) ? 'ready'
         : ['loading', 'preparing', 'connecting', 'connected', 'waiting'].includes(peer.phase) ? 'pending' : 'unavailable',
@@ -214,10 +250,12 @@ function peerRows(state, filter, names, selected) {
       detail: serving && peer.phase === 'ready' ? (peer.partitionIndex === null ? '' : peer.detail) : peer.detail,
       progress: peer.progress ? { value: peer.progress.value, max: peer.progress.max } : null,
       quiet: !serving,
-      blocked: peer.blocked === true,
+      blocked,
       identity,
-      localName: identity ? names?.[identity] ?? '' : '',
-      blockNote: peer.blocked !== true ? 'Stops your requests on this device. It can still see the network.'
+      // Every connection of this computer, its own first: a block covers each, a name is saved for the first.
+      members: [own, ...members.filter(member => member !== own)].map(member => ({ id: member.id, identity: identityOf(member.id) })),
+      localName: ownIdentity ? names?.[ownIdentity] ?? '' : '',
+      blockNote: !blocked ? 'Stops your requests on this device. It can still see the network.'
         : identity && state.blockedComputers?.has(identity) ? 'Blocked on this device. It can still see the network.'
           : 'This connection only. An unverified computer may reconnect unblocked.',
       connection: [
@@ -231,7 +269,9 @@ function peerRows(state, filter, names, selected) {
         ['Served receipts', count(contribution?.served)],
         ['Consumed receipts', count(contribution?.consumed)]
       ],
-      ids: [['Connection ID', peer.id], ['Attempt ID', peer.attemptId || 'Not reported'], ['Model ID', peer.modelIdentity || 'Not reported']]
+      ids: [...members.map(member => [members.length === 1 ? 'Connection ID'
+        : 'Connection ID · ' + (computeText(member.phase) || member.modelId ? 'compute' : filePeers.has(member.id) ? 'model files' : 'requests'), member.id]),
+        ['Attempt ID', peer.attemptId || 'Not reported'], ['Model ID', peer.modelIdentity || 'Not reported']]
     };
   });
   // Serving computers first; order within each group follows discovery.
@@ -248,7 +288,8 @@ function deviceView(state, network) {
   if (usage?.consumed?.available && breakdown) scope += ` Used here: ${tokenText(breakdown.local)} local · ${tokenText(breakdown.network)} network`
     + (breakdown.unknown.requests ? ` · ${tokenText(breakdown.unknown)} unknown placement.` : '.');
   const hardware = network.contribution?.hardware || state.localModel?.hardware;
-  const id = network.supplier?.peerId || network.consumer?.peerId;
+  // Its requester connection names it: other peers list a contributor connection under the same computer (peerRows).
+  const id = network.consumer?.peerId || network.supplier?.peerId;
   const progress = network.contribution?.progress;
   const progressText = network.contribution?.phase === 'loading' ? preparationStatus(progress).detail
     : typeof progress === 'string' ? progress : progress?.message || progress?.stage || progress?.phase || '';
