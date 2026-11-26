@@ -386,7 +386,7 @@ it('keeps finding computers, and keeps a held Send, when a split route or a priv
   expect(key(f.created[0].model)).toBe(key(SMALL));
 });
 
-it('lists a model nobody serves yet in the "Answer on" sheet the way it reads while computers are still being found', () => {
+it('lists a model nobody serves yet as Finding computers in the "Answer on" sheet until the discovery wait is over', () => {
   // A model this device can neither store nor download: only a computer serving it can answer.
   const LARGE = { ...MEDIUM, id: 'large', name: 'Large', identity: 'sha256:' + 'b'.repeat(64), source: null,
     availability: 'unavailable', networkAvailability: 'unavailable', providerIds: [], reachableProviderIds: [] };
@@ -398,19 +398,25 @@ it('lists a model nobody serves yet in the "Answer on" sheet the way it reads wh
   // Discovery is still searching.
   expect([section('large'), row('large').status]).toMatchInlineSnapshot(`
     [
-      "Unavailable · 1",
-      "Unavailable",
+      "Public network",
+      "Finding computers…",
     ]
   `);
   // Another model's computer answered first: discovery has settled on it, inside the bounded wait.
   f.publish({ discoveryPhase: 'observed', peerDiscoveryTimedOut: false, network: observed.network, models: [served(SMALL), LARGE] });
   expect([section('large'), row('large').status]).toMatchInlineSnapshot(`
     [
-      "Unavailable · 1",
-      "Unavailable",
+      "Public network",
+      "Finding computers…",
     ]
   `);
-  // The wait is over and nobody serves it.
+  // Only how it reads changed: a tap stages it, commits nothing, and Send still goes to the model that is served.
+  f.c.pickModel('large');
+  expect([f.view.sheet().open, f.view.sheet().outcome.action, f.created.length]).toEqual([true, '', 0]);
+  f.c.closeSheet();
+  expect(chip(f).selectionId).toBe(key(SMALL));
+  f.c.openSheet();
+  // The wait is over and nobody serves it: it is unavailable.
   f.publish({ ...observed, models: [served(SMALL), LARGE] });
   expect([section('large'), row('large').status]).toMatchInlineSnapshot(`
     [

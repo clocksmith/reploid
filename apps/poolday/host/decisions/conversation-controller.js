@@ -409,7 +409,9 @@ export function createConversationController(session, {
     const keep = { local: 'No model is stored on this device.',
       shared: state.discoveryPhase === 'searching' ? 'Finding computers…' : 'No contributor shares a model right now.' };
     const sections = projectModelChoices(models, { value: modelKey(pickerModel), grouped: true, preferNetwork: false, variants: true, compact: true,
-      location: side === 'local' ? 'local' : 'auto', describe: describeModelChoice(state), keep, inspectable: true, disabled: changingModel });
+      location: side === 'local' ? 'local' : 'auto', describe: describeModelChoice(state), keep, inspectable: true, disabled: changingModel,
+      // Discovery runs until the bounded wait is over, even after the first computer settled it (chat-session.js).
+      discovering: state.discoveryPhase === 'searching' || state.discoveryPhase === 'observed' && !state.peerDiscoveryTimedOut });
     const detailModel = selected || pickerModel;
     const disclosure = promptDisclosure({ site: 'sheet', local: pickerLocation === 'local',
       operator: pickerChoice === 'desktop' && locked ? locked.label : null, blocked: !!block,

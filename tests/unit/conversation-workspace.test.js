@@ -488,7 +488,9 @@ describe('Conversation workspace', () => {
     c().openSheet();
     c().pickModel(model.id);
     const group = () => sheet().sections.find(section => section.rows.some(row => row.value === model.id))?.id;
-    expect(group()).toBe('unavailable');
+    // Computers are still being found, so it is listed where its computer will list it, as Finding computers.
+    expect(group()).toBe('shared');
+    expect(view.modelRows().find(row => row.value === model.id).status).toBe('Finding computers…');
     expect(sheet().outcome.disabled).toBe(true);
     expect(view.computer('network').disabled).toBe(false);
     expect(sheet().outcome.issue).toMatch(/^Finding computers…/);
@@ -600,8 +602,8 @@ describe('Conversation workspace', () => {
     expect(sheet().selectedKey).toBe(route.selectionId);
     expect(view.modelRows()).toHaveLength(2);
     expect(view.modelRows().find(row => row.checked).title).toBe(base.name);
-    // Each adapter has its own readiness.
-    expect(view.modelRows().find(row => row.title === 'Named adapter').status).toBe('No computer serves it now');
+    // Each adapter has its own readiness: computers are still being found for this one.
+    expect(view.modelRows().find(row => row.title === 'Named adapter').status).toBe('Finding computers…');
     if (sheet().open && !sheet().outcome.disabled) c().runSheetAction();
     await vi.waitFor(() => expect(digest()).toBe(`Contributors · ${base.name}`));
   });
