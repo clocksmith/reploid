@@ -8,13 +8,15 @@
  *
  * Plain Node 22 or later, no npm packages, no keys and no network. It first checks that every file in the package is
  * the one listed in SHA256SUMS, then replays each receipt's signed settlement records and compares the result with the
- * one listed in expected.json. Exit 0 means every file is intact, every trade verifies, and every result is the
- * expected one.
+ * one listed in expected.json (outsider-result-compare.mjs: every verdict and amount listed there must be the same; a
+ * field a newer verifier adds is printed as information). Exit 0 means every file is intact, every trade verifies, and
+ * every result is the expected one.
  */
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { compareResult, comparisonLines } from './outsider-result-compare.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const say = line => console.log(line);
@@ -52,7 +54,8 @@ for (const item of expected.receipts) {
     if (f.ownAccountStages?.length) say(`    note: ${f.ownAccountStages.length} stage(s) on the requester's own account, neither charged nor paid; no signed record confirms that grouping`);
     for (const problem of row.problems) say(`    problem: ${problem}`);
   }
-  const same = verdict.ok === item.ok && JSON.stringify(verdict.attempts) === JSON.stringify(item.attempts);
+  const comparison = compareResult(item, verdict), same = comparison.same;
+  for (const line of comparisonLines(comparison)) say(`  ${line}`);
   say(`  ${verdict.ok ? 'The trade verifies' : 'The trade does NOT verify'}, and the result ${same ? 'is the expected one' : 'DIFFERS from the expected one'}.`);
   if (same) good += 1;
 }

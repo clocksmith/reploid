@@ -12,7 +12,8 @@
  *   verifier/      verify-trade.js and every file it imports, at this checkout's commit, under their repository paths;
  *   receipts/ID/   each receipt.json (and policy.json) as given;
  *   expected.json  what this verifier gives for each receipt now (per attempt: verdict, facts and problems);
- *   verify.mjs     the one command (outsider-package-verify.mjs);
+ *   verify.mjs     the one command (outsider-package-verify.mjs), with outsider-result-compare.mjs beside it: every
+ *                  verdict and amount in expected.json must be the same, and a field a newer verifier adds is information;
  *   README.md      plain instructions and the expected output;
  *   SHA256SUMS     every other file's digest, which verify.mjs checks first.
  * The verifier files must be committed and unchanged, so the package names the exact public commit they come from.
@@ -29,7 +30,7 @@
  *                         only, none of the service's ledger or replay code;
  *   SPECIFICATION.md      docs/settlement-replay.md, the wire specification, from the same commit;
  *   inputs.mjs            prints the numbers each amount is worked out from (outsider-records-inputs.mjs);
- *   expected.json, verify.mjs (outsider-records-verify.mjs), README.md and SHA256SUMS as above.
+ *   expected.json, verify.mjs (outsider-records-verify.mjs), outsider-result-compare.mjs, README.md and SHA256SUMS as above.
  * A manifest for it may list no receipts at all; the package then holds the simulated trades only.
  */
 import { execFileSync } from 'node:child_process';
@@ -47,6 +48,9 @@ const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../
 const ENTRY = 'scripts/settlement/verify-trade.js';
 const RECORDS_ENTRY = 'scripts/settlement/verify-records.js';
 const SPECIFICATION = 'docs/settlement-replay.md';
+/** verify.mjs imports it from beside itself, in the repository and in the package alike. */
+const COMPARE = 'outsider-result-compare.mjs';
+const copyCompare = out => fs.copyFile(path.join(repoRoot, 'scripts/settlement', COMPARE), path.join(out, COMPARE));
 
 /** verify-trade.js and its relative imports, transitively. Any import that is not relative or `node:` is refused. */
 export function verifierFiles(root = repoRoot, entry = ENTRY) {
@@ -119,6 +123,12 @@ RESULT: all ${receipts.length} receipts give the expected result.
 
 Please send back the whole output, whatever it says, and the output of \`node --version\`.
 
+With a verifier newer than this package's (\`--verifier\`, below), a trade may also print a line that starts
+with \`information:\`. It names fields the newer verifier reports and this package's expected result was made without,
+or a problem worded differently. It changes no verdict or amount: every verdict, outcome, debit, payout, forfeit and
+hold amount listed in \`expected.json\` must still be the same, and a line that starts with \`DIFFERS:\` names any
+that is not.
+
 ## What a pass shows, and what it does not
 
 A pass shows that the signed records in each receipt, checked by the keys they name, imply exactly the amounts the
@@ -169,10 +179,11 @@ export async function buildOutsiderPackage({ manifest, out }) {
   }
   await fs.writeFile(path.join(out, 'expected.json'), JSON.stringify(expected, null, 2) + '\n');
   await fs.copyFile(path.join(repoRoot, 'scripts/settlement/outsider-package-verify.mjs'), path.join(out, 'verify.mjs'));
-  // Listed in SHA256SUMS: the verifier, the receipts, expected.json, verify.mjs and README.md.
+  await copyCompare(out);
+  // Listed in SHA256SUMS: the verifier, the receipts, expected.json, verify.mjs, the comparison and README.md.
   const copied = (await fs.readdir(path.join(out, 'receipts'), { recursive: true, withFileTypes: true })).filter(entry => entry.isFile()).length;
   await fs.writeFile(path.join(out, 'README.md'), readme({ title: manifest.title, commit, receipts: manifest.receipts, expected,
-    fileCount: files.length + copied + 3 }));
+    fileCount: files.length + copied + 4 }));
   const listed = await writeSums(out);
   return { commit, files: listed + 1, expected };
 }
@@ -242,6 +253,7 @@ payout yourself; the publisher's amounts are in the folder only so that you can 
 - \`verifier/\`: a verifier written from that specification (${files.length} files). \`verify.mjs\` runs it on every trade.
 - \`inputs.mjs\`: prints the numbers each amount is worked out from, for doing the arithmetic yourself.
 - \`expected.json\`, \`SHA256SUMS\`: the result each trade should give, and every file's digest.
+  \`outsider-result-compare.mjs\` is how \`verify.mjs\` compares a result with the expected one.
 
 There is no prompt, no answer text, no token IDs, no description of the work, and nothing from the coordinator's
 ledger: no journal, no balances. The records hold only counts, times, keys, signatures and digests.
@@ -280,6 +292,12 @@ Hold release is shown by a coordinator-signed statement in ${shown} of ${attempt
 \`\`\`
 
 Please send back the whole output, whatever it says, and the output of \`node --version\`.
+
+With a verifier newer than this package's (\`--verifier\`, below), a trade may also print a line that starts
+with \`information:\`. It names fields the newer verifier reports and this package's expected result was made without,
+or a problem worded differently. It changes no verdict or amount: every verdict, outcome, debit, payout, forfeit and
+hold amount listed in \`expected.json\` must still be the same, and a line that starts with \`DIFFERS:\` names any
+that is not.
 
 ## How to read an attempt
 
@@ -415,8 +433,10 @@ export async function buildRecordsPackage({ manifest, out }) {
   await fs.writeFile(path.join(out, 'expected.json'), JSON.stringify(expected, null, 2) + '\n');
   await fs.copyFile(path.join(repoRoot, 'scripts/settlement/outsider-records-verify.mjs'), path.join(out, 'verify.mjs'));
   await fs.copyFile(path.join(repoRoot, 'scripts/settlement/outsider-records-inputs.mjs'), path.join(out, 'inputs.mjs'));
-  // Listed in SHA256SUMS: the verifier, the trades, the specification, expected.json, verify.mjs, inputs.mjs and README.md.
-  await fs.writeFile(path.join(out, 'README.md'), recordsReadme({ title: manifest.title, commit, expected, files, fileCount: files.length + trades.length + 5 }));
+  await copyCompare(out);
+  // Listed in SHA256SUMS: the verifier, the trades, the specification, expected.json, verify.mjs, inputs.mjs, the
+  // comparison and README.md.
+  await fs.writeFile(path.join(out, 'README.md'), recordsReadme({ title: manifest.title, commit, expected, files, fileCount: files.length + trades.length + 6 }));
   const listed = await writeSums(out);
   // `receipts` keeps main()'s report the same for both kinds of package.
   return { commit, files: listed + 1, expected: { ...expected, receipts: expected.trades } };
