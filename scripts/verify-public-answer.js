@@ -122,9 +122,12 @@ try {
   if (/credit|cost|pay|budget|spending/i.test(`${before.status} ${before.disclosure}`)) fail('the composer mentions a charge before the first question');
   if (!before.sendUsable) fail(`Send is not usable for a first visitor: ${before.status || before.chip}`);
 
-  // Journey 2: type and send, nothing else.
+  // Journey 2: type and send, nothing else. The question is typed key by key, as a person types it: the page may
+  // still be hearing from computers, and the model it names when Send is pressed is the one that must answer.
   result.stage = 'send';
-  await page.locator('[data-composer-input]').fill(PROMPT);
+  await page.locator('[data-composer-input]').pressSequentially(PROMPT, { delay: 40 });
+  const typed = await page.evaluate(readPage);
+  result.atSend = { at: typed.at, computer: typed.computer, model: typed.model, disclosure: typed.disclosure };
   const started = Date.now();
   await press(send);
   const picker = page.locator('[data-model-picker]');
@@ -175,12 +178,12 @@ try {
   // The model named before Send, on the answer, in the conversation and in each execution record must be one model.
   result.stage = 'record';
   const record = await readRecord(page).catch(() => null);
-  const named = asked ? sent.model : before.model;
+  const named = asked ? sent.model : typed.model;
   result.served = { namedBeforeSend: named, answerRow: answered.answer.line, conversation: record?.conversation ?? null,
     executed: record?.attempts.map(attempt => attempt.executed) ?? null };
   if (!record) fail('the stored conversation record could not be read, so the answering model is not checked');
   else {
-    if (!asked && before.computer !== 'Contributors') fail(`the composer named ${before.computer || 'no computer'} before Send, and a public computer answered`);
+    if (!asked && typed.computer !== 'Contributors') fail(`the composer named ${typed.computer || 'no computer'} before Send, and a public computer answered`);
     if (record.conversation.name !== named) fail(`the composer named ${named} and the conversation ran ${record.conversation.name}`);
     if (!answered.answer.line.includes(record.conversation.name)) fail(`the answer row does not name ${record.conversation.name}: ${answered.answer.line}`);
     if (record.attempts.length !== (values['follow-up'] ? 2 : 1)) fail(`the conversation holds ${record.attempts.length} attempts`);
