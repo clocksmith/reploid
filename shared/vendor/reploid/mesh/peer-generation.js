@@ -222,15 +222,20 @@ export function createPeerGenerationMesh({ config, ports }) {
   const supportsSettings = (peer, settings) => {
     try { assertSettingsSupported(peer.generationSettings, settings); return true; } catch { return false; }
   };
-  const chooseCompatibleProvider = (modelId, includeBusy = false, modelIdentity = null, adapters = [], preferred = null, privacy = null, offerId = null, settings = undefined, signedSettlement = false) => {
+  // Every provider that could take this request now, in the default order. `privacy: null` drops the request's
+  // recipient and offer checks and keeps the protocol gates, which is what "serves this model" means.
+  const compatibleProviders = (modelId, includeBusy = false, modelIdentity = null, adapters = [], privacy = null, offerId = null, settings = undefined, signedSettlement = false) => {
     const blocked = blockedComputers();
-    let eligible = rankProviderPeers(swarmController.listPeers().filter(peer => privacyEligible(peer, privacy, offerId)))
+    return rankProviderPeers(swarmController.listPeers().filter(peer => privacyEligible(peer, privacy, offerId)))
     .filter(peer => !isBlockedProvider(peer.peerId, blocked) && !unresponsivePeers.has(peer.peerId) && supportsAdapters(peer, adapters) && peer.readiness === 'ready' && (!modelIdentity || peer.modelIdentity === modelIdentity) && (!modelId || peer.model === modelId) && (includeBusy || (!reservedProviders.has(peer.peerId) && peer.availableSlots > 0))
       && (policy.models.contract === null
       || JSON.stringify(snapshotJson(peer.modelContract ?? null)) === JSON.stringify(policy.models.contract))
       && (!settings || supportsSettings(peer, settings))
       // A request that requires a verifiable charge considers only providers that advertise they sign its records.
       && (!signedSettlement || peer.settlementProtocol === SETTLEMENT_PROTOCOL));
+  };
+  const chooseCompatibleProvider = (modelId, includeBusy = false, modelIdentity = null, adapters = [], preferred = null, privacy = null, offerId = null, settings = undefined, signedSettlement = false) => {
+    let eligible = compatibleProviders(modelId, includeBusy, modelIdentity, adapters, privacy, offerId, settings, signedSettlement);
     // Optional host ranking: connection ids or identities proven on this channel, best first. Providers it
     // does not name keep the default order after it. It reorders eligible providers; it cannot add one.
     const order = eligible.length > 1 ? ports.rankProviders?.(eligible.map(placementCandidate), { modelId, modelIdentity }) : null;
@@ -1393,6 +1398,19 @@ export function createPeerGenerationMesh({ config, ports }) {
     if (signedSettlement && !chooseCompatibleProvider(modelId, true, modelIdentity, adapterIdentities, null, privacy, offerId, settings, true)
       && chooseCompatibleProvider(modelId, true, modelIdentity, adapterIdentities, null, privacy, offerId, settings)) {
       throw Object.assign(new Error('No computer serving this model signs a verifiable charge. Nothing was held or sent.'), { code: 'VERIFIABLE_CHARGE_UNAVAILABLE' });
+    }
+    // Computers serve this model and every one has proven its identity, but the request may not be sent to any of them
+    // (its named recipients exclude them all, or no offer satisfies its policy): refuse now instead of waiting the
+    // whole generation timeout for a recipient that is not connected. While an identity is still unproven the
+    // request waits as before; nothing is disclosed either way.
+    if (peerIdentity && !chooseCompatibleProvider(modelId, true, modelIdentity, adapterIdentities, null, privacy, offerId, settings, signedSettlement)) {
+      const serving = compatibleProviders(modelId, true, modelIdentity, adapterIdentities, null, null, settings, signedSettlement);
+      if (serving.length && serving.every(peer => peerIdentity.getVerified(peer.peerId))) {
+        const named = [...new Set(serving.map(peer => peerIdentity.getVerified(peer.peerId)))];
+        throw Object.assign(new Error(`No computer serving this model may receive this request: ${named.join(', ')} `
+          + `${named.length === 1 ? 'is' : 'are'} not among the recipients its execution policy allows, and none of those is connected and serving it.`
+          + ' Nothing was held or sent.'), { code: 'NO_PERMITTED_PROVIDER', providerIdentities: named });
+      }
     }
     const pick = () => chooseProvider(modelId, signal, modelIdentity, adapterIdentities, contextProviders.get(affinityKey), privacy, offerId, settings, signedSettlement);
     let provider = await pick();

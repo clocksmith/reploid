@@ -1416,7 +1416,7 @@
     {
       "path": "config/module-inventory.json",
       "byteLength": 699485,
-      "sha256": "sha256:7bad5a3cb8463df2f6934c66baa77dd42803eef2498926b95851178649a333a6"
+      "sha256": "sha256:9cbe48352f656e757e461bbab94ae348d006f405696b9d70a26841deea0820a7"
     },
     {
       "path": "config/module-registry.json",
@@ -3870,8 +3870,8 @@
     },
     {
       "path": "ui/pool-home/app.bundle.js",
-      "byteLength": 2606385,
-      "sha256": "sha256:87ce433376b75fb45691c15cd66fd956d34f0f07afd1ecfcb3634a56992003ea"
+      "byteLength": 2607117,
+      "sha256": "sha256:f4c51b65a5156872c1a66fe333ea107098b7d3af23f6ff3c0fffc88b0723de06"
     },
     {
       "path": "ui/pool-home/auto-download.js",
@@ -4425,8 +4425,8 @@
     },
     {
       "path": "ui/react/app.js",
-      "byteLength": 2209885,
-      "sha256": "sha256:8daa0116e474fea66cc8c63574c983cc783e1d4c7d4036b844914de02dc60804"
+      "byteLength": 2210671,
+      "sha256": "sha256:d597f7fe9309523b034c32fa7b71a8fe2e7f73487507e4ab36da30f40faa2e83"
     },
     {
       "path": "ui/react/design.js",
@@ -12485,8 +12485,8 @@
     },
     {
       "path": "vendor/reploid/mesh/peer-generation.js",
-      "byteLength": 106175,
-      "sha256": "sha256:04aa55309e6f61b8fb34cc2530e4e2581a28382fb01733d9671f986ba637e794"
+      "byteLength": 107979,
+      "sha256": "sha256:36a6ca4e86627d33f5780f35d4608ad9992ddaf19ab87364dd101879347fee96"
     },
     {
       "path": "vendor/reploid/mesh/peer-identity.js",
@@ -12556,7 +12556,7 @@
     {
       "path": "vendor/reploid/package-assets.json",
       "byteLength": 63876,
-      "sha256": "sha256:7773e45f02fa528b25b46aac803b9a08cbe02f3575b8663d3d3e34dbad12ac66"
+      "sha256": "sha256:d33169c3ed6ee784dd1de3002c15a1ebcf7a70ab41d4a399cd2d7d022f16a37d"
     },
     {
       "path": "vendor/reploid/plugins/index.js",
@@ -12849,5 +12849,5 @@
       "sha256": "sha256:abb6c18f6167d6afc8ee1b3adfcbbb89c0e93fb4fc4e98d7a12250f78aab206a"
     }
   ],
-  "bundleHash": "sha256:aaefb6feff4a964c95c4475e0fb6e8829402b64a702edf72902d7e249bb0444d"
+  "bundleHash": "sha256:4ad3fb1f5f705dc9cc568bc7a709de4e537e4ef91f20253fe6c254343db306e1"
 }
