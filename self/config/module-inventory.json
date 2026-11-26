@@ -92,7 +92,7 @@
     {
       "path": "capabilities/cognition/gepa-optimizer.js",
       "owner": "capabilities",
-      "sha256": "sha256:3c37c1465c6320b9b90fcd10bb1ffc93acceed2b6ae786499e16ea91e8dcc108",
+      "sha256": "sha256:a00456d1c44941250d2ebcfa2229029c55e401f00cb6fc19a1c960a8a4be3486",
       "imports": [
         "./gepa-evaluation.js",
         "./gepa-reflection.js",
@@ -279,7 +279,7 @@
     {
       "path": "capabilities/reflection/reflection-store.js",
       "owner": "capabilities",
-      "sha256": "sha256:88f775e4921dbae21ac9ff2a5b7738dc91edb4a17d7f0651c01f2c080a49406e",
+      "sha256": "sha256:7ff507e11f5b753be7a1d11f4516b4b5ae472aceb4c4f6b9022c9315f8d12544",
       "imports": [
         "../../core/improvement-episode.js"
       ]
@@ -560,7 +560,7 @@
     {
       "path": "core/functiongemma-orchestrator.js",
       "owner": "core",
-      "sha256": "sha256:eaaae8386c5637a92519182769b943f253352c02f92e7b357675297d33d23e0c",
+      "sha256": "sha256:1416ba6905cf642dcbe17f7d0589468a36ca3dc75046b8435b4d8fd96d3227c8",
       "imports": [
         "./functiongemma-network.js",
         "./tool-argument-validation.js"
@@ -701,7 +701,7 @@
     {
       "path": "core/tool-runner.js",
       "owner": "core",
-      "sha256": "sha256:3f0e539c4b68e1111706a361e9893e9b0194c05d15295bba28719241650933d1",
+      "sha256": "sha256:f0bfb9bd4f1e75a1e62b442c83dd64dd76fbdadcc9563ef8ad7f63d7921671a8",
       "imports": [
         "../config/lab-upgrades.js",
         "../config/tool-surfaces.js",
@@ -795,7 +795,7 @@
     {
       "path": "core/worker-manager.js",
       "owner": "core",
-      "sha256": "sha256:448c913e5e5f9cf606ebd5eea4d117448ee39a06727f3d2b286e981249f0000d",
+      "sha256": "sha256:47980791a312244326f812de515deb0aeb2495f057def88d8f763109d1d36142",
       "imports": []
     },
     {
@@ -4109,7 +4109,7 @@
     {
       "path": "tools/SpawnWorker.js",
       "owner": "tools",
-      "sha256": "sha256:6cb6ad5a9b1b221bf4b6afc3f7a1da50dfc7597ccf219630de3c08143f725e89",
+      "sha256": "sha256:de6178cabd7fbdbcf17b9d6386e1d289c03232c2969b228ab4c3d09394b3a1f6",
       "imports": [
         "../vendor/reploid/agent/tool-operation-retry.js"
       ]

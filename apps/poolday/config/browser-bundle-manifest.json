@@ -1020,8 +1020,8 @@
     },
     {
       "path": "capabilities/cognition/gepa-optimizer.js",
-      "byteLength": 32432,
-      "sha256": "sha256:3c37c1465c6320b9b90fcd10bb1ffc93acceed2b6ae786499e16ea91e8dcc108"
+      "byteLength": 34124,
+      "sha256": "sha256:a00456d1c44941250d2ebcfa2229029c55e401f00cb6fc19a1c960a8a4be3486"
     },
     {
       "path": "capabilities/cognition/gepa-reflection.js",
@@ -1160,8 +1160,8 @@
     },
     {
       "path": "capabilities/reflection/reflection-store.js",
-      "byteLength": 14542,
-      "sha256": "sha256:88f775e4921dbae21ac9ff2a5b7738dc91edb4a17d7f0651c01f2c080a49406e"
+      "byteLength": 15768,
+      "sha256": "sha256:7ff507e11f5b753be7a1d11f4516b4b5ae472aceb4c4f6b9022c9315f8d12544"
     },
     {
       "path": "capabilities/system/doppler-optimizer.js",
@@ -1416,12 +1416,12 @@
     {
       "path": "config/module-inventory.json",
       "byteLength": 698667,
-      "sha256": "sha256:86acbe720e4dcbc5d74074b4cec289139a83e947b541062a804a284ecfc6f202"
+      "sha256": "sha256:b6b45bdf4b8c1c392467527c3ea86787c2c472f94fba1e70977317715168b0cf"
     },
     {
       "path": "config/module-registry.json",
-      "byteLength": 42498,
-      "sha256": "sha256:e9c341d00a6d000e2da22095637922602b34f42c54532702e86a2bf4e5981397"
+      "byteLength": 42662,
+      "sha256": "sha256:09e435c6e7ddd7a0a0a4e5e58fd2bf96399a35784243533efe5f46f8193bd1d9"
     },
     {
       "path": "config/module-resolution.js",
@@ -1600,8 +1600,8 @@
     },
     {
       "path": "core/functiongemma-orchestrator.js",
-      "byteLength": 37702,
-      "sha256": "sha256:eaaae8386c5637a92519182769b943f253352c02f92e7b357675297d33d23e0c"
+      "byteLength": 38882,
+      "sha256": "sha256:1416ba6905cf642dcbe17f7d0589468a36ca3dc75046b8435b4d8fd96d3227c8"
     },
     {
       "path": "core/import-rewrite.js",
@@ -1700,8 +1700,8 @@
     },
     {
       "path": "core/tool-runner.js",
-      "byteLength": 26023,
-      "sha256": "sha256:3f0e539c4b68e1111706a361e9893e9b0194c05d15295bba28719241650933d1"
+      "byteLength": 26529,
+      "sha256": "sha256:f0bfb9bd4f1e75a1e62b442c83dd64dd76fbdadcc9563ef8ad7f63d7921671a8"
     },
     {
       "path": "core/tool-writer.js",
@@ -1760,8 +1760,8 @@
     },
     {
       "path": "core/worker-manager.js",
-      "byteLength": 21795,
-      "sha256": "sha256:448c913e5e5f9cf606ebd5eea4d117448ee39a06727f3d2b286e981249f0000d"
+      "byteLength": 22833,
+      "sha256": "sha256:47980791a312244326f812de515deb0aeb2495f057def88d8f763109d1d36142"
     },
     {
       "path": "core/zero-prompt.js",
@@ -3650,8 +3650,8 @@
     },
     {
       "path": "tools/SpawnWorker.js",
-      "byteLength": 3532,
-      "sha256": "sha256:6cb6ad5a9b1b221bf4b6afc3f7a1da50dfc7597ccf219630de3c08143f725e89"
+      "byteLength": 3614,
+      "sha256": "sha256:de6178cabd7fbdbcf17b9d6386e1d289c03232c2969b228ab4c3d09394b3a1f6"
     },
     {
       "path": "tools/SwarmGetStatus.js",
@@ -12839,5 +12839,5 @@
       "sha256": "sha256:abb6c18f6167d6afc8ee1b3adfcbbb89c0e93fb4fc4e98d7a12250f78aab206a"
     }
   ],
-  "bundleHash": "sha256:fbe71edc3a11b21f9cfc3aecbc0bc3c0f73a3b84ed69a4f0c5c60991ccf22ba4"
+  "bundleHash": "sha256:c4a832858e40850fb5b5d264be8021a057371eb6ceb5fa8eba27b0ed9982a874"
 }
