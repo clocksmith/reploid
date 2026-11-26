@@ -20,9 +20,10 @@ import { PROTECTION_DISPLAY, SPLIT_DISPLAY, splitReadersLine } from '../../../..
  * - `preset`: the note under "Who can read it?";
  * - `route`: the This device row of "Where it runs";
  * - `own-devices`: why "Only your devices" is off on This device;
- * - `split-note`: the note of a route in stages in "Who can read it?".
+ * - `split-note`: the note of a route in stages in "Who can read it?";
+ * - `alternative`: an offer of another route beside the composer, when the chosen one cannot answer.
  */
-export const DISCLOSURE_SITES = Object.freeze(['composer', 'sheet', 'outcome', 'invite', 'protection', 'preset', 'route', 'own-devices', 'split-note']);
+export const DISCLOSURE_SITES = Object.freeze(['composer', 'sheet', 'outcome', 'invite', 'protection', 'preset', 'route', 'own-devices', 'split-note', 'alternative']);
 
 const METADATA_WORDS = { 'model-id': 'model identity', timing: 'timing', length: 'message sizes', 'access-patterns': 'access patterns' };
 const sentence = items => items.length < 2 ? items.join('') : `${items.slice(0, -1).join(', ')} and ${items.at(-1)}`;
@@ -43,6 +44,7 @@ const WORDING = Object.freeze({
     composer: NOTHING_LEAVES, sheet: NOTHING_LEAVES,
     route: 'This device runs the whole model. Nothing leaves it.',
     'own-devices': 'This device runs it; nothing leaves it.',
+    alternative: 'Stays on this device.',
     preset: 'Only this device runs the model. Nothing leaves this device, and no network participant sees its metadata.'
   },
   'own-devices': {
@@ -51,7 +53,8 @@ const WORDING = Object.freeze({
   operator: {
     composer: sendingTo, sheet: sendingTo,
     invite: ({ operator }) => `This runs on ${operator}. Its operator can read your prompt.`,
-    outcome: ({ operator }) => `Only ${operator} may read your messages. Choose a model it runs.`
+    outcome: ({ operator }) => `Only ${operator} may read your messages. Choose a model it runs.`,
+    alternative: ({ operator }) => `The operator of ${operator} can read this conversation.`
   },
   blocked: {
     sheet: BLOCKED_SHEET,
@@ -69,6 +72,7 @@ const WORDING = Object.freeze({
   answering: {
     composer: ANSWERING, sheet: ANSWERING,
     outcome: 'The answering computer reads your messages.',
+    alternative: 'The operator of the computer that answers can read this conversation.',
     protection: PROTECTION_DISPLAY.plaintext.line,
     preset: `The computer that answers reads your content in plaintext and can see its access patterns, and you approve it before anything is sent. The request's ${sentence(NETWORK_METADATA)} can also be visible to the coordinators, credit ledgers and relays that carry the request.`
   }
