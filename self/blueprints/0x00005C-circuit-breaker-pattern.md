@@ -11,78 +11,54 @@
 **Owned Source Files:** `infrastructure/circuit-breaker.js`
 
 **Former Blueprint Paths:** `self/blueprints/0x00005C-circuit-breaker-pattern.md`
-**Module:** `CircuitBreaker`
-**File:** `./infrastructure/circuit-breaker.js`
-**Purpose:** Failure isolation - prevents cascading failures when services degrade
 
-## Overview
+**Module ID:** `CircuitBreaker` (version 2.0.0, genesis level `spark`, type `utility`; dependencies `Utils`, optional `EventBus`)
 
-The Circuit Breaker pattern monitors failures and "opens" the circuit after threshold is exceeded, preventing further calls to failing service. After timeout, circuit enters "half-open" state to test if service recovered.
+**Source:** `self/infrastructure/circuit-breaker.js`
 
-## States
+---
 
-1. **CLOSED** - Normal operation, requests pass through
-2. **OPEN** - Failure threshold exceeded, requests fail fast
-3. **HALF_OPEN** - Testing recovery, limited requests allowed
+## Purpose
 
-## Implementation
+A circuit breaker stops the agent from calling something that keeps failing. Each breaker tracks any number of keys (for example tool names). After enough failures for a key it rejects that key for a cooldown, then lets a limited number of probe calls through to test recovery.
 
-```javascript
-const CircuitBreaker = {
-  metadata: {
-    id: 'CircuitBreaker',
-    dependencies: ['Utils'],
-    type: 'infrastructure'
-  },
+The breaker does not wrap or run the call. The caller asks `isOpen(key)` before calling and reports the outcome with `recordSuccess(key)` or `recordFailure(key, error)`.
 
-  factory: (deps) => {
-    const { logger } = deps.Utils;
+The agent's tool path creates one breaker named `AgentToolCircuit` with `threshold: 3` and `resetMs: 60000`, keyed by tool name (`packages/reploid/src/agent/lab-strategy-tools.js:34-39`).
 
-    const createBreaker = (threshold = 5, timeout = 60000) => {
-      let failures = 0;
-      let state = 'CLOSED';
-      let nextRetry = 0;
+## Exports
 
-      const execute = async (fn) => {
-        if (state === 'OPEN') {
-          if (Date.now() < nextRetry) {
-            throw new Error('Circuit breaker OPEN');
-          }
-          state = 'HALF_OPEN';
-        }
+The factory returns `{ create, State, DEFAULTS }`.
 
-        try {
-          const result = await fn();
-          if (state === 'HALF_OPEN') {
-            state = 'CLOSED';
-            failures = 0;
-          }
-          return result;
-        } catch (error) {
-          failures++;
-          if (failures >= threshold) {
-            state = 'OPEN';
-            nextRetry = Date.now() + timeout;
-            logger.warn(`Circuit breaker opened after ${failures} failures`);
-          }
-          throw error;
-        }
-      };
+- `State`: `{ CLOSED: 'closed', OPEN: 'open', HALF_OPEN: 'half_open' }`.
+- `DEFAULTS`: `{ threshold: 3, resetMs: 60000, successThreshold: 2, halfOpenMaxConcurrent: 1, useExponentialBackoff: true, maxResetMs: 300000, backoffMultiplier: 2 }`.
+- `create(options)`: returns a breaker. Options are the `DEFAULTS` keys plus `name` (default `'CircuitBreaker'`, used in logs and event payloads) and `emitEvents` (default `true`).
 
-      return { execute, getState: () => state };
-    };
+A breaker exposes `isOpen`, `recordFailure`, `recordSuccess`, `getState`, `reset`, `getTrackedKeys`, `acquireProbe`, `releaseProbe`, `forceState`, `State`, and the getters `size` and `config`.
 
-    return { createBreaker };
-  }
-};
-```
+## State machine
 
-## Usage
+Per key:
 
-```javascript
-const breaker = CircuitBreaker.createBreaker(5, 60000);
+1. **Closed.** Not tracked, or tracked with fewer than `threshold` consecutive failures. `recordSuccess` deletes the record.
+2. **Open.** Entered when failures reach `threshold`. `isOpen` returns `true` until the cooldown has passed. The cooldown is `resetMs` on the first trip and, with exponential backoff, `resetMs * backoffMultiplier^(trips - 1)` capped at `maxResetMs`.
+3. **Half-open.** The first `isOpen` after the cooldown moves the key here and admits one probe. Further calls are admitted only while fewer than `halfOpenMaxConcurrent` probes are in flight. A failure re-opens the key and counts another trip; `successThreshold` successes close it and delete the record.
 
-await breaker.execute(async () => {
-  return await fetch('/api/endpoint');
-});
-```
+`acquireProbe` and `releaseProbe` let a caller manage half-open slots explicitly. `forceState(key, state)` sets a state by hand and throws on an unknown state. `getState(key)` returns `{ state, failures, lastError, isOpen, tripTime, testSuccesses, consecutiveTrips, currentBackoffMs, remainingMs, halfOpenConcurrent, totalFailures }`, or a closed default for an untracked key. `reset()` clears every key.
+
+## Events
+
+Emitted on `EventBus` when present and `emitEvents` is true; every payload includes `breaker: name` and `key`:
+
+`circuit:open`, `circuit:half_open`, `circuit:half_open_progress`, `circuit:reopen`, `circuit:closed`, `circuit:force_closed`, `circuit:force_open`, `circuit:force_half_open`.
+
+## Boundaries
+
+- State is in memory and per breaker instance; it does not survive a reload and is not shared between tabs or peers.
+- An open circuit means "stop calling for now". It says nothing about why the target failed.
+- Agent-loop behavior with the breaker is exercised in `tests/integration/agent-loop.test.js`; there is no dedicated unit test for this module.
+
+## Related blueprints
+
+- [0x00000A Tool Runner Engine](0x00000A-tool-runner-engine.md): runs the tools the agent breaker guards.
+- [0x000029 Rate Limiting Strategies](0x000029-rate-limiting-strategies.md): limits call rate rather than reacting to failures.

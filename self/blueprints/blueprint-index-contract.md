@@ -14,8 +14,8 @@ The blueprint system separates architectural authority from source enumeration. 
 | What is each blueprint's status and implementation evidence? | Canonical metadata in that numbered file, validated into the registry |
 | Which JavaScript modules exist? | `self/config/module-inventory.json` |
 | Which runtime modules depend on which blueprints? | Generated `self/config/module-registry.json` |
-| Which compact meta contracts enter boot context? | `self/blueprint-index.json` and `self/config/boot-seed.js` |
-| What happened to pre-audit files? | `deduplication-audit.md` and each blueprint's `Former Blueprint Paths` metadata |
+| Which compact meta contracts enter boot context? | `SELF_BLUEPRINT_PATHS` in `self/manifest.js` (sent in the first message by `self/runtime.js`) and the seed prefixes in `self/config/boot-seed.js`; see [`tabula-rasa-runtime.md`](tabula-rasa-runtime.md#first-context). The `active` list in `self/blueprint-index.json` is a discovery hint and does not select the set. |
+| What happened to pre-audit files? | The merge and shell tables in `deduplication-audit.md`. `Former Blueprint Paths` usually repeats the file's own path; a few merge destinations also list the removed file. |
 
 ## Canonical numbered-file contract
 
@@ -41,7 +41,7 @@ A numbered blueprint must:
 
 ## Build and gate contract
 
-`npm run build:blueprints` regenerates module inventory, blueprint registry, and module registry, then verifies sequence, metadata, ownership, artifact existence, and references. `npm run build:genesis` regenerates the genesis and VFS manifests. Generated timestamps are informational; IDs, paths, content hashes, and statuses carry authority.
+`npm run build:blueprints` regenerates the module inventory, the blueprint registry and `canonical-inventory.md`. `node scripts/build-blueprint-registry.js --check` checks, for every numbered file: a unique ID, `Classification` equal to `Canonical Full Specification`, a known `Implementation Status`, backtick-path or `None` syntax for the artifact and ownership fields, that each owned source file exists and has one owner, that each verified artifact exists, and that the generated registry and inventory are current. It does not check contiguous numbering, heading IDs, the `Former Blueprint Paths` field, the status-versus-planned-artifact rules above, shell text, or cross-references; those rules are enforced by review. `npm run build:genesis` regenerates the genesis and VFS manifests. Generated timestamps are informational; IDs, paths, content hashes, and statuses carry authority.
 
 ## Reference contract
 

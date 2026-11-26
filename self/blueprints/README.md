@@ -17,7 +17,7 @@
 | Class | Meaning |
 | --- | --- |
 | Canonical Full Specification | Numbered authoritative architecture. It may be concise when the contract is narrow, but it must contain unique technical intent. |
-| Summary Stub / Shell | Generated boilerplate with no unique architecture. These were removed and are forbidden by the verifier. |
+| Summary Stub / Shell | Generated boilerplate with no unique architecture. These were removed and are forbidden by this contract; the registry script does not detect them, so review does. |
 | Index & Meta Contract | Unnumbered runtime, promotion, tool, index, audit, and navigation contracts. |
 
 ## Verification and work selection
@@ -36,7 +36,7 @@ Every canonical numbered specification declares exactly one status:
 - `In-Progress`: implementation evidence exists, with declared work or evidence still missing.
 - `Proposed`: the declared implementation boundary is absent.
 
-Status is not inferred from prose such as “implemented” in historical examples. `node scripts/build-blueprint-registry.js --check` checks classification, status values, unique ownership, owned-file existence, and both generated projections. It does not qualify model execution or validate scientific claims.
+Status is not inferred from prose such as “implemented” in historical examples. `node scripts/build-blueprint-registry.js --check` checks classification, status values, unique ownership, owned-file and verified-artifact existence, and both generated projections; [`blueprint-index-contract.md`](blueprint-index-contract.md#build-and-gate-contract) lists what it does not check. It does not qualify model execution or validate scientific claims.
 
 Run `npm run build:blueprints` to regenerate the source inventory, executable ownership registry, and human sitemap. Run `node scripts/validate-registry.js --json` for the read-only, source-bound registry audit; every unresolved finding produces a failing exit status.
 
@@ -48,6 +48,21 @@ Historical references use exact former paths, not bare legacy IDs, because the o
 
 ## Runtime meta contracts
 
-The unnumbered files in this directory are active supporting contracts or indexes. They do not occupy the canonical numeric sequence. `self/blueprint-index.json` controls the compact boot-time subset.
+The unnumbered files in this directory are active supporting contracts or indexes. They do not occupy the canonical numeric sequence. The compact boot-time subset is set in code, not by `self/blueprint-index.json`: `SELF_BLUEPRINT_PATHS` in `self/manifest.js` and the seed prefixes in `self/config/boot-seed.js` select `tabula-rasa-runtime.md`, `blueprint-index-contract.md`, `tool-contract.md` and `promotion-contract.md` for the Reploid self runtime, and Zero/X images seed no blueprints. See [`tabula-rasa-runtime.md`](tabula-rasa-runtime.md#first-context).
+
+| File | Role |
+| --- | --- |
+| [`README.md`](README.md) | This atlas. |
+| [`blueprint-index-contract.md`](blueprint-index-contract.md) | Numbered-file, status and build rules. |
+| [`canonical-inventory.md`](canonical-inventory.md) | Generated sitemap and status counts. Do not edit. |
+| [`CATSCAN.md`](CATSCAN.md) | Component map for this directory. |
+| [`deduplication-audit.md`](deduplication-audit.md) | Merge and removal record. |
+| [`implementation-status.md`](implementation-status.md) | Pointer to the generated status counts. |
+| [`promotion-contract.md`](promotion-contract.md) | Durable `/self` change paths and authority. |
+| [`tool-contract.md`](tool-contract.md) | Primitive tool surface and `CreateTool` behavior. |
+| [`tabula-rasa-runtime.md`](tabula-rasa-runtime.md) | Boot context and runtime rules. |
+| [`rgr-runtime-contract.md`](rgr-runtime-contract.md) | RGR runtime semantics and promotion gate. |
+| [`rgr-slot-topology.md`](rgr-slot-topology.md) | Local and remote ring slots, lab routes. |
+| [`rgr-dream-instance-manifest.md`](rgr-dream-instance-manifest.md) | Dream-instance manifest contract. |
 
 **[Back to Repository README](../../README.md)**

@@ -4,18 +4,21 @@
 
 **Implementation Status:** In-Progress
 
-**Verified Artifacts:** `/self/capabilities/cognition/knowledge-tree.js`, `/self/core/memory-manager.js`
+**Verified Artifacts:** `/self/capabilities/cognition/knowledge-tree.js`, `/self/core/memory-manager.js`, `/tests/unit/knowledge-tree.test.js`, `/tests/integration/long-session.test.js`
 
-**Planned Artifacts:** `memory-manager.js`
+**Planned Artifacts:** None
 
 **Owned Source Files:** `capabilities/cognition/knowledge-tree.js`, `core/memory-manager.js`
 
 **Former Blueprint Paths:** `self/blueprints/0x000068-hierarchical-memory-architecture.md`
+
+**Incomplete boundary:** the section 8 success criteria are unmeasured. `tests/integration/long-session.test.js` drives `MemoryManager` with mocked LLM, VFS and embedding collaborators, so it checks control flow, not memory reuse rate, reconstruction accuracy or latency with a real model. The specification stays In-Progress until those measurements exist.
+
 **Objective:** Implement a three-tier memory system (Working/Episodic/Semantic) enabling effectively infinite context through intelligent storage, summarization, and retrieval.
 
 **Target Upgrade:** MMAN (`memory-manager.js`)
 
-**Prerequisites:** `0x00005E` (Embedding Store), `0x00005F` (Semantic Memory), `0x00003B` (Context Management), `0x000060` (Knowledge Graph)
+**Prerequisites:** `0x00005E` (Embedding Store), `0x00005F` (Semantic Memory), `0x00003A` (Context Management), `0x000060` (Knowledge Graph)
 
 **Affected Artifacts:** `/core/memory-manager.js`, `/capabilities/cognition/knowledge-tree.js`, `/memory/`
 

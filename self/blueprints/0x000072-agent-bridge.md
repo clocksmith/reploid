@@ -4,18 +4,20 @@
 
 **Implementation Status:** Implemented
 
-**Verified Artifacts:** `/self/boot-helpers/iframe-bridge.js`, `/server/agent-bridge.js`, `/server/proxy.js`
+**Verified Artifacts:** `/server/agent-bridge.js`, `/server/proxy-app.js`
 
 **Planned Artifacts:** None
 
-**Owned Source Files:** `boot-helpers/iframe-bridge.js`
+**Owned Source Files:** None
 
-**Former Blueprint Paths:** `self/blueprints/0x000072-agent-bridge.md`
+**Former Blueprint Paths:** `self/blueprints/0x000072-agent-bridge.md`, `self/blueprints/0x000088-agent-bridge.md`
 **Objective:** Define the authenticated JSON-RPC WebSocket coordination server used by browser and agent processes for discovery, direct messaging, task delegation, shared context, and liveness.
 
 **Target Module:** `AgentBridge`
 
-**Affected Artifacts:** `/server/agent-bridge.js`, `/server/proxy.js`
+**Affected Artifacts:** `/server/agent-bridge.js`, `/server/proxy-app.js`
+
+This blueprint covers the server-side bridge only. `self/boot-helpers/iframe-bridge.js` is an unrelated browser helper that passes a `PARENT_GOAL` message from a parent window into an embedded instance; it is not part of this protocol and is not owned here.
 
 ---
 
@@ -25,7 +27,9 @@ The Agent Bridge is a coordination service, not an inference authority. It lets 
 
 ## 2. Runtime boundary
 
-`server/agent-bridge.js` owns a `WebSocketServer` in `noServer` mode. `server/proxy.js` owns the HTTP server and routes matching upgrade requests to the bridge at `/agent-bridge`.
+`server/agent-bridge.js` owns a `WebSocketServer` in `noServer` mode. `server/proxy-app.js` creates the HTTP server, constructs the bridge at `/agent-bridge` with a 30 s heartbeat interval and a 120 s agent timeout (`proxy-app.js:620-627`), and routes matching upgrade requests to it (`proxy-app.js:644-659`). The bridge is not started when the proxy runs in pool-backend-only mode. `server/proxy.js` is only the process entry that calls `createProxy()` and listens.
+
+Local-only mode is the default; `REPLOID_AGENT_BRIDGE_LOCAL_ONLY=false` enables remote mode, which also requires `REPLOID_AGENT_BRIDGE_ACCESS_TOKEN` (`proxy-app.js:624-626`, `agent-bridge.js:104-111`).
 
 The bridge maintains three in-memory projections:
 
@@ -82,7 +86,7 @@ A periodic monitor closes agents whose `lastSeen` exceeds `agentTimeout`, remove
 
 ## 7. Observable surface
 
-`getStats()` returns active-agent, active-task, and shared-context counts plus bounded agent and task projections. `server/proxy.js` exposes that projection at `GET /api/agent-bridge/stats`.
+`getStats()` returns active-agent, active-task, and shared-context counts plus bounded agent and task projections. `server/proxy-app.js:577-583` exposes that projection at `GET /api/agent-bridge/stats` and returns 503 when the bridge is not initialized.
 
 ## 8. Verification requirements
 

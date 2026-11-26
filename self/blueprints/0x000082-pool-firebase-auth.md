@@ -1,5 +1,7 @@
 # Blueprint 0x000082: pool firebase auth
 
+Owner: apps/poolday (see [apps/poolday/CATSCAN.md](../../apps/poolday/CATSCAN.md)). The source file lives in `shared/pool/` (served at `/self/pool/`), whose modules keep the [Poolday Evidence Runtime](../../apps/poolday/pool/CATSCAN.md) contracts ([shared/CATSCAN.md](../../shared/CATSCAN.md)).
+
 **Classification:** Canonical Full Specification
 
 **Implementation Status:** Implemented
@@ -11,7 +13,7 @@
 **Owned Source Files:** `pool/firebase-auth.js`
 
 **Former Blueprint Paths:** `self/blueprints/0x000082-pool-firebase-auth.md`
-**Objective:** Describe implementation for pool/firebase-auth.js.
+**Objective:** Start Firebase Auth on a hosted Pool page only from explicit or Firebase Hosting config, never by probing on loopback.
 
 **Target Upgrade:** pool/firebase-auth.js
 

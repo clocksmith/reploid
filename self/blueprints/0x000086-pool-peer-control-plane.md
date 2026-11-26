@@ -1,5 +1,7 @@
 # Blueprint 0x000086: pool peer control plane
 
+Owner: apps/poolday (see [apps/poolday/CATSCAN.md](../../apps/poolday/CATSCAN.md))
+
 **Classification:** Canonical Full Specification
 
 **Implementation Status:** Implemented
@@ -11,7 +13,7 @@
 **Owned Source Files:** `pool/peer-control-plane.js`, `pool/peer-pack-job.js`, `pool/peer-pack-job-policy.js`, `pool/peer-pack-provider.js`, `pool/peer-pack-requester.js`, `pool/peer-pack-job-channel.js`, `pool/peer-pack-episode.js`, `pool/operation-acceptance.js`, `pool/operation-room-network.js`, `pool/operation-participation.js`, `infrastructure/pack-job-storage.js`
 
 **Former Blueprint Paths:** `self/blueprints/0x000086-pool-peer-control-plane.md`
-**Objective:** Describe implementation for pool/peer-control-plane.js.
+**Objective:** Sign and verify peer intents, adverts, route-bound assignments, receipts, agreement and ledger events, and run complete Pack jobs over that envelope.
 
 **Target Upgrade:** pool/peer-control-plane.js
 
@@ -88,6 +90,15 @@ Browser storage and key continuity bound recovery; eviction, deletion and
 identity replacement remain outside this guarantee. Delivery remains bounded
 at-least-once, without exactly-once execution or immediate GPU termination claims.
 
+The v4 intent resolves exact signed adapter publications and base identities before
+planning. The provider checks current publication admission before acquisition,
+before operation execution, before acceptance and before durable replay. Adapter
+bytes reuse the existing authorized custody owner and persist by verified chunk.
+Doppler owns activation, tensor application, cleanup and adapter execution identity.
+The room composition reuses existing rendezvous, signing, WebRTC and framing.
+A signed connection ticket contains identities only; task text travels through
+the data channel after the requester has approved the exact task.
+
 See [complete Pack jobs](../../docs/poolday/complete-pack-jobs.md) for API,
 limits, admission and evidence boundaries.
 
@@ -97,12 +108,3 @@ limits, admission and evidence boundaries.
 - [x] Agreement rejects receipts from a different route
 
 *Last updated: September 2026*
-
-The v4 intent resolves exact signed adapter publications and base identities before
-planning. The provider checks current publication admission before acquisition,
-before operation execution, before acceptance and before durable replay. Adapter
-bytes reuse the existing authorized custody owner and persist by verified chunk.
-Doppler owns activation, tensor application, cleanup and adapter execution identity.
-The room composition reuses existing rendezvous, signing, WebRTC and framing.
-A signed connection ticket contains identities only; task text travels through
-the data channel after the requester has approved the exact task.

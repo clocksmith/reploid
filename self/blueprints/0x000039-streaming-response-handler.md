@@ -11,320 +11,57 @@
 **Owned Source Files:** `infrastructure/stream-parser.js`
 
 **Former Blueprint Paths:** `self/blueprints/0x000039-streaming-response-handler.md`
-**Module ID:** STRM
-**File:** `upgrades/streaming-response-handler.js`
-**Version:** 1.0.0
-**Category:** User Experience
+
+**Module ID:** `StreamParser` (version 2.0.0, genesis level `reflection`, type `utility`, no dependencies)
+
+**Source:** `self/infrastructure/stream-parser.js`
 
 ---
 
 ## Purpose
 
-The Streaming Response Handler enables real-time incremental display of LLM responses as they are generated, rather than waiting for the complete response. This dramatically improves perceived performance and user experience during long-running agent reasoning sessions.
+`StreamParser` turns a provider's Server-Sent Events (SSE) response into text chunks while the response arrives, so the caller can show partial output and stop a hung stream. It is a stateless utility: it does not wrap an API client and it does not touch the UI.
 
-## Problem Statement
+The only runtime consumer is `LLMClient` ([0x000007](0x000007-api-client-and-communication.md)), which declares it as the optional dependency `StreamParser?` (`self/core/llm-client.js:14`). Without it, `LLMClient` does not request streamed responses (`llm-client.js:457`, `:575`).
 
-Traditional API calls wait for the entire response before displaying anything to the user. For complex reasoning tasks that may take 10-30 seconds, this creates a poor user experience where the interface appears frozen. Users cannot see progress, cannot cancel early if the response is going in the wrong direction, and lose confidence in the system.
+## Exports
 
-## Solution Architecture
+The factory returns:
 
-### Core Components
+| Export | Signature | Behavior |
+| --- | --- | --- |
+| `parseSSEStream` | `(response, textExtractor, onUpdate, options?) => Promise<string>` | Reads `response.body`, splits on newlines, parses each `data: ` line except `data: [DONE]` as JSON, passes it to `textExtractor`, calls `onUpdate(text)` for each non-empty result and returns the accumulated text. Malformed JSON lines are skipped. |
+| `parseForProvider` | `(response, provider, onUpdate, options?) => Promise<string>` | Looks up `extractors[provider]` and calls `parseSSEStream`. Throws `Unknown provider: <name>` for anything other than `gemini`, `openai`, `anthropic`. |
+| `parseOpenAIStreamWithTools` | `(response, onUpdate, options?) => Promise<{ content, toolCalls }>` | Accumulates `choices[0].delta.content` and `delta.tool_calls` by `index`; arguments are concatenated and JSON-parsed at the end (invalid JSON becomes `{}`). |
+| `parseAnthropicStreamWithTools` | same | Text from `content_block_delta`/`text_delta`; a tool call opens at `content_block_start` with `tool_use`, gathers `input_json_delta.partial_json` and closes at `content_block_stop`. |
+| `parseGeminiStreamWithTools` | same | Text from `candidates[0].content.parts[0].text`; each `functionCall` becomes `{ id: 'gemini_<time>_<n>', name, args }`. |
+| `extractors` | `{ gemini, openai, anthropic }` | Text extractors used by `parseForProvider`. |
+| `withStreamTimeout` | `(reader, timeoutMs?, abortController?, { onBackpressure, onResume }?)` | Wraps a stream reader with an inter-chunk timeout and backpressure (below). |
+| `createPartialTokenDecoder` | `() => { decode(chunk, stream?), flush(), hasPending() }` | UTF-8 decoder that holds an incomplete multi-byte sequence at a chunk boundary until the next chunk. |
+| `DEFAULT_STREAM_TIMEOUT_MS` | `30000` | Default time allowed between chunks. |
+| `MAX_BUFFER_SIZE` | `1048576` | Exported constant; no code path in this module reads it. |
+| `BACKPRESSURE_HIGH_WATER_MARK` | `524288` | Buffer length that pauses reading. |
+| `BACKPRESSURE_LOW_WATER_MARK` | `262144` | Buffer length that resumes reading. |
 
-1. **Stream Reader**
-   - Uses the Streams API to read response chunks incrementally
-   - Handles both Server-Sent Events (SSE) and raw streaming formats
-   - Manages decoder state across chunk boundaries
+The three `...WithTools` parsers return `toolCalls: null` when no complete tool call was seen.
 
-2. **Event Emission**
-   - Emits `stream:chunk` events for each text fragment received
-   - Emits `stream:complete` when the full response is assembled
-   - Emits `stream:aborted` if user cancels mid-stream
-   - Emits `stream:error` for any streaming failures
+`options` accepts `abortController`, `timeoutMs` and, for `parseSSEStream` only, `onBackpressure` and `onResume`.
 
-3. **Buffer Management**
-   - Maintains a buffer for incomplete lines/chunks
-   - Reassembles split multi-byte characters correctly
-   - Aggregates chunks into the complete response
+## Invariants
 
-### Key Features
+1. **Inter-chunk timeout.** Every `read()` resets a timer. If no chunk arrives within `timeoutMs`, the wrapper aborts the supplied `AbortController` with an error whose `code` is `STREAM_TIMEOUT` and cancels the reader. The timer is cleared on completion, error, `cancel()` and `releaseLock()`.
+2. **No split characters.** Bytes of an incomplete UTF-8 sequence at the end of a chunk are held back and decoded with the next chunk; `flush()` decodes whatever remains at stream end.
+3. **Final flush.** After the reader reports `done`, any text left in the line buffer is parsed, so a last event without a trailing newline is not lost.
+4. **Backpressure.** `parseSSEStream` calls `checkBackpressure(buffer.length)` after each chunk. At or above the high-water mark the next `read()` waits; at or below the low-water mark it resumes. The callbacks receive `{ bytesReceived }`.
+5. **Lock release.** Every parser releases the reader lock in a `finally` block.
 
-**Graceful Degradation**
-- Falls back to non-streaming if API doesn't support streaming
-- Handles both streaming and non-streaming APIs transparently
+## Boundaries
 
-**Early Cancellation**
-- Users can abort streams mid-flight
-- Returns partial response text on abort
-- Cleans up resources properly
+- The parser does not retry, reconnect, estimate progress or record streams for replay.
+- `LLMClient` also uses `withStreamTimeout` directly for a non-SSE stream (`llm-client.js:511`).
+- No dedicated unit test for this module exists in `tests/`; streaming is exercised through `LLMClient` paths.
 
-**Format Flexibility**
-- Supports SSE (Server-Sent Events) format
-- Supports raw text streaming
-- Parses JSON chunks from OpenAI/Anthropic format
-- Handles Gemini streaming format
+## Related blueprints
 
-## Integration Points
-
-### With Agent Cycle
-```javascript
-const StreamingHandler = await container.resolve('StreamingResponseHandler');
-
-// Wrap API client for streaming
-const streamingApi = StreamingHandler.wrapApiForStreaming(ApiClient);
-
-// Use in agent cycle
-const response = await streamingApi.streamCall(history, funcDecls);
-```
-
-### With UI Manager
-```javascript
-EventBus.on('stream:chunk', ({ text, total }) => {
-  // Update UI incrementally
-  UI.updateThinkingDisplay(total);
-});
-
-EventBus.on('stream:complete', ({ text }) => {
-  // Finalize UI
-  UI.completeResponse(text);
-});
-```
-
-### With StateManager
-```javascript
-// Track streaming state
-EventBus.on('stream:chunk', ({ text, total }) => {
-  StateManager.updatePartialResponse(total);
-});
-```
-
-## Public API
-
-### `streamResponse(apiCall, onChunk, onComplete, onError)`
-Streams a response with callback handlers for each phase.
-
-**Parameters:**
-- `apiCall`: Function that returns a fetch Response with streaming body
-- `onChunk`: Called for each text fragment received
-- `onComplete`: Called with full text when stream finishes
-- `onError`: Called if streaming fails
-
-**Example:**
-```javascript
-await streamResponse(
-  () => fetch('/api/generate', { method: 'POST', body: '...' }),
-  (chunk) => console.log('Chunk:', chunk),
-  (full) => console.log('Complete:', full),
-  (err) => console.error('Error:', err)
-);
-```
-
-### `abortStream()`
-Cancels the currently active stream.
-
-**Example:**
-```javascript
-// User clicks cancel button
-StreamingHandler.abortStream();
-```
-
-### `getStreamStatus()`
-Returns current stream state.
-
-**Returns:**
-```javascript
-{
-  active: boolean,      // Is a stream currently running?
-  chunks: number,       // How many chunks received so far
-  partialText: string   // Current accumulated text
-}
-```
-
-### `wrapApiForStreaming(apiClient)`
-Wraps an existing API client to add streaming support.
-
-**Returns:** Object with `streamCall` method that mirrors the API client interface but streams responses.
-
-## Events
-
-| Event | Payload | Description |
-|-------|---------|-------------|
-| `stream:chunk` | `{ text, total }` | New text chunk received |
-| `stream:complete` | `{ text }` | Stream finished successfully |
-| `stream:aborted` | `{ partialText }` | User canceled stream |
-| `stream:error` | `{ error }` | Stream failed |
-
-## Web Component Widget
-
-The module includes a `StreamingHandlerWidget` custom element for real-time monitoring of streaming operations:
-
-```javascript
-class StreamingHandlerWidget extends HTMLElement {
-  constructor() {
-    super();
-    this.attachShadow({ mode: 'open' });
-  }
-
-  connectedCallback() {
-    this.render();
-    // Auto-refresh every second for live streaming updates
-    this._interval = setInterval(() => this.render(), 1000);
-  }
-
-  disconnectedCallback() {
-    if (this._interval) {
-      clearInterval(this._interval);
-      this._interval = null;
-    }
-  }
-
-  getStatus() {
-    return {
-      state: activeStream ? 'active' : (_streamCount > 0 ? 'idle' : 'idle'),
-      primaryMetric: `${_streamCount} streams`,
-      secondaryMetric: activeStream ? 'Streaming' : 'Idle',
-      lastActivity: _lastStreamTime,
-      message: activeStream ? `${currentChunks.length} chunks` : `${_completedCount} completed`
-    };
-  }
-
-  render() {
-    this.shadowRoot.innerHTML = `
-      <style>
-        /* Shadow DOM styling for widget */
-        :host { display: block; font-family: system-ui; }
-        .widget-content { padding: 16px; }
-        .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
-        .stat-card { padding: 12px; background: rgba(100,150,255,0.1); border-radius: 4px; }
-        .abort-stream-btn {
-          width: 100%;
-          padding: 10px;
-          background: #f00;
-          color: white;
-          border: none;
-          border-radius: 4px;
-          cursor: pointer;
-        }
-      </style>
-      <div class="widget-content">
-        <h3>⏃ Streaming Handler</h3>
-        <div class="stats-grid">
-          <div class="stat-card">
-            <div>Total Streams</div>
-            <div>${_streamCount}</div>
-          </div>
-          <div class="stat-card">
-            <div>Status</div>
-            <div>${activeStream ? '★ Active' : 'Idle'}</div>
-          </div>
-          <div class="stat-card">
-            <div>Completed</div>
-            <div>${_completedCount}</div>
-          </div>
-          <div class="stat-card">
-            <div>Aborted</div>
-            <div>${_abortedCount}</div>
-          </div>
-        </div>
-        ${activeStream ? `
-          <div style="margin-top: 16px;">
-            <strong>Active Stream</strong>
-            <div>${currentChunks.length} chunks received</div>
-            <div>Total processed: ${_totalChunksProcessed}</div>
-            <button class="abort-stream-btn">■ Abort Stream</button>
-          </div>
-        ` : ''}
-      </div>
-    `;
-
-    // Wire up abort button
-    const abortBtn = this.shadowRoot.querySelector('.abort-stream-btn');
-    if (abortBtn) {
-      abortBtn.addEventListener('click', () => {
-        abortStream();
-        this.render(); // Refresh immediately
-      });
-    }
-  }
-}
-
-// Register custom element
-if (!customElements.get('streaming-handler-widget')) {
-  customElements.define('streaming-handler-widget', StreamingHandlerWidget);
-}
-
-const widget = {
-  element: 'streaming-handler-widget',
-  displayName: 'Streaming Handler',
-  icon: '⏃',
-  category: 'service',
-  updateInterval: 1000
-};
-```
-
-**Widget Features:**
-- Real-time stream status monitoring with 1-second refresh
-- Live chunk count during active streaming
-- Statistics for total streams, completed, and aborted operations
-- Interactive abort button that appears only during active streaming
-- Visual indicators for stream state (active/idle)
-- Shadow DOM encapsulation for style isolation
-
-## Dependencies
-
-- **Utils**: Logging and error handling
-- **EventBus**: Event emission for UI updates
-- **StateManager**: Optional state tracking
-
-## Configuration
-
-No configuration required. Module adapts to API response format automatically.
-
-## Performance Characteristics
-
-- **Latency:** First chunk typically arrives 200-500ms after request (vs 3-10s for full response)
-- **Memory:** Minimal overhead (~1KB per active stream)
-- **Throughput:** Handles up to 100KB/s streaming rate
-
-## Error Handling
-
-1. **Network Interruption:** Emits `stream:error`, returns partial text
-2. **Invalid Format:** Falls back to non-streaming, logs warning
-3. **User Abort:** Clean cancellation, emits `stream:aborted`
-
-## Testing Strategy
-
-```javascript
-// Unit tests
-describe('StreamingResponseHandler', () => {
-  it('should emit chunks as they arrive', async () => {
-    const chunks = [];
-    await streamResponse(mockStreamingApi, (c) => chunks.push(c), ...);
-    expect(chunks.length).toBeGreaterThan(1);
-  });
-
-  it('should handle aborts gracefully', async () => {
-    streamResponse(slowApi, ...);
-    setTimeout(() => abortStream(), 100);
-    // Should emit stream:aborted event
-  });
-});
-```
-
-## Optional contract extensions
-
-1. **Adaptive Buffering:** Adjust chunk size based on network speed
-2. **Progress Estimation:** Estimate completion percentage
-3. **Multi-Stream:** Handle multiple concurrent streams
-4. **Replay:** Record and replay streams for debugging
-
-## Related Blueprints
-
-- **0x00000D:** UI Manager (consumer of streaming events)
-- **0x000007:** API Client (wrapped by streaming handler)
-- **0x000046:** Context Manager (benefits from faster feedback)
-
----
-
-**Architectural Principle:** Progressive Enhancement
-
-Streaming is optional - the system works without it, but provides a superior experience when available. All APIs can be wrapped transparently without changing calling code.
+- [0x000007 API Client and Communication](0x000007-api-client-and-communication.md): the consumer.
+- [0x00003A Context Management](0x00003A-context-management.md): bounds what is sent before a stream starts.

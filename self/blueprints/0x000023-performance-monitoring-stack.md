@@ -6,215 +6,51 @@
 
 **Verified Artifacts:** `/self/capabilities/performance/performance-monitor.js`
 
-**Planned Artifacts:** `/infrastructure/performance-monitor.js`, `/tools/tool-analytics.js`, `/ui/panels/metrics-proto.js`, `performance-monitor.js`
+**Planned Artifacts:** None
 
 **Owned Source Files:** `capabilities/performance/performance-monitor.js`
 
 **Former Blueprint Paths:** `self/blueprints/0x000023-performance-monitoring-stack.md`
-**Objective:** Define the observability contract for tracking tool execution, state transitions, LLM usage, and memory across REPLOID sessions.
+**Objective:** Keep in-session counts of tool calls, model calls, tokens, latency, errors and heap use, so the agent and the operator can see where a run spends time.
 
-**Target Upgrade:** PMON (`performance-monitor.js`)
+**Prerequisites:** [0x00004F](0x00004F-event-bus-infrastructure.md) (event bus), [0x000008](0x000008-agent-cognitive-cycle.md) (agent cycle)
 
-**Prerequisites:** 0x000006 (Pure State Helpers), 0x000007 (API Client & Communication), 0x000008 (Agent Cognitive Cycle), 0x000028 (Toast Notification System)
-
-**Affected Artifacts:** `/infrastructure/performance-monitor.js`, `/ui/panels/metrics-proto.js`, `/tools/tool-analytics.js`
+This blueprint also covers the monitoring parts of the retired [0x000033](0x000033-tool-usage-analytics.md) (tool usage analytics) and [0x000034](0x000034-api-cost-tracker.md) (cost tracking). Token cost estimates are made by `self/infrastructure/observability.js` ([0x00006D](0x00006D-observability.md)); rate limits by [0x000029](0x000029-rate-limiting-strategies.md).
 
 ---
 
-### 1. The Strategic Imperative
-RSI requires feedback loops. Without quantitative metrics the agent:
-- Cannot pinpoint which tools regress latency.
-- Lacks evidence for blueprint improvements.
-- Fails to surface memory leaks or runaway API usage.
+### 1. Module
 
-Performance Monitor provides the canonical dataset for protos, analytics, and self-tuning heuristics.
+`self/capabilities/performance/performance-monitor.js` registers `PerformanceMonitor` (genesis level `substrate`, dependencies `Utils`, `EventBus`, optional `TelemetryTimeline`). Its factory returns `{ init, getMetrics, getMemoryStats, getLLMStats, getReport, generateReport, destroy }`. All data is in memory and lost on reload.
 
-### 2. Architectural Overview
-The module exposes an imperative API after instantiation along with a Web Component widget:
+### 2. Inputs
 
-```javascript
-const Perf = await ModuleLoader.getModule('PerformanceMonitor');
-Perf.init();
-const stats = Perf.getMetrics();
-```
+`init()` subscribes to three events:
 
-Primary responsibilities:
-- **Event Wiring**
-  - Subscribes to EventBus events: `tool:start/end/error`, `agent:state:change/exit`, `api:request:start/end/error`, artifact lifecycle, and cycle counters.
-- **Metrics Store**
-  - Keeps structured objects for tools, states, LLM usage, memory samples, and session metadata (cycles, artifact counts).
-- **Timer Management**
-  - Uses `activeTimers` Map keyed by tool/state/API request to measure duration.
-- **Memory Sampling**
-  - Periodically reads `performance.memory` (when available) to plot heap usage.
-- **API Exposure**
-  - `getMetrics()`, `getMemoryStats()`, `getLLMStats()`, `reset()`, `export()` for downstream consumers.
+| Event | Emitted by | Recorded |
+| --- | --- | --- |
+| `agent:tool:end` | `self/infrastructure/tool-executor.js` with `{ tool, cycle, workerId, durationMs, success }` | per tool: `calls`, `totalTime`, `errors` (when `success === false`) |
+| `agent:error` | the agent loop | session error count |
+| `llm:complete` | `packages/reploid/src/agent/lab-strategy-generation.js` with `{ model, provider, latency, inputTokens, outputTokens, tokens, ... }` | call count, token totals, last 50 latencies, last call time |
 
-#### Web Component Widget Pattern
+When `performance.memory` exists (Chromium), it samples heap size every 30 s and keeps the last 120 samples. Tool ends, errors and model completions are also written to `TelemetryTimeline` when that module is present.
 
-The widget uses a Web Component with Shadow DOM for encapsulated rendering:
+### 3. Outputs
 
-```javascript
-class PerformanceMonitorWidget extends HTMLElement {
-  constructor() {
-    super();
-    this.attachShadow({ mode: 'open' });
-  }
+- `getMetrics()` returns `{ session: { uptime }, tools, errors }`.
+- `getLLMStats()` returns `{ calls, tokens: { input, output, total }, avgLatency, errorRate, lastCall }`.
+- `getMemoryStats()` returns `{ current, history, max }`.
+- `getReport()` returns a short summary; `generateReport()` formats it as Markdown.
+- `destroy()` stops heap sampling.
 
-  connectedCallback() {
-    this.render();
-    // Update every 2 seconds for real-time monitoring
-    this._updateInterval = setInterval(() => this.render(), 2000);
-  }
+### 4. Known gaps
 
-  disconnectedCallback() {
-    if (this._updateInterval) {
-      clearInterval(this._updateInterval);
-      this._updateInterval = null;
-    }
-  }
+- Nothing increments the model error counter, so `errorRate` is always 0.
+- `destroy()` does not remove the event subscriptions made by `init()`; calling `init()` twice double-counts.
+- There is no charting view, no `tool:start` timing and no persistence. The metrics view of the retired [0x000024](0x000024-metrics-proto-visuals.md) does not exist.
 
-  set moduleApi(api) {
-    this._api = api;
-    this.render();
-  }
+### 5. Verification conditions
 
-  getStatus() {
-    const memStats = getMemoryStats();
-    const llmStats = getLLMStats();
-
-    const currentMem = memStats.current
-      ? (memStats.current.usedJSHeapSize / 1024 / 1024).toFixed(0)
-      : 0;
-
-    let state = 'idle';
-    if (activeTimers.size > 0) state = 'active';
-    if (memStats.current && memStats.current.usedJSHeapSize > memStats.current.jsHeapSizeLimit * 0.9) {
-      state = 'warning';
-    }
-
-    return {
-      state,
-      primaryMetric: `${currentMem} MB`,
-      secondaryMetric: `${llmStats.calls} LLM calls`,
-      lastActivity: llmStats.lastCall,
-      message: state === 'warning' ? 'High memory usage' : null
-    };
-  }
-
-  render() {
-    const allMetrics = getMetrics();
-    const memStats = getMemoryStats();
-    const llmStats = getLLMStats();
-
-    this.shadowRoot.innerHTML = `
-      <style>
-        :host { display: block; font-family: monospace; font-size: 12px; }
-        .widget-panel { padding: 12px; }
-        h3 { margin: 0 0 12px 0; font-size: 1.1em; color: #fff; }
-        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
-        .stat-card { padding: 8px; background: rgba(100,150,255,0.1); border-radius: 4px; }
-        button { padding: 6px 12px; background: rgba(100,150,255,0.2); border: 1px solid rgba(100,150,255,0.4); }
-      </style>
-
-      <div class="widget-panel">
-        <h3>▤ Performance Monitor</h3>
-
-        <div class="stats-grid">
-          <div class="stat-card">
-            <div>Memory Used</div>
-            <div>${formatBytes(memStats.current?.usedJSHeapSize)}</div>
-          </div>
-          <div class="stat-card">
-            <div>LLM Calls</div>
-            <div>${llmStats.calls}</div>
-          </div>
-          <!-- Additional stats -->
-        </div>
-      </div>
-    `;
-
-    // Attach event listeners
-    this.shadowRoot.getElementById('reset-btn')?.addEventListener('click', () => {
-      reset();
-      this.render();
-    });
-  }
-}
-
-// Register custom element
-const elementName = 'performance-monitor-widget';
-if (!customElements.get(elementName)) {
-  customElements.define(elementName, PerformanceMonitorWidget);
-}
-
-const widget = {
-  element: elementName,
-  displayName: 'Performance Monitor',
-  icon: '▤',
-  category: 'analytics',
-  updateInterval: 2000
-};
-```
-
-**Key architectural improvements:**
-- Shadow DOM provides style encapsulation
-- Lifecycle methods (`connectedCallback`, `disconnectedCallback`) ensure proper cleanup
-- Closure access to module state (metrics, activeTimers, memory samples) eliminates injection complexity
-- `getStatus()` provides all 5 required fields for proto integration
-
-### 3. Implementation Pathway
-1. **Module Initialisation**
-   - Call `init()` once the EventBus is ready.
-   - Register listeners and start memory sampling intervals (respect browser support checks).
-2. **Tool Lifecycle**
-   - Emit `tool:start` and `tool:end` from Tool Runner (0x00000A) with consistent payloads (`toolName`, timestamps).
-   - Record duration, call counts, error counts.
-3. **Cognitive States**
-   - Agent cycle should publish `agent:state:change/exit` whenever shifting between OBSERVE/ORIENT/DECIDE/ACT or persona-specific substates.
-   - Metrics accumulate entry counts and dwell times.
-4. **LLM Instrumentation**
-   - API client must tag requests with unique `requestId` so start/end events match.
-   - Record token budgets and latency to inform cost tracking (0x00003F).
-5. **Session Artifacts**
-   - Hook artifact events to count created/modified/deleted files for audit protos.
-6. **Web Component Widget Implementation**
-   - **Define Web Component class** extending HTMLElement inside factory function
-   - **Add Shadow DOM** using `attachShadow({ mode: 'open' })` in constructor
-   - **Implement lifecycle methods**:
-     - `connectedCallback()`: Initial render and set up 2-second auto-refresh interval
-     - `disconnectedCallback()`: Clean up interval with `clearInterval(this._updateInterval)` to prevent memory leaks
-   - **Implement getStatus()** as class method with ALL 5 required fields:
-     - `state`: 'idle', 'active', or 'warning' based on activeTimers and memory usage
-     - `primaryMetric`: Current memory usage in MB
-     - `secondaryMetric`: Number of LLM calls
-     - `lastActivity`: Timestamp of last LLM call
-     - `message`: Optional warning message for high memory
-   - **Implement render()** method:
-     - Set `this.shadowRoot.innerHTML` with encapsulated `<style>` tag using `:host` selector
-     - Use template literals for dynamic content from closure-accessed state
-     - Display stats grid, memory/LLM metrics, tool stats, session info
-     - Wire up event listeners for reset/export buttons
-   - **Register custom element**:
-     - Use kebab-case naming: `performance-monitor-widget`
-     - Add duplicate check: `if (!customElements.get(elementName))`
-     - Call `customElements.define(elementName, PerformanceMonitorWidget)`
-   - **Return widget object** with new format:
-     - `{ element: 'performance-monitor-widget', displayName, icon, category }`
-     - No `updateInterval` in widget object (handled internally in connectedCallback)
-7. **Data Access**
-   - Downstream modules (e.g., Metrics Proto) call `PerformanceMonitor.getMetrics()` to render charts. Avoid mutating returned objects.
-
-### 4. Verification requirements
-- Missing events degrade gracefully (no `undefined` timers).
-- Memory sampler stops when module `destroy()` invoked.
-- Metrics reset when persona/session restarts.
-- Tool duration accuracy within ±5ms for operations <1s.
-- LLM token counts align with provider responses.
-
-### 5. Optional contract extensions
-- Export metrics to `paxos-analytics.json` for offline analysis.
-- Introduce configurable thresholds that trigger toast warnings when latency spikes.
-- Feed tool performance into self-tuning heuristics (e.g., auto-disable slow experimental tools).
-
-Treat this blueprint as the guardrail for modifications to monitoring logic. Observability debt is RSI debt.
+- One `agent:tool:end` with `success: false` adds one call and one error to that tool.
+- `llm:complete` without `tokens` adds `inputTokens + outputTokens` to the total.
+- After `destroy()`, no further heap samples are taken.

@@ -1,5 +1,7 @@
 # Blueprint 0x00009E: pool peer ledger
 
+Owner: apps/poolday (see [apps/poolday/CATSCAN.md](../../apps/poolday/CATSCAN.md))
+
 **Classification:** Canonical Full Specification
 
 **Implementation Status:** Implemented

@@ -1,5 +1,7 @@
 # Blueprint 0x000085: pool model contract
 
+Owner: apps/poolday (see [apps/poolday/CATSCAN.md](../../apps/poolday/CATSCAN.md)). The source file lives in `shared/pool/` (served at `/self/pool/`), whose modules keep the [Poolday Evidence Runtime](../../apps/poolday/pool/CATSCAN.md) contracts ([shared/CATSCAN.md](../../shared/CATSCAN.md)).
+
 **Classification:** Canonical Full Specification
 
 **Implementation Status:** Implemented
@@ -41,10 +43,17 @@ their declared public API. Formats never alias identity fields or signed bytes.
 The existing `executablePack` application field and peer protocol remain stable.
 
 ### 3. Implementation Notes
-Biological models stay outside the enabled catalog until their exact Doppler
+A biological model enters the enabled catalog only after its exact Doppler
 release, hosted manifest, tokenizer, shards, hashes, and browser receipts are
-qualified. Adding a workload name without those artifacts is not support.
-Model splitting, KV sharding, and distributed attention remain rejected.
+qualified. ESM-2 35M (`esm2-t12-35m-ur50d-f32-af32`) meets that bar: it is
+enabled and is the `launchModelId` in
+[`shared/pool/pool-config.json`](../../shared/pool/pool-config.json). AMPLIFY
+120M, ESM C 300M, and Nucleotide Transformer v2 50M remain disabled. Adding a
+workload name without those artifacts is not support.
+Every catalog workload maps to one full-model execution mode. Split routes,
+where peers run different layer ranges of one model, are not yet qualified for
+public use (see the [README](../../README.md) and [INTENT.md](../../INTENT.md));
+KV sharding and distributed attention are outside this contract.
 Gemma 3 270M requires `shader-f16` because its published kernel path has no
 declared f32 capability remap; incompatible browsers must choose another model
 instead of downloading an artifact they cannot execute. Its catalog

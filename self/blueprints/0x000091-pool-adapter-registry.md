@@ -1,5 +1,7 @@
 # Blueprint 0x000091: pool adapter registry
 
+Owner: apps/poolday (see [apps/poolday/CATSCAN.md](../../apps/poolday/CATSCAN.md))
+
 **Classification:** Canonical Full Specification
 
 **Implementation Status:** Implemented
@@ -38,14 +40,6 @@ Every acquisition record binds the assignment's route-decision hash.
 The default registry is memory-local. Optional read/write/delete callbacks own
 durable browser storage. Publication metadata is distinct from adapter bytes.
 
-### 4. Verification requirements
-- [x] Corrupt or substituted bytes fail closed
-- [x] Cache, peer, and origin produce receipt-visible source evidence
-- [x] Revocation removes cached execution material
-- [x] Ephemeral private URLs are not stored as artifact identity
-
-*Last updated: July 2026*
-
 Remote complete jobs resolve one exact publication against the exact public base
 model identity. Configuration owns formats, fetching and byte limits; adapter
 combinations are explicitly disabled. The provider resolver requires a currently
@@ -53,3 +47,11 @@ admitted publication, acquires its independent artifact set through generic
 `peer-pack-custody.js`, and reuses native verified checkpoints after restart.
 Custody grants and permitted suppliers come from application authorization.
 Base weights never enter the adapter artifact set.
+
+### 4. Verification requirements
+- [x] Corrupt or substituted bytes fail closed
+- [x] Cache, peer, and origin produce receipt-visible source evidence
+- [x] Revocation removes cached execution material
+- [x] Ephemeral private URLs are not stored as artifact identity
+
+*Last updated: July 2026*

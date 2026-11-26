@@ -1,8 +1,10 @@
 # Blueprint 0x0000AE: Pool Model Promotion Evidence
 
+Owner: apps/poolday (see [apps/poolday/CATSCAN.md](../../apps/poolday/CATSCAN.md))
+
 **Classification:** Canonical Full Specification
 
-**Implementation Status:** Implemented
+**Implementation Status:** In-Progress
 
 **Verified Artifacts:** `/self/pool/dna-lane-admission.js`, `/self/pool/model-promotion.js`
 
@@ -52,7 +54,10 @@ evidence is published.
 - [x] ESM-2 baseline identity is required for candidate scientific value claims
 - [x] DNA qualification requires hash-addressed exact-contract admission records
 - [x] Receipt paths are constrained to durable status records
-- Persist clean-release ESM-2 browser and baseline-evaluation evidence
-- Validate each candidate's browser and scientific record before promotion
+- [ ] Persist clean-release ESM-2 browser and baseline-evaluation evidence
+- [ ] Validate each candidate's browser and scientific record before promotion
+
+The two open items are declared verification boundaries: no clean-release
+receipt for them exists under `docs/status/`, so the status is In-Progress.
 
 *Last updated: August 2026*

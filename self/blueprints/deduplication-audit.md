@@ -11,7 +11,7 @@
 - Exact generic module shells removed: **173**.
 - Explicit overlapping specifications merged and removed: **11**.
 - Final contiguous range: **`0x000000` through `0x0000AF`**.
-- Index and meta contracts retained outside the numbered sequence: **9**.
+- Index and meta files retained outside the numbered sequence: **11** at the audit date (this line originally said 9). `CATSCAN.md` was added on 2026-08-15, so the directory now holds **12**; [`README.md`](README.md) lists their roles.
 
 The audit treated content—not byte size—as authority. A concise file remained canonical when it declared a unique protocol, invariant, failure boundary, or implementation contract. Files matching the generic module-template shell exactly were removed; their source modules remain represented in `self/config/module-inventory.json`.
 
@@ -19,8 +19,8 @@ The audit treated content—not byte size—as authority. A concise file remaine
 
 | Removed specification | Canonical destination | Disposition |
 | --- | --- | --- |
-| `0x00007C-toast-notifications.md` | [`0x000028-toast-notification-system.md`](0x000028-toast-notification-system.md) | Interface and severity behavior were already present in the full toast contract; actual component and unit test now anchor status. |
-| `0x00007D-diff-viewer-ui.md` | [`0x000048-diff-viewer-ui.md`](0x000048-diff-viewer-ui.md) | Event and operation summaries were already present; corrected canonical implementation path to `ui/components/diff-viewer-ui.js`. |
+| `0x00007C-toast-notifications.md` | [`0x000028-toast-notification-system.md`](0x000028-toast-notification-system.md) | Interface and severity behavior were already present in the full toast contract. Correction: 0x000028 is Proposed with no verified artifacts, so no component or test anchors its status; `self/ui/toast.js` and `tests/unit/toast.test.js` exist but are not declared in its metadata. |
+| `0x00007D-diff-viewer-ui.md` | [`0x000048-diff-viewer-ui.md`](0x000048-diff-viewer-ui.md) | Event and operation summaries were already present. Correction: `ui/components/diff-viewer-ui.js` does not exist; 0x000048 is Proposed with no verified artifacts. |
 | `0x000088-agent-bridge.md` | [`0x000072-agent-bridge.md`](0x000072-agent-bridge.md) | Merged task delegation, shared-context, heartbeat, and JSON-RPC intent; rejected stale `/claude-bridge` and method names after source verification. |
 | `0x000089-proxy-server.md` | [`0x000073-proxy-server.md`](0x000073-proxy-server.md) | Merged rate-limit, crash-protection, static-host, and WebSocket concerns; replaced stale endpoint inventory with current source routes. |
 | `0x00008A-model-config-ui.md` | [`0x000074-model-config-ui.md`](0x000074-model-config-ui.md) | No unique architecture beyond the full model-configuration specification; retained as planned work because the declared directory does not exist. |
@@ -214,12 +214,12 @@ The audit treated content—not byte size—as authority. A concise file remaine
 - **Implemented** means the declared canonical implementation boundary has verified tracked artifacts and no known missing artifact required by that blueprint metadata.
 - **In-Progress** means at least one implementation or evidence artifact exists, but one or more declared artifacts or verification obligations remain planned.
 - **Proposed** means no implementation artifact for the declared boundary exists. A related module elsewhere does not satisfy the claim.
-- `Verified Artifacts` are checked against the repository by `scripts/build-blueprint-registry.js` (`npm run verify:registry`).
+- `Verified Artifacts` are checked for existence by `scripts/build-blueprint-registry.js` (`--check`; `npm run verify:registry` runs it followed by `scripts/validate-registry.js`).
 - `Planned Artifacts` are intentionally permitted to be absent and may not be described as implemented.
 
 ## Historical-ID rule
 
-Old numeric IDs are not retained as live aliases because the pre-audit filename and heading namespaces conflicted. Historical identity is preserved by exact former file path in each canonical blueprint and in `self/config/blueprint-registry.json`. New references must use the canonical path and ID.
+Old numeric IDs are not retained as live aliases because the pre-audit filename and heading namespaces conflicted. Historical identity is preserved by the exact former file paths in the merge and shell tables above. The `Former Blueprint Paths` field of most canonical blueprints repeats the file's own path; only some merge destinations also list the removed file (for example 0x000072 and 0x000073). `self/config/blueprint-registry.json` records current paths only. New references must use the canonical path and ID.
 
 ## Source cleanup follow-up: 2026-10-15
 

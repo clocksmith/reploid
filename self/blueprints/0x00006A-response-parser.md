@@ -12,123 +12,53 @@
 
 **Former Blueprint Paths:** `self/blueprints/0x00006A-response-parser.md`
 **Module:** `ResponseParser`
-**File:** `core/response-parser.js`
-**Purpose:** Extract tool calls from LLM text using robust regex parsing with brace counting
+**File:** `core/response-parser.js` (a one-line re-export of `shared/vendor/reploid/agent/response-parser.js`, which is the vendored copy of `packages/reploid/src/agent/response-parser.js`)
+**Purpose:** Extract tool calls and completion signals from model text.
 
-**Genesis Level:** spark
+**Genesis Level:** capsule (`self/config/genesis-levels.json`; the module metadata declares `genesis: { introduced: 'capsule' }`)
 
 ---
 
 ## Purpose
 
-The Response Parser extracts structured tool calls from free-form LLM text responses. It uses a robust regex-based approach with brace counting to handle nested JSON objects, template literals, and escaped content correctly.
+The Response Parser turns free-form model text into a list of tool calls and decides whether a turn signals completion. The primary format is the `REPLOID/0` line protocol taught in `self/prompts/kernel.md`. The older `TOOL_CALL:` / `ARGS:` JSON format is still parsed as a legacy fallback during migration.
 
 ---
 
-## API / Interface
+## Exports
 
-```javascript
-// Parse tool calls from LLM response text
-const calls = ResponseParser.parseToolCalls(text);
-// Returns: [{ name: 'ReadFile', args: { path: '/core/vfs.js' } }, ...]
+The factory (`packages/reploid/src/agent/response-parser.js:16`) depends on `Utils` (`logger`, `sanitizeLlmJsonRespPure`) and returns exactly two functions (`:680`). There is no `validateToolCall`; argument validation belongs to the tool runner and schema registry ([0x00006B](0x00006B-schema-registry.md)).
 
-// Check if agent is done (RSI mode awareness)
-const done = ResponseParser.isDone(text);
-// Always returns false in RSI mode - agent continues indefinitely
+| Export | Source | Behavior |
+| --- | --- | --- |
+| `parseToolCalls(text)` | `:647` | Returns `[{ name, args }]`, or `{ name, args, error }` for a call that could not be parsed. Tries `REPLOID/0` directives first (`:305`); if none are found, legacy `TOOL_CALL:` + `ARGS:` blocks (`:607`); if none, inline legacy `TOOL_CALL: Name {...}` (`:625`). Empty input returns `[]`. |
+| `isDone(text)` | `:663` | Returns `true` when any line starts with `DONE:`, `IDLE:` or `PARK:` (case-insensitive), or when the text contains the bare word `DONE`, `GOAL_ACHIEVED` or `GOAL_COMPLETE`. Otherwise `false`. It never forces continuation. |
 
-// Validate a tool call structure
-const isValid = ResponseParser.validateToolCall(call, schema);
-// Returns: boolean
+## REPLOID/0 protocol
+
+```
+REPLOID/0
+
+TOOL: WriteFile
+path: /artifacts/notes/example.json
+content <<JSON
+{ "status": "checked" }
+JSON
 ```
 
-### parseToolCalls(text)
+| Directive | Meaning |
+| --- | --- |
+| `REPLOID/<n>` | Protocol header line; skipped by the parser. |
+| `TOOL: Name` | Starts one call. Arguments follow as `key: value` lines, inline `key: value` pairs or a JSON object on the same line. |
+| `key <<MARKER` … `MARKER` | Literal multiline block argument. A missing end marker yields `Unterminated block for <key>`. |
+| `key: \|` | Pipe block argument that runs until the next directive boundary. |
+| `---` | Separates calls in one batch. |
+| `PLAN:` | JSON array (or `{ steps: [...] }`) of `{ id, after, tool, args }` steps, expanded into calls by `parsePlanCalls` (`:255`). |
+| `EVIDENCE:`, `MILESTONE:`, `DONE:`, `IDLE:`, `PARK:` | Directive boundaries; `DONE:`, `IDLE:` and `PARK:` also end the turn through `isDone`. |
 
-Extracts tool call blocks from LLM output text using the `TOOL_CALL:` / `ARGS:` format.
+## Legacy JSON arguments
 
-**Input Format Supported:**
-```
-TOOL_CALL: ReadFile
-ARGS: {
-  "path": "/core/agent-loop.js"
-}
-
-TOOL_CALL: WriteFile
-ARGS: {
-  "path": "/tools/NewTool.js",
-  "content": "const x = { nested: { obj: true } };"
-}
-```
-
-**Returns:** Array of `{ name: string, args: object }`
-
-### isDone(text)
-
-Checks if the response indicates task completion. In RSI (Recursive Self-Improvement) mode, this always returns `false` to keep the agent loop running indefinitely.
-
-**Returns:** `boolean` (always `false` in RSI mode)
-
----
-
-## Implementation Details
-
-### Brace-Counted JSON Extraction
-
-The parser uses character-by-character scanning with brace counting to correctly extract nested JSON:
-
-```javascript
-const extractJSON = (text, startIdx) => {
-  let depth = 0;
-  let inString = false;
-  let stringChar = null;
-  let escaped = false;
-
-  for (let i = startIdx; i < text.length; i++) {
-    const char = text[i];
-
-    if (escaped) {
-      escaped = false;
-      continue;
-    }
-
-    if (char === '\\') {
-      escaped = true;
-      continue;
-    }
-
-    // Track string state (handles ", ', `)
-    if ((char === '"' || char === "'" || char === '`') && !inString) {
-      inString = true;
-      stringChar = char;
-    } else if (char === stringChar && inString) {
-      inString = false;
-      stringChar = null;
-    }
-
-    if (!inString) {
-      if (char === '{') depth++;
-      if (char === '}') depth--;
-      if (depth === 0) {
-        return text.slice(startIdx, i + 1);
-      }
-    }
-  }
-  return null; // Unbalanced braces
-};
-```
-
-### Key Features
-
-1. **Brace-Counted JSON Extraction** - Handles nested objects correctly without false matches
-2. **String-Aware Parsing** - Tracks quote delimiters (", ', `) to avoid matching braces inside strings
-3. **Escape Handling** - Properly handles backslash escapes in strings
-4. **Template Literal Support** - Handles backtick strings in JSON content
-5. **Multi-Call Extraction** - Finds all TOOL_CALL blocks in a single response
-
-### Regex Pattern
-
-```javascript
-const TOOL_CALL_PATTERN = /TOOL_CALL:\s*(\w+)\s*\nARGS:\s*(\{)/g;
-```
+Legacy blocks use a brace-counting reader (`readJsonObjectAt`, `:520`) that treats `"` and backtick as string delimiters and honors backslash escapes inside strings. The extracted text passes through `sanitizeLlmJsonRespPure` before `JSON.parse`. A parse failure returns the call with empty `args` and an `error`, adding a hint when the content contains literal newlines.
 
 ---
 
@@ -136,12 +66,6 @@ const TOOL_CALL_PATTERN = /TOOL_CALL:\s*(\w+)\s*\nARGS:\s*(\{)/g;
 
 | Blueprint | Module | Purpose |
 |-----------|--------|---------|
-| 0x000003 | Utils | Logging, error handling utilities |
-
----
-
-## Genesis Level
-
-**spark** - Core agent module, part of the minimal agent core. Cannot be modified without gate approval.
+| [0x000003](0x000003-core-utilities-and-error-handling.md) | Utils | Logger and JSON sanitizer |
 
 ---

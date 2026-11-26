@@ -1,5 +1,7 @@
 # Blueprint 0x0000AA: pool retry policy
 
+Owner: apps/poolday (see [apps/poolday/CATSCAN.md](../../apps/poolday/CATSCAN.md)). The owned file `apps/poolday/pool/retry-policy.js` (served at `/self/pool/retry-policy.js`) is a one-line re-export of `boundedRetryDelay`, `retryAfterMsFromError` and the default `retryPolicy` from `shared/vendor/reploid/transport/index.js`. The real implementation is [`packages/reploid/src/transport/retry-policy.js`](../../packages/reploid/src/transport/retry-policy.js); see the [transport CATSCAN](../../packages/reploid/src/transport/CATSCAN.md).
+
 **Classification:** Canonical Full Specification
 
 **Implementation Status:** Implemented

@@ -17,7 +17,7 @@
 
 **Implementation:** `/ui/panels/cognition-panel.js`
 
-**Prerequisites:** `0x000003` (Core Utilities), `0x000058` (Event Bus), `0x000074` (Knowledge Graph), `0x000075` (Semantic Memory)
+**Prerequisites:** `0x000003` (Core Utilities), `0x00004F` (Event Bus Infrastructure), `0x000060` (Knowledge Graph), `0x00005F` (Semantic Memory), `0x000063` (Cognition API)
 
 **Category:** UI
 
@@ -38,13 +38,22 @@ The Cognition Panel visualizes the agent's knowledge graph and semantic memory s
 
 ## Interface
 
-```javascript
-const CognitionPanel = {
-  init(containerId),  // Initialize panel
-  dispose(),          // Cleanup animation and listeners
-  refresh()           // Reload graph data
-};
-```
+Source: `self/ui/panels/cognition-panel.js`. Dependencies are `Utils`, `EventBus` and the
+optional `CognitionAPI?`, `KnowledgeGraph?` and `SemanticMemory?` (:10); the panel renders
+an empty graph when they are absent.
+
+| Member | Behavior |
+| --- | --- |
+| `init(containerId)` | Builds the canvas and controls, loads the graph, starts the animation |
+| `dispose()` | Cancels the animation frame and removes the resize and event-bus listeners |
+| `refresh()` | `loadGraphData`: reads `KnowledgeGraph.getAllEntities()` and `KnowledgeGraph.query({})` triples |
+
+| Control or event | Effect |
+| --- | --- |
+| Infer button | `CognitionAPI.symbolic.infer()`, then reload |
+| Clear button | `KnowledgeGraph.clear()` and `SemanticMemory.clear()` |
+| `cognition:symbolic:add`, `cognition:learning:extract` | Reload the graph |
+| Stats | `KnowledgeGraph.getStats()` and `SemanticMemory.getStats()` |
 
 ## Graph Visualization
 
@@ -59,14 +68,8 @@ const CognitionPanel = {
 
 ## Entity Colors
 
-| Type | Color |
-|------|-------|
-| Entity | #4fc3f7 (light blue) |
-| Tool | #81c784 (green) |
-| File | #64b5f6 (blue) |
-| Error | #e57373 (red) |
-| CodeElement | #ba68c8 (purple) |
-| URL | #ffb74d (orange) |
+Node colors come from the page's `--fg` CSS variable at different opacities (`getColors`,
+:32); there are no per-type hues. `Error` nodes use full opacity with a dashed outline.
 
 ## Stats Display
 

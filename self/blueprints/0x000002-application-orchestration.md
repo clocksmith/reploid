@@ -2,390 +2,78 @@
 
 **Classification:** Canonical Full Specification
 
-**Implementation Status:** In-Progress
+**Implementation Status:** Implemented
 
-**Verified Artifacts:** `/self/entry/start-app.js`
+**Verified Artifacts:** `/self/entry/start-app.js`, `/self/host/start-app.js`, `/self/host/reploid-launch.js`, `/self/host/start-reploid.js`, `/self/host/seed-vfs.js`, `/self/boot-helpers/index.js`, `/self/boot-spec.js`, `/tests/e2e/boot.spec.js`, `/tests/unit/boot-services.test.js`
 
-**Planned Artifacts:** `/core/app-logic.js`, `app-logic.js`
+**Planned Artifacts:** None
 
 **Owned Source Files:** `entry/start-app.js`
 
 **Former Blueprint Paths:** `self/blueprints/0x000002-application-orchestration.md`
-**Objective:** To define the role of the central application orchestrator, which is responsible for loading all composed modules and managing their dependency injection upon agent awakening.
+**Objective:** Define how a page reaches a running agent: seed the VFS, choose the launcher for the boot profile, show the route's home, and on the operator's Awaken either start the Reploid runtime or run the genesis boot that registers modules in the DI container.
 
-**Target Upgrade:** APPL (`app-logic.js`)
+**Prerequisites:** [0x000042](0x000042-dependency-injection-container.md) (DI Container), [0x000011](0x000011-advanced-storage-backend-indexeddb.md) (VFS), [0x00003C](0x00003C-genesis-snapshot-system.md) (Genesis Snapshot)
 
-**Prerequisites:**
-- **0x00004E** (Module Widget Protocol) - REQUIRED for widget implementation
-
-**Affected Artifacts:** `/core/app-logic.js`, `/entry/start-app.js`
+**Affected Artifacts:** `self/host/*.js`, `self/entry/*.js`, `self/boot-helpers/*.js`, `self/boot-spec.js`, `self/config/genesis-levels.json`, `self/config/module-resolution.js`
 
 ---
 
-### 1. The Strategic Imperative
-
-A modular agent architecture requires a robust mechanism to "wire" its components together. Hardcoding module relationships and initialization order is brittle and defeats the purpose of compositionality. A dedicated orchestrator is needed to manage the complex process of loading modules from the VFS, resolving their dependencies, and initializing them in the correct sequence to form a cohesive, functional agent.
-
-### 2. The Architectural Solution
-
-The `/core/app-logic.js` artifact serves as the central orchestrator, executed first by the `/entry/start-app.js` harness. It implements a **Dependency Injection (DI) container-based architecture** for module loading and initialization, with comprehensive boot performance tracking via a Web Component proto widget.
-
-#### Module Structure
-
-```javascript
-const AppLogic = {
-  metadata: {
-    id: 'AppLogic',
-    version: '3.0.0',
-    dependencies: [], // Loaded first, no dependencies
-    async: false,
-    type: 'orchestrator'
-  },
-  factory: (deps = {}) => {
-    // Web Component Widget (closure-based access to _bootStats)
-    class AppLogicWidget extends HTMLElement {
-      constructor() {
-        super();
-        this.attachShadow({ mode: 'open' });
-      }
-
-      set moduleApi(api) {
-        this._api = api;
-        this.render();
-      }
-
-      connectedCallback() {
-        this.render();
-        // No auto-refresh - boot stats are static after boot
-      }
-
-      disconnectedCallback() {
-        // No cleanup needed
-      }
-
-      getStatus() {
-        const durationSec = _bootStats.totalDuration
-          ? (_bootStats.totalDuration / 1000).toFixed(2)
-          : '—';
-
-        return {
-          state: _bootStats.status === 'ready' ? 'idle'
-            : (_bootStats.status === 'failed' ? 'error' : 'active'),
-          primaryMetric: _bootStats.status === 'ready' ? 'Ready' : _bootStats.status,
-          secondaryMetric: `${durationSec}s`,
-          lastActivity: _bootStats.endTime,
-          message: `${_bootStats.modulesLoaded.length} modules loaded`
-        };
-      }
-
-      render() {
-        const durationSec = _bootStats.totalDuration
-          ? (_bootStats.totalDuration / 1000).toFixed(2)
-          : '—';
-
-        const avgLoadTime = _bootStats.modulesLoaded.length > 0
-          ? (_bootStats.totalDuration / _bootStats.modulesLoaded.length).toFixed(0)
-          : '—';
-
-        this.shadowRoot.innerHTML = `
-          <style>
-            :host {
-              display: block;
-              font-family: monospace;
-              font-size: 12px;
-              color: #e0e0e0;
-            }
-            .boot-panel {
-              background: rgba(255, 255, 255, 0.05);
-              padding: 16px;
-              border-radius: 8px;
-            }
-            .status-badge {
-              display: inline-block;
-              padding: 4px 8px;
-              border-radius: 4px;
-              font-weight: bold;
-            }
-            .status-ready { background: #0a0; color: #000; }
-            .status-failed { background: #a00; color: #fff; }
-            .module-list {
-              max-height: 300px;
-              overflow-y: auto;
-              margin-top: 8px;
-            }
-            .error { color: #f00; }
-            .success { color: #0f0; }
-          </style>
-          <div class="boot-panel">
-            <h4>⏻ Boot Orchestrator</h4>
-            <div class="status-badge status-${_bootStats.status}">
-              ${_bootStats.status}
-            </div>
-            <div>Total Time: ${durationSec}s</div>
-            <div>Modules: ${_bootStats.modulesLoaded.length}</div>
-            ${_bootStats.moduleErrors.length > 0 ? `
-              <div class="error">Errors: ${_bootStats.moduleErrors.length}</div>
-            ` : ''}
-            <div class="module-list">
-              ${_bootStats.modulesLoaded.slice(-10).map(m => `
-                <div>
-                  <span class="success">✓</span> ${m.id} (${m.loadTime}ms)
-                </div>
-              `).join('')}
-            </div>
-            <div style="margin-top: 8px; color: #888;">
-              Avg load time: ${avgLoadTime}ms
-            </div>
-          </div>
-        `;
-      }
-    }
-
-    const elementName = 'app-logic-widget';
-    if (!customElements.get(elementName)) {
-      customElements.define(elementName, AppLogicWidget);
-    }
-
-    return {
-      api: {
-        getBootStats: () => ({ ..._bootStats })
-      },
-      widget: {
-        element: elementName,
-        displayName: 'Boot Orchestrator',
-        icon: '⏻',
-        category: 'core',
-        updateInterval: null
-      }
-    };
-  }
-};
-```
-
-#### Boot Statistics Tracking
-
-Global `_bootStats` object tracks boot performance:
-
-```javascript
-const _bootStats = {
-  startTime: null,           // Boot start timestamp
-  endTime: null,             // Boot completion timestamp
-  totalDuration: null,       // Total boot time in ms
-  modulesLoaded: [],         // Array of {id, path, loadTime, timestamp}
-  moduleErrors: [],          // Array of {path, error}
-  status: 'not_started'      // 'not_started' | 'booting' | 'ready' | 'failed'
-};
-```
-
-#### DI Container-Based Loading
-
-The orchestrator uses a **Dependency Injection Container** for automatic dependency resolution:
-
-1.  **Foundation (Manual Load):** `utils.js` and `di-container.js` are loaded manually first
-2.  **Configuration Registration:** `config.json` and active `Persona` are registered as modules
-3.  **Automatic Dependency Resolution:** The DI container reads module manifests and resolves dependencies automatically, loading modules in topologically-sorted order
-4.  **Module Registration:** Each module is registered with the container via `container.register(moduleDefinition)`
-5.  **Widget Integration:** Modules return both `api` (business logic) and `widget` (Web Component) objects
-
-This architecture eliminates manual dependency ordering and ensures each module receives its dependencies at instantiation time.
-
-### 3. The Implementation Pathway
-
-#### Step 1: Initialize Boot Tracking
-
-Create a global `_bootStats` object to track the boot process:
-
-```javascript
-const _bootStats = {
-  startTime: null,
-  endTime: null,
-  totalDuration: null,
-  modulesLoaded: [],
-  moduleErrors: [],
-  status: 'not_started'
-};
-```
-
-Set `_bootStats.startTime = Date.now()` and `_bootStats.status = 'booting'` when the orchestrator begins.
-
-#### Step 2: Load Foundation Modules
-
-The `/entry/start-app.js` harness loads and executes `/core/app-logic.js`. The orchestrator manually loads the two foundation modules:
-
-```javascript
-// Load Utils (zero dependencies)
-const utilsContent = await vfs.read("/core/utils.js");
-const Utils = new Function(utilsContent + "\nreturn Utils;")().factory();
-
-// Load DI Container
-const diContainerContent = await vfs.read("/infrastructure/di-container.js");
-const DIContainerModule = new Function(diContainerContent + "\nreturn DIContainer;");
-const container = DIContainerModule().factory({ Utils });
-
-// Expose globally for lazy resolution
-globalThis.DIContainer = container;
-```
-
-Track each load in `_bootStats.modulesLoaded` with `{id, path, loadTime, timestamp}`.
-
-#### Step 3: Register Configuration and Persona
-
-Load `config.json` and the active Persona module, registering them with the container:
-
-```javascript
-const configContent = await vfs.read("/config.json");
-const config = JSON.parse(configContent);
-container.register({
-  metadata: { id: 'config', type: 'pure' },
-  factory: () => config
-});
-
-// Load active persona
-const personaPath = `/personas/${personaModuleName}.js`;
-const personaContent = await vfs.read(personaPath);
-const PersonaModule = new Function(personaContent + `\nreturn ${personaModuleName};`)();
-container.register({ ...PersonaModule, metadata: { ...PersonaModule.metadata, id: 'Persona' } });
-```
-
-#### Step 4: Load Modules via DI Container
-
-Define the module manifest (list of all module paths) and use the DI container to load them with automatic dependency resolution:
-
-```javascript
-const moduleManifest = [
-  '/infrastructure/event-bus.js',
-  '/core/state-helpers-pure.js',
-  '/core/storage-localstorage.js',
-  '/core/state-manager.js',
-  '/core/api-client.js',
-  '/tools/tool-runner.js',
-  '/core/agent-cycle.js',
-  '/ui/ui-manager.js',
-  // ... all other modules
-];
-
-for (const modulePath of moduleManifest) {
-  const moduleContent = await vfs.read(modulePath);
-  const ModuleDefinition = evaluateModule(moduleContent, modulePath);
-  container.register(ModuleDefinition);
-}
-
-// Resolve all modules (DI container handles dependency order)
-const resolvedModules = container.resolveAll();
-```
-
-The DI container performs topological sorting to ensure dependencies are loaded before dependents.
-
-#### Step 5: Create AppLogic Widget
-
-Define the `AppLogicWidget` Web Component inside the factory function to allow closure-based access to `_bootStats`:
-
-```javascript
-class AppLogicWidget extends HTMLElement {
-  constructor() {
-    super();
-    this.attachShadow({ mode: 'open' });
-  }
-
-  set moduleApi(api) {
-    this._api = api;
-    this.render();
-  }
-
-  connectedCallback() {
-    this.render();
-  }
-
-  disconnectedCallback() {
-    // No cleanup needed
-  }
-
-  getStatus() {
-    // Return proto status based on _bootStats
-  }
-
-  render() {
-    const durationSec = _bootStats.totalDuration
-      ? (_bootStats.totalDuration / 1000).toFixed(2)
-      : '—';
-
-    this.shadowRoot.innerHTML = `
-      <style>
-        :host { display: block; font-family: monospace; font-size: 12px; }
-        .boot-panel { background: rgba(255, 255, 255, 0.05); padding: 16px; }
-        .status-badge { padding: 4px 8px; border-radius: 4px; font-weight: bold; }
-        .status-ready { background: #0a0; color: #000; }
-        .error { color: #f00; }
-        .success { color: #0f0; }
-      </style>
-      <div class="boot-panel">
-        <h4>⏻ Boot Orchestrator</h4>
-        <div class="status-badge status-${_bootStats.status}">${_bootStats.status}</div>
-        <div>Total Time: ${durationSec}s</div>
-        <div>Modules: ${_bootStats.modulesLoaded.length}</div>
-        ${_bootStats.moduleErrors.length > 0 ? `
-          <div class="error">Errors: ${_bootStats.moduleErrors.length}</div>
-        ` : ''}
-        <div>
-          ${_bootStats.modulesLoaded.slice(-10).map(m => `
-            <div><span class="success">✓</span> ${m.id} (${m.loadTime}ms)</div>
-          `).join('')}
-        </div>
-      </div>
-    `;
-  }
-}
-
-const elementName = 'app-logic-widget';
-if (!customElements.get(elementName)) {
-  customElements.define(elementName, AppLogicWidget);
-}
-```
-
-#### Step 6: Return API and Widget
-
-Return an object with both the API and widget:
-
-```javascript
-return {
-  api: {
-    getBootStats: () => ({ ..._bootStats })
-  },
-  widget: {
-    element: elementName,
-    displayName: 'Boot Orchestrator',
-    icon: '⏻',
-    category: 'core',
-    updateInterval: null
-  }
-};
-```
-
-#### Step 7: Finalize Boot Process
-
-After all modules are loaded:
-
-```javascript
-_bootStats.endTime = Date.now();
-_bootStats.totalDuration = _bootStats.endTime - _bootStats.startTime;
-_bootStats.status = 'ready';
-
-// Initialize UI with resolved modules
-const UI = resolvedModules.UIManager;
-UI.init();
-```
-
-#### Step 8: Error Handling
-
-Wrap module loading in try-catch blocks and track errors in `_bootStats.moduleErrors`:
-
-```javascript
-try {
-  // ... load module
-} catch (error) {
-  _bootStats.moduleErrors.push({ path: modulePath, error: error.message });
-  _bootStats.status = 'failed';
-}
-```
-
-The widget displays errors in a dedicated panel for debugging.
+### 1. Files
+
+There is no `app-logic.js` orchestrator. Orchestration is split across:
+
+| File | Role |
+| --- | --- |
+| `self/boot-spec.js` | `SELF_BOOT_SPEC`: host entries (`seedEntry`, `startEntry`, `reploidStartEntry`, `vfsBootstrapEntry`, `serviceWorkerEntry`), runtime entries (`/self/runtime.js`, `/self/capsule/index.js`, `styles/capsule.css`) and writable roots |
+| `self/host/seed-vfs.js` (`self/entry/seed-vfs.js` forwards to it) | Registers the VFS Service Worker, seeds or hydrates the IndexedDB VFS for the boot profile, then imports the launcher |
+| `self/host/start-app.js` | Host launcher for the legacy and lab boots (Zero, X, wizard, locked homes) |
+| `self/entry/start-app.js` | One line: `import '../host/start-app.js';` kept as a stable entry and fallback path |
+| `self/host/start-reploid.js` | Minimal launcher for the primary Reploid route |
+| `self/host/reploid-launch.js` | `createReploidLauncher(options)`: imports the Reploid runtime and capsule UI, mounts and reloads the UI, starts the runtime |
+| `self/boot-helpers/index.js` | `boot(Utils, DIContainer)`: genesis-level module boot for Zero and X |
+
+### 2. Launcher choice
+
+`loadStartApp` in `self/host/seed-vfs.js` imports `SELF_BOOT_SPEC.host.reploidStartEntry` (`start-reploid.js`) for the `pool_home`, `reploid_home` and `substrate_console` boot profiles and `SELF_BOOT_SPEC.host.startEntry` (`host/start-app.js`) otherwise, falling back to `/entry/start-app.js` if the first import fails.
+
+### 3. `host/start-app.js`
+
+On load it removes the seed progress loader and reads the runtime mode, route mode and boot profile from globals set by the seed step. Unless the profile is `wizard`, it shows a locked home:
+
+- `pool`: redirect to the product entry; the substrate never loads product modules;
+- `reploid`: `/ui/reploid-home/index.js`, and prewarm the Reploid modules;
+- `zero` or `x`: `/ui/zero-home/index.js`, and prewarm `boot-helpers` and the DI container;
+- otherwise `/ui/boot-home/index.js`.
+
+With the `wizard` profile it shows `/ui/boot-wizard/index.js`.
+
+It then defines `window.triggerAwaken(goal)`, which the home or wizard calls when the operator awakens the agent:
+
+- `reploid` mode: `launcher.awaken(goal, wizardContainer)` from `reploid-launch.js`.
+- other modes: stop boot backgrounds, wait for `window.REPLOID_VFS_FULL_SEED_PROMISE`, run `boot(Utils, DIContainer)`, then `completeAwaken`, which resolves `EventBus`, optional `ErrorStore`, `WorkerManager`, `ArenaHarness` and `HITLController`, and `StateManager`, mounts the UI and calls `agent.run(goal)`.
+
+If awaken fails after a container exists, it disposes the `ToolRunner` (or unloads its tools), runs UI cleanup, closes the `AgentLoop`, clears container instances and restores the window globals it had replaced. Saved files are never deleted. The error is rendered with `renderErrorUI`, or an inline box if that import fails.
+
+### 4. `boot(Utils, DIContainer)`
+
+`self/boot-helpers/index.js:27`, in order:
+
+1. Initialize the iframe bridge.
+2. Load `genesis-levels.json`, pick the genesis level (the lab route's level, else a valid stored `REPLOID_GENESIS_LEVEL`, else the default for the stored `REPLOID_MODE` or `defaultLevel`), load the module registry and overrides, and resolve the module list.
+3. Fail if any of `AWAKEN_REQUIRED_MODULES` (`self/config/module-resolution.js`) is missing.
+4. Create the DI container with `Utils`, load external dependencies (for example Transformers.js), and register the resolved modules.
+5. Resolve `VFS`, reset session artifacts, create the genesis snapshot, initialize the swarm if enabled, resolve core services and install export helpers.
+6. Return `{ container, genesisConfig, genesisLevel, resolvedModules, ...services }`.
+
+### 5. Reploid launcher
+
+`createReploidLauncher({ prepareInput, getLogger, reloadInitialUi, handleReloadErrors })` returns `{ awaken, loadModules, rotateIdentity }`. `awaken` removes the home, imports `createSelfRuntime` and the capsule UI, creates the runtime with the instance label, goal, environment, swarm flag, model config and seed overrides, mounts the capsule, and starts the runtime. A VFS change to the UI entry or `/self/capsule/` remounts the UI from the VFS after a 150 ms debounce. It exposes `window.REPLOID` (`mode`, `instanceId`, `runtime`) and `window.REPLOID_UI` (`reload`, `getVersion`).
+
+### 6. Authority
+
+Boot starts the agent only from the operator's Awaken. Loading a module or starting the runtime grants no permission beyond the grants the modules themselves enforce.
+
+### 7. Verification
+
+`tests/e2e/boot.spec.js`, `tests/e2e/boot-contract.spec.js` and `tests/e2e/boot-replay.spec.js` drive the real boot in a browser; `tests/unit/boot-services.test.js`, `tests/unit/boot-seed.test.js` and `tests/unit/boot-library-loading.test.js` cover the boot helpers.

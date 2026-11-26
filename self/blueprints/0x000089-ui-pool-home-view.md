@@ -1,5 +1,7 @@
 # Blueprint 0x000089: Pool home view
 
+Owner: apps/poolday (see [apps/poolday/CATSCAN.md](../../apps/poolday/CATSCAN.md))
+
 **Classification:** Canonical Full Specification
 
 **Implementation Status:** Implemented
@@ -39,8 +41,11 @@ renders escaped state and emits controls that those modules bind.
 - Recent jobs leads with the job ledger. Advanced details contain execution
   receipts, comparison evidence, peer identities, retries, and recovery only.
 - Research Room-1 is a separate non-primary route for scientific governance.
-- Navigation is one compact horizontal shell with exactly three destinations
-  and a subordinate network-availability indicator.
+- Navigation is one compact horizontal shell: the brand link, the execution
+  ribbon and a Settings menu. `POOLDAY_NAV_ROUTES` in
+  [`constants.js`](../../apps/poolday/ui/pool-home/constants.js) holds one
+  primary route, Changes (`/improve`); Network, Examples and Experiments are
+  Settings shortcuts in [`shell-view.js`](../../apps/poolday/ui/pool-home/shell-view.js).
 
 ### 3. Implementation Notes
 
@@ -51,7 +56,7 @@ renders escaped state and emits controls that those modules bind.
 
 ### 4. Verification requirements
 
-- [x] Three-destination navigation has DOM and browser geometry tests
+- [x] Navigation routes and shell placement have DOM tests (`tests/unit/pool-home-nav.test.js`)
 - [x] Narrow mobile routes remain free of horizontal clipping
 - [x] Home exposes one Pack, one input, peer disclosure, and one Run action
 - [x] Research Room-1 is absent from Recent jobs markup

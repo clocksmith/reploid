@@ -2,52 +2,43 @@
 
 **Classification:** Canonical Full Specification
 
-**Implementation Status:** In-Progress
+**Implementation Status:** Implemented
 
-**Verified Artifacts:** `/self/config/boot-seed.js`, `/self/prompts/kernel.md`
+**Verified Artifacts:** `/self/core/agent-context.js`, `/self/core/zero-prompt.js`, `/self/core/persona-manager.js`, `/self/prompts/kernel.md`, `/self/config/boot-seed.js`
 
-**Planned Artifacts:** `/core/agent-cycle.js`, `/core/agent-logic-pure.js`, `/core/prompt-system.md`, `prompt-system.md`
+**Planned Artifacts:** None
 
 **Owned Source Files:** None
 
 **Former Blueprint Paths:** `self/blueprints/0x000001-system-prompt-architecture.md`
-**Objective:** To define the structure and philosophy of the agent's core identity prompt, enabling dynamic context injection for state-aware reasoning.
+**Objective:** Define how the agent's system prompt is assembled from the persona, the goal and the runtime mode, and which prompt text is code and which is a seeded file.
 
-**Target Upgrade:** PRMT (`prompt-system.md`)
-
-**Prerequisites:** None
-
-**Affected Artifacts:** `/core/prompt-system.md`, `/core/agent-cycle.js`, `/core/agent-logic-pure.js`
+**Prerequisites:** [0x000043](0x000043-persona-management-system.md) (personas)
 
 ---
 
-### 1. The Strategic Imperative
+### 1. Assembly
 
-An agent's core prompt is its constitution. A static, hardcoded prompt is inflexible and prevents the agent from reasoning about its own current state. To achieve true self-awareness and adapt its plans, the agent's prompt must be a dynamic template, not a fixed string. This allows it to be populated with real-time information about its goals, available tools, VFS contents, and performance history, providing the LLM with the necessary context for intelligent decision-making.
+The agent loop ([0x000008](0x000008-agent-cognitive-cycle.md)) builds its first context with `buildAgentInitialContext({ goal, personaPrompt, runtimeMode, maxToolCalls, discoveryLimit })` from `self/core/agent-context.js`. It returns two messages: the system prompt and `Begin. Goal: <goal>`.
 
-### 2. The Architectural Solution
+The system prompt depends on the mode:
 
-The solution is to treat the system prompt as a template artifact (`/core/prompt-system.md`) containing clearly defined placeholders. A dedicated pure helper module (`agent-logic-pure.js`) will be responsible for assembling the final prompt string. This separates the prompt's structure (the template) from the logic required to populate it (the pure helper).
+- **Minimal Zero or X seed** (`isMinimalLabMode(mode)` in `self/config/lab-upgrades.js`: mode `zero` or `x` at the `spark` upgrade level): `buildZeroSystemPrompt({ personaPrompt, goal, mode })` from `self/core/zero-prompt.js`. It states the goal, the continuous-improvement directive, the persona section, the writable boundary (`/shadow` for candidates, `/artifacts` for evidence, no direct `/self` writes from the seed), the CreateTool workflow with its Verification Worker and activation-check rules, the seed tool list (`ZERO_SEED_TOOLS` from `shared/config/tool-surfaces.js`) and the `REPLOID/0` tool-call format.
+- **Other modes**: the persona prompt followed by a general agent prompt with the `REPLOID/0` tool-call format, shadow-first change rules and the goal. In `x` mode the agent is told never to stop at `DONE` after a working result.
 
-**Example Placeholder in `prompt-system.md`:**
+The persona prompt comes from `PersonaManager.getSystemPrompt()` (`self/core/persona-manager.js`), which combines core instructions (`buildZeroCoreInstructions`) with the selected persona's description and instructions. Persona text can be changed through `applySlotMutation` on its `description` and `instructions` slots only.
 
-```markdown
-**Current State:**
-- Cycle: [[CYCLE_COUNT]]
-- Active Goal: [[CUMULATIVE_GOAL]]
+Prompt text is assembled by template literals in code. There is no placeholder template (`/core/prompt-system.md`) and no `agent-logic-pure.js`.
 
-**Available Tools:**
-[[TOOL_LIST]]
-```
+### 2. Seeded prompt files
 
-The `agent-logic-pure.js` module will contain a function like `assembleCorePromptPure` that takes the template string and state data, and returns the final, populated prompt.
+`self/prompts/kernel.md` is the Zero kernel prompt: VFS discovery rules, the live roots and the operating contract. It is seeded into the VFS (listed in `self/config/boot-seed.js`) for the agent to read; no code inserts it into the system prompt.
 
-### 3. The Implementation Pathway
+### 3. Changing the prompt
 
-1.  **Create Template:** Design the `/core/prompt-system.md` artifact with logical sections and placeholders for all dynamic data (e.g., `[[CYCLE_COUNT]]`, `[[CUMULATIVE_GOAL]]`, `[[ARTIFACT_LIST]]`).
-2.  **Implement Pure Assembler:** In `/core/agent-logic-pure.js`, create the `assembleCorePromptPure` function. This function will accept the template content and the current state object as arguments and perform a series of `.replace()` operations to inject the data into the placeholders.
-3.  **Integrate into Cycle:** Modify `/core/agent-cycle.js`. In the `executeCycle` function, before calling the API, it must:
-    a.  Fetch the system prompt template from the VFS using `Storage.getArtifactContent()`.
-    b.  Gather all necessary data from the `StateManager`.
-    c.  Call the `assembleCorePromptPure` helper function to create the final prompt.
-    d.  Use this dynamically generated prompt for the API call.
+The agent can propose prompt changes like any other change: as a candidate under `/shadow`, through persona slot mutation, or through prompt evolution ([0x000067](0x000067-gepa-prompt-evolution.md)). A better score for a candidate prompt informs the operator; it does not adopt the prompt.
+
+### 4. Verification conditions
+
+- In the minimal Zero seed the system prompt lists exactly the seed tools.
+- The first user message is `Begin. Goal: <goal>`.

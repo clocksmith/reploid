@@ -1,5 +1,7 @@
 # Blueprint 0x000087: ui pool home contribution state
 
+Owner: apps/poolday (see [apps/poolday/CATSCAN.md](../../apps/poolday/CATSCAN.md))
+
 **Classification:** Canonical Full Specification
 
 **Implementation Status:** Implemented
@@ -11,7 +13,7 @@
 **Owned Source Files:** `ui/pool-home/contribution-state.js`
 
 **Former Blueprint Paths:** `self/blueprints/0x000087-ui-pool-home-contribution-state.md`
-**Objective:** Describe implementation for ui/pool-home/contribution-state.js.
+**Objective:** Hold browser-local contribution state and recent receipt counters for the Poolday Home view.
 
 **Target Upgrade:** ui/pool-home/contribution-state.js
 

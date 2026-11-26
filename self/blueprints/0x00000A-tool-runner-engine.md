@@ -2,119 +2,63 @@
 
 **Classification:** Canonical Full Specification
 
-**Implementation Status:** In-Progress
+**Implementation Status:** Implemented
 
-**Verified Artifacts:** `/self/core/tool-runner.js`, `/self/tool-runner.js`
+**Verified Artifacts:** `/self/core/tool-runner.js`, `/self/core/tool-capabilities.js`, `/self/tool-runner.js`, `/packages/reploid/src/agent/tool-runner.js`, `/tests/unit/tool-runner.test.js`, `/tests/unit/tool-runner-disposal.test.js`, `/tests/integration/tool-runner.test.js`
 
-**Planned Artifacts:** `/tools/tool-runner.js`
+**Planned Artifacts:** None
 
 **Owned Source Files:** `core/tool-runner.js`
 
 **Former Blueprint Paths:** `self/blueprints/0x00000A-tool-runner-engine.md`
-**Objective:** To describe the architecture of the engine responsible for executing the agent's static and dynamic tools, providing a bridge between the LLM's intent and tangible actions.
+**Objective:** Load tool modules from the VFS, keep the set of callable tools per surface, and run each call through the configured permission, policy, approval, validation, trace and audit steps.
 
-**Target Upgrade:** TRUN (`tool-runner.js`)
+**Prerequisites:** [0x000003](0x000003-core-utilities-and-error-handling.md) (Utils), [0x000011](0x000011-advanced-storage-backend-indexeddb.md) (VFS), [0x00004F](0x00004F-event-bus-infrastructure.md) (EventBus), [0x000040](0x000040-verification-manager.md) (VerificationManager)
 
-**Prerequisites:** `0x000003`, `0x000004`, `0x000005`, `0x00000B`, `0x00000C`
-
-**Affected Artifacts:** `/tools/tool-runner.js`
+**Affected Artifacts:** `self/core/tool-runner.js`, `self/core/tool-capabilities.js`, `self/core/vfs-module-loader.js`, `shared/config/tool-surfaces.js`, `self/tools/*.js`
 
 ---
 
-### 1. The Strategic Imperative
+### 1. Three runners
 
-An LLM's output is just text. To affect its environment, an agent needs a mechanism to interpret the LLM's desire to perform an action and translate that into actual function execution. The `ToolRunner` module serves as this critical bridge. It is a secure dispatcher that takes a tool name and arguments (as specified by the LLM) and executes the corresponding code, returning the result to the agent's cognitive cycle.
+| File | Role |
+| --- | --- |
+| `self/core/tool-runner.js` | `ToolRunner` DI module (`genesis: { introduced: 'capsule' }`) for the Zero, X and legacy substrate boots. This blueprint describes it. |
+| `self/tool-runner.js` | `createSelfToolRunner(options)` for the awakened Reploid self: wraps the shared minimal runner with `loadVfsModule` and `resolveSelfAuthorization` (`self/tool-authorization.js`), which by default allows only `ReadFile` and `WriteFile`. |
+| `packages/reploid/src/agent/tool-runner.js` | `createToolRunner(options)`, the minimal library runner (vendored at `shared/vendor/reploid/agent/tool-runner.js`): built-in tools plus `LoadModule`, an explicit `authorize` callback that must return `true` for every call, and `executeTool`, `loadModule`, `listToolNames`, `close`. |
 
-### 2. The Architectural Solution
+### 2. All tools are dynamic
 
-The `/tools/tool-runner.js` will export a primary `runTool` function. This function acts as a central dispatcher.
+`ToolRunner` has no built-in tools. Every tool is a VFS module (`tool-runner.js:62`):
 
-1.  **Tool Identification:** It first checks if the requested `toolName` corresponds to a "static" tool. Static tools are built-in, trusted functions whose definitions are loaded from the `/config/data-tools-static.json` artifact.
-2.  **Static Tool Execution:** If a static tool is found, a `switch` statement is used to execute the corresponding hardcoded logic. This logic often involves calls to core services like `Storage` or `StateManager` (e.g., the `read_artifact` tool calls `Storage.getArtifactContent`).
-3.  **Dynamic Tool Execution (Future):** The architecture will be designed to be extensible. It will include a path for handling "dynamic" tools, which are tools the agent creates for itself. This logic will involve using the Sandboxed Tool Worker (`/tools/tool-worker.js`) to execute untrusted, agent-generated code securely.
-4.  **Error Handling:** The `runTool` function must be robust. If a tool is not found, or if its execution fails, it must throw a specific `ToolError` with detailed context, which can be caught by the `agent-cycle`.
+- `init()` / `refresh()` (`loadDynamicTools`) unloads previous dynamic tools and scans `/tools/` and `/self/tools/`. `/tools/` files are loaded only if their name is in the surface allowlist; every `/self/tools/` file is loaded and allowed. Test files (`.test.`, `.spec.`, `.integration.`) are skipped, and minimal lab modes skip `Promote`.
+- The allowlist is `getToolNamesForMode(mode, ...)` from `shared/config/tool-surfaces.js` plus names added with `allow(name)`. The Zero seed surface is `CreateTool` only.
+- A tool module exports a default function or `tool.call`, and optionally `tool.description`, `tool.inputSchema` and `tool.capabilities` / `tool.zeroCapabilities`. The schema is registered with `SchemaRegistry`. A module whose source contains `ToolRunner.run` is refused.
+- Modules are imported through `loadVfsModule` (`self/core/vfs-module-loader.js`) as Blob module URLs. The runner passes `expectedSha256` when it has one, so a pinned load fails on any byte change, but it does not pass `verify: true`; a tool is statically verified when it is created ([0x000015](0x000015-dynamic-tool-creation.md)), not again when it is loaded.
+- `loadPath(path)` accepts only installed `/self/tools/*.js` paths and rejects `..`.
 
-### 3. The Implementation Pathway
+### 3. Interface
 
-1.  **Create Module:** Implement the `ToolRunnerModule` factory function in `/tools/tool-runner.js`.
-2.  **Implement `runTool`:**
-    a.  The function will accept `toolName` and `toolArgs` as arguments.
-    b.  It will load the static tool definitions from the JSON manifest.
-    c.  It will use a `switch (toolName)` block to handle the execution of each known static tool.
-    d.  The default case for the switch will throw a `ToolError` indicating the tool was not found.
-3.  **Implement Gemini Conversion:** Include a `convertToGeminiFunctionDeclaration` function. This function will delegate directly to the `ToolRunnerPureHelpers` module to translate the agent's internal tool format into the schema required by the Google Gemini API's function-calling feature.
-4.  **Integration:** The `agent-cycle.js` module will call `ToolRunner.execute` whenever it receives a `functionCall` response from the `ApiClient`.
+`factory(deps)` returns `init`, `dispose`, `execute`, `refresh`, `allow`, `load`, `loadPath`, `unload`, `list`, `listFiltered`, `has`, `setArenaGating`, `isArenaGatingEnabled`, `getToolSchemas`, `getToolSchemasFiltered`, `setOutputValidation`, `setStrictValidation`, `isOutputValidationEnabled` and `setWorkerManager`. `dispose()` is terminal: the instance refuses further calls, while saved tool source stays in the VFS.
 
-**Widget Interface (Web Component):**
+### 4. `execute(name, args, { allowedTools, workerId, trace })`
 
-The module exposes a `ToolRunnerWidget` custom element for proto visualization:
+In order:
 
-```javascript
-class ToolRunnerWidget extends HTMLElement {
-  constructor() {
-    super();
-    this.attachShadow({ mode: 'open' });
-  }
+1. `assertConfiguredGates` (on `x` and `zero` only): with the security mode on, a missing `PolicyEngine` is an error; a saved `REPLOID_HITL_CONFIG` that names a mode other than `autonomous` or `inherit` while no `HITLController` is present is an error, as is an unparsable saved config. The same check runs before loading tools.
+2. Worker permission: when `allowedTools` is not `'*'` and does not include `name`, throw and audit `TOOL_PERMISSION_DENIED` ([0x000047](0x000047-worker-pool-parallelization.md)).
+3. With the security mode on, `PolicyEngine.check(name, args, { workerId })`; a block throws and audits `TOOL_POLICY_BLOCKED`, a warning audits `TOOL_POLICY_WARNING`.
+4. Load the tool on demand from `/tools/<name>.js` if it is allowlisted.
+5. HITL: with the security mode on and the master approval mode not `autonomous`, `WriteFile`, `DeleteFile`, `CreateTool`, `EditFile`, `CopyFile`, `MoveFile`, `MakeDirectory`, `LoadModule` and `Promote` go through `HITLController.requestApproval` with a 5-minute timeout; a rejection returns `{ error, rejected: true }` and audits `TOOL_REJECTED` ([0x000049](0x000049-hitl-controller.md)).
+6. Build the dependency object (VFS, EventBus, AuditLogger, VerificationManager, VFSSandbox, WorkerManager and the other optional modules, plus a restricted `ToolRunner` handle) and filter it with `filterToolDepsForTool` (`self/core/tool-capabilities.js`). On `x` and `zero`, `Shell` and `gitTools` are removed, the VFS is read-only unless the tool declares `vfs:write` or `self:write`, and tool loading is removed unless it declares `tool:load` or `self:write`. `CreateTool` is the internal exception.
+7. Call the tool, validate its output when `SchemaValidator` validation is on, record `tool:execute` in `TraceStore` when tracing, and log through `AuditLogger.logToolExec`. Errors are rethrown as `ToolError` with the tool name and arguments.
 
-  connectedCallback() {
-    this.render();
-    // Fast refresh - 500ms for real-time execution tracking
-    this._interval = setInterval(() => this.render(), this.updateInterval || 500);
-  }
+The runner executes a tool; it does not decide that a tool's result should be adopted. Policy, approval and verification can only block a call.
 
-  disconnectedCallback() {
-    if (this._interval) clearInterval(this._interval);
-  }
+### 5. Arena gating flag
 
-  set moduleApi(api) {
-    this._api = api;
-    this.render();
-  }
+`setArenaGating(enabled)` stores `REPLOID_ARENA_GATING` and emits `toolrunner:arena_gating`. `isArenaGatingEnabled()` is true only with the security mode on. The flag turns on the Verification Worker sandbox gate for core writes; it runs no Arena competition ([0x000040](0x000040-verification-manager.md)).
 
-  getStatus() {
-    const stats = this._api.getStats();
-    const activeCount = stats.activeExecutions.size;
-    const successRate = stats.executionStats.total > 0
-      ? ((stats.executionStats.success / stats.executionStats.total) * 100).toFixed(0)
-      : 0;
+### 6. Verification
 
-    let state = 'idle';
-    if (activeCount > 0) state = 'active';
-    if (stats.executionStats.error > stats.executionStats.success) state = 'warning';
-
-    return {
-      state,
-      primaryMetric: `${stats.executionStats.total} executed`,
-      secondaryMetric: `${successRate}% success`,
-      lastActivity: stats.lastExecutionTime
-    };
-  }
-
-  render() {
-    const stats = this._api.getStats();
-
-    this.shadowRoot.innerHTML = `
-      <style>/* Shadow DOM styles */</style>
-      <div class="widget-content">
-        <!-- Statistics grid (total executions, success rate, active count, errors) -->
-        <!-- Active executions list with real-time status -->
-        <!-- Top 10 most-used tools chart -->
-        <!-- Recent execution history with outcomes -->
-      </div>
-    `;
-  }
-}
-
-customElements.define('tool-runner-widget', ToolRunnerWidget);
-```
-
-**Key Widget Features:**
-- **High-Frequency Updates**: 500ms refresh rate for real-time tracking of active tool executions
-- **Execution Statistics Grid**: Total executions, success rate, active execution count, error count
-- **Active Executions Monitor**: Live display of currently running tools with elapsed time
-- **Tool Usage Analytics**: Top 10 most-used tools ranked by execution count
-- **Execution History**: Recent tool calls with success/failure outcomes and execution times
-- **State Detection**: Widget state changes from 'idle' to 'active' when tools execute, 'warning' if errors exceed successes
-- **Performance Metrics**: Displays execution duration for each tool call (ms/s formatting)
-
-The widget provides critical runtime visibility into tool execution, essential for debugging tool calls, monitoring performance, and identifying frequently-used capabilities.
+`tests/unit/tool-runner.test.js`, `tests/unit/tool-runner-disposal.test.js`, `tests/integration/tool-runner.test.js` and `tests/unit/self-authorization.test.js` cover loading, surfaces, disposal and the self runner's default authorization.

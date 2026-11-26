@@ -1,5 +1,7 @@
 # Blueprint 0x00009B: pool canonical json
 
+Owner: apps/poolday (see [apps/poolday/CATSCAN.md](../../apps/poolday/CATSCAN.md)). The owned file `shared/pool/canonical-json.js` (served at `/self/pool/canonical-json.js`) is a one-line re-export of `shared/vendor/reploid/artifacts/canonical-json.js`, the delivered copy of the real implementation in [`packages/reploid/src/artifacts/canonical-json.js`](../../packages/reploid/src/artifacts/canonical-json.js). That directory has no CATSCAN of its own; see the [package CATSCAN](../../packages/reploid/CATSCAN.md) and [shared/CATSCAN.md](../../shared/CATSCAN.md) for how `vendor/` delivers package code.
+
 **Classification:** Canonical Full Specification
 
 **Implementation Status:** Implemented

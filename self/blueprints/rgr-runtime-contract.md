@@ -2,17 +2,17 @@
 
 **Classification:** Index & Meta Contract
 
-This is the compact boot contract for Reploid's Recursive GEPA Ring. The full formal reference remains at `/self/blueprints/0x00007F-recursive-gepa-ring.md`.
+This is the runtime contract for Reploid's Recursive GEPA Ring (RGR) and the authority for its runtime semantics. [`0x00007F-recursive-gepa-ring.md`](0x00007F-recursive-gepa-ring.md) is the formal theory; its planned modules (`rgr.js`, `promotion-gate.js`, `validator-quarantine.js`, `replay-ledger.js`) do not exist. Durable changes follow [`promotion-contract.md`](promotion-contract.md).
 
 ## Purpose
 
-Reploid is a browser-hosted self-improvement loop. It runs candidates in Shadow, records evidence, and only changes the active self through a promotion gate.
+Reploid is a browser-hosted self-improvement loop. It runs candidates in Shadow, records evidence, and only changes the active self through a promotion gate that ends in operator adoption.
 
 The browser is the ecosystem: same-origin VFS, OPFS, Service Worker module loading, DOM UI, workers, WebGPU/WASM capability checks, and peer slots provide bounded mutation, observable state, durable artifacts, and replayable evidence.
 
 ## Surface Intent Source
 
-Zero and X route intent lives in `/self/config/surface-intents.js`. This contract defines shared RGR runtime semantics; route purpose, boot profile, tool surface, required modules, and Zero/X extension shape should stay anchored to that executable config.
+Zero and X route intent lives in [`shared/config/surface-intents.js`](../../shared/config/surface-intents.js) (served at `/config/surface-intents.js`). This contract defines shared RGR runtime semantics; route purpose, boot profile, tool surface, required modules, and Zero/X extension shape should stay anchored to that executable config.
 
 ## Operating States
 
@@ -20,7 +20,7 @@ Zero and X route intent lives in `/self/config/surface-intents.js`. This contrac
 |-------|---------|
 | Seed | Boot identity, prompt, tools, VFS, objective, and contracts. No mutation. |
 | Shadow | Default work mode. Read, trace, mutate, score, archive, and repair provisionally. |
-| Promote | Change the active self only after anchored evidence passes. |
+| Promote | Change the active self only after anchored evidence passes and the operator adopts the candidate. |
 
 ## Ring Slots
 
@@ -72,8 +72,9 @@ Promotion is blocked unless all of these hold:
 - required independent anchor observations are present
 - rollback path exists
 - validator or anchor changes are quarantined
+- the operator adopts the candidate through an explicit, reversible grant
 
-Candidates may propose validator changes, but those changes need independent replay and governance. A candidate cannot approve its own judge.
+The first six conditions make a candidate eligible; only the last one activates it. Scores, Pareto position and peer agreement never grant activation permission. Candidates may propose validator changes, but those changes need independent replay and governance. A candidate cannot approve its own judge, and a peer cannot adopt its own candidate.
 
 ## Browser Mechanism Patterns
 
@@ -92,7 +93,7 @@ Prefer small browser-native RSI moves:
 
 Use P2P when the job needs an inference host, independent witness, anchor observation, replay lane, or candidate comparison outside the local instance. Do not use P2P for ordinary local reads, private secrets, or self-approval.
 
-Modify `/self` source when the candidate changes durable behavior: prompts, tools, runtime, bridge, manifest, capsule UI, or host boot logic. Prefer `/artifacts` first when the work is only evidence, analysis, or a proposal. Every `/self` edit needs a rollback path.
+Modify `/self` source when the candidate changes durable behavior: prompts, tools, runtime, bridge, manifest, capsule UI, or host boot logic. Prefer `/artifacts` first when the work is only evidence, analysis, or a proposal. Every `/self` edit needs a rollback path and goes through the promotion gate above; the one exception, new tools installed by `CreateTool` in minimal Zero/X, is described in [`promotion-contract.md`](promotion-contract.md).
 
 Add browser UI when the operator needs to inspect state, compare candidates, approve a permission, view artifacts, or understand a failure. UI is evidence when it exposes live state or makes a weakness visible.
 
@@ -102,13 +103,9 @@ Use iframes when rendering candidate UI, previews, or external-like documents th
 
 ## Blueprint Selection
 
-Default boot context should stay small:
+Boot context stays small. What the host actually sends is recorded in [`tabula-rasa-runtime.md`](tabula-rasa-runtime.md#first-context): on the Reploid self runtime, the generated self descriptor, the blueprint index, the kernel prompt and four contracts (`tabula-rasa-runtime.md`, `blueprint-index-contract.md`, `tool-contract.md`, `promotion-contract.md`). This contract, `rgr-slot-topology.md` and `0x00007F` are not in that set: the generated self descriptor lists them as lazy references (`lazyReferencePaths` in [`self/manifest.js`](../manifest.js)), and the dream-instance manifest lists this contract and the slot topology in its own read-first list ([`self/dream-instance.js`](../dream-instance.js)).
 
-1. `/self/prompts/kernel.md`
-2. `/self/blueprints/rgr-runtime-contract.md`
-3. `/self/blueprints/rgr-slot-topology.md`
-
-Read the full `/self/blueprints/0x00007F-recursive-gepa-ring.md` only for promotion logic, archive math, validator quarantine, anchor governance, or formal RGR changes.
+Read `0x00007F-recursive-gepa-ring.md` only for archive math, validator quarantine theory, anchor governance, or formal RGR changes.
 
 Select additional blueprints by matching the task surface:
 
@@ -145,7 +142,7 @@ Use `REPLOID/0` tool blocks. Batch independent reads when useful.
 REPLOID/0
 
 TOOL: ReadFile
-path: /self/self.json
+path: /self/blueprint-index.json
 
 TOOL: ReadFile
 path: /self/blueprints/rgr-runtime-contract.md

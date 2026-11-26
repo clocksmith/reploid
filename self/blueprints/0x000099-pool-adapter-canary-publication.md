@@ -1,5 +1,7 @@
 # Blueprint 0x000099: pool adapter canary publication
 
+Owner: apps/poolday (see [apps/poolday/CATSCAN.md](../../apps/poolday/CATSCAN.md))
+
 **Classification:** Canonical Full Specification
 
 **Implementation Status:** Implemented

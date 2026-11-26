@@ -4,20 +4,23 @@
 
 **Implementation Status:** In-Progress
 
-**Verified Artifacts:** `/self/capabilities/cognition/gepa-optimizer.js`, `/self/core/agent-loop.js`
+**Verified Artifacts:** `/self/capabilities/cognition/gepa-optimizer.js`, `/self/core/agent-loop.js`, `/self/tools/RunGEPA.js`, `/tests/integration/gepa-optimizer.test.js`, `/tests/unit/gepa-engines.test.js`
 
-**Planned Artifacts:** `/tests/unit/gepa-optimizer.test.js`, `gepa-optimizer.js`
+**Planned Artifacts:** None
 
 **Owned Source Files:** `capabilities/cognition/gepa-optimizer.js`
 
 **Former Blueprint Paths:** `self/blueprints/0x000067-gepa-prompt-evolution.md`
+
+**Incomplete boundary:** operator adoption. `promoteCandidate` (`self/capabilities/cognition/gepa-optimizer.js:335`) writes the best candidate to `/.memory/gepa/safe-prompts.json` and, with `applyToPersona`, replaces a persona slot whenever the caller passes `promoteBest` (`RunGEPA` exposes it as `promote`). No operator step sits between that call and the write. Until one exists, this specification stays In-Progress; section 6.4 states the required gate.
+
 **Objective:** Implement Genetic-Pareto prompt evolution with execution trace reflection, enabling multi-objective optimization of prompts and text components.
 
 **Target Upgrade:** GEPA (`gepa-optimizer.js`)
 
-**Prerequisites:** `0x000053` (Recursive Prompt Engineering), `0x00003F` (Deja Vu Pattern Detection), `0x000012` (Self-Evaluation)
+**Prerequisites:** `0x000059` (Recursive Prompt Engineering), `0x00003D` (Déjà Vu Pattern Detection), `0x000012` (Structured Self-Evaluation)
 
-**Affected Artifacts:** `/capabilities/cognition/gepa-optimizer.js`, `/tests/unit/gepa-optimizer.test.js`, `/core/agent-loop.js`
+**Affected Artifacts:** `/capabilities/cognition/gepa-optimizer.js`, `/capabilities/cognition/gepa-evaluation.js`, `/capabilities/cognition/gepa-reflection.js`, `/capabilities/cognition/gepa-selection.js`, `/tools/RunGEPA.js`, `/core/agent-loop.js`
 
 **Category:** RSI/Meta-Cognition
 
@@ -27,7 +30,7 @@
 
 ## 1. The Strategic Imperative
 
-**Current Limitation (Blueprint 0x000053):**
+**Current Limitation (Blueprint 0x000059):**
 
 The existing recursive prompt engineering approach has critical limitations:
 
@@ -86,16 +89,18 @@ fitness landscape requiring multi-objective optimization.
 - Self-Correction: If bottleneck or failure pattern detected, perform autonomous
   "Secondary Opinion" re-evaluation
 - Mutate the approach and select the most robust fix
-- Do not pause for approval on reflection-guided mutations
+- Generate and score reflection-guided mutations without pausing; they stay
+  candidates until an operator adopts one
 
-## Phase 4: State Commitment
-- Implement the evolved solution
+## Phase 4: Candidate Commitment
+- Stage the evolved solution as a candidate; do not activate it
 - Record reflective notes explaining the "genetic" improvement
 - Update fitness scores for Pareto selection
 
 # Constraints
 
 - Never discard candidates that excel on ANY objective (Pareto preservation)
+- Never activate an evolved prompt yourself; scores rank candidates, an operator adopts one
 - Use execution traces, not abstract metrics, for reflection
 - If environment changes or error occurs, treat as selection pressure and evolve
 - Maintain population diversity through crowding distance
@@ -643,139 +648,33 @@ const evolve = async (seedPrompt, taskSet, options = {}) => {
 
 ## 5. Web Component Widget
 
-```javascript
-class GEPAOptimizerWidget extends HTMLElement {
-  constructor() {
-    super();
-    this.attachShadow({ mode: 'open' });
-  }
-
-  connectedCallback() {
-    this.render();
-    this._interval = setInterval(() => this.render(), 5000);
-
-    // Listen for GEPA events
-    EventBus.on('gepa:generation-complete', () => this.render());
-  }
-
-  disconnectedCallback() {
-    if (this._interval) clearInterval(this._interval);
-  }
-
-  getStatus() {
-    return {
-      state: generationCount > 0 ? 'active' : 'idle',
-      primaryMetric: `Gen ${generationCount}`,
-      secondaryMetric: `${paretoFrontier.length} on frontier`,
-      lastActivity: Date.now(),
-      message: null
-    };
-  }
-
-  render() {
-    const bestScores = paretoFrontier.length > 0
-      ? getBestScores(paretoFrontier, CONFIG.objectives)
-      : null;
-
-    this.shadowRoot.innerHTML = `
-      <style>
-        :host { display: block; font-family: monospace; font-size: 12px; }
-        .gepa-panel { background: rgba(0,0,0,0.8); padding: 16px; border-radius: 4px; }
-        .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
-        .stat-item { padding: 8px; background: rgba(255,255,255,0.05); border-radius: 2px; }
-        .stat-label { color: #888; font-size: 10px; }
-        .stat-value { color: #0f0; font-size: 14px; font-weight: bold; }
-        .frontier { margin-top: 12px; padding: 8px; background: rgba(0,255,0,0.1); border-left: 3px solid #0f0; }
-        .objective { display: flex; justify-content: space-between; margin: 4px 0; }
-        .objective-name { color: #888; }
-        .objective-value { color: #0ff; }
-      </style>
-
-      <div class="gepa-panel">
-        <h4>GEPA Optimizer</h4>
-
-        <div class="stat-grid">
-          <div class="stat-item">
-            <div class="stat-label">Generation</div>
-            <div class="stat-value">${generationCount}</div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-label">Population</div>
-            <div class="stat-value">${population.length}</div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-label">Pareto Frontier</div>
-            <div class="stat-value">${paretoFrontier.length}</div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-label">Reflections</div>
-            <div class="stat-value">${reflectionCache.size}</div>
-          </div>
-        </div>
-
-        ${bestScores ? `
-          <div class="frontier">
-            <strong>Best Scores:</strong>
-            ${Object.entries(bestScores).map(([obj, score]) => `
-              <div class="objective">
-                <span class="objective-name">${obj}</span>
-                <span class="objective-value">${(score * 100).toFixed(1)}%</span>
-              </div>
-            `).join('')}
-          </div>
-        ` : ''}
-
-        <button id="start-evolution">Start Evolution</button>
-        <button id="export-frontier">Export Frontier</button>
-      </div>
-    `;
-
-    // Wire up buttons
-    this.shadowRoot.getElementById('start-evolution')?.addEventListener('click', () => {
-      EventBus.emit('gepa:start-requested');
-    });
-
-    this.shadowRoot.getElementById('export-frontier')?.addEventListener('click', async () => {
-      const data = JSON.stringify(paretoFrontier, null, 2);
-      const blob = new Blob([data], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `gepa-frontier-gen${generationCount}.json`;
-      a.click();
-      URL.revokeObjectURL(url);
-    });
-  }
-}
-
-if (!customElements.get('gepa-optimizer-widget')) {
-  customElements.define('gepa-optimizer-widget', GEPAOptimizerWidget);
-}
-```
+No GEPA widget exists in `self/`. Progress is reported through EventBus events and the `RunGEPA` tool result. The operator review surface required by section 6.4 is not built.
 
 ---
 
 ## 6. Integration Points
 
-### 6.1 With Recursive Prompt Engineering (0x000053)
+### 6.1 With Recursive Prompt Engineering (0x000059)
 
 GEPA replaces the single-candidate A/B testing with population-based Pareto evolution:
 
 ```javascript
-// Before (0x000064)
+// Before (0x000059)
 const variantScore = await testPromptVariant(variant, testGoals);
-if (variantScore > currentScore * 1.05) deploy(variant);
+if (variantScore > currentScore * 1.05) proposeForAdoption(variant);
 
 // After (GEPA)
 const result = await GEPAOptimizer.api.evolve(currentPrompt, taskSet, {
   objectives: ['accuracy', 'efficiency', 'robustness'],
   maxGenerations: 10
 });
-// Choose from Pareto frontier based on deployment context
-const deployed = selectForContext(result.frontier, 'production');
+// Rank the Pareto frontier for the deployment context; this only nominates
+const nominee = selectForContext(result.frontier, 'production');
+// Activation waits for an operator decision (section 6.4)
+await requestOperatorAdoption(nominee, { evidence: result });
 ```
 
-### 6.2 With Deja Vu Detector (0x00003F)
+### 6.2 With Deja Vu Detector (0x00003D)
 
 Use detected patterns as additional reflection input:
 
@@ -793,10 +692,10 @@ EventBus.on('deja-vu:detected', async (pattern) => {
 
 ### 6.3 With Arena (0x000064-66)
 
-GEPA candidates can compete in Arena for final selection:
+GEPA candidates can compete in Arena to choose a nominee. Arena scoring never grants activation permission:
 
 ```javascript
-const selectBestForDeployment = async (frontier) => {
+const selectNomineeForAdoption = async (frontier) => {
   // Run arena competition between frontier candidates
   const competitors = frontier.map(c => ({
     id: c.id,
@@ -804,10 +703,21 @@ const selectBestForDeployment = async (frontier) => {
     scores: c.scores
   }));
 
-  const arenaResult = await ArenaHarness.compete(competitors, benchmarkTasks);
-  return arenaResult.winner;
+  const arenaResult = await ArenaHarness.runCompetition({ competitors, tasks: benchmarkTasks });
+  return arenaResult; // a nominee plus evidence, not an activation
 };
 ```
+
+### 6.4 Operator adoption gate
+
+Every path from a candidate to an active prompt, persona slot or `/self` file requires an operator to adopt it, consistent with [INTENT.md](../../INTENT.md), the repository `AGENTS.md` rule that model or Arena scoring never grants activation permission, and [promotion-contract.md](promotion-contract.md):
+
+1. GEPA writes candidates, scores and reflection notes as evidence only.
+2. The operator sees the nominee, its parent, the objective scores and the diff, and approves or rejects it.
+3. Only an approved candidate is written to `safe-prompts.json` or applied to a persona slot. Changes under `/self` go through Promote.
+4. Rejection leaves the active prompt unchanged and keeps the candidate for audit.
+
+The current `promoteBest` option does not yet enforce step 2 (see the incomplete boundary at the top).
 
 ---
 
@@ -832,10 +742,11 @@ const selectBestForDeployment = async (frontier) => {
 - Implement checkpoint persistence
 
 ### Phase 4: Integration
-- Create Web Component widget
+- Build the operator review surface for nominees (not built)
 - Integrate with EventBus
 - Connect to Deja Vu Detector
-- Connect to Arena for final selection
+- Connect to Arena for nominee selection
+- Route nominees to the operator adoption gate (6.4)
 
 ### Phase 5: Optimization
 - Add parallel evaluation (Web Workers)
@@ -860,9 +771,10 @@ const selectBestForDeployment = async (frontier) => {
 
 ```javascript
 const DEFAULT_CONFIG = {
-  // Population
-  populationSize: 10,
-  maxGenerations: 20,
+  // Population (defaults from self/capabilities/cognition/gepa-optimizer.js:38;
+  // boot config may override the first five)
+  populationSize: 6,
+  maxGenerations: 5,
   eliteCount: 2,
 
   // Operators
@@ -870,19 +782,17 @@ const DEFAULT_CONFIG = {
   crossoverRate: 0.5,
 
   // Objectives (user-configurable)
-  objectives: ['accuracy', 'efficiency', 'robustness'],
+  objectives: ['accuracy', 'efficiency', 'robustness', 'cost'],
+  objectiveWeights: { accuracy: 1.0, efficiency: 0.8, robustness: 0.9, cost: 0.6 },
 
-  // Evaluation
-  evaluationBatchSize: 10,
-  evaluationModel: 'default',  // Use agent's current model
+  // Evaluation (evaluationModel has no default; evolve throws without it)
+  evaluationBatchSize: 6,
 
   // Reflection
-  reflectionModel: 'claude-3-5-sonnet',  // Strong model for analysis
   maxReflectionSamples: 5,
 
-  // Persistence
-  checkpointFrequency: 5,  // Save every N generations
-  checkpointPath: '/gepa/checkpoints/'
+  // Persistence (a checkpoint is written every generation)
+  checkpointPath: '/.memory/gepa/'
 };
 ```
 
@@ -895,7 +805,7 @@ const GEPA_SAFETY_RULES = [
   "Never remove safety constraints from prompts during mutation",
   "Preserve HITL mechanisms in all evolved prompts",
   "Reject mutations that increase token count by >50%",
-  "Require human approval for prompts scoring <50% on robustness",
+  "Require operator adoption before any evolved prompt becomes active",
   "Log all evolved prompts for audit trail",
   "Limit reflection model to read-only operations"
 ];

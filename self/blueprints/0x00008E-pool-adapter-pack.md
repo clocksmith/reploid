@@ -1,5 +1,7 @@
 # Blueprint 0x00008E: pool adapter pack
 
+Owner: apps/poolday (see [apps/poolday/CATSCAN.md](../../apps/poolday/CATSCAN.md)). The source file lives in `shared/pool/` (served at `/self/pool/`), whose modules keep the [Poolday Evidence Runtime](../../apps/poolday/pool/CATSCAN.md) contracts ([shared/CATSCAN.md](../../shared/CATSCAN.md)).
+
 **Classification:** Canonical Full Specification
 
 **Implementation Status:** Implemented

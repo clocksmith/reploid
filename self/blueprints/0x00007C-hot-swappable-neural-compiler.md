@@ -68,9 +68,24 @@ The challenge: swapping full models is slow (~2-5s). LoRA adapters are tiny (~2M
 | Pattern learning | `ReflectionStore` | Record error → fix mappings |
 | Context injection | `SemanticMemory.enrich()` | Inject learned patterns |
 
+### 2.3 Activation rule
+
+Arena scores, schema pass rates and validator results rank candidate outputs for one task.
+They never activate an adapter, promote generated code or UI, or change what loads on the
+next boot. Any durable change (a newly loaded adapter, a generated module written under
+`/self`) needs operator adoption: a HITL approval for adapters, as in the governed path at
+the end of this blueprint, and `Promote` for `/self` files (see
+[`promotion-contract.md`](promotion-contract.md)). This follows the repository rule that
+model or Arena scoring never grants activation permission.
+
 ---
 
 ## 3. Implementation Pathway
+
+The phase code below is a design sketch. The real module's dependencies are `Utils`,
+`EventBus?`, `VFS`, `LLMClient`, `DopplerToolbox?`, `SemanticMemory`, `IntentBundleGate?`
+and `HITLController?` (`self/experimental/intelligence/neural-compiler.js:274`); it does not
+call `ArenaHarness`, `SchemaRegistry` or `ReflectionStore`.
 
 ### Phase 1: Pipelined LoRA Execution
 
@@ -622,17 +637,17 @@ const widget = {
 ## 7. Integration requirements
 
 ### Phase 1: No LoRA (Use Existing Infrastructure)
-- [x] Task scheduling with embedding-based routing (SemanticMemory)
-- [x] Schema-driven generation (SchemaRegistry)
-- [x] Multi-variant sampling (ArenaHarness)
-- [x] Pattern RAG (ReflectionStore + SemanticMemory.enrich)
+- Embedding-based adapter routing with `SemanticMemory.embed` (in `neural-compiler.js`)
+- Schema-driven generation with `SchemaRegistry` (module exists; not wired to the compiler)
+- Multi-variant sampling with `ArenaHarness` (module exists; not wired to the compiler)
+- Pattern RAG with `ReflectionStore` and `SemanticMemory.enrich` (not wired to the compiler)
 
 ### Phase 2: UI Validation
 - Create `/capabilities/validation/ui-validator.js`
 - Sandboxed iframe renderer
 - WCAG contrast checks
 - Overflow detection
-- Wire into Arena scoring
+- Report validator and Arena scores as evidence for operator review; a score never activates generated UI
 
 ### Phase 3: LoRA Infrastructure
 - LoRA adapter manifest format
@@ -642,7 +657,7 @@ const widget = {
 
 ### Phase 4: Full Integration
 - NeuralCompiler module with batched scheduling
-- Adapter auto-download from registry
+- Adapter download from a registry into Shadow staging; loading still requires operator approval
 - Performance benchmarks (swap latency, task throughput)
 - Proto widget
 
@@ -673,7 +688,7 @@ const widget = {
 
 1. **Adapter Fine-Tuning**: In-browser LoRA training on user patterns
 2. **Adapter Composition**: Merge multiple LoRAs for multi-domain tasks
-3. **Federated Adapters**: Share proven adapters across REPLOID instances
+3. **Federated Adapters**: Share adapters across REPLOID instances; each receiving instance stages them and requires its own operator approval before load
 4. **WGSL Optimization**: Apply same pattern to WebGPU kernel generation
 
 ---

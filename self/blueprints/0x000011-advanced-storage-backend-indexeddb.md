@@ -2,126 +2,60 @@
 
 **Classification:** Canonical Full Specification
 
-**Implementation Status:** In-Progress
+**Implementation Status:** Implemented
 
-**Verified Artifacts:** `/self/core/state-manager.js`, `/self/core/tool-runner.js`, `/self/core/vfs.js`
+**Verified Artifacts:** `/self/core/vfs.js`, `/packages/reploid/src/artifacts/store.js`, `/packages/reploid/src/adapters/browser.js`, `/tests/integration/vfs.test.js`, `/tests/e2e/vfs-storage-contract.spec.js`
 
-**Planned Artifacts:** `/core/agent-cycle.js`, `/core/storage-indexeddb.js`, `storage-indexeddb.js`
+**Planned Artifacts:** None
 
 **Owned Source Files:** `core/vfs.js`
 
 **Former Blueprint Paths:** `self/blueprints/0x000011-advanced-storage-backend-indexeddb.md`
-**Objective:** To outline the architectural upgrade from the default, synchronous `localStorage` backend to a more robust, asynchronous `IndexedDB` backend.
+**Objective:** Persist the agent's virtual file system (its source, configuration, state and artifacts) as text files in one IndexedDB object store per instance and surface, behind an asynchronous path-based API.
 
-**Target Upgrade:** IDXB (`storage-indexeddb.js`)
+**Prerequisites:** [0x000003](0x000003-core-utilities-and-error-handling.md) (Utils), [0x00004F](0x00004F-event-bus-infrastructure.md) (EventBus, optional)
 
-**Prerequisites:** `0x000004`
-
-**Affected Artifacts:** `/core/storage-indexeddb.js`, `/core/state-manager.js`, `/core/tool-runner.js`, `/core/agent-cycle.js`
+**Affected Artifacts:** `self/core/vfs.js`, `packages/reploid/src/artifacts/store.js`, `packages/reploid/src/adapters/browser.js`, `shared/config/reploid-library.json`, `shared/instance.js`
 
 ---
 
-### 1. The Strategic Imperative
+### 1. Layers
 
-The default `localStorage` backend is simple but severely limited in both storage capacity (typically 5-10MB) and performance (it is a synchronous, blocking API). For the agent to evolve and handle large artifacts, extensive history, or complex data, it must upgrade to a more powerful persistence layer. `IndexedDB` is the standard browser API for large-scale, client-side storage, offering a much larger quota and a fully asynchronous, non-blocking API.
+There is no `storage-indexeddb.js` and no localStorage backend. The `VFS` DI module (`self/core/vfs.js`, `genesis: { introduced: 'tabula' }`, dependencies `Utils`, optional `EventBus`) composes two library functions, imported from the vendored copy `shared/vendor/reploid/adapters/browser.js`:
 
-### 2. The Architectural Solution
+- `createIndexedDbStore({ databaseName, storeName, version, keyPath, openTimeoutMs })` (`packages/reploid/src/adapters/browser.js`): a key-value store port (`init`, `get`, `set`, `delete`, `keys`, `close`) over one object store. All four options are required; open fails after `openTimeoutMs`, and a `versionchange` closes the connection.
+- `createVfs({ store, ownsStore, now, emit })` (`packages/reploid/src/artifacts/store.js`): the file API over any store port. `createMemoryStore()` provides the same port in memory for tests.
 
-This upgrade requires creating a new, alternative storage module, `/core/storage-indexeddb.js`. This module will expose the same API contract as the original `storage.js` (e.g., `getArtifactContent`, `setArtifactContent`), but its methods will be `async` and return `Promise`s.
+The persistence options come from `shared/config/reploid-library.json`: store `files`, version 1, key path `path`, open timeout 10 000 ms. The database name is `getScopedReploidVfsDbName()` from `shared/instance.js`: `reploid-vfs-v0--<surface>` or `reploid-vfs-v0--<surface>--<instance>`, so each surface and instance has its own database.
 
-The core challenge of this upgrade is not the implementation of the `IndexedDB` logic itself, but managing the **"asynchronous cascade"** it creates. Because the storage methods become `async`, every function in every module that calls them must also become `async` and use `await` to get the result.
+### 2. Interface
 
-**Example Cascade:**
-1.  `Storage.getArtifactContent` becomes `async`.
-2.  `StateManager.init`, which calls it, must become `async`.
-3.  `ToolRunner.execute('read_artifact')`, which uses `Storage`, must become `async`.
-4.  `AgentCycle._handleToolExecution`, which calls `ToolRunner`, must become `async`.
-5.  `AgentCycle.executeCycle` must `await` the tool execution.
+The module returns the frozen VFS operations plus wrappers for `init` (logs once on connect), `mkdir` and `close`:
 
-**Widget Interface (Web Component):**
+| Operation | Behavior |
+| --- | --- |
+| `read(path)` | Returns the text content; throws `File not found` |
+| `write(path, content)` | Text only (binary belongs in an artifact store); records `{ path, content, size, updated, type: 'file' }` |
+| `list(path = '/')` | Sorted keys under the prefix |
+| `stat(path)` | `{ path, size, updated, type }` or `null` |
+| `exists(path)` | `!!stat(path)` |
+| `delete(path)` | Removes the entry |
+| `isEmpty()`, `clear()` | Whole-store helpers |
+| `mkdir(path)` | Validates the path only; directories are virtual |
+| `exportAll()` | `{ files: { path: { content, size, updated } }, meta: { exportedAt, version: '2.0', fileCount } }` |
+| `importAll(data, clearFirst = false)` | Writes each file and returns the count |
+| `close()` | Closes the VFS and, because `ownsStore` is true, the IndexedDB connection |
 
-The module exposes a `StorageIndexedDBWidget` custom element for proto visualization:
+Paths are normalized to one leading `/` with `/` separators. Empty paths and any `.` or `..` segment are rejected. Every operation fails after `close()`.
 
-```javascript
-class StorageIndexedDBWidget extends HTMLElement {
-  constructor() {
-    super();
-    this.attachShadow({ mode: 'open' });
-    this._updateInterval = null;
-  }
+### 3. Change events
 
-  connectedCallback() {
-    this.render();
-    // 5-second refresh for git VFS monitoring
-    this._updateInterval = setInterval(() => this.render(), 5000);
-  }
+`write` and `delete` emit `vfs:file_changed` and `vfs:file-changed` with `{ path, operation: 'write' | 'update' | 'delete', size, beforeSize, afterSize, timestamp }` through the EventBus. The host launchers use these to invalidate modules and reload the UI ([0x000002](0x000002-application-orchestration.md)).
 
-  disconnectedCallback() {
-    if (this._updateInterval) {
-      clearInterval(this._updateInterval);
-      this._updateInterval = null;
-    }
-  }
+### 4. Writable roots
 
-  set moduleApi(api) {
-    this._api = api;
-    this.render();
-  }
+The VFS itself does not restrict paths. Tool-level write policy lives in `self/config/vfs-policy.js`: `WriteFile` and similar tools may write only under `/shadow`, `/artifacts` and `/cycles`, and the OPFS backend only under `/artifacts`. Changes to `/self` source go through promotion ([0x000080](0x000080-core-promotion-policy.md)).
 
-  getStatus() {
-    const totalOps = _writeCount + _readCount + _deleteCount;
-    return {
-      state: totalOps > 0 ? 'active' : 'idle',
-      primaryMetric: `${_commitCount} commits`,
-      secondaryMetric: `${totalOps} operations`,
-      lastActivity: _lastOperationTime,
-      message: 'git-powered VFS'
-    };
-  }
+### 5. Verification
 
-  render() {
-    const totalOps = _writeCount + _readCount + _deleteCount;
-    const writePercent = totalOps > 0 ? (_writeCount / totalOps * 100) : 0;
-    const readPercent = totalOps > 0 ? (_readCount / totalOps * 100) : 0;
-    const deletePercent = totalOps > 0 ? (_deleteCount / totalOps * 100) : 0;
-
-    this.shadowRoot.innerHTML = `
-      <style>/* Shadow DOM styles */</style>
-      <div class="widget-content">
-        <!-- git VFS statistics (commits, total operations) -->
-        <!-- Operation breakdown with visual percentage bars (writes, reads, deletes) -->
-        <!-- Last operation timestamp with relative time display -->
-        <!-- Info box explaining git VFS storage with IndexedDB backend -->
-      </div>
-    `;
-  }
-}
-
-const elementName = 'storage-indexeddb-widget';
-if (!customElements.get(elementName)) {
-  customElements.define(elementName, StorageIndexedDBWidget);
-}
-```
-
-**Key Widget Features:**
-- **git VFS Integration**: Built on isomorphic-git with LightningFS for IndexedDB-backed virtual filesystem
-- **Commit Tracking**: Displays total git commits made by the agent (each write/delete creates a commit)
-- **Operation Statistics**: Tracks and displays read/write/delete operation counts
-- **Operation Breakdown**: Visual percentage bars showing distribution of operation types:
-  - Writes (blue) - Files written and committed to git
-  - Reads (green) - Files read from VFS
-  - Deletes (red) - Files removed and committed
-- **Last Activity Tracking**: Shows relative time since last VFS operation (e.g., "5s ago", "2m ago")
-- **Auto-Refresh**: Updates every 5 seconds to monitor ongoing VFS activity
-- **git History API**: Exposes `getArtifactHistory()` and `getArtifactDiff()` for version control operations
-- **Automatic Commits**: Every write/delete operation auto-commits to git with descriptive message
-
-The widget provides visibility into the git-powered persistence layer, essential for monitoring version control operations, tracking VFS activity, and debugging asynchronous storage operations.
-
-### 3. The Implementation Pathway
-
-1.  **Create `idb` Upgrade:** Create a new upgrade file, `/core/storage-indexeddb.js`.
-2.  **Implement `IndexedDB` Logic:** Inside the new module, implement the necessary logic for opening a database, creating an object store, and wrapping `get`, `put`, and `delete` operations in `Promise`s.
-3.  **Analyze the Call Stack:** The agent must perform a full-system analysis to identify every function that directly or indirectly calls a `Storage` method.
-4.  **Propose Widespread Refactoring:** The agent must propose a large set of `modified` artifact changes. These changes will involve adding the `async` and `await` keywords to functions throughout the entire codebase (`state-manager.js`, `tool-runner.js`, `agent-cycle.js`, `app-logic.js`, etc.) to correctly handle the new asynchronous nature of the VFS.
-5.  **Test Composition:** The final step would be for the operator to compose the agent using the `idb` upgrade instead of the `store` upgrade to activate the new backend.
+`tests/integration/vfs.test.js` exercises the module against an IndexedDB implementation; `tests/e2e/vfs-storage-contract.spec.js` and `tests/e2e/vfs-roundtrip.spec.js` check persistence in a real browser.

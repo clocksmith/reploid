@@ -4,201 +4,73 @@
 
 **Implementation Status:** In-Progress
 
-**Verified Artifacts:** `/self/core/worker-manager.js`
+**Verified Artifacts:** `/self/core/worker-manager.js`, `/self/core/worker-agent.js`, `/self/tools/SpawnWorker.js`, `/self/tools/AwaitWorkers.js`, `/self/tools/ListWorkers.js`, `/tests/unit/worker-manager.test.js`
 
-**Planned Artifacts:** `/infrastructure/worker-pool.js`, `worker-pool.js`
+**Planned Artifacts:** None
 
-**Owned Source Files:** `core/worker-manager.js`
+**Owned Source Files:** `core/worker-manager.js`, `core/worker-agent.js`
 
 **Former Blueprint Paths:** `self/blueprints/0x000047-worker-pool-parallelization.md`
-**Objective:** Enable parallel execution of tools and computations across multiple Web Workers for improved performance.
 
-**Target Upgrade:** WPOOL (`worker-pool.js`)
+**Module ID:** `WorkerManager` (version 1.0.0, genesis level `substrate`, type `core`, async; files `core/worker-manager.js` and `core/worker-agent.js`; dependencies `Utils`, `VFS`, `LLMClient`, `ToolRunner`, `ResponseParser`, `EventBus`, `ToolExecutor`, optional `AuditLogger`, `SchemaRegistry`, `TraceStore`)
 
-**Prerequisites:** 0x00000C (Tool Worker)
-
-**Affected Artifacts:** `/infrastructure/worker-pool.js`
+**Source:** `self/core/worker-manager.js`
 
 ---
 
-### 1. The Strategic Imperative
+## Purpose
 
-JavaScript is single-threaded, creating bottlenecks for CPU-intensive tasks. Without parallelization:
-- Long-running computations block the UI
-- Tools must execute sequentially
-- CPU cores sit idle
-- Agent feels slow and unresponsive
+`WorkerManager` lets the main agent hand a sub-task to a typed sub-agent that runs its own think-act loop in a Web Worker, so several sub-tasks can proceed while the main agent continues. It is not a generic pool for CPU work and it does not run tools inside the worker; an earlier draft proposed a `worker-pool.js` for that, and it was never built.
 
-**The Worker Pool provides:**
-- **Parallel Execution**: Distribute work across multiple workers
-- **Non-blocking**: Offload heavy computations to background threads
-- **Queue Management**: Handle task overflow gracefully
-- **Auto-recovery**: Restart failed workers automatically
+The main agent reaches it through the `SpawnWorker`, `AwaitWorkers` and `ListWorkers` tools, which require the `substrate` genesis level or higher.
 
-This makes the agent **fast and responsive** even with heavy workloads.
+## Worker types
 
----
+Types come from `workerTypes` in `self/config/genesis-levels.json`, passed to `init(config, modelConfig)` and registered with `SchemaRegistry` when present:
 
-### 2. The Architectural Solution
+| Type | Tools | Default model role |
+| --- | --- | --- |
+| `explore` | `ReadFile`, `ListFiles`, `FileOutline`, `Grep`, `Find`, `Head`, `Tail` | `fast` |
+| `analyze` | same read-only set | `fast` |
+| `execute` | `*` (every tool) | `primary` |
 
-**Worker Pool Pattern:**
+An unknown type falls back to `explore`. `SpawnWorker` accepts only these three names. Model roles (`orchestrator`, `fast`, `code`, `local` in the genesis config, plus any set with `setModelRoles`) map a role to a model config; without a configured role the default model config is used, and spawn fails if there is none.
 
-```javascript
-// Pool configuration
-const POOL_SIZE = navigator.hardwareConcurrency || 4;
-let workers = [];
-let availableWorkers = [];
-let taskQueue = [];
+## Execution model
 
-// Execute task in worker
-const execute = async (taskData) => {
-  if (availableWorkers.length === 0) {
-    // Queue if all workers busy
-    return new Promise((resolve, reject) => {
-      taskQueue.push({ taskData, resolve, reject });
-    });
-  }
+1. `spawn({ type, task, model?, maxIterations?, depth = 0, signal? })` rejects `depth > 0`, requires `Worker` support and allows at most 10 concurrent workers (checked before and after async setup). It audits `WORKER_SPAWN`, starts a `TraceStore` session when available, creates `new Worker('./core/worker-agent.js', { type: 'module' })` and posts `start` with the type, task, allowed tools and `maxIterations` (default 10). It returns `{ workerId, promise }`.
+2. `worker-agent.js` loops up to `maxIterations`: it asks the main thread for a model response, parses tool calls and asks the main thread to run each tool, then posts `complete` or `error`.
+3. The worker has no direct model or tool access. It uses three RPC operations answered on the main thread (`_handleWorkerRpc`): `llm:chat` calls `LLMClient.chat` with only the allowed tool schemas; `tool:execute` calls `ToolExecutor.executeWithRetry` with `allowedTools` and the `workerId`; `parse:tool_calls` calls `ResponseParser.parseToolCalls`. Unknown operations are refused.
 
-  const workerInfo = availableWorkers.pop();
-  workerInfo.busy = true;
+So tool execution keeps the main thread's permission, policy, audit and HITL path; the worker boundary isolates only the loop's state.
 
-  return new Promise((resolve, reject) => {
-    const jobId = jobIdCounter++;
-    activeJobs.set(jobId, { resolve, reject });
-    workerInfo.currentJob = jobId;
-    workerInfo.worker.postMessage({ type: 'execute', data: taskData, id: jobId });
-  });
-};
-```
+## State and events
 
-**Web Component Widget:**
+- Records are persisted to `/.system/workers/<workerId>.json` on spawn, on each log line and at the end. On `init`, finished records are reloaded; running ones are not resumed.
+- Up to 100 finished records are kept in memory (oldest evicted).
+- Events: `worker:spawned`, `worker:started`, `worker:progress`, `worker:completed`, `worker:error`, `worker:terminated`.
 
-```javascript
-class WorkerPoolWidget extends HTMLElement {
-  constructor() {
-    super();
-    this.attachShadow({ mode: 'open' });
-  }
+## Interface
 
-  connectedCallback() {
-    this.render();
-    this._interval = setInterval(() => this.render(), 1000);
-  }
+`init`, `setModelConfig`, `setModelRoles`, `spawn`, `list` (active workers), `awaitWorkers({ workerIds } | { all: true })` (settles and returns `{ workerId, status, value, error }` for each), `terminate(workerId)`, `addLog`, `getResults(workerId?)`, `clearHistory()` (also deletes persisted files), `getToolsForType(type)` and `isToolAllowed(type, toolName)`.
 
-  disconnectedCallback() {
-    if (this._interval) {
-      clearInterval(this._interval);
-      this._interval = null;
-    }
-  }
+`init` also calls `ToolRunner.setWorkerManager(api)`, because `ToolRunner` is created first.
 
-  getStatus() {
-    const stats = getPoolStats();
+## Boundaries and gaps
 
-    return {
-      state: stats.activeJobs > 0 ? 'active' : 'idle',
-      primaryMetric: `${stats.activeJobs} active`,
-      secondaryMetric: `${stats.queueSize} queued`,
-      lastActivity: stats.lastJobTime,
-      message: stats.queueSize > 50 ? '☡ Queue filling up' : null
-    };
-  }
+The first gap below leaves a declared boundary (no nested workers) unenforced, so this blueprint stays In-Progress until `SpawnWorker` passes the caller's depth or the manager reads `canSpawnWorkers`.
 
-  render() {
-    const stats = getPoolStats();
+- The flat-hierarchy check relies on `depth`, but `SpawnWorker` always passes `depth: 0`, and the `canSpawnWorkers: false` setting in the genesis config is not read by any code. An `execute` worker (tools `*`) is therefore not prevented from calling `SpawnWorker`; only the 10-worker cap bounds nesting.
+- `spawn` reads the type from the genesis config directly, while `getToolsForType` prefers a `SchemaRegistry` definition; a type registered only in `SchemaRegistry` gets `explore` tools at spawn.
+- `terminate` stops the Web Worker; a model request or tool call already running on the main thread for it is not cancelled.
+- A worker's result is untrusted model output for the main agent to check; spawning grants no permission beyond the type's tool list.
 
-    this.shadowRoot.innerHTML = `
-      <style>
-        :host {
-          display: block;
-          background: rgba(255,255,255,0.05);
-          border-radius: 8px;
-          padding: 16px;
-          font-family: monospace;
-          font-size: 12px;
-          color: #e0e0e0;
-        }
-        .worker-card {
-          padding: 8px;
-          margin-bottom: 4px;
-          background: rgba(255,255,255,0.03);
-          border-radius: 4px;
-        }
-        .worker-card.busy {
-          background: rgba(0,255,255,0.1);
-          border-left: 3px solid #0ff;
-        }
-        .stat-value { color: #0ff; }
-      </style>
+## Verification
 
-      <div class="pool-panel">
-        <h3>⚙ Worker Pool</h3>
+`tests/unit/worker-manager.test.js` covers the manager; `tests/e2e/workers.spec.js` exercises workers in a browser.
 
-        <div class="stats">
-          <div>Workers: <span class="stat-value">${stats.totalWorkers}</span></div>
-          <div>Active: <span class="stat-value">${stats.activeJobs}</span></div>
-          <div>Queue: <span class="stat-value">${stats.queueSize}</span></div>
-          <div>Completed: <span class="stat-value">${stats.completedJobs}</span></div>
-        </div>
+## Related blueprints
 
-        <h4>Worker Status</h4>
-        <div class="worker-list">
-          ${stats.workers.map(w => `
-            <div class="worker-card ${w.busy ? 'busy' : ''}">
-              Worker ${w.id}: ${w.busy ? 'BUSY' : 'IDLE'}
-            </div>
-          `).join('')}
-        </div>
-      </div>
-    `;
-  }
-}
-
-if (!customElements.get('worker-pool-widget')) {
-  customElements.define('worker-pool-widget', WorkerPoolWidget);
-}
-
-const widget = {
-  element: 'worker-pool-widget',
-  displayName: 'Worker Pool',
-  icon: '⚙',
-  category: 'performance'
-};
-```
-
----
-
-### 3. The Implementation Pathway
-
-**Phase 1: Pool Management (Complete)**
-1. [x] Initialize worker pool (size = CPU cores)
-2. [x] Task queue management
-3. [x] Worker assignment and availability tracking
-4. [x] Auto-recovery on worker errors
-
-**Phase 2: Web Component Widget (Complete)**
-1. [x] **Define Web Component class** `WorkerPoolWidget` extending HTMLElement
-2. [x] **Add Shadow DOM** using `attachShadow({ mode: 'open' })`
-3. [x] **Implement lifecycle methods**: connectedCallback, disconnectedCallback
-4. [x] **Implement getStatus()** with closure access to pool stats
-5. [x] **Implement render()** with real-time worker status display
-6. [x] **Register custom element**: `worker-pool-widget`
-7. [x] **Return widget object** with new format
-
-**Phase 3: Optimization (Pending)**
-1. [ ] Worker warm-up pool
-2. [ ] Priority queue
-3. [ ] Load balancing across workers
-
----
-
-## Success Criteria
-
-- [x] Executes tasks in parallel across workers
-- [x] Handles queue overflow gracefully
-- [x] Recovers from worker crashes
-- [x] Widget shows real-time pool status
-
----
-
-**Remember:** Worker Pool enables **true parallelism** in JavaScript, making the agent fast and responsive.
+- [0x00000A Tool Runner Engine](0x00000A-tool-runner-engine.md) and [0x000070 Tool Executor](0x000070-tool-executor.md): run worker tool calls on the main thread.
+- [0x000049 HITL Controller](0x000049-hitl-controller.md): approval for tool calls, including those a worker requests.
+- [0x00002B Audit Logging Policy](0x00002B-audit-logging-policy.md): records `WORKER_SPAWN`.

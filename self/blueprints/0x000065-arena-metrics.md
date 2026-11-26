@@ -4,74 +4,51 @@
 
 **Implementation Status:** Implemented
 
-**Verified Artifacts:** `/self/testing/arena/arena-metrics.js`
+**Verified Artifacts:** `/self/testing/arena/arena-metrics.js`, `/tests/integration/arena-harness.test.js`
 
 **Planned Artifacts:** None
 
 **Owned Source Files:** `testing/arena/arena-metrics.js`
 
 **Former Blueprint Paths:** `self/blueprints/0x000065-arena-metrics.md`
-**Module:** `ArenaMetrics`
-**File:** `./testing/arena/arena-metrics.js`
-**Purpose:** Scores and compares arena competitor performance
+**Module:** `ArenaMetrics` (version 1.0.0, type `utility`)
+**File:** `self/testing/arena/arena-metrics.js`
+**Genesis level:** `full` (`self/config/genesis-levels.json`)
+**Dependencies:** `Utils` (declared, unused)
+**Purpose:** Result records, ranking and summary statistics for Arena runs.
 
-## Overview
+## Contract
 
-Defines scoring rubrics for arena challenges. Metrics include: time to completion, code quality, resource efficiency, correctness, creativity.
+Metrics are pass/fail first, then speed or token count. There is no weighted rubric, no `scoreCompetitor`, and no speed, efficiency, code-quality or creativity score. A result passes only when the harness's verification passes.
 
-## Implementation
+`Status` (`:19-23`) is `PASS`, `FAIL` or `ERROR`.
 
-```javascript
-const ArenaMetrics = {
-  metadata: {
-    id: 'ArenaMetrics',
-    dependencies: ['Utils'],
-    type: 'testing'
-  },
+`createResult(competitorName, status, details)` (`:32-44`) returns `{ competitorName, status, verificationPassed, executionMs, tokenCount, model, provider, errors, warnings, solution, timestamp }`, with zero, `null` or empty-list defaults.
 
-  factory: (deps) => {
-    const { logger } = deps.Utils;
+`rankResults(results, sortBy = 'speed')` (`:52-64`) puts `PASS` before everything else, then sorts by `executionMs` (or `tokenCount` when `sortBy` is `'tokens'`). `FAIL` and `ERROR` are not ordered relative to each other.
 
-    const scoreCompetitor = (competitor, challenge) => {
-      const scores = {
-        speed: 0,
-        correctness: 0,
-        efficiency: 0,
-        codeQuality: 0,
-        creativity: 0
-      };
+`summarize(results)` (`:71-110`) returns:
 
-      // Speed score (0-100)
-      const duration = competitor.metrics.endTime - competitor.metrics.startTime;
-      scores.speed = Math.max(0, 100 - (duration / 1000)); // 1pt per second penalty
+| Field | Meaning |
+| --- | --- |
+| `total`, `passed`, `failed`, `errors` | Counts by status |
+| `passRate` | Rounded percentage of `PASS` |
+| `fastestPassing` | Name of the passing result with the lowest `executionMs`, or `null`; the harness reports this as the winner |
+| `mostEfficient` | Name of the passing result with the lowest `tokenCount` |
+| `avgExecutionMs`, `avgTokens` | Rounded means over passing results only |
+| `rankings` | `{ name, status, ms, tokens }` in `rankResults` order |
 
-      // Correctness score (0-100)
-      const passed = challenge.verifyResult(competitor);
-      scores.correctness = passed ? 100 : 0;
+`compare(summary1, summary2)` (`:118-124`) returns `passRateDiff`, `speedDiff` and `tokenDiff` (second minus first) and `improved`, which is true when the pass rate rose, or stayed equal while mean time fell.
 
-      // Efficiency score (0-100)
-      const targetIterations = challenge.expectedIterations || 10;
-      scores.efficiency = Math.max(0, 100 - Math.abs(competitor.metrics.iterations - targetIterations) * 5);
+## Authority
 
-      // Code quality (0-100) - based on error count
-      scores.codeQuality = Math.max(0, 100 - competitor.metrics.errors.length * 10);
+A summary, a winner or `improved: true` is evaluation evidence only. It does not grant activation: durable changes still need operator adoption through `Promote` under [promotion-contract.md](promotion-contract.md).
 
-      // Creativity (0-100) - subjective, needs human eval or heuristic
-      scores.creativity = 50; // Default neutral
+## Exports
 
-      // Weighted total
-      const total = (
-        scores.speed * 0.2 +
-        scores.correctness * 0.4 +
-        scores.efficiency * 0.2 +
-        scores.codeQuality * 0.1 +
-        scores.creativity * 0.1
-      );
+Returned object at `arena-metrics.js:126-132`: `Status`, `createResult`, `rankResults`, `summarize`, `compare`. The module emits no events.
 
-      return { scores, total };
-    };
+## Related blueprints
 
-    return { scoreCompetitor };
-  }
-};
-```
+- [0x000066 Arena Harness](0x000066-arena-harness.md): the producer of results.
+- [0x000064 Arena Competitor](0x000064-arena-competitor.md): the source of `executionMs` and `tokenCount`.

@@ -13,150 +13,56 @@
 **Former Blueprint Paths:** `self/blueprints/0x00006C-error-store.md`
 **Module:** `ErrorStore`
 **File:** `infrastructure/error-store.js`
-**Purpose:** Persist errors to VFS for display in Status tab
+**Purpose:** Persist errors to VFS for display in the Status tab
 
-**Genesis Level:** tabula
+**Genesis Level:** tabula (`self/config/genesis-levels.json`, level `tabula`; module metadata `genesis.introduced: 'tabula'`, `error-store.js:11`)
 
 ---
 
 ## Purpose
 
-The Error Store provides persistent error and warning storage in the VFS, replacing volatile in-memory error handling. Errors survive page reloads and can be reviewed in the Status tab. The store integrates with EventBus to automatically capture errors from tool execution, agent failures, and circuit breaker events.
+The Error Store keeps a bounded, persisted list of errors and warnings in the VFS so they survive page reloads and can be reviewed in the Status tab. When an EventBus is present it subscribes to a small set of error events and records them automatically.
 
 ---
 
-## API / Interface
+## Exports
 
-### Error Management
+`ErrorStore.factory(deps)` returns the object below (`error-store.js:157-163`). Dependencies: `Utils`, `VFS`, optional `EventBus` (`error-store.js:12`).
 
-```javascript
-// Add an error
-await ErrorStore.addError({
-  source: 'ToolRunner',
-  message: 'Tool not found: FooBar',
-  stack: error.stack,
-  metadata: { toolName: 'FooBar' }
-});
+| Function | Signature | Behavior | Source |
+| --- | --- | --- | --- |
+| `addError` | `(type, message, details = {})` | Builds `{ id, ts, type, message, details, severity }`, inserts it at the front, prunes to the newest 100, saves, emits `error:added`, returns the record. `severity` is `details.severity` or `'error'`. | `error-store.js:61-88` |
+| `addWarning` | `(type, message, details = {})` | `addError` with `severity: 'warning'`. | `error-store.js:93-95` |
+| `getErrors` | `()` | Copy of the stored list, newest first. | `error-store.js:100-103` |
+| `clearErrors` | `()` | Empties the list, saves, emits `error:cleared`. | `error-store.js:108-115` |
+| `getCount` | `()` | Number of stored records (errors and warnings together). | `error-store.js:120-123` |
 
-// Add a warning (lower severity)
-await ErrorStore.addWarning({
-  source: 'SchemaRegistry',
-  message: 'Schema validation failed, using defaults'
-});
+## Storage
 
-// Get all errors
-const errors = await ErrorStore.getErrors();
-// Returns: [{ id, ts, level, source, message, stack, metadata }, ...]
+| Item | Value | Source |
+| --- | --- | --- |
+| Path | `/.system/errors.json` | `error-store.js:21` |
+| Bound | 100 records (`MAX_ERRORS`); oldest dropped | `error-store.js:22,76-78` |
+| Load | Lazy on first call; a missing, unreadable or non-array file yields an empty list | `error-store.js:29-42` |
+| Save failure | Logged, not thrown | `error-store.js:47-53` |
 
-// Get error count
-const count = await ErrorStore.getCount();
-// Returns: { errors: 5, warnings: 3, total: 8 }
+## Event subscriptions
 
-// Clear all errors
-await ErrorStore.clearErrors();
-```
+Wired once when the factory runs, only if `EventBus` exists (`error-store.js:128-155`).
 
----
+| Event | Recorded as | Known emitters |
+| --- | --- | --- |
+| `tool:error` `{ tool, error, context }` | error, type `tool:error` | `packages/reploid/src/agent/lab-strategy-tools.js:43` |
+| `error:persistence` `{ message, details }` | error, type `persistence` | `self/core/state-manager.js:59` |
+| `tool:circuit_open` `{ tool, reason }` | warning, type `circuit:open` | None found in `self/` or `packages/reploid/src`; the subscription is currently inert |
+| `agent:error` `{ message, error }` | error, type `agent:error` | `self/ui/proto/index.js:938,993`, `packages/reploid/src/agent/lab-strategy-cycle.js:250` |
 
-## Implementation Details
+## Events emitted
 
-### Storage Location
-
-Errors are persisted to `/.system/errors.json` in the VFS:
-
-```javascript
-const ERROR_PATH = '/.system/errors.json';
-const MAX_ERRORS = 100;
-```
-
-### Error Format
-
-```javascript
-{
-  id: 'err_abc123',           // Unique identifier
-  ts: 1703500000000,          // Timestamp (ms since epoch)
-  level: 'error',             // 'error' | 'warning'
-  source: 'ToolRunner',       // Component that raised the error
-  message: 'Tool not found',  // Human-readable message
-  stack: '...',               // Stack trace if available
-  metadata: {}                // Additional context
-}
-```
-
-### Bounded Storage
-
-The store maintains a maximum of 100 errors to prevent unbounded growth:
-
-```javascript
-const addError = async (error) => {
-  const errors = await load();
-
-  errors.push({
-    id: generateId('err'),
-    ts: Date.now(),
-    level: 'error',
-    ...error
-  });
-
-  // Keep only the most recent MAX_ERRORS
-  while (errors.length > MAX_ERRORS) {
-    errors.shift();
-  }
-
-  await persist(errors);
-  EventBus.emit('error:stored', { id: errors[errors.length - 1].id });
-};
-```
-
-### EventBus Integration
-
-The ErrorStore wires into EventBus to automatically capture errors from various sources:
-
-```javascript
-// Wire up event listeners on initialization
-const init = () => {
-  EventBus.on('tool:error', async (data) => {
-    await addError({
-      source: 'ToolRunner',
-      message: data.message,
-      stack: data.stack,
-      metadata: { tool: data.toolName }
-    });
-  });
-
-  EventBus.on('agent:error', async (data) => {
-    await addError({
-      source: 'AgentLoop',
-      message: data.message,
-      stack: data.stack,
-      metadata: { iteration: data.iteration }
-    });
-  });
-
-  EventBus.on('circuit:open', async (data) => {
-    await addWarning({
-      source: 'CircuitBreaker',
-      message: `Circuit opened: ${data.service}`,
-      metadata: { failures: data.failures, service: data.service }
-    });
-  });
-};
-```
-
-### Event Subscriptions
-
-| Event | Source | Level |
-|-------|--------|-------|
-| `tool:error` | ToolRunner | error |
-| `agent:error` | AgentLoop | error |
-| `circuit:open` | CircuitBreaker | warning |
-
-### Events Emitted
-
-| Event | When |
-|-------|------|
-| `error:stored` | After an error/warning is persisted |
-| `errors:cleared` | After clearErrors() is called |
+| Event | Payload | Consumers |
+| --- | --- | --- |
+| `error:added` | The stored record | `self/infrastructure/observability.js:363`, `self/ui/proto/index.js:1168` |
+| `error:cleared` | None | `self/infrastructure/observability.js:364`, `self/ui/proto/index.js:1172` |
 
 ---
 
@@ -164,14 +70,8 @@ const init = () => {
 
 | Blueprint | Module | Purpose |
 |-----------|--------|---------|
-| 0x000003 | Utils | ID generation, logging |
-| 0x000011 | VFS | Persistence to /.system/errors.json |
-| 0x000058 | EventBus | Event subscription and emission |
-
----
-
-## Genesis Level
-
-**tabula** - Core infrastructure module, part of the immutable genesis kernel. Cannot be modified without gate approval.
+| 0x000003 | Utils | `generateId`, logging |
+| 0x000011 | VFS | Persistence to `/.system/errors.json` |
+| 0x00004F | EventBus | Event subscription and emission (optional) |
 
 ---

@@ -1,8 +1,10 @@
 # Blueprint 0x0000AD: Pool Scientific Fitness
 
+Owner: apps/poolday (see [apps/poolday/CATSCAN.md](../../apps/poolday/CATSCAN.md))
+
 **Classification:** Canonical Full Specification
 
-**Implementation Status:** Implemented
+**Implementation Status:** In-Progress
 
 **Verified Artifacts:** `/self/pool/scientific-evaluation.js`, `/self/pool/scientific-fitness.js`
 
@@ -60,7 +62,10 @@ or licensing decisions.
 - [x] Metric improvement flags and candidate claim boundaries are fail-closed
 - [x] Qualified config state requires a persisted receipt reference
 - [x] Qualified fitness receipts require a matching persisted frozen-evaluation manifest
-- Publish an adjudicated family-disjoint ESM-2 baseline evaluation
-- Publish candidate evaluations before promotion
+- [ ] Publish an adjudicated family-disjoint ESM-2 baseline evaluation
+- [ ] Publish candidate evaluations before promotion
+
+The two open items are declared verification boundaries: no published evaluation
+record for them exists under `docs/status/`, so the status is In-Progress.
 
 *Last updated: August 2026*

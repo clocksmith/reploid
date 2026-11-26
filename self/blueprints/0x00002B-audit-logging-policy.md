@@ -2,222 +2,77 @@
 
 **Classification:** Canonical Full Specification
 
-**Implementation Status:** In-Progress
+**Implementation Status:** Implemented
 
-**Verified Artifacts:** `/self/infrastructure/audit-logger.js`, `/self/infrastructure/rate-limiter.js`
+**Verified Artifacts:** `/self/infrastructure/audit-logger.js`, `/tests/unit/audit-logger.test.js`
 
-**Planned Artifacts:** `/.audit/*.js`, `/core/boot-module-loader.js`, `audit-logger.js`
+**Planned Artifacts:** None
 
 **Owned Source Files:** `infrastructure/audit-logger.js`
 
 **Former Blueprint Paths:** `self/blueprints/0x00002B-audit-logging-policy.md`
-**Objective:** Establish the logging, persistence, and review guarantees provided by the Audit Logger service.
 
-**Target Upgrade:** AUDT (`audit-logger.js`)
+**Module ID:** `AuditLogger` (version 1.1.0, genesis level `substrate`, type `infrastructure`, async; dependencies `Utils`, `VFS`, optional `EventBus`, optional `TelemetryTimeline`)
 
-**Prerequisites:** 0x000003 (Core Utilities & Error Handling), 0x000005 (State Management Architecture), 0x00002A (Module Integrity Verification)
-
-**Affected Artifacts:** `/infrastructure/audit-logger.js`, `/.audit/*.jsonl`, `/core/boot-module-loader.js`, `/infrastructure/rate-limiter.js`
+**Source:** `self/infrastructure/audit-logger.js`
 
 ---
 
-### 1. The Strategic Imperative
-Audit trails are mandatory for security-sensitive automation. They provide:
-- **Forensics** after incidents (what module ran, who approved).
-- **Compliance** for regulated environments.
-- **Early warning** by trending errors or security violations.
+## Purpose
 
-This blueprint positions the Audit Logger as the canonical source for trustworthy telemetry.
+`AuditLogger` keeps a durable, append-only record in the VFS of security-relevant agent actions: tool runs, substrate writes, blocked writes, policy decisions, tool creation and worker spawns. The record supports review after the fact; it does not block or approve anything.
 
-### 2. Architectural Overview
-The module exposes an async factory returning `{ init, api, widget }`.
+An earlier version of this blueprint described `init()` returning `{ init, api, widget }`, a `logModuleLoad` call, a `/.audit/` directory and a status widget. None of those exist. This blueprint describes the current module.
 
-```javascript
-const Audit = await ModuleLoader.getModule('AuditLogger');
-await Audit.init();
-await Audit.api.logModuleLoad('ToolRunner', '/vfs/core/tool-runner.js', true);
-```
+## Storage
 
-Key components:
-- **Event Types** (`AuditEventType`): `MODULE_LOAD`, `MODULE_VERIFY`, `VFS_*`, `API_CALL`, `RATE_LIMIT`, `SECURITY_VIOLATION`, `SESSION_*`.
-- **Entry Structure**: each log entry contains `id`, `timestamp`, `eventType`, `severity`, `details`, `userAgent`.
-- **Buffer**: last 100 entries cached in memory (`recentLogs`) for fast UI access.
-- **Persistence**: JSONL files per day at `/.audit/YYYY-MM-DD.jsonl`.
-- **Helpers**: typed logging methods (e.g., `logApiCall`, `logVfsDelete`) that set severity automatically.
-- **Querying**: `queryLogs`, `getStats`, `exportLogs` for retrieval and analytics.
+- Directory: `/.logs/audit` (`LOG_DIR`, `audit-logger.js:21`).
+- One file per UTC day: `/.logs/audit/YYYY-MM-DD.jsonl`, one JSON entry per line.
+- Entry shape: `{ id, ts, type, severity, data }`, where `id` comes from `generateId('log')` and `ts` is an ISO time. Severity is `INFO`, `WARN` or `ERROR`.
+- Each write reads the day's file, appends the line and writes it back. A failed write is retried once after 50 ms; a second failure is logged to the console as a lost audit event.
+- When `TelemetryTimeline` is present, each written entry is also recorded there as `audit:<type>` with tag `audit`.
 
-**Web Component Widget:**
+Ordinary VFS snapshots skip `/.logs/` unless asked to include it ([0x00003C](0x00003C-genesis-snapshot-system.md)).
 
-The widget uses a Web Component with Shadow DOM for encapsulated rendering:
+## Interface
 
-```javascript
-class AuditLoggerWidget extends HTMLElement {
-  constructor() {
-    super();
-    this.attachShadow({ mode: 'open' });
-  }
+| Export | Behavior |
+| --- | --- |
+| `init()` | Returns `true`; nothing to set up. |
+| `logEvent(type, data, severity = 'INFO')` | Writes one entry. `WARN` and `ERROR` are also echoed to the console. `data` is stored as given. |
+| `logToolExec({ tool, args, durationMs, success, error?, workerId? })` | `TOOL_EXEC` with sanitized `args`; severity `INFO` on success, `ERROR` on failure. |
+| `logCoreWrite({ path, operation, existed, bytesWritten?, arenaVerified? })` | `CORE_WRITE` at `WARN` with `isSubstrate: true`. |
+| `logAgentAction(action, tool, args)` | `AGENT_ACTION` with sanitized `args`. |
+| `logSecurity(type, details)` | `SECURITY` at `ERROR` with sanitized details. |
+| `getEntries(startDate?, endDate?)` | Reads the daily files in the range (default today) and skips malformed lines. |
+| `exportJSON` / `exportCSV` / `download(format, start?, end?)` | Export a range; `download` saves a file in the browser. |
+| `getStats(start?, end?)` | `{ total, byType, bySeverity, timeRange }`. |
+| `sanitizeArgs` / `sanitizeValue` | Redaction helpers (below). |
+| `isSubstratePath(path)` | `true` for paths starting with `/core/` or `/infrastructure/`. |
 
-  connectedCallback() {
-    this.render();
-    // Auto-refresh every 2 seconds
-    this._interval = setInterval(() => this.render(), 2000);
-  }
+## Sanitization
 
-  disconnectedCallback() {
-    if (this._interval) {
-      clearInterval(this._interval);
-      this._interval = null;
-    }
-  }
+`sanitizeValue` replaces with `[REDACTED]` any value whose key contains a listed sensitive name (`apiKey`, `token`, `password`, `secret`, `credential`, `authorization`, `auth`, `bearer`, `privateKey`, `key`, provider key names and their variants) and any string starting with `sk-`, `pk-`, `api-`, `key-`, `token-` or `bearer `. Other strings longer than 500 characters are truncated with a note. It recurses through arrays and objects.
 
-  getStatus() {
-    const totalEvents = recentLogs.length;
-    const securityViolations = recentLogs.filter(e =>
-      e.eventType === AuditEventType.SECURITY_VIOLATION
-    ).length;
-    const errors = recentLogs.filter(e => e.severity === 'error').length;
-    const lastEvent = recentLogs.length > 0
-      ? recentLogs[recentLogs.length - 1].timestamp
-      : null;
+## Events
 
-    let state = 'idle';
-    if (totalEvents > 0 && lastEvent &&
-        Date.now() - new Date(lastEvent).getTime() < 5000) {
-      state = 'active';
-    }
-    if (securityViolations > 0) state = 'warning';
-    if (errors > 0) state = 'error';
+When `EventBus` is present: `audit:tool_exec` for `TOOL_EXEC`; `audit:core_write` for `CORE_WRITE` and `CORE_WRITE_BLOCKED`; `audit:warning` for any `WARN` or `ERROR` entry.
 
-    return {
-      state,
-      primaryMetric: `${totalEvents} events`,
-      secondaryMetric: `${errors} errors`,
-      lastActivity: lastEvent ? new Date(lastEvent).getTime() : null,
-      message: null
-    };
-  }
+## Writers
 
-  getControls() {
-    return [
-      {
-        id: 'export-logs',
-        label: '↓ Export',
-        action: async () => {
-          const today = new Date().toISOString().split('T')[0];
-          const logs = await exportLogs(today, today);
-          // Download logs as file
-          return { success: true, message: 'Logs exported' };
-        }
-      },
-      {
-        id: 'clear-recent',
-        label: '⌦ Clear',
-        action: () => {
-          recentLogs.length = 0;
-          this.render();
-          return { success: true, message: 'Recent logs cleared' };
-        }
-      }
-    ];
-  }
+Current callers include `self/core/tool-runner.js` (`TOOL_EXEC`, `TOOL_REJECTED`, `TOOL_PERMISSION_DENIED`, `TOOL_POLICY_BLOCKED`, `TOOL_POLICY_WARNING`, `TOOL_OUTPUT_VALIDATION_FAILED`), `self/tools/WriteFile.js:105` (`CORE_WRITE_BLOCKED` when the sandbox gate does not pass), `self/tools/EditFile.js` (`logCoreWrite`), `self/tools/CopyFile.js` and `DeleteFile.js`, `self/core/create-tool.js` (candidate, quarantine and activation events), `self/core/worker-manager.js` (`WORKER_SPAWN`), `self/core/state-manager.js` (`SET_GOAL`), `self/infrastructure/policy-engine.js` (`POLICY_VIOLATION`), `self/infrastructure/intent-bundle-gate.js`, `self/capabilities/system/doppler-optimizer.js` and `packages/reploid/src/improvement/episodes.js`. `self/infrastructure/replay-engine.js` reads entries back.
 
-  render() {
-    this.shadowRoot.innerHTML = `
-      <style>
-        :host {
-          display: block;
-          font-family: monospace;
-        }
-        .audit-logger-panel {
-          padding: 12px;
-          color: #fff;
-        }
-        /* Additional styles for stats grid, event stream, etc. */
-      </style>
-      <div class="audit-logger-panel">
-        <h4>⊠ Audit Logger</h4>
-        <!-- Stats grid, event type breakdown, recent events -->
-      </div>
-    `;
-  }
-}
+The file is on the validator quarantine list in `self/core/promotion-policy.js`, so a candidate change cannot rewrite the logger.
 
-// Register custom element
-const elementName = 'audit-logger-widget';
-if (!customElements.get(elementName)) {
-  customElements.define(elementName, AuditLoggerWidget);
-}
+## Boundaries and gaps
 
-const widget = {
-  element: elementName,
-  displayName: 'Audit Logger',
-  icon: '⊠',
-  category: 'security'
-};
-```
+- The log is not tamper-evident. Entries are not chained or signed, and any code with VFS write access can change or delete them.
+- `logEvent` does not sanitize `data`; only `logToolExec`, `logAgentAction` and `logSecurity` do. Callers of `logEvent` must not pass secrets.
+- Appending rewrites the whole day's file, so concurrent writers in different tabs can lose a line.
+- An audit entry records that something happened. It is not an approval and grants nothing.
 
-**Key architectural improvements:**
-- Shadow DOM provides style encapsulation for audit event display
-- Lifecycle methods ensure proper cleanup of auto-refresh interval
-- Closure access to `recentLogs` array eliminates injection complexity
-- `getStatus()` derives state from recent logs (active/warning/error)
-- `getControls()` provides export and clear actions
+## Related blueprints
 
-### 3. Implementation Pathway
-1. **Initialization**
-   - Call `AuditLogger.init()` during boot after Storage is ready.
-   - Optionally log `SESSION_START` with persona + goal context.
-2. **Hook Integration**
-   - `ModuleLoader` logs load/verify events and attaches extra data (`isLegacy`, `loadTimeMs`).
-   - VFS operations call `logVfs*`.
-   - API clients log success/failure, response codes, provider.
-   - Rate limiter logs exceedances via `logRateLimit`.
-   - Security modules (integrity, sentinel FSM) log `SECURITY_VIOLATION`.
-3. **Persistence**
-   - Use JSONL to append quickly; handle missing file by creating new.
-   - Ensure Storage can create directories ( `/.audit/` ) on first run.
-   - Implement retention policy (e.g., prune older than 90 days) via periodic cleanup.
-4. **Analysis APIs**
-   - `queryLogs({ date, eventType, severity, limit })` supports protos.
-   - `getStats(date)` summarises totals, severity distribution, failed operations.
-   - `exportLogs(startDate, endDate)` packages logs for external review.
-5. **Web Component Widget Implementation**
-   - Define `AuditLoggerWidget` class extending `HTMLElement` inside factory function
-   - Add Shadow DOM using `attachShadow({ mode: 'open' })` in constructor
-   - Implement lifecycle methods:
-     - `connectedCallback()`: Initial render and setup 2-second auto-refresh interval
-     - `disconnectedCallback()`: Clean up interval to prevent memory leaks
-   - Implement `getStatus()` as class method with closure access to `recentLogs`:
-     - Returns all 5 required fields: `state`, `primaryMetric`, `secondaryMetric`, `lastActivity`, `message`
-     - Derives state from recent activity, security violations, and error count
-   - Implement `getControls()` as class method for interactive actions:
-     - Export logs button (downloads today's audit log)
-     - Clear recent logs button (empties in-memory buffer)
-   - Implement `render()` method:
-     - Set `this.shadowRoot.innerHTML` with encapsulated styles
-     - Include `:host` selector for component-level styles
-     - Display stats grid, event type breakdown, and scrollable event stream
-   - Register custom element:
-     - Use kebab-case naming: `audit-logger-widget`
-     - Add duplicate check: `if (!customElements.get(elementName))`
-     - Call `customElements.define(elementName, AuditLoggerWidget)`
-   - Return widget object with new format:
-     - `{ element: 'audit-logger-widget', displayName: 'Audit Logger', icon: '⊠', category: 'security' }`
-6. **Security & Privacy**
-   - Avoid logging secrets (mask API keys, tokens).
-   - Include `userAgent` for traceability, but allow anonymisation for privacy requirements.
-
-### 4. Verification requirements
-- Log files rotate daily and remain parseable JSONL.
-- Failures to persist logs issue warnings but do not crash flows.
-- Typed helpers set appropriate severity (e.g., VFS delete ⇒ warn).
-- Query filters respect limit and event/severity selectors.
-- Export sorts entries chronologically.
-
-### 5. Extension Opportunities
-- Stream logs to external SIEM via WebSocket or HTTP.
-- Add integrity hashes for logs themselves (append-only guarantee).
-- Surface audit insights in proto (top violations, modules with most errors).
-- Tie audit events into toast notifications for real-time awareness.
-
-Update this blueprint when adding event types, changing storage formats, or integrating with new security tooling.
+- [0x00000A Tool Runner Engine](0x00000A-tool-runner-engine.md): main writer.
+- [0x000040 Verification Manager](0x000040-verification-manager.md): the gate whose blocked writes are audited.
+- [0x000049 HITL Controller](0x000049-hitl-controller.md): operator approval, which this log records but does not replace.

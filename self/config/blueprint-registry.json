@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-13T18:16:44.693Z",
+  "generatedAt": "2026-11-26T21:19:25.195Z",
   "features": [
     {
       "id": "0x000002",
@@ -141,6 +141,20 @@
       ],
       "files": [
         "capabilities/performance/performance-monitor.js"
+      ]
+    },
+    {
+      "id": "0x000028",
+      "name": "toast-notification-system",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000028",
+          "path": "blueprints/0x000028-toast-notification-system.md"
+        }
+      ],
+      "files": [
+        "ui/toast.js"
       ]
     },
     {
@@ -325,6 +339,7 @@
         }
       ],
       "files": [
+        "core/worker-agent.js",
         "core/worker-manager.js"
       ]
     },
@@ -651,20 +666,6 @@
       "files": [
         "capabilities/system/substrate-loader.js",
         "core/vfs-module-loader.js"
-      ]
-    },
-    {
-      "id": "0x000072",
-      "name": "agent-bridge",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x000072",
-          "path": "blueprints/0x000072-agent-bridge.md"
-        }
-      ],
-      "files": [
-        "boot-helpers/iframe-bridge.js"
       ]
     },
     {

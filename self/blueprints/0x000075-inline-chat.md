@@ -17,7 +17,7 @@
 
 **Implementation:** `/ui/components/inline-chat.js`
 
-**Prerequisites:** `0x000058` (Event Bus), `0x000003` (Core Utilities)
+**Prerequisites:** `0x00004F` (Event Bus Infrastructure), `0x000003` (Core Utilities)
 
 **Category:** UI
 
@@ -27,11 +27,10 @@
 
 The Inline Chat component provides a compact floating input for humans to inject messages into the agent's context during execution. This is essential for HITL (Human-In-The-Loop) intervention, allowing users to provide guidance, corrections, or additional context without interrupting the agent loop.
 
-Unlike the full Chat Panel, Inline Chat:
-- Bypasses tool execution
-- Provides direct LLM communication
+Inline Chat:
+- Queues a `human:message` event for the agent loop instead of calling a model itself
 - Renders in a compact floating panel
-- Used for quick queries and clarifications
+- Is the only chat surface in `self/`; the separate chat panel planned in `0x000076` was retired without code
 
 ## 2. Module Structure
 
@@ -294,16 +293,6 @@ InlineChat.focus();
 // Cleanup when done
 InlineChat.cleanup();
 ```
-
-## 16. Comparison with Chat Panel
-
-| Feature | Inline Chat | Chat Panel |
-|---------|-------------|------------|
-| Purpose | Quick context injection | Full conversation |
-| Size | Compact floating | Full panel |
-| Tool execution | Bypassed | Full support |
-| History display | Via EventBus | Built-in |
-| Streaming | No | Yes |
 
 ---
 

@@ -1,5 +1,7 @@
 # Blueprint 0x000081: pool doppler runtime
 
+Owner: apps/poolday (see [apps/poolday/CATSCAN.md](../../apps/poolday/CATSCAN.md))
+
 **Classification:** Canonical Full Specification
 
 **Implementation Status:** Implemented
@@ -82,6 +84,13 @@ biological sequences or full logits. The peer transport may return requested
 vectors to the requester. A provider cannot advertise a workload absent from
 the loaded runtime model contract.
 
+The document assistant resolves local retrieval and a separately reviewed public
+task. Discovery receives only the public model identity. Approval binds exact
+text, provider, model, limits and a short-lived preview; edits, expiry, cancellation
+and changed local inputs invalidate it. The returned signed ordinary-generation
+episode is verified before local generation quotes its draft alongside private
+passages. Documents, names and the local question remain outside peer requests.
+
 ### 4. Verification requirements
 - [x] Text and embedding behavior remains covered
 - [x] Doppler generation receives an explicit speculative-decoding boolean
@@ -95,10 +104,3 @@ cancellation, and policy binding. The [paired handoff](../../tests/integration/d
 checks public Doppler interoperability with injected outputs, not model qualification.
 
 *Last updated: September 2026*
-
-The document assistant resolves local retrieval and a separately reviewed public
-task. Discovery receives only the public model identity. Approval binds exact
-text, provider, model, limits and a short-lived preview; edits, expiry, cancellation
-and changed local inputs invalidate it. The returned signed ordinary-generation
-episode is verified before local generation quotes its draft alongside private
-passages. Documents, names and the local question remain outside peer requests.

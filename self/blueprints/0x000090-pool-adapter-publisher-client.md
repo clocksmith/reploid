@@ -1,5 +1,7 @@
 # Blueprint 0x000090: pool adapter publisher client
 
+Owner: apps/poolday (see [apps/poolday/CATSCAN.md](../../apps/poolday/CATSCAN.md))
+
 **Classification:** Canonical Full Specification
 
 **Implementation Status:** Implemented

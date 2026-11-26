@@ -2,89 +2,53 @@
 
 **Classification:** Canonical Full Specification
 
-**Implementation Status:** In-Progress
+**Implementation Status:** Implemented
 
-**Verified Artifacts:** `/self/core/agent-loop.js`
+**Verified Artifacts:** `/self/core/agent-loop.js`, `/packages/reploid/src/agent/lab-strategy.js`, `/packages/reploid/src/agent/lab-strategy-cycle.js`, `/packages/reploid/src/agent/lab-strategy-generation.js`, `/packages/reploid/src/agent/lab-strategy-tools.js`
 
-**Planned Artifacts:** `/core/agent-cycle.js`, `agent-cycle.js`
+**Planned Artifacts:** None
 
 **Owned Source Files:** `core/agent-loop.js`
 
 **Former Blueprint Paths:** `self/blueprints/0x000008-agent-cognitive-cycle.md`
-**Objective:** To provide the architectural model for the agent's primary "think-act" loop, which orchestrates the entire process of receiving a goal, reasoning, and executing a plan.
+**Objective:** Define the agent's think-act-observe loop: how a goal becomes model calls, tool calls and observed results, and how a run stops.
 
-**Target Upgrade:** CYCL (`agent-cycle.js`)
-
-**Prerequisites:** `0x000001`, `0x000005`, `0x000007`, `0x00000A`
-
-**Affected Artifacts:** `/core/agent-cycle.js`
+**Prerequisites:** [0x000001](0x000001-system-prompt-architecture.md) (prompt assembly), [0x000005](0x000005-state-management-architecture.md) (state), [0x000007](0x000007-api-client-and-communication.md) (LLM client), [0x00000A](0x00000A-tool-runner-engine.md) (tool runner), [0x00003A](0x00003A-context-management.md) (context), [0x00005C](0x00005C-circuit-breaker-pattern.md) (circuit breaker)
 
 ---
 
-### 1. The Strategic Imperative
+### 1. Where the loop lives
 
-The agent's "mind" is not a single function but a structured, cyclical process. This process must be clearly defined to ensure predictable, repeatable, and logical behavior. The `agent-cycle.js` module serves as the implementation of this cognitive cycle. It acts as the central conductor, invoking all other services (State, API, Tools) in the correct order to move from a high-level goal to a concrete set of actions.
+- `self/core/agent-loop.js` is the X/Zero module registered as `AgentLoop`. It wraps the shared loop and adds the X/Zero ports: run-trace recording (`createRunTraceRecorder` from `self/infrastructure/telemetry-timeline.js`), surface authorization of every tool call (`authorizeSurfaceOperation` from `shared/config/surface-intents.js`), per-attempt configuration from state and storage (`resolveAttemptConfig`), the prompt builder `buildAgentInitialContext` (`self/core/agent-context.js`) and the policies in `self/core/agent-loop-policies.js` ([0x0000A3](0x0000A3-core-agent-loop-policies.md)).
+- The loop itself is `packages/reploid/src/agent/lab-strategy.js`, served to the browser through `shared/vendor/reploid/agent/legacy-loop.js`. It composes `lab-strategy-cycle.js` (context preparation), `lab-strategy-generation.js` (model calls and parsing), `lab-strategy-tools.js` (tool batches), `lab-strategy-function-gemma.js` and `lab-strategy-provider-recovery.js`, and runs each attempt through the execution engine in `engine.js`.
 
-### 2. The Architectural Solution
+There is no `agent-cycle.js` and no finite-state machine with approval states. The Sentinel state machine of the former [0x000050](0x000050-sentinel-fsm.md) was never built.
 
-The agent-cycle module implements a finite state machine (FSM) with human-in-the-loop approval gates. The cycle follows these states:
+### 2. One run
 
-**FSM States:**
-```
-IDLE → CURATING_CONTEXT → AWAITING_CONTEXT_APPROVAL
-  → PLANNING_WITH_CONTEXT → AWAITING_PROPOSAL_APPROVAL
-  → APPLYING_CHANGESET → (back to IDLE)
-```
+`run(goal)` starts one attempt; a second `run` while an attempt is active is rejected (`Agent already running`). Each attempt:
 
-**Core Implementation:**
+1. Resolves the attempt configuration, builds the initial context (system prompt plus `Begin. Goal: ...`) and, when `MemoryManager` is present, starts a memory session.
+2. For each cycle up to the model's iteration limit (`getModelIterationLimit`):
+   - prepares the context: `ContextManager.manage(context, modelConfig)` compacts when needed, and memory retrieval may add context;
+   - calls `LLMClient.chat(context, model, onChunk)`, emitting `agent:status` with state `THINKING`;
+   - parses tool calls with `ResponseParser.parseToolCalls` and checks `ResponseParser.isDone`;
+   - runs the tool batch through `ToolExecutor`, after `authorizeTool` and a per-tool circuit breaker (`CircuitBreaker.create`) that skips a tool whose circuit is open;
+   - appends tool results and records `agent:history` events; when `ReflectionStore` is present, tool outcomes are stored as reflections.
+3. Stops on `DONE`, the iteration limit, `stop()`, `close()`, an abort, or the attempt timeout. A provider failure can park the attempt for a later resume (`hasPendingProviderResume`).
 
-1.  **Event-Driven Transitions:** State transitions are triggered by EventBus events (`user:approve:context`, `user:approve:proposal`, etc.)
-2.  **Context Assembly:** Gathers VFS artifacts and blueprints relevant to the goal
-3.  **LLM Interaction:** Uses `ApiClient` with tool-loop support for multi-turn reasoning
-4.  **Changeset Application:** Applies approved changes via `StateManager`
-5.  **Reflection:** Stores cycle outcomes in `ReflectionStore` for learning
+A read-only progress gate pushes the model to stage a change or report a blocker after a run of read-only discovery batches.
 
-**Widget Interface (Web Component):**
+### 3. Public API
 
-The module exposes a `AgentCycleFSMWidget` custom element for proto visualization:
+`run`, `stop`, `close`, `setModel`, `setModels`, `setConsensusStrategy`, `isRunning`, `hasPendingProviderResume`, `getRecentActivities`, `getExecutionEvents`, `checkpoint`, `getProviderRetryState`, `getProviderResumePromise`, `getSystemPrompt`, `getContext`, `injectHumanMessage`, `getMessageQueue`. The X/Zero wrapper adds `getRecordingStatus`, `flushRecording` and `exportReplayBundle`. Models cannot be changed while an attempt is active.
 
-```javascript
-class AgentCycleFSMWidget extends HTMLElement {
-  constructor() {
-    super();
-    this.attachShadow({ mode: 'open' });
-  }
+### 4. Authority
 
-  connectedCallback() {
-    this.render();
-    this._interval = setInterval(() => this.render(), 3000);
-  }
+The loop proposes and executes tool calls inside the grants of its surface. A tool call that `authorizeTool` refuses does not run. Changes to the substrate pass the Verification Worker ([0x000040](0x000040-verification-manager.md)) and, for L3 claims, the improvement-episode contract in [docs/rsi-improvement-episodes.md](../../docs/rsi-improvement-episodes.md). A multi-model consensus strategy chooses among model outputs; it does not grant activation, which requires operator adoption ([INTENT.md](../../INTENT.md)).
 
-  disconnectedCallback() {
-    if (this._interval) clearInterval(this._interval);
-  }
+### 5. Verification conditions
 
-  set moduleApi(api) {
-    this._api = api;
-    this.render();
-  }
-
-  render() {
-    this.shadowRoot.innerHTML = `
-      <style>/* Shadow DOM styles */</style>
-      <div>/* FSM state, transitions, context */</div>
-    `;
-  }
-}
-
-customElements.define('agent-cycle-fsm-widget', AgentCycleFSMWidget);
-```
-
-This provides real-time FSM state visualization, transition history, and current goal context.
-
-### 3. The Implementation Pathway
-
-1.  **Create Module:** Implement the `CycleLogicModule` factory function in `/core/agent-cycle.js`.
-2.  **Implement `executeCycle`:** Build out the core `executeCycle` function, ensuring it follows the logical steps outlined above. It must be an `async` function to handle `await`ing results from the `ApiClient` and `ToolRunner`.
-3.  **Implement Helper Functions:** Create private helper functions within the module to encapsulate specific logic, such as `_assembleCorePromptContext`, `_handleToolExecution`, and `_applyLLMChanges`.
-4.  **Error and Abort Handling:** Wrap the entire `executeCycle` logic in a `try...catch...finally` block. The `catch` block should handle any errors thrown by sub-modules (like `ApiError` or `ToolError`) and log them appropriately. The `finally` block must ensure the agent's state is always set back to "not running." The logic must also check an `_abortRequested` flag periodically to allow for clean user-initiated cancellation.
+- A second `run` during an active attempt is rejected.
+- `stop()` aborts the active model call and ends the attempt.
+- A tool refused by surface authorization is not executed.

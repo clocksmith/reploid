@@ -2,11 +2,11 @@
 
 **Classification:** Canonical Full Specification
 
-**Implementation Status:** In-Progress
+**Implementation Status:** Proposed
 
-**Verified Artifacts:** `/self/core/agent-loop.js`, `/self/infrastructure/audit-logger.js`
+**Verified Artifacts:** None
 
-**Planned Artifacts:** `/self/capabilities/cognition/rgr.js`, `/self/config/genesis-levels.js`, `/self/core/promotion-gate.js`, `/self/core/validator-quarantine.js`, `/self/infrastructure/replay-ledger.js`, `/tests/unit/audit-anchor.test.js`, `/tests/unit/rgr.test.js`, `/tests/unit/validator-quarantine.test.js`
+**Planned Artifacts:** `/self/capabilities/cognition/rgr.js`, `/self/core/promotion-gate.js`, `/self/core/validator-quarantine.js`, `/self/infrastructure/replay-ledger.js`, `/tests/unit/audit-anchor.test.js`, `/tests/unit/rgr.test.js`, `/tests/unit/validator-quarantine.test.js`
 
 **Owned Source Files:** None
 
@@ -19,13 +19,30 @@
 
 **Prerequisites:** `0x000008` Agent Cognitive Cycle, `0x000012` Structured Self-Evaluation, `0x00003C` Genesis Snapshot, `0x000040` Verification Manager, `0x000049` HITL Controller, `0x000067` GEPA Prompt Evolution.
 
-**Affected Artifacts:** `/self/capabilities/cognition/rgr.js`, `/self/core/agent-loop.js`, `/self/core/promotion-gate.js`, `/self/core/validator-quarantine.js`, `/self/infrastructure/audit-logger.js`, `/self/infrastructure/replay-ledger.js`, `/self/config/genesis-levels.json`, `/tests/unit/rgr.test.js`, `/tests/unit/validator-quarantine.test.js`, `/tests/unit/audit-anchor.test.js`.
+**Related existing code:** `/self/core/agent-loop.js`, `/self/infrastructure/audit-logger.js`, `/self/config/genesis-levels.json` (the `capsule` level). None of these implements the ring controller below.
 
 **Category:** RSI / Meta-Cognition / Audited Agent Evolution.
 
 **Empirical Measurements:** TBD.
 
 **Core Claim:** Conditional structural optimality under the stated requirements. This blueprint does not claim universal optimality.
+
+---
+
+## 0. Status and runtime authority
+
+This blueprint is theory. None of the planned modules exists: there is no `rgr.js`,
+`promotion-gate.js`, `validator-quarantine.js` or `replay-ledger.js`, and none of the three
+planned tests. Runtime semantics (operating states, slots, the evidence a candidate must
+carry, the promotion gate) are owned by [`rgr-runtime-contract.md`](rgr-runtime-contract.md);
+durable changes to `/self` follow [`promotion-contract.md`](promotion-contract.md). Where
+this document and those contracts differ, the contracts win.
+
+Every promotion rule below ends in operator adoption. Scores, Pareto position, anchor
+observations and peer agreement make a candidate eligible; only an explicit, reversible
+operator grant activates it. This is the repository rule that model or Arena scoring never
+grants activation permission ([`INTENT.md`](../../INTENT.md), [`AGENTS.md`](../../AGENTS.md)).
+In the formulas, `Adopt(mu_star) = 1` means that grant exists for that exact candidate.
 
 ---
 
@@ -553,11 +570,10 @@ It does not pass through the ordinary deployment gate. It enters:
 alpha_t_plus_1 = GovernedAnchorUpdate(alpha_t, alpha_prime)
 ```
 
-Governed anchor updates may require:
+Governed anchor updates always require operator adoption. They may also require:
 
 - separate model family
 - external verifier
-- human review
 - replayable evidence
 - contract checks
 - canary period
@@ -597,7 +613,7 @@ High-risk mutation classes:
 
 ## 11. Audited Promotion Gate
 
-The old promotion rule was:
+The old promotion rule was (rejected: a score alone switched the active system):
 
 ```text
 if Valid(theta_star)
@@ -614,11 +630,16 @@ if Valid_star(mu_star, alpha_t) = 1
 and Audit_star(mu_star, alpha_t) = 1
 and TamperRisk_star(mu_star) <= tau
 and AnchorObservations(lineage(mu_star)) >= m
-and J_valid_star(mu_star, alpha_t) > J_valid_star(mu_t, alpha_t) + epsilon:
+and J_valid_star(mu_star, alpha_t) > J_valid_star(mu_t, alpha_t) + epsilon
+and Adopt(mu_star) = 1:
   Theta_(t + 1) = (mu_star, alpha_t)
 else:
   Theta_(t + 1) = (mu_t, alpha_t)
 ```
+
+The score conditions make `mu_star` eligible; `Adopt(mu_star)` is the operator's explicit,
+reversible grant and is the only condition that activates it. Without it the system stays on
+`mu_t` and `mu_star` stays pending in Shadow.
 
 This gives monotonic improvement only with respect to the frozen or independently governed validator:
 
@@ -644,7 +665,8 @@ Promotion is blocked past `Select` until `m` anchor observations have landed in 
 
 ```text
 Select may nominate mu_star.
-Promote may not deploy mu_star until AnchorObservations(lineage(mu_star)) >= m.
+Promote may not deploy mu_star until AnchorObservations(lineage(mu_star)) >= m
+and the operator adopts mu_star.
 ```
 
 Anchor observations are slow-clock evidence. The fast ring may produce provisional champions before anchors arrive, but those champions remain pending. When anchor observations arrive, the system replay-scores the full lineage:
@@ -675,6 +697,8 @@ The gate must verify:
 - candidate improves `J_valid_star` by at least `epsilon`
 - candidate does not weaken required validators
 - any proposed anchor change is quarantined, not promoted
+- the operator adopts the candidate through an explicit, reversible grant; this is the only
+  condition that activates it
 
 ---
 
@@ -708,11 +732,15 @@ RollbackReady(theta_h) = 1
 TamperRisk_star(theta_h) <= tau
 ```
 
+Fast healing may route only to a fallback the operator has already adopted (a rollback
+checkpoint of an earlier active version). Routing to an archived candidate that was never
+adopted is a promotion and goes through the full gate, adoption included.
+
 Fast healing flow:
 
 ```text
 deployed system fails
--> choose archived fallback
+-> choose a previously adopted fallback
 -> verify fallback evidence
 -> route through fallback
 -> log recovery trace
@@ -797,7 +825,8 @@ For each epoch t:
       and Audit_star(mu_star, alpha_t) = 1
       and TamperRisk_star(mu_star) <= tau
       and AnchorObservations(lineage(mu_star)) >= m
-      and J_valid_star(mu_star, alpha_t) > J_valid_star(mu_t, alpha_t) + epsilon:
+      and J_valid_star(mu_star, alpha_t) > J_valid_star(mu_t, alpha_t) + epsilon
+      and Adopt(mu_star) = 1:
         Theta_(t + 1) = (mu_star, alpha_t)
       else:
         Theta_(t + 1) = (mu_t, alpha_t)
@@ -809,6 +838,7 @@ For each epoch t:
   17. If deployed failure occurs:
       choose theta_heal from archive using H + Q_anchor - TamperRisk
       route through theta_heal only if Valid_star and Audit_star pass
+      and theta_heal is a previously adopted version; otherwise send it through step 15
       create repair mutation from failure and healing traces
 
 Outputs:
@@ -913,6 +943,7 @@ function capFrontier(frontier, cap) {
   return selected;
 }
 
+// Returns the eligible candidate; activation still needs the operator grant.
 function auditedGate(current, candidate, anchor, options = {}) {
   const epsilon = options.epsilon ?? 0;
   const tau = options.tamperRiskThreshold ?? 0;
@@ -925,6 +956,9 @@ function auditedGate(current, candidate, anchor, options = {}) {
     anchor.rAnchor.validationScore(candidate.mu, anchor.vExt) >
       anchor.rAnchor.validationScore(current.mu, anchor.vExt) + epsilon
   ) {
+    if (options.operatorAdoption?.candidateHash !== candidate.hash) {
+      return { ...current, pending: candidate };
+    }
     return { mu: candidate.mu, alpha: current.alpha };
   }
   return current;
@@ -935,105 +969,27 @@ function auditedGate(current, candidate, anchor, options = {}) {
 
 ## 15. Implementation Pathway
 
-### 15.1 Candidate Representation
-
-Create a serializable `mu` schema that can represent:
-
-- prompts
-- code patch references
-- tool policies
-- routing tables
-- memory policies
-- mutation and reflection policies
-- deployment gate settings
-- rollback policy
-
-The schema must support hashing, diffing, lineage tracking, replay, and rollback.
-
-### 15.2 Anchor Representation
-
-Create a versioned `alpha` schema that can represent:
-
-- frozen external verifier `V_ext`
-- replay and audit anchor `R_anchor`
-- meta-validator `U_meta`
-- anchor observation history
-- lineage and rollback ledger inside `R_anchor`
-
-The schema must support immutable version IDs and governed update proposals.
-
-### 15.3 Trace Capture
-
-Extend the agent loop trace so every candidate run can record:
-
-- selected tools
-- tool arguments and outputs
-- model provider and model ID
-- prompt template version
-- memory reads and writes
-- validation results
-- audit receipts
-- cost metrics
-- risk flags
-- final output
-
-### 15.4 Ring Controller
-
-Implement an `RGRController` with:
-
-- outer lifecycle stage registry
-- per-stage inner ring archive
-- rotation state
-- active candidate sampler
-- Pareto reducer
-- role-aware frontier capper
-- duplicate-safe merge reducer
-- anchored promotion gate
-- fallback selector
-- validator quarantine handoff
-
-### 15.5 Hard Modules
-
-Required modules:
+Not started. If built, the controller would need: a serializable, hashable candidate schema
+`mu` (prompts, code patch references, tool, routing, memory and mutation policies, rollback
+policy); a versioned anchor schema `alpha` with immutable version IDs; agent-loop traces that
+record tools, arguments, outputs, model, prompt version, memory access, validation, cost and
+risk; and the modules below.
 
 | Module | Responsibility |
 |--------|----------------|
-| `ValidatorQuarantine` | Holds proposed evaluator, validator, audit, ledger, and promotion-policy mutations outside ordinary promotion |
-| `AuditAnchor` | Verifies replayable evidence and computes audit-anchor score |
-| `ReplayLedger` | Stores candidate lineage, evidence receipts, anchor versions, and rollback pointers |
-| `TamperRiskScorer` | Scores evaluator, validator, gate, and ledger interference risk |
-| `FallbackVerifier` | Revalidates archived fallback candidates before healing routes |
-| `AnchoredPromotionGate` | Applies audited promotion rule |
+| `ValidatorQuarantine` | Holds proposed evaluator, validator, audit, ledger and promotion-policy mutations outside ordinary promotion |
+| `AuditAnchor` | Verifies replayable evidence and computes the audit-anchor score |
+| `ReplayLedger` | Stores lineage, evidence receipts, anchor versions and rollback pointers |
+| `TamperRiskScorer` | Scores evaluator, validator, gate and ledger interference risk |
+| `FallbackVerifier` | Revalidates adopted fallbacks before healing routes |
+| `AnchoredPromotionGate` | Applies the audited rule, then waits for operator adoption |
 | `AnchorObservationGate` | Blocks promotion until `m` lineage anchor observations arrive |
-| `BehavioralDiversityMonitor` | Tracks cross-ring behavioral diversity and archive collapse |
+| `BehavioralDiversityMonitor` | Tracks cross-ring diversity and archive collapse |
 
-### 15.6 Mutation Operators
-
-Initial ordinary mutation operators:
-
-- prompt rewrite from trace reflection
-- tool policy change
-- retrieval policy change
-- graph route change
-- fallback trigger change
-- rollback policy refinement
-
-Quarantined mutation operators:
-
-- evaluator threshold change
-- `V_int` validation suite expansion or contraction
-- `U_strat` mutation strategy change
-- `V_ext` verifier change
-- `R_anchor` audit or ledger change
-- `U_meta` meta-validator change
-
-Validator changes require stricter approval than prompt, tool, route, or fallback changes.
-
-### 15.7 Sandbox and Shadow Mode
-
-Candidate systems must run in shadow mode or sandbox mode before promotion. They may observe production inputs but cannot mutate the deployed substrate until gated.
-
-Anchor-layer code must not run from candidate-owned mutable paths unless the anchor governance path has promoted a new anchor version.
+Candidates run in Shadow or a sandbox. They may observe inputs but cannot change the active
+self until gated and adopted. Anchor-layer code must not run from candidate-owned mutable
+paths. The runtime behavior these modules would implement is specified in
+[`rgr-runtime-contract.md`](rgr-runtime-contract.md).
 
 ---
 
@@ -1052,7 +1008,7 @@ Required controls:
 - replayable audit logs
 - external validation data
 - adversarial tests
-- human review for high-risk changes
+- operator adoption for every promotion, with stronger review for high-risk changes
 - separation between mutator and validator
 - periodic fallback revalidation
 
@@ -1109,7 +1065,7 @@ Therefore RGR requires:
 - auditable evidence
 - quarantined validator mutation
 - periodic adversarial validation
-- human or independent oversight for high-risk changes
+- operator adoption for every promotion, and independent oversight for high-risk changes
 
 ### Theorem 13: Validator Quarantine Necessity
 
@@ -1164,7 +1120,8 @@ If promotion uses:
 ```text
 if Valid_star(mu_star, alpha_t) = 1
 and Audit_star(mu_star, alpha_t) = 1
-and J_valid_star(mu_star, alpha_t) > J_valid_star(mu_t, alpha_t) + epsilon:
+and J_valid_star(mu_star, alpha_t) > J_valid_star(mu_t, alpha_t) + epsilon
+and Adopt(mu_star) = 1:
   Theta_(t + 1) = (mu_star, alpha_t)
 else:
   Theta_(t + 1) = (mu_t, alpha_t)
@@ -1200,7 +1157,7 @@ Therefore:
 J_valid_star(Theta_(t + 1)) >= J_valid_star(Theta_t)
 ```
 
-This theorem is stronger than the original monotonic promotion theorem because the candidate cannot rewrite the validator used to prove monotonicity.
+This theorem is stronger than the original monotonic promotion theorem because the candidate cannot rewrite the validator used to prove monotonicity. The adoption condition only removes promotions, so the bound still holds.
 
 ### Theorem 15: Audited Fallback Self-Healing
 
@@ -1245,7 +1202,8 @@ It becomes one only when archived candidates remain independently auditable.
 | L3 | RGR is primarily an L3 bounded self-improvement loop |
 | L4 | RGR can frame broader autonomy experiments, but does not prove AGI |
 
-Anchor updates are never ordinary L3 self-approval. They require the governed anchor path.
+At every level, promotion ends in operator adoption. Anchor updates are never ordinary L3
+self-approval; they require the governed anchor path.
 
 ---
 
@@ -1463,7 +1421,7 @@ Removing any component breaks at least one requirement.
 - Add lineage-aware recombination between candidates with complementary strengths.
 - Add per-stage mutation operators tuned to the outer lifecycle stage.
 - Add live archive decay for stale fallback candidates.
-- Add human review queues for validator, tool, and deployment policy changes.
+- Add review queues so the operator can inspect validator, tool and deployment policy candidates before adopting them.
 - Add process-level agent evaluation with trace-based scoring.
 - Add swarm archive synchronization using the idempotent merge reducer.
 - Add ASG-SI-style skill graph receipts for promoted improvements.
@@ -1532,7 +1490,8 @@ if Valid_star(mu_star, alpha_t) = 1
 and Audit_star(mu_star, alpha_t) = 1
 and TamperRisk_star(mu_star) <= tau
 and AnchorObservations(lineage(mu_star)) >= m
-and J_valid_star(mu_star, alpha_t) > J_valid_star(mu_t, alpha_t) + epsilon:
+and J_valid_star(mu_star, alpha_t) > J_valid_star(mu_t, alpha_t) + epsilon
+and Adopt(mu_star) = 1:
   Theta_(t + 1) = (mu_star, alpha_t)
 else:
   Theta_(t + 1) = (mu_t, alpha_t)
@@ -1573,7 +1532,7 @@ It is the central failure mode.
 Without validator quarantine and external audit anchors:
 
 ```text
-RRG risks becoming a reward-hacking amplifier.
+RGR risks becoming a reward-hacking amplifier.
 ```
 
 With validator quarantine and external audit anchors:
@@ -1599,4 +1558,4 @@ and self-healing deployment.
 
 ---
 
-*Last updated: May 2026*
+*Last updated: November 2026*

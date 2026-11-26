@@ -4,75 +4,48 @@
 
 **Implementation Status:** In-Progress
 
-**Verified Artifacts:** `/self/core/verification-worker.js`, `/self/core/vendor/acorn.js`, `/self/core/vendor/ACORN-LICENSE.txt`
+**Verified Artifacts:** `/shared/core/verification-worker.js`, `/shared/core/vendor/acorn.js`, `/shared/core/vendor/ACORN-LICENSE.txt`, `/self/core/vfs-module-loader.js`, `/self/host/sw-module-loader.js`, `/tests/unit/verification-worker-prototype.test.js`, `/tests/unit/tool-verification-gate.test.js`
 
-**Planned Artifacts:** `/core/boot-module-loader.js`, `/infrastructure/module-integrity.js`, `/vfs/security/module-signatures.js`, `module-integrity.js`
+**Planned Artifacts:** None
 
 **Owned Source Files:** `core/verification-worker.js`, `core/vendor/acorn.js`, `core/vendor/ACORN-LICENSE.txt`
 
 **Former Blueprint Paths:** `self/blueprints/0x00002A-module-integrity-verification.md`
-**Objective:** Define the signing, hashing, and verification processes that guard REPLOID against tampered upgrades.
+**Objective:** Bind every verification decision and every approved module load to the exact bytes that were checked, and keep the verifier itself (the Worker and its vendored parser) a fixed, separately protected input.
 
-**Target Upgrade:** MINT (`module-integrity.js`)
+**Prerequisites:** [0x000040](0x000040-verification-manager.md) (Verification Manager), [0x000011](0x000011-advanced-storage-backend-indexeddb.md) (VFS)
 
-**Prerequisites:** 0x000003 (Core Utilities & Error Handling), 0x000005 (State Management Architecture), 0x00001F (Universal Module Loader)
-
-**Affected Artifacts:** `/infrastructure/module-integrity.js`, `/vfs/security/module-signatures.json`, `/core/boot-module-loader.js`
+**Affected Artifacts:** `shared/core/verification-worker.js`, `shared/core/vendor/acorn.js`, `shared/core/vendor/ACORN-LICENSE.txt` (served at `/self/core/...`), `self/core/verification-manager.js`, `self/core/vfs-module-loader.js`, `self/core/tool-writer.js`, `self/core/promotion-policy.js`, `self/host/sw-module-loader.js`
 
 ---
 
-### 1. The Strategic Imperative
-Self-modifying software must prove that the code it loads is authorized. Integrity checks prevent:
-- Malicious modules hijacking the upgrade pipeline.
-- Accidental corruption during hot reloads.
-- Inconsistent replicas across personas.
+### 1. Location
 
-### 2. Architectural Overview
-`ModuleIntegrity` ships with HMAC-based signing that can be swapped for asymmetric crypto.
+The Worker and parser live in `shared/core/` and moved there from `self/core/` (commit `3d8f2a118`) so both surfaces load one copy. The served tree exposes them at `/self/core/verification-worker.js`, `/self/core/vendor/acorn.js` and `/self/core/vendor/ACORN-LICENSE.txt`, and the module inventory keeps the `core/...` paths this blueprint owns.
 
-```javascript
-const Integrity = await ModuleLoader.getModule('ModuleIntegrity');
-const signature = await Integrity.signModule('tool-runner', code);
-const status = await Integrity.verifyModule(code, signature);
-```
+### 2. What is implemented
 
-Core components:
-- **Hashing**: `calculateHash(code)` uses Web Crypto `SHA-256` to generate digest.
-- **Signing**: `signModule(moduleId, code, version)` returns `{ hash, timestamp, signature, algorithm }` using HMAC-SHA256 (placeholder for production keys).
-- **Verification**: `verifyModule(code, signature)` recomputes hash and validates HMAC via `crypto.subtle.verify`.
-- **Bulk Operations**:
-  - `signAllModules()` iterates `/vfs/upgrades/*.js`, signs each, and stores results in `/vfs/security/module-signatures.json`.
-  - `verifyModuleById(moduleId, code)` loads stored signatures and verifies specific module.
-- **Status API**: `getStatus()` reports signature availability and last update timestamp.
+There is no `ModuleIntegrity` module, no HMAC signing and no signature file. Integrity is enforced by SHA-256 byte binding at four points:
 
-### 3. Implementation Pathway
-1. **Initial Setup**
-   - Generate signing key securely (replace placeholder string) and store in privileged environment.
-   - Include `module-signatures.json` in release artifacts.
-2. **CI / CD Integration**
-   - During build, run `signAllModules()` to produce signatures.
-   - Ship signatures alongside module bundle; loader verifies at boot.
-3. **Runtime Verification**
-   - `ModuleLoader.loadModule` should call `ModuleIntegrity.verifyModuleById` before executing module code; log and abort on failure.
-   - Provide “quarantine mode” that disables suspect modules but keeps UI operational.
-4. **Rotation & Revocation**
-   - Version signatures; include `version` field in payload.
-   - On key rotation, regenerate signatures and update blueprint metadata.
-- **Incident Response**
-   - For mismatches, emit toast + audit log entry detailing expected vs actual hash.
-   - Auto-capture tampered code to `/vfs/security/quarantine/<module>.js` for analysis.
+| Point | Mechanism |
+| --- | --- |
+| Verifier answer | `VerificationManager` hashes each file it sends; the Worker hashes what it received and returns `verification: { kind: 'static-worker', fileHashes }`. A missing kind or any hash difference is `Worker source hash mismatch` and fails ([0x000040](0x000040-verification-manager.md)). |
+| Tool staging | `ToolWriter` keeps a private approval keyed by a frozen receipt object and re-hashes the written file; `assertVerified` fails if the bytes changed ([0x000015](0x000015-dynamic-tool-creation.md)). |
+| Module import | `loadVfsModule({ expectedSha256 })` (`self/core/vfs-module-loader.js:175`) hashes the bytes it is about to import and throws `Approved module source hash mismatch`. A pinned load never reuses a pending path-only import. |
+| Promotion | `self/core/promotion-policy.js` exports `sha256` and `getEvidenceHash`; promotion evidence records hashes of the candidate, and a `clockwork` authority claim must carry a receipt whose digest matches a trusted receipt ([0x000080](0x000080-core-promotion-policy.md)). |
 
-### 4. Verification requirements
-- Hash mismatch detection triggers warning and prevents module execution.
-- `signAllModules` skips non-JS artifacts gracefully.
-- Signatures file stored with metadata (type: security, category: signatures).
-- Unit tests cover valid signature, hash mismatch, missing signature cases.
-- Browser compatibility confirmed (Web Crypto availability).
+### 3. The verifier as a fixed input
 
-### 5. Extension Opportunities
-- Move to asymmetric signatures (Ed25519) with offline private key.
-- Record signature metadata (author, changelog hash).
-- Integrate with audit logs to track verification events.
-- Provide UI surface to re-sign modules after deliberate edits (with human confirmation).
+- `verification-worker.js` is a classic Worker that loads Acorn 8.15.0 with `importScripts` and parses with `ecmaVersion: 'latest'`, `sourceType: 'module'`. A missing parser throws `Verification parser is unavailable`; the Worker never falls back to rewriting or running the candidate.
+- On the `x` and `zero` surfaces the Worker is started from `/<surface>/__verifier__/worker.js`, and the Service Worker (`self/host/sw-module-loader.js`) maps that alias and `/<surface>/__verifier__/acorn.js` to `/core/verification-worker.js` and `/core/vendor/acorn.js` in that instance's VFS. With `requireVerification`, the manager refuses to start the Worker unless the controlling Service Worker is the matching active lab registration.
+- Agent tools cannot write `/core/` paths: `self/config/vfs-policy.js` limits tool writes to `/shadow`, `/artifacts` and `/cycles`. Promotion quarantines changes to validators: `isValidatorMutationTarget` covers `/self/core/verification-*`, `/self/testing/arena/`, `/self/infrastructure/policy-*` and listed files such as `verification-manager.js`, `promotion-policy.js` and `tool-runner.js`.
 
-Update this blueprint whenever the signing algorithm, storage path, or loader integration strategy changes.
+### 4. Incomplete boundary
+
+- `/self/core/vendor/acorn.js` is not in the validator quarantine list or prefixes, so a promotion that replaces the parser is not quarantined as a validator change.
+- Byte binding proves that the checked bytes and the loaded bytes are the same. It does not prove who wrote them; there is no signature or key.
+- Most loads pass no `expectedSha256`; only approval-bound loads (tool activation, `loadPath` with a hash, substrate loads with a hash) are pinned.
+
+### 5. Verification
+
+`tests/unit/verification-worker-prototype.test.js` runs the real Worker source; `tests/unit/tool-verification-gate.test.js` exercises the hash-bound tool gate end to end. No test covers the `expectedSha256` mismatch in `loadVfsModule` directly.

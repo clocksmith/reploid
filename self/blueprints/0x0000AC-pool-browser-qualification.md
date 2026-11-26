@@ -1,12 +1,12 @@
 # Blueprint 0x0000AC: Pool Browser Qualification
 
+Owner: apps/poolday (see [apps/poolday/CATSCAN.md](../../apps/poolday/CATSCAN.md))
+
 **Classification:** Canonical Full Specification
 
-**Implementation Status:** Implemented
+**Implementation Status:** In-Progress
 
-**Verified Artifacts:** `/self/pool/browser-qualification.js`,
-`/self/pool/browser-release-identity.js`,
-`/self/config/browser-bundle-manifest.json`
+**Verified Artifacts:** `/self/pool/browser-qualification.js`, `/self/pool/browser-release-identity.js`, `/self/config/browser-bundle-manifest.json`
 
 **Planned Artifacts:** None
 
@@ -111,7 +111,10 @@ gate has evidence.
 - [x] Release verification rejects dirty Git state and deployed browser-byte drift
 - [x] Hosted readiness and release verification bind Cloud Run commit, image, platform revision, and runtime bytes
 - [x] Release verification preserves every lane report and attachment in one bound evidence index
-- Persist clean-release browser evidence for ESM-2
-- Run authentic browser qualification for each candidate
+- [ ] Persist clean-release browser evidence for ESM-2
+- [ ] Run authentic browser qualification for each candidate
+
+The two open items are declared verification boundaries: no clean-release
+receipt for them exists under `docs/status/`, so the status is In-Progress.
 
 *Last updated: August 2026*

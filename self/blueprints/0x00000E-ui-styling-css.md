@@ -2,44 +2,16 @@
 
 **Classification:** Canonical Full Specification
 
-**Implementation Status:** In-Progress
+**Implementation Status:** Proposed
 
-**Verified Artifacts:** `/self/styles/proto/index.css`
+**Verified Artifacts:** None
 
-**Planned Artifacts:** `/ui/ui-manager.js`, `/ui/ui-style.css`, `ui-style.css`
+**Planned Artifacts:** None
 
 **Owned Source Files:** None
 
 **Former Blueprint Paths:** `self/blueprints/0x00000E-ui-styling-css.md`
-**Objective:** To cover the role of the `/ui/ui-style.css` artifact in defining the visual appearance of the agent's developer console interface.
 
-**Target Upgrade:** STYL (`ui-style.css`)
+## Retired design
 
-**Prerequisites:** `0x00000D`
-
-**Affected Artifacts:** `/ui/ui-style.css`, `/ui/ui-manager.js`
-
----
-
-### 1. The Strategic Imperative
-
-The agent's user interface, while minimal, must be functional and readable. Its visual presentation is defined by Cascading Style Sheets (CSS). To allow the agent to modify its own appearance—a valid form of self-improvement—these styles cannot be hardcoded in the main `index.html`. They must exist as a mutable artifact within the agent's own Virtual File System (VFS).
-
-### 2. The Architectural Solution
-
-A dedicated CSS artifact, `/ui/ui-style.css`, will contain all the styling rules for the developer console UI. The `UIManager` module will be responsible for loading this artifact and injecting it into the document's `<head>`.
-
-This architecture provides several benefits:
--   **Evolvability:** The agent can read, reason about, and rewrite its own CSS artifact just like any other file in its VFS. It can change colors, fonts, and layout to improve its usability.
--   **Separation of Concerns:** It cleanly separates the document structure (HTML), presentation (CSS), and behavior (JavaScript), which is a fundamental principle of web development.
--   **Compositionality:** In the future, different "skin" or "theme" upgrades could be created, allowing an operator to compose an agent with a different look and feel from genesis.
-
-### 3. The Implementation Pathway
-
-1.  **Create CSS Artifact:** Create the `/ui/ui-style.css` file. It should contain simple, functional CSS rules for all the elements defined in the `/ui/ui-body-template.html` artifact.
-2.  **Modify `UIManager`:**
-    a.  In the `init()` method of `/ui/ui-manager.js`, add logic to fetch the content of the `/ui/ui-style.css` artifact from the VFS using `Storage.getArtifactContent()`.
-    b.  Dynamically create a `<style>` element.
-    c.  Set the `textContent` of the new style element to the content of the CSS artifact.
-    d.  Append the new style element to the `<head>` of the main document.
-3.  **Self-Modification Goal:** To test this capability, the agent could be given a goal such as: "Modify the UI style. Change the border color of fieldsets from its current value to green (`#0f0`)." The agent would need to read the CSS artifact, generate the modified content, and use the `StateManager` to save the new version. Upon the next reload, the `UIManager` would inject the updated styles.
+This design proposed `/ui/ui-style.css`, the stylesheet for the developer console of [0x00000D](0x00000D-ui-manager.md). That file does not exist. The current proto UI styles are in `self/styles/proto/` and the capsule's in `self/styles/capsule.css`; they belong to the current UI and do not implement this design.

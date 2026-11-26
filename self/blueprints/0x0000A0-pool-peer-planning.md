@@ -1,5 +1,7 @@
 # Blueprint 0x0000A0: pool peer planning
 
+Owner: apps/poolday (see [apps/poolday/CATSCAN.md](../../apps/poolday/CATSCAN.md))
+
 **Classification:** Canonical Full Specification
 
 **Implementation Status:** Implemented

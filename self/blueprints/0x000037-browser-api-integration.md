@@ -4,168 +4,47 @@
 
 **Implementation Status:** In-Progress
 
-**Verified Artifacts:** `/self/core/state-manager.js`, `/self/infrastructure/browser-apis.js`, `/self/infrastructure/event-bus.js`, `/self/styles/proto/index.css`
+**Verified Artifacts:** `/self/infrastructure/browser-apis.js`, `/tests/unit/browser-apis.test.js`
 
-**Planned Artifacts:** `/capabilities/browser-apis.js`, `browser-apis.js`
+**Planned Artifacts:** None
 
 **Owned Source Files:** `infrastructure/browser-apis.js`
 
 **Former Blueprint Paths:** `self/blueprints/0x000037-browser-api-integration.md`
-**Objective:** Outline how REPLOID leverages native browser capabilities (filesystem, notifications, clipboard, share, storage, wake locks) to outperform CLI environments.
+**Objective:** Wrap browser capabilities (File System Access, notifications, clipboard, Web Share, storage, wake lock, visibility, online state, fullscreen, permissions) behind one module that detects what is available and reports each operation on the event bus.
 
-**Target Upgrade:** BAPI (`browser-apis.js`)
-
-**Prerequisites:** 0x000005 (State Management Architecture), 0x00001F (Confirmation Modal & Safety Interlocks), 0x000028 (Toast Notification System)
-
-**Affected Artifacts:** `/capabilities/browser-apis.js`, `/styles/proto/index.css`, `/core/state-manager.js`, `/infrastructure/event-bus.js`
+**Prerequisites:** [0x00004F](0x00004F-event-bus-infrastructure.md) (event bus), [0x000005](0x000005-state-management-architecture.md) (state)
 
 ---
 
-### 1. The Strategic Imperative
-Browser-native APIs let REPLOID:
-- Persist artifacts to the user’s filesystem without servers.
-- Alert operators through notifications.
-- Interact with clipboard/share flows for smooth UX.
-- Monitor storage pressure and wake locks for long tasks.
+### 1. Module
 
-Harnessing these APIs safely differentiates REPLOID from CLI-bound agents.
+`self/infrastructure/browser-apis.js` registers `BrowserAPIs` (genesis level `substrate`, async, dependencies `Utils`, `EventBus`, `StateManager`). `init()` runs the detectors (`fileSystemAccess`, `notifications`, `clipboard`, `webShare`, `storageEstimation`, `wakeLock`, `visibility`, `online`, `vibration`, `fullscreen`, `permissions`, `deviceMemory`, `hardwareConcurrency`) and emits `browser-apis:initialized` with the result.
 
-### 2. Architectural Overview
-`BrowserAPIs` detects and wraps optional capabilities with consistent logging and EventBus signalling.
+The factory returns:
 
-```javascript
-const BrowserAPIs = await ModuleLoader.getModule('BrowserAPIs');
-await BrowserAPIs.init();
-const caps = BrowserAPIs.api.getCapabilities();
-```
+| Area | Functions | Event |
+| --- | --- | --- |
+| Capabilities | `init`, `getCapabilities`, `generateReport` | `browser-apis:initialized` |
+| File System Access | `requestDirectoryAccess(mode = 'readwrite')`, `getDirectoryHandle`, `writeFile(path, content)`, `readFile(path)`, `syncArtifactToFilesystem(artifactPath)` | `browser-apis:filesystem:granted`, `browser-apis:filesystem:write` |
+| Notifications | `requestNotificationPermission`, `showNotification(title, options)` | `browser-apis:notifications:permission`, `browser-apis:notifications:shown` |
+| Clipboard | `writeToClipboard(text)`, `readFromClipboard` | `browser-apis:clipboard:write` |
+| Web Share | `share(data)` | `browser-apis:share:success` |
+| Storage | `getStorageEstimate`, `requestPersistentStorage` | `browser-apis:storage:estimate`, `browser-apis:storage:persist` |
+| Wake Lock | `requestWakeLock`, `releaseWakeLock` | `browser-apis:wakelock:acquired`, `browser-apis:wakelock:released` |
+| Visibility, online | `isPageVisible`, `onVisibilityChange(cb)`, `isOnline`, `onOnlineChange(cb)` | `browser-apis:visibility`, `browser-apis:online` |
+| Fullscreen | `requestFullscreen(element)`, `exitFullscreen`, `isFullscreen` | `browser-apis:fullscreen` |
+| Other | `queryPermission(name)`, `getDeviceInfo`, `vibrate(pattern)` | |
 
-Key features:
-- **Capability Detection**
-  - File System Access (`showDirectoryPicker`)
-  - Notifications (`Notification`)
-  - Clipboard (`navigator.clipboard`)
-  - Web Share (`navigator.share`)
-  - Storage Estimate (`navigator.storage.estimate`)
-  - Wake Lock (`navigator.wakeLock`)
-  - Emits `browser-apis:initialized` with detected capabilities.
-- **Filesystem Bridge**
-  - `requestDirectoryAccess(mode)` obtains directory handle; caches for subsequent operations.
-  - `writeFile`, `readFile`, `syncArtifactToFilesystem` interact with chosen directory.
-  - Emits events for audit/tracking (e.g., `browser-apis:filesystem:write`).
-- **Notifications**
-  - `requestNotificationPermission`, `showNotification` gating on permission state.
-- **Clipboard**
-  - `writeToClipboard`, `readFromClipboard` with safety logging.
-- **Web Share**
-  - `share(data)` wraps `navigator.share` with abort handling.
-- **Storage Monitoring**
-  - `getStorageEstimate()` returns usage/quota metrics, enabling UI warnings.
-- **State Exposure**
-  - `getCapabilities()`, `getDirectoryHandle()` allow other modules to adapt behaviour.
+File writes go only into the directory the user picked with `requestDirectoryAccess`; without a handle, `writeFile` and `readFile` log an error and return `false` or `null`. Directory access and notification permission need a user gesture, as the browser requires. The module has no UI of its own.
 
-**Widget Interface (Web Component):**
+### 2. Known gaps
 
-The module exposes a `BrowserAPIsWidget` custom element for proto visualization:
+- `syncArtifactToFilesystem` calls `StateManager.getArtifactContent`, which `self/core/state-manager.js` does not provide, so it fails and returns `false`. Reading through `VFS` would fix it.
+- No other module or tool calls `BrowserAPIs`; it is loaded by genesis level but unused.
 
-```javascript
-class BrowserAPIsWidget extends HTMLElement {
-  constructor() {
-    super();
-    this.attachShadow({ mode: 'open' });
-  }
+### 3. Verification conditions
 
-  connectedCallback() {
-    this.render();
-    // No auto-refresh needed - capabilities are static once detected
-  }
-
-  set moduleApi(api) {
-    this._api = api;
-    this.render();
-  }
-
-  getStatus() {
-    const state = this._api.getState();
-    const availableCount = Object.values(state.capabilities).filter(Boolean).length;
-    const hasRecentOp = state.operationStats.lastOperation &&
-      (Date.now() - state.operationStats.lastOperation.timestamp < 60000);
-
-    return {
-      state: availableCount > 0 ? (hasRecentOp ? 'active' : 'idle') : 'disabled',
-      primaryMetric: `${availableCount}/${totalCount} APIs`,
-      secondaryMetric: state.fileSystemHandle ? `☗ ${state.fileSystemHandle.name}` : 'No FS access',
-      lastActivity: state.operationStats.lastOperation ? state.operationStats.lastOperation.timestamp : null
-    };
-  }
-
-  render() {
-    const state = this._api.getState();
-
-    this.shadowRoot.innerHTML = `
-      <style>/* Shadow DOM styles */</style>
-      <div class="browser-apis-panel">
-        <!-- API availability checklist (✓/✗ for each capability) -->
-        <!-- Operation stats (file reads/writes, notifications, clipboard, shares) -->
-        <!-- File system access status with directory name -->
-        <!-- Notification permission status -->
-        <!-- Last operation timestamp and type -->
-        <!-- Interactive buttons: Request FS, Check Storage, Request Notifications, Generate Report -->
-      </div>
-    `;
-
-    // Attach event listeners to interactive buttons
-    this.shadowRoot.getElementById('request-fs').addEventListener('click', async () => {
-      await this._api.requestDirectoryAccess();
-    });
-
-    this.shadowRoot.getElementById('check-storage').addEventListener('click', async () => {
-      await this._api.getStorageEstimate();
-    });
-  }
-}
-
-customElements.define('browser-apis-widget', BrowserAPIsWidget);
-```
-
-**Key Widget Features:**
-- **API Capability Checklist**: Visual display of all detected browser APIs (✓ available, ✗ unavailable)
-- **Operation Statistics**: Tracks and displays file reads/writes, notifications shown, clipboard operations, shares
-- **Permission States**: Shows file system directory access and notification permission status
-- **Interactive Controls**: Buttons to request permissions, check storage, generate capability reports
-- **Real-time Activity**: Highlights recent operations (< 1 minute) and updates state from 'idle' to 'active'
-
-The widget provides a complete proto for monitoring browser API availability and usage without requiring external UI code.
-
-### 3. Implementation Pathway
-1. **Permissions UX**
-   - Pair direct API requests with confirmation modals so the user understands consequences (e.g., enabling filesystem sync).
-   - Store granted permissions in `StateManager` for future sessions (where supported).
-2. **Error Handling**
-   - Distinguish user cancellations vs hard failures; log at info vs error levels.
-   - Provide actionable toasts on failure (e.g., “Enable clipboard permissions in browser settings”).
-3. **Security Posture**
-   - Never auto-grant destructive operations; always require user interaction for filesystem writes.
-   - Validate paths to avoid writing outside intended directories.
-4. **Integration Points**
-   - Sync pipeline triggers `syncArtifactToFilesystem` after apply operations when user opted in.
-   - Notifications for long-running tasks or consensus results.
-   - Clipboard shortcuts for copying diffs or prompts.
-   - Storage estimates surfaced in metrics proto to warn about quota exhaustion.
-5. **Extensibility**
-   - Add Wake Lock management to prevent sleep during long sessions.
-   - Integrate Web Share for quick blueprint sharing with teammates.
-
-### 4. Verification requirements
-- Capability detection runs once and events emitted correctly.
-- Filesystem operations respect user-selected handle and handle nested paths.
-- Notification requests update permission state and block `showNotification` when not granted.
-- Clipboard API gracefully degrades (returns false/null when unsupported).
-- Storage estimates include MB conversions and handle quota==0 edge cases.
-
-### 5. Extension Opportunities
-- Provide sandboxed “dry run” that previews filesystem changes before writing.
-- Track average notification response time for UX tuning.
-- Allow scheduling wake locks during Paxos competitions.
-- Export capabilities summary in diagnostics reports.
-
-Maintain this blueprint when adding new browser APIs or altering permission flows.
+- Capability detection reflects the running browser and emits `browser-apis:initialized` once per `init()`.
+- `writeFile` creates nested directories under the chosen handle and writes nowhere else.
+- Clipboard, share and storage calls return `false` or `null` when the API is missing, without throwing.

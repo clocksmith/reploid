@@ -2,225 +2,75 @@
 
 **Classification:** Canonical Full Specification
 
-**Implementation Status:** In-Progress
+**Implementation Status:** Implemented
 
-**Verified Artifacts:** `/self/capabilities/reflection/reflection-analyzer.js`, `/self/capabilities/reflection/reflection-store.js`, `/self/styles/proto/index.css`
+**Verified Artifacts:** `/self/capabilities/reflection/reflection-store.js`, `/self/capabilities/reflection/reflection-analyzer.js`, `/tests/integration/reflection-system.test.js`
 
-**Planned Artifacts:** `/capabilities/cognition/reflection-analyzer.js`, `/capabilities/cognition/reflection-search.js`, `/capabilities/cognition/reflection-store.js`, `reflection-store.js`
+**Planned Artifacts:** None
 
 **Owned Source Files:** `capabilities/reflection/reflection-analyzer.js`, `capabilities/reflection/reflection-store.js`
 
 **Former Blueprint Paths:** `self/blueprints/0x000032-reflection-store-architecture.md`
-**Objective:** Define the persistence and querying strategy that allows REPLOID to learn from past actions.
 
-**Target Upgrade:** REFL (`reflection-store.js`)
+**Modules:** `ReflectionStore` (version 1.0.0, genesis level `reflection`, type `capability`, async; dependencies `Utils`, `VFS`, `EventBus`) and `ReflectionAnalyzer` (version 1.0.0, genesis level `reflection`, type `intelligence`, async; dependencies `ReflectionStore`, `Utils`)
 
-**Prerequisites:** 0x000003 (Core Utilities & Error Handling), 0x000008 (Agent Cognitive Cycle), 0x00002B (Audit Logging Policy)
-
-**Affected Artifacts:** `/capabilities/cognition/reflection-store.js`, `/styles/proto/index.css`, `/capabilities/cognition/reflection-analyzer.js`, `/capabilities/cognition/reflection-search.js`
+**Sources:** `self/capabilities/reflection/reflection-store.js`, `self/capabilities/reflection/reflection-analyzer.js`
 
 ---
 
-### 1. The Strategic Imperative
-Reflections are the memory of successes and failures. Without durable storage:
-- RSI loops forget lessons between sessions.
-- Swarm peers cannot benefit from shared insights.
-- Analyzer tooling lacks data to surface patterns.
+## Purpose
 
-This blueprint keeps reflection data trustworthy and queryable.
+The reflection store keeps a durable record of what the agent observed after its actions (tool successes and failures, insights, hypotheses), so later cycles and later sessions can use it. It also keeps two small learning tables for the FunctionGemma path: winning network configurations ("genomes") and per-adapter success counts.
 
-### 2. Architectural Overview
-`ReflectionStore` uses IndexedDB to persist reflections with fast filtering.
+A reflection is an observation. It is not evidence of improvement and grants no permission; recursive-improvement claims need a signed improvement episode ([RSI improvement episodes](../../docs/rsi-improvement-episodes.md)).
 
-```javascript
-const Store = await ModuleLoader.getModule('ReflectionStore');
-await Store.init();
-const id = await Store.api.addReflection({
-  outcome: 'success',
-  description: 'Modularized agent-cycle.js for clarity',
-  category: 'architecture',
-  tags: ['refactor', 'performance']
-});
-```
+## Storage
 
-Key components:
-- **Database Schema**
-  - DB: `reploid_reflections`, Object store: `reflections`.
-  - Indexes: `timestamp`, `outcome`, `category`, `session`, `tags` (multi-entry).
-- **Operations**
-  - `addReflection` validates payload, enriches metadata (timestamp, sessionId), emits `reflection:added`.
-  - `getReflections(filters)` leverages indexes, applies optional time/limit filters, sorts newest-first.
-  - `getReflection(id)` fetches single entry.
-  - Tracks addition stats: `_additionCount`, `_lastAdditionTime`, `_outcomeCounts`.
-- **Analytics APIs**
-  - `getSuccessPatterns()`, `getFailurePatterns()` summarise categories, tags, errors.
-  - `getLearningSummary()` aggregates counts, success rate, recency.
-  - `generateReport(filters)` outputs markdown summarising insights.
-- **Maintenance**
-  - `deleteOldReflections(days)` prunes stale entries.
-  - `exportReflections()` / `importReflections()` support backups and sharing.
+All in the VFS under `/.memory/` (`reflection-store.js:22-24`):
 
-#### Monitoring Widget (Web Component)
+| Path | Format | Content |
+| --- | --- | --- |
+| `/.memory/reflections.jsonl` | one JSON object per line | Reflections |
+| `/.memory/genomes.json` | JSON | `{ taskType: { generations: [{ genome, fitness, timestamp }] } }` |
+| `/.memory/adapter-stats.json` | JSON | `{ 'taskType:adapterId': { successes, attempts } }` |
 
-The store provides a Web Component widget for monitoring reflection storage and analytics:
+`init()` loads all three into memory; a corrupt file is logged and reset to empty in memory. Every write rewrites the whole file, creating `/.memory` if needed. The in-memory copy is the source for queries.
 
-```javascript
-class ReflectionStoreWidget extends HTMLElement {
-  constructor() {
-    super();
-    this.attachShadow({ mode: 'open' });
-  }
+## Reflection records
 
-  connectedCallback() {
-    this.render();
-    this._interval = setInterval(() => this.render(), 5000);
-  }
+`add(entry)` stores `{ id: generateId('ref'), ts, type, content, context, tags, description }` (`type` defaults to `'insight'`, `description` to `content`), emits `reflection:added` and returns the ID.
 
-  disconnectedCallback() {
-    if (this._interval) clearInterval(this._interval);
-  }
+`addHypothesis(entry)` validates the entry with `validateHypothesisReflection` from `self/core/improvement-episode.js`, then stores a `hypothesis` reflection whose `context` carries `episodeId`, `candidateId`, `outcome` and the validated hypothesis, tagged `hypothesis-driven` and `improvement-episode`.
 
-  getStatus() {
-    // Access module state via closure
-    const total = Object.values(_outcomeCounts).reduce((sum, count) => sum + count, 0);
-    const successRate = total > 0 ? ((_outcomeCounts.success || 0) / total * 100).toFixed(0) : 0;
+`query(filterFn)` filters the cache synchronously. `getReflections({ outcome?, limit? })` filters on `context.outcome`, sorts newest first and truncates.
 
-    return {
-      state: _additionCount > 0 ? 'active' : 'idle',
-      primaryMetric: `${total} reflections`,
-      secondaryMetric: `${successRate}% success`,
-      lastActivity: _lastAdditionTime,
-      message: db ? 'Ready' : 'Not initialized'
-    };
-  }
+Writers include the agent tool path, which records each tool result with `context.outcome` of `'failed'` or `'successful'` (`packages/reploid/src/agent/lab-strategy-tools.js:242`), `self/core/functiongemma-orchestrator.js`, `self/infrastructure/observability.js`, `self/capabilities/system/doppler-optimizer.js` (hypotheses) and `self/capabilities/communication/swarm-sync.js:240`, which stores reflections received from peers tagged `shared_from_<peerId>` with `context.sharedFrom`. Peer reflections are untrusted data from that peer.
 
-  render() {
-    this.shadowRoot.innerHTML = `
-      <style>
-        :host { display: block; }
-        .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
-        .outcome-item.success { background: rgba(0,200,100,0.1); border-left-color: #0c0; }
-        .outcome-item.failure { background: rgba(255,0,0,0.1); border-left-color: #ff6b6b; }
-        .outcome-item.partial { background: rgba(255,150,0,0.1); border-left-color: #f90; }
-      </style>
-      <div class="widget-panel">
-        <h3>☁ Reflection Store</h3>
-        <div class="controls">
-          <button class="generate-report">☐ Generate Report</button>
-          <button class="export-data">⇑ Export Data</button>
-          <button class="get-summary">☷ Get Summary</button>
-        </div>
-        <div class="stats-grid">
-          <!-- Total, success rate, added count, DB status -->
-        </div>
-        <!-- Outcome breakdown with progress bars -->
-      </div>
-    `;
+## Genomes and adapter statistics
 
-    // Event listeners for interactive controls
-    this.shadowRoot.querySelector('.generate-report')?.addEventListener('click', async () => {
-      const report = await generateReport();
-      console.log(report);
-    });
-  }
-}
+- `storeNetworkGenome(taskType, genome, fitness)` keeps the 10 highest-fitness entries per task type and emits `reflection:genome:stored`. `getBestGenome`, `getGenomes`, `getAllWinnerConfigs`, `getGenomeTaskTypes`, `clearGenomes` read or clear them. `pruneOldGenomes({ maxAge = 30 days, keepTop = 3 })` drops old entries outside the top ones.
+- `exportWinnerConfigs()` and `importWinnerConfigs(data, { merge = true, overwrite = false })` move genomes and adapter stats between instances.
+- `updateAdapterStats(taskType, adapterId, success)` counts attempts and successes and emits `reflection:adapter:updated`; `getAdapterStats` reads them. `selectAdapterUCB1(taskType, adapterIds, explorationWeight = 2)` returns an untried adapter first, a random one when none has been tried, and otherwise the highest `mean + sqrt(weight * ln(total) / attempts)`.
 
-// Register custom element
-if (!customElements.get('reflection-store-widget')) {
-  customElements.define('reflection-store-widget', ReflectionStoreWidget);
-}
+The FunctionGemma orchestrator uses these at `functiongemma-orchestrator.js:429-447`. A UCB1 choice or a fitness ranking selects among already permitted options; it does not adopt a change.
 
-const widget = {
-  element: 'reflection-store-widget',
-  displayName: 'Reflection Store',
-  icon: '☁',
-  category: 'learning',
-  updateInterval: 5000
-};
-```
+## Reflection analyzer
 
-**Widget Features:**
-- **Closure Access**: Widget class accesses module state (`db`, `_additionCount`, `_outcomeCounts`) directly via closure.
-- **Status Reporting**: `getStatus()` provides store health and success metrics for proto integration.
-- **Outcome Breakdown**: Visual breakdown of success/failure/partial outcomes with progress bars.
-- **Analytics Summary**: Shows total reflections, success rate, additions count.
-- **Interactive Controls**: Buttons to generate reports, export data, and view summaries.
-- **Auto-Refresh**: Updates every 5 seconds to reflect current storage state.
-- **Shadow DOM**: Fully encapsulated styling prevents CSS leakage.
+`ReflectionAnalyzer` returns `{ init, api: { detectFailurePatterns } }`. `detectFailurePatterns()` reads the 50 newest reflections with `outcome: 'failed'`, groups them by the text before the first `:` in `content`, keeps groups with at least 2 entries and returns `[{ indicator, count, example }]`, most frequent first. For tool failures recorded by the agent, `content` is `Tool <name>`, so groups are per tool. The agent cycle reads it at `packages/reploid/src/agent/lab-strategy-cycle.js:193-194`.
 
-### 3. Implementation Pathway
+## Boundaries and gaps
 
-#### Core Store Implementation
+- There is no semantic or embedding search over reflections; earlier drafts planned a `ReflectionSearch` module that does not exist. Semantic memory is a separate module ([0x00005F](0x00005F-semantic-memory.md)).
+- The store has no size limit or retention policy for reflections; the file grows until cleared.
+- Rewriting the whole file on each write means concurrent tabs can lose entries.
+- No widget exists; earlier drafts described one.
 
-1. **Initialization**
-   - Call `init()` during boot when IndexedDB available.
-   - Create database and object store with indexes: `timestamp`, `outcome`, `category`, `session`, `tags`.
-   - Provide fallback message for environments without IndexedDB (e.g., file-based CLI).
-   - Initialize tracking variables: `_additionCount`, `_lastAdditionTime`, `_outcomeCounts`.
-2. **Reflection Lifecycle**
-   - When agent completes a cycle, pipeline should construct reflection objects and call `addReflection`.
-   - Include structured data: `outcome`, `description`, `category`, `tags`, optional `error`.
-   - Validate required fields before writing to database.
-   - Emit `reflection:added` event after successful addition.
-   - Update `_outcomeCounts` for the specific outcome type.
-3. **Querying**
-   - UI modules (Reflections panel) call `getReflections` with filters (category, tag, session).
-   - Leverage IndexedDB indexes for efficient filtering.
-   - Always handle promise rejections gracefully (e.g., DB blocked).
-   - Support pagination via `limit` and time-based filtering.
-4. **Analysis**
-   - `ReflectionAnalyzer` (0x000036) uses success/failure patterns to generate recommendations.
-   - `ReflectionSearch` (0x000037) performs semantic lookup; ensure store exposes necessary fields.
-   - Implement `getSuccessPatterns()` and `getFailurePatterns()` for pattern extraction.
-   - Implement `getLearningSummary()` for aggregated metrics.
-5. **Data Hygiene**
-   - Consider scheduling `deleteOldReflections` to cap DB growth.
-   - When importing reflections, deduplicate by hash or timestamp to avoid duplicates.
-   - Implement `exportReflections()` / `importReflections()` for backup/sharing.
+## Verification
 
-#### Widget Implementation (Web Component)
+`tests/integration/reflection-system.test.js` covers metadata, `init`, `add`, `query`, `getReflections` and `detectFailurePatterns`.
 
-6. **Define Web Component Class** inside factory function:
-   ```javascript
-   class ReflectionStoreWidget extends HTMLElement {
-     constructor() {
-       super();
-       this.attachShadow({ mode: 'open' });
-     }
-   }
-   ```
-7. **Implement Lifecycle Methods**:
-   - `connectedCallback()`: Initial render and start 5-second auto-refresh interval
-   - `disconnectedCallback()`: Clean up interval to prevent memory leaks
-8. **Implement getStatus()** as class method with closure access:
-   - Return all 5 required fields: `state`, `primaryMetric`, `secondaryMetric`, `lastActivity`, `message`
-   - Access module state (`db`, `_additionCount`, `_outcomeCounts`) via closure
-   - Calculate success rate from outcome counts
-9. **Implement render()** method:
-   - Set `this.shadowRoot.innerHTML` with encapsulated styles
-   - Display stats grid (total, success rate, added count, DB status)
-   - Show outcome breakdown (success/failure/partial) with progress bars
-   - Add interactive controls (generate report, export data, get summary)
-   - Attach event listeners to buttons
-10. **Register Custom Element**:
-    - Use kebab-case naming: `reflection-store-widget`
-    - Add duplicate check: `if (!customElements.get('reflection-store-widget'))`
-    - Call `customElements.define('reflection-store-widget', ReflectionStoreWidget)`
-11. **Return Widget Object** with new format:
-    - `{ element: 'reflection-store-widget', displayName: 'Reflection Store', icon: '☁', category: 'learning' }`
-12. **Test** Shadow DOM rendering, lifecycle cleanup, outcome tracking, and closure access to store state
+## Related blueprints
 
-### 4. Verification requirements
-- Database upgrades preserve existing data (version bump migration path).
-- `addReflection` rejects missing required fields.
-- Index-based queries return results matching filters.
-- Report generation includes summary, patterns, recent reflections.
-- Export/import round-trip preserves count and metadata.
-
-### 5. Extension Opportunities
-- Add sentiment/score fields to reflections for richer analytics.
-- Support encryption for privacy-sensitive reflections.
-- Integrate with Swarm orchestrator to sync reflections across peers.
-- Provide CLI commands to view/export reflections outside UI.
-
-Maintain this blueprint as the reflection schema evolves or new analytics layers are introduced.
+- [0x000008 Agent Cognitive Cycle](0x000008-agent-cognitive-cycle.md): writes tool reflections and reads failure patterns.
+- [0x00002B Audit Logging Policy](0x00002B-audit-logging-policy.md): the security record, separate from this learning record.
+- [0x00007D FunctionGemma Orchestrator](0x00007D-capabilities-intelligence-functiongemma-orchestrator.md): uses genomes and adapter statistics.

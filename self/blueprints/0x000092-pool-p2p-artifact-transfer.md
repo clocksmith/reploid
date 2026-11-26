@@ -1,5 +1,7 @@
 # Blueprint 0x000092: pool p2p artifact transfer
 
+Owner: apps/poolday (see [apps/poolday/CATSCAN.md](../../apps/poolday/CATSCAN.md))
+
 **Classification:** Canonical Full Specification
 
 **Implementation Status:** Implemented

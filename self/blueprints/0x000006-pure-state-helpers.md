@@ -4,111 +4,38 @@
 
 **Implementation Status:** In-Progress
 
-**Verified Artifacts:** `/self/core/state-helpers-pure.js`, `/self/core/state-manager.js`
+**Verified Artifacts:** `/self/core/state-helpers-pure.js`
 
-**Planned Artifacts:** `state-helpers-pure.js`
+**Planned Artifacts:** None
 
 **Owned Source Files:** `core/state-helpers-pure.js`
 
 **Former Blueprint Paths:** `self/blueprints/0x000006-pure-state-helpers.md`
-**Objective:** To articulate the principle of separating deterministic state calculations (such as validation and statistical analysis) into a dedicated, pure helper module.
+**Objective:** Keep the default state shape, validation and goal-stack update as pure functions with no I/O, so `StateManager` stays a thin persistence layer.
 
-**Target Upgrade:** STHP (`state-helpers-pure.js`)
+**Prerequisites:** None
 
-**Prerequisites:** `0x000005`
-
-**Affected Artifacts:** `/core/state-helpers-pure.js`, `/core/state-manager.js`
+**Affected Artifacts:** `self/core/state-helpers-pure.js`; used by `self/core/state-manager.js` ([0x000005](0x000005-state-management-architecture.md))
 
 ---
 
-### 1. The Strategic Imperative
+### 1. Module
 
-The `StateManager` module has complex responsibilities, including I/O and managing the in-memory state object. Intermingling complex, deterministic logic (like validating the structure of a state object or calculating statistics from its history arrays) with state-modifying, effectful code makes the module harder to test, reason about, and maintain. By extracting this pure logic into a separate helper module, we adhere to the "functional core, imperative shell" principle, resulting in a more robust and testable system.
+`StateHelpersPure` (`self/core/state-helpers-pure.js`), `genesis: { introduced: 'tabula' }`, no dependencies, `type: 'pure'`. `factory()` returns:
 
-### 2. The Architectural Solution
+| Member | Behavior |
+| --- | --- |
+| `DEFAULT_STATE` | `{ version: '1.0.0', totalCycles: 0, currentGoal: null, session: { id: null, startTime: null, status: 'idle' }, artifactMetadata: {}, stats: { apiCalls: 0, errors: 0 } }` |
+| `createInitialState(overrides = {})` | Defaults, then `overrides`, with `session` merged one level deep |
+| `validateState(state)` | `null` when valid; otherwise an array of messages. It checks only that `state` is an object and `totalCycles` is a number. |
+| `pushGoal(state, text)` | Returns a deep copy. With no `currentGoal`, sets `{ id, text, created, subgoals: [] }`; otherwise appends `{ id, text, created, status: 'pending' }` to `currentGoal.subgoals`. IDs are `Date.now()` strings. |
 
-A new `/core/state-helpers-pure.js` artifact will be created. This module will be "pure" in the sense that it has zero dependencies on other agent modules and its functions' outputs depend solely on their inputs. It will export a collection of functions designed to operate on state-related data structures.
+### 2. Rules
 
-**Example Functions:**
--   `validateStateStructurePure(stateObj, ...)`: Takes a state object and returns `null` if valid or an error string if not.
--   `calculateDerivedStatsPure(historyArrays, ...)`: Takes arrays (e.g., `confidenceHistory`) and returns an object of calculated statistics (e.g., `{ avgConfidence: 0.85 }`).
--   `mergeWithDefaultsPure(loadedState, ...)`: Takes a potentially incomplete state object loaded from storage and merges it with a default state structure to ensure all necessary keys exist.
+- No function reads or writes storage, the clock aside from `Date.now()` in `pushGoal`, or the DOM.
+- Inputs are not mutated: `pushGoal` clones with `JSON.parse(JSON.stringify(state))`.
+- Validation is deliberately minimal; a richer schema belongs here, not in `StateManager`.
 
-**Web Component Widget:**
+### 3. Verification
 
-The module includes a `StateHelpersPureWidget` custom element providing proto visibility into validation operations and function call statistics.
-
-```javascript
-class StateHelpersPureWidget extends HTMLElement {
-  constructor() {
-    super();
-    this.attachShadow({ mode: 'open' });
-  }
-
-  connectedCallback() {
-    this.render();
-    this._interval = setInterval(() => this.render(), 5000);
-  }
-
-  disconnectedCallback() {
-    if (this._interval) {
-      clearInterval(this._interval);
-      this._interval = null;
-    }
-  }
-
-  getStatus() {
-    return {
-      state: _callStats.validations > 0 ? 'active' : 'idle',
-      primaryMetric: `${_callStats.validations} validations`,
-      secondaryMetric: `${_callStats.calculations} calculations`,
-      lastActivity: _lastCallTime
-    };
-  }
-
-  render() {
-    this.shadowRoot.innerHTML = `
-      <style>/* Shadow DOM styling */</style>
-      <div class="widget-content">
-        <h3>ƒ Pure State Helpers</h3>
-        <div class="stats-grid">
-          <div class="stat-card">
-            <div class="stat-label">Validations</div>
-            <div class="stat-value">${_callStats.validations}</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-label">Calculations</div>
-            <div class="stat-value">${_callStats.calculations}</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-label">Merges</div>
-            <div class="stat-value">${_callStats.merges}</div>
-          </div>
-        </div>
-      </div>
-    `;
-  }
-}
-
-// Register custom element
-if (!customElements.get('state-helpers-pure-widget')) {
-  customElements.define('state-helpers-pure-widget', StateHelpersPureWidget);
-}
-
-const widget = {
-  element: 'state-helpers-pure-widget',
-  displayName: 'State Helpers',
-  icon: 'ƒ',
-  category: 'core',
-  updateInterval: 5000
-};
-```
-
-### 3. The Implementation Pathway
-
-1.  **Create Pure Module:** Implement the `/core/state-helpers-pure.js` file, ensuring it has no `import` or `require` statements for other agent modules.
-2.  **Define Helper Functions:** Create the necessary pure functions for validation, statistics, and merging, as described above. These functions will be thoroughly testable in isolation.
-3.  **Refactor `StateManager`:**
-    a.  Modify `/core/state-manager.js` to receive `StateHelpersPure` as an injected dependency.
-    b.  In the `init()` method, call `StateHelpersPure.validateStateStructurePure()` and `StateHelpersPure.mergeWithDefaultsPure()` to handle the loading of persisted state robustly.
-    c.  In the `updateAndSaveState()` method, after a state update, call `StateHelpersPure.calculateDerivedStatsPure()` to re-calculate and attach statistics to the state object before it is saved.
+Incomplete: no test imports this module, and `tests/unit/state-manager.test.js` replaces it with an empty mock. A direct unit test of the three functions is the missing evidence.

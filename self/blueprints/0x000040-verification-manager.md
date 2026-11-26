@@ -2,609 +2,87 @@
 
 **Classification:** Canonical Full Specification
 
-**Implementation Status:** In-Progress
+**Implementation Status:** Implemented
 
-**Verified Artifacts:** `/self/core/tool-runner.js`, `/self/core/verification-manager.js`, `/self/core/verification-worker.js`, `/self/testing/arena/vfs-sandbox.js`
+**Verified Artifacts:** `/self/core/verification-manager.js`, `/shared/core/verification-worker.js`, `/self/testing/arena/vfs-sandbox.js`, `/tests/unit/verification-worker-prototype.test.js`, `/tests/unit/write-file-verification.test.js`, `/tests/unit/tool-verification-gate.test.js`
 
-**Planned Artifacts:** `/tools/sentinel-tools.js`, `verification-manager.js`
+**Planned Artifacts:** None
 
 **Owned Source Files:** `core/verification-manager.js`, `testing/arena/vfs-sandbox.js`
 
 **Former Blueprint Paths:** `self/blueprints/0x000040-verification-manager.md`
-**Target Upgrade:** VRFY (`verification-manager.js`)
+**Objective:** Check proposed source changes with static analysis in a disposable Web Worker before they are written or loaded, without executing the candidate code, and fail closed when the check cannot run.
 
-**Objective:** Provide safe, sandboxed execution of verification commands (tests, linting, type-checking) in a Web Worker to validate self-modifications without risking the main application.
+**Prerequisites:** [0x00000A](0x00000A-tool-runner-engine.md) (Tool Runner), [0x000011](0x000011-advanced-storage-backend-indexeddb.md) (VFS), [0x00004F](0x00004F-event-bus-infrastructure.md) (EventBus)
 
-**Prerequisites:** 0x00000A (Tool Runner Engine), Web Workers API
-
-**Affected Artifacts:** `/core/verification-manager.js`, `/core/verification-worker.js`, `/core/tool-runner.js`, `/tools/sentinel-tools.js`
+**Affected Artifacts:** `self/core/verification-manager.js`, `shared/core/verification-worker.js` (served at `/self/core/verification-worker.js`), `self/testing/arena/vfs-sandbox.js`, `self/tools/WriteFile.js`, `self/core/tool-writer.js`, `self/core/vfs-module-loader.js`, `self/capabilities/system/substrate-loader.js`
 
 ---
 
-### 1. The Strategic Imperative
+### 1. What it is and is not
 
-When an agent modifies its own code, it must be able to:
-- **Verify changes are correct** by running tests
-- **Ensure code quality** through linting
-- **Validate types** before committing changes
-- **Safely execute** verification without crashing the main app
+`VerificationManager` (metadata `id: 'VerificationManager'`, `genesis: { introduced: 'spark' }`, dependencies `Utils`, `VFS`, optional `EventBus`) is a static pre-flight checker. It parses candidate JavaScript with the vendored Acorn parser inside a Worker, matches dangerous patterns, checks path capabilities and measures complexity. It does not run tests, lint or type checks, and it is not a runtime sandbox for arbitrary JavaScript (`verification-worker.js:1-4`).
 
-**The Problem:**
-Running user-provided test code directly in the main thread poses severe risks:
-- Infinite loops can freeze the UI
-- Syntax errors can crash the application
-- Malicious code can access sensitive data
-- Failed tests can corrupt the agent's state
+A pass is evidence that a change cleared these checks. It does not adopt or activate anything; adoption stays with the operator.
 
-**The Solution:**
-Execute all verification commands in an isolated Web Worker with:
-- Separate thread (can be terminated)
-- Sandboxed environment (no DOM access)
-- Message-based communication (serialized data only)
-- Timeout protection (kill long-running tests)
+### 2. Interface
 
----
+`factory(deps)` returns four functions (`verification-manager.js:302`):
 
-### 2. The Architectural Solution
+| Function | Behavior |
+| --- | --- |
+| `verifyProposal(changes, options)` | `changes` is an array of `{ operation, file_path, new_content }` or a `{ path: content }` map (`null` content means delete). Options: `timeout` (default 10 000 ms), `quickMode` (default `true`: check only the changed files; `false` snapshots every `.js`/`.json` file in the VFS and overlays the changes), `requireVerification`, `toolCreation`. Resolves to `{ passed, skipped, reason, errors, warnings, events, details, verification }`. |
+| `verifyFile(path, content)` | `verifyProposal` of one write in quick mode |
+| `verifyFiles(filesMap)` | `verifyProposal` of several writes in quick mode |
+| `getCapabilitiesForPath(path)` | Main-thread copy of the path rules for `/tools/`, `/apps/`, `/core/`, `/infrastructure/`, `/.logs/`; any other path gets the restricted `/tools/` rule |
 
-The Verification Manager consists of two components:
+### 3. Fail-closed behavior
 
-#### 2.1 VerificationManager (Main Thread)
-Orchestrates worker lifecycle and communication:
+- With the optional security mode off (`REPLOID_SECURITY_MODE`, default off) and no `requireVerification`, `verifyProposal` returns `{ passed: true, skipped: true, reason: 'Security disabled' }` without starting a Worker. A skipped result is not a pass; gates must check `skipped`.
+- With `requireVerification: true` on the `x` or `zero` surface, the Worker URL is `/<surface>/__verifier__/worker.js` and the manager first checks that the controlling Service Worker is the matching active lab Service Worker; otherwise it fails with `VFS delivery unavailable`.
+- A Worker that cannot be created, cannot receive the message, crashes, or does not answer within the timeout yields `passed: false` (events `verification:worker_crash`, `verification:timeout`).
+- The manager hashes every snapshot file with SHA-256 and accepts the Worker's answer only if it reports `verification.kind === 'static-worker'` and the same hash for every file. Otherwise the result is `Worker source hash mismatch`.
 
-```javascript
-const VerificationManager = {
-  worker: null,
-  pendingRequests: new Map(),
+### 4. Worker checks
 
-  init() {
-    this.worker = new Worker('/core/verification-worker.js');
-    this.worker.onmessage = (e) => {
-      const { requestId, result } = e.data;
-      const resolver = this.pendingRequests.get(requestId);
-      if (resolver) {
-        resolver(result);
-        this.pendingRequests.delete(requestId);
-      }
-    };
-  },
+`shared/core/verification-worker.js` is a classic Worker. It loads `/core/vendor/acorn.js` (or `./acorn.js` under the lab verifier path) with `importScripts`; a missing parser is a failure, never a reason to execute the candidate. For each `.js` file it runs:
 
-  async runVerification(command, timeout = 30000) {
-    const requestId = crypto.randomUUID();
+1. Syntax parse (`verification:syntax_error`). With `toolCreation: true`, static `import` and re-export statements are errors: tools must use injected dependencies.
+2. 37 dangerous patterns in the categories injection, prototype, execution, filesystem, network, storage, DOM, process and loop, for example `eval`, `function_constructor`, `dynamic_import`, `proto_access`, `fetch`, `indexeddb`, `innerhtml_assign`, `child_process`, `while_true` (`verification:pattern_detected`). A pattern whose required capability the path holds is allowed; `/core/` and `/infrastructure/` files skip patterns that need no capability.
+3. Structural checks from the built-in `SimpleAST` scanner.
+4. Top-level `/tools/*.js` files must have `export default` or `export const tool`.
+5. Capability boundary: literal `VFS.write`, `VFS.delete`, `WriteFile` and `DeleteFile` targets must be allowed for the source path's prefix (`verification:capability_violation`). `/tools/` may write `/tools/`, `/apps/`, `/.logs/`, `/.memory/`; `/core/`, `/infrastructure/`, `/capabilities/` and `/testing/` may write anywhere.
+6. Complexity warnings for non-privileged files: more than 500 lines, 20 functions, nesting depth 5, cyclomatic complexity 15 or line length 200 (`verification:complexity_warning`).
 
-    return new Promise((resolve, reject) => {
-      // Set up timeout
-      const timeoutId = setTimeout(() => {
-        this.worker.terminate();
-        this.init(); // Restart worker
-        reject(new Error('Verification timeout'));
-      }, timeout);
+`passed` is true only when no check produced an error.
 
-      // Store resolver
-      this.pendingRequests.set(requestId, (result) => {
-        clearTimeout(timeoutId);
-        resolve(result);
-      });
+### 5. VFS sandbox
 
-      // Send command to worker
-      this.worker.postMessage({ requestId, command });
-    });
-  }
-};
-```
+`VFSSandbox` (`self/testing/arena/vfs-sandbox.js`, `genesis: { introduced: 'substrate' }`) returns `createSnapshot()`, `restoreSnapshot(snapshot)`, `applyChanges(changesMap)` and `diffSnapshot(snapshot)`. It is not a separate copy of the VFS: `applyChanges` writes to the live VFS and `restoreSnapshot` deletes added files and rewrites changed ones. Callers wrap a candidate as snapshot, apply, verify, restore.
 
-#### 2.2 VerificationWorker (Worker Thread)
-Executes verification commands in isolation:
+### 6. Callers
 
-```javascript
-// In verification-worker.js
-self.onmessage = async (e) => {
-  const { requestId, command } = e.data;
+- `self/tools/WriteFile.js` contains a core-write gate for `/core/` and `/infrastructure/` paths when `REPLOID_ARENA_GATING` is `'true'` (a sandbox switch that runs no Arena competition): snapshot, apply, `verifyProposal(..., { requireVerification: true })` with a 30 s limit, restore. A missing verifier, error, timeout, restore failure, skipped result or any result other than an explicit pass blocks the write, audits `CORE_WRITE_BLOCKED` and emits `tool:core_blocked`. In the current policy the gate is not reached for VFS writes: `assertWritableVfsPath` (`self/config/vfs-policy.js`) allows only `/shadow`, `/artifacts` and `/cycles`, so `WriteFile` refuses core paths first.
+- `self/core/tool-writer.js` requires a passing, non-skipped `verifyProposal` before installing a tool ([0x000015](0x000015-dynamic-tool-creation.md)).
+- `self/capabilities/system/substrate-loader.js` verifies a critical-path module in the sandbox before loading it when the security mode and Arena gating are on. `self/core/vfs-module-loader.js` can verify before import, but only when a caller passes `verify: true`, and no current caller does.
+- `self/testing/arena/arena-harness.js` and `self/capabilities/cognition/symbolic/rule-engine.js` call `verifyProposal` and read only `passed`. With the security mode off, the arena harness therefore counts a skipped check as `PASS`. Arena results rank candidates and grant nothing ([0x000066](0x000066-arena-harness.md)).
 
-  try {
-    const result = await executeVerification(command);
-    self.postMessage({ requestId, result });
-  } catch (error) {
-    self.postMessage({
-      requestId,
-      result: { success: false, error: error.message }
-    });
-  }
-};
+### 7. Related containment
 
-const executeVerification = async (command) => {
-  if (command.startsWith('test:')) {
-    return await runTests(command.substring(5));
-  } else if (command.startsWith('lint:')) {
-    return await runLint(command.substring(5));
-  } else if (command.startsWith('typecheck:')) {
-    return await runTypeCheck(command.substring(10));
-  }
+| Layer | Blueprint |
+| --- | --- |
+| VFS in IndexedDB | [0x000011](0x000011-advanced-storage-backend-indexeddb.md) |
+| Service Worker module delivery | [0x000002](0x000002-application-orchestration.md) |
+| Genesis snapshots | [0x00003C](0x00003C-genesis-snapshot-system.md) |
+| Arena scoring (informs only) | [0x000064](0x000064-arena-competitor.md), [0x000065](0x000065-arena-metrics.md), [0x000066](0x000066-arena-harness.md) |
+| Circuit breaker | [0x00005C](0x00005C-circuit-breaker-pattern.md) |
+| HITL approval | [0x000049](0x000049-hitl-controller.md) |
+| Module integrity | [0x00002A](0x00002A-module-integrity-verification.md) |
 
-  throw new Error(`Unknown verification command: ${command}`);
-};
-```
+### 8. Verification
 
----
-
-### 3. Verification Command Types
-
-#### 3.1 Test Execution
-```javascript
-// Command format: "test:/tests/unit/module.test.js"
-
-const runTests = async (testPath) => {
-  // Load test file from VFS snapshot
-  const testCode = vfsSnapshot[testPath];
-
-  // Create test environment
-  const context = {
-    describe: (name, fn) => { /* test suite */ },
-    it: (name, fn) => { /* test case */ },
-    expect: (value) => ({ /* assertions */ })
-  };
-
-  // Execute test code
-  const testFn = new Function(...Object.keys(context), testCode);
-  testFn(...Object.values(context));
-
-  return {
-    success: allTestsPassed,
-    output: testResults
-  };
-};
-```
-
-#### 3.2 Linting
-```javascript
-// Command format: "lint:/core/module.js"
-
-const runLint = async (filePath) => {
-  const code = vfsSnapshot[filePath];
-
-  const issues = [];
-
-  // Basic linting rules
-  if (code.includes('eval(')) {
-    issues.push('Avoid eval() - security risk');
-  }
-  if (!code.includes('use strict')) {
-    issues.push('Missing "use strict"');
-  }
-  // ... more rules
-
-  return {
-    success: issues.length === 0,
-    output: issues
-  };
-};
-```
-
-#### 3.3 Type Checking
-```javascript
-// Command format: "typecheck:/core/module.js"
-
-const runTypeCheck = async (filePath) => {
-  const code = vfsSnapshot[filePath];
-
-  // Parse JSDoc comments
-  const typeErrors = [];
-
-  // Simple type checking
-  const paramMatches = code.matchAll(/@param {(\w+)} (\w+)/g);
-  for (const match of paramMatches) {
-    // Verify parameter usage matches type
-  }
-
-  return {
-    success: typeErrors.length === 0,
-    output: typeErrors
-  };
-};
-```
-
----
-
-### 4. The Implementation Pathway
-
-**Phase 1: Worker Infrastructure** [x] Complete
-1. Create VerificationManager main thread orchestrator
-2. Create verification-worker.js Web Worker
-3. Implement message-based communication
-4. Add timeout protection
-
-**Phase 2: Verification Commands** [x] Complete
-1. Implement test execution with simple test framework
-2. Add basic linting rules
-3. Add type checking placeholders
-4. Support VFS snapshot passing
-
-**Phase 3: Integration** [x] Complete
-1. Register VRFY in DI container
-2. Use in ToolRunner for `apply_dogs_bundle` verification
-3. Use in SentinelTools for verification commands
-4. Provide graceful fallback when unavailable
-
-**Phase 4: Enhancement** ☡ Future
-1. Add more sophisticated test framework
-2. Integrate real linting library (ESLint-compatible)
-3. Add TypeScript type checking
-4. Support parallel test execution
-
----
-
-## Module Interface
-
-### Initialization
-
-```javascript
-const VerificationManager = window.DIContainer.resolve('VerificationManager');
-
-// Initialize worker
-await VerificationManager.init();
-```
-
-### Running Verification
-
-```javascript
-// Run tests
-const testResult = await VerificationManager.runVerification(
-  'test:/tests/unit/state-manager.test.js'
-);
-
-if (testResult.success) {
-  console.log('[x] Tests passed');
-} else {
-  console.error('[ ] Tests failed:', testResult.error);
-}
-
-// Run linting
-const lintResult = await VerificationManager.runVerification(
-  'lint:/core/tool-runner.js'
-);
-
-// Run type checking
-const typeResult = await VerificationManager.runVerification(
-  'typecheck:/core/api-client.js'
-);
-```
-
-### Integration with Tool Runner
-
-```javascript
-// In apply_dogs_bundle tool
-if (verify_command) {
-  const VerificationManager = globalThis.DIContainer?.resolve('VerificationManager');
-
-  if (VerificationManager) {
-    const result = await VerificationManager.runVerification(verify_command);
-
-    if (!result.success) {
-      // Rollback changes
-      await StateManager.restoreCheckpoint(checkpoint.id);
-      throw new ToolError(`Verification failed: ${result.error}`);
-    }
-  }
-}
-```
-
----
-
-## Safety Mechanisms
-
-### 1. Thread Isolation
-**Problem:** Test code could crash the main application
-**Solution:** Web Worker runs in separate thread - crashes only kill worker, not app
-
-### 2. Timeout Protection
-**Problem:** Infinite loops in tests freeze the application
-**Solution:** 30-second timeout terminates worker and restarts it
-
-```javascript
-setTimeout(() => {
-  this.worker.terminate();
-  this.init(); // Fresh worker
-  reject(new Error('Verification timeout'));
-}, 30000);
-```
-
-### 3. Sandboxed Execution
-**Problem:** Test code could access sensitive data
-**Solution:** Worker has no access to:
-- DOM/window object
-- LocalStorage
-- Cookies
-- Other tabs
-- Main VFS (only receives snapshot)
-
-### 4. VFS Snapshot
-**Problem:** Tests could corrupt the live VFS
-**Solution:** Pass read-only snapshot to worker
-
-```javascript
-const vfsSnapshot = await StateManager.createVFSSnapshot();
-this.worker.postMessage({ command, vfsSnapshot });
-```
-
----
-
-## Use Cases
-
-### 1. Safe Self-Modification
-```javascript
-// Apply changes
-await ToolRunner.execute('apply_dogs_bundle', {
-  dogs_path: '/changes.dogs.md',
-  verify_command: 'test:/tests/unit/new-feature.test.js'
-});
-
-// If tests fail, changes are automatically rolled back
-```
-
-### 2. Pre-Commit Validation
-```javascript
-// Before committing self-modification
-const lintOk = await VerificationManager.runVerification('lint:/core/new-module.js');
-const testsOk = await VerificationManager.runVerification('test:/tests/unit/new-module.test.js');
-
-if (lintOk.success && testsOk.success) {
-  await commitChanges();
-} else {
-  await discardChanges();
-}
-```
-
-### 3. Continuous Validation
-```javascript
-// After each cycle
-EventBus.on('cycle:completed', async () => {
-  const result = await VerificationManager.runVerification('test:/tests/integration/smoke.test.js');
-  if (!result.success) {
-    EventBus.emit('agent:regression-detected', result);
-  }
-});
-```
-
----
-
-## Performance Characteristics
-
-**Worker Startup:** ~10-50ms (one-time cost)
-**Message Overhead:** ~1-5ms per verification
-**Test Execution:** Depends on test complexity
-**Timeout:** 30 seconds default (configurable)
-
-**Memory:**
-- Worker thread: ~1-5MB overhead
-- VFS snapshot: Copy of modified files only
-- Total: <10MB for typical usage
-
----
-
-## Success Criteria
-
-**Safety:**
-- [x] Crashes in worker don't affect main app
-- [x] Infinite loops get killed after timeout
-- [x] Test code cannot access sensitive data
-- [x] VFS corruption impossible from worker
-
-**Functionality:**
-- [x] Can execute test files with assertions
-- [x] Can lint code with basic rules
-- [x] Can check types from JSDoc
-- [x] Returns clear success/failure status
-
-**Integration:**
-- [x] Used by ToolRunner for verification
-- [x] Used by SentinelTools for test commands
-- [x] Graceful degradation when unavailable
-- [x] Easy to extend with new verification types
-
----
-
-## Known Limitations
-
-1. **Simple test framework** - Not feature-complete like Jest/Mocha
-2. **Basic linting** - Missing many advanced lint rules
-3. **No TypeScript** - Only supports JSDoc type hints
-4. **No coverage** - Doesn't track code coverage metrics
-5. **No mocking** - Tests run against real dependencies
-
----
-
-## Optional contract extensions
-
-1. **Full test framework** - Jest/Vitest-compatible API
-2. **Real linting** - ESLint integration
-3. **TypeScript support** - Full type checking with tsc
-4. **Code coverage** - Istanbul-style coverage reports
-5. **Test isolation** - Mock dependencies, clean state between tests
-6. **Parallel execution** - Run multiple test files concurrently
-7. **Watch mode** - Re-run tests on file changes
-8. **Visual test runner** - UI for test results and debugging
-
----
-
-### 10. Web Component Widget
-
-The widget uses a Web Component with Shadow DOM for encapsulated rendering:
-
-```javascript
-class VerificationManagerWidget extends HTMLElement {
-  constructor() {
-    super();
-    this.attachShadow({ mode: 'open' });
-  }
-
-  connectedCallback() {
-    this.render();
-    // Auto-refresh every 2 seconds to track active verifications
-    this._interval = setInterval(() => this.render(), 2000);
-  }
-
-  disconnectedCallback() {
-    if (this._interval) {
-      clearInterval(this._interval);
-      this._interval = null;
-    }
-  }
-
-  getStatus() {
-    const passRate = verificationStats.totalRuns > 0
-      ? Math.round((verificationStats.passed / verificationStats.totalRuns) * 100)
-      : 100;
-    const isActive = verificationStats.activeVerifications > 0;
-
-    return {
-      state: isActive ? 'active' : 'idle',
-      primaryMetric: `${verificationStats.totalRuns} tests run`,
-      secondaryMetric: `${passRate}% pass rate`,
-      lastActivity: verificationStats.lastRun,
-      message: isActive ? `Running ${verificationStats.activeVerifications} verification(s)` : null
-    };
-  }
-
-  getControls() {
-    return [
-      {
-        id: 'clear-history',
-        label: 'Clear History',
-        action: () => {
-          verificationStats.history = [];
-          this.render();
-          return { success: true, message: 'Verification history cleared' };
-        }
-      }
-    ];
-  }
-
-  render() {
-    this.shadowRoot.innerHTML = `
-      <style>
-        :host {
-          display: block;
-          font-family: monospace;
-          font-size: 12px;
-        }
-        .verification-panel { padding: 12px; color: #fff; }
-        .stats-grid {
-          display: grid;
-          grid-template-columns: 1fr 1fr 1fr;
-          gap: 10px;
-        }
-        .stat-card { padding: 10px; background: rgba(255,255,255,0.05); border-radius: 5px; }
-      </style>
-      <div class="verification-panel">
-        <h4>✓ Verification Manager</h4>
-        <div class="stats-grid">
-          <div class="stat-card">
-            <div>Total Runs</div>
-            <div>${verificationStats.totalRuns}</div>
-          </div>
-          <div class="stat-card">
-            <div>Passed</div>
-            <div>${verificationStats.passed}</div>
-          </div>
-          <div class="stat-card">
-            <div>Failed</div>
-            <div>${verificationStats.failed}</div>
-          </div>
-        </div>
-      </div>
-    `;
-  }
-}
-
-// Register custom element
-const elementName = 'verification-manager-widget';
-if (!customElements.get(elementName)) {
-  customElements.define(elementName, VerificationManagerWidget);
-}
-
-const widget = {
-  element: elementName,
-  displayName: 'Verification Manager',
-  icon: '✓',
-  category: 'rsi'
-};
-```
-
-**Key features:**
-- Displays verification statistics (total runs, pass rate, failures)
-- Shows active verification count when running
-- Tracks verification history
-- Provides control to clear history
-- Auto-refresh to track active verifications
-- Uses closure access to module state (verificationStats)
-- Shadow DOM encapsulation for styling
-
----
-
----
-
-## 11. Security & Containment Integration
-
-This module is part of the 8-layer safety stack. For the complete security architecture, see related blueprints:
-
-### Containment Layers
-
-| Layer | Blueprint | Description |
-|-------|-----------|-------------|
-| 1 | VFS (0x000011) | All I/O virtualized via IndexedDB |
-| 2 | Service Worker (0x000002) | ES6 imports intercepted, served from VFS |
-| 3 | Genesis Snapshots (0x000043) | Instant rollback to pristine state |
-| 4 | **Verification Worker (this)** | Pre-flight checks in isolated Web Worker |
-| 5 | Arena Gating (0x000075-77) | Multi-model consensus for high-risk changes |
-| 6 | VFSSandbox (0x000075) | Test changes in disposable clone |
-| 7 | Circuit Breakers (0x000067) | Prevent runaway failures |
-| 8 | HITL Controller (0x000051) | Human approval gates |
-
-### Threat Mitigations Provided by This Module
-
-| Threat | Mitigation |
-|--------|------------|
-| `eval()` in tools | Verification Worker detects and blocks |
-| Dynamic imports | Service Worker intercepts, Verification validates |
-| Prototype pollution | Pattern detection in lint phase |
-| Infinite loops | 30s timeout terminates worker |
-| Syntax errors | Pre-flight validation catches before execution |
-
-### Permission Model
-
-```javascript
-// Worker types receive filtered tool access
-const WORKER_TYPES = {
-  explore: { allowedTools: ['ReadFile', 'ListFiles', 'Grep', 'Find'] },
-  analyze: { allowedTools: ['ReadFile', 'ListFiles', 'Grep', 'Find'] },
-  execute: { allowedTools: '*' }  // Full access, requires verification
-};
-
-// Tool categories by risk level
-const TOOL_RISK = {
-  low: ['ReadFile', 'ListFiles', 'Grep'],      // Read-only
-  medium: ['WriteFile', 'CreateTool', 'EditFile'], // Write VFS
-  high: ['LoadModule', 'ModifyGoal'],          // Meta/RSI
-  critical: []                                  // None exposed to agent
-};
-```
-
-### Audit Logging
-
-All verification runs are logged:
-
-```javascript
-// /.logs/audit/YYYY-MM-DD.jsonl
-{
-  "ts": 1733000000000,
-  "type": "verification",
-  "command": "test:/tests/unit/module.test.js",
-  "result": "passed",
-  "duration": 1250,
-  "workerId": null
-}
-```
-
----
-
-**Remember:** This module enables the agent to **safely validate its self-modifications**. Without verification, the agent risks breaking itself with every change. With verification, it can confidently evolve knowing tests will catch regressions.
+- `tests/unit/tool-verification-gate.test.js` runs the real manager, tool writer and tool runner on the tool-creation gate.
+- `tests/unit/verification-worker-prototype.test.js` loads the real Worker source and checks its prototype-access detection.
+- `tests/unit/write-file-verification.test.js` exercises the `WriteFile` core gate with the VFS policy mocked open.
+- `tests/unit/verification-manager.test.js` checks the real module's metadata; most of its cases test a copy of the capability rules held in the test file, so they do not prove the Worker's rules.
+- `tests/e2e/vfs-storage-contract.spec.js` runs the Worker in a browser for the storage-owner exception.

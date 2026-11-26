@@ -1,5 +1,7 @@
 # Blueprint 0x000098: pool artifact router
 
+Owner: apps/poolday (see [apps/poolday/CATSCAN.md](../../apps/poolday/CATSCAN.md))
+
 **Classification:** Canonical Full Specification
 
 **Implementation Status:** Implemented
@@ -30,7 +32,10 @@ artifacts before evidence, transfer time, latency, cost, and deterministic tie.
 
 ### 3. Constraints
 Only fully promoted and published adapters are routable. Every provider still
-runs the full model. Base-model peer shard relay is not part of the live path.
+runs the full model: split routes, where peers run different layer ranges, are
+not yet qualified for public use (see the [README](../../README.md) and
+[INTENT.md](../../INTENT.md)), and this router does not place them. Base-model
+peer shard relay is not part of this router's live path.
 
 ### 4. Verification requirements
 - [x] Rejected candidates retain stable reason codes

@@ -94,7 +94,7 @@ Apps live at `/apps/{app-id}/` with this structure:
     "network": false,             // External fetch (default: false)
     "notifications": false,       // Browser notifications
     "clipboard": false,           // Clipboard access
-    "storage": "1MB"              // localStorage quota for app
+    "storage": "1MB"              // host-mediated per-app storage quota (the sandboxed frame has no localStorage)
   },
 
   // UI HINTS
@@ -182,20 +182,20 @@ for (const { manifest } of apps) {
 
 ### 4.1 Iframe Sandboxing
 
-Apps mount in iframes with strict sandbox attributes:
+Apps mount in iframes sandboxed without `allow-same-origin`:
 
 ```html
 <iframe
   id="app-frame-my-dashboard"
   src="blob:..."
-  sandbox="allow-scripts allow-same-origin"
+  sandbox="allow-scripts"
   csp="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';"
 ></iframe>
 ```
 
 **Sandbox Restrictions:**
 - `allow-scripts` - Execute JavaScript
-- `allow-same-origin` - Access sessionStorage (NOT parent window)
+- NO `allow-same-origin` - A blob URL inherits the origin of the document that created it. With `allow-same-origin`, the app would run in the host origin and could read the host's localStorage, IndexedDB, OPFS and cookies and script `parent` directly. Without it the frame gets an opaque origin: web storage is unavailable and all host access goes through the postMessage bridge.
 - NO `allow-top-navigation` - Cannot navigate parent
 - NO `allow-popups` - Cannot open new windows
 - NO `allow-forms` - Forms use API bridge instead
@@ -480,7 +480,7 @@ if (AuditLogger) {
 | XSS in app affecting host | Iframe sandbox, separate origin |
 | App reading sensitive VFS paths | Permission whitelist, pattern matching |
 | App spamming EventBus | Rate limiting, permission restrictions |
-| App consuming excessive resources | localStorage quota, CPU throttling |
+| App consuming excessive resources | Host-enforced storage quota through the bridge, CPU throttling |
 | Malicious app installation | HITL approval for CreateApp tool |
 | App phishing (fake REPLOID UI) | Visual indicator showing app boundaries |
 
@@ -499,14 +499,14 @@ Apps requesting `network: true` get a relaxed `connect-src`.
 
 ### 7.3 Origin Isolation
 
-Each app gets a unique blob URL origin:
+A blob URL does not create a new origin; it inherits the origin of the document that called `URL.createObjectURL`. Isolation comes from the sandbox attribute, not from the URL:
 ```javascript
 const blob = new Blob([appHtml], { type: 'text/html' });
 const blobUrl = URL.createObjectURL(blob);
 iframe.src = blobUrl;
 ```
 
-This prevents apps from accessing each other's storage or the host's storage.
+Loaded into an iframe with `sandbox="allow-scripts"` and no `allow-same-origin`, each app runs in its own opaque origin and cannot read the host's or another app's storage. Adding `allow-same-origin` to a blob-URL frame removes that isolation, because the frame then shares the host origin. Per-app persistence must therefore be provided by the host through the bridge, keyed by app ID.
 
 ---
 

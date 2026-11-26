@@ -1,5 +1,7 @@
 # Blueprint 0x000083: pool identity
 
+Owner: apps/poolday (see [apps/poolday/CATSCAN.md](../../apps/poolday/CATSCAN.md)). The source file lives in `shared/pool/` (served at `/self/pool/`), whose modules keep the [Poolday Evidence Runtime](../../apps/poolday/pool/CATSCAN.md) contracts ([shared/CATSCAN.md](../../shared/CATSCAN.md)).
+
 **Classification:** Canonical Full Specification
 
 **Implementation Status:** Implemented
@@ -11,7 +13,7 @@
 **Owned Source Files:** `pool/identity.js`
 
 **Former Blueprint Paths:** `self/blueprints/0x000083-pool-identity.md`
-**Objective:** Describe implementation for pool/identity.js.
+**Objective:** Derive scoped requester and provider role keys from one browser device root, without a unique-human or hardware-attestation claim.
 
 **Target Upgrade:** pool/identity.js
 

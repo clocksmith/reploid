@@ -1,5 +1,7 @@
 # Blueprint 0x000088: ui pool home controls
 
+Owner: apps/poolday (see [apps/poolday/CATSCAN.md](../../apps/poolday/CATSCAN.md))
+
 **Classification:** Canonical Full Specification
 
 **Implementation Status:** Implemented
@@ -11,7 +13,7 @@
 **Owned Source Files:** `ui/pool-home/controls.js`, `ui/pool-home/index.js`
 
 **Former Blueprint Paths:** `self/blueprints/0x000088-ui-pool-home-controls.md`
-**Objective:** Describe implementation for ui/pool-home/controls.js.
+**Objective:** Bind the Poolday Home controls so each one changes the signed job, profile or advert it represents.
 
 **Target Upgrade:** ui/pool-home/controls.js
 
@@ -42,8 +44,10 @@ execution. Share compute shows the eligible Pack, current limits, input
 handling, stopping condition, sharing state, and one Start sharing action;
 readiness and debug events stay under Advanced details. Recent jobs leads with
 the job ledger and contains only execution evidence. Research Room-1 owns the
-scientific workflow on `/room-1`. The legacy `/ask`, `/history`, and `/network`
-paths remain compatibility aliases.
+scientific workflow on `/room-1`. `/ask`, `/network`, `/compute`, `/records`
+and `/room-1` are their own non-primary routes; `/history` and `/work` are the
+only compatibility aliases (`POOLDAY_ROUTE_ALIASES` in
+[`constants.js`](../../apps/poolday/ui/pool-home/constants.js)).
 
 The topology shares its WebGPU device evidence with a bounded capability probe.
 The probe combines supported limits with a short arithmetic kernel and assigns
@@ -70,8 +74,13 @@ Rechecking does not load model weights, and contribution clamps the signed
 advert to both the person's limits and the measured tier defaults.
 
 Primary navigation remains a compact horizontal shell on desktop and mobile.
-It contains exactly Run a model, Share compute, Recent jobs, and a subordinate
-network-availability indicator.
+`POOLDAY_NAV_ROUTES` in [`constants.js`](../../apps/poolday/ui/pool-home/constants.js)
+holds one primary route, Changes (`/improve`); every other route definition is
+`primary: false`. [`shell-view.js`](../../apps/poolday/ui/pool-home/shell-view.js)
+renders the brand link, the execution ribbon and a Settings menu whose app
+shortcuts are Changes, Network (omitted on routes whose inspector carries
+Settings), Examples and Experiments. The `home` and `network` routes render no
+app bar.
 
 ### 4. Verification requirements
 - [x] Adapter selection reaches peer job model requirements
@@ -88,7 +97,7 @@ network-availability indicator.
 - [x] Adapter empty state distinguishes runtime support from pack publication
 - [x] First-time visitors can run the enabled Pack without opening Advanced details
 - [x] Home does not render topology or room-governance detail before the primary task
-- [x] Primary navigation exposes exactly three product destinations
+- [x] Primary navigation routes contain only Changes; other destinations are non-primary routes or Settings shortcuts (`tests/unit/pool-home-nav.test.js`)
 - [x] Generic Pack execution excludes Research Room fields
 - [x] Research Room-1 has a separate non-primary route
 - [x] Sharing limits and failure state are visible before or beside Start sharing

@@ -2,7 +2,7 @@
 
 **Classification:** Canonical Full Specification
 
-**Implementation Status:** Implemented
+**Implementation Status:** In-Progress
 
 **Verified Artifacts:** `/self/config/doppler-local-models.js`, `/self/config/doppler-execution-contracts.js`, `/self/core/doppler-runtime-service.js`, `/self/infrastructure/doppler-runtime-service.js`
 
@@ -52,11 +52,14 @@ verification, and promotion.
 
 ### 3. Implementation Notes
 
-- The browser module, kernel base, package spec, semantic version, and Git commit
-  come from `config/doppler-local-models.js`.
-- Node and the browser pin the published `doppler-gpu@0.5.1` package. The
-  lockfile binds the npm tarball integrity, while the browser module and kernel
-  URLs bind the same immutable version.
+- The package name, version, spec, tarball, integrity, browser module and
+  kernel base come from `config/doppler-local-models.js`, which reads
+  [`shared/config/doppler-package.json`](../../shared/config/doppler-package.json).
+  That file is the one pin: it names the `dopplerx` package and its tarball
+  integrity. Node installs that tarball through the root `package.json`
+  dependency, and the browser module and kernel URLs live under
+  `/vendor/doppler/<version>/`, so both bind the same immutable package. Do not
+  repeat the version in prose.
 - Different scopes can keep text and protein sessions independently.
 - Legacy handle adaptation exists only under Vitest and never runs in the
   deployed browser.
@@ -68,11 +71,12 @@ verification, and promotion.
 
 - [x] Unit tests cover reuse, scope separation, close, and fail-closed identity.
 - [x] Local provider and Poolday adapters use the scoped API.
-- [x] Runtime-config synchronization binds Node and browser imports to one exact
-  Git commit.
+- [x] Runtime-config synchronization binds Node and browser imports to the one
+  package pinned in `shared/config/doppler-package.json`.
 - [x] Real two-browser text and protein lanes pass after deployment.
 - [x] A real two-provider ring quorum passes through the deployed server relay
   with signed requester acceptance.
-- Real Zero bounded RSI passes after deployment.
+- [ ] Real Zero bounded RSI passes after deployment. Open: no retained receipt
+  exists, so this declared verification boundary keeps the status In-Progress.
 
 *Last updated: July 2026*

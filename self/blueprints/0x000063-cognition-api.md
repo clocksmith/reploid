@@ -11,68 +11,67 @@
 **Owned Source Files:** `capabilities/cognition/cognition-api.js`
 
 **Former Blueprint Paths:** `self/blueprints/0x000063-cognition-api.md`
-**Module:** `CognitionAPI`
-**File:** `./capabilities/cognition/cognition-api.js`
-**Purpose:** Unified interface combining semantic + symbolic reasoning
+**Module:** `CognitionAPI` (version 1.0.0, type `capability`)
+**File:** `self/capabilities/cognition/cognition-api.js`
+**Genesis level:** `cognition` (`self/config/genesis-levels.json`)
+**Dependencies:** `Utils`, `EventBus`, `SemanticMemory`, `KnowledgeGraph`, `RuleEngine`, `SymbolGrounder`
+**Purpose:** One facade over semantic memory and symbolic reasoning, with a circuit breaker per subsystem.
 
-## Overview
+## Contract
 
-CognitionAPI provides single entry point for all cognitive capabilities: semantic memory, knowledge graphs, rule engines, symbol grounding. Orchestrates hybrid reasoning.
+There is no `think(query, mode)` function and no synthesis step. The facade exposes three namespaces (`semantic`, `symbolic`, `learning`) and a `query` function that chains them. Model inference is not part of it; the agent loop calls the model itself.
 
-## Implementation
+### Circuit breakers
 
-```javascript
-const CognitionAPI = {
-  metadata: {
-    id: 'CognitionAPI',
-    dependencies: ['Utils', 'SemanticMemory', 'KnowledgeGraph', 'RuleEngine', 'SymbolGrounder'],
-    type: 'capability'
-  },
+Each namespace has a breaker (`:49-56`, `:92-131`). Three failures open it; it closes again 60 s after the last failure. A success lowers the failure count by one. While a breaker is open, or a subsystem is disabled in config, calls return a neutral value instead of throwing: `enrich` returns the input context, `search` returns `[]`, `store` returns `null`, `validate` returns `{ valid: true, skipped: true, violations: [] }`, `infer` returns `[]`, `extract` returns `{ learned: false, deferred: true }`. `embed` returns `null` when skipped but rethrows errors.
 
-  factory: (deps) => {
-    const { logger } = deps.Utils;
-    const { SemanticMemory, KnowledgeGraph, RuleEngine, SymbolGrounder } = deps;
+### Configuration
 
-    const think = async (query, mode = 'hybrid') => {
-      logger.info(`Cognition: ${mode} reasoning about "${query}"`);
+`_config` (`:41-46`): `semantic.enabled` and `symbolic.enabled` come from `window.getCognitionConfig()` (defined in `self/kernel/boot.js:228`) and default to true; `learning` is `{ enabled: true, autoLearn: true, minConfidence: 0.8 }`. `configure(newConfig)` merges per namespace.
 
-      const results = {
-        semantic: null,
-        symbolic: null,
-        synthesis: null
-      };
+## Exports
 
-      // Semantic reasoning - find similar experiences
-      if (mode === 'semantic' || mode === 'hybrid') {
-        results.semantic = await SemanticMemory.recall(query, 5);
-      }
+Returned object at `cognition-api.js:452-463`.
 
-      // Symbolic reasoning - apply rules and query graph
-      if (mode === 'symbolic' || mode === 'hybrid') {
-        const graphResults = KnowledgeGraph.query({ relation: 'related_to', to: query });
-        const ruleResults = RuleEngine.evaluate();
-        results.symbolic = { graph: graphResults, rules: ruleResults };
-      }
+| Export | Line | Behavior |
+| --- | --- | --- |
+| `init()` | 60 | `KnowledgeGraph.init()` and `RuleEngine.init()` in parallel, then `SemanticMemory.init()`. |
+| `semantic.enrich(query, context)` | 136 | `SemanticMemory.enrich`. |
+| `semantic.search`, `semantic.store`, `semantic.embed`, `semantic.getStats` | 152, 168, 184, 199 | Pass-through to `SemanticMemory`. |
+| `symbolic.validate(response, context)` | 205 | `SymbolGrounder.ground(response)` then `RuleEngine.validate()`; returns `{ valid, violations, suggestions, grounding }`. |
+| `symbolic.infer()` | 232 | `RuleEngine.infer()`. |
+| `symbolic.addEntity`, `getEntity`, `addTriple`, `query`, `addRule`, `addConstraint`, `getStats` | 248-258 | Pass-through to `KnowledgeGraph` and `RuleEngine`. |
+| `learning.extract(response, context)` | 264 | Grounds the response, keeps new entities and relations at or above `minConfidence`, and when `autoLearn` is on calls `SymbolGrounder.integrateGrounding` and stores responses longer than 50 characters in semantic memory. |
+| `learning.feedback(responseId, quality, corrections)` | 319 | Emits an event only; no learning happens. |
+| `query(input, options)` | 332 | Enrichment, then validation and learning when `input.response` is present; each phase can be turned off with `useSemanticEnrichment`, `useSymbolicValidation`, `enableLearning` set to false. |
+| `configure`, `getConfig`, `getStatus`, `healthCheck`, `dispose` | 397, 408, 412, 422, 446 | Configuration, breaker state, liveness probe, shutdown. |
 
-      // Synthesis - combine both approaches
-      if (mode === 'hybrid') {
-        results.synthesis = synthesize(results.semantic, results.symbolic);
-      }
+## Known gaps
 
-      return results;
-    };
+- `symbolic.validate` grounds the response but calls `RuleEngine.validate()` with no facts, so constraints are checked against the whole knowledge graph, not against the grounded response. Grounding still adds new entities to the graph as a side effect ([0x000062](0x000062-symbol-grounder.md)).
+- `learning.extract` filters entities and relations by confidence, but `integrateGrounding` writes relations and all two-argument facts; the entity filter has no effect on what is written, and the facts are not filtered.
 
-    const synthesize = (semantic, symbolic) => {
-      // Combine semantic similarity with symbolic relationships
-      // This is where hybrid AI magic happens
-      return {
-        confidence: 0.8,
-        reasoning: 'Combined semantic patterns with symbolic rules',
-        recommendation: symbolic.rules.length > 0 ? 'Apply rules' : 'Use semantic match'
-      };
-    };
+## Callers
 
-    return { think };
-  }
-};
-```
+| Caller | Use | Source |
+| --- | --- | --- |
+| Lab strategy cycle | `semantic.enrich` on the last user message before each model call | `packages/reploid/src/agent/lab-strategy-cycle.js:275-287` |
+| Lab strategy generation | `symbolic.validate` and `learning.extract` after each model response; a failed validation is logged at debug level and does not block the cycle | `packages/reploid/src/agent/lab-strategy-generation.js:350-365` |
+| Cognition panel | `symbolic.infer`, `getStatus` | `self/ui/panels/cognition-panel.js:157-161`, `:266` ([0x00007A](0x00007A-cognition-panel.md)) |
+
+Because `learning.extract` runs on every response with `autoLearn` on, model output enters the knowledge graph and semantic memory without review.
+
+## Events
+
+| Event | Payload | Line |
+| --- | --- | --- |
+| `cognition:status` | `{ subsystem: 'all', state: 'ready' }` | 78 |
+| `cognition:degraded` | `{ subsystem, reason }` when a breaker opens | 117 |
+| `cognition:learning:extract` | `{ entities, relations }` | 301 |
+| `cognition:learning:feedback` | `{ responseId, quality, corrections }` | 321 |
+| `cognition:query:start`, `cognition:query:complete`, `cognition:query:error` | `{ queryId, ... }` | 336, 380, 387 |
+
+## Related blueprints
+
+- [0x00005F Semantic Memory](0x00005F-semantic-memory.md), [0x000060 Knowledge Graph](0x000060-knowledge-graph.md), [0x000061 Rule Engine](0x000061-rule-engine.md), [0x000062 Symbol Grounder](0x000062-symbol-grounder.md).
+- [0x00004F Event Bus Infrastructure](0x00004F-event-bus-infrastructure.md).

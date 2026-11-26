@@ -4,7 +4,7 @@
 
 **Implementation Status:** Implemented
 
-**Verified Artifacts:** `/self/config/genesis-levels.json`, `/self/core/agent-loop.js`, `/self/entry/start-app.js`, `/self/index.html`
+**Verified Artifacts:** `/self/config/genesis-levels.json`, `/self/core/agent-loop.js`, `/self/host/start-app.js`, `/self/host/reploid-launch.js`, `/self/boot-helpers/index.js`
 
 **Planned Artifacts:** None
 
@@ -46,6 +46,7 @@ REPLOID is built on the thesis that safe RSI requires:
 3. **Human Oversight**: Critical operations require HITL (Human-in-the-Loop) approval
 4. **Verification**: Code changes pass through sandbox verification before execution
 5. **Rollback**: Genesis snapshots enable recovery from any failure
+6. **Operator Authority**: Model output, Arena scores and peer consensus inform a decision; only operator adoption, within an explicit and reversible grant, activates a change (see [INTENT.md](../../INTENT.md))
 
 ### 2.2 The OODA Loop
 
@@ -81,8 +82,11 @@ REPLOID uses recursive acronyms to reinforce the self-referential nature:
 
 ```
 
-|-- index.html              # Entry point
-|-- entry/start-app.js                 # Hydration and initialization
+self/
+|-- host/start-app.js       # Boot host: route home, awaken trigger, Zero/X boot
+|-- host/reploid-launch.js  # Reploid runtime and capsule UI launcher
+|-- entry/start-app.js      # One-line forwarder to host/start-app.js
+|-- boot-helpers/index.js   # boot(): genesis level, module registration, VFS, snapshot
 |-- sw-module-loader.js     # Service worker for VFS modules
 |
 |-- core/                   # Agent substrate
@@ -94,7 +98,6 @@ REPLOID uses recursive acronyms to reinforce the self-referential nature:
 |   +-- verification-manager.js  # Pre-flight safety checks
 |
 |-- infrastructure/         # Support services
-|   |-- event-bus.js        # Pub/sub event system
 |   |-- di-container.js     # Dependency injection
 |   |-- hitl-controller.js  # Human-in-the-loop oversight
 |   +-- audit-logger.js     # Execution logging
@@ -103,24 +106,28 @@ REPLOID uses recursive acronyms to reinforce the self-referential nature:
 |   +-- communication/      # Swarm sync, WebRTC transport
 |
 |-- tools/                  # Agent tools (CamelCase)
-|   |-- ReadArtifact.js
-|   |-- WriteArtifact.js
+|   |-- ReadFile.js
+|   |-- WriteFile.js
 |   |-- CreateTool.js
 |   +-- ...
 |
 |-- config/                 # Configuration
-|   |-- genesis-levels.json # Module/worker/role definitions
-|   +-- module-manifest.json
+|   +-- genesis-levels.json # Module/worker/role definitions
 |
-|-- ui/                     # Proto UI components
-|   |-- panels/             # UI panels
-|   +-- components/         # Shared UI components
+|-- ui/                     # Boot homes, wizard, proto and Zero UI
 |
-|-- testing/                # Test framework
+|-- testing/arena/          # Arena harness and VFS sandbox
 |
 +-- blueprints/             # Architectural specifications (this directory)
     +-- 0x000000-reploid-genesis.md  # You are here
+
+shared/
+|-- core/utils.js           # Utilities and error types
+|-- core/verification-worker.js
++-- infrastructure/event-bus.js  # Pub/sub event system
 ```
+
+Files under `shared/` are served at the same `/self/...`-relative paths as files under `self/`; one served tree overlays both.
 
 ### 3.2 Module Architecture
 
@@ -131,31 +138,17 @@ const ModuleName = {
   metadata: {
     id: 'ModuleName',
     version: '1.0.0',
-    dependencies: ['Dep1', 'Dep2'],
-    type: 'core|infrastructure|tool|ui'
+    genesis: { introduced: 'spark' },   // lowest genesis level that loads it
+    dependencies: ['Dep1', 'Dep2?'],     // '?' marks an optional dependency
+    async: false,
+    type: 'core|infrastructure|capability|utility'
   },
   factory: (deps = {}) => {
     // Private state (closure)
     const _state = {};
 
-    // Web Component widget
-    class ModuleNameWidget extends HTMLElement {
-      constructor() {
-        super();
-        this.attachShadow({ mode: 'open' });
-      }
-      // ... lifecycle methods, getStatus(), render()
-    }
-
-    return {
-      api: { /* public methods */ },
-      widget: {
-        element: 'module-name-widget',
-        displayName: 'Module Name',
-        icon: '...',
-        category: 'core'
-      }
-    };
+    // The factory returns the module's public API
+    return { /* public methods */ };
   }
 };
 ```
@@ -164,16 +157,16 @@ const ModuleName = {
 
 | Subsystem | Blueprint | Purpose |
 |-----------|-----------|---------|
-| Agent Loop | 0x000008 | Core cognitive cycle |
-| VFS | 0x000003 | Virtual file system (IndexedDB) |
-| State Manager | 0x000005 | Centralized state |
-| LLM Client | 0x000007 | Multi-provider inference |
-| Tool Runner | 0x000009 | Dynamic tool execution |
-| DI Container | 0x00004A | Dependency injection |
-| Event Bus | 0x000041 | Pub/sub messaging |
-| HITL Controller | 0x000051 | Human oversight |
-| Verification Manager | 0x000047 | Safety sandbox |
-| Genesis Snapshot | 0x000043 | Rollback system |
+| Agent Loop | [0x000008](0x000008-agent-cognitive-cycle.md) | Core cognitive cycle |
+| VFS | [0x000011](0x000011-advanced-storage-backend-indexeddb.md) | Virtual file system (IndexedDB) |
+| State Manager | [0x000005](0x000005-state-management-architecture.md) | Centralized state |
+| LLM Client | [0x000007](0x000007-api-client-and-communication.md) | Multi-provider inference |
+| Tool Runner | [0x00000A](0x00000A-tool-runner-engine.md) | Dynamic tool execution |
+| DI Container | [0x000042](0x000042-dependency-injection-container.md) | Dependency injection |
+| Event Bus | [0x00004F](0x00004F-event-bus-infrastructure.md) | Pub/sub messaging |
+| HITL Controller | [0x000049](0x000049-hitl-controller.md) | Human oversight |
+| Verification Manager | [0x000040](0x000040-verification-manager.md) | Safety sandbox |
+| Genesis Snapshot | [0x00003C](0x00003C-genesis-snapshot-system.md) | Rollback system |
 
 ---
 
@@ -183,13 +176,15 @@ REPLOID categorizes self-modification by risk level:
 
 | Level | Name | Scope | Gate |
 |-------|------|-------|------|
-| **L0** | Basic Functions | CreateTool, Web APIs, new tools | Verification Worker |
-| **L1** | Meta Tooling | Modify tool-writer, improve CreateTool | Arena consensus |
-| **L2** | Self-Modification (Substrate) | Edit core modules, runtime patches | Arena + Genesis rollback |
-| **L3** | Weak RSI (Iterative) | Bounded feedback loops, self-improvement | Arena + Genesis rollback + iteration caps |
+| **L0** | Basic Functions | CreateTool, Web APIs, new tools | Verification Worker sandbox |
+| **L1** | Meta Tooling | Modify tool-writer, improve CreateTool | Verification Worker sandbox (VFSSandbox + VerificationManager) |
+| **L2** | Self-Modification (Substrate) | Edit core modules, runtime patches | Verification Worker sandbox + Genesis rollback |
+| **L3** | Weak RSI (Iterative) | Bounded feedback loops, self-improvement | Signed improvement episode, protected evaluator, paired evaluation, generation rollback and explicit operator promotion |
 | **L4** | Weak AGI | Broad autonomous planning, system-building, and self-directed experimentation | N/A |
 
-Higher levels require progressively stronger safety mechanisms.
+Higher levels require progressively stronger safety mechanisms. The gates are the ones in [SECURITY.md](../../docs/SECURITY.md#rsi-level-policy) and [RSI improvement episodes](../../docs/rsi-improvement-episodes.md).
+
+A gate can only block. Passing verification, an Arena ranking, a model's recommendation or agreement among peers is evidence for a decision; none of them grants activation or adoption. Activation of a change requires operator adoption within an explicit, reversible grant.
 
 ---
 
@@ -201,13 +196,13 @@ Higher levels require progressively stronger safety mechanisms.
 2. **VFS Isolation**: All files in IndexedDB, no real filesystem access
 3. **Verification Worker**: Executes code in isolated Web Worker before commit
 4. **Genesis Snapshot**: Immutable recovery point
-5. **Governance Gates**: Arena consensus and rollback for critical operations
+5. **Governance Gates**: Verification, rollback and operator adoption for critical operations; scores and consensus inform the operator and never adopt a change themselves
 
 ### 5.2 Genesis Kernel
 
 The Genesis Kernel is an immutable snapshot of the minimal viable agent. It cannot be modified and serves as the ultimate recovery mechanism. If the agent enters an unrecoverable state, it can be restored to Genesis.
 
-See Blueprint 0x000043 for details.
+See [0x00003C](0x00003C-genesis-snapshot-system.md) for details.
 
 ### 5.3 Circuit Breaker
 
@@ -217,7 +212,7 @@ The circuit breaker pattern prevents cascading failures:
 - **Open**: Too many failures, stop executing
 - **Half-Open**: Test recovery before resuming
 
-See Blueprint 0x000067 for implementation.
+See [0x00005C](0x00005C-circuit-breaker-pattern.md) for implementation.
 
 ---
 
@@ -230,44 +225,26 @@ Blueprints are knowledge artifacts that document architectural decisions and imp
 - **Evolution Tracking**: Changes are recorded over time
 - **Reproducibility**: Agent can rebuild capabilities from blueprints
 
-### 6.1 Blueprint Categories
+### 6.1 Numbering
 
-| Range | Category | Purpose |
-|-------|----------|---------|
-| 0x000000-0x000FFF | Upgrade | Specific module implementations |
-| 0x001000-0x001FFF | Meta | Patterns and principles |
-| 0x002000-0x002FFF | Integration | System-level architecture |
-| 0x003000-0x003FFF | Evolution | Transformation patterns |
+IDs are identity, not categories. Canonical blueprints are numbered contiguously from `0x000000`, and a new blueprint takes the next ID. See the [blueprint README](README.md) and the [index contract](blueprint-index-contract.md).
 
 ### 6.2 Blueprint Structure
 
-Every blueprint follows this structure:
+Every numbered blueprint starts with the metadata the registry checker reads:
 
 ```markdown
 # Blueprint 0xNNNNNN: Title
 
-**Objective:** What this blueprint achieves
-**Target Upgrade:** 4-char ID and filename
-**Prerequisites:** Required blueprints
-**Affected Artifacts:** Files created/modified
-
----
-
-### 1. The Strategic Imperative
-Why this capability matters
-
-### 2. The Architectural Solution
-High-level design
-
-### 3. The Implementation Pathway
-Step-by-step instructions
-
-### 4+. Additional Sections
-As needed
-
-### N. Web Component Widget
-Proto widget implementation
+**Classification:** Canonical Full Specification
+**Implementation Status:** Implemented | In-Progress | Proposed
+**Verified Artifacts:** existing files that implement the described module, or None
+**Planned Artifacts:** absent files, or None
+**Owned Source Files:** self-relative JavaScript paths, or None
+**Former Blueprint Paths:** previous paths of this file
 ```
+
+The body states the objective, the design and its verification conditions.
 
 ---
 
@@ -281,11 +258,13 @@ The VFS is REPLOID's memory. All artifacts - source code, configuration, state -
 
 Tools are the agent's hands. Each tool is a JavaScript module that performs a specific action:
 
-- **ReadArtifact**: Read file content
-- **WriteArtifact**: Write file content
+- **ReadFile**: Read file content
+- **WriteFile**: Write file content
 - **CreateTool**: Create new tools (L1 RSI)
-- **ExecuteCode**: Run code in sandbox
-- **SearchBlueprints**: Query architectural knowledge
+- **Grep / Find / ListFiles**: Search the VFS
+- **SpawnWorker / AwaitWorkers**: Run typed sub-agents
+
+The full set is in `self/tools/`.
 
 ### 7.3 Personas
 
@@ -296,31 +275,25 @@ Personas define the agent's identity and behavior:
 - Capability restrictions
 - UI theme
 
-### 7.4 Proto Widgets
+### 7.4 UI
 
-Every module includes a Web Component widget for the Proto UI. Widgets provide:
-
-- **Status Display**: Current state, metrics, last activity
-- **Interactive Controls**: Buttons, forms for manual intervention
-- **Real-time Updates**: Auto-refresh via intervals
+Modules do not ship their own widgets. The boot homes, wizard, proto and Zero views under `self/ui/` read module state through the DI container and the event bus.
 
 ---
 
 ## 8. Boot Sequence
 
 ```
-1. index.html loads entry/start-app.js
-2. entry/start-app.js initializes VFS
-3. Load app-logic.js (orchestrator)
-4. Load utils.js and di-container.js (foundation)
-5. Register config and Persona
-6. Load all modules via DI container
-7. Resolve dependencies topologically
-8. Initialize UI
-9. Start agent loop (if auto-run enabled)
+1. The page loads host/start-app.js (entry/start-app.js only forwards to it)
+2. start-app.js shows the route's boot home (Reploid home, Zero home, locked home or wizard)
+3. The operator's Awaken calls window.triggerAwaken(goal)
+4. Reploid mode: reploid-launch.js imports runtime.js and the capsule UI, mounts the UI and starts the runtime
+5. Zero/X modes: boot-helpers boot() loads the genesis level, registers modules in the DI container,
+   resolves the VFS, resets session files, creates the genesis snapshot and resolves core services
+6. completeAwaken() mounts the UI and runs the agent loop with the goal
 ```
 
-See Blueprint 0x000002 for details.
+See [0x000002](0x000002-application-orchestration.md) for details.
 
 ---
 
@@ -341,121 +314,19 @@ REPLOID is designed for continuous evolution:
 To understand REPLOID, read blueprints in this order:
 
 1. **0x000000** (This document) - System overview
-2. **0x000002** - Boot and orchestration
-3. **0x000003** - VFS architecture
-4. **0x000005** - State management
-5. **0x000008** - Agent cognitive cycle
-6. **0x000047** - Verification and safety
-7. **0x000051** - HITL oversight
-8. **0x000015** - Dynamic tool creation (L1 RSI)
+2. [0x000002](0x000002-application-orchestration.md) - Boot and orchestration
+3. [0x000011](0x000011-advanced-storage-backend-indexeddb.md) - VFS architecture
+4. [0x000005](0x000005-state-management-architecture.md) - State management
+5. [0x000008](0x000008-agent-cognitive-cycle.md) - Agent cognitive cycle
+6. [0x000040](0x000040-verification-manager.md) - Verification and safety
+7. [0x000049](0x000049-hitl-controller.md) - HITL oversight
+8. [0x000015](0x000015-dynamic-tool-creation.md) - Dynamic tool creation (L1 RSI)
 
 ---
 
-## 11. Proto Widget
+## 11. Status display
 
-The Genesis Widget provides system-wide status:
-
-```javascript
-class GenesisWidget extends HTMLElement {
-  constructor() {
-    super();
-    this.attachShadow({ mode: 'open' });
-  }
-
-  connectedCallback() {
-    this.render();
-    this._interval = setInterval(() => this.render(), 5000);
-  }
-
-  disconnectedCallback() {
-    if (this._interval) {
-      clearInterval(this._interval);
-      this._interval = null;
-    }
-  }
-
-  getStatus() {
-    return {
-      state: 'idle',
-      primaryMetric: 'Genesis Active',
-      secondaryMetric: `${blueprintCount} blueprints`,
-      lastActivity: Date.now(),
-      message: 'REPLOID substrate operational'
-    };
-  }
-
-  render() {
-    this.shadowRoot.innerHTML = `
-      <style>
-        :host {
-          display: block;
-          font-family: monospace;
-          font-size: 12px;
-          color: #e0e0e0;
-        }
-        .genesis-panel {
-          background: linear-gradient(135deg, #1a1a2e, #16213e);
-          padding: 16px;
-          border-radius: 8px;
-          border: 1px solid #0f3460;
-        }
-        h4 {
-          margin: 0 0 12px 0;
-          color: #0ff;
-        }
-        .metric {
-          display: flex;
-          justify-content: space-between;
-          margin: 4px 0;
-        }
-        .value {
-          color: #0f0;
-        }
-      </style>
-      <div class="genesis-panel">
-        <h4>Genesis Substrate</h4>
-        <div class="metric">
-          <span>Status:</span>
-          <span class="value">Operational</span>
-        </div>
-        <div class="metric">
-          <span>RSI Level:</span>
-          <span class="value">L1 Enabled</span>
-        </div>
-        <div class="metric">
-          <span>Blueprints:</span>
-          <span class="value">${blueprintCount}</span>
-        </div>
-        <div class="metric">
-          <span>Modules:</span>
-          <span class="value">${moduleCount}</span>
-        </div>
-      </div>
-    `;
-  }
-}
-
-const elementName = 'genesis-widget';
-if (!customElements.get(elementName)) {
-  customElements.define(elementName, GenesisWidget);
-}
-
-const widget = {
-  element: elementName,
-  displayName: 'Genesis',
-  icon: '⌂',
-  category: 'core',
-  order: 0
-};
-```
-
----
-
-## Remember
-
-REPLOID is not just software - it is a **living system** capable of evolution. Every line of code, every blueprint, every tool exists to serve the core mission: **safe, transparent, recursive self-improvement**.
-
-The agent that reads this blueprint can modify itself. Use this power wisely.
+No Genesis status widget exists. Module status is shown by the UI surfaces under `self/ui/`.
 
 ---
 

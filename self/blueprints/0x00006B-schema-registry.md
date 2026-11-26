@@ -13,153 +13,46 @@
 **Former Blueprint Paths:** `self/blueprints/0x00006B-schema-registry.md`
 **Module:** `SchemaRegistry`
 **File:** `core/schema-registry.js`
-**Purpose:** Central registry for tool input schemas and worker type definitions
+**Purpose:** Registry for tool input schemas, tool output schemas and worker type definitions.
 
-**Genesis Level:** spark
+**Genesis Level:** capsule (`self/config/genesis-levels.json`; the module metadata declares `genesis: { introduced: 'capsule' }`)
 
 ---
 
 ## Purpose
 
-The Schema Registry serves as the central source of truth for all tool input schemas and worker type definitions in the REPLOID system. It distinguishes between built-in schemas (immutable) and dynamically created schemas (persisted to VFS), and tracks which tools are read-only for parallel execution decisions.
+The Schema Registry holds the input schema and `readOnly` flag for each tool the current boot mode exposes, plus any runtime-registered tool and worker schemas. Built-in entries are registered at `init` and are never persisted; non-built-in entries are persisted to the VFS. Callers use `isToolReadOnly` to decide which calls may run in parallel (for example `packages/reploid/src/agent/lab-strategy.js:86`).
+
+Dependencies declared in metadata (`self/core/schema-registry.js:16`): `Utils`, `VFS`, optional `SchemaValidator`.
 
 ---
 
-## API / Interface
+## Exports
 
-### Tool Schema Management
+Returned by the factory at `self/core/schema-registry.js:523`.
 
-```javascript
-// Register a new tool schema
-await SchemaRegistry.registerToolSchema('MyTool', {
-  description: 'Does something useful',
-  parameters: {
-    type: 'object',
-    properties: {
-      input: { type: 'string', description: 'The input value' }
-    },
-    required: ['input']
-  },
-  readOnly: false
-});
+| Export | Source | Behavior |
+| --- | --- | --- |
+| `init()` | `:508` | Registers built-in schemas for the tools named by `getToolNamesForMode(mode)` (`shared/config/tool-surfaces.js`), then loads persisted non-built-in schemas. |
+| `registerToolSchema(name, schema, { builtin })` | `:199` | Synchronous. Stores the schema; persists when not built-in. |
+| `unregisterToolSchema(name)` | `:208` | Refuses built-in entries (returns `false`); otherwise deletes and persists. |
+| `getToolSchema(name)` | `:216` | Schema or `null`. |
+| `isToolReadOnly(name)` | `:222` | The schema's `readOnly` flag when set; otherwise `true` only for the fallback names `Grep`, `Find`, `FileOutline`, `Head`, `Tail`. |
+| `getReadOnlyTools()` | `:235` | Registered read-only names plus the same fallback names. |
+| `listToolSchemas()` | `:252` | Array of `{ name, schema, builtin }`. |
+| `registerWorkerTypes(map, { builtin })`, `getWorkerType(name)`, `listWorkerTypes()` | `:260`-`:272` | Worker type definitions, persisted when not built-in. |
+| `validateSchema(value, schema)` | `:290` | Simplified JSON-schema check returning `{ valid, errors }`. |
+| `validateCombinedOutput(outputs, taskSchema)` | `:339` | Validates each expert output for FunctionGemma orchestration ([0x00007D](0x00007D-capabilities-intelligence-functiongemma-orchestrator.md)). |
+| `mergeOutputs(outputs, strategy)` | `:377` | `voting`, `weighted` (default) or `concatenate`. |
+| `registerOutputSchema`, `getOutputSchema`, `validateToolOutput`, `setOutputValidationEnabled`, `isOutputValidationEnabled` | `:455`-`:501` | Output-schema checks delegated to `SchemaValidator` when present. |
 
-// Get schema for a specific tool
-const schema = await SchemaRegistry.getToolSchema('ReadFile');
-// Returns: { description, parameters, readOnly, builtin }
+## Built-in tool schemas
 
-// List all registered tool schemas
-const schemas = SchemaRegistry.listToolSchemas();
-// Returns: ['ReadFile', 'WriteFile', 'Grep', 'MyTool', ...]
-```
+`DEFAULT_TOOL_SCHEMAS` (`:35`) defines `ReadFile`, `WriteFile`, `Promote`, `EditFile`, `ListFiles`, `DeleteFile`, `CreateTool`, `ListTools` and `LoadModule`. `ReadFile`, `ListFiles` and `ListTools` are `readOnly: true`; the rest are mutating. `WriteFile` and `EditFile` parameters come from `self/config/file-tool-schemas.json`. Only the names in the boot mode's tool surface are registered, so a Zero boot does not expose every entry.
 
-### Worker Type Management
+## Persistence
 
-```javascript
-// Register a worker type definition
-await SchemaRegistry.registerWorkerTypes({
-  'verification': {
-    description: 'Sandboxed code verification worker',
-    timeout: 30000,
-    memory: '256MB'
-  }
-});
-
-// Get a specific worker type
-const workerType = SchemaRegistry.getWorkerType('verification');
-// Returns: { description, timeout, memory }
-
-// List all worker types
-const types = SchemaRegistry.listWorkerTypes();
-// Returns: ['verification', 'computation', ...]
-```
-
-### Read-Only Check
-
-```javascript
-// Check if tool is read-only (safe for parallel execution)
-const canParallel = SchemaRegistry.isToolReadOnly('ReadFile');
-// Returns: true
-
-const cannotParallel = SchemaRegistry.isToolReadOnly('WriteFile');
-// Returns: false
-```
-
----
-
-## Implementation Details
-
-### Schema Storage Structure
-
-```javascript
-{
-  tools: {
-    'ReadFile': {
-      description: 'Read file contents from VFS',
-      parameters: { /* JSON Schema */ },
-      readOnly: true,
-      builtin: true
-    },
-    'WriteFile': {
-      description: 'Write content to VFS file',
-      parameters: { /* JSON Schema */ },
-      readOnly: false,
-      builtin: true
-    },
-    // ... dynamic tools added at runtime
-  },
-  workerTypes: {
-    'verification': { /* definition */ },
-    'computation': { /* definition */ }
-  }
-}
-```
-
-### VFS Persistence
-
-Non-builtin schemas are persisted to `/.system/schemas.json`:
-
-```javascript
-const SCHEMA_PATH = '/.system/schemas.json';
-
-const persist = async () => {
-  const dynamicSchemas = filterNonBuiltin(schemas);
-  await VFS.write(SCHEMA_PATH, JSON.stringify(dynamicSchemas, null, 2));
-};
-
-const load = async () => {
-  try {
-    const content = await VFS.read(SCHEMA_PATH);
-    const dynamic = JSON.parse(content);
-    mergeSchemas(dynamic);
-  } catch (e) {
-    // First run or corrupted - start fresh
-  }
-};
-```
-
-### Built-in Tool Categories
-
-| Category | Tools | Read-Only |
-|----------|-------|-----------|
-| Read | ReadFile, ListFiles, Grep, Find | Yes |
-| Write | WriteFile, EditFile, DeleteFile | No |
-| System | SpawnWorker, LoadModule | No |
-| Meta | CreateTool, DescribeTool | No |
-
-### Parallel Execution Support
-
-Tools marked `readOnly: true` can be executed in parallel by the ToolRunner since they don't mutate VFS state:
-
-```javascript
-const isToolReadOnly = (toolName) => {
-  const schema = schemas.tools[toolName];
-  return schema?.readOnly === true;
-};
-
-// Used by ToolRunner for parallel batching
-const parallelizable = toolCalls.filter(c => isToolReadOnly(c.name));
-const sequential = toolCalls.filter(c => !isToolReadOnly(c.name));
-```
+Non-built-in tool and worker schemas are written to `/.system/schemas.json` as `{ tools, workers }` (`:24`, `:143`). On load, persisted entries never replace an entry already registered under the same name. A missing file is not an error.
 
 ---
 
@@ -167,13 +60,7 @@ const sequential = toolCalls.filter(c => !isToolReadOnly(c.name));
 
 | Blueprint | Module | Purpose |
 |-----------|--------|---------|
-| 0x000003 | Utils | Logging, error handling |
-| 0x000011 | VFS | Persistence of dynamic schemas |
-
----
-
-## Genesis Level
-
-**spark** - Core agent module, part of the minimal agent core. Cannot be modified without gate approval.
+| [0x000003](0x000003-core-utilities-and-error-handling.md) | Utils | Logger |
+| [0x000011](0x000011-advanced-storage-backend-indexeddb.md) | VFS | Persistence of non-built-in schemas |
 
 ---
