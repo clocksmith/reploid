@@ -4,8 +4,9 @@ Status: acceptance contract, not a qualification claim.
 
 Reploid pursues a bounded outcome through one installed `createReploid`
 lifecycle. The application selects tools, models, stores, and authorization;
-the UI requests actions and presents that same lifecycle. Poolday is the
-optional network implementation, not another product.
+the UI requests actions and presents that same lifecycle. The network
+implementation is optional. Poolday is the internal name for the product code in
+`apps/poolday`, as the [glossary](glossary.md#1-overview) defines it.
 
 ## Required demonstration
 

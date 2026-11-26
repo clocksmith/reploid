@@ -46,7 +46,7 @@ Open [http://localhost:8000](http://localhost:8000), or expose `/v1/chat/complet
 
 ## What is verified
 
-- **0.1.5 candidate qualification (`reploid@0.1.5` + `dopplerx@0.1.5`)**: Signed `/v1/chat/completions` and `/v1/responses` execution with `34`-token prefix-cache reuse, mid-stream cancellation (`0` unacknowledged tokens charged, `0` open holds), fresh Chromium conversation with `0` weight bytes downloaded, returning-provider cryptographic reconnect + replacement-machine consent gate, `8.04x` two-supplier verified WebRTC piece transfer (`57.07 MB/s`), and zero-downtime backend rollback checks. [0.1.5 qualification receipts](reports/release-015-qualification/README.md)
+- **0.1.5 qualification, the last qualified release (`reploid@0.1.5` + `dopplerx@0.1.5`)**. The Doppler package in use now is pinned in [`shared/config/doppler-package.json`](shared/config/doppler-package.json); this qualification does not cover it. Results: Signed `/v1/chat/completions` and `/v1/responses` execution with `34`-token prefix-cache reuse, mid-stream cancellation (`0` unacknowledged tokens charged, `0` open holds), fresh Chromium conversation with `0` weight bytes downloaded, returning-provider cryptographic reconnect + replacement-machine consent gate, `8.04x` two-supplier verified WebRTC piece transfer (`57.07 MB/s`), and zero-downtime backend rollback checks. [0.1.5 qualification receipts](reports/release-015-qualification/README.md)
 - **Surface-by-surface claim ledger**: Use the [public claim index](docs/status/surface-claim-index.json) and [hash-verified historical evidence catalog](docs/evidence-catalog/README.md) as the canonical evidence entry points.
 
 ## Components
@@ -67,7 +67,7 @@ Reploid handles discovery, permissions, placement, verified piece custody, and a
 
 ## Long-term goal
 
-Launch serves each request from one ready peer that holds the whole model. The goal beyond that is a request split across independent peers, each running a different range of layers. Ordinary split routes are separate and not yet qualified; see the [route table](docs/product-specification.md#5-contribution-and-execution).
+Launch serves each request from one ready peer that holds the whole model. The north star beyond that, a confidential request split across independently operated peers, is defined in [GOALS.md](GOALS.md). Ordinary split routes are separate and not yet qualified; see the [route table](docs/product-specification.md#5-contribution-and-execution).
 
 <picture>
   <source media="(max-width: 640px)" srcset="docs/diagrams/readme-architecture-mobile.svg">
@@ -86,7 +86,7 @@ A contributor advertises a prepared model or stage. Reploid selects an eligible 
 
 ## Credits and accounting
 
-Configured fleet services can quote a request and reserve non-cash service credits. This ordinary exchange is executor-readable: the serving computer can read the request and its answer, the recipients are shown before anything is sent, and it is not confidential pooling. Settlement is bound to accepted terms and verified evidence, with distinct rules for completed, cancelled, and interrupted work. An independent trade means a second human operator on their own machine with their own key and an outside verifier who is a different person; two local accounts under one operator do not count. A tested cancellation does not establish that every interruption route settles. Public token sales, cash payouts, and open marketplace settlement are not established features. [Product contract](docs/product-specification.md) · [Fleet service](docs/fleet-service.md) · [Goals](GOALS.md)
+Configured fleet services can quote a request and reserve non-cash service credits. This ordinary exchange is executor-readable: the serving computer can read the request and its answer, the recipients are shown before anything is sent, and it is not confidential pooling. Settlement is bound to accepted terms and verified evidence, with distinct rules for completed, cancelled, and interrupted work. What counts as an independent trade, and the north star beyond launch, are defined in [GOALS.md](GOALS.md). A tested cancellation does not establish that every interruption route settles. Public token sales, cash payouts, and open marketplace settlement are not established features. [Product contract](docs/product-specification.md) · [Fleet service](docs/fleet-service.md) · [Goals](GOALS.md)
 
 ## Read next
 

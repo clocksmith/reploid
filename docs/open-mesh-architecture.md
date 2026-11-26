@@ -720,8 +720,8 @@ Consolidated from the former network product-intent document. These are scoped e
 Open Reploid, choose an available model, start an independent conversation,
 authorize the necessary disclosure and receive a complete answer. Public discovery
 uses the configured bootstrap without invitations, manual room setup or selecting
-computers. A prepared remote route requires no requester weights. A local + peer
-split loads only the requester's own shard.
+computers. Which routes are qualified, and what each loads on the requester, is
+stated only in the [route table](product-specification.md#5-contribution-and-execution).
 Contribution preparation is separate from consuming prepared capacity.
 
 A requester can keep drafts and completed answers when no eligible path is ready.
@@ -832,9 +832,9 @@ It is not the whole network’s onboarding or acceptance contract.
 
 Partition code and retained physical execution establish their identified
 mechanisms, not full release acceptance. Keep implemented, tested under a named
-configuration, qualification open and planned distinct. See
-current package and qualification gates (private roadmap)
-and [conversation acceptance](chat-mvp.md).
+configuration, qualification open and planned distinct. Route qualification is
+stated only in the [route table](product-specification.md#5-contribution-and-execution);
+see also [conversation acceptance](chat-mvp.md).
 
 Compare useful outcomes against the strongest feasible local option and comparable
 centralized resources, counting communication, verification, failures, evaluation,

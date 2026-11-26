@@ -33,8 +33,7 @@ The exchange described here is executor-readable: the computer that answers
 can read the request and the answer. The person sees which computers may
 receive a request before sending it. It is not confidential pooling. Earning
 on one account and spending from another under the same person shows the
-mechanism only; an independent trade needs a second human operator on their own
-machine with their own key, and an outside verifier who is a different person.
+mechanism only; [GOALS.md](../GOALS.md) defines what counts as an independent trade.
 
 Source: [`server/fleet/self-serve.js`](../server/fleet/self-serve.js) (accounts
 and pairing), [`self-serve-http.js`](../server/fleet/self-serve-http.js)

@@ -661,30 +661,30 @@ by [RD-CANON/1](roadmap/rd-canon-1.md).
 
 - **Actor and trigger:** A requester decides which computers may receive their input and derived data.
 - **Starting conditions:** The selected model, actual recipients and input scope are known.
-- **Main flow:** 1. Inspect recipient and operation scope through the conversation’s consent flow → 2. Send or decline → 3. Inspect the bound attempt.
+- **Main flow:** 1. Read where the request goes and who can read it, above the message field → 2. Send, which records the covering permission under the network-answers setting, or choose this device → 3. Inspect the bound attempt.
 - **Successful outcome:** Execution uses exactly the authorized recipients, model and inputs; changed placement cannot inherit broader consent.
-- **Interruption and recovery:** Expired or changed grants require renewed approval before disclosure.
+- **Interruption and recovery:** A changed placement, disclosure kind, sharing scope or model is not covered by an earlier permission; a new one is recorded on the next Send before anything is disclosed, and an active attempt never switches to it.
 - **Variants:** All stage recipients and coordinator relays; reuse; an optional speculative drafter adds a recipient.
 - **Acceptance evidence:** [ordered grant tests](../tests/unit/ordered-partition-grants.test.js); [deadline controls](https://github.com/clocksmith/reploid/blob/e543183bed54dfdf2b6e6139dd4c31c8686f47bd/artifacts/ordered-disclosure-deadline-20261013/README.md). Exact physical signed journey remains separately gated.
 - **Acceptance criteria:**
   1. Before Send, the page states where the request goes and who can read it, on the line above the message field.
-  2. One clearly explained permission to use remote contributors states what is sent and who receives it; after it is granted, Send sends with no per-request screen, and each attempt's record cites the permission and names its recipients.
+  2. Settings explain the network-answers setting (on by default): what is sent and who receives it. With it on, the first Send records the contributor permission that covers the request and later Sends it covers reuse it, with no permission screen; each attempt's record cites the permission and names its recipients.
   3. Execution uses exactly the authorized recipients, model and inputs; a changed placement, disclosure kind, sharing scope or model needs renewed permission before disclosure.
-  4. Nothing leaves the device without the permission.
+  4. Nothing leaves the device without a stored permission that covers it, and none is recorded while network answers are off.
 - **Evidence status:** source integration ([ordered grant tests](../tests/unit/ordered-partition-grants.test.js)). Criterion 1 has physical acceptance: visible above the message field since 9aa668035, checked by the public-answer walk on that deployed build.
 
 ### TRUST-02 — Revoke a reusable grant
 
 - **Actor and trigger:** A requester removes permission for future work.
 - **Starting conditions:** A reusable grant exists and its scope is inspectable.
-- **Main flow:** 1. Open the grant → 2. Revoke it → 3. See subsequent requests require fresh permission.
+- **Main flow:** 1. Open the grant → 2. Revoke it → 3. See network answers turned off and remote requests refused until they are turned on again.
 - **Successful outcome:** Revocation blocks further authorized steps as defined by the contract and cannot be silently renewed.
 - **Interruption and recovery:** Already disclosed bytes cannot be recalled; outstanding execution ownership still requires settlement.
 - **Variants:** Queued/running requests; changed recipients; disconnected contributor.
 - **Acceptance evidence:** [thread grant tests](../tests/unit/chat-thread-grants.test.js); [ordered grant tests](../tests/unit/ordered-partition-grants.test.js); exact-package revocation acceptance: transactional publication milestones (DR-5).
 - **Acceptance criteria:**
   1. The permission and its disclosure scope are visible and revocable in Settings.
-  2. After revocation new disclosures stop and the next request asks again; revocation never silently changes an active request's route.
+  2. Revoking a permission also turns network answers off: new remote disclosures stop and a remote Send is refused with an inline explanation until the person turns network answers on again, after which the next Send records a fresh permission. Revocation never silently changes an active request's route.
   3. Outstanding execution ownership still settles; already disclosed bytes are not claimed to be recalled.
 - **Evidence status:** source integration ([thread grant tests](../tests/unit/chat-thread-grants.test.js)).
 
@@ -815,7 +815,7 @@ IDs, frozen identities, matrix values, injections and observed outcome.
 | Existing client integration | DEV-02, JOB-03, KEEP-03 | Versioned compatibility adapters, streaming, tools and structured outputs | Declared protocol and parameter semantics must pass installed-consumer checks; unsupported settings reject explicitly. |
 | Bounded coding task | JOB-06, JOB-03, TRUST-01 | Authorized files, isolated preview, console feedback and reviewed real-folder writes | Complete task behavior and effect reconciliation require evidence; optional after basic chat. |
 | Application composition | DEV-01, KEEP-03, TRUST-02 | Browser/native consumers with host-owned ports and independently installed packages | Public import, accepted delivery, persistence failures and settled shutdown require exact-package evidence. |
-| Ordinary conversation | CHAT-01, CHAT-02, CHAT-05, KEEP-01, KEEP-03, KEEP-04 | Current two-stage browser/native baseline | Existing scoped numerical/physical receipts must not be combined into an unrun signed release claim. |
+| Ordinary conversation | CHAT-01, CHAT-02, CHAT-05, KEEP-01, KEEP-03, KEEP-04 | Launch route: remote solo, one peer runs the whole model ([route table](product-specification.md#5-contribution-and-execution)); a two-stage browser/native split is a separate route that is not qualified | Existing scoped numerical/physical receipts must not be combined into an unrun signed release claim. |
 | Acquire once, serve repeatedly | CONTRIB-01, CONTRIB-02, MESH-04, CHAT-01, CHAT-02 | Cold route acquisition, interrupted supply, contributor restart, then prepared repeated requests | Verify piece retention and resumed transfer; measure acquisition, GPU preparation, route readiness and generation separately. Prepared requests must avoid repeated weight downloads. This acceptance remains open. |
 | Replace with warm or cold capacity | KEEP-04, MESH-03, MESH-04, TRUST-01 | Weights present/state absent versus both absent; long contexts and overlapping conversations | Explicit authorized retry, separate reconstruction cost and honest unavailable capacity; warm weights never imply transferred GPU state. Preserve prior output and unaffected conversations. Physical acceptance remains open. |
 | Ordered network | CHAT-01, CHAT-02, CONTRIB-03, MESH-01, KEEP-02 | Two through seven stages; two overlapping requesters; signaling loss | [Actual source integration](https://github.com/clocksmith/reploid/blob/e543183bed54dfdf2b6e6139dd4c31c8686f47bd/artifacts/automatic-ordered-participation-20261013/README.md) uses injected numerical stages. Independent physical hosts and signed delivery remain separate. |

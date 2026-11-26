@@ -10,9 +10,9 @@ lists its contracts first, then designs, then evidence.
 | [Mesh and partitions](#mesh-and-partitions) | [Open mesh architecture](open-mesh-architecture.md), [RD-CANON/1](roadmap/rd-canon-1.md) |
 | [Fleet and credits](#fleet-and-credits) | [Fleet service](fleet-service.md), [self-serve accounts](self-serve-credits.md), [native participant](native-participant.md) |
 | [Settlement replay](#settlement-replay) | [Settlement replay](settlement-replay.md) |
-| [Poolday](#poolday) | [Browser inference pool](browser-inference-pool.md), [Poolday claims](poolday/claims-and-nonclaims.md) |
+| [Poolday](#poolday) | [Product code charter](../apps/poolday/CATSCAN.md), [specialist routes](poolday/README.md) |
 | [Zero / X](#zero--x) | [X/Zero setup](zero-x-quick-start.md), [agent and VFS architecture](system-architecture.md) |
-| [Releases and evidence](#releases-and-evidence) | [Claim index](status/surface-claim-index.json), [release 0.1.5 qualification](../reports/release-015-qualification/README.md) |
+| [Releases and evidence](#releases-and-evidence) | [Claim index](status/surface-claim-index.json), [evidence status](status/README.md), [0.1.5, the last qualified release](../reports/release-015-qualification/README.md) |
 | [Operations](#operations) | [Configuration](CONFIGURATION.md), [testing](TESTING.md) |
 | [Code organization](#code-organization) | [Ownership inventory](ownership-inventory.md), [component index](component-index.md) |
 
@@ -28,11 +28,11 @@ Its three diagrams cover [the overview](glossary.md#1-overview),
 [one request](glossary.md#2-one-request), and
 [record keeping](glossary.md#3-record-keeping).
 
-1. **[/README.md](../README.md)** - Project overview, quick start, RSI concepts
+1. **[/README.md](../README.md)** - Project overview, how to try it, and what is verified
 2. **[docs/QUICK-START.md](./QUICK-START.md)** - Ordinary network conversations, prepared capacity, disclosure and contribution
-3. **[docs/CONFIGURATION.md](./CONFIGURATION.md)** - Connection modes and boot configuration
+3. **[docs/CONFIGURATION.md](./CONFIGURATION.md)** - Boot UI settings and localStorage keys, URL parameters, web search access and substrate config files
 4. **[Scoped helpers, private peers, and tool improvement](./work-collaboration.md)** - Compatibility-host tool evaluation and private candidate delivery; separate from public-mesh onboarding
-5. **[Concurrent mesh chat MVP](./chat-mvp.md)** - Required conversation, file, adapter, inference and physical-device acceptance boundaries
+5. **[Concurrent mesh chat MVP](./chat-mvp.md)** - Chat workspace integration requirements (conversation, files, adapters, split) and physical-device acceptance; not the launch route
 6. **[P2P development sessions](./p2p-testing.md)** - Tailscale access, persistent terminals, contribution and testing with placeholder connection details
 
 Zero and X setup guides are listed under [Zero / X](#zero--x).
@@ -126,25 +126,29 @@ Checking one published trade receipt from outside the project: [Verify a trade](
 
 ## Poolday
 
-- **[docs/browser-inference-pool.md](./browser-inference-pool.md)** - Current Poolday runtime, peer, coordinator, and deployment contract
-- **[docs/poolday/claims-and-nonclaims.md](./poolday/claims-and-nonclaims.md)** - Poolday claim boundary
+Poolday is the internal name for the product code in `apps/poolday`; the
+[glossary](glossary.md#1-overview) holds the one definition. The files under
+`docs/poolday/` describe specialist routes, not the launch product.
+
+### Product (apps/poolday)
+- **[Poolday product code charter](../apps/poolday/CATSCAN.md)** - Routes, UI, host and pool ownership for the replo.id product
 - **[docs/poolday-ui-architecture.md](./poolday-ui-architecture.md)** - React Poolday UI: the `@reploid/poolday-ui` design system, layers, the checks that keep the UI to its components, and the assessment behind it
 - **[docs/poolday-panel-audit.md](./poolday-panel-audit.md)** - Audit of Poolday panels, dialogs and choice controls, and the choice primitives that replaced them
-- **[docs/poolday/threat-model.md](./poolday/threat-model.md)** - Poolday adversaries, trust boundaries, and evidence
-- **[docs/poolday/receipt-schema.md](./poolday/receipt-schema.md)** - Provider receipts and requester acceptances
-- **[docs/poolday/artifact-manifest.md](./poolday/artifact-manifest.md)** - Hugging Face/GCS custody, exact model and adapter identity, and private delivery
+
+### Specialist routes: coordinator and research lane (docs/poolday/)
+- **[docs/poolday/README.md](./poolday/README.md)** - What the coordinator and research-lane files cover and which are current
+- **[docs/browser-inference-pool.md](./browser-inference-pool.md)** - Legacy coordinator-lane runtime, peer, coordinator and deployment reference; not the launch route
+- **[docs/poolday/claims-and-nonclaims.md](./poolday/claims-and-nonclaims.md)** - Poolday claim boundary
+- **[docs/poolday/coordinator-protocol.md](./poolday/coordinator-protocol.md)** - The hosted coordinator lane (journeys retired 2026-11-26; code remains on specialist routes): [threat model](./poolday/coordinator-protocol.md#threat-model), [receipt schema](./poolday/coordinator-protocol.md#receipt-schema), [reputation ledger](./poolday/coordinator-protocol.md#reputation-ledger), [canary and challenge policy](./poolday/coordinator-protocol.md#canary-and-challenge-policy), [policy classes](./poolday/coordinator-protocol.md#policy-classes) and [agent API](./poolday/coordinator-protocol.md#agent-api). The old per-topic files are pointers into it
+- **[docs/poolday/artifact-manifest.md](./poolday/artifact-manifest.md)** - Hugging Face/GCS custody, exact model and adapter identity, and private delivery (journeys retired 2026-11-26; code remains on specialist routes)
 - **[docs/poolday/receipt-backed-retrieval.md](./poolday/receipt-backed-retrieval.md)** - Target strategy for receipt-backed embeddings, retrieval, reranking, and vector memory
 - **[docs/poolday/document-search.md](./poolday/document-search.md)** - Local document workflow, exact Pack configuration, privacy, and release prerequisites
 - **[docs/poolday/complete-pack-jobs.md](./poolday/complete-pack-jobs.md)** - Explicit public operation delegation, bounded recovery, signed streams and archived acceptance
-- **[docs/poolday/remote-operations.md](./poolday/remote-operations.md)** - Complete jobs on an exact base model and signed LoRA publication, and reviewed document tasks
-- **[docs/poolday/biological-sequence-lane.md](./poolday/biological-sequence-lane.md)** - Governed protein/DNA sequence execution, receipt, privacy, and AdapterPack boundary
+- [docs/poolday/remote-operations.md](./poolday/remote-operations.md) - Pointer; content moved to complete-pack-jobs.md and document-search.md
+- **[docs/poolday/biological-sequence-lane.md](./poolday/biological-sequence-lane.md)** - Governed protein/DNA sequence execution, receipt, privacy, and AdapterPack boundary (journeys retired 2026-11-26; code remains on specialist routes)
 - **[docs/poolday/room-1-pilot-charter.md](./poolday/room-1-pilot-charter.md)** - Prospective protein annotation adjudication pilot
 - **[docs/poolday/p2p-envelope-protocol.md](./poolday/p2p-envelope-protocol.md)** - Signed peer envelope contract
 - **[docs/poolday/participation-identity-routing.md](./poolday/participation-identity-routing.md)** - Request/contribute modes, device identity, artifact authority, and deterministic routing
-- **[docs/poolday/reputation-ledger.md](./poolday/reputation-ledger.md)** - Event-sourced reputation reducer contract
-- **[docs/poolday/agent-api.md](./poolday/agent-api.md)** - Agent-facing API for deterministic inference jobs
-- **[docs/poolday/canary-and-challenge-policy.md](./poolday/canary-and-challenge-policy.md)** - Canaries and challenges that turn receipts into audit-backed evidence
-- **[docs/poolday/policy-classes.md](./poolday/policy-classes.md)** - Prompt policy classes for browser providers
 - **[docs/poolday/discovery-contract.md](./poolday/discovery-contract.md)** - Target atomic active-science object, action-value boundary, epistemic updates, replication, and closure
 - [Network product intent](./poolday/product-intent.md) - Compatibility links only
 - [Poolday product contracts charter](./poolday/CATSCAN.md)
@@ -153,7 +157,7 @@ Checking one published trade receipt from outside the project: [Verify a trade](
 - **[docs/adapters.md](./adapters.md)** - Catalog adapters: picker facts, identity through an answer, preparation, serving and held-out evaluation
 - **[docs/intent-bundle-lora.md](./intent-bundle-lora.md)** - Intent bundle LoRA workflow
 - **[docs/trained-adapter-promotion.md](./trained-adapter-promotion.md)** - Tinker adapter evidence, Shadow staging, and human-only promotion
-- **[docs/local-models.md](./local-models.md)** - WebLLM and Ollama setup
+- [docs/local-models.md](./local-models.md) - Redirect to the local-model setup in [X/Zero setup](zero-x-quick-start.md#local-models-x-and-returning-instances)
 
 ---
 
@@ -192,6 +196,7 @@ Checking one published trade receipt from outside the project: [Verify a trade](
 
 ## Releases and evidence
 
+- **[docs/status/README.md](./status/README.md)** - What the status files are and which one to read for each surface
 - **[docs/status/surface-claim-index.json](./status/surface-claim-index.json)** - Machine-checked surface status, evidence, blockers, and claim permission
 - **[docs/critical-user-journeys.md](./critical-user-journeys.md)** - The one Reploid journey catalogue: the owner's four first-visit journeys as the public-page bar (FIRST-01 to FIRST-04) and the rules and checks that follow from them, every outcome journey with its acceptance criteria and evidence status, and coverage variants
 - **[docs/first-visit-journeys.md](./first-visit-journeys.md)** - Redirect to the public-page bar in the journey catalogue
@@ -202,7 +207,7 @@ Checking one published trade receipt from outside the project: [Verify a trade](
 - [Evidence status charter](./status/CATSCAN.md) and the [retained evidence catalog](./evidence-catalog/index.json) for evidence moved out of the source tree
 
 ### Release and measurement reports
-- [Reploid 0.1.5 + DopplerX 0.1.5 qualification](../reports/release-015-qualification/README.md)
+- [Reploid 0.1.5 + DopplerX 0.1.5 qualification](../reports/release-015-qualification/README.md): the last qualified release. The Doppler package in use is pinned in [`shared/config/doppler-package.json`](../shared/config/doppler-package.json)
 - [Whole-model conversation reuse](../reports/generation-context/20261109/README.md)
 - [Qwen 27B on a workstation and a Windows laptop](../reports/native-throughput/20261109/README.md)
 - [JSON-configured native Qwen partition checks](../reports/ordered-qwen-native/20261109/README.md)
@@ -220,7 +225,7 @@ Checking one published trade receipt from outside the project: [Verify a trade](
 - **[Testing guide](./TESTING.md)** - Test-value rules, focused checks and physical controllers
 - **[Cloudflare discovery and TURN migration](./cloudflare-migration.md)** - Signaling rendezvous and temporary TURN credentials
 - **[Public discovery and pinned runtime repair](./public-swarm-repair.md)** - Discovery alternatives and pinned Doppler runtime recovery
-- **[docs/CONFIGURATION.md](./CONFIGURATION.md)** - Boot UI settings and localStorage keys
+- **[docs/CONFIGURATION.md](./CONFIGURATION.md)** - Boot UI settings and localStorage keys, URL parameters, web search access and substrate config files
 - **[docs/style-guide.md](./style-guide.md)** - Code and UI conventions
 - **[diagnostic-planning.md](./diagnostic-planning.md)** - Optional belief-based investigation strategy and bounded comparison evidence
 
@@ -243,6 +248,7 @@ The [browser ownership inventory](./ownership-inventory.md) assigns every served
 ```
 reploid/
 ├── apps/poolday/               # Poolday product, served at the same URLs (index.html, ui/pool-home/, pool/, host/)
+├── apps/poolday-react/         # React Poolday UI source (features, app composition, l10n)
 ├── shared/                     # Browser code both surfaces load (vendor/, config/, identity.js, ...)
 │   └── infrastructure/event-bus.js # Shared pub/sub event system
 ├── self/                       # Agent/VFS substrate; with the two roots above, one served tree
@@ -279,6 +285,10 @@ reploid/
 │   │   └── canonical-inventory.md # Generated sitemap; counts derive from source
 │   │
 ├── packages/reploid/src/       # Reploid library source; served as the shared/vendor/reploid mirror
+├── packages/poolday-ui/        # @reploid/poolday-ui, the Poolday design system components
+├── packages/change-passport/   # @reploid/change-passport, typed Change Passport client
+├── packages/poolday-forecast/  # @reploid/poolday-forecast, forecast contracts over Poolday signed records
+├── packages/functions/         # Cloud functions package
 ├── tests/                      # Test suites
 │
 ├── docs/                       # Human-facing documentation
@@ -318,7 +328,7 @@ does not create Markdown blueprints unless a module introduces an architectural 
 4. [tools/README.md](../self/tools/README.md) - Tool development
 
 ### For RSI Research
-1. [README.md](../README.md) - Core RSI thesis
+1. [RSI levels](./RSI-LEVELS.md) - The `L0` through `L4` ladder
 2. [rsi-improvement-episodes.md](./rsi-improvement-episodes.md) - Canonical causal improvement record and current proof boundary
 3. [blueprints/0x000015-dynamic-tool-creation.md](../self/blueprints/0x000015-dynamic-tool-creation.md) - Tool creation
 4. [blueprints/0x00005B-recursive-goal-decomposition.md](../self/blueprints/0x00005B-recursive-goal-decomposition.md) - Recursive goal decomposition

@@ -1,7 +1,16 @@
-# Poolday Browser Inference
+# Poolday Browser Inference (legacy coordinator lane)
 
-Poolday is the docs/internal name for the receipt-backed browser inference pool.
-The public UI for this surface uses the Reploid name. Do not expose Poolday as user-facing product copy unless that naming decision changes.
+> **Legacy reference.** This file describes the coordinator lane: receipt-backed
+> browser jobs, the protein-sequence embedding lane, canaries, reputation and the
+> `/ask`, `/compute` and `/records` routes. It is not the launch. Launch is remote-solo
+> whole-model chat ([route table](product-specification.md#5-contribution-and-execution)).
+> The coordinator lane's journeys were retired on 2026-11-26 (see
+> [critical-user-journeys.md](critical-user-journeys.md)); its code remains on
+> specialist routes. Read this file as a runtime and protocol reference for that code.
+
+Poolday is the internal name for the product code in `apps/poolday`, as the
+[glossary](glossary.md#1-overview) defines it; this file covers that code's coordinator
+lane. The public UI uses the Reploid name.
 
 The [public product contract](product-specification.md) defines requirements and
 [four inference routes](product-specification.md#5-contribution-and-execution).
@@ -37,8 +46,8 @@ Identity, and Routing](./poolday/participation-identity-routing.md).
 
 | Route | Purpose |
 |-------|---------|
-| `/` | Public Reploid model-serving home. The current launch lane is public protein-sequence embedding. Docs/internal surface name: Poolday |
-| `/ask` | Requester work flow and local acceptance; the current launch lane accepts explicitly public protein sequences |
+| `/` | Public Reploid chat home (launch: remote-solo whole-model chat). Docs/internal surface name: Poolday |
+| `/ask` | Legacy coordinator requester flow and local acceptance; it accepts explicitly public protein sequences |
 | `/compute` | Browser contributor tab and local receipt generation |
 | `/records` | Saved answers, room activity, contributor scores, receipt lookup, and protocol details |
 | `/history` | Compatibility alias for `/records` |
@@ -218,7 +227,7 @@ Target migration order:
 ## Text generation contract
 
 This contract applies when an admitted text-generation model is enabled. The
-current launch catalog enables only the ESM-2 sequence-embedding lane, whose
+coordinator lane's catalog enables only the ESM-2 sequence-embedding lane, whose
 request and result rules live in the biological sequence document.
 
 ```json

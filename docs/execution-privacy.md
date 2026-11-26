@@ -57,14 +57,11 @@ display their disclosure as unrecorded.
   the browser dispatches. The native requester is itself a plaintext recipient;
   the browser and native host validate it and all downstream workers. A fresh
   route check follows consent. Older bridge protocol is not a fallback.
-- **Standard HTTP API:** OpenAI/Responses/Anthropic request shapes do not expose
-  internal fields. They are adapters over `reploid/inference`; the optional
-  `reploid` extension carries the same model pin and requirements on all three
-  and may only narrow the policy that the authenticated operator composition
-  provides. Native fleet composition binds the enrolled identity set,
-  intersected with the configured recipient list when present. Every protection
-  but `plaintext` is refused there, because a JSON body is already plaintext to
-  the server that receives it.
+- **Standard HTTP API:** adapters over `reploid/inference`; see
+  [HTTP adapters](confidential-execution.md#http-adapters) for the `reploid`
+  extension and which protections and routes they refuse. Native fleet
+  composition binds the enrolled identity set, intersected with the configured
+  recipient list when present.
 - **Retrieval:** only host-installed paths with complete recipient disclosures
   can run. A qualified Brave server advertises
   `reploid.search-disclosure/v2` at the configured exact HTTPS origin
@@ -79,14 +76,11 @@ display their disclosure as unrecorded.
 
 ## Unavailable and unproven
 
-No built-in encrypted evaluator or attestation verifier is qualified. Requests
-for these modes fail before disclosure or computation. Backend eligibility is
-decided by the requester's own registry of exact backend identities
-(`EXECUTION_BACKENDS`); an offer whose declared kind or protocol differs from its
-registered backend is ineligible, so an advertisement cannot qualify a mode. Ordinary execution
-allows existing recovery storage but never publication, training or reuse.
-A recipient of plaintext could still copy it; recipient authorization cannot
-enforce their downstream behavior. Ephemeral erasure is not qualified.
+Who can read what under each protection and route, what is refused, and what
+is not claimed are stated once, in [confidential execution](confidential-execution.md)
+(its [threat model](confidential-execution.md#threat-model-per-protection-and-route)
+and [Not claimed](confidential-execution.md#not-claimed)). Ordinary execution allows
+existing recovery storage but never publication, training or reuse.
 
 Controlled integration tests cover malformed and missing policies, obsolete
 clients, changed routes and recipients, unavailable computation, cancellation,

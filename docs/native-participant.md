@@ -3,7 +3,7 @@
 This is the same application host and participant protocol as the browser.
 The generated delivery copies canonical source and catalog bytes; it does not
 maintain another runtime. Linux/Vulkan native computation has physical evidence
-under [native files](https://github.com/clocksmith/reploid/tree/main/artifacts/native-files-20261012). Signed opening and
+under [native files](https://github.com/clocksmith/reploid/blob/e543183bed54dfdf2b6e6139dd4c31c8686f47bd/artifacts/native-files-20261012/README.md) (retained in the [evidence catalog](evidence-catalog/README.md)). Signed opening and
 whole-model numerical and document-quality acceptance remain separate gates.
 
 Use Node 22.13 or newer. From the checkout, run `npm ci`, then
@@ -241,7 +241,8 @@ mode stops startup before the identity, modules or network are touched.
 catalog model's cuts in a private room. It is rejected in public discovery before
 identity creation or provider startup. This is configuration authority, not a
 public model release or signed partition qualification. It requires the matching
-Doppler package (0.6.36 or newer with the manifest-driven plan API).
+Doppler package with the manifest-driven plan API; the version in use is pinned in
+[`shared/config/doppler-package.json`](../shared/config/doppler-package.json).
 
 ```json
 {
@@ -345,7 +346,7 @@ On Linux, `--contribute` gives the Vulkan driver a private Mesa shader cache and
 never reuses one that an unfinished preparation wrote. Mesa ANV 24.2.8 stores a
 shader's intermediate form before its compiled binary; a process stopped
 mid-compile leaves an entry that can crash every later process needing that
-pipeline ([investigation](https://github.com/clocksmith/reploid/tree/main/artifacts/native-crash-20261014)).
+pipeline ([investigation](https://github.com/clocksmith/reploid/blob/e543183bed54dfdf2b6e6139dd4c31c8686f47bd/artifacts/native-crash-20261014/README.md)).
 
 - The cache is keyed by the installed Doppler runtime and its pinned archive, the
   WebGPU provider, the Vulkan driver files and render devices, driver environment
@@ -585,7 +586,7 @@ composition must still supply approved terms and those ledger/execution projecti
 | Messages streaming | On a partition route the tokenization observation produces `message_start` before numerical dispatch. A whole-model provider reports the token count of the prompt it tokenized before its first output token (one `reploid:generation-update` carrying `usage.inputTokens` and no `chunk`, ahead of any text), so `message_start` opens with that count and text streams as it arrives; the requester then refuses, before countersigning, a completion or receipt whose input count differs. A provider that predates the report sends text first: its text is kept and the whole stream is sent at completion, opening with the actual count. No count is invented. While output could still be a tool call its text stays held, and a call is published only whole and valid. Typed content deltas (a validated call as `input_json_delta`) and the final cumulative sampled count end with `message_stop` |
 | Messages termination | EOS/stop token → `end_turn`; a validated call → `tool_use`; output ceiling → `max_tokens`; context-limit or unmatched stop-sequence metadata fails explicitly |
 | Other paths | Unimplemented routes return 404 |
-| Usage | Chat Completions omits counts. Responses with a caller ceiling and Messages use actual `raw-model-tokens/v1` local accounting described below; missing counts remain absent |
+| Usage | Chat Completions returns `usage` (`prompt_tokens`, `completion_tokens`, `total_tokens`, and `prompt_tokens_details.cached_tokens` when a prefix was reused) when the route measured them, on the response or the finish chunk. Responses with a caller ceiling and Messages use actual `raw-model-tokens/v1` local accounting described below; missing counts remain absent |
 
 The adapter uses existing input/output/admission limits from
 `apps/poolday/config/partition-policy.json`. Adapters borrowing the same participant share
@@ -594,7 +595,7 @@ the HTTP admission limit; closing one adapter aborts only its own requests.
 not GPU ownership; remote cleanup debt remains with participant/resident owners.
 This ordinary streamed execution path does not claim canonical durable publication.
 
-The [installed consumer evidence](https://github.com/clocksmith/reploid/tree/main/artifacts/text-chat-completions-20261013)
+The [installed consumer evidence](https://github.com/clocksmith/reploid/blob/e543183bed54dfdf2b6e6139dd4c31c8686f47bd/artifacts/text-chat-completions-20261013/README.md)
 uses the official OpenAI JavaScript SDK against loopback, with injected numerical
 text and no cloud or GPU calls. Separate source controls reach the real automatic
 requester, signed grants and ordered peer owners through a mounted HTTP handler.
@@ -615,46 +616,27 @@ messages and validates that final text parses as an object. It does not supply
 constrained decoding or JSON-schema guarantees. Invalid output cannot publish a
 successful terminal event; streamed text remains provisional.
 
-All three routes are adapters over [`reploid/inference`](confidential-execution.md).
-An optional `reploid` field, the same on `/v1/chat/completions`, `/v1/messages`
-and `/v1/responses`, carries the inference API's model pin and execution
-requirements plus the private pool and conversation. It narrows, without
-replacing, the host's existing authorization:
+All three routes are adapters over `reploid/inference`. The optional `reploid`
+extension, the requirements it carries, the refused protections and routes, error
+codes and the returned `reploid` record are specified once, in
+[HTTP adapters](confidential-execution.md#http-adapters). What the native host adds:
 
-```json
-{
-  "model": { "identity": "sha256:REPLACE-WITH-READY-MODEL-IDENTITY", "adapterIdentities": [], "planIdentity": "REPLACE-OR-OMIT" },
-  "execution": { "protection": "plaintext", "route": "auto",
-                 "participants": { "kind": "named", "ids": ["REPLACE-WITH-ADMITTED-PEER-THUMBPRINT"] },
-                 "allowMetadata": ["model-id", "timing", "length", "access-patterns"] },
-  "poolId": "valera-private-pool-v1",
-  "conversationId": "optional-conversation-id"
-}
-```
+- It exposes its authoritative `roomId` and `executionClass`. A given `poolId`
+  that differs, or a public or unknown class, fails closed, and so do model,
+  adapter and plan mismatches and any participant outside `participants`.
+- Checks span execution authorization, the plan's route admission, disclosure
+  authorization and completion. Expected adapters must be active on the selected
+  route, not merely available.
+- Headers retain request/attempt/model identity and the raw-token usage schema
+  when admitted. The executor report is provider-reported; HTTP compatibility
+  does not independently attest remote hardware or model quality. The extension
+  grants neither admission nor disclosure rights.
 
-The native host exposes its authoritative `roomId` and `executionClass`. A given
-`poolId` that differs, or a public or unknown class, fails closed, and so do
-model, adapter and plan mismatches and any participant outside `participants`.
-The extension is read before the protocol's messages. Every `protection` but
-`plaintext` is refused with 422 `confidential_execution_unavailable`, because a
-JSON body is already plaintext to this server. Checks span execution
-authorization, the plan's route admission, disclosure authorization and
-completion. Expected adapters must be active on the selected route, not merely
-available.
+Source integration tests cover these bindings with injected computation; no
+physical inference is implied by those tests. Mounting remains an explicit host
+operation.
 
-With the extension, every route returns a top-level `reploid` record: the
-`reploid.execution-receipt/v2` (issue time, protection and concrete route, requested
-requirements, admitted route, backend, disclosure, and separate privacy,
-integrity and credit evidence), the
-executor's own `execution` report as reported, `poolId` and `conversationId`.
-Headers retain request/attempt/model identity and the raw-token usage schema
-when admitted. The executor report is provider-reported; HTTP compatibility does
-not independently attest remote hardware or model quality. The request field
-grants neither admission nor disclosure rights. Source integration tests cover
-these bindings with injected computation; no physical inference is implied by
-those tests. Mounting remains an explicit host operation.
-
-The [Responses installed consumer evidence](https://github.com/clocksmith/reploid/tree/main/artifacts/stateless-responses-20261013)
+The [Responses installed consumer evidence](https://github.com/clocksmith/reploid/blob/e543183bed54dfdf2b6e6139dd4c31c8686f47bd/artifacts/stateless-responses-20261013/README.md)
 uses OpenAI SDK 7.32.0 for nonstreaming, streaming, terminal errors and cancellation
 against an installed native adapter with injected computation. Source HTTP tests
 add the actual automatic requester, grants and ordered peers. This proves protocol
@@ -673,7 +655,7 @@ prevents automatic retry from splicing a fresh attempt into the same response.
 The host must authenticate `x-api-key` or other credentials through its existing
 authentication port; the adapter itself grants no identity or disclosure rights.
 
-The [Messages compatibility evidence](https://github.com/clocksmith/reploid/tree/main/artifacts/text-messages-20261013)
+The [Messages compatibility evidence](https://github.com/clocksmith/reploid/blob/e543183bed54dfdf2b6e6139dd4c31c8686f47bd/artifacts/text-messages-20261013/README.md)
 uses the official Anthropic SDK against an installed, explicit loopback mount with
 injected numerical output. Source tests exercise real request/grant/entry/peer
 owners, smaller caller caps, cancellation and actual token arrays. Neither proves
@@ -721,7 +703,8 @@ Delivery activation is a separate versioned dependency update: assign a new
 ordinary Doppler package version, then run `scripts/sync-doppler.js` so the npm
 archive, lockfile, browser vendor tree and delivery manifests agree. The sync
 refuses changed bytes under an existing version; never overwrite the retained
-`0.7.4` archive to activate this path. Source-only contract evidence does not
+archive of the version pinned in [`shared/config/doppler-package.json`](../shared/config/doppler-package.json)
+to activate this path. Source-only contract evidence does not
 qualify the currently pinned deployment package.
 
 The native adapter resolves available indexed files inside the approved model

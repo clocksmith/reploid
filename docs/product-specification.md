@@ -3,7 +3,7 @@
 **Ask, explore and figure things out. Earn access on your computer, or pay as you go.**
 
 **Reploid Product Economics Contract v1.5**, identity `reploid.product-economics/1.5.0`
-(2026-11-23). These are the public terms that every quote and receipt binds: the
+(2026-11-26). These are the public terms that every quote and receipt binds: the
 service record, Community Access, credits and settlement, answer quality, and
 contribution and disclosure. Version 1.5 adds the §5 inference routes and their
 physical qualification requirements. A quote or receipt made under an earlier version
@@ -201,20 +201,13 @@ shipped surfaces; the others are refused before anything is sent. The chat's
 "Who can read it?" dialog lists the four protections, unranked, as Standard,
 Secret sharing, Compute on encrypted data and Verified hardware, with the
 unavailable ones disabled and their reasons, and a separate "Where it runs"
-route choice (This device, One computer, Several computers, Several computers
-with your devices at both ends, Let it choose). "Only your devices" is a
+route choice (This device, One computer, Several computers, "Several computers,
+your devices at both ends", Let it choose). "Only your devices" is a
 participants choice: the devices paired with this one, which read the content in
 plaintext. Any plaintext split shows how many computers can read the message. See [confidential-execution.md](confidential-execution.md).
-Qualifying plaintext split routes and researching single-evaluator `homomorphic` fixtures
-are distinct stepping stones toward the long-term north star in
-[`GOALS.md`](../GOALS.md#operating-mission): proving that combined goal requires
-earning credits by serving someone else, spending them from a zero-weight requester
-on **one confidential split** across independently operated GPUs that each fail solo
-on memory and beat single-host CPU offload within frozen latency and quality limits,
-and verifying from that same run an independent security review of who could read
-what (without letting `attested` or `secret-sharing` silently pass as
-`homomorphic`), the reference answer, and outsider-reproducible debit and stage
-payouts.
+Qualifying plaintext split routes and researching `homomorphic` fixtures are steps
+toward the north star; [GOALS.md](../GOALS.md#operating-mission) states it and what
+proving it requires.
 Describe prior turns and attached/retrieved context before relying on a grant.
 Model selection does not establish trust in arbitrary computers. Sending a message
 or explicitly retrying authorizes eligible contributors under the app's network-answer
@@ -235,19 +228,16 @@ Stopping contribution MUST preserve history and MUST NOT directly cancel
 unrelated requests. Loss of indispensable capacity may require waiting or explicit
 retry. Saved history MUST NOT be represented as recovered inference state.
 
-**Automatic local download (updated 2026-10-22).** Send/Retry alone never authorize
-a download. A separate per-browser setting, on by default, MAY download one whole model
-to this device's browser storage when the person sends a message that no computer can
-answer for the selected model: the model the person chose, or the smallest suitable
-whole model when they made no choice. Visiting, waiting or discovery alone MUST NOT
-start a download. The message waits in the composer and sends once the model is ready;
-a failed, skipped or cancelled download leaves it unsent. The download MUST name the
-model, show progress, offer Cancel and stay inside
-the device's storage limit. It MUST NOT start without WebGPU, while the browser asks
-to save data, or when browser storage cannot hold the model; the reason appears
-inline. Cancel stops automatic downloads until the setting is turned on again or the
-page reloads. The download sends no conversation input, and existing sharing
-settings apply to the stored model as to any downloaded model.
+**Local download (updated 2026-11-26).** Send/Retry never authorize a download, and no
+setting turns a Send into one; an older automatic-download setting saved in the
+browser has no effect. Visiting, waiting or discovery alone MUST NOT start a download.
+When no computer can answer for the selected model, Send is disabled, the message
+stays in the composer, and the page offers "Review local download". That opens a
+dialog that names the model and its download size. The download starts only when the
+person confirms it there. It MUST show progress, offer Cancel and stay inside the
+device's storage limit; a failed or cancelled download offers "Retry download". The
+download sends no conversation input, and existing sharing settings apply to the
+stored model as to any downloaded model.
 
 **Search tools (updated 2026-10-17).** Sending with search enabled, or explicitly
 retrying a search answer, starts the selected search tool without a permission popup.

@@ -5,6 +5,13 @@ after Doppler proves identity and inference parity, Gamma selects the exact
 artifact on sealed task and retention populations, Clocksmith independently
 verifies prospective evidence, and a human approves the bound receipt chain.
 
+This chain belongs to the Zero/X agent substrate
+([`self/experimental/intelligence/neural-compiler.js`](../self/experimental/intelligence/neural-compiler.js)).
+Catalog adapters in the Poolday chat (`availableAdapters` in
+[`shared/config/chat-models.json`](../shared/config/chat-models.json)) are a
+separate path: they are listed and served by identity without this chain; see
+[adapters.md](adapters.md).
+
 ## Contract
 
 `NeuralCompiler.stageTrainedAdapter()` accepts:

@@ -11,17 +11,16 @@ Purchased credits and payouts are separate. The same ledger can also run with op
 enrollment behind replo.id's accounts, where people pair their own computers by code:
 see [self-serve accounts](self-serve-credits.md).
 
-## Settlement rules at a glance
+## Settlement rules
 
-The signed settlement terms decide every charge; [settlement replay](settlement-replay.md) is the full specification.
-
-| Route and signed terms | Finished answer | Requester signs a stop | Stops with no signed stop | A stage fails | Silent hold released at |
-| --- | --- | --- | --- | --- | --- |
-| Whole-model (one stage) | Charged for the acknowledged count | Nothing charged | Nothing charged | Nothing charged; the hold is released at once on a signed fault | deadline + `wholeModelUnclaimedReleaseMs` |
-| Split, current terms (`reploid.unfinished-answer/acknowledged-prefix-failed-stage-forfeits/v1`, rules `reploid.settlement-replay/v3`) | Charged for the acknowledged count | Acknowledged prefix charged | Acknowledged prefix charged when the stages closed | Only the failed stage's share is forfeited; the other stages are paid | deadline + `partitionUnclaimedReleaseMs` + `maxClockSkewMs` |
-| Split, older terms | See [Older rules](settlement-replay.md#older-rules) | | | | |
-
-Whole-model is completion-only: there is no acknowledged prefix on that route. Nothing is charged when nothing was acknowledged. Signed terms are never reinterpreted: each attempt settles under the terms it signed.
+The signed settlement terms decide every charge, and each attempt settles under the
+terms it signed. [Settlement replay](settlement-replay.md) is the one specification:
+its [rules at a glance](settlement-replay.md#rules-at-a-glance), the current
+[failed-stage terms](settlement-replay.md#failed-stages), the
+[older rules](settlement-replay.md#older-rules), the
+[ledger's outcome reasons](settlement-replay.md#ledger-outcome-reasons) and
+[whole-model operations](settlement-replay.md#whole-model-operations). This page
+covers how the fleet service collects those records and runs the ledger.
 
 ## Computer identity
 
@@ -176,35 +175,16 @@ requester's signed acknowledgments, by the settlement replay's charge rule
 `credit-evidence.js`). When the person stops a split answer, the requester signs
 `reploid.settlement-stop/v1` and hands it to the ledger through `collect` before
 its stages are told to stop (it waits at most 2 s for the ledger), then sends it
-again with the closing evidence. With that stop the acknowledged prefix is
-charged. Without it, an unfinished answer that the stages closed, with `settled`
-or `failed` receipts, is an unattributed disconnect and charges the same
-acknowledged prefix, capped at the signed output ceiling and split by the signed
-weights, with reason `unattributed-disconnect-acknowledged-prefix`. New split
-reservations take the owner's failed-stage rule (`settlementRules:
-reploid.settlement-replay/v3`; settlement terms name it as `unfinishedTerms:
-reploid.unfinished-answer/acknowledged-prefix-failed-stage-forfeits/v1`), and the
-ledger and the settlement replay agree on it
-([settlement-replay.md](settlement-replay.md#failed-stages)). A stage that
-fails, by its owner's interruption claim or by having no closing receipt once
-the release window has passed, forfeits its own share and nothing else: the
-stages that closed are paid for the outputs the requester acknowledged, and the
-requester is charged exactly those shares, with reason
-`failed-stage-forfeits-own-share` and the failed stages in `forfeitedStages`. A
-stage on the requester's own account is never charged or paid, so its failure
-changes no amount. With nothing acknowledged such a request still expires with
-no charge. Reservations accepted under `reploid.settlement-replay/v2` (terms
-`reploid.unfinished-answer/acknowledged-prefix-provider-relief/v1`) keep that
-rule: a verified provider failure charged the requester nothing and paid no
-stage. A requester's silence is never a provider failure. Reservations accepted under
-`reploid.settlement-replay/v1` keep that rule: such an answer charged nothing,
-with reason `stage-ended-unfinished-answer`. Reservations accepted under the
-interim `reploid.settlement-replay/v1+acknowledged-prefix` charged the
-acknowledged prefix, with reason `unfinished-answer-closed-without-requester-stop`.
-Outputs acknowledged past the reservation's output ceiling
-are accepted, never charged, and recorded as `beyondCeiling`. A reservation made
-before these rules (no `settlementRules` in its binding) keeps the rules it was
-accepted under.
+again with the closing evidence. New split reservations take settlement rules
+`reploid.settlement-replay/v3` (`SETTLEMENT_RULES` in `credit-shares.js`). What a
+stop, an unattributed disconnect and a failed stage charge under those rules and
+under each older one, and the `reason` the ledger records, are stated in
+[Unfinished answers](settlement-replay.md#unfinished-answers),
+[Failed stages](settlement-replay.md#failed-stages),
+[Older rules](settlement-replay.md#older-rules) and
+[Ledger outcome reasons](settlement-replay.md#ledger-outcome-reasons). A reservation
+made before these rules (no `settlementRules` in its binding) keeps the rules it
+was accepted under.
 
 A lost connection is not a Stop: a closed HTTP stream or browser stream leaves
 the answer recoverable through `POST /v1/reploid/recover` until its deadline
@@ -230,10 +210,9 @@ still requires the requester’s signed output count and all other stages’ clo
 rules (`reploid.settlement-replay/v3`) the report also carries the stage's own signed fault
 (`reploid.settlement-stage-fault/v1`), which the stage host signs once with its enrolled key and journals before
 sending; the service checks it against the reservation and keeps it with the claim, so the settlement replay can
-reach the same result. The interrupted stage forfeits its own share and the other stages are paid for the
-acknowledged output. Under the earlier provider-relief rules an interrupted execution charges the requester nothing
-and pays no stage, and returns `failed` with reason `interrupted-stage-owner`. A reservation made before those
-terms keeps its acknowledged-prefix charge. `POST /v1/reploid/recover` can read that outcome before a replacement model is loaded.
+reach the same result. What the claim settles under each rule is in
+[Failed stages](settlement-replay.md#failed-stages) and [Older rules](settlement-replay.md#older-rules).
+`POST /v1/reploid/recover` can read that outcome before a replacement model is loaded.
 Unpublished work, physical GPU recovery and output text beyond the acknowledged prefix remain unknown.
 
 Both the service and the stage need the owned-admission operation. Legacy stages still use their existing
@@ -255,41 +234,17 @@ A split request has the same gap, and a wider one: settlement needs every
 stage's signed closure, so one stage host that disappears for good would strand
 the hold even when the other stages signed. `creditPolicy.partitionUnclaimedReleaseMs`
 bounds it. Once the clock passes the request deadline plus this window plus the
-clock skew allowance (the last instant a closing receipt still counts; a
-reservation accepted before the interim rules is decided at the deadline plus the
-window), a split request whose proof is still incomplete reaches one final outcome: status `expired`, reason
-`stage-unclaimed-after-window`, no charge, and no credit to any stage, including
-stages that did sign. The outcome records the acknowledged output count and
-lists each stage that never signed with `cleanup: "unverified"` (or
-`"never-admitted"`); it asserts nothing about what a silent host did. When the
-answer was delivered (the final stage signed `done` at the count the requester
-acknowledged in time) but some stage has no receipt covering it, the reason is
-`unknown-delivered-answer-without-covering-receipt` instead: the replay's
-`unknown`, with the same zero amounts. A later
-claim or late receipt for that request is refused and pays nobody, and the
-outcome survives a restart. A requester that retries does so as a new request,
-charged once. A request whose proof is complete is settled when that proof
-arrives and is never expired.
-
-One case settles at the window instead of expiring, the same rule the settlement
-replay applies ([settlement-replay.md](settlement-replay.md), step 6): the final
-stage's retained receipt signed `done` at count `N > 0`, the requester's
-retained acknowledgment of `N` carries that receipt's chain and was signed by
-the deadline (plus clock skew), every stage that closed covers `N`, and each
-stage that never closed has a retained step receipt signed by the deadline with
-`steps >= N`. Those stages are treated as closed at their last signed step, so
-one stage withholding its closing receipt cannot stop every stage's pay for an
-answer the requester received and acknowledged in full. The request settles
-once, with the `credit-shares.js` arithmetic: the requester is charged for `N`
-outputs and every stage is credited its share. The outcome has reason
-`closed-at-last-signed-step-after-window` and lists the stages in
-`closedAtLastStep`; the journal entry's evidence carries the same list, and the
-statement verifier accepts it only when the entry is dated at or after the
-deadline plus the window and the retained receipts meet every condition. A
-closing receipt or claim that arrives later returns the settled outcome and
-moves nothing. An answer that did not finish, as after a provider loss, never
-meets the rule and still expires with no charge. Stages that exited through a
-signed owner closure keep their own rule.
+clock skew allowance, a split request whose proof is still incomplete reaches one
+final outcome, decided as the settlement replay's step 6 decides it: it settles at
+the window when the answer was delivered and acknowledged (stages treated as closed
+at their last signed step, or, under the failed-stage terms, forfeiting their own
+share), and otherwise expires with no charge and no credit to any stage. The
+outcome's `reason` and the stages it lists are in
+[Ledger outcome reasons](settlement-replay.md#ledger-outcome-reasons). A later claim
+or late receipt for that request is refused and pays nobody, and the outcome
+survives a restart. A requester that retries does so as a new request, charged
+once. A request whose proof is complete is settled when that proof arrives and is
+never expired.
 
 Both windows default to 120000 ms (`DEFAULT_UNCLAIMED_RELEASE_MS` in
 `server/fleet/contract.js`) when a policy omits them, and cannot be switched
@@ -405,7 +360,8 @@ The service configuration uses schema `reploid.fleet-service/v1` and declares
 `enrollmentFile`, `modelsFile`, `databaseFile`, `creditPolicy`, `placementPolicy`,
 `listenHost`, `port`, and optional `tls: {keyFile, certFile}` and
 `coordinatorKeyFile` (the key it signs settlement statements with, made once by
-`node server/fleet/coordinator-key.js create`; see
+`node server/fleet/coordinator-key.js create /absolute/coordinator-key.json`,
+which refuses to overwrite an existing file; `public FILE` prints its public key; see
 [settlement-replay.md](settlement-replay.md#the-coordinators-statement)).
 Non-loopback binding requires TLS. Pin a private CA for the service processes rather than disabling
 certificate checks. Requests are authenticated with enrolled signing keys.
@@ -445,8 +401,12 @@ keeps the host running after standard input closes. `initialModel` and
 `followPlacement: true` must supply a bounded `capacityWaitMs`.
 
 The JSON-lines control interface accepts `select`, `state`, `reconcile`,
-`balances`, `statement`, `generate` and `cancel`. Every command has an `id`; generation emits
-`delta` events followed by the result. `generate` is prepared and run through
+`balances`, `statement`, `generate`, `cancel`, `outcome` (one request's credit
+outcome, by `targetId`), `trade` (one reservation's signed records from this host's
+disk, by `reservationId`, as a receipt or with `format: "records"`), `trades` (the
+list of them) and `recover` (`input` as for `POST /v1/reploid/recover`). Every
+command has an `id`; generation emits `delta` events followed by the result, and
+with `events: true` also a `route` event once the route is approved. `generate` is prepared and run through
 [`reploid/inference`](confidential-execution.md): its `request` may carry `execution`
 requirements in the API's shape, and without them it names the enrolled computers this
 host pins. A peer `privacy` policy is refused. The result carries the API's
@@ -553,9 +513,10 @@ browser origin and bearer secret. A browser may separately request permission to
 access the local network. No signing key, private room token or model-file path
 is returned to the browser.
 
-In Computers, choose **Connect a native host**, enter its local address and secret,
-and review the enrolled computer names. The pairing is stored only in that tab's
-session storage. Choose a model under **Your private computers**. This authorizes
+In Computers, under **Your private computers** ("Connect the Reploid host on your
+computers"), enter the **Host address** and **Pairing secret** the host shows when
+it starts, choose **Connect host**, and review the enrolled computer names. The
+pairing is stored only in that tab's session storage. Choose a model under **Your private computers**. This authorizes
 your native requester to serve the exact model through its reviewed private pool;
 its existing per-provider disclosure, admission, spending limits and settlement
 remain mandatory. It is delegation to the paired host, not browser-side hardware
@@ -610,7 +571,7 @@ secret as `x-api-key`, on that route only):
     "listenHost": "127.0.0.1",
     "port": 18785,
     "tokenFile": "/absolute/owner-only/fleet-api-secret",
-    "allowedRecipients": ["peer:5c0ecd2fd5fd8a105a4f8068"]
+    "allowedRecipients": ["peer:0000000000000000000000000000"]
   }
 }
 ```

@@ -49,25 +49,10 @@ These exercise contracts with injected model execution, not model quality.
 
 ## Inference API (`reploid/inference`)
 
-Browser chat, `reploid ask` and SDK callers share one requester-side API.
-`execution` is `{ protection, route, participants, allowMetadata }`, typed per
-protection: `plaintext` takes `local` (no participants), `remote`, `split`,
-`split-local-edges` or `auto`; `secret-sharing` takes `split` or `auto`;
-`homomorphic` and `attested` take `remote` or `auto`. Both fields are required,
-and anything outside that union is refused naming the allowed routes.
-`inference.listCapabilities({ model, constraints })` lists, per protection, the
-allowed routes, each available, unavailable or unknown with a reason, what was
-checked and when (advisory only). `inference.prepare({ model, generation, execution })`
-pins a route and states its disclosure (who can read the prompt, intermediate
-state, answer and metadata) without any prompt or charge, and
-`inference.run({ planId, requestId, input: { messages } })` rechecks the route,
-admits only the planned participants and returns events (`admitted`,
-`output.delta`, then `completed`, `cancelled` or `failed`) and one result with an
-`executionReceipt` (`reploid.execution-receipt/v2`). A repeated `requestId` never
-dispatches or charges twice. The OpenAI- and Anthropic-shaped HTTP routes are
-adapters over it, with one `reploid` extension on all three, and refuse every
-protection but `plaintext`. Requirements, display names, refusal codes and the
-receipt are specified in
+Browser chat, `reploid ask`, the HTTP routes and SDK callers share one
+requester-side API. Its requirements (`protection`, `route`, `participants`,
+`allowMetadata`), `listCapabilities`, `prepare`, `run`, display names, refusal
+codes, the execution receipt and who can read what are specified once, in
 [confidential-execution.md](confidential-execution.md). Hosts supply
 `resolveRoute` and `execute` ports: [`chat-execution.js`](../apps/poolday/host/chat-execution.js)
 for the browser, [`native-node-ask.js`](../server/native-node-ask.js) for the CLI
@@ -112,19 +97,26 @@ const ExampleModule = {
 export default ExampleModule;
 ```
 
-Tools are file-based modules under `self/tools/` and typically export:
+Tools are file-based modules under `self/tools/` and typically export a `tool`
+object and its `call` function as the default export:
 
 ```javascript
-export default async function(args, deps) {
+async function call(args = {}, deps = {}) {
   return result;
 }
 
-export const schema = {
+export const tool = {
   name: 'ToolName',
   description: 'What the tool does',
-  parameters: {}
+  inputSchema: { type: 'object', properties: {} },
+  call
 };
+
+export default call;
 ```
+
+Some tools also declare `readOnly` or `capabilities` (for example `['vfs:write']`)
+on `tool`.
 
 ---
 
@@ -208,8 +200,10 @@ Treat experimental paths as implementation details until they move into the main
 Current built-in tool files under `self/tools/`:
 
 - `AwaitWorkers.js`
+- `CopyFile.js`
 - `CreateTool.js`
 - `DeleteFile.js`
+- `DopplerOptimize.js`
 - `EditFile.js`
 - `FileOutline.js`
 - `Find.js`
@@ -221,6 +215,9 @@ Current built-in tool files under `self/tools/`:
 - `ListTools.js`
 - `ListWorkers.js`
 - `LoadModule.js`
+- `MakeDirectory.js`
+- `MoveFile.js`
+- `Promote.js`
 - `ReadFile.js`
 - `RunGEPA.js`
 - `SpawnWorker.js`

@@ -1,6 +1,6 @@
 # Wire Visibility: Who Can Read What
 
-Every Reploid chat and game attempt has four distinct vantage points: **your device**, **the coordinator**, **the network relay**, and **the serving computer**. Today all model execution is plaintext on the serving computer (`doppler-plaintext/v1`); splitting a model across machines does **not** hide your prompt, and encrypted remote inference is not shipped.
+Every Reploid chat and game attempt has four distinct vantage points: **your device**, **the coordinator**, **the network relay**, and **the serving computer**. Shipped model execution is `plaintext`: each computer that processes a request reads what it receives. On one serving computer (`doppler-plaintext/v1`) or an ordinary split (`doppler-partition-plaintext/v1`), that includes your prompt and answer. Requester-held edges (`split-local-edges`, `doppler-partition-edges/v1`) keep prompt and answer tokens on two devices bound to you, but the middle stages read plaintext intermediate data that may reveal both. Encrypted remote inference is not shipped. [Confidential execution](confidential-execution.md) is the canonical account of who can read what under each protection and route; this page covers the wire.
 
 ## Four-Party Visibility Table
 
@@ -21,6 +21,8 @@ Placement policy determines where inference may run. The runtime executes the mo
 | **WebRTC swarm** | DTLS data channel (direct ICE or relay) | Room rendezvous and SDP/ICE. Generic local capture: no prompt or answer canary found. | DTLS ciphertext, IP/port, packet size and timing. Generic UDP-shim capture: no canary found. | Plaintext prompt and answer. Invite and reconnect fixtures below do not qualify a deployed route. |
 | **Credited Fleet settlement (`POST /v1/fleet`)** | HTTPS / loopback signed JSON envelopes | Ed25519 public keys, model SHA-256, token counts, salted SHA-256 commitments & digests (`0` prompt/answer bytes) | TLS ciphertext | Plaintext prompt & answer (via WebRTC DataChannel) |
 | **Local OpenAI / Anthropic API (`server/fleet/text-api.js`)** | `127.0.0.1` HTTP on requester -> WebRTC `RTCDataChannel` to provider | Credit coordination is separate from the native requester, which sees plaintext | DTLS on the WebRTC leg. A TLS-terminating HTTP proxy on the requester leg could read the JSON. | Plaintext prompt & answer |
+| **Ordinary split** (`route: "split"`, `doppler-partition-plaintext/v1`; not qualified, see the [route table](product-specification.md#5-contribution-and-execution)) | DTLS data channels between stages | Room rendezvous and SDP/ICE | DTLS ciphertext, IP/port, packet size and timing | Each stage reads what it receives in plaintext, which can include prompt and answer tokens and intermediate activations. Before sending, the chat states how many computers can read the message |
+| **Requester-held edges** (`route: "split-local-edges"`, `doppler-partition-edges/v1`) | DTLS data channels between stages | Room rendezvous and SDP/ICE | DTLS ciphertext, IP/port, packet size and timing | Your two edge devices read prompt and answer; middle stages read plaintext activations and token counts, never token IDs. The chat host supplies no `requesterDevices` binding, so the chat refuses this route before sending ([details](confidential-execution.md#requester-held-edges)) |
 | **Local browser bridge (`server/fleet/browser-bridge.js` `/bridge/generate`)** | `127.0.0.1` loopback HTTP only | Not contacted | Loopback only; **never** expose `/bridge/generate` behind a third-party TLS-terminating tunnel without end-to-end payload encryption, because an HTTP reverse proxy terminates TLS and sees JSON bodies | Local host process (plaintext) |
 
 ## Reproducible Capture Check
@@ -31,7 +33,7 @@ Anyone can rerun the live wire-capture check locally without a GPU or external a
 node scripts/verify-wire-visibility.js
 ```
 
-The script ([verify-wire-visibility.js](../scripts/verify-wire-visibility.js), covered in CI by [wire-visibility.test.js](../tests/integration/wire-visibility.test.js) and recorded in [wire-visibility-audit.json](../reports/release-015-qualification/wire-visibility-audit.json)):
+The script ([verify-wire-visibility.js](../scripts/verify-wire-visibility.js), exercised by [wire-visibility.test.js](../tests/integration/wire-visibility.test.js) and recorded in [wire-visibility-audit.json](../reports/release-015-qualification/wire-visibility-audit.json)) is not run in CI: the workflow has only the `smoke` and `design-system` jobs, and neither runs this test. Run it locally:
 
 1. Starts a live `SignalingServer`, a live `FleetService` SQLite credit ledger, a production-configured `createPoolRouter` (`allowPlaintextJobPrompts: false`), and an instrumented UDP packet relay socket between two `RTCPeerConnection` endpoints.
 2. Rewrites a loopback ICE candidate through the local UDP relay shim, exchanges canaries with random 128-bit suffixes, and settles signed non-cash service credits over `/v1/fleet`.

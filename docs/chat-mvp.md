@@ -1,23 +1,27 @@
 # Concurrent mesh chat MVP
 
-The release is a conversation workspace backed by participating devices, not a
-global task runner. This document records the requested release boundary, not a
-claim of completed integration.
+The chat workspace is a conversation workspace backed by participating devices, not a
+global task runner. This document records its integration requirements, not a claim
+of completed integration. It does not define launch: launch is remote-solo
+whole-model service, and the [route table](product-specification.md#5-contribution-and-execution)
+is the one place route qualification is stated. The layer split and LoRA application
+below are integration targets, not part of launch.
 
-## Required release
+## Integration requirements
 
 - Automatic open mesh discovery, a thread list, the selected conversation and compact network status; no invitation, room setup or manual peer selection is required.
 - Thread-scoped messages, purpose, membership, model/adapter choice, permissions,
   approvals, cancellation and durable attempts. Answers stream into their originating thread.
 - Verified model-file acquisition from authorized peers, reuse and interrupted-transfer recovery.
-- Verified compatible LoRA acquisition and Doppler application to the identified base model.
+- Verified compatible LoRA acquisition and Doppler application to the identified base model (not part of launch).
 - Whole-request peer execution without requiring the requester to load model weights.
 - Separate storage and execution contributions with enforced limits.
 - Shared bounded model residency, fair participant scheduling and isolated generation/adapter state.
 - Operational observations retaining provenance, costs and duplicate identities for later Bayesian scheduling.
 - Monochrome neumorphism, no main-workspace presets, tool import/export furniture or empty improvement sections.
 
-Qualify the implemented bounded two-device layer split through this integration. Doppler
+The implemented bounded two-device layer split is a separate route that is not
+qualified; it joins launch only after it qualifies under the route table. Doppler
 must define executable portions, tensor interfaces, continuation state and the
 comparison contract. File sharing and whole-request execution do not qualify a
 split. Reploid's legacy arithmetic layer grouping is not a Doppler partition contract.
@@ -45,7 +49,8 @@ memory accounting or immediate GPU termination.
 
 ## Resident integration contract
 
-Doppler's public `doppler-gpu/partitions` declarations and
+Doppler's public `dopplerx/partitions` declarations (package pinned in
+[`shared/config/doppler-package.json`](../shared/config/doppler-package.json)) and
 [resident execution contract](https://github.com/clocksmith/doppler/blob/main/docs/distribution/resident-partition-execution.md)
 own computation types. Reploid derives its optional-consumer declarations from
 those exports and checks them against the installed package. Grants, routing,
@@ -122,8 +127,10 @@ Doppler's declared numerical and output comparison contract.
 Ordinary browser Send and Retry authorize one attempt through the host's live
 authorization port. The workspace binds this authorization to verified recipients,
 model, adapters and scope, retaining evidence without a separate review screen.
-Changed recipients fail the attempt; Retry is a new user action. Viewing or
-restoring a conversation grants no execution, and no reusable grant is created.
+Changed recipients fail the attempt; Retry is a new user action. With network answers
+on (the default), the first Send records the stored contributor permission that covers
+the request, and later Sends it covers reuse it ([`chat-session.js`](../apps/poolday/host/chat-session.js),
+`prepareRemotePermission`). Viewing or restoring a conversation grants no execution.
 Other library hosts retain explicit review and revocable thread-grant support.
 
 | Category | Boundary |

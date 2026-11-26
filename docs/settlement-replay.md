@@ -903,8 +903,11 @@ What these terms do not stop:
 - **Self-reported times** (L5 above) apply to faults as to closing receipts.
 
 The live ledger gives every new split reservation settlement-rules id
-`reploid.settlement-replay/v3` with these terms, and its stages sign and accept
-only them. It posts what the replay computes from the same records:
+`reploid.settlement-replay/v3`. Signed terms and stage acceptances naming these
+terms are collected only by the Stage 1 harness today: live code does not yet
+carry terms to a stage (see [What it does and does not
+establish](#what-it-does-and-does-not-establish)). The ledger posts what the
+replay computes from the same records:
 - A stage with no closing receipt once the release window has passed is
   treated as closed at its last signed step or forfeits, as in step 6, and the
   request settles at the window instead of expiring. With nothing acknowledged
@@ -981,6 +984,28 @@ provider-loss-free terms; the replay reads them as the record shapes and step 3
 above describe, with `K` from the receiver policy, and reaches the amounts it
 reached when they were signed
 (`tests/unit/settlement-terms-before-k.test.js`).
+
+### Ledger outcome reasons
+
+The live ledger names why a split request settled or expired in its outcome's
+`reason` (`server/fleet/credits.js`, `server/fleet/credit-recovery.js`,
+`server/fleet/credit-shares.js`). The replay has no `reason`; these are the
+ledger's words for the cases above.
+
+| `reason` | Rules | When |
+| --- | --- | --- |
+| `unattributed-disconnect-acknowledged-prefix` | `v2`, `v3` | An unfinished answer whose stages all closed, with no requester stop: the acknowledged prefix is charged ([Unfinished answers](#unfinished-answers)) |
+| `failed-stage-forfeits-own-share` | `v3` | One or more stages forfeit their own share; the other stages are paid for the acknowledged outputs. The outcome lists `forfeitedStages`, each with its `cause` (`no-close`, `fault`, `fault-and-close` or `contradiction`); with a `fault` cause the outcome's status is `failed` ([Failed stages](#failed-stages)) |
+| `closed-at-last-signed-step-after-window` | all split rules | A delivered answer settles at the release window with the stages that never closed treated as closed at their last signed step; the outcome lists `closedAtLastStep` (step 6) |
+| `stage-unclaimed-after-window` | all split rules | The release window passed with proof still incomplete: status `expired`, no charge and no credit. The outcome lists `unclaimedStages`, each with `cleanup: "unverified"` or `"never-admitted"` |
+| `unknown-delivered-answer-without-covering-receipt` | before `v3` | The same expiry, when the answer was delivered but a stage has no receipt covering it: the replay's `unknown` |
+| `interrupted-stage-owner` | before `v3` | A stage owner's signed interruption claim settled the request: status `failed`, with `interruptedStages`. Under `v3` such a claim is that stage's fault and forfeits it instead |
+| `stage-ended-unfinished-answer` | `v1` | An unattributed disconnect under the provider-loss-free terms, charged nothing |
+| `unfinished-answer-closed-without-requester-stop` | `v1+acknowledged-prefix` | The interim rule: an unattributed disconnect charged its acknowledged prefix |
+
+Outputs acknowledged past the signed ceiling are recorded as `beyondCeiling`, and,
+when the final stage is the requester's own, outputs past the step cap as
+`beyondStageSteps`; neither is charged.
 
 ## The coordinator's statement
 

@@ -6,6 +6,11 @@ model picker shows, how an adapter keeps its identity through an answer, how to
 prepare or serve one, and the held-out evaluation an adapter needs before
 Reploid calls it evaluated.
 
+Catalog adapters are served directly by identity. The human-approved Shadow
+promotion chain in [trained-adapter-promotion.md](trained-adapter-promotion.md)
+is a separate path in the Zero/X agent substrate (`NeuralCompiler.stageTrainedAdapter()`);
+it does not gate catalog adapters.
+
 ## What the picker shows
 
 Each base model in [`shared/config/chat-models.json`](../shared/config/chat-models.json)
