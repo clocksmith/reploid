@@ -1151,8 +1151,8 @@
     },
     {
       "path": "mesh/operation-envelope.js",
-      "bytes": 38694,
-      "sha256": "8de68e76cb90e61fdc6a856075798007489010c1dca799ee3a634935cee77c90"
+      "bytes": 39504,
+      "sha256": "3f402ed532f87bc76a7949e01f66ca5f967f12b682987ec0c1e58e394ca97d8e"
     },
     {
       "path": "mesh/partitions/automatic-ordered-partitions.d.ts",

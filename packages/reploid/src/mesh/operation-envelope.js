@@ -435,6 +435,7 @@ export async function openMeshOperationCharge({ signer, requestId, planDigest, r
       const signed = delivered === 0 ? structuredClone(charge) : await acknowledgment(delivered, row.output.chain);
       // From here to the return there is no await: the acknowledgment is held and sent in one step, or not at all.
       if (stopping) throw stopped();
+      if (held.fault) throw settlementRefusal('The provider already signed a fault for this attempt; its later closing record is not acknowledged');
       if (held.acknowledged) throw settlementRefusal('This attempt already acknowledged another closing record');
       const before = held.receipt;
       held.receipt = structuredClone(receipt);
@@ -450,11 +451,20 @@ export async function openMeshOperationCharge({ signer, requestId, planDigest, r
     },
     /**
      * Keeps what the provider signed for an answer that did not complete: its closing receipt, or its stage fault when
-     * it failed itself. Nothing is acknowledged.
+     * it failed itself. Nothing is acknowledged. A provider signs one or the other (acceptMeshOperationCharge): a fault
+     * that arrives once any receipt is held, or a receipt once a fault is held, is refused and not kept. Otherwise a
+     * provider could add a fault to the records of an answer it was already paid for, and the replay of those records
+     * would no longer give the amount the ledger posted.
      */
     async close(record) {
-      if (record?.schema === SETTLEMENT_FAULT_SCHEMA) { await ownFault(record); held.fault ??= structuredClone(record); return true; }
+      if (record?.schema === SETTLEMENT_FAULT_SCHEMA) {
+        await ownFault(record);
+        if (held.receipt) throw settlementRefusal('The provider already closed this attempt; its later fault is not kept');
+        held.fault ??= structuredClone(record);
+        return true;
+      }
       await ownReceipt(record);
+      if (held.fault) throw settlementRefusal('The provider already signed a fault for this attempt; its later closing record is not kept');
       held.receipt ??= structuredClone(record);
       return true;
     },

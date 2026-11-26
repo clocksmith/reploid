@@ -1172,6 +1172,11 @@ Three things follow, and none is hidden by the records.
 - **A provider signs a fault only for its own failure.** When the requester
   ended the answer it signs a close that claims nothing instead, so a stop is
   never recorded as the provider failing.
+- **A provider signs a close or a fault, and the requester keeps only the
+  first.** A fault that arrives once any closing receipt is held, or a closing
+  receipt once a fault is held, is refused and never written to the requester's
+  records. A provider therefore cannot add a fault to an answer it was paid
+  for and make the records imply a refund the ledger never posted.
 - **A requester can take a finished answer and not acknowledge it.** The
   provider is then paid nothing, as it was under the countersigned receipt
   alone. Its closing receipt and the unanswered acceptance are its evidence for

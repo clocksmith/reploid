@@ -615,3 +615,31 @@ it('a charge holds an acknowledgment or a stop, never both, whichever is asked f
   await expect(stopping).rejects.toThrow(/acknowledg/i);
   expect([acknowledgedCount(pair.charge), stops(pair.charge)]).toEqual([1, 0]);
 });
+
+it('a fault the provider signs after its acknowledged close is refused and not kept, so the settled answer still verifies', async () => {
+  let terms;
+  const fixture = await route({ requester: 1, provider: 0, execute: honest,
+    intercept: (type, payload, sender) => { if (sender === 0 && type === 'reploid:generation-admit') terms = payload.settlement.terms; } });
+  const result = await fixture.ask();
+  const reservationId = result.settlementRecords.reservationId;
+  await fixture.agree(reservationId, { status: 'settled', debit: 3 * PRICE, payout: 3 * PRICE });
+  const fault = await signStageFaultRecord({ signer: createAttemptEvidenceSigner({ identity: keys[0] }), reservationId: terms.reservationId, attemptId: terms.attemptId,
+    routeHash: terms.routeHash, partitionIndex: 0 });
+  await fixture.mesh.handlers[0].get('reploid:generation-error')(fixture.mesh.channels[1], { requestId: terms.attemptId, error: 'late', settlement: { fault } });
+  const { records } = await fixture.agree(reservationId, { status: 'settled', debit: 3 * PRICE, payout: 3 * PRICE });
+  expect(records).toMatchObject({ label: 'signed-records', faulted: false, acknowledged: 3 });
+  expect(schemas(records.records)).not.toContain(SETTLEMENT_FAULT_SCHEMA);
+
+  // The same at the charge itself, in both directions: no fault after any receipt, no receipt after a fault.
+  let pair = await chargePair();
+  await pair.charge.close((await pair.delivered()).receipt);
+  await expect(pair.charge.close(await (await pair.serve()).fault())).rejects.toThrow();
+  expect(pair.charge.summary()).toMatchObject({ closed: true, faulted: false });
+  pair = await chargePair();
+  await pair.charge.close(await pair.provider.fault());
+  const late = await (await pair.serve()).close({ units: 3, outputDigest: pair.outputDigest });
+  await expect(pair.charge.close(late)).rejects.toThrow();
+  await expect(pair.charge.acknowledge({ receipt: late, units: 3, outputDigest: pair.outputDigest })).rejects.toThrow();
+  expect(pair.charge.summary()).toMatchObject({ closed: false, faulted: true, acknowledged: null });
+  expect(schemas(pair.charge.records())).not.toContain(STAGE_RECEIPT_SCHEMA);
+});
