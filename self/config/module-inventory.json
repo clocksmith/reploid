@@ -148,7 +148,7 @@
     {
       "path": "capabilities/cognition/semantic/semantic-memory-llm.js",
       "owner": "capabilities",
-      "sha256": "sha256:c88e9fc15296c1ca0a4daa943ef7cb2316a87318993fd5dd3f27083e5d1df9a9",
+      "sha256": "sha256:2b2a573561df7ccf779fe39521add34d4ca9b1239fb71a10fab39160b8d0111f",
       "imports": [
         "../jsonl.js",
         "../vector-math.js"
@@ -585,7 +585,7 @@
     {
       "path": "core/llm-client.js",
       "owner": "core",
-      "sha256": "sha256:9e0d0310c81432ec7d54ff7cc3437836665d891a0a77c257cbbc7133e1b809cd",
+      "sha256": "sha256:bb1dce002f3450de10f906924e826ee297d3e0a2ab5532a135740faaba414765",
       "imports": [
         "../instance.js"
       ]
@@ -870,7 +870,7 @@
     {
       "path": "infrastructure/browser-apis.js",
       "owner": "infrastructure",
-      "sha256": "sha256:44c6d4fccc52d043b27621cceba1395ffd55a4638f5595a3b4b9e6d203658f5b",
+      "sha256": "sha256:3ee04b7d6b984cbd88c8f599447cc11b42388ac26b0768c00ccc18b565f4b16e",
       "imports": []
     },
     {
@@ -3914,7 +3914,7 @@
     {
       "path": "testing/arena/arena-harness.js",
       "owner": "testing",
-      "sha256": "sha256:f47fbb37b01bd59c5712d4a67eca5b43fdba0287f152a5e390a112c270532876",
+      "sha256": "sha256:36fc1e3010ec14900537171e1f2e443a98ebc9b48ada40aeeeccfd931b3a3488",
       "imports": [
         "../../core/tool-argument-validation.js"
       ]
@@ -4446,7 +4446,7 @@
     {
       "path": "ui/panels/cognition-panel.js",
       "owner": "ui",
-      "sha256": "sha256:de6508f0755f40d8828d5273f4fd99afcde82f503b3f5087d2062a5907d33ab3",
+      "sha256": "sha256:5265d02045b6b45e07bf8b4097c2601f0d326a2c54096dce9d741753dd11ee46",
       "imports": []
     },
     {

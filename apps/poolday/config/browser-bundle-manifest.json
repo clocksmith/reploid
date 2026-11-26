@@ -1065,8 +1065,8 @@
     },
     {
       "path": "capabilities/cognition/semantic/semantic-memory-llm.js",
-      "byteLength": 12411,
-      "sha256": "sha256:c88e9fc15296c1ca0a4daa943ef7cb2316a87318993fd5dd3f27083e5d1df9a9"
+      "byteLength": 12508,
+      "sha256": "sha256:2b2a573561df7ccf779fe39521add34d4ca9b1239fb71a10fab39160b8d0111f"
     },
     {
       "path": "capabilities/cognition/symbolic/knowledge-graph.js",
@@ -1416,12 +1416,12 @@
     {
       "path": "config/module-inventory.json",
       "byteLength": 698667,
-      "sha256": "sha256:2f01c2060f70094789862beac97a41c9ef38704735c78042d242d1092aeb8577"
+      "sha256": "sha256:86acbe720e4dcbc5d74074b4cec289139a83e947b541062a804a284ecfc6f202"
     },
     {
       "path": "config/module-registry.json",
-      "byteLength": 42507,
-      "sha256": "sha256:50a670bcaee64afc3bd3a870610aec243ab12998e012a9f1521cdb740c946e15"
+      "byteLength": 42498,
+      "sha256": "sha256:e9c341d00a6d000e2da22095637922602b34f42c54532702e86a2bf4e5981397"
     },
     {
       "path": "config/module-resolution.js",
@@ -1615,8 +1615,8 @@
     },
     {
       "path": "core/llm-client.js",
-      "byteLength": 40172,
-      "sha256": "sha256:9e0d0310c81432ec7d54ff7cc3437836665d891a0a77c257cbbc7133e1b809cd"
+      "byteLength": 40170,
+      "sha256": "sha256:bb1dce002f3450de10f906924e826ee297d3e0a2ab5532a135740faaba414765"
     },
     {
       "path": "core/memory-manager.js",
@@ -2295,8 +2295,8 @@
     },
     {
       "path": "infrastructure/browser-apis.js",
-      "byteLength": 21548,
-      "sha256": "sha256:44c6d4fccc52d043b27621cceba1395ffd55a4638f5595a3b4b9e6d203658f5b"
+      "byteLength": 21629,
+      "sha256": "sha256:3ee04b7d6b984cbd88c8f599447cc11b42388ac26b0768c00ccc18b565f4b16e"
     },
     {
       "path": "infrastructure/capsule-artifact-storage.js",
@@ -3500,8 +3500,8 @@
     },
     {
       "path": "testing/arena/arena-harness.js",
-      "byteLength": 11008,
-      "sha256": "sha256:f47fbb37b01bd59c5712d4a67eca5b43fdba0287f152a5e390a112c270532876"
+      "byteLength": 11309,
+      "sha256": "sha256:36fc1e3010ec14900537171e1f2e443a98ebc9b48ada40aeeeccfd931b3a3488"
     },
     {
       "path": "testing/arena/arena-metrics.js",
@@ -3845,8 +3845,8 @@
     },
     {
       "path": "ui/panels/cognition-panel.js",
-      "byteLength": 16119,
-      "sha256": "sha256:de6508f0755f40d8828d5273f4fd99afcde82f503b3f5087d2062a5907d33ab3"
+      "byteLength": 16182,
+      "sha256": "sha256:5265d02045b6b45e07bf8b4097c2601f0d326a2c54096dce9d741753dd11ee46"
     },
     {
       "path": "ui/pool-home/agent-network.js",
@@ -12839,5 +12839,5 @@
       "sha256": "sha256:abb6c18f6167d6afc8ee1b3adfcbbb89c0e93fb4fc4e98d7a12250f78aab206a"
     }
   ],
-  "bundleHash": "sha256:2a2098a5c393ea66b79faff57202aef6ed6a2001ee701e897298e22a18a5a27f"
+  "bundleHash": "sha256:fbe71edc3a11b21f9cfc3aecbc0bc3c0f73a3b84ed69a4f0c5c60991ccf22ba4"
 }
