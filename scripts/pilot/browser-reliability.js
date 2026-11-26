@@ -23,6 +23,14 @@
  *     [--channel chrome] [--headed] [--label TEXT] [--out FILE.json]
  *   node scripts/pilot/browser-reliability.js --url URL --sessions 4 --requests 20 [--gap-ms 3000] [--max-minutes M] [same options]
  *   node scripts/pilot/browser-reliability.js --self-check
+ *   node scripts/pilot/browser-reliability.js --url http://127.0.0.1:8000/ --stub-answer-chars 2400 --interval-ms 0 --requests 50
+ *
+ * Every request also records the page's main-thread time (`mainThread`, from Chrome's task counters): before Send
+ * (a new thread, the prompt typed) and from Send to the answer's end. The receipt's `mainThread` summary gives the
+ * first and last five requests and the slope per request; a page whose cost per request grows with its history shows
+ * there. `--stub-answer-chars N` reproduces that locally with no provider: the page's own session and history
+ * database, answered by a scripted executor in the page that streams N characters (installStub); `--stub-refresh-ms
+ * 100` adds the network refreshes a peer's answer causes.
  *
  * `--prompts` takes a file of `{ prompts: [{ id, prompt, model }] }`; without it the list in reliability.js is used.
  * One model per run: `--model` is the value of the model's choice in the sheet, chosen during the setup request.
@@ -82,6 +90,7 @@ function installProbe() {
     if (text.trim().length > 0) probe.firstAt = globalThis.performance.now();
   };
   globalThis.__pilot = {
+    sentAt: () => probe.sentAt,
     send() {
       probe.before = rows().length;
       probe.firstAt = null;
@@ -171,8 +180,99 @@ async function chooseModel(page, model) {
  * given, is chosen inside the sheet if the sheet opens.
  */
 async function measureOne(page, options) {
-  const record = await prepareOne(page, options);
-  return record.failure ? record : sendAndWatch(page, record, options);
+  const before = await mainThread(page);
+  const prepared = await prepareOne(page, options);
+  const typed = await mainThread(page);
+  const record = prepared.failure ? prepared : await sendAndWatch(page, prepared, options);
+  const after = await mainThread(page);
+  record.mainThread = before && typed && after ? { prepareTaskMs: Math.round((typed.task - before.task) * 1000), answerTaskMs: Math.round((after.task - typed.task) * 1000),
+    taskMs: Math.round((after.task - before.task) * 1000), scriptMs: Math.round((after.script - before.script) * 1000), heapMb: Number((after.heap / 1048576).toFixed(1)) } : null;
+  // Only the local stub knows when the request reached execution: Send click to the executor's first call, on the page's clock.
+  const dispatchMs = await page.evaluate(() => globalThis.__pilotStub?.dispatchMs ?? null).catch(() => null);
+  if (dispatchMs !== null) record.stages.dispatchMs = dispatchMs;
+  return record;
+}
+
+/**
+ * The page's main-thread time so far, from Chrome's own counters (CDP Performance.getMetrics): TaskDuration is every
+ * task the main thread ran, ScriptDuration the JavaScript in them. A request's cost is the difference across it, so
+ * waiting for the network or the provider adds nothing to it. Null where the browser offers no such session.
+ */
+const CDP_SESSIONS = new WeakMap();
+async function mainThread(page) {
+  try {
+    if (!CDP_SESSIONS.has(page)) {
+      const session = await page.context().newCDPSession(page);
+      await session.send('Performance.enable');
+      CDP_SESSIONS.set(page, session);
+    }
+    const { metrics } = await CDP_SESSIONS.get(page).send('Performance.getMetrics');
+    const value = name => metrics.find(item => item.name === name)?.value ?? 0;
+    return { task: value('TaskDuration'), script: value('ScriptDuration'), heap: value('JSHeapUsedSize') };
+  } catch { return null; }
+}
+
+/**
+ * Per-request main-thread time over a run: the mean of the first and of the last five requests, and the
+ * least-squares slope per request. A page whose work per request does not depend on its history has a slope near 0.
+ */
+export function summarizeMainThread(rows) {
+  const values = rows.map(row => row.mainThread?.taskMs).filter(Number.isFinite);
+  if (values.length < 2) return null;
+  const mean = list => Math.round(list.reduce((sum, value) => sum + value, 0) / list.length);
+  const n = values.length, xMean = (n - 1) / 2, yMean = values.reduce((sum, value) => sum + value, 0) / n;
+  const slope = values.reduce((sum, value, index) => sum + (index - xMean) * (value - yMean), 0) / values.reduce((sum, _, index) => sum + (index - xMean) ** 2, 0);
+  return { requests: n, firstFiveMeanMs: mean(values.slice(0, 5)), lastFiveMeanMs: mean(values.slice(-5)), slopeMsPerRequest: Number(slope.toFixed(2)) };
+}
+
+/**
+ * Local reproduction only (--stub-answer-chars): replaces the page's host with the same conversation session over
+ * the same requester-owned history database the page uses, and answers from a scripted executor in the page, so no
+ * provider and no GPU is involved. Everything between Send and execution, and every save and render while the
+ * answer streams, is the product's own code. The executor emits `deltaChars` characters every `deltaMs`. With
+ * `refreshMs` it also asks the session to refresh its network view that often while an answer streams, as the
+ * page's swarm does for a peer's steps (product-session.js coalesces those to one per 100 ms).
+ */
+async function installStub(page, { answerChars, deltaChars = 4, deltaMs = 10, refreshMs = 0 }) {
+  await page.locator('[data-composer-send]').waitFor({ state: 'visible', timeout: 60000 });
+  await page.evaluate(async ({ answerChars, deltaChars, deltaMs, refreshMs }) => {
+    const { document, navigator, performance, localStorage } = globalThis;
+    // The page's own host closes on pagehide and releases the history owner lock this session then takes.
+    globalThis.dispatchEvent(new globalThis.PageTransitionEvent('pagehide', { persisted: false }));
+    const [{ openCanonicalChatSession, LOCAL_HISTORY_IDENTITY, CANONICAL_CHAT_MODELS }, { acquireChatHistoryOwner }, { metadataDigest }, { mountPoolday }, policy] = await Promise.all([
+      import('/host/chat-session.js'), import('/host/chat-history.js'), import('/config/doppler-metadata-contract.js'), import('/ui/react/app.js'),
+      globalThis.fetch('/config/ordered-participation.json').then(response => response.json())]);
+    const { database, ...bounds } = policy.requesterHistory;
+    let release = null;
+    for (let attempt = 0; attempt < 10 && !release; attempt++) release = await acquireChatHistoryOwner({ name: database, locks: navigator.locks });
+    if (!release) throw Error('The page did not release its conversation history');
+    const model = CANONICAL_CHAT_MODELS.find(item => !item.partition && !item.adapters?.length);
+    const stub = globalThis.__pilotStub = { dispatchMs: null };
+    const words = 'The scripted answer repeats this sentence until it is as long as the run asked for. ';
+    const scheduler = {
+      prepare: async () => {}, unload: async () => {}, close: async () => {}, getState: () => ({}),
+      async schedule(request, { signal, onDelta }) {
+        stub.dispatchMs = Math.round(performance.now() - globalThis.__pilot.sentAt());
+        let content = '', refreshed = performance.now();
+        while (content.length < answerChars) {
+          await new Promise(resolve => { globalThis.setTimeout(resolve, deltaMs); });
+          signal?.throwIfAborted();
+          const text = Array.from({ length: deltaChars }, (_, index) => words[(content.length + index) % words.length]).join('');
+          content += text; onDelta(text);
+          if (refreshMs > 0 && performance.now() - refreshed >= refreshMs) { refreshed = performance.now(); session.refreshNetwork(); }
+        }
+        return { model: request.model.id, modelIdentity: request.model.identity, adapterIdentities: [], content };
+      }
+    };
+    const session = await openCanonicalChatSession({ zeroRequesterWeights: false, storage: localStorage, scheduler,
+      swarm: { getState: () => ({ sharing: false, consumer: { peers: [] } }) }, ...LOCAL_HISTORY_IDENTITY,
+      history: { mode: 'transactional', publication: 'ordered', reason: null },
+      canonical: { name: database, ...bounds, runtime: { metadataDigest }, publication: 'ordered', expectedWriterEpoch: 'stored', release } });
+    session.setCachedModels([{ id: model.id, identity: model.identity }]);
+    const root = document.createElement('div'); document.body.replaceChildren(root);
+    mountPoolday(root, { host: { chat: session, close: () => session.close() }, viewState: { chosenModel: model, executionLocation: 'local' } });
+  }, { answerChars, deltaChars, deltaMs, refreshMs });
+  await page.locator('[data-composer-send]').waitFor({ state: 'visible', timeout: 60000 });
 }
 
 /** Everything before Send: a new thread on the right model, the prompt typed, Send enabled. Not timed. */
@@ -286,10 +386,11 @@ async function sendAndWatch(page, record, { timeoutMs, model = null, expectModel
  * A person's tab: its own browser context (no shared storage or connections), the page opened, discovery waited
  * out and recorded as `discoveryMs`, then the unmeasured setup request that takes the sheet and the permission.
  */
-async function openSession(browser, { url, model, timeoutMs, sheetWaitMs }) {
+async function openSession(browser, { url, model, timeoutMs, sheetWaitMs, stub = null }) {
   const page = await (await browser.newContext({ viewport: { width: 1280, height: 800 } })).newPage();
   await page.addInitScript(installProbe);
   await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 });
+  if (stub) await installStub(page, stub);
   await page.locator('[data-composer-send]').waitFor({ state: 'visible', timeout: 60000 });
   // Send is offered while the page is still "Finding computers…". A person would wait for that line to change;
   // pressed earlier, the sheet can read as if nobody serves the model. The wait is recorded, not hidden.
@@ -301,11 +402,11 @@ async function openSession(browser, { url, model, timeoutMs, sheetWaitMs }) {
 }
 
 export async function runBrowserPilot({ url, prompts, model = null, intervalMs = 25000, timeoutMs = 120000, sheetWaitMs = 30000, channel = null, headed = false,
-  onResult = () => {} }) {
+  stub = null, onResult = () => {} }) {
   const { chromium } = await import('@playwright/test');
   const browser = await chromium.launch({ headless: !headed, ...(channel ? { channel } : {}) });
   try {
-    const { page, setup } = await openSession(browser, { url, model, timeoutMs, sheetWaitMs });
+    const { page, setup } = await openSession(browser, { url, model, timeoutMs, sheetWaitMs, stub });
     const answerOn = setup.answerOn;
     if (!setup.completed) return { setup, answerOn, results: [], wrongModel: null, notStarted: `the setup request did not complete (${setup.failure}): ${setup.statusText || setup.activity || 'no status shown'}` };
     // Every measured request must ask the model the setup request asked: the one named by --model when given.
@@ -579,7 +680,7 @@ async function main() {
     'interval-ms': { type: 'string', default: '25000' }, 'timeout-ms': { type: 'string', default: '120000' }, prompts: { type: 'string' },
     'only-model': { type: 'string' }, channel: { type: 'string' }, headed: { type: 'boolean', default: false }, label: { type: 'string', default: '' },
     out: { type: 'string' }, 'self-check': { type: 'boolean', default: false }, sessions: { type: 'string' }, 'gap-ms': { type: 'string', default: '3000' },
-    'max-minutes': { type: 'string' } } });
+    'max-minutes': { type: 'string' }, 'stub-answer-chars': { type: 'string' }, 'stub-refresh-ms': { type: 'string', default: '0' } } });
   if (values['self-check']) return selfCheck();
   if (!values.url) throw Error('Give --url, or --self-check');
   const number = name => { const value = Number(values[name]); if (!Number.isSafeInteger(value) || value < 0) throw Error(`--${name} must be a whole number`); return value; };
@@ -592,25 +693,27 @@ async function main() {
   if (values.sessions !== undefined) return mainBurst(values, number, prompts, promptSource);
   const requests = number('requests');
   const list = Array.from({ length: requests }, (_, index) => prompts[index % prompts.length]);
-  const settings = { model: values.model ?? null, requests, intervalMs: number('interval-ms'), timeoutMs: number('timeout-ms'), promptSource };
+  const host = new URL(values.url).hostname, local = ['127.0.0.1', 'localhost', '[::1]'].includes(host);
+  const stub = values['stub-answer-chars'] === undefined ? null : { answerChars: number('stub-answer-chars'), refreshMs: number('stub-refresh-ms') };
+  if (stub && !local) throw Error('--stub-answer-chars replaces the page\'s host and is for a local page only');
+  const settings = { model: values.model ?? null, requests, intervalMs: number('interval-ms'), timeoutMs: number('timeout-ms'), promptSource, ...(stub ? { stub } : {}) };
   const startedAt = new Date().toISOString();
   // The requester's own load: a busy machine can delay the page's clock and rendering, so the receipt keeps it.
   const load = () => os.loadavg().map(value => Number(value.toFixed(2)));
   const loadAtStart = load();
   const run = await runBrowserPilot({ url: values.url, prompts: list, model: settings.model, intervalMs: settings.intervalMs, timeoutMs: settings.timeoutMs,
-    channel: values.channel ?? null, headed: values.headed,
-    onResult: row => console.error(`${String(row.index + 1).padStart(3)} ${row.completed ? 'ok  ' : 'FAIL'} first character ${row.firstTokenMs ?? '-'} ms, end ${row.stages.endMs} ms${row.failure ? `, ${row.failure}: ${row.statusText.slice(0, 80)}` : ''}`) });
-  const host = new URL(values.url).hostname;
+    channel: values.channel ?? null, headed: values.headed, stub,
+    onResult: row => console.error(`${String(row.index + 1).padStart(3)} ${row.completed ? 'ok  ' : 'FAIL'} first character ${row.firstTokenMs ?? '-'} ms, end ${row.stages.endMs} ms, main thread ${row.mainThread?.taskMs ?? '-'} ms (before Send ${row.mainThread?.prepareTaskMs ?? '-'} ms)${row.failure ? `, ${row.failure}: ${row.statusText.slice(0, 80)}` : ''}`) });
   const receipt = { schema: 'reploid.pilot-reliability-browser/v1', startedAt, finishedAt: new Date().toISOString(), label: values.label, rule: RULE,
-    page: ['127.0.0.1', 'localhost', '[::1]'].includes(host) ? 'local page' : 'deployed page (address not recorded)', answerOn: run.answerOn, settings,
+    page: local ? stub ? 'local page, scripted executor (no provider)' : 'local page' : 'deployed page (address not recorded)', answerOn: run.answerOn, settings,
     node: process.version, requesterLoad: { cpus: os.cpus().length, start: loadAtStart, end: load() }, setup: run.setup, notStarted: run.notStarted,
     summary: run.notStarted ? { requests: 0, verdict: `not started: ${run.notStarted}` }
       // A run that would have measured another model has no verdict on this one.
       : run.wrongModel ? { ...summarize(run.results), verdict: `wrong model, stopped at ${run.wrongModel}` } : summarize(run.results),
-    results: run.results };
+    mainThread: summarizeMainThread(run.results), results: run.results };
   const text = JSON.stringify(receipt, null, 2);
   if (values.out) await fs.writeFile(values.out, `${text}\n`);
-  console.log(JSON.stringify({ label: receipt.label, answerOn: receipt.answerOn, ...receipt.summary }, null, 2));
+  console.log(JSON.stringify({ label: receipt.label, answerOn: receipt.answerOn, ...receipt.summary, mainThread: receipt.mainThread }, null, 2));
   process.exitCode = receipt.summary.verdict === 'pass' ? 0 : 1;
 }
 
