@@ -80,10 +80,11 @@ const blockText = model => promptDisclosure({ site: 'outcome', blocked: true, po
  * `action` is 'commit', 'use-contributors', 'use-device', 'download' or null (nothing on this sheet can fix it).
  * The primary button always says what it does; it is disabled only while nothing can.
  * `implied` marks a model that came with a Contributors tap rather than a model tap: while discovery runs it waits
- * for a contributor instead of offering its download, since absence is not yet known.
+ * for a contributor instead of offering its download, since absence is not yet known. `searching` says computers
+ * are still being found (the session's phase, unless the caller knows a pick is still waiting for its computer).
  */
 export function describeAnswerChoice(model, location, { state = {}, block = null, canDownload = false, choice = null,
-  locked = null, sending = false, implied = false } = {}) {
+  locked = null, sending = false, implied = false, searching = state.discoveryPhase === 'searching' } = {}) {
   const side = sheetSide(location);
   const here = runsHere(model), there = runsOnNetwork(model);
   const downloadable = !!model && canDownloadModelHere(model, state, canDownload);
@@ -114,12 +115,12 @@ export function describeAnswerChoice(model, location, { state = {}, block = null
   if (there || choice === 'desktop') return ready;
   if (here) return fix('No contributor serves this model now. It is on this device.', 'use-device', 'Use this device');
   // Discovery is bounded (about 8 s); until it settles, absence is not yet known, so the sheet waits calmly.
-  if (implied && state.discoveryPhase === 'searching' && !preparingStatus(model.networkAvailability)) {
+  if (implied && searching && !preparingStatus(model.networkAvailability)) {
     return stuck('Finding computers… This model becomes Ready here when one shares it.');
   }
   if (downloadable) return fix(acquiring?.phase === 'failed' ? acquiring.error : 'No contributor serves this model now. Download it to run it here; you see its size first.', 'download', downloadLabel);
   if (preparingStatus(model.networkAvailability)) return stuck('A contributor is preparing this model. It becomes Ready here when it can answer.');
-  if (state.discoveryPhase === 'searching') return stuck('Finding computers… This model becomes Ready here when one shares it.');
+  if (searching) return stuck('Finding computers… This model becomes Ready here when one shares it.');
   return stuck('No shared computer can answer with this model right now. Choose a model marked Ready.');
 }
 
