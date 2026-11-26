@@ -3019,7 +3019,7 @@
     {
       "path": "self/host/decisions/conversation-controller.js",
       "owner": "self",
-      "sha256": "sha256:e358c30115684bc59f766ee752dc3dec8bff77214a1b651b83bad06bde063342",
+      "sha256": "sha256:0ac8d8aa2faafe0039abbdd43caf7a29931fc3a307642f09fdc5895a5514f4bd",
       "imports": [
         "../../config/chat-prompts.json",
         "../../config/work-profile.json",
@@ -5577,13 +5577,13 @@
     {
       "path": "ui/react/app.js",
       "owner": "ui",
-      "sha256": "sha256:474c6ab3920c05b1f5ddb3ffc2d3f7250178d850dc0290ed43e970aeaf41e452",
+      "sha256": "sha256:265a6d8b91e7da9e60a6d4833f1536e5f60bf421dac30998e5a9d36c97df227e",
       "imports": []
     },
     {
       "path": "ui/react/design.js",
       "owner": "ui",
-      "sha256": "sha256:659bbf860d4f46767a75b301845681bdd7820b29c5abf917b5e4064cad45e430",
+      "sha256": "sha256:db359ecec49a4ffa4cbc3b4fccab48650df4d2e72a07b5e62cc9c928d36a7c70",
       "imports": []
     },
     {

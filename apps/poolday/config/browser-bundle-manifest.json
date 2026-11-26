@@ -1416,7 +1416,7 @@
     {
       "path": "config/module-inventory.json",
       "byteLength": 698601,
-      "sha256": "sha256:8ecfbd888a860211fce74d99bce1afacee03b86589e15a9ea850d65cbbdab9cb"
+      "sha256": "sha256:8d1d94e2306b89cf19b7208c7f51f98748a16a395fd65ec23f2cc2ceda2a0a08"
     },
     {
       "path": "config/module-registry.json",
@@ -1935,8 +1935,8 @@
     },
     {
       "path": "host/decisions/conversation-controller.js",
-      "byteLength": 90167,
-      "sha256": "sha256:e358c30115684bc59f766ee752dc3dec8bff77214a1b651b83bad06bde063342"
+      "byteLength": 90429,
+      "sha256": "sha256:0ac8d8aa2faafe0039abbdd43caf7a29931fc3a307642f09fdc5895a5514f4bd"
     },
     {
       "path": "host/decisions/conversation-details.js",
@@ -2285,8 +2285,8 @@
     },
     {
       "path": "index.html",
-      "byteLength": 9947,
-      "sha256": "sha256:1ee0fcfcac4368f30c4054f485e31d388cc1dfdb8fcf7df6599d757939edbccb"
+      "byteLength": 10163,
+      "sha256": "sha256:b9180836bb857262f38b0a5b968a1b9cee89b4c037c8eb6eb64c96075b63a4ad"
     },
     {
       "path": "infrastructure/audit-logger.js",
@@ -4415,13 +4415,13 @@
     },
     {
       "path": "ui/react/app.js",
-      "byteLength": 2206694,
-      "sha256": "sha256:474c6ab3920c05b1f5ddb3ffc2d3f7250178d850dc0290ed43e970aeaf41e452"
+      "byteLength": 2206762,
+      "sha256": "sha256:265a6d8b91e7da9e60a6d4833f1536e5f60bf421dac30998e5a9d36c97df227e"
     },
     {
       "path": "ui/react/design.js",
-      "byteLength": 1160471,
-      "sha256": "sha256:659bbf860d4f46767a75b301845681bdd7820b29c5abf917b5e4064cad45e430"
+      "byteLength": 1160538,
+      "sha256": "sha256:db359ecec49a4ffa4cbc3b4fccab48650df4d2e72a07b5e62cc9c928d36a7c70"
     },
     {
       "path": "ui/reploid-home/index.js",
@@ -12839,5 +12839,5 @@
       "sha256": "sha256:abb6c18f6167d6afc8ee1b3adfcbbb89c0e93fb4fc4e98d7a12250f78aab206a"
     }
   ],
-  "bundleHash": "sha256:5a228f0c7aadc784d823319cd89f1032366c9038db6fc3d5d6e2b25f4b4aa46b"
+  "bundleHash": "sha256:654172477944fa6b2408d203561393544d532176bee71662e7f2914e1161226e"
 }
