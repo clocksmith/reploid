@@ -105,6 +105,8 @@ const SubstrateLoader = {
         path,
         code,
         expectedSha256: options.expectedSha256,
+        // LoadModule's force: re-evaluate even when the cached module's code is unchanged.
+        forceReload: options.force === true,
         // Every path not already sandbox-verified goes through the loader's verifier.
         verify: !sandboxGate
       });
