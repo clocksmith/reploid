@@ -123,6 +123,23 @@ it('moves the automatic choice when its computer leaves, also under a typed draf
   expect(f.view.composer().send.disabled).toBe(false);
 });
 
+it('does not settle on whichever computer advertised first: during the discovery wait a typed draft follows the preferred model', async () => {
+  const f = fixture();
+  // The first advertisement settles discovery's phase, but the bounded wait for the others is still running.
+  f.publish({ discoveryPhase: 'observed', peerDiscoveryTimedOut: false, models: [SMALL, served(MEDIUM)] });
+  expect(chip(f).selectionId).toBe(key(MEDIUM));
+  f.c.setDraft('Typed in the first second');
+  f.publish({ models: [served(SMALL), served(MEDIUM)] });
+  expect([chip(f).selectionId, chip(f).availability]).toEqual([key(SMALL), 'ready']);
+  // Once the wait is over the draft keeps its model while a computer serves it.
+  f.publish({ peerDiscoveryTimedOut: true });
+  f.publish({ models: [served(SMALL), served(MEDIUM)].reverse() });
+  expect(chip(f).selectionId).toBe(key(SMALL));
+  f.c.send();
+  await vi.waitFor(() => expect(f.sent).toHaveLength(1));
+  expect(key(f.created[0].model)).toBe(key(SMALL));
+});
+
 it('stays on this device for a visitor whose device stores a model, or who turned network answers off', () => {
   const stored = fixture();
   stored.publish({ ...observed, models: [{ ...SMALL, availability: 'cached', localCached: true }, served(MEDIUM)] });

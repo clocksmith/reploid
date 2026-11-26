@@ -313,6 +313,8 @@ export function createConversationController(session, {
   };
   const downloadableHere = (model, state) => canDownloadModelHere(model, state, canDownload);
   function pinDraftModel(state) {
+    // Not during the discovery wait of a visitor who chose nothing: see the pin in project().
+    if (automaticContributors(state) && !choiceWaitOver(state)) return;
     if (state.selectedId == null && !chosenModel && !viewState.draftModel) {
       viewState.draftModel = state.models?.find(model => modelKey(model) === currentKey);
     }
@@ -451,9 +453,12 @@ export function createConversationController(session, {
     const selectedModel = catalogModels.find(model => modelKey(model) === current
       && (!pinnedModel?.identity || modelIdentity(model) === modelIdentity(pinnedModel)));
     const execution = modelExecutionState(selectedModel, location);
-    // A typed draft keeps the model it was written for, once computers are known: nothing is pinned while they are being found.
+    // A typed draft keeps the model it was written for, once computers are known: nothing is pinned while they are
+    // being found. For a visitor who chose nothing that lasts the whole bounded discovery wait, so the model is the
+    // preferred one among the computers that answered in it, not whichever advertised first.
     if (!thread && !chosenModel && !viewState.draftModel && (draftText.trim() || files.length)
-      && !(freshVisitor && state.discoveryPhase === 'searching' && !execution.usable)) viewState.draftModel = selectedModel;
+      && !(freshVisitor && state.discoveryPhase === 'searching' && !execution.usable)
+      && !(automaticContributors(state) && !choiceWaitOver(state))) viewState.draftModel = selectedModel;
     const prepareHere = location === 'local' && selectedModel?.localCached === true;
     const usable = explicitPrivacy(state).computation === 'plaintext' && (execution.usable || prepareHere);
     const localPreparing = state.localModel?.phase === 'loading';
