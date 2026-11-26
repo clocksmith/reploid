@@ -5,6 +5,7 @@ import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { PooldayRoot } from '@reploid/poolday-ui';
 import { projectComputers } from '../../apps/poolday/host/decisions/computers.js';
+import { projectChatCatalog } from '../../apps/poolday/host/chat-view.js';
 import { createComputersServices } from '../../apps/poolday-react/src/features/computers/infrastructure/hostComputers';
 import { ComputersPanel, PairingLinkDialog } from '../../apps/poolday-react/src/features/computers/presentation/ComputersPanel';
 
@@ -35,7 +36,7 @@ function fixtureHost(initial: Record<string, unknown> = {}) {
   return { host: { chat }, chat, set(next: Record<string, unknown>) { state = { ...state, ...next }; notify(); } };
 }
 
-const mount = (host: object, filter = null as null | { providerIds: string[]; label: string }) => {
+const mount = (host: object, filter = null as null | { providerIds: string[]; label: string }, selectedModel = null as string | null) => {
   const services = createComputersServices({ host, earning: Promise.resolve(null) });
   render(
     <PooldayRoot>
@@ -106,6 +107,96 @@ describe('Computers pane', () => {
     expect(screen.getByText('Computers for Qwen 3.5 0.8B')).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Show all computers' })).toBeTruthy();
     expect(document.querySelectorAll('[data-computer-id]').length).toBe(1);
+  });
+});
+
+describe('the roster against the selected model', () => {
+  // One computer per reason the catalog's admission can refuse it, plus two it admits.
+  const IDENTITY = `sha256:${'a'.repeat(64)}`;
+  const OTHER = `sha256:${'b'.repeat(64)}`;
+  const provider = (peerId: string, change: Record<string, unknown> = {}) => ({ peerId, model: 'qwen-0-8b', modelIdentity: IDENTITY, readiness: 'ready', hasInference: true,
+    availableSlots: 1, identityProtocol: 1, admissionProtocol: 2, attemptId: `try-${peerId}`, ...change });
+  const peers = [
+    provider('free'),
+    provider('full', { availableSlots: 0 }),
+    provider('silent-slots', { availableSlots: null }),
+    provider('loading', { readiness: 'loading' }),
+    provider('idle', { readiness: 'idle' }),
+    provider('other-model', { model: 'gemma-27b' }),
+    provider('requester-only', { model: undefined, modelIdentity: undefined, readiness: 'idle', hasInference: false }),
+    provider('other-build', { modelIdentity: OTHER }),
+    provider('old-version', { admissionProtocol: null }),
+    provider('blocked', { blocked: true }),
+    provider('silent', { unresponsive: true }),
+    provider('no-channel'),
+    provider('stale-attempt'),
+  ];
+  const link = (id: string, change: Record<string, unknown> = {}) => ({ id, phase: 'connected', channelState: 'open', iceState: 'connected', attemptId: `try-${id}`, ...change });
+  const connections = [
+    ...peers.filter((row) => !['no-channel', 'stale-attempt'].includes(row.peerId)).map((row) => link(row.peerId)),
+    link('no-channel', { channelState: 'connecting' }),
+    link('stale-attempt', { attemptId: 'try-earlier' }),
+    link('mute'),
+  ];
+  const catalog = projectChatCatalog({ models: [{ id: 'qwen-0-8b', name: 'Qwen 0.8B', identity: IDENTITY }], peers, connections });
+  const state = { models: catalog, network: { connections, consumer: { connectionState: 'connected', peers, connections } } };
+  const EXPECTED: Record<string, [reachable: boolean, eligibility: string]> = {
+    free: [true, 'eligible'],
+    full: [true, 'busy'],
+    'silent-slots': [true, 'capacity-unknown'],
+    loading: [true, 'loading'],
+    idle: [true, 'not-loaded'],
+    'other-model': [true, 'other-model'],
+    'requester-only': [true, 'no-model'],
+    'other-build': [true, 'other-build'],
+    'old-version': [true, 'protocol'],
+    blocked: [true, 'blocked'],
+    silent: [true, 'unresponsive'],
+    'no-channel': [false, 'unreachable'],
+    'stale-attempt': [false, 'unreachable'],
+    mute: [true, 'no-advertisement'],
+  };
+
+  it('gives each computer the reason the catalog used, and agrees with the catalog on who is a provider', () => {
+    const rows = projectComputers(state, { selected: 'qwen-0-8b' }).peers as Array<{ id: string; reachable: boolean; eligibility: string; selection: string[][] }>;
+    expect(Object.fromEntries(rows.map((row) => [row.id, [row.reachable, row.eligibility]]))).toEqual(EXPECTED);
+    const model = catalog[0] as { providerIds: string[]; reachableProviderIds: string[] };
+    const fact = (row: { selection: string[][] }, term: string) => row.selection.find(([name]) => name === term)?.[1];
+    // "Ready for" is the catalog's provider list; no "Why not used" line is the list Send picks from.
+    expect(rows.filter((row) => fact(row, 'Ready for Qwen 0.8B') === 'Yes').map((row) => row.id).sort()).toEqual([...model.providerIds].sort());
+    expect(rows.filter((row) => fact(row, 'Why not used') === undefined).map((row) => row.id)).toEqual(model.reachableProviderIds);
+    expect(model.providerIds.sort()).toEqual(['free', 'full', 'silent-slots']);
+    expect(rows.every((row) => row.eligibility === 'eligible' || !!fact(row, 'Why not used'))).toBe(true);
+  });
+
+  it('states only reachability when no whole model is selected', () => {
+    const rows = projectComputers(state, {}).peers as Array<{ id: string; eligibility: string; selection: string[][] }>;
+    expect(rows.every((row) => row.eligibility === '' && row.selection.length === 1 && row.selection[0]?.[0] === 'Reachable')).toBe(true);
+  });
+
+  it('shows the three answers in each row and follows the selection', async () => {
+    const fixture = fixtureHost(state);
+    const services = createComputersServices({ host: fixture.host, earning: Promise.resolve(null) });
+    const panel = (selectedModel: string | null) => (
+      <PooldayRoot>
+        <ComputersPanel services={services} filter={null} selectedModel={selectedModel} onClearFilter={() => undefined} />
+      </PooldayRoot>
+    );
+    const view = render(panel('qwen-0-8b'));
+    const row = (id: string) => document.querySelector(`[data-computer-id="${id}"]`) as HTMLElement;
+    expect(row('free').dataset.computerEligibility).toBe('eligible');
+    expect(within(row('free')).getByText('Ready for Qwen 0.8B')).toBeTruthy();
+    expect(within(row('free')).queryByText('Why not used')).toBeNull();
+    // Computers that are not serving stay folded under "Show others", as before; their reasons are in those rows.
+    await userEvent.click(document.querySelector('[data-quiet-computers]') as HTMLElement);
+    expect(row('full').dataset.computerReachable).toBe('true');
+    expect(within(row('full')).getByText('Busy: every request slot is in use')).toBeTruthy();
+    expect(within(row('old-version')).getByText('Runs a version this page cannot send requests to')).toBeTruthy();
+    expect(row('no-channel').dataset.computerReachable).toBe('false');
+    expect(within(row('no-channel')).getByText('No open connection from this page')).toBeTruthy();
+    view.rerender(panel(null));
+    expect(row('full').dataset.computerEligibility).toBe('');
+    expect(within(row('full')).queryByText('Why not used')).toBeNull();
   });
 });
 

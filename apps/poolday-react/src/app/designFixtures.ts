@@ -162,8 +162,8 @@ export const fleetSignedOut = { ...fleetSignedIn, signedIn: false, hasAccount: f
 export const networkPeers: Partial<ComputersView> = {
   readiness: '2 computers ready',
   peers: [
-    { id: 'peer-b', name: 'Contributor B', status: 'Ready · Gemma 27B', tone: 'ready', phase: 'ready', state: 'ready', model: 'Gemma 27B', hardware: 'Apple · M3 Max', detail: '', progress: null, quiet: false, blocked: false, identity: '', localName: '', blockNote: '', connection: [['Connection', 'Direct']], usage: [['Answers', '12']], ids: [['Computer', 'peer-b']] },
-    { id: 'peer-c', name: 'Contributor C', status: 'Preparing · Gemma 27B', tone: 'pending', phase: 'loading', state: 'loading', model: 'Gemma 27B', hardware: null, detail: 'Loading weights', progress: { value: 40, max: 100 }, quiet: false, blocked: false, identity: '', localName: '', blockNote: '', connection: [], usage: [], ids: [['Computer', 'peer-c']] },
+    { id: 'peer-b', name: 'Contributor B', status: 'Ready · Gemma 27B', tone: 'ready', phase: 'ready', state: 'ready', model: 'Gemma 27B', hardware: 'Apple · M3 Max', detail: '', progress: null, quiet: false, blocked: false, reachable: true, eligibility: 'eligible', selection: [['Reachable', 'Yes'], ['Ready for Gemma 27B', 'Yes']], identity: '', localName: '', blockNote: '', connection: [['Connection', 'Direct']], usage: [['Answers', '12']], ids: [['Computer', 'peer-b']] },
+    { id: 'peer-c', name: 'Contributor C', status: 'Preparing · Gemma 27B', tone: 'pending', phase: 'loading', state: 'loading', model: 'Gemma 27B', hardware: null, detail: 'Loading weights', progress: { value: 40, max: 100 }, quiet: false, blocked: false, reachable: true, eligibility: 'loading', selection: [['Reachable', 'Yes'], ['Ready for Gemma 27B', 'No'], ['Why not used', 'Still loading the model']], identity: '', localName: '', blockNote: '', connection: [], usage: [], ids: [['Computer', 'peer-c']] },
   ],
   empty: '',
 };

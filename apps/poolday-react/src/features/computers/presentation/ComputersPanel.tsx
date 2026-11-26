@@ -12,20 +12,24 @@ export { PairingLinkDialog } from './PairingLinkDialog';
 /**
  * The Computers drawer: your account, your computers, the public network and this computer. `filter` narrows the
  * roster to the computers serving one model (from Answer on); Show all computers clears it. `onStartSharing` opens
- * the reviewed download and sharing dialog for a model, or for no model in particular.
+ * the reviewed download and sharing dialog for a model, or for no model in particular. `selectedModel` is the
+ * selection the composer would send with: each computer on the public network is judged against it.
  */
 export function ComputersPanel({
   services,
   filter,
+  selectedModel = null,
   onClearFilter,
   onStartSharing = () => undefined,
 }: {
   readonly services: ComputersServices;
   readonly filter: ComputersFilter | null;
+  readonly selectedModel?: string | null;
   readonly onClearFilter: () => void;
   readonly onStartSharing?: (modelId: string | null) => void;
 }) {
   useEffect(() => services.setFilter(filter), [services, filter]);
+  useEffect(() => services.setSelectedModel(selectedModel), [services, selectedModel]);
   const view = useSyncExternalStore(services.subscribe, services.getView);
   const [error, setError] = useState('');
   return (

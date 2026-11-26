@@ -70,7 +70,7 @@ function PeerRow({ peer, model, preferences, services, onError }: {
   readonly onError: (message: string) => void;
 }) {
   return (
-    <Stack gap="xs" data={{ 'data-computer-id': peer.id, 'data-peer-phase': peer.phase, 'data-computer-state': peer.state, 'data-blocked': String(peer.blocked), 'data-quiet': String(peer.quiet) }}>
+    <Stack gap="xs" data={{ 'data-computer-id': peer.id, 'data-peer-phase': peer.phase, 'data-computer-state': peer.state, 'data-blocked': String(peer.blocked), 'data-quiet': String(peer.quiet), 'data-computer-reachable': String(peer.reachable), 'data-computer-eligibility': peer.eligibility }}>
       <Row justify="between">
         <Text variant="small" data={{ 'data-computer-name': true }}>
           {peer.name}
@@ -79,7 +79,7 @@ function PeerRow({ peer, model, preferences, services, onError }: {
           {peer.status}
         </Badge>
       </Row>
-      <Facts items={peer.hardware ? [[model.label, model.value], [t.network.gpu, peer.hardware]] : [[model.label, model.value]]} />
+      <Facts items={[[model.label, model.value], ...(peer.hardware ? [[t.network.gpu, peer.hardware] as const] : []), ...peer.selection]} />
       {peer.detail && (
         <Text variant="caption" muted data={{ 'data-computer-detail': true }}>
           {peer.detail}

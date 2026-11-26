@@ -60,6 +60,12 @@ export type PeerView = {
   readonly progress: { readonly value: number; readonly max: number } | null;
   readonly quiet: boolean;
   readonly blocked: boolean;
+  /** This page has an open connection a request could be sent on. */
+  readonly reachable: boolean;
+  /** For the selected model: 'eligible', the reason a request is not sent to this computer, or '' with no whole model selected. */
+  readonly eligibility: string;
+  /** Reachable, ready for the selected model, and why it is not used, as the host's admission decided them. */
+  readonly selection: ReadonlyArray<Fact>;
   /** The verified signing identity, when there is one: names and blocks attach to it. */
   readonly identity: string;
   readonly localName: string;
@@ -181,6 +187,8 @@ export type ComputersServices = {
   /** One view per host notification; the same object until the next one, for a given filter. */
   readonly getView: () => ComputersView;
   readonly setFilter: (filter: ComputersFilter | null) => void;
+  /** The selection the composer would send with; each public-network computer is judged against it. */
+  readonly setSelectedModel: (selection: string | null) => void;
   readonly network: {
     readonly toggleConnection: () => Promise<unknown>;
     readonly copyInvite: () => Promise<void>;

@@ -13,6 +13,7 @@ import { projectProduction, modelSupplyText, suggestedModelId } from '../../ui/p
 import { fleetAccountText, fleetStarterText } from '../../ui/pool-home/fleet-account-view.js';
 import { hasBrowserModelOrigin, modelVariantLabel } from '../../ui/components/model-select.js';
 import { sameModelVariant } from '../../ui/pool-home/model-providers.js';
+import { projectProviderEligibility, reachablePeerIds } from '../chat-view.js';
 
 export { creditAccounts, accountText, creditActivity } from '../../ui/pool-home/service-credit-text.js';
 
@@ -117,8 +118,58 @@ function connectionView(network, peers) {
   return { on: !!active || surviving, label, detail, privateScope };
 }
 
+// Why the requester does not send the selected model's requests to a computer: one line per reason the catalog's
+// admission (chat-view.js providerExclusion) can give. 'no-advertisement' is a connection that has reported no model.
+const EXCLUSION_TEXT = {
+  blocked: 'Blocked on this device',
+  unresponsive: 'Stopped answering on its connection',
+  protocol: 'Runs a version this page cannot send requests to',
+  unreachable: 'No open connection from this page',
+  'no-model': 'Offers no model',
+  'other-model': 'Offers a different model',
+  'other-build': 'Offers a different build of this model',
+  adapter: 'Does not offer this adapter',
+  loading: 'Still loading the model',
+  'not-loaded': 'Has not loaded the model',
+  'no-inference': 'Reports that it cannot run the model now',
+  busy: 'Busy: every request slot is in use',
+  'capacity-unknown': 'Has not reported a free request slot',
+  'no-advertisement': 'Has not reported a model',
+  // The catalog admitted the computer, but the session withholds this model's remote route (chat-session.js).
+  'route-withheld': 'This page cannot send this model to other computers now'
+};
+
+/**
+ * Per computer: whether this page has an open connection to it and, for the selected whole model, whether the catalog
+ * counts it as a provider and why a request would not go to it now. The answers are the catalog's own
+ * (projectProviderEligibility over the inputs chat-session.js gives projectChatCatalog), so they match what Send does.
+ */
+function selectionFacts(state, selected) {
+  const network = state.network || {};
+  const connections = network.connections ?? network.consumer?.connections;
+  const peers = network.consumer?.peers || [];
+  const open = reachablePeerIds({ peers, connections });
+  const model = selected ? (state.models || []).find(row => !row.partition && !row.fleet && (row.selectionId || row.id) === selected) : null;
+  const decisions = new Map(model ? projectProviderEligibility({ model, peers, connections }).map(row => [row.peerId, row]) : []);
+  const label = model ? modelVariantLabel(model) : '';
+  return id => {
+    const decision = decisions.get(id);
+    const reachable = open.has(id);
+    if (!model) return { reachable, eligibility: '', facts: [['Reachable', reachable ? 'Yes' : 'No']] };
+    const withheld = decision?.stage === null && Array.isArray(model.reachableProviderIds) && !model.reachableProviderIds.includes(id);
+    const reason = withheld ? 'route-withheld' : decision ? decision.reason : reachable ? 'no-advertisement' : 'unreachable';
+    const provider = !!decision && (decision.stage === null || decision.stage === 'no-capacity');
+    return { reachable, eligibility: reason || 'eligible', facts: [
+      ['Reachable', reachable ? 'Yes' : 'No'],
+      [`Ready for ${label}`, provider ? 'Yes' : 'No'],
+      ...(reason ? [['Why not used', EXCLUSION_TEXT[reason]]] : [])
+    ] };
+  };
+}
+
 /** The roster rows, filtered to one model's serving computers when a filter is set (network-controls.js renderPeerRows). */
-function peerRows(state, filter, names) {
+function peerRows(state, filter, names, selected) {
+  const selection = selectionFacts(state, selected);
   const rows = projectNetworkPeers(state).filter(peer => !filter || (peer.executionType === 'whole-model' && !peer.blocked
     && (!filter.model || peer.modelId === filter.model.id && peer.modelIdentity === filter.model.identity) && filter.providers.includes(peer.id)));
   const byLabel = new Map();
@@ -135,8 +186,12 @@ function peerRows(state, filter, names) {
     const participant = state.computerIdentities?.get(peer.id) || '';
     const identity = PEER_IDENTITY.test(participant) ? participant : '';
     const contribution = peer.contribution;
+    const chosen = selection(peer.id);
     return {
       id: peer.id,
+      reachable: chosen.reachable,
+      eligibility: chosen.eligibility,
+      selection: chosen.facts,
       name: same.length > 1 ? `${label} · connection ${peer.id.slice(-suffix)}` : label,
       status: peer.status,
       tone: ['ready', 'executing'].includes(peer.phase) ? 'ready'
@@ -300,16 +355,17 @@ export function projectDiagnostic(view) {
 
 /**
  * The whole pane from one labelled chat state. `filter` is { model } from Answer on's computer count; `sizes` maps a
- * shareable model's selection to its checked download size; `names` are this device's local computer names.
+ * shareable model's selection to its checked download size; `names` are this device's local computer names;
+ * `selected` is the selection the composer would send with, which each roster row is judged against.
  */
-export function projectComputers(state, { filter = null, sizes = null, names } = {}) {
+export function projectComputers(state, { filter = null, sizes = null, names, selected = null } = {}) {
   const network = state.network || {};
   const allPeers = projectNetworkPeers(state);
   // A filter names a model ({ model }: its current providers) or the computers Answer on counted ({ providerIds, label }).
   const current = filter?.model && (state.models || []).find(row => !row.partition && !row.fleet
     && (row.selectionId || row.id) === (filter.model.selectionId || filter.model.id) && sameModelVariant(row, filter.model));
   const providers = filter?.model ? current?.providerIds || [] : filter?.providerIds || [];
-  const peers = peerRows(state, filter ? { model: filter.model ?? null, providers } : null, names);
+  const peers = peerRows(state, filter ? { model: filter.model ?? null, providers } : null, names, selected);
   const phase = state => peers.filter(peer => peer.phase === state).length;
   const quiet = peers.filter(peer => peer.quiet).length;
   return {

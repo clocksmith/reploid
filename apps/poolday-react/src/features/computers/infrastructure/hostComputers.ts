@@ -90,7 +90,7 @@ type Host = {
 };
 
 type Decisions = {
-  readonly projectComputers: (state: State, options: { filter: { providerIds: ReadonlyArray<string>; label: string } | null; sizes: Map<string, { sizeBytes?: number; error?: string }>; names?: Record<string, string> }) => Omit<ComputersView, 'message' | 'fleet' | 'circleInvites' | 'diagnostic' | 'specialized'> & { networkIssue: string };
+  readonly projectComputers: (state: State, options: { filter: { providerIds: ReadonlyArray<string>; label: string } | null; sizes: Map<string, { sizeBytes?: number; error?: string }>; names?: Record<string, string>; selected: string | null }) => Omit<ComputersView, 'message' | 'fleet' | 'circleInvites' | 'diagnostic' | 'specialized'> & { networkIssue: string };
   readonly projectFleetAccount: (port: FleetPort | null | undefined) => FleetAccountView;
   readonly projectDiagnostic: (view: unknown) => DiagnosticView;
   readonly withComputerLabels: (state: State, session: object) => State;
@@ -133,6 +133,7 @@ export function createComputersServices(product: { readonly host: object; readon
   const sizes = new Map<string, { sizeBytes?: number; error?: string }>();
   const sizeRequests = new AbortController();
   let filter: ComputersFilter | null = null;
+  let selected: string | null = null;
   let actionError = '';
   let notice = '';
   let view: ComputersView | null = null;
@@ -181,7 +182,7 @@ export function createComputersServices(product: { readonly host: object; readon
       host$.setBlockedComputers(session, prefs.blocked);
     }
     const state = host$.withComputerLabels(session.getState(), session);
-    const base = host$.projectComputers(state, { filter, sizes, ...(prefs ? { names: prefs.names } : {}) });
+    const base = host$.projectComputers(state, { filter, sizes, selected, ...(prefs ? { names: prefs.names } : {}) });
     requestSizes(state, base.production);
     const issue = base.networkIssue || actionError;
     const { networkIssue: _unused, ...rest } = base;
@@ -262,6 +263,11 @@ export function createComputersServices(product: { readonly host: object; readon
     setFilter(next) {
       if (next === filter || (next && filter && next.label === filter.label && next.providerIds.join('\n') === filter.providerIds.join('\n'))) return;
       filter = next;
+      changed();
+    },
+    setSelectedModel(next) {
+      if (next === selected) return;
+      selected = next;
       changed();
     },
     network: {

@@ -173,7 +173,7 @@ function WorkspaceBody({ product, services, computers }: { readonly product: Ope
             <ConversationDetailsPanel services={details} attemptId={inspected} draftContext={conversation.draftContext} onDraftContext={port.setDraftContext} />
           )}
           {visited.has(view) && view === 'computers' && (
-            <ComputersPanel services={computers} filter={computersFilter} onClearFilter={() => setComputersFilter(null)} onStartSharing={port.startSharing} />
+            <ComputersPanel services={computers} filter={computersFilter} selectedModel={conversation.composer.chip.selectionId} onClearFilter={() => setComputersFilter(null)} onStartSharing={port.startSharing} />
           )}
           {visited.has(view) && view === 'settings' && <SettingsPanel services={settings} appearance={services.appearance} />}
         </Drawer>
