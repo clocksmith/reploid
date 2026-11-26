@@ -25,7 +25,6 @@ import {
 } from '../../ui/pool-home/conversation-model-picker.js';
 import { adapterAvailability, adapterEvidence, describeModelChoice } from '../../ui/pool-home/model-adapters.js';
 import { ADAPTER_GUIDE_URL, projectModelRoutes } from '../../ui/pool-home/model-providers.js';
-import { remotePermissionText, remotePermissionWording } from '../../ui/pool-home/remote-permission.js';
 import { answerChoiceOf, findAnswerChoice, readAnswerChoice, writeAnswerChoice } from '../../ui/pool-home/answer-choice.js';
 import { projectModelChoices } from './model-choices.js';
 import { promptDisclosure } from './prompt-disclosure.js';
@@ -34,6 +33,7 @@ import { createTranscript } from './transcript.js';
 import { createDownloadDialog } from './download-dialog.js';
 import { createThreadList } from './threads.js';
 import { createPrivacyDialog } from './privacy-dialog.js';
+import { createRemoteApproval, remotePermissionView } from './remote-approval.js';
 
 export { relativeTime } from './threads.js';
 import workProfile from '../../config/work-profile.json' with { type: 'json' };
@@ -108,7 +108,7 @@ export function createConversationController(session, {
   let files = [], composerRevision = 0, queuedSend = null, draftText = '', currentKey = '';
   let contextPrompt = viewState.contextPrompt || null;
   let executionLocation = viewState.executionLocation || 'auto';
-  let errorText = '', searchOn = false, submitting = false;
+  let errorText = '', searchOn = false, submitting = false, retryPending = false, retryDeadline = null;
   let sendAfterDestination = false, pickerChoice = null, stagedDestination = null;
   let sheet = { open: false, title: 'Answer on' };
   let attachmentHelp = false, focus = { target: null, seq: 0 };
@@ -585,7 +585,6 @@ export function createConversationController(session, {
     const queueable = !busy && !usable && state.discoveryPhase === 'searching' && canWaitForPublicModel(state, selectedModel, location);
     const askFirst = !thread && !busy && !usable && !queueable && viewState.privacy === undefined && !viewState.privacyTouched && !lockedDestination(state);
     sendDisabled = attachmentReader.pending || !(usable || queueable || askFirst) || !!thread?.closed || !!state.storageError || (!!invite && !inviteJoined);
-    const pendingApproval = thread?.attempts?.find(item => item.status === 'approval' && item.approval?.permissionNeed);
     const startingHidden = !!(thread?.messages.length || thread?.closed || runningIds.includes(thread?.id) || state.comparisonPhase);
     const searchVisible = searchAvailable();
     const composer = {
@@ -634,11 +633,7 @@ export function createConversationController(session, {
       privacy: privacyChoice.project(state),
       rename: threadList.renameView(),
       download: downloads.view(),
-      remotePermission: pendingApproval ? {
-        key: `${pendingApproval.id}:${pendingApproval.approval.id}`,
-        title: 'Send to another computer?', what: remotePermissionText(pendingApproval.approval.permissionNeed).what,
-        recipient: pendingApproval.approval.recipientIdentity || pendingApproval.approval.permissionNeed.routeId || 'another computer'
-      } : null,
+      remotePermission: remotePermissionView(thread),
       threads: threadList.project(state, catalogModels),
       messages: messageRows,
       canExport: !!thread?.messages.length,
@@ -889,7 +884,6 @@ export function createConversationController(session, {
   const downloads = createDownloadDialog({ session, getState: () => sessionState, notify, requestFocus, act,
     sheetOpen: () => sheet.open, disposed: () => disposed });
 
-  let retryPending = false, retryDeadline = null;
   const unsubscribe = session.subscribe(state => { sessionState = state; notify(); });
   const unsubscribeSearch = search && session.searchPermissionRequest ? search.subscribe(() => notify()) : () => {};
   if (search && search.state().state === 'unknown') void search.refresh();
@@ -900,6 +894,7 @@ export function createConversationController(session, {
   snapshot = project();
 
   const thread = () => sessionState.activeThread;
+  const approval = createRemoteApproval({ session, thread, act });
   const api = {
     getSnapshot: () => snapshot,
     subscribe(listener) { listeners.add(listener); return () => listeners.delete(listener); },
@@ -1047,14 +1042,7 @@ export function createConversationController(session, {
       if (attempt?.error) await clipboard(attempt.error);
     },
     exportConversation() { return session.exportConversation?.(selectedId) ?? ''; },
-    allowRemote() {
-      const pending = thread()?.attempts?.find(item => item.status === 'approval' && item.approval?.permissionNeed);
-      if (pending) void act(() => session.grantRemotePermission(pending.approval.permissionNeed, { wording: remotePermissionWording(pending.approval.permissionNeed) }));
-    },
-    declineRemote() {
-      const current = thread(), pending = current?.attempts?.find(item => item.status === 'approval' && item.approval?.permissionNeed);
-      if (pending) void act(() => session.approve(current.id, pending.id, pending.approval.id, false));
-    },
+    allowRemote: approval.allow, declineRemote: approval.decline,
     clearError() { if (errorText) { errorText = ''; notify(); } },
     dispose() {
       if (disposed) return;
