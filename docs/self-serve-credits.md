@@ -1,6 +1,21 @@
 # Self-serve accounts and service credits
 
-A person opens replo.id, creates an account, pairs a computer with it by a code
+**Optional hosted self-serve; not qualified on replo.id.** The hosted mount is
+off by default and replo.id does not run it: `https://replo.id/v1/fleet/client`
+answered 404 when the two-person trade was prepared on 2026-11-26. Three things are
+distinct:
+
+| Surface | State |
+| --- | --- |
+| Public Ask on replo.id | Live. No account, no charge and no credits; the answering computer can read the prompt ([first visit](first-visit-journeys.md)). |
+| Configured charged route | An operator-run ledger with paired native hosts ([fleet service](fleet-service.md)). Exercised in tests and a one-operator rehearsal; no independent two-person trade has run on it yet. A two-person trade on this route does not show direct browser spending. |
+| Hosted self-serve (this page) | Implemented and tested in one process; not deployed or qualified on replo.id. |
+
+The flow below describes what the code does when an operator enables the mount.
+Until a retained run passes on a deployed service, read it as a design, not a
+live feature.
+
+When enabled, a person opens replo.id, creates an account, pairs a computer with it by a code
 shown in the browser, earns non-cash service credits when that computer answers
 for other people, and spends them from the same account in the browser. This
 page describes that flow, its abuse limits, what the hosted operator can and
@@ -248,6 +263,19 @@ mounts `/v1/fleet` before its general body parser and reads:
   "starterDebt": { "verified": 256, "unverified": 0 }
 }
 ```
+
+### Before the hosted flow can pass
+
+- **Output bound.** A credited provider refuses to start without
+  `generation.maxTokens` on its model entry. `join` now writes it on every model
+  entry, from the service model's own bound when it names one and never above the
+  policy's `maxOutputTokens` ([`join.js`](../server/fleet/join.js)). Before this
+  change the entries had no bound and an enrolled host could not start as a
+  credited provider.
+- **Test the enrolled host, not only the pairing.** The integration test checks
+  that every entry `join` writes passes the provider's start check. A qualifying
+  run must start the enrolled host from the `host.json` that `join` wrote, serve a
+  credited answer from it, and spend from the browser on a deployed service.
 
 The numbers are an example, not a pricing decision. Both SQLite files must be
 on a private local filesystem that survives restarts, with exactly one writer.

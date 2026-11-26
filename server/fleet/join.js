@@ -104,7 +104,10 @@ export async function joinFleetByCode({ code: entered, service = DEFAULT_SERVICE
     origin,
     maxOutputTokens: policy.maxOutputTokens,
     // Whole-model entries for the models this service credits; weights stay where `reploid serve` keeps them.
-    models: confirmed.models.map(model => ({ model: { id: model.id, identity: model.identity, adapterIdentities: model.adapterIdentities ?? [] },
+    // Each entry carries the output bound a credited provider requires at start (execution-admission.js): the
+    // model's own bound when the service names one, never above the policy's maxOutputTokens.
+    models: confirmed.models.map(model => ({ model: { id: model.id, identity: model.identity, adapterIdentities: model.adapterIdentities ?? [],
+      generation: { ...model.generation, maxTokens: outputBound(model, policy) } },
       directory: path.join(weightsDirectory, model.id), mode: 'whole-model' })),
     browserBridge: { port: bridgePort, tokenFile: files.bridgeTokenFile, origins: [origin],
       claim: { codeDigest: createHash('sha256').update(code).digest('hex'), expiresAt: now() + BRIDGE_CLAIM_MS } },
@@ -112,6 +115,12 @@ export async function joinFleetByCode({ code: entered, service = DEFAULT_SERVICE
   };
   await writeOwnerFile(files.hostFile, JSON.stringify(host, null, 2) + '\n');
   return { ...files, computerId: confirmed.computerId, accountLabel: confirmed.accountLabel, participantId: identity.peerId, fingerprint };
+}
+
+function outputBound(model, policy) {
+  const ceiling = policy?.maxOutputTokens, own = model.generation?.maxTokens;
+  assert(Number.isSafeInteger(ceiling) && ceiling > 0, 'The service policy names no maxOutputTokens, so a credited answer would have no output bound');
+  return Number.isSafeInteger(own) && own > 0 ? Math.min(own, ceiling) : ceiling;
 }
 
 export async function runJoin(argv = process.argv.slice(2), { log = console.log, error = console.error } = {}) {

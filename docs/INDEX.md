@@ -108,7 +108,7 @@ Proposed receipt retention, authorized peer replication and verifiable usage vie
 
 Native computer identity, non-cash credits and placement: [Fleet service](fleet-service.md).
 
-- **[Self-serve accounts and service credits](./self-serve-credits.md)** - Create an account on replo.id, pair a computer by code, earn by serving and spend in the browser
+- **[Self-serve accounts and service credits](./self-serve-credits.md)** - Optional hosted self-serve; not qualified on replo.id. Design and tests for accounts, pairing by code, earning by serving and spending in the browser; public Ask needs none of it
 
 - **[Run a native Reploid participant](./native-participant.md)** - The browser's application host and participant protocol as a native process
 - **[GOVERNANCE.md](../GOVERNANCE.md)** - Who controls the credit ledger and the non-cash mutual service credit terms

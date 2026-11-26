@@ -8,6 +8,7 @@ import { joinFleetByCode } from '../../server/fleet/join.js';
 import { createFleetClient } from '../../server/fleet/service.js';
 import { verifyCreditStatement } from '../../server/fleet/credit-statement.js';
 import { openFleetCredits } from '../../server/fleet/credits.js';
+import { createFleetExecutionAdmission } from '../../server/fleet/execution-admission.js';
 import { settleAnswer, sessionApi, selfServeConfiguration, startSelfServeServer } from '../helpers/self-serve-fleet.js';
 
 let root, hosted;
@@ -47,6 +48,13 @@ it('a new account pairs a computer by code, earns by serving, spends what it ear
   expect(host).toMatchObject({ schema: 'reploid.fleet-native/v1', computerId: alice.joined.computerId, roomId: 'reploid-swarm-fleet-test',
     serviceUrl: 'http://127.0.0.1/v1/fleet', browserBridge: { port: 18784, origins: [hosted.origin] } });
   expect(host.browserBridge.claim.codeDigest).toMatch(/^[a-f0-9]{64}$/);
+  // Every model entry carries the output bound a credited provider needs to start, within the service policy.
+  expect(host.models.length).toBeGreaterThan(0);
+  for (const entry of host.models) {
+    expect(entry.model.generation.maxTokens).toBeGreaterThan(0);
+    expect(entry.model.generation.maxTokens).toBeLessThanOrEqual(host.maxOutputTokens);
+    expect(() => createFleetExecutionAdmission({ credits: {}, model: entry.model })).not.toThrow();
+  }
   expect((await stat(alice.joined.roomTokenFile)).mode & 0o777).toBe(0o600);
   expect(await readFile(alice.joined.roomTokenFile, 'utf8')).toBe('room-token-for-the-self-serve-fleet-test-000000');
 
