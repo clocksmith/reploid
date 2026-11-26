@@ -452,7 +452,7 @@
       "description": "Ideas for novel capabilities not in any genesis level",
       "modules": {
         "ToolWriter": "blueprints/0x000015-dynamic-tool-creation.md",
-        "SubstrateLoader": "blueprints/0x00001F-universal-module-loader.md",
+        "SubstrateLoader": "blueprints/0x000071-substrate-loader.md",
         "VFSSandbox": "blueprints/0x000040-verification-manager.md",
         "ArenaCompetitor": "blueprints/0x000064-arena-competitor.md",
         "ArenaMetrics": "blueprints/0x000065-arena-metrics.md",

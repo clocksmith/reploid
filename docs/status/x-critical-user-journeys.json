@@ -450,7 +450,7 @@
     }
   ],
   "constraints": [
-    "X must remain a strict declared superset of Zero without silently changing Zero's tool or module surface.",
+    "X defaults to Zero core and adds only operator-selected upgrades, without silently changing Zero's tool or module surface.",
     "Tool inventory proves availability, not that an operator journey works or that a model uses the capability well.",
     "Promotion replay and hashes prove the declared candidate and evidence chain, not general semantic correctness.",
     "A mock-model browser pass must not be presented as actual inference quality evidence.",

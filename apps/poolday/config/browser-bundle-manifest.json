@@ -1325,13 +1325,13 @@
     },
     {
       "path": "config/genesis-levels.json",
-      "byteLength": 14079,
-      "sha256": "sha256:090adb9fe25483644ac489a569095918dceba32e8cea6c60ee921462dd04d7df"
+      "byteLength": 14072,
+      "sha256": "sha256:f4da5fbc8dc071ecd0b4e4720803e274f629d3157ed05bfdb6207b159fbee922"
     },
     {
       "path": "config/genesis-template.json",
-      "byteLength": 8803,
-      "sha256": "sha256:fe69f47fd65e7ef3ecc617d7fa197a83c130d29d5352e15f09064adef578d163"
+      "byteLength": 8796,
+      "sha256": "sha256:85dc47f538947f9bce3d6753819e3acca8867fdef057b94943a6e246211198bc"
     },
     {
       "path": "config/immutability.js",
@@ -12839,5 +12839,5 @@
       "sha256": "sha256:abb6c18f6167d6afc8ee1b3adfcbbb89c0e93fb4fc4e98d7a12250f78aab206a"
     }
   ],
-  "bundleHash": "sha256:4af3e2b373c7989bf221b9311ac59e94f7a669f7038db302468ca2de586260c7"
+  "bundleHash": "sha256:f214f486dd05b1ade03143dbc3edaf08edd74da351199c2f548886c8fc4f6d3c"
 }
