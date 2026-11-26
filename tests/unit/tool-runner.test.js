@@ -55,6 +55,8 @@ const createMockSchemaRegistry = () => ({
 import { setSecurityEnabled } from '../../self/core/security-config.js';
 import { getCurrentReploidStorage } from '../../shared/instance.js';
 import ToolRunnerModule, { filterToolDepsForMode, filterToolDepsForTool } from '../../core/tool-runner.js';
+import HITLControllerModule from '../../self/infrastructure/hitl-controller.js';
+import UtilsModule from '../../shared/core/utils.js';
 
 describe('ToolRunner', () => {
   let toolRunner;
@@ -241,6 +243,51 @@ describe('ToolRunner', () => {
       expect(toolRunner.unload('ActivationProbe')).toBe(true);
       expect(toolRunner.has('ActivationProbe')).toBe(false);
       expect(mockSchemaRegistry.unregisterToolSchema).toHaveBeenCalledWith('ActivationProbe');
+    });
+  });
+
+  describe('HITL approval of critical tools', () => {
+    // The controller queues only requests from modules registered for the capability and
+    // auto-approves the rest. The runner used to ask without registering, so in HITL mode a
+    // WriteFile ran without anyone approving it.
+    const composeWithController = () => {
+      const EventBus = { on: vi.fn(() => () => {}), emit: vi.fn() };
+      const HITLController = HITLControllerModule.factory({ Utils: UtilsModule.factory(), EventBus });
+      HITLController.init();
+      const runner = ToolRunnerModule.factory({ Utils: mockUtils, VFS: mockVFS, ToolWriter: mockToolWriter, SchemaRegistry: mockSchemaRegistry, HITLController });
+      return { runner, HITLController };
+    };
+
+    it('holds a critical tool call for a human in HITL mode and runs nothing on rejection', async () => {
+      setSecurityEnabled(true, { persist: false });
+      const { runner, HITLController } = composeWithController();
+      HITLController.setApprovalMode('hitl');
+      globalThis.__writeFileRuns = 0;
+      mockVFS.read.mockResolvedValue('export default async function() { globalThis.__writeFileRuns++; return { ok: true }; }');
+      await runner.loadPath('/self/tools/WriteFile.js', 'WriteFile', { allow: true });
+
+      const pending = runner.execute('WriteFile', { path: '/x.txt', content: 'x' });
+      await new Promise(resolve => setTimeout(resolve, 0));
+      const queue = HITLController.getApprovalQueue();
+      expect(queue).toHaveLength(1);
+      expect(queue[0]).toMatchObject({ moduleId: 'ToolRunner', capability: 'APPROVE_TOOL_EXECUTION', action: 'WriteFile' });
+      expect(globalThis.__writeFileRuns).toBe(0);
+
+      HITLController.reject(queue[0].id, 'not now');
+      await expect(pending).resolves.toMatchObject({ rejected: true });
+      expect(globalThis.__writeFileRuns).toBe(0);
+      delete globalThis.__writeFileRuns;
+    });
+
+    it('does not hold critical tools in autonomous mode', async () => {
+      global.window = {}; // the runner reads window.REPLOID when it executes a tool
+      setSecurityEnabled(true, { persist: false });
+      const { runner, HITLController } = composeWithController();
+      HITLController.setApprovalMode('autonomous');
+      mockVFS.read.mockResolvedValue('export default async function() { return { ok: true }; }');
+      await runner.loadPath('/self/tools/WriteFile.js', 'WriteFile', { allow: true });
+      await runner.execute('WriteFile', { path: '/x.txt', content: 'x' });
+      expect(HITLController.getApprovalQueue()).toHaveLength(0);
     });
   });
 

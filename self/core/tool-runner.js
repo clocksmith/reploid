@@ -543,6 +543,14 @@ const ToolRunner = {
     // Critical tools that require HITL approval
     const CRITICAL_TOOLS = ['WriteFile', 'DeleteFile', 'CreateTool', 'EditFile', 'CopyFile', 'MoveFile', 'MakeDirectory', 'LoadModule', 'Promote'];
 
+    // The controller only queues requests from modules registered for the capability; an
+    // unregistered module is auto-approved even in HITL mode. Register so critical tool calls
+    // are actually held for a human in HITL mode (EVERY_N keeps its own step counter).
+    if (HITLController?.registerModule) {
+      HITLController.registerModule('ToolRunner', ['APPROVE_TOOL_EXECUTION'],
+        'Tool Runner - critical tool calls (writes, deletes, tool creation, module loading, promotion)');
+    }
+
     /**
      * Check if tool requires HITL approval
      * @param {string} toolName - Tool name
