@@ -10,6 +10,7 @@ import { openFleetCredits } from '../../server/fleet/credits.js';
 import { keyFingerprint, normalizePairingCode, openSelfServeFleet, pairingClaimBody, pairingPollBody } from '../../server/fleet/self-serve.js';
 import { mountSelfServeFleet } from '../../server/fleet/self-serve-mount.js';
 import { firebaseSessionAuthenticator } from '../../server/fleet/self-serve-http.js';
+import { createFleetServiceHandler } from '../../server/fleet/service.js';
 import { selfServeConfiguration } from '../helpers/self-serve-fleet.js';
 
 const alice = { issuer: 'test', subject: 'alice', verified: true };
@@ -128,6 +129,35 @@ describe('open-enrollment ledger', () => {
     await expect(openFleetCredits({ file: path.join(root, 'fixed.sqlite'), computers: [], openEnrollment: true,
       policy: selfServeConfiguration(root).creditPolicy })).rejects.toThrow('explicit migration required');
     credits = null;
+  });
+});
+
+describe('signed directory', () => {
+  // TRUST-06, 2026-11-26: a host started from join's settings (or by trade.js earner) follows no placement, so it never
+  // sent an observation; a self-serve directory then never listed it to another account, and that account's requester
+  // had nobody it could send a credited request to. A serving host now reports its presence, which lists it while fresh.
+  it('lists another account\'s serving computer while it reports its presence, and stops listing it when the report is stale', async () => {
+    const [mine, theirs] = await Promise.all([0, 1].map(() => createSigningIdentity({ algorithm: 'Ed25519' })));
+    credits = await openFleetCredits({ file: path.join(root, 'credits.sqlite'), now: () => clock, policy: selfServeConfiguration(root).creditPolicy,
+      computers: [{ id: 'mine', name: 'Mine', ownerId: 'me', providers: [{ participantId: mine.peerId, publicJwk: mine.publicJwk }] },
+        { id: 'theirs', name: 'Theirs', ownerId: 'them', providers: [{ participantId: theirs.peerId, publicJwk: theirs.publicJwk }] }] });
+    const placementPolicy = selfServeConfiguration(root).placementPolicy;
+    const { invoke } = createFleetServiceHandler({ credits, models: [], placementPolicy, now: () => clock, directory: 'own' });
+    const listed = async () => (await invoke(mine.peerId, 'computers', {})).computers.map(row => ({ id: row.id, online: row.online, participantIds: row.participantIds }));
+    expect(await listed()).toEqual([{ id: 'mine', online: false, participantIds: [mine.peerId] }]);
+
+    // The report names only the sender's own computer and key, within the clock bound; the reply says how long it lasts.
+    await expect(invoke(theirs.peerId, 'present', { id: 'mine', participantId: theirs.peerId, observedAt: clock })).rejects.toThrow('Cannot report another computer');
+    await expect(invoke(theirs.peerId, 'present', { id: 'theirs', participantId: theirs.peerId, observedAt: clock - 60000 })).rejects.toThrow('clock-skew');
+    expect(await invoke(theirs.peerId, 'present', { id: 'theirs', participantId: theirs.peerId, observedAt: clock }))
+      .toEqual({ accepted: true, expiresInMs: placementPolicy.maxObservationAgeMs });
+    expect(await listed()).toEqual([{ id: 'mine', online: false, participantIds: [mine.peerId] },
+      { id: 'theirs', online: true, participantIds: [theirs.peerId] }]);
+    // Presence states no capacity: nothing that an observation would carry is invented for it.
+    expect((await invoke(mine.peerId, 'computers', {})).computers[1]).not.toHaveProperty('resident');
+
+    clock += placementPolicy.maxObservationAgeMs + 1;
+    expect(await listed()).toEqual([{ id: 'mine', online: false, participantIds: [mine.peerId] }]);
   });
 });
 

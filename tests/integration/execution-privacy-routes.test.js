@@ -62,14 +62,23 @@ it('never serves a stronger tier through a weaker one: each unmet requirement re
     expect(leaked(), label).toEqual([]);
     expect(executed, label).toEqual([]);
   }
-  // A restricted request whose named recipient is not present does not refuse: it waits for that recipient
-  // until the caller's signal or the generation deadline ends it. It still discloses nothing. The only
-  // message is the requester's identity proof, which is how peers' verified identities become known.
+  // A restricted request whose named recipient is not present, while a provider's identity is still unproven, does
+  // not refuse: it waits until the caller's signal or the generation deadline ends it. It still discloses nothing.
+  // The only message is the requester's identity proof, which is how peers' verified identities become known.
   const absent = network('named', ['peer:someone-else']);
   const sentBefore = f.wire.length;
   await expect(ask(absent, AbortSignal.timeout(150))).rejects.toThrow();
   expect(f.wire.slice(sentBefore).map(row => row.type).filter(type => type !== 'reploid:identity-proof')).toEqual([]);
   expect(f.wire.filter(row => row.type === 'reploid:generation-request')).toEqual([]);
+  expect(leaked()).toEqual([]);
+  expect(executed).toEqual([]);
+  // Once every provider serving the model has proven an identity outside the named recipients, waiting cannot help:
+  // the request ends at once and names who serves it (TRUST-06). Still nothing is sent to it.
+  const proven = await f.requesterMesh.verifyPeerIdentity(f.requesterMesh.getSwarmSnapshot().peers[0].peerId, AbortSignal.timeout(2000));
+  expect(proven).toBe(f.identities[1].peerId);
+  const provenBefore = f.wire.length;
+  await expect(ask(absent, AbortSignal.timeout(2000))).rejects.toMatchObject({ code: 'NO_PERMITTED_PROVIDER', providerIdentities: [f.identities[1].peerId] });
+  expect(f.wire.slice(provenBefore).map(row => row.type).filter(type => type !== 'reploid:identity-proof')).toEqual([]);
   expect(leaked()).toEqual([]);
   expect(executed).toEqual([]);
   // A policy that asks to be downgraded, or that is not a complete versioned policy, is not a policy.

@@ -6,9 +6,9 @@ import os from 'node:os';
 import { PassThrough } from 'node:stream';
 import { EventEmitter } from 'node:events';
 import { setTimeout as delay } from 'node:timers/promises';
-import { runFleetNativeCommands, includeRequesterPresence, activeProviderRequests, openComputerIdentity, openFleetNativeHost, createFairLaneScheduler } from '../../server/fleet/native-host.js';
+import { runFleetNativeCommands, includeRequesterPresence, activeProviderRequests, openComputerIdentity, openFleetNativeHost, createFairLaneScheduler, startFleetPresence } from '../../server/fleet/native-host.js';
 import { openFleetCredits } from '../../server/fleet/credits.js';
-import { startFleetService } from '../../server/fleet/service.js';
+import { startFleetService, createFleetClient } from '../../server/fleet/service.js';
 const roots = [];
 afterEach(async () => { await Promise.all(roots.splice(0).map(root => fs.rm(root, { recursive: true, force: true }))); });
 
@@ -275,3 +275,36 @@ it('names the folder to download into when a served model has no files yet', asy
     await expect(host.select(0, true)).rejects.toThrow(`No model files in ${directory}: download qwen-test there before serving it`);
   } finally { await host.close(); }
 });
+
+it('a serving host reports its presence, so a self-serve ledger lists it to another account, and stays quiet on a ledger that predates it', async () => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'fleet-presence-')); roots.push(root);
+  const serving = await openComputerIdentity(path.join(root, 'serving.json')), asking = await openComputerIdentity(path.join(root, 'asking.json'));
+  const credits = await openFleetCredits({ file: path.join(root, 'credits.sqlite'), computers: [
+    { id: 'serving', name: 'Serving', ownerId: 'earner', providers: [{ participantId: serving.peerId, publicJwk: serving.publicJwk }] },
+    { id: 'asking', name: 'Asking', ownerId: 'spender', providers: [{ participantId: asking.peerId, publicJwk: asking.publicJwk }] }],
+  policy: { schema: 'reploid.service-credit-policy/v1', version: 'test/presence-1', unit: 'noncash-service-credit', creditsPerOutputToken: 1,
+    maxDebt: 32, maxOutputTokens: 48, maxPendingPerComputer: 4, maxClockSkewMs: 30000, maxRequestMs: 120000, allowSameOwner: false } });
+  const service = await startFleetService({ credits, models: [], directory: 'own',
+    placementPolicy: { maxObservationAgeMs: 3000, minSwitchHoldMs: 1000, maxGpuUtilization: 0.9, minHostHeadroomBytes: 0 } });
+  const listedTo = identity => createFleetClient({ url: service.url, identity }).call('computers', {}).then(value => value.computers.map(row => row.id));
+  let presence = null;
+  try {
+    expect(await listedTo(asking)).toEqual(['asking']);
+    presence = startFleetPresence({ credits: createFleetClient({ url: service.url, identity: serving }), computerId: 'serving', participantId: serving.peerId });
+    await presence.first;
+    expect(await listedTo(asking)).toEqual(['serving', 'asking']);
+    // Reported again at a third of the 3 s the ledger says a report lasts, so it is still listed after the first one expired.
+    await delay(3500);
+    expect(await listedTo(asking)).toEqual(['serving', 'asking']);
+    presence.stop();
+    await delay(3500);
+    expect(await listedTo(asking)).toEqual(['asking']);
+  } finally { presence?.stop(); await service.close(); credits.close(); }
+
+  const warnings = [];
+  const older = startFleetPresence({ credits: { call: async () => { throw Error('Unknown fleet operation'); } }, computerId: 'serving', participantId: serving.peerId,
+    onWarning: warning => warnings.push(warning) });
+  await older.first;
+  older.stop();
+  expect(warnings).toEqual([expect.stringContaining('takes no presence reports')]);
+}, 15000);

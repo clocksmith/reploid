@@ -92,6 +92,33 @@ export function includeRequesterPresence(computers, state, at) {
   });
 }
 
+/**
+ * A serving host's presence on its ledger. A self-serve ledger lists another account's computer only while it reports
+ * capacity (`observe`, sent by hosts that follow placement) or presence; a host started from `join`'s settings or by
+ * `trade.js earner` follows no placement, so without this no other account's requester could ever send it a request.
+ * Reports at a third of the period the ledger says a report lasts. A ledger that predates presence is told once and
+ * left alone; any other failure is retried on the same schedule.
+ */
+export function startFleetPresence({ credits, computerId, participantId, onWarning = () => {}, fallbackMs = 10000 }) {
+  let timer = null, stopped = false;
+  const report = async () => {
+    timer = null;
+    let next = fallbackMs;
+    try {
+      const reply = await credits.call('present', { id: computerId, participantId, observedAt: Date.now() });
+      if (Number.isSafeInteger(reply?.expiresInMs) && reply.expiresInMs > 0) next = Math.max(1000, Math.floor(reply.expiresInMs / 3));
+    } catch (error) {
+      if (/Unknown fleet operation/.test(error.message)) {
+        onWarning('This ledger takes no presence reports: a self-serve ledger lists this computer to other accounts only while it follows placement.');
+        return;
+      }
+    }
+    if (!stopped) { timer = setTimeout(report, next); timer.unref?.(); }
+  };
+  const first = report();
+  return { first, stop() { stopped = true; clearTimeout(timer); timer = null; } };
+}
+
 /** One process owns one GPU host. Model changes drain the old resident before preparing another. */
 export async function openFleetNativeHost({ configuration, loadRtc = () => import('@roamhq/wrtc'), loadSocket = () => import('ws'),
   loadGpu = () => import('webgpu'), onChange = () => {},
@@ -128,7 +155,7 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
     readGpuBuffers: async () => (await import('dopplerx/partitions')).inspectDeviceMemory() }) : null;
   const roomToken = config.roomTokenFile ? process.getuid ? await readNativeRoomTokenFile(config.roomTokenFile)
     : (await readOwnFile(config.roomTokenFile)).replace(/\r?\n$/, '') : null;
-  let participant = null, selected = null, preparing = false, closed = false, lastError = null, preparedAt = null;
+  let participant = null, selected = null, preparing = false, closed = false, lastError = null, preparedAt = null, presence = null;
   // Opt-in: the coordinator's measured order over whole-model providers, refreshed before each credited request.
   const providerRanking = { order: [], estimates: [] };
   const requests = new Map(), outcomesByAttempt = new Map(), outcomesByReservation = new Map();
@@ -306,6 +333,7 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
     const activity = executionState();
     assert(activeProviderRequests(activity) === 0, 'Active provider cannot move');
     preparing = true; lastError = null;
+    presence?.stop(); presence = null;
     try {
       if (participant) await participant.close();
       participant = null; selected = null;
@@ -338,6 +366,9 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
       if (contribute && fillable && !present) assert(await manifestIdentity() === entry.model.identity, 'Filled model manifest differs from the selected model');
       // Supplying this model's pieces to other computers in the room is a separate owner choice.
       if (contribute && config.cacheDirectory && entry.mode === 'whole-model' && entry.shareModelFiles === true) await participant.shareFiles(true);
+      // Serving now: other accounts' requesters can find this computer on a self-serve ledger while it reports itself.
+      if (contribute && credits) presence = startFleetPresence({ credits, computerId: config.computerId, participantId: identity.peerId,
+        onWarning: warning => onChange({ warning }) });
       preparedAt = Date.now(); return state();
     } catch (error) { lastError = error.message; throw error; }
     finally { preparing = false; drainRequesterQueue(); onChange(state()); }
@@ -378,6 +409,7 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
     await credits.call('observe', observation);
     const plan = await credits.call('plan', {}), decision = plan.decisions.find(row => row.computerId === config.computerId);
     if (decision?.action === 'stop' && observation.activeRequests === 0 && participant) {
+      presence?.stop(); presence = null;
       await participant.stop();
     }
     if (decision?.action === 'prepare' && observation.activeRequests === 0) {
@@ -751,6 +783,7 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
     },
     async close() {
       closed = true;
+      presence?.stop();
       for (const timer of recordTimers) clearTimeout(timer);
       // What the live records hold now goes to disk before the process ends.
       await Promise.allSettled([...settlementRecords].map(([reservationId, read]) => persistRequested(reservationId, read)));
@@ -827,7 +860,15 @@ export function createOwnerInference({ host, config }) {
     const result = await run.result;
     if (result.status === 'completed') return { ...context.raw, executionReceipt: result.executionReceipt };
     // The executor's own error keeps its credit outcome unless the inference API refused first.
-    if (context.failure && !Object.hasOwn(EXECUTION_ERROR_CODES, result.error.code)) throw context.failure;
+    if (context.failure && !Object.hasOwn(EXECUTION_ERROR_CODES, result.error.code)) {
+      // Without requirements the recipients are the computers the ledger lists: say so, since that is what to check.
+      if (context.failure.code === 'NO_PERMITTED_PROVIDER' && !requested) {
+        context.failure.message += ' Without execution requirements this command sends only to computers the ledger lists for this account:'
+          + ' its own, and another account\'s while that computer reports capacity or presence (a contributor older than this release reports neither'
+          + ' to a self-serve ledger).';
+      }
+      throw context.failure;
+    }
     // A result refused after the executor finished keeps what the executor settled, so a charge is never hidden.
     throw Object.assign(new Error(result.error.message), { code: result.error.code,
       ...(result.settlement ? { serviceCredit: structuredClone(result.settlement) } : {}) });

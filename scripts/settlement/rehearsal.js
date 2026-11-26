@@ -141,7 +141,8 @@ export async function runRehearsal({ out = null, keep = false, print = line => c
     await fs.writeFile(path.join(dir('ledger'), 'service.json'), JSON.stringify({ schema: 'reploid.fleet-service/v1', enrollmentFile: path.join(dir('ledger'), 'enrollment.json'),
       modelsFile: path.join(dir('ledger'), 'models.json'), databaseFile: path.join(dir('ledger'), 'credits.sqlite'), creditPolicy: POLICY, coordinatorKeyFile,
       placementPolicy: { maxMeasurementAgeMs: 60000, maxObservationAgeMs: 10000, minResidencyMs: 1000, maxRouteCandidates: 100, queuedRequestsPerReplica: 2 },
-      listenHost: '127.0.0.1', port: servicePort }, null, 2));
+      // Lists the other account only while it reports capacity or presence, as the hosted self-serve ledger does.
+      directory: 'own', listenHost: '127.0.0.1', port: servicePort }, null, 2));
 
 
     const begin = async (name, script, args, options = {}) => { const started = await start(name, script, args, { ...options, log }); processes.push(started); return started; };
@@ -183,7 +184,12 @@ export async function runRehearsal({ out = null, keep = false, print = line => c
       if (!response.ok) throw Error(value.error || `bridge ${route} answered ${response.status}`);
       return value;
     };
-    const accounts = async () => Object.fromEntries((await bridge('/accounts')).accounts.map(row => [row.id, { balance: row.balance, held: row.held }]));
+    // The ledger shows each host its own account only, so the earner's comes from the earner host (while it is up).
+    const accounts = async () => {
+      const own = (await bridge('/accounts')).accounts;
+      const theirs = earner.child.exitCode === null && earner.child.signalCode === null ? await earner.command({ op: 'balances' }).then(value => value.accounts, () => []) : [];
+      return Object.fromEntries([...own, ...theirs].map(row => [row.id, { balance: row.balance, held: row.held }]));
+    };
     /** One request from the page's client. Resolves `{ reservationId, text, result, error }` whatever way it ends. */
     const ask = async (prompt, { during = null } = {}) => {
       const controller = new AbortController(), attemptId = randomUUID();
@@ -263,6 +269,16 @@ export async function runRehearsal({ out = null, keep = false, print = line => c
     await drill({ name: 'completed-trade', what: 'a completed answer, acknowledged', reservationId: done.reservationId, before,
       expected: { status: 'settled', debit: 3 * POLICY.creditsPerOutputToken, payouts: { 'earner-account': 3 * POLICY.creditsPerOutputToken } },
       trade: await exportTrade(done.reservationId, { waitMs: 10000 }) });
+
+    // 1b. The same trade through the spender host's owner command on its standard input, without the page.
+    before = await accounts();
+    const commandedAnswer = await spender.command({ op: 'generate', request: { threadId: 'rehearsal-owner-command', attemptId: randomUUID(), model,
+      messages: [{ role: 'user', content: 'Count to three.' }] } });
+    const commandedId = commandedAnswer.serviceCredit?.id ?? commandedAnswer.execution?.serviceCredit?.id;
+    log(`owner command: the spender host's generate command received "${commandedAnswer.content}"; reservation ${commandedId}`);
+    await drill({ name: 'completed-trade-owner-command', what: 'a completed answer asked with the spender host\'s generate command on its standard input', reservationId: commandedId, before,
+      expected: { status: 'settled', debit: 3 * POLICY.creditsPerOutputToken, payouts: { 'earner-account': 3 * POLICY.creditsPerOutputToken } },
+      trade: await exportTrade(commandedId, { waitMs: 10000 }) });
 
     // 2. The person stops mid-answer.
     before = await accounts();

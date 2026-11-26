@@ -48,7 +48,7 @@ export function createFleetServiceHandler({ credits, models, placementPolicy, no
   assert(['full', 'own'].includes(directory), 'Fleet directory must be full or own');
   assert(coordinator === null || typeof coordinator.signer?.sign === 'function' && coordinator.publicKey?.coordinatorId === coordinator.signer.participantId,
     'Coordinator signer and its published key required');
-  const observations = new Map(), demand = new Map(), links = new Map();
+  const observations = new Map(), demand = new Map(), links = new Map(), presence = new Map();
   const invoke = async (signer, operation, payload, envelope) => {
     const owner = credits.enrollment.byPeer.get(signer);
     assert(owner, 'Unenrolled computer');
@@ -142,13 +142,16 @@ export function createFleetServiceHandler({ credits, models, placementPolicy, no
       }
       case 'computers': return { at: now(), computers: [...credits.enrollment.byId.values()].map(computer => {
         const observation = observations.get(computer.id);
-        const online = !!observation && now() - observation.observedAt <= placementPolicy.maxObservationAgeMs;
+        const observed = !!observation && now() - observation.observedAt <= placementPolicy.maxObservationAgeMs;
+        // A host that serves without following placement reports only its presence: online, with no capacity stated.
+        const present = presence.has(computer.id) && now() - presence.get(computer.id) <= placementPolicy.maxObservationAgeMs;
+        const online = observed || present;
         // A self-serve directory lists the caller's own account and accounts serving now, never the whole enrollment.
         if (directory === 'own' && computer.id !== owner.computerId && !online) return null;
         return { id: computer.id, name: computer.name, participantIds: computer.providers
           .filter(provider => directory === 'full' || provider.revokedAt === undefined).map(provider => provider.participantId),
-          online, observedAt: observation?.observedAt ?? null,
-          ...(online ? { activeRequests: observation.activeRequests, preparing: observation.preparing === true, resident: observation.resident,
+          online, observedAt: observed ? observation.observedAt : present ? presence.get(computer.id) : observation?.observedAt ?? null,
+          ...(observed ? { activeRequests: observation.activeRequests, preparing: observation.preparing === true, resident: observation.resident,
             preferences: observation.preferences, freeGpuBytes: observation.freeGpuBytes, freeHostBytes: observation.freeHostBytes,
             maxStorageBufferBindingSize: observation.maxStorageBufferBindingSize } : {}) };
       }).filter(Boolean) };
@@ -186,6 +189,15 @@ export function createFleetServiceHandler({ credits, models, placementPolicy, no
         planFleetPlacement({ computers: [observation], demand: [], models, links: [], policy: placementPolicy, now: now() });
         observations.set(owner.computerId, observation);
         return { accepted: true };
+      }
+      case 'present': {
+        // A serving host's signed "I am here", for one that sends no capacity observation (it follows no placement).
+        // It only lists the computer in the directory while fresh; it states no capacity and places nothing.
+        assert(payload?.id === owner.computerId && payload.participantId === signer, 'Cannot report another computer');
+        assert(Number.isSafeInteger(payload.observedAt) && Math.abs(payload.observedAt - now()) <= credits.policy.maxClockSkewMs,
+          'Presence report is outside the clock-skew bound');
+        presence.set(owner.computerId, now());
+        return { accepted: true, expiresInMs: placementPolicy.maxObservationAgeMs };
       }
       case 'demand':
         assert(text(payload.id) && Array.isArray(payload.requests) && payload.requests.length <= credits.policy.maxPendingPerComputer, 'Bounded demand required');
@@ -264,7 +276,9 @@ if (process.argv[1] && pathToFileURL(path.resolve(process.argv[1])).href === imp
     // Optional. Named, the key file must already exist (coordinator-key.js create): the service never makes one.
     const coordinator = configuration.coordinatorKeyFile === undefined ? null : await coordinatorFor(await openCoordinatorKey(configuration.coordinatorKeyFile));
     service = await startFleetService({ credits, models, placementPolicy: configuration.placementPolicy,
-      listenHost: configuration.listenHost, port: configuration.port, tls, coordinator });
+      listenHost: configuration.listenHost, port: configuration.port, tls, coordinator,
+      // 'own' lists other accounts as the hosted self-serve ledger does: only while they report capacity or presence.
+      ...(configuration.directory === undefined ? {} : { directory: configuration.directory }) });
     console.log(JSON.stringify({ ready: true, url: service.url, coordinatorId: coordinator?.publicKey.coordinatorId ?? null }));
     await new Promise(resolve => { process.once('SIGINT', resolve); process.once('SIGTERM', resolve); });
   } finally { await service?.close(); credits.close(); }

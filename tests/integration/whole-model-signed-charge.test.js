@@ -98,9 +98,9 @@ async function route({ requester, provider, execute, signs = true, requireVerifi
   const fleet = createFleetRequester({ participant: { generate: (request, controls) => wholeRequester.generate(request, controls) },
     identity: keys[requester], credits: clients[requester], maxOutputTokens: 16, requireVerifiableCharge,
     onSettlementRecords: ({ reservationId, read }) => stored.set(reservationId, read) });
-  const ask = ({ signal = new AbortController().signal, onDelta = () => {}, verifiableCharge } = {}) => fleet.generate({
+  const ask = ({ signal = new AbortController().signal, onDelta = () => {}, verifiableCharge, privacy = null } = {}) => fleet.generate({
     threadId: 'thread-1', attemptId: crypto.randomUUID(), model, messages,
-    privacy: createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'open', ids: [] } }),
+    privacy: privacy ?? createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'open', ids: [] } }),
     ...(verifiableCharge ? { verifiableCharge } : {}) }, { signal, requestApproval: async () => true, onDelta });
   const sent = type => mesh.wire.filter(item => item.type === type).map(item => item.payload);
   /** What the page exports for one request: the requester's records with the ledger's own record of the reservation. */
@@ -700,3 +700,26 @@ it('with unequal release windows, whole-model terms sign the whole-model window 
   expect(after).toMatchObject({ ledger: 'expired', full: 'expired', only: 'expired' });
   await killed.agree(reservationId, { status: 'expired', at: ledgerNow(), trace: { ...credits.trace(reservationId), policyDigest: null } });
 });
+
+// TRUST-06, 2026-11-26: the owner's `generate` command names the computers its ledger lists. A contributor the ledger
+// did not list was never chosen, and the request waited silently for the mesh's whole generation timeout. A request
+// whose named recipients exclude every computer serving the model now ends at once, before a hold or a wire byte.
+it('a request whose named recipients exclude every computer serving the model is refused at once, with nothing held or sent', async () => {
+  const served = await route({ requester: 1, provider: 0, execute: honest, meshConfig: () => ({ generationTimeoutMs: 120000 }) });
+  const stranger = await createSigningIdentity({ algorithm: 'Ed25519' });
+  // One answered request first: the requester then holds the provider's proven identity, as a native host does once connected.
+  await served.ask();
+  const before = credits.snapshot().accounts.map(row => ({ balance: row.balance, held: row.held }));
+  const started = Date.now();
+  const refused = await served.ask({ privacy: createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'named', ids: [stranger.peerId] } }) })
+    .catch(error => error);
+  expect(Date.now() - started).toBeLessThan(5000);
+  expect(refused).toMatchObject({ code: 'NO_PERMITTED_PROVIDER', message: expect.stringContaining(keys[0].peerId) });
+  expect(refused.message).toContain('Nothing was held or sent');
+  expect(served.sent('reploid:generation-admit')).toHaveLength(1);
+  expect(served.sent('reploid:generation-request')).toHaveLength(1);
+  expect(credits.snapshot().accounts.map(row => ({ balance: row.balance, held: row.held }))).toEqual(before);
+  // Naming the computer that serves it, the same request is answered.
+  const answered = await served.ask({ privacy: createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'named', ids: [keys[0].peerId] } }) });
+  expect(answered.content).toBe('1 2 3');
+}, 15000);
