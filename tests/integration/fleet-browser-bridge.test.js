@@ -397,3 +397,18 @@ it('keeps a dropped provider’s hold visible with its amount until the ledger s
     expect(states.at(-1).execution.serviceCredit).toEqual({ id: 'service:held', status: 'pending', heldCredits: 48 });
   } finally { client.close(); await bridge.close(); }
 });
+
+it('hands the paired page one request’s signed settlement records and refuses them without pairing', async () => {
+  const trade = { schema: 'reploid.whole-model-trade-receipt/v1', reservationId: 'service:requester:request-1', label: 'no-verifiable-receipt',
+    missing: ['close', 'acknowledgment'], ledgerRecord: 'included', hosts: [] };
+  const native = { ...host(), tradeRecords: vi.fn(async () => structuredClone(trade)) };
+  const bridge = await startFleetBrowserBridge({ host: native, origins: [origin], token });
+  const client = createPrivateComputers({ storage: null, fetchImpl });
+  try {
+    expect((await fetch(bridge.url + '/trade', { method: 'POST', body: JSON.stringify({ id: trade.reservationId }), headers: { Origin: origin } })).status).toBe(400);
+    expect(native.tradeRecords).not.toHaveBeenCalled();
+    await client.connect(bridge.url, token);
+    expect(await client.tradeRecords(trade.reservationId)).toEqual(trade);
+    expect(native.tradeRecords).toHaveBeenCalledWith(trade.reservationId);
+  } finally { client.close(); await bridge.close(); }
+});

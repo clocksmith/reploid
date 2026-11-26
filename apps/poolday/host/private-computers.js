@@ -83,6 +83,12 @@ export function createPrivateComputers({ storage = globalThis.sessionStorage, fe
     async disconnect() { epoch++; for (const controller of active.values()) controller.abort(); connection = null; snapshot = null; busy = false; error = '';
       storage?.removeItem(KEY); onChange(); },
     async receipt(id) { return (await call('/receipt', { id })).json(); },
+    /**
+     * One request's signed settlement records with the ledger's record of it (`serviceCredit.id` names the request).
+     * Saved as `receipt.json`, it is what scripts/settlement/verify-trade.js checks. Its `label` is `signed-records`
+     * or `no-verifiable-receipt`; nothing here decides or recomputes an amount.
+     */
+    async tradeRecords(id) { return (await call('/trade', { id })).json(); },
     async accounts() { return (await call('/accounts')).json(); },
     /** This requester's own account statement, checkable offline with server/fleet/credit-statement.js. */
     async statement() { return (await call('/statement')).json(); },

@@ -21,6 +21,7 @@ import { startFleetBrowserBridge } from './browser-bridge.js';
 import { startFleetTextApi } from './text-api.js';
 import { createFleetClient } from './service.js';
 import { createFleetRequester, buildFleetRequestOutcome } from './requester.js';
+import { buildTradeReceipt } from './trade-records.js';
 import { createStageHistory } from './stage-history.js';
 import { openStageOwner } from './stage-owner.js';
 import { createFleetExecutionAdmission } from './execution-admission.js';
@@ -100,6 +101,9 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
     'Operator fleet models require an explicit private room');
   assert(config.hostCandidatesOnly === undefined || typeof config.hostCandidatesOnly === 'boolean',
     'hostCandidatesOnly must be a boolean');
+  // Owner policy: send whole-model requests only to a contributor that signs the settlement records.
+  assert(config.requireVerifiableCharge === undefined || typeof config.requireVerifiableCharge === 'boolean',
+    'requireVerifiableCharge must be a boolean');
   assert(config.cacheDirectory === undefined || path.isAbsolute(config.cacheDirectory), 'Absolute piece cache directory required');
   assert(config.maxCacheBytes === undefined || (config.cacheDirectory && Number.isSafeInteger(config.maxCacheBytes) && config.maxCacheBytes > 0),
     'maxCacheBytes requires a piece cache directory and a positive integer byte count');
@@ -121,6 +125,13 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
   // Opt-in: the coordinator's measured order over whole-model providers, refreshed before each credited request.
   const providerRanking = { order: [], estimates: [] };
   const requests = new Map(), outcomesByAttempt = new Map(), outcomesByReservation = new Map();
+  // The signed settlement records of this host's recent whole-model requests, by reservation, as their requester holds
+  // them. Kept in memory: after a restart an earlier request has no records here and exports as unverifiable.
+  const settlementRecords = new Map();
+  const keepSettlementRecords = ({ reservationId, read }) => {
+    settlementRecords.delete(reservationId); settlementRecords.set(reservationId, read);
+    while (settlementRecords.size > 128) settlementRecords.delete(settlementRecords.keys().next().value);
+  };
 
   function recordOutcome(outcome) {
     if (!outcome) return outcome;
@@ -383,8 +394,8 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
     }
   });
   const requesterPorts = extra => ({
-    identity, credits, maxOutputTokens: config.maxOutputTokens,
-    onOutcome: recordOutcome, lookupOutcome, resolveProviderId, ...extra
+    identity, credits, maxOutputTokens: config.maxOutputTokens, requireVerifiableCharge: config.requireVerifiableCharge === true,
+    onOutcome: recordOutcome, onSettlementRecords: keepSettlementRecords, lookupOutcome, resolveProviderId, ...extra
   });
   async function recordPreDispatchFailure(request, error) {
     const recordedAt = Date.now();
@@ -566,6 +577,21 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
         models, computers: includeRequesterPresence(network.computers, state(), network.at), at: network.at };
     },
     async receipt(id) { assert(credits, 'Service credits are not configured'); return credits.call('request', { id }); },
+    /**
+     * One request's signed settlement records with the ledger's own record of it, as a file
+     * scripts/settlement/verify-trade.js checks (trade-records.js). A request whose contributor signed nothing, or one
+     * this process no longer holds records for, is returned labelled `no-verifiable-receipt`. A ledger that predates
+     * the `trace` operation is reported as `ledgerRecord: 'not-available'`, and the file then does not verify.
+     */
+    async tradeRecords(id) {
+      assert(credits, 'Service credits are not configured');
+      const read = settlementRecords.get(id);
+      const records = read ? read() : { reservationId: id, label: 'no-verifiable-receipt', reason: 'records-not-held',
+        missing: ['terms', 'acceptance', 'close', 'acknowledgment'], policy: null, records: [] };
+      let trace = null;
+      try { trace = await credits.call('trace', { id }); } catch { /* An earlier ledger, or not this requester's reservation. */ }
+      return buildTradeReceipt({ records, trace });
+    },
     async balances() { assert(credits, 'Service credits are not configured'); await reconcileCredits(); return credits.call('snapshot', {}); },
     async statement() { assert(credits, 'Service credits are not configured'); await reconcileCredits(); return credits.call('statementMine', {}); },
     /**

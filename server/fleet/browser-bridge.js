@@ -70,6 +70,11 @@ export function createFleetBrowserBridgeHandler({ host, token, origins, basePath
         assert(typeof body.id === 'string' && body.id.length < 512, 'Receipt identity required');
         response.setHeader('Content-Type', 'application/json'); response.end(JSON.stringify(await host.receipt(body.id))); return;
       }
+      if (routePath === '/trade') {
+        // One request's signed settlement records and the ledger's record of it, for the person to save and check.
+        assert(typeof body.id === 'string' && body.id.length < 512 && typeof host.tradeRecords === 'function', 'Receipt identity required');
+        response.setHeader('Content-Type', 'application/json'); response.end(JSON.stringify(await host.tradeRecords(body.id))); return;
+      }
       if (routePath === '/accounts') {
         response.setHeader('Content-Type', 'application/json'); response.end(JSON.stringify(await host.balances())); return;
       }
