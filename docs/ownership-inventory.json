@@ -20,7 +20,7 @@
   "counts": {
     "apps/poolday": 395,
     "self": 457,
-    "shared": 2523
+    "shared": 2525
   },
   "pendingMoves": 0,
   "violations": [],
@@ -16962,6 +16962,16 @@
     {
       "served": "vendor/reploid/mesh/jobs/requester.js",
       "source": "shared/vendor/reploid/mesh/jobs/requester.js",
+      "owner": "shared"
+    },
+    {
+      "served": "vendor/reploid/mesh/operation-envelope.d.ts",
+      "source": "shared/vendor/reploid/mesh/operation-envelope.d.ts",
+      "owner": "shared"
+    },
+    {
+      "served": "vendor/reploid/mesh/operation-envelope.js",
+      "source": "shared/vendor/reploid/mesh/operation-envelope.js",
       "owner": "shared"
     },
     {

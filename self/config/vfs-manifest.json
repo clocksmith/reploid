@@ -2453,6 +2453,7 @@
     "vendor/reploid/mesh/jobs/operation-privacy.js",
     "vendor/reploid/mesh/jobs/provider.js",
     "vendor/reploid/mesh/jobs/requester.js",
+    "vendor/reploid/mesh/operation-envelope.js",
     "vendor/reploid/mesh/partitions/automatic-ordered-partitions.js",
     "vendor/reploid/mesh/partitions/automatic-partitions.js",
     "vendor/reploid/mesh/partitions/partition-attempt-evidence.js",

@@ -130,6 +130,9 @@ async function verifyEventSignature(event, cryptoApi = globalThis.crypto) {
   }
 }
 
+// shared/vendor/reploid/artifacts/whole-model-receipt.js
+var RECEIPT_USAGES = Object.freeze(["raw-model-tokens/v1", "reploid.mesh-operation-units/v1"]);
+
 // shared/vendor/reploid/contracts/partition.js
 var partitionIdentityKeys = Object.freeze(["modelId", "modelIdentity", "planId", "threadId", "attemptId", "participantA", "participantB"]);
 var partitionActions = Object.freeze([
@@ -192,6 +195,23 @@ var AUTO_ROUTES = Object.freeze({
   attested: Object.freeze(["remote"])
 });
 var plaintextBackends = Object.keys(EXECUTION_BACKENDS);
+
+// shared/vendor/reploid/mesh/operation-envelope.js
+var MESH_OPERATIONS = Object.freeze({
+  generate: Object.freeze({ costUnit: "output-token", orderedSplit: true }),
+  scoreTargetSequence: Object.freeze({ costUnit: "scored-target-sequence", orderedSplit: false }),
+  scoreChoices: Object.freeze({ costUnit: "scored-choice-set", orderedSplit: false }),
+  embed: Object.freeze({ costUnit: "embedding", orderedSplit: false })
+});
+var MESH_OPERATION_ERROR_CODES = Object.freeze({
+  UNKNOWN_OPERATION: "UNKNOWN_OPERATION",
+  UNSUPPORTED_OPERATION: "UNSUPPORTED_OPERATION",
+  OPERATION_OFFER_MISMATCH: "OPERATION_OFFER_MISMATCH",
+  OPERATION_GRANT_REVOKED: "OPERATION_GRANT_REVOKED",
+  OPERATION_REQUEST_INVALID: "OPERATION_REQUEST_INVALID",
+  OPERATION_RESULT_INVALID: "OPERATION_RESULT_INVALID"
+});
+var SPLIT_ROUTES = Object.freeze(["split", "split-local-edges"]);
 
 // shared/vendor/reploid/mesh/request-delivery.js
 var DELIVERY_PROTOCOL = 1;
