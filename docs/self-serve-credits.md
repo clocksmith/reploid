@@ -271,6 +271,12 @@ mounts `/v1/fleet` before its general body parser and reads:
   policy's `maxOutputTokens` ([`join.js`](../server/fleet/join.js)). Before this
   change the entries had no bound and an enrolled host could not start as a
   credited provider.
+- **Start serving.** `join` also writes `initialModel: 0` and
+  `initialContribution: true`, so the host it prints the command for loads its
+  first model and offers it on start. Before this, the host joined no room until
+  a `select` command arrived on its standard input. A whole-model entry whose
+  folder has no model files fails with that folder named; download the model
+  there first.
 - **Test the enrolled host, not only the pairing.** The integration test checks
   that every entry `join` writes passes the provider's start check. A qualifying
   run must start the enrolled host from the `host.json` that `join` wrote, serve a
