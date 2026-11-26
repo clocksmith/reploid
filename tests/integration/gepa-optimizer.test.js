@@ -115,7 +115,7 @@ describe('GEPA Optimizer - Integration Tests', () => {
       expect(result).toMatchObject({ promoted: true, persona: { applied: false, status: 'awaiting-adoption' } });
       expect(PersonaManager.applySlotMutation).not.toHaveBeenCalled();
       const [item] = HITLController.getApprovalQueue();
-      expect(item).toMatchObject({ moduleId: 'GEPAOptimizer', capability: 'APPROVE_PERSONA_CHANGE' });
+      expect(item).toMatchObject({ moduleId: 'GEPAOptimizer', capability: 'approve_persona_change' });
 
       HITLController.approve(item.id);
       await new Promise(resolve => setTimeout(resolve, 0));

@@ -431,10 +431,10 @@ const FunctionGemmaOrchestrator = {
       // Storing ranks the configuration; reuse needs an operator. Queue its adoption (even in
       // autonomous mode); without a controller it stays a candidate and getCachedGenome ignores it.
       if (!stored?.retained || !ReflectionStore.adoptGenome || !HITLController?.requestApproval) return;
-      HITLController.registerModule?.('FunctionGemmaOrchestrator', ['APPROVE_GENOME_REUSE'], 'FunctionGemma - reuse an evolved routing configuration');
+      HITLController.registerModule?.('FunctionGemmaOrchestrator', ['approve_genome_reuse'], 'FunctionGemma - reuse an evolved routing configuration');
       HITLController.requestApproval({
         moduleId: 'FunctionGemmaOrchestrator',
-        capability: 'APPROVE_GENOME_REUSE',
+        capability: 'approve_genome_reuse',
         action: `Reuse the ${genome?.topology?.type || 'evolved'} configuration for ${taskType} (fitness ${Number(fitness).toFixed(3)})`,
         data: { taskType, timestamp: stored.timestamp, fitness, genome },
         alwaysRequireHuman: true,

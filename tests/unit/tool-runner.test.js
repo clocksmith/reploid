@@ -270,7 +270,7 @@ describe('ToolRunner', () => {
       await new Promise(resolve => setTimeout(resolve, 0));
       const queue = HITLController.getApprovalQueue();
       expect(queue).toHaveLength(1);
-      expect(queue[0]).toMatchObject({ moduleId: 'ToolRunner', capability: 'APPROVE_TOOL_EXECUTION', action: 'WriteFile' });
+      expect(queue[0]).toMatchObject({ moduleId: 'ToolRunner', capability: 'approve_tool_execution', action: 'WriteFile' });
       expect(globalThis.__writeFileRuns).toBe(0);
 
       HITLController.reject(queue[0].id, 'not now');

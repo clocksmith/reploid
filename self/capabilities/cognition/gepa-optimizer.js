@@ -341,10 +341,10 @@ const GEPAOptimizer = {
         await PersonaManager.applySlotMutation({ personaId, slot, content, mode: 'replace' });
         EventBus?.emit?.('gepa:persona:adopted', { personaId, slot, candidateId });
       };
-      HITLController.registerModule?.('GEPAOptimizer', ['APPROVE_PERSONA_CHANGE'], 'GEPA - apply an evolved prompt to a persona');
+      HITLController.registerModule?.('GEPAOptimizer', ['approve_persona_change'], 'GEPA - apply an evolved prompt to a persona');
       const approvalId = HITLController.requestApproval({
         moduleId: 'GEPAOptimizer',
-        capability: 'APPROVE_PERSONA_CHANGE',
+        capability: 'approve_persona_change',
         action: `Replace persona ${personaId} ${slot} with evolved candidate ${candidateId}`,
         data: { personaId, slot, candidateId, content },
         alwaysRequireHuman: true,

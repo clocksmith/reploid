@@ -546,8 +546,9 @@ const ToolRunner = {
     // The controller only queues requests from modules registered for the capability; an
     // unregistered module is auto-approved even in HITL mode. Register so critical tool calls
     // are actually held for a human in HITL mode (EVERY_N keeps its own step counter).
+    const TOOL_APPROVAL = HITLController?.CAPABILITIES?.APPROVE_TOOL_EXECUTION || 'approve_tool_execution';
     if (HITLController?.registerModule) {
-      HITLController.registerModule('ToolRunner', ['APPROVE_TOOL_EXECUTION'],
+      HITLController.registerModule('ToolRunner', [TOOL_APPROVAL],
         'Tool Runner - critical tool calls (writes, deletes, tool creation, module loading, promotion)');
     }
 
@@ -580,7 +581,7 @@ const ToolRunner = {
         HITLController.requestApproval({
           id: approvalId,
           moduleId: 'ToolRunner',
-          capability: 'APPROVE_TOOL_EXECUTION',
+          capability: TOOL_APPROVAL,
           action: toolName,
           data: { tool: toolName, args: _sanitizeArgs(args) },
           onApprove: () => resolve(true),

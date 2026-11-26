@@ -156,7 +156,7 @@ describe('FunctionGemma public session integration', () => {
     await instance.runArenaEvolution([{ type: 'task', prompt: 'output' }], {
       random: () => 0.2, populationSize: 2, eliteCount: 1, generations: 0, persistCount: 1
     });
-    expect(request).toMatchObject({ moduleId: 'FunctionGemmaOrchestrator', capability: 'APPROVE_GENOME_REUSE', alwaysRequireHuman: true });
+    expect(request).toMatchObject({ moduleId: 'FunctionGemmaOrchestrator', capability: 'approve_genome_reuse', alwaysRequireHuman: true });
     expect(adoptGenome).not.toHaveBeenCalled();
     await request.onApprove();
     expect(adoptGenome).toHaveBeenCalledWith('task', 42);
