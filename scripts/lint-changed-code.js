@@ -13,15 +13,24 @@ export function createChangedCodeLinter(newFiles = [], cwd = process.cwd()) {
     } }] } : {}) });
 }
 
-export async function lintChangedCode({ base, head = 'HEAD', cwd = process.cwd() }) {
-  if (!base) {
-    try { base = execFileSync('git', ['rev-parse', '--verify', 'HEAD^'], { cwd, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim(); }
-    catch { base = '0000000000000000000000000000000000000000'; }
-  }
+// With a base, lint base..head: what one push or pull request changes (CI). Without one, lint this
+// checkout's work against origin/main, uncommitted and untracked files included, so `npm run lint`
+// applies the new-module rules before the push instead of CI after it.
+export async function lintChangedCode({ base, head = 'HEAD', cwd = process.cwd() } = {}) {
+  const revision = args => {
+    try { return execFileSync('git', args, { cwd, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim(); }
+    catch { return ''; }
+  };
+  const local = base === undefined;
+  if (!base) base = (local && revision(['merge-base', 'origin/main', head])) || revision(['rev-parse', '--verify', 'HEAD^'])
+    || '0000000000000000000000000000000000000000';
   if (/^0+$/.test(base)) base = execFileSync('git', ['hash-object', '-t', 'tree', '--stdin'], { cwd, input: '', encoding: 'utf8' }).trim();
-  const git = args => execFileSync('git', args, { cwd, encoding: 'utf8' }).split('\0').filter(Boolean);
-  const changed = git(['diff', '--name-only', '-z', '--diff-filter=ACMRT', base, head, '--']).filter(file => /\.m?js$/.test(file));
-  const added = git(['diff', '--name-only', '-z', '--diff-filter=A', '--no-renames', base, head, '--']).filter(file => /\.m?js$/.test(file));
+  const git = args => execFileSync('git', args, { cwd, encoding: 'utf8' }).split('\0').filter(Boolean)
+    .filter(file => /\.m?js$/.test(file));
+  const range = local ? [base] : [base, head];
+  const untracked = local ? git(['ls-files', '--others', '--exclude-standard', '-z']) : [];
+  const changed = [...git(['diff', '--name-only', '-z', '--diff-filter=ACMRT', ...range, '--']), ...untracked];
+  const added = [...git(['diff', '--name-only', '-z', '--diff-filter=A', '--no-renames', ...range, '--']), ...untracked];
   if (!changed.length) return { errors: 0, warnings: 0 };
   const linter = createChangedCodeLinter(added, cwd);
   const files = [];
@@ -36,7 +45,7 @@ export async function lintChangedCode({ base, head = 'HEAD', cwd = process.cwd()
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const args = process.argv.slice(2);
-  if (args.length !== 2 || args[0] !== '--base') throw Error('Usage: lint-changed-code.js --base <git-revision>');
+  if (args.length && (args.length !== 2 || args[0] !== '--base')) throw Error('Usage: lint-changed-code.js [--base <git-revision>]');
   const result = await lintChangedCode({ base: args[1] });
   process.exitCode = result.errors ? 1 : 0;
 }

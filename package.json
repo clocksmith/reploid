@@ -101,7 +101,7 @@
     "test:poolday-ui": "vitest run --config tests/vitest.config.js tests/unit/poolday-ui tests/unit/poolday-ui-checks.test.js",
     "test:design": "vitest run --config tests/vitest.config.js tests/unit/zero-ui.test.js && npm run verify:pool:css",
     "catscan:chain": "node scripts/verify-catscan.js --chain",
-    "lint": "eslint --config scripts/eslint.config.js . && npm run --silent verify:js-only && npm run --silent verify:poolday-ui",
+    "lint": "eslint --config scripts/eslint.config.js . && node scripts/lint-changed-code.js && npm run --silent verify:js-only && npm run --silent verify:poolday-ui",
     "verify:js-only": "node scripts/verify-js-only.js",
     "verify:library-types": "tsc -p tests/tsconfig.library.json && node scripts/verify-declaration-exports.js",
     "verify:showcase-privacy": "node scripts/curate-showcase.js --check",
