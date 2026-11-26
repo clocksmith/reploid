@@ -1416,7 +1416,7 @@
     {
       "path": "config/module-inventory.json",
       "byteLength": 701502,
-      "sha256": "sha256:ee8332c0a66f438b6afc959b0279197b34803f6ffa0602fad0a8ac3e00e5b6b9"
+      "sha256": "sha256:18c52b854a42e079f3b10a19a36823285df6b67787db699262ae1b8063941064"
     },
     {
       "path": "config/module-registry.json",
@@ -1935,8 +1935,8 @@
     },
     {
       "path": "host/decisions/conversation-controller.js",
-      "byteLength": 72484,
-      "sha256": "sha256:ddeb647818843609b6fe7795bbc2be3fc235a67e7678286e1c6253465f0925a8"
+      "byteLength": 74994,
+      "sha256": "sha256:96ec7881954b7427e2b9605e2c8271d6d4cfb196ea32457ae1e6c6e01e305bb0"
     },
     {
       "path": "host/decisions/conversation-details.js",
@@ -1985,8 +1985,8 @@
     },
     {
       "path": "host/decisions/threads.js",
-      "byteLength": 5572,
-      "sha256": "sha256:87d8564a11025d0da3f4cffacce63baa0e11ae5a0c4cfcf04c5c51761a187db8"
+      "byteLength": 5905,
+      "sha256": "sha256:87a26dd649091072e0e3ea6ff8ae6e6854381272fcc2dc0f9cdec9250148fd34"
     },
     {
       "path": "host/decisions/transcript.js",
@@ -3965,8 +3965,8 @@
     },
     {
       "path": "ui/pool-home/conversation-model-picker.js",
-      "byteLength": 9293,
-      "sha256": "sha256:a1b0bf1dc7bc2a3823a1407b6d6ec29950d9058568983c10b5600d7b59ff9373"
+      "byteLength": 9430,
+      "sha256": "sha256:6800b9f3be5612c02a8a25fde06ab007fedee3a7aa9e8c0ae939981f2fe0e861"
     },
     {
       "path": "ui/pool-home/dashboard-controls.js",
@@ -4450,13 +4450,13 @@
     },
     {
       "path": "ui/react/app.js",
-      "byteLength": 2211046,
-      "sha256": "sha256:f64ef7363952bdfd5f39ab97296d34d019c4714ec4753532670addc2fbbefbb5"
+      "byteLength": 2212281,
+      "sha256": "sha256:f61a48b876b3099aea0f7ccfb7b5eaf2c43ea709c684bb9785417af164511e65"
     },
     {
       "path": "ui/react/design.js",
-      "byteLength": 1163058,
-      "sha256": "sha256:78e60d4528347dc11c748897aa48efbead50f5ff717bcdfb95df1b539dd587a5"
+      "byteLength": 1164290,
+      "sha256": "sha256:24cb8bc85c2d988998c150fda5965cd416e7667dde11f99edd740c14176097ea"
     },
     {
       "path": "ui/reploid-home/index.js",
@@ -12874,5 +12874,5 @@
       "sha256": "sha256:abb6c18f6167d6afc8ee1b3adfcbbb89c0e93fb4fc4e98d7a12250f78aab206a"
     }
   ],
-  "bundleHash": "sha256:a080bcab2784cf1698a07f42c2614e2dda01229a01d912f9dae57e8db9a5b0a3"
+  "bundleHash": "sha256:107d06e3bb0676ab88bc2909eec4a780a3bf12903dd95578cd64bd871d6e20c2"
 }

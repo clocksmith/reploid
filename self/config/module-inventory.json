@@ -3023,7 +3023,7 @@
     {
       "path": "self/host/decisions/conversation-controller.js",
       "owner": "self",
-      "sha256": "sha256:ddeb647818843609b6fe7795bbc2be3fc235a67e7678286e1c6253465f0925a8",
+      "sha256": "sha256:96ec7881954b7427e2b9605e2c8271d6d4cfb196ea32457ae1e6c6e01e305bb0",
       "imports": [
         "../../config/chat-prompts.json",
         "../../config/work-profile.json",
@@ -3141,7 +3141,7 @@
     {
       "path": "self/host/decisions/threads.js",
       "owner": "self",
-      "sha256": "sha256:87d8564a11025d0da3f4cffacce63baa0e11ae5a0c4cfcf04c5c51761a187db8",
+      "sha256": "sha256:87a26dd649091072e0e3ea6ff8ae6e6854381272fcc2dc0f9cdec9250148fd34",
       "imports": [
         "../../ui/pool-home/context-indicator.js"
       ]
@@ -4669,7 +4669,7 @@
     {
       "path": "ui/pool-home/conversation-model-picker.js",
       "owner": "ui",
-      "sha256": "sha256:a1b0bf1dc7bc2a3823a1407b6d6ec29950d9058568983c10b5600d7b59ff9373",
+      "sha256": "sha256:6800b9f3be5612c02a8a25fde06ab007fedee3a7aa9e8c0ae939981f2fe0e861",
       "imports": [
         "../../host/decisions/model-state.js",
         "../../host/decisions/prompt-disclosure.js",
@@ -5659,13 +5659,13 @@
     {
       "path": "ui/react/app.js",
       "owner": "ui",
-      "sha256": "sha256:f64ef7363952bdfd5f39ab97296d34d019c4714ec4753532670addc2fbbefbb5",
+      "sha256": "sha256:f61a48b876b3099aea0f7ccfb7b5eaf2c43ea709c684bb9785417af164511e65",
       "imports": []
     },
     {
       "path": "ui/react/design.js",
       "owner": "ui",
-      "sha256": "sha256:78e60d4528347dc11c748897aa48efbead50f5ff717bcdfb95df1b539dd587a5",
+      "sha256": "sha256:24cb8bc85c2d988998c150fda5965cd416e7667dde11f99edd740c14176097ea",
       "imports": []
     },
     {
