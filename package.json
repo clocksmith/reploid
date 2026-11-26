@@ -71,7 +71,6 @@
     "verify:journeys": "node scripts/verify-critical-user-journeys.js",
     "verify:pool": "node scripts/verify-pool-production.js",
     "verify:public-answer": "node scripts/verify-public-answer.js",
-    "verify:pool:journeys": "node scripts/verify-pool-critical-user-journeys.js",
     "verify:zero:journeys": "node scripts/verify-zero-critical-user-journeys.js",
     "verify:x:journeys": "node scripts/verify-x-critical-user-journeys.js",
     "verify:pool:release": "node scripts/verify-pool-release.js",

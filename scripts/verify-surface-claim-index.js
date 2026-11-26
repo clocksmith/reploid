@@ -6,7 +6,7 @@
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { validatePoolCriticalUserJourneys } from './verify-pool-critical-user-journeys.js';
+import { validateReploidCriticalUserJourneys } from './verify-reploid-critical-user-journeys.js';
 import { validateZeroCriticalUserJourneys } from './verify-zero-critical-user-journeys.js';
 import { validateXCriticalUserJourneys } from './verify-x-critical-user-journeys.js';
 
@@ -21,12 +21,13 @@ export const SURFACE_CLAIM_INDEX_PATH = path.join(
 
 const ALLOWED_STATUSES = new Set(['supported', 'blocked']);
 const REQUIRED_JOURNEY_REGISTRIES = Object.freeze({
-  '/': 'docs/status/poolday-critical-user-journeys.json',
+  '/': 'docs/critical-user-journeys.md',
   '/zero': 'docs/status/zero-critical-user-journeys.json',
   '/x': 'docs/status/x-critical-user-journeys.json'
 });
 const JOURNEY_VALIDATORS = Object.freeze({
-  '/': validatePoolCriticalUserJourneys,
+  // The main page is checked against the Markdown catalogue; Zero and X keep JSON registries.
+  '/': validateReploidCriticalUserJourneys,
   '/zero': validateZeroCriticalUserJourneys,
   '/x': validateXCriticalUserJourneys
 });
@@ -63,7 +64,8 @@ export async function validateSurfaceClaimIndex(index, { root = PROJECT_ROOT } =
       }
       await checkEvidencePath(registryPath, `journeyRegistries.${surface}`, root, errors);
       try {
-        const registry = JSON.parse(await fs.readFile(path.resolve(root, registryPath), 'utf8'));
+        const source = await fs.readFile(path.resolve(root, registryPath), 'utf8');
+        const registry = registryPath.endsWith('.md') ? source : JSON.parse(source);
         const journeyErrors = await JOURNEY_VALIDATORS[surface](registry, { root });
         errors.push(...journeyErrors.map((error) => `journeyRegistries.${surface}: ${error}`));
       } catch (error) {

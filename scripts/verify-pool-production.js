@@ -17,7 +17,7 @@ import {
   verifyModelArtifactManifest,
   verifyModelArtifactRangeDelivery
 } from '../shared/pool/model-artifacts.js';
-import { verifyPoolCriticalUserJourneys } from './verify-pool-critical-user-journeys.js';
+import { verifyReploidCriticalUserJourneys } from './verify-reploid-critical-user-journeys.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -482,7 +482,7 @@ const checkEnabledModelArtifacts = async () => {
 
 const reasons = [
   ...checkLocalFiles(),
-  ...await verifyPoolCriticalUserJourneys(),
+  ...await verifyReploidCriticalUserJourneys(),
   ...await checkDeploymentUrl(deploymentUrl),
   ...await checkDirectFirestoreAccess(),
   ...await checkEnabledModelArtifacts()

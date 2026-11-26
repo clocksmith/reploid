@@ -45,7 +45,7 @@ try {
   await rm(resolve(checkout, preparedConfig), { force: true });
   await run('npm', ['run', 'verify:pool:release', '--', '--url', 'https://replo.id', '--channel=chrome'], checkout);
   console.log(`[deploy] verified https://replo.id at ${revision}`);
-  // The first-visit journeys (docs/first-visit-journeys.md), walked once on the deployed page. A catalog change
+  // The first-visit journeys (FIRST-01 to FIRST-04, docs/critical-user-journeys.md), walked once on the deployed page. A catalog change
   // disconnects every provider still on an older package and no other check sees it. The site is already deployed at
   // this point, so a failure is reported with what did not hold (the JSON line's `failed`), not treated as a failed deploy.
   try { await run('npm', ['run', '--silent', 'verify:public-answer', '--', '--channel=chrome'], checkout); }

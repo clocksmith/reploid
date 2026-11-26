@@ -104,7 +104,7 @@ describe('ChatWorkspace', () => {
     const demo = mount({ searching: true, stored: false });
     await userEvent.type(composer(), 'Explain ocean tides.');
     await userEvent.click(screen.getByRole('button', { name: 'Send' }));
-    // Type and send is the whole journey (docs/first-visit-journeys.md): no sheet asks where this should run.
+    // Type and send is the whole journey (FIRST-02, docs/critical-user-journeys.md): no sheet asks where this should run.
     await waitFor(() => expect(screen.getByRole('button', { name: 'Cancel' })).toBeTruthy());
     expect(sheet().hasAttribute('open')).toBe(false);
     expect(document.querySelector('[data-model-status]')?.textContent).toContain('Finding computers');

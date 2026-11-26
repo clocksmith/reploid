@@ -1,4 +1,5 @@
 {
+  "archived": "2026-11-26: retired coordinator lanes; no longer verified. Still-true outcomes moved to docs/critical-user-journeys.md.",
   "schema": "reploid/poolday-critical-user-journeys/v1",
   "updated": "2026-09-26",
   "scope": "Legacy coordinator receipt workflows. Concurrent mesh chat is specified separately in docs/chat-mvp.md; these journeys do not qualify split-model generation.",

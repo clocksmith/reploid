@@ -101,6 +101,7 @@ Proposed receipt retention, authorized peer replication and verifiable usage vie
 - **[Work completion acceptance](./work-acceptance.md)** - Acceptance contract for completed work, not a qualification claim
 - **[docs/archive/reploid-descriptor-peer-orchestration.md](./archive/reploid-descriptor-peer-orchestration.md)** - Archived layer-pipelining research; not the current Poolday execution contract
 - **[docs/archive/open-mesh-gap-table-2026-10-01.md](./archive/open-mesh-gap-table-2026-10-01.md)** - Archived 2026-10-01 open-mesh gap table; history, not current status
+- **[docs/archive/poolday-critical-user-journeys.md](./archive/poolday-critical-user-journeys.md)** - Archived Poolday journeys and [registry](./archive/poolday-critical-user-journeys.json) for the retired coordinator lanes
 
 ---
 
@@ -192,10 +193,8 @@ Checking one published trade receipt from outside the project: [Verify a trade](
 ## Releases and evidence
 
 - **[docs/status/surface-claim-index.json](./status/surface-claim-index.json)** - Machine-checked surface status, evidence, blockers, and claim permission
-- **[docs/first-visit-journeys.md](./first-visit-journeys.md)** - The owner's four first-visit journeys for replo.id, the rules that follow from them, and the check that walks them
-- **[docs/critical-user-journeys.md](./critical-user-journeys.md)** - Outcome-based Reploid journey catalogue, coverage variants, and retained Poolday/Zero/X registries
-- **[docs/status/poolday-critical-user-journeys.json](./status/poolday-critical-user-journeys.json)** - Canonical Poolday user outcomes, prerequisites, evidence, limitations, and remaining work
-- **[docs/poolday/critical-user-journeys.md](./poolday/critical-user-journeys.md)** - Human-readable Poolday journey status
+- **[docs/critical-user-journeys.md](./critical-user-journeys.md)** - The one Reploid journey catalogue: the owner's four first-visit journeys as the public-page bar (FIRST-01 to FIRST-04) and the rules and checks that follow from them, every outcome journey with its acceptance criteria and evidence status, and coverage variants
+- **[docs/first-visit-journeys.md](./first-visit-journeys.md)** - Redirect to the public-page bar in the journey catalogue
 - **[docs/status/zero-critical-user-journeys.json](./status/zero-critical-user-journeys.json)** - Canonical Zero user outcomes, evidence, limitations, and remaining work
 - **[docs/zero/critical-user-journeys.md](./zero/critical-user-journeys.md)** - Human-readable Zero journey status
 - **[docs/status/x-critical-user-journeys.json](./status/x-critical-user-journeys.json)** - Canonical X user outcomes, evidence, limitations, and remaining work

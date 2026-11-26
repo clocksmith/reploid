@@ -16,7 +16,7 @@
  * Before the measured requests, the script waits for the page to finish "Finding computers…" (recorded as the setup's
  * `discoveryMs`), then sends one unmeasured setup request that chooses the run's model and takes the
  * remote-contributor permission, where the page asks for one. A first visitor's Send asks nothing
- * (docs/first-visit-journeys.md); if a sheet or a permission prompt does appear during a measured request, the
+ * (FIRST-02, docs/critical-user-journeys.md); if a sheet or a permission prompt does appear during a measured request, the
  * script answers it and the time it took stays in that request's measurement.
  *
  *   node scripts/pilot/browser-reliability.js --url http://127.0.0.1:8000/ [--model SELECTION_ID] \

@@ -109,7 +109,7 @@ test('the shipped page reads the stored Answer on choice and waits for it while 
   await expect(page.locator('[data-prompt-disclosure]')).not.toHaveText('Nothing leaves this device.');
 });
 
-// docs/first-visit-journeys.md, journey 2, on the shipped page: the bar is type and send.
+// FIRST-02 in docs/critical-user-journeys.md, on the shipped page: the bar is type and send.
 test('a first visitor types and sends once, and the model the composer named is the model asked', async ({ page, baseURL }) => {
   await localOnly(page, baseURL);
   await page.goto('/network');

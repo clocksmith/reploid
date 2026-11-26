@@ -1,7 +1,11 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { PROJECT_ROOT } from '../../scripts/critical-user-journey-contract.js';
-import { validateReploidCriticalUserJourneys } from '../../scripts/verify-reploid-critical-user-journeys.js';
+import {
+  EVIDENCE_STATUSES,
+  OWNER_FIRST_VISIT_TEXT,
+  validateReploidCriticalUserJourneys
+} from '../../scripts/verify-reploid-critical-user-journeys.js';
 
 const catalogue = readFileSync(`${PROJECT_ROOT}/docs/critical-user-journeys.md`, 'utf8');
 const validate = validateReploidCriticalUserJourneys;
@@ -45,6 +49,42 @@ describe('Reploid journey catalogue integrity (not runtime qualification)', () =
     const broken = '| Ordinary conversation | CHAT-01 | broken row without end pipe';
     expect(await validate(catalogue.replace(/^\| Ordinary conversation \|.*$/m, broken)))
       .toContain(`Incomplete scenario: ${broken}`);
+  });
+
+  it('gives every journey acceptance criteria and an evidence status from the allowed set', async () => {
+    const headings = [...catalogue.matchAll(/^### ([A-Z]+-\d{2}) — /gm)].map(match => match[1]);
+    expect(new Set(headings).size).toBe(headings.length);
+    expect(headings).toEqual(expect.arrayContaining(['FIRST-01', 'FIRST-04', 'MESH-06', 'TRUST-06']));
+    const statuses = [...catalogue.matchAll(/^- \*\*Evidence status:\*\* (.*)$/gm)].map(match => match[1]);
+    expect(statuses).toHaveLength(headings.length);
+    for (const status of statuses) expect(EVIDENCE_STATUSES.some(value => status.startsWith(value))).toBe(true);
+    expect(catalogue.match(/^- \*\*Acceptance criteria:\*\*/gm)).toHaveLength(headings.length);
+
+    expect(await validate(catalogue.replace('- **Evidence status:** not shown. Criteria 1 and 3', '- **Evidence status:** mostly fine. Criteria 1 and 3')))
+      .toContain('FIRST-01: evidence status must start with one of: not shown, source integration, physical acceptance, release qualified');
+    expect(await validate(catalogue.replace(/^(### TRUST-06[^]*?)- \*\*Acceptance criteria:\*\*\n(?: {2}\d+\. .*\n)+/m, '$1')))
+      .toContain('TRUST-06: require one nonempty Acceptance criteria field');
+    expect(await validate(catalogue.replace(/^(### MESH-06[^]*?)- \*\*Evidence status:\*\* .*$/m, '$1- **Evidence status:** physical acceptance on one laptop.')))
+      .toContain('MESH-06: physical acceptance must name its retained receipt or commit');
+  });
+
+  it('maps every FIRST journey to existing catalogue journeys', async () => {
+    expect(await validate(catalogue.replace('- **Covers:** CONTRIB-01, CONTRIB-02, CONTRIB-05', '- **Covers:** CONTRIB-01, CONTRIB-09')))
+      .toContain('FIRST-03: covers unknown catalogue journey CONTRIB-09');
+    expect(await validate(catalogue.replace('- **Covers:** MESH-06', '- **Covers:** FIRST-01')))
+      .toContain('FIRST-04: Covers entry is not a catalogue journey ID: FIRST-01');
+    expect(await validate(catalogue.replace('- **Covers:** MESH-06\n', '')))
+      .toContain('FIRST-04: require one nonempty Covers field');
+  });
+
+  it("keeps the owner's four journeys and acceptance line byte for byte", async () => {
+    const start = catalogue.indexOf('<!-- owner-text:start -->\n') + '<!-- owner-text:start -->\n'.length;
+    expect(catalogue.slice(start, catalogue.indexOf('<!-- owner-text:end -->'))).toBe(OWNER_FIRST_VISIT_TEXT);
+    const reworded = "The owner's first-visit journeys differ from the pinned copy; change them only on the owner's word";
+    expect(await validate(catalogue.replace('No Join button or network\n   setup.', 'No Join button or network setup.'))).toContain(reworded);
+    expect(await validate(catalogue.replace('get an answer without configuring', 'get an answer without setting up'))).toContain(reworded);
+    expect(await validate(catalogue.replace('<!-- owner-text:end -->', '')))
+      .toContain("Missing the owner's first-visit journeys between owner-text markers");
   });
 
   it('allows additional journeys, uneven families and variable-length flows', async () => {

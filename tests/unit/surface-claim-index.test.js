@@ -11,7 +11,7 @@ describe('surface claim index', () => {
 
     expect(errors).toEqual([]);
     expect(index.journeyRegistries).toEqual({
-      '/': 'docs/status/poolday-critical-user-journeys.json',
+      '/': 'docs/critical-user-journeys.md',
       '/zero': 'docs/status/zero-critical-user-journeys.json',
       '/x': 'docs/status/x-critical-user-journeys.json'
     });
@@ -33,7 +33,7 @@ describe('surface claim index', () => {
     const errors = await validateSurfaceClaimIndex({
       schema: 'reploid/surface-claim-index/v2',
       journeyRegistries: {
-        '/': 'docs/status/poolday-critical-user-journeys.json',
+        '/': 'docs/critical-user-journeys.md',
         '/zero': 'docs/status/zero-critical-user-journeys.json',
         '/x': 'docs/status/x-critical-user-journeys.json'
       },

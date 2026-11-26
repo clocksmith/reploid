@@ -1,7 +1,7 @@
 # Archived Reploid Descriptor Peer Orchestration Proposal
 
 > [!CAUTION]
-> **Archived research, not the active Reploid plan.** This layer-pipelining proposal predates the shipped whole-job peer-room product and is not a release checklist. The canonical product contract lives in [`../../shared/pool/pool-config.json`](../../shared/pool/pool-config.json), and current outcomes plus remaining work live in the [Poolday critical user journey registry](../status/poolday-critical-user-journeys.json). Nothing below authorizes public claims that Reploid currently distributes individual model layers.
+> **Archived research, not the active Reploid plan.** This layer-pipelining proposal predates the shipped whole-job peer-room product and is not a release checklist. The canonical product contract lives in [`../../shared/pool/pool-config.json`](../../shared/pool/pool-config.json), and current outcomes plus remaining work live in the [Poolday critical user journey registry](poolday-critical-user-journeys.json) (archived; current journeys are in the [catalogue](../critical-user-journeys.md)). Nothing below authorizes public claims that Reploid currently distributes individual model layers.
 
 > [!IMPORTANT]
 > **Primary Directive:** Browser-Native Distributed Inference

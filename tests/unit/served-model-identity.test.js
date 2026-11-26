@@ -1,5 +1,5 @@
 // @vitest-environment node
-// The model that answers is the model that was asked (docs/first-visit-journeys.md): between two meshes joined in
+// The model that answers is the model that was asked (FIRST-02, docs/critical-user-journeys.md): between two meshes joined in
 // memory, a provider's reply that names another model, by id or by weights identity, is refused before anything is
 // returned or countersigned, also when the provider signs a valid receipt for what it claims to have run. Provider
 // execution is a function; this checks the requester's binding, not which weights a real provider loaded.

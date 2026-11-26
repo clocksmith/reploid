@@ -108,7 +108,7 @@ test('queues Send while public computers are found and cancels back to an editab
   // Send itself queues; there is no separate opt-in button.
   await expect(page.locator('[data-queue-send]')).toBeHidden();
   await input.fill('Explain ocean tides.');
-  // A first Send asks nothing (docs/first-visit-journeys.md): while computers are being found it waits for one.
+  // A first Send asks nothing (FIRST-02, docs/critical-user-journeys.md): while computers are being found it waits for one.
   // This fixture starts with a model already chosen, so the wait names it.
   await expect(status).toContainText('Finding computers');
   await expect(cancel).toBeHidden();

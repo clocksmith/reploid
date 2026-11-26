@@ -1,10 +1,12 @@
+> **Archived 2026-11-26:** these journeys describe Poolday's retired coordinator lanes. What is still true moved to the [critical user journeys](../critical-user-journeys.md#archived-poolday-coordinator-lanes).
+
 # Poolday Critical User Journeys
 
 Poolday supplies Reploid's networking and receipt workflows. These retained
 journeys describe the legacy coordinator lanes, not the current conversation
 workspace or split-model proof. See [concurrent mesh chat](../chat-mvp.md).
 The journey registry is
-[`../status/poolday-critical-user-journeys.json`](../status/poolday-critical-user-journeys.json).
+[`poolday-critical-user-journeys.json`](poolday-critical-user-journeys.json).
 It owns current user outcomes, prerequisites, status, implementation evidence,
 tests, limitations, and remaining work.
 

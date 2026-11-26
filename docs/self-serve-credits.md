@@ -7,7 +7,7 @@ distinct:
 
 | Surface | State |
 | --- | --- |
-| Public Ask on replo.id | Live. No account, no charge and no credits; the answering computer can read the prompt ([first visit](first-visit-journeys.md)). |
+| Public Ask on replo.id | Live. No account, no charge and no credits; the answering computer can read the prompt ([first visit](critical-user-journeys.md#the-public-page-bar)). |
 | Configured charged route | An operator-run ledger with paired native hosts ([fleet service](fleet-service.md)). Exercised in tests and a one-operator rehearsal; no independent two-person trade has run on it yet. A two-person trade on this route does not show direct browser spending. |
 | Hosted self-serve (this page) | Implemented and tested in one process; not deployed or qualified on replo.id. |
 

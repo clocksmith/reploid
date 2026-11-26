@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 
-import { verifyPoolCriticalUserJourneys } from './verify-pool-critical-user-journeys.js';
 import { verifyZeroCriticalUserJourneys } from './verify-zero-critical-user-journeys.js';
 import { verifyXCriticalUserJourneys } from './verify-x-critical-user-journeys.js';
 
@@ -8,7 +7,6 @@ import { verifyReploidCriticalUserJourneys } from './verify-reploid-critical-use
 
 const checks = [
   ['Reploid catalogue integrity', verifyReploidCriticalUserJourneys],
-  ['Poolday', verifyPoolCriticalUserJourneys],
   ['Zero', verifyZeroCriticalUserJourneys],
   ['X', verifyXCriticalUserJourneys]
 ];

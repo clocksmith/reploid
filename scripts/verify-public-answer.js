@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Walk the first-visit journeys (docs/first-visit-journeys.md) on a served site the way a new visitor would: a
+ * Walk the first-visit journeys (FIRST-01 to FIRST-04 in docs/critical-user-journeys.md) on a served site the way a new visitor would: a
  * fresh browser profile, nothing downloaded, the question typed and Send pressed, and nothing else. It exists
  * because nothing else notices when that stops working: a deploy that changes model identities disconnects every
  * provider still on an older package while the page still loads, and a default that asks the visitor to choose

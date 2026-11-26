@@ -1,4 +1,4 @@
-// Critical user journey 2 (docs/critical-user-journeys.md, "First visit"): type and send, nothing else. These are
+// Critical user journey FIRST-02 (docs/critical-user-journeys.md, "The public-page bar"): type and send, nothing else. These are
 // the decisions behind it in the conversation controller (apps/poolday/host/decisions/conversation-controller.js):
 // which computer and model a visitor who chose nothing gets, that the composer names the model the request is
 // created with, that the automatic choice follows availability, and that a model the person picked is never

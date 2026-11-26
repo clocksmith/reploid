@@ -1,7 +1,7 @@
 {
   "schema": "reploid/surface-claim-index/v2",
   "journeyRegistries": {
-    "/": "docs/status/poolday-critical-user-journeys.json",
+    "/": "docs/critical-user-journeys.md",
     "/zero": "docs/status/zero-critical-user-journeys.json",
     "/x": "docs/status/x-critical-user-journeys.json"
   },
@@ -36,7 +36,7 @@
         "tests/unit/pool-research-routes.test.js",
         "tests/e2e/pool-evidence-journey.spec.js",
         "tests/unit/pool-routes.test.js",
-        "docs/status/poolday-critical-user-journeys.json",
+        "docs/critical-user-journeys.md",
         "docs/poolday/claims-and-nonclaims.md"
       ],
       "blockers": [],
