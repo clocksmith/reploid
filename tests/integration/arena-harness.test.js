@@ -108,6 +108,31 @@ describe('ArenaHarness - Integration Tests', () => {
     expect(result.winner).toBe(null);
   });
 
+  it('asks for real verification and never counts a skipped verdict as a pass', async () => {
+    // With optional security off, VerificationManager returns { passed: true, skipped: true }
+    // unless the caller requires verification. The Arena is a gate, so a skip must not win.
+    mockVerificationManager.verifyProposal.mockResolvedValueOnce({ passed: true, skipped: true, reason: 'Security disabled' });
+
+    const result = await arenaHarness.runCompetition({
+      task: 'Unverified change',
+      context: 'Context',
+      competitors: [{ name: 'gamma', modelConfig: { id: 'm3' } }],
+      parseChanges: () => ({ '/core/c.js': 'const c = 2;' })
+    });
+
+    expect(mockVerificationManager.verifyProposal).toHaveBeenCalledWith(expect.any(Object), { requireVerification: true });
+    expect(result.summary.passed).toBe(0);
+    expect(result.results[0].status).toBe('FAIL');
+    expect(result.winner).toBe(null);
+  });
+
+  it('single-solution verification also requires verification and rejects a skip', async () => {
+    mockVerificationManager.verifyProposal.mockResolvedValueOnce({ passed: true, skipped: true });
+    const verdict = await arenaHarness.verifySolution({ solution: 'x', parseChanges: () => ({ '/core/d.js': 'const d = 1;' }) });
+    expect(mockVerificationManager.verifyProposal).toHaveBeenLastCalledWith(expect.any(Object), { requireVerification: true });
+    expect(verdict.passed).toBe(false);
+  });
+
   it('ranks multiple competitors by execution time', async () => {
     const result = await arenaHarness.runCompetition({
       task: 'Optimize',

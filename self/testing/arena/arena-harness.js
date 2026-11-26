@@ -103,10 +103,11 @@ const ArenaHarness = {
 
             await VFSSandbox.applyChanges(changes);
 
-            // Verify with VerificationManager
-            const verification = await VerificationManager.verifyProposal(changes);
+            // Verify with VerificationManager. The Arena is a gate, so it always runs the checks:
+            // a verdict skipped because optional security is off is not a pass.
+            const verification = await VerificationManager.verifyProposal(changes, { requireVerification: true });
 
-            if (verification.passed) {
+            if (verification.passed && !verification.skipped) {
               results.push(ArenaMetrics.createResult(proposal.competitorName, 'PASS', {
                 executionMs: proposal.executionMs,
                 tokenCount: proposal.tokenCount,
@@ -122,7 +123,7 @@ const ArenaHarness = {
                 tokenCount: proposal.tokenCount,
                 model: proposal.model,
                 provider: proposal.provider,
-                errors: verification.errors || [verification.reason]
+                errors: verification.skipped ? ['Verification was skipped'] : (verification.errors || [verification.reason])
               }));
               logger.info(`[Arena] ${proposal.competitorName}: FAIL`);
             }
@@ -194,10 +195,10 @@ const ArenaHarness = {
         }
 
         await VFSSandbox.applyChanges(changes);
-        const verification = await VerificationManager.verifyProposal(changes);
+        const verification = await VerificationManager.verifyProposal(changes, { requireVerification: true });
 
         return {
-          passed: verification.passed,
+          passed: verification.passed && !verification.skipped,
           errors: verification.errors || [],
           warnings: verification.warnings || [],
           changes: Object.keys(changes)
