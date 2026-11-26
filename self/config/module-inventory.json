@@ -3023,7 +3023,7 @@
     {
       "path": "self/host/decisions/conversation-controller.js",
       "owner": "self",
-      "sha256": "sha256:9f0594bb139746e5bd018fcd2eb7fddc25f4295f954fc03450818e91811795c4",
+      "sha256": "sha256:ddeb647818843609b6fe7795bbc2be3fc235a67e7678286e1c6253465f0925a8",
       "imports": [
         "../../config/chat-prompts.json",
         "../../config/work-profile.json",
@@ -3032,21 +3032,21 @@
         "../../ui/pool-home/answer-choice.js",
         "../../ui/pool-home/choice-availability.js",
         "../../ui/pool-home/computer-labels.js",
-        "../../ui/pool-home/context-indicator.js",
         "../../ui/pool-home/conversation-model-picker.js",
         "../../ui/pool-home/model-adapters.js",
         "../../ui/pool-home/model-providers.js",
         "../../ui/pool-home/privacy-controls.js",
-        "../../ui/pool-home/remote-permission.js",
         "../../ui/pool-home/route-alternatives.js",
         "../../ui/pool-home/web-search-settings.js",
         "../../vendor/reploid/chat/execution-policy.js",
-        "../../vendor/reploid/inference/protections.js",
         "../circle-invites.js",
-        "../execution-route.js",
+        "./download-dialog.js",
         "./model-choices.js",
         "./model-state.js",
+        "./privacy-dialog.js",
         "./prompt-disclosure.js",
+        "./remote-approval.js",
+        "./threads.js",
         "./transcript.js"
       ]
     },
@@ -3061,6 +3061,17 @@
         "../../ui/pool-home/execution-activity.js",
         "../../ui/pool-home/execution-ribbon.js",
         "../../ui/pool-home/service-credit-text.js"
+      ]
+    },
+    {
+      "path": "self/host/decisions/download-dialog.js",
+      "owner": "self",
+      "sha256": "sha256:e06566f7705c49e5e5e0759313dc1e15f4f7946acfa9a19d8e9f0121532db16c",
+      "imports": [
+        "../../ui/components/model-select.js",
+        "../../ui/pool-home/choice-availability.js",
+        "../../ui/pool-home/conversation-model-picker.js",
+        "./model-state.js"
       ]
     },
     {
@@ -3081,6 +3092,19 @@
       ]
     },
     {
+      "path": "self/host/decisions/privacy-dialog.js",
+      "owner": "self",
+      "sha256": "sha256:4ed257dd285c9105327e80ca50730d29b5929151ff7ded3d2cd8c7e500bbefcc",
+      "imports": [
+        "../../ui/pool-home/choice-availability.js",
+        "../../ui/pool-home/privacy-controls.js",
+        "../../vendor/reploid/chat/execution-policy.js",
+        "../../vendor/reploid/inference/protections.js",
+        "../execution-route.js",
+        "./prompt-disclosure.js"
+      ]
+    },
+    {
       "path": "self/host/decisions/projected-store.js",
       "owner": "self",
       "sha256": "sha256:9aed2c405fd3be668c34203593dbec8aa1f5af2fa9efc65018df1d62d27de18a",
@@ -3096,6 +3120,14 @@
       ]
     },
     {
+      "path": "self/host/decisions/remote-approval.js",
+      "owner": "self",
+      "sha256": "sha256:2cb764bca22848fd8a15164fc6cb53cffd39ee4bf35aee3dbbbdd238b4548183",
+      "imports": [
+        "../../ui/pool-home/remote-permission.js"
+      ]
+    },
+    {
       "path": "self/host/decisions/settings.js",
       "owner": "self",
       "sha256": "sha256:843b1b3f5fd583452920d6560ad5decec076c85897058fab52ff9be637eefb2a",
@@ -3104,6 +3136,14 @@
         "../../ui/pool-home/web-search-settings.js",
         "../route-preference.js",
         "./model-state.js"
+      ]
+    },
+    {
+      "path": "self/host/decisions/threads.js",
+      "owner": "self",
+      "sha256": "sha256:87d8564a11025d0da3f4cffacce63baa0e11ae5a0c4cfcf04c5c51761a187db8",
+      "imports": [
+        "../../ui/pool-home/context-indicator.js"
       ]
     },
     {
@@ -5619,13 +5659,13 @@
     {
       "path": "ui/react/app.js",
       "owner": "ui",
-      "sha256": "sha256:a4585782fee42168a453943676c9287388d5c9d98e9865038004e4937b648b25",
+      "sha256": "sha256:f64ef7363952bdfd5f39ab97296d34d019c4714ec4753532670addc2fbbefbb5",
       "imports": []
     },
     {
       "path": "ui/react/design.js",
       "owner": "ui",
-      "sha256": "sha256:4b03b8e946e8dc8ef93937aa5bd4815f08a4703b223ab02e98cd17d2fcae12c6",
+      "sha256": "sha256:78e60d4528347dc11c748897aa48efbead50f5ff717bcdfb95df1b539dd587a5",
       "imports": []
     },
     {

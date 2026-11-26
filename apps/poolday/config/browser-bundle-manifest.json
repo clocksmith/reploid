@@ -1415,8 +1415,8 @@
     },
     {
       "path": "config/module-inventory.json",
-      "byteLength": 700175,
-      "sha256": "sha256:4891f77eb6e5cc3ffc69b4a44558cda4dbcbeb69728e85b9d71ee50682a1d7bf"
+      "byteLength": 701502,
+      "sha256": "sha256:ee8332c0a66f438b6afc959b0279197b34803f6ffa0602fad0a8ac3e00e5b6b9"
     },
     {
       "path": "config/module-registry.json",
@@ -1510,8 +1510,8 @@
     },
     {
       "path": "config/vfs-manifest.json",
-      "byteLength": 150091,
-      "sha256": "sha256:97decc722b84931b51468be54a2d90634cdc890f4227c608bb1b294bb98c920b"
+      "byteLength": 150266,
+      "sha256": "sha256:13c69de531589fed20bb57701838abcaf6e4f300707c8b98d831ba79e801b1b5"
     },
     {
       "path": "config/vfs-policy.js",
@@ -1935,13 +1935,18 @@
     },
     {
       "path": "host/decisions/conversation-controller.js",
-      "byteLength": 89863,
-      "sha256": "sha256:9f0594bb139746e5bd018fcd2eb7fddc25f4295f954fc03450818e91811795c4"
+      "byteLength": 72484,
+      "sha256": "sha256:ddeb647818843609b6fe7795bbc2be3fc235a67e7678286e1c6253465f0925a8"
     },
     {
       "path": "host/decisions/conversation-details.js",
       "byteLength": 12966,
       "sha256": "sha256:3ca016491709e42e3df19ca4b221920d72b9d06d80d8e5e423e16ef89ada6850"
+    },
+    {
+      "path": "host/decisions/download-dialog.js",
+      "byteLength": 8625,
+      "sha256": "sha256:e06566f7705c49e5e5e0759313dc1e15f4f7946acfa9a19d8e9f0121532db16c"
     },
     {
       "path": "host/decisions/model-choices.js",
@@ -1954,6 +1959,11 @@
       "sha256": "sha256:b0059c8d746702a9206ebfb257962409d511d8c529992908821cbae14429399b"
     },
     {
+      "path": "host/decisions/privacy-dialog.js",
+      "byteLength": 7601,
+      "sha256": "sha256:4ed257dd285c9105327e80ca50730d29b5929151ff7ded3d2cd8c7e500bbefcc"
+    },
+    {
       "path": "host/decisions/projected-store.js",
       "byteLength": 1340,
       "sha256": "sha256:9aed2c405fd3be668c34203593dbec8aa1f5af2fa9efc65018df1d62d27de18a"
@@ -1964,9 +1974,19 @@
       "sha256": "sha256:ff9320cf59890281ceac4988871be67f49d3413d5a3bd0e2d67d948375ffed24"
     },
     {
+      "path": "host/decisions/remote-approval.js",
+      "byteLength": 1784,
+      "sha256": "sha256:2cb764bca22848fd8a15164fc6cb53cffd39ee4bf35aee3dbbbdd238b4548183"
+    },
+    {
       "path": "host/decisions/settings.js",
       "byteLength": 10854,
       "sha256": "sha256:843b1b3f5fd583452920d6560ad5decec076c85897058fab52ff9be637eefb2a"
+    },
+    {
+      "path": "host/decisions/threads.js",
+      "byteLength": 5572,
+      "sha256": "sha256:87d8564a11025d0da3f4cffacce63baa0e11ae5a0c4cfcf04c5c51761a187db8"
     },
     {
       "path": "host/decisions/transcript.js",
@@ -4430,13 +4450,13 @@
     },
     {
       "path": "ui/react/app.js",
-      "byteLength": 2210337,
-      "sha256": "sha256:a4585782fee42168a453943676c9287388d5c9d98e9865038004e4937b648b25"
+      "byteLength": 2211046,
+      "sha256": "sha256:f64ef7363952bdfd5f39ab97296d34d019c4714ec4753532670addc2fbbefbb5"
     },
     {
       "path": "ui/react/design.js",
-      "byteLength": 1162183,
-      "sha256": "sha256:4b03b8e946e8dc8ef93937aa5bd4815f08a4703b223ab02e98cd17d2fcae12c6"
+      "byteLength": 1163058,
+      "sha256": "sha256:78e60d4528347dc11c748897aa48efbead50f5ff717bcdfb95df1b539dd587a5"
     },
     {
       "path": "ui/reploid-home/index.js",
@@ -12854,5 +12874,5 @@
       "sha256": "sha256:abb6c18f6167d6afc8ee1b3adfcbbb89c0e93fb4fc4e98d7a12250f78aab206a"
     }
   ],
-  "bundleHash": "sha256:a5d0fc14b057aa6880eb2f6e0790467ba840d5d67232bb6573c5bdb47ebf5e2b"
+  "bundleHash": "sha256:a080bcab2784cf1698a07f42c2614e2dda01229a01d912f9dae57e8db9a5b0a3"
 }
