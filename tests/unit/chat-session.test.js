@@ -1,4 +1,4 @@
-import { selectAvailableChatModel } from '../../apps/poolday/host/chat-view.js';
+import { selectAvailableChatModel, servesPublicAnswers } from '../../apps/poolday/host/chat-view.js';
 import { describe, it, expect, vi } from 'vitest';
 import { createChatSession, CANONICAL_CHAT_MODELS } from '../../apps/poolday/host/chat-session.js';
 import { bindExecutionRoute, createExecutionPolicy, plaintextExecutionRoute, createChatScheduler } from '../../shared/vendor/reploid/chat/index.js';
@@ -649,5 +649,31 @@ it('settles discovery on the first served-model advertisement instead of waiting
     // Without signaling, an advertisement does not end an interruption.
     network.consumer.peers = [served]; network.introductionState = 'retrying';
     expect(phase()).toBe('interrupted');
+  } finally { await session.close(); vi.useRealTimers(); }
+});
+
+it('settles discovery only on a model the automatic first-visit path accepts, not on a private-pool model', async () => {
+  vi.useFakeTimers();
+  const model = CANONICAL_CHAT_MODELS[1];
+  // A private pool's model is listed ready as soon as the pool's state loads; it is not a public computer.
+  const pool = { ...model, selectionId: 'private:me:' + model.id, fleet: { poolIdentity: 'pool', requester: { participantId: 'me' } },
+    availability: 'ready', networkAvailability: 'ready', localReady: false, localCached: false, providerIds: [] };
+  const served = { peerId: 'served', model: model.id, modelIdentity: model.identity, readiness: 'ready', hasInference: true,
+    availableSlots: 1, identityProtocol: 1, admissionProtocol: 2 };
+  const network = { introductionState: 'connected', connections: [], consumer: { connectionState: 'connected', peers: [] } };
+  const session = createChatSession({ storage: storage(), service: createChatTestService(), models: [model],
+    privateComputers: { models: () => [pool], state: () => ({}), close() {} }, fleetAccount: { close() {} },
+    swarm: { getState: () => network, connect: async () => {} } });
+  try {
+    const phase = () => session.getState().discoveryPhase;
+    expect(session.getState().models.map(item => item.selectionId || item.id)).toContain(pool.selectionId);
+    vi.advanceTimersByTime(1000);
+    expect(phase()).toBe('searching');
+    expect(servesPublicAnswers(pool)).toBe(false);
+    expect(servesPublicAnswers({ ...model, networkAvailability: 'ready', partition: { planId: 'p' } })).toBe(false);
+    // A public computer serving a whole model is the evidence.
+    network.consumer.peers = [served];
+    network.connections = [{ id: 'served', phase: 'connected', channelState: 'open', iceState: 'connected' }];
+    expect(phase()).toBe('observed');
   } finally { await session.close(); vi.useRealTimers(); }
 });

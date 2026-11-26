@@ -18,7 +18,7 @@ import { ROUTE_ENVELOPE_POLICY } from '../../../shared/vendor/reploid/mesh/parti
 import { createModelAcquisition } from './model-acquisition.js';
 import { createChatExecution } from './chat-execution.js';
 import { createRemoteAccessPreference } from './chat-remote-permission.js';
-import { projectChatCatalog, projectChatPlacements, selectAvailableChatModel } from './chat-view.js';
+import { projectChatCatalog, projectChatPlacements, selectAvailableChatModel, servesPublicAnswers } from './chat-view.js';
 import { createChatDrafts } from './chat-drafts.js';
 import { createChatContext } from './chat-context.js';
 import { createAdapterEvidence } from './adapter-evidence.js';
@@ -147,10 +147,12 @@ export function createChatSession({
     }
   };
   startObservation('pending');
-  // Discovery has seen enough once a computer advertises a model it serves over an open channel: from then on
-  // "Finding computers…" would only hide a computer that can answer. The 8 s window stays the bound when no
-  // advertisement comes; if the only one goes away inside the window, absence is not yet known and it searches again.
-  const servedEvidence = catalog => catalog.some(model => ['ready', 'busy'].includes(model.networkAvailability));
+  // Discovery has seen enough once a public computer advertises a whole model it serves over an open channel: from
+  // then on "Finding computers…" would only hide a computer that can answer. A private pool's model or a split route
+  // is not that evidence: the automatic first-visit path does not send to either, so settling on one would end the
+  // search with nobody to answer. The 8 s window stays the bound when no advertisement comes; if the only one goes
+  // away inside the window, absence is not yet known and it searches again.
+  const servedEvidence = catalog => catalog.some(servesPublicAnswers);
   const discoveryPhase = (network, catalog = []) => {
     const transport = network.introductionState ?? network.consumer?.connectionState;
     // Bind the observation window to continuous introductions. A surviving data

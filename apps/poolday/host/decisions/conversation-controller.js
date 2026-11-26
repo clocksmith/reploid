@@ -33,6 +33,7 @@ import { ADAPTER_GUIDE_URL, projectModelRoutes } from '../../ui/pool-home/model-
 import { remotePermissionText, remotePermissionWording } from '../../ui/pool-home/remote-permission.js';
 import { answerChoiceOf, findAnswerChoice, readAnswerChoice, writeAnswerChoice } from '../../ui/pool-home/answer-choice.js';
 import { projectModelChoices } from './model-choices.js';
+import { servesPublicAnswers } from '../chat-view.js';
 import { createTranscript } from './transcript.js';
 import workProfile from '../../config/work-profile.json' with { type: 'json' };
 import chatPrompts from '../../config/chat-prompts.json' with { type: 'json' };
@@ -147,7 +148,8 @@ export function createConversationController(session, {
   const rememberChoice = (model, privacy, location, picked) => writeAnswerChoice(storage, model,
     location === 'local' || privacy?.placement === 'local-only' ? 'device' : privacy?.recipients?.kind === 'open' ? 'contributors' : null, picked);
   const storedHere = model => !model.partition && !model.fleet && (model.localReady || model.localCached || model.availability === 'cached');
-  const publicAnswers = model => !model.fleet && !model.partition && modelExecutionState(model, 'network').usable;
+  // The same predicate ends the session's discovery search, so "observed" never arrives on capacity this path refuses.
+  const publicAnswers = servesPublicAnswers;
   const openDefault = openPolicy();
   /**
    * A visitor who has chosen nothing asks the public network: no computer, model or permission is a step before
@@ -505,7 +507,7 @@ export function createConversationController(session, {
     const phase = state.discoveryPhase;
     const exhausted = phase === 'observed' || phase === 'interrupted' || phase === 'paused';
     const publicCanAnswer = freshVisitor && (modelExecutionState(selectedModel, 'network').usable
-      || catalogModels.some(model => !model.fleet && !model.partition && modelExecutionState(model, 'network').usable));
+      || catalogModels.some(publicAnswers));
     const canAcquire = !!session.downloadLocalModel && !state.localDownloadIssue && !usable && !localPreparing && !busyAcquisition(state)
       && location !== 'network' && !requestedModel?.fleet && isDownloadableBaseModel(requestedModel)
       && !publicCanAnswer && (phase === 'observed' || (location === 'local' && (!freshVisitor || exhausted)));

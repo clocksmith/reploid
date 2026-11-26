@@ -1,6 +1,12 @@
 // Projections remain import-free; this syntax check does not verify an artifact.
 const SHA256_PATTERN = /^sha256:[a-f0-9]{64}$/;
 /** Pure projections. Discovery describes availability; accepted attempts own history. */
+/**
+ * Whether a public computer can answer with this whole model now. It is one predicate for two decisions that must
+ * agree: the evidence that ends "Finding computers…" early (chat-session.js) and the capacity a visitor who chose
+ * nothing is sent to (decisions/conversation-controller.js). A private pool's model and a split route are neither.
+ */
+export const servesPublicAnswers = model => !model.fleet && !model.partition && ['ready', 'busy'].includes(model.networkAvailability);
 export function selectAvailableChatModel(models, preference, location = 'auto') {
   // Application preference, not a quality claim or a priority advertised by peers.
   const rank = model => { const index = preference.indexOf(model.id); return index < 0 ? preference.length : index; };
