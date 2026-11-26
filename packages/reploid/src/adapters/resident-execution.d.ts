@@ -16,7 +16,14 @@ export interface ResidentProviderPort {
   getIdentity(): ResidentIdentity; getHardware(): unknown; getContextCacheStats?(): unknown; isReady(): boolean;
   reset(): Promise<void>; prepareAdapters(adapters: ModelAdapterSelection[]): Promise<string[]>;
   generate(messages: unknown[], onUpdate: (addition: string) => unknown, control: ResidentGenerationControl): Promise<ResidentResult>;
+  /** Mesh operations the session runs (mesh/operation-envelope.js); absent means generation only. */
+  supportedOperations?(): import('../mesh/operation-envelope.js').MeshOperationName[];
+  executeOperation?(request: ResidentOperationRequest): Promise<Record<string, unknown>>;
   close(): void;
+}
+export interface ResidentOperationRequest {
+  operation: Exclude<import('../mesh/operation-envelope.js').MeshOperationName, 'generate'>;
+  payload: Record<string, unknown>; signal: AbortSignal;
 }
 export interface ResidentExecutionState {
   phase: string; error: string | null; progress: unknown; completed: number;
@@ -39,6 +46,9 @@ export interface ResidentExecutionOptions {
 export interface ResidentExecution {
   getState(): ResidentExecutionState; prepare(): Promise<ResidentExecutionState>;
   generate(messages: unknown[], onUpdate: (addition: string) => unknown, control: ResidentGenerationControl): Promise<ResidentResult>;
+  supportedOperations(): import('../mesh/operation-envelope.js').MeshOperationName[];
+  /** One non-generation mesh operation, serialized with generation on the same device. */
+  executeOperation(request: ResidentOperationRequest): Promise<Record<string, unknown>>;
   close(): Promise<void>;
 }
 export function createResidentExecution(options: ResidentExecutionOptions): ResidentExecution;

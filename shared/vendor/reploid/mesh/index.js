@@ -67,3 +67,4 @@ export * from './partitions/automatic-partitions.js';
 export * from './partitions/signed-resident-factory.js';
 export * from './partitions/partition-preparation-progress.js';
 export * from './target-scoring.js';
+export * from './operation-envelope.js';

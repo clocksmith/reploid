@@ -161,13 +161,13 @@
     },
     {
       "path": "adapters/resident-execution.d.ts",
-      "bytes": 3501,
-      "sha256": "23557626eb872599a9ffbf4ed6ee27c36e20f157526be13b0c6948fd5f89e639"
+      "bytes": 4242,
+      "sha256": "cf28e90cea17261d38d7337555e3b96ab1c2c5efbd96a04aa8af88c724e5c114"
     },
     {
       "path": "adapters/resident-execution.js",
-      "bytes": 9273,
-      "sha256": "859af22edf67a21ed3f2c34fa2be4c67b8e27b50d5abf879d74ab9b6536ad650"
+      "bytes": 10022,
+      "sha256": "7e22e9dce0589ce740787ac51874831c34b6d83bfcc0e15871288dcc94423d01"
     },
     {
       "path": "adapters/resident.d.ts",
@@ -546,8 +546,8 @@
     },
     {
       "path": "artifacts/whole-model-receipt.js",
-      "bytes": 4854,
-      "sha256": "0681b8c08a7b11213b92621b72ee3d0a0ef7c901708da9061f5f009bd61b9c84"
+      "bytes": 5188,
+      "sha256": "d89cd80638d0a99f529c25f44b17e1704f7adee0d565f13e43bd5f2d8b838717"
     },
     {
       "path": "cancellation.d.ts",
@@ -1066,13 +1066,13 @@
     },
     {
       "path": "mesh/index.d.ts",
-      "bytes": 2378,
-      "sha256": "1d913ef9a72e8bd82653a16941d6426929d7cfcc917fc5a609a0e69283604188"
+      "bytes": 2419,
+      "sha256": "56c09dc1d2e135565d1a51b48853353b7469a21ddaee92c48639ada96341167c"
     },
     {
       "path": "mesh/index.js",
-      "bytes": 3914,
-      "sha256": "608e78350e3142c8802f3a0ea7b6060adaf1f84943c3054ad2a56c4feef68e44"
+      "bytes": 3955,
+      "sha256": "a540f09e663a0eb3327de19ce1e79bd20f2d7d6353b99b9b16dcbb8ee5275d1c"
     },
     {
       "path": "mesh/jobs/contracts.d.ts",
@@ -1143,6 +1143,16 @@
       "path": "mesh/jobs/requester.js",
       "bytes": 10675,
       "sha256": "47bb5e9876f1d903ee77661f03c6c0a04b3dab73c46f1d60fa0b5645310f596f"
+    },
+    {
+      "path": "mesh/operation-envelope.d.ts",
+      "bytes": 6001,
+      "sha256": "fec4f186b07e915fdd5f8205c86c7919a5ec9b41469185978d8243fbf52438ad"
+    },
+    {
+      "path": "mesh/operation-envelope.js",
+      "bytes": 19238,
+      "sha256": "5fa753e154167209cf67c71970a5d659a358cdf0eaa48674e5461f5bc5a82ed4"
     },
     {
       "path": "mesh/partitions/automatic-ordered-partitions.d.ts",
@@ -1526,8 +1536,8 @@
     },
     {
       "path": "mesh/peer-generation.js",
-      "bytes": 87574,
-      "sha256": "29a46daba40046974f30ac437658482831bb2332d91c6db70b1c97f5683b934d"
+      "bytes": 88107,
+      "sha256": "5f758eb4f9620a19aa8b4b9580ab00705a1ccc4607b10ddd6b64fd45f4bf034d"
     },
     {
       "path": "mesh/peer-identity.js",

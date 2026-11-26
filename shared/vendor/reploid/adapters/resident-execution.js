@@ -115,16 +115,21 @@ export function createResidentExecution({ service, model, generation, maxOutcome
     operation.finally(() => operations.delete(operation)).catch(() => {});
     return operation;
   };
-  const scoreTarget = ({ messages, target, signal }) => {
+  /** The mesh operations the resident session runs besides generation (mesh/operation-envelope.js). */
+  const supportedOperations = () => (getState().ready && typeof adapter?.supportedOperations === 'function' ? adapter.supportedOperations() : ['generate']);
+  /** One non-generation mesh operation, serialized with generation on the same device. */
+  const executeOperation = ({ operation: name, payload, signal }) => {
     if (!getState().ready) return Promise.reject(new Error('Contributor model is not ready'));
     const current = adapter;
-    if (typeof current?.scoreTarget !== 'function') return Promise.reject(new Error('This runtime cannot score a target sequence'));
-    const combined = AbortSignal.any([lifetime.signal, signal]), input = structuredClone(messages);
+    if (typeof current?.executeOperation !== 'function' || !supportedOperations().includes(name)) {
+      return Promise.reject(new Error(`This runtime cannot run ${name}`));
+    }
+    const combined = AbortSignal.any([lifetime.signal, signal]), input = structuredClone(payload);
     const operation = withDevice(service, combined, async () => {
       combined.throwIfAborted();
-      if (adapter !== current || error) throw new Error('Resident session was retired before scoring');
+      if (adapter !== current || error) throw new Error('Resident session was retired before the operation ran');
       phase = 'executing'; notify();
-      try { return await current.scoreTarget({ messages: input, target, signal: combined }); }
+      try { return await current.executeOperation({ operation: name, payload: input, signal: combined }); }
       catch (cause) { if (!current.isReady()) await fail(cause); throw cause; }
       finally { if (!closed && adapter) phase = 'ready'; notify(); }
     });
@@ -145,5 +150,7 @@ export function createResidentExecution({ service, model, generation, maxOutcome
     notify();
     return closing;
   };
-  return Object.freeze({ getState, prepare, generate, scoreTarget, close });
+  /** The receipt-bound target score (mesh/target-scoring.js): the same operation as the envelope's scoreTargetSequence. */
+  const scoreTarget = ({ messages, target, signal }) => executeOperation({ operation: 'scoreTargetSequence', payload: { messages, target }, signal });
+  return Object.freeze({ getState, prepare, generate, supportedOperations, executeOperation, scoreTarget, close });
 }

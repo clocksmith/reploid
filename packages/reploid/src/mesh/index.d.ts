@@ -37,3 +37,4 @@ export * from './partitions/partition-preparation-progress.js';
 export type { PartitionRoute, PartitionRouteStage, RouteAttemptBinding, OrderedPartitionPlan, OrderedPartitionRuntime, PartitionActivationContract } from './partitions/partition-contract.js';
 export type { OrderedPartitionOffer, OrderedPartitionCapability, PartitionRouteSelectionLimits } from './partitions/partition-placement.js';
 export * from './target-scoring.js';
+export * from './operation-envelope.js';

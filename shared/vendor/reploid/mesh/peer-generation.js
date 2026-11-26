@@ -1,5 +1,6 @@
 import { validateExecutionOffers, eligibleExecutionOffers } from '../chat/execution-offers.js';
 import { createExecutionPolicy, requestExecutionPolicy, assertAvailableExecutionPolicy, plaintextExecutionRoute, bindExecutionRoute, sameExecutionBinding } from '../chat/execution-policy.js';
+import { supportedMeshOperations } from './operation-envelope.js';
 import { publicPreparationProgress } from './preparation-progress.js';
 import { publicProviderHardware } from './provider-hardware.js';
 import { identifyComputer } from './computer-identity.js';
@@ -281,6 +282,9 @@ export function createPeerGenerationMesh({ config, ports }) {
     advertisement.preparation = advertisement.readiness === 'loading' ? publicPreparationProgress(executionState().progress) : null;
     advertisement.modelIdentity = executionState().modelIdentity;
     advertisement.executionOffers = currentExecutionOffers(advertisement.modelIdentity);
+    // The mesh operations this provider runs besides generation (operation-envelope.js). Absent means generation only.
+    const operations = executionState().supportedOperations;
+    if (operations !== undefined) advertisement.supportedOperations = supportedMeshOperations(operations);
     advertisement.hardware = publicProviderHardware(executionState().hardware);
     advertisement.adapterIdentities = executionState().adapterIdentities || [];
     advertisement.availableSlots = ready() ? Math.max(0, policy.mesh.maxInboundJobs - inbound.size) : 0;
@@ -388,6 +392,8 @@ export function createPeerGenerationMesh({ config, ports }) {
       next.modelIdentity = payload.modelIdentity || null;
       if (payload.executionOffers !== undefined) next.executionOffers = payload.executionOffers;
       else delete next.executionOffers;
+      if (payload.supportedOperations !== undefined) next.supportedOperations = supportedMeshOperations(payload.supportedOperations);
+      else delete next.supportedOperations;
       next.hardware = publicProviderHardware(payload.hardware);
       next.adapterIdentities = payload.adapterIdentities || [];
       // A missing count is unknown, not zero. Placement still sends work only to a computer that reports a free slot.

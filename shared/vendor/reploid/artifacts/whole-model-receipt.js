@@ -6,6 +6,9 @@ import { canonicalize } from './canonical-json.js';
 const digest = value => typeof value === 'string' && /^sha256:[a-f0-9]{64}$/.test(value);
 const count = value => Number.isSafeInteger(value) && value >= 0;
 const requireValue = (ok, message) => { if (!ok) throw Error(message); };
+// What `outputTokens` counts: raw model tokens for generation, or one unit per call for a mesh operation that is not
+// generation (mesh/operation-envelope.js MESH_OPERATION_UNITS). The unit is signed, so a count cannot change meaning.
+const RECEIPT_USAGES = Object.freeze(['raw-model-tokens/v1', 'reploid.mesh-operation-units/v1']);
 
 // Versioning. Version 2 is the measured text receipt and is unchanged: a request without
 // generation settings signs exactly the version-2 fields, so every retained receipt still
@@ -17,7 +20,7 @@ const requireValue = (ok, message) => { if (!ok) throw Error(message); };
 // instead of reading it as a receipt for a request without settings.
 export function wholeModelReceiptFields(receipt) {
   const bound = receipt.version === 3;
-  requireValue((receipt.version === 2 || bound) && receipt.status === 'completed' && receipt.usage === 'raw-model-tokens/v1'
+  requireValue((receipt.version === 2 || bound) && receipt.status === 'completed' && RECEIPT_USAGES.includes(receipt.usage)
     && receipt.cleanup === 'settled' && digest(receipt.modelIdentity) && digest(receipt.inputDigest) && digest(receipt.outputDigest)
     && count(receipt.inputTokens) && count(receipt.outputTokens)
     && Array.isArray(receipt.adapterIdentities) && receipt.adapterIdentities.length <= 1 && receipt.adapterIdentities.every(digest)
