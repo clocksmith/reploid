@@ -458,3 +458,12 @@ it('starts paused when the stored network choice is off, and connects again only
   expect(values.get('REPLOID_NETWORK_ENABLED_V2')).toBe('true');
   await swarm.close();
 });
+
+it('reports a contribution choice only after the person makes one', async () => {
+  const swarm = fixture();
+  // A fresh browser has chosen nothing: it offers nothing and has nothing to resume.
+  expect(swarm.getState()).toMatchObject({ computeEnabled: false, filesEnabled: false, contributionChosen: false });
+  await swarm.stopFiles();
+  expect(swarm.getState()).toMatchObject({ filesEnabled: false, contributionChosen: true });
+  await swarm.close();
+});

@@ -47,6 +47,15 @@ const mount = (host: object, filter = null as null | { providerIds: string[]; la
 };
 
 describe('Computers decisions', () => {
+  it('says Paused only after this browser chose to contribute, and counts files alone as sharing', () => {
+    const summary = (network: Record<string, unknown>) => projectComputers({ models: [], network: { consumer: { connectionState: 'connected', peers: [] }, ...network } }).device.summary;
+    // A device that downloaded a model without opting in offers nothing and was never paused.
+    expect(summary({ computeEnabled: false, filesEnabled: false })).toBe('· Not sharing');
+    expect(summary({ computeEnabled: false, contributionChosen: true })).toBe('· Paused');
+    expect(summary({ computeEnabled: true })).toBe('· Enabled · not serving');
+    expect(summary({ computeEnabled: false, contributionChosen: true, files: { enabled: true, sharing: true, model: { name: 'Qwen 3.5 0.8B' } } })).toBe('· Sharing');
+  });
+
   it('lists serving computers first, counts the ready ones and narrows to one model’s providers', () => {
     const state = { models: [], network: { consumer: { connectionState: 'connected', peers: [peer('peer-idle', 'unknown', ''), peer('peer-ready', 'ready')] } } };
     const view = projectComputers(state);

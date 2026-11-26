@@ -252,7 +252,9 @@ function deviceView(state, network) {
     summary: cleanupPending ? '· Cleanup not confirmed'
       : network.stopping ? '· Stopping' : network.contribution?.phase === 'loading' ? '· ' + preparationStatus(network.contribution.progress).status
         : network.contribution?.phase === 'executing' ? '· Working' : network.sharing ? '· ' + (network.contribution?.phase === 'ready' ? 'Ready' : 'Sharing')
-          : network.computeEnabled ? '· Enabled · not serving' : '· Paused',
+          : network.computeEnabled ? '· Enabled · not serving'
+            // Files alone are an offer too; "Paused" only after this browser chose to contribute and stopped.
+            : sharingFiles ? '· Sharing' : network.contributionChosen ? '· Paused' : '· Not sharing',
     localComputer: [id ? computerLabel(state, id) : null, hardwareText(hardware) ? `Reported GPU: ${hardwareText(hardware)}` : 'GPU not reported'].filter(Boolean).join(' · '),
     supplied: usage?.supplied?.available ? tokenText(usage.supplied) : '—',
     consumed: tokenText(usage?.consumed),

@@ -144,7 +144,9 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
   let contributor = null, stoppingContribution = null, contributionEpoch = 0, contributionKey = null;
   let contribution = { phase: 'idle', completed: 0, modelId: null, modelIdentity: null, progress: null };
   const contributionHistory = createContributionHistory({ storage });
-  const getState = () => ({ introductionAssistance, sharing, computeEnabled, filesEnabled, stopping, connecting, paused,
+  // Whether this browser ever chose to offer compute or files: a stored choice exists only after the person decided.
+  const contributionChosen = () => [PRODUCER_COMPUTE_CHOICE, PRODUCER_FILES_CHOICE].some(key => (storage?.getItem?.(key) ?? null) !== null);
+  const getState = () => ({ introductionAssistance, sharing, computeEnabled, filesEnabled, contributionChosen: contributionChosen(), stopping, connecting, paused,
     connections: consumerTransport?.getPeerStates?.() || retainedConnections,
     // An established peer channel can outlive the service that introduces new peers.
     introductionState: consumerTransport?.getStats?.()?.introductionState ?? consumerTransport?.getConnectionState?.() ?? null,
