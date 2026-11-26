@@ -46,7 +46,7 @@ export function mountPoolday(
   { host, earning = Promise.resolve(null), viewState }: { readonly host: object; readonly earning?: Promise<unknown>; readonly viewState?: object },
 ) {
   const opened = adoptHost(host as Parameters<typeof adoptHost>[0], earning);
-  return mount(root, { open: async () => opened, appearance: createAppearanceStore(), ...(viewState ? { viewState } : {}) });
+  return mount(root, { open: async () => opened, adopted: true, appearance: createAppearanceStore(), ...(viewState ? { viewState } : {}) });
 }
 
 export default { initPoolHome, mountPoolday };

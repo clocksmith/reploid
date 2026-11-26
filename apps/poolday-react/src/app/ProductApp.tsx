@@ -26,7 +26,8 @@ export function ProductApp({ services }: { readonly services: AppServices }) {
     services.open({ signal: controller.signal }).then(
       (product) => {
         if (controller.signal.aborted) {
-          void product.close();
+          // A host this mount opened is closed with it. An adopted host is the caller's and the next mount's.
+          if (!services.adopted) void product.close();
           return;
         }
         opened = product;

@@ -7,6 +7,12 @@ import type { OpenedProduct } from '../features/shell/infrastructure/productHost
 export type AppServices = {
   readonly open: (options: { readonly signal: AbortSignal }) => Promise<OpenedProduct>;
   readonly appearance: AppearanceStore;
+  /**
+   * The host was opened by the caller and `open` hands back that same one every time. A mount that is
+   * abandoned before it finished opening (React StrictMode mounts twice in development) must not close it:
+   * the next mount is given the same host.
+   */
+  readonly adopted?: boolean;
   /** A conversation already staged (a fixture's chosen model); a page starts from its stored choice. */
   readonly viewState?: object;
 };

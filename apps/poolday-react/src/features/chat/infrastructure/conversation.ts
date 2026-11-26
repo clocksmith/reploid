@@ -19,7 +19,17 @@ function safeStorage(): Storage | null {
   }
 }
 
-export function createConversation(product: { readonly host: object }, viewState: object = {}): ConversationPort {
+// What the person has staged in the conversation belongs to the product, not to one mount of its screens: a
+// remount (React StrictMode mounts twice in development) gets the same state, so an invite link the first mount
+// read from the address bar, and removed from it, is not lost to the second.
+const viewStates = new WeakMap<object, object>();
+function viewStateOf(product: object): object {
+  let state = viewStates.get(product);
+  if (!state) viewStates.set(product, (state = {}));
+  return state;
+}
+
+export function createConversation(product: { readonly host: object }, viewState: object = viewStateOf(product)): ConversationPort {
   const host = product.host as Host;
   return createConversationController(host.chat, {
     storage: safeStorage(),
