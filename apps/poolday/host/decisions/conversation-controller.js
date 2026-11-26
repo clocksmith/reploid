@@ -16,7 +16,7 @@ import { describeCircleHost, parseCircleInviteUrl } from '../circle-invites.js';
 import {
   allowsOpenPlaintext, conversationRoute, namedPrivacyPreset, presetForPolicy, policyForPreset, presetDisclosure
 } from '../../ui/pool-home/privacy-controls.js';
-import { ownDevicesChoice, protectionChoices, routeChoices, startingLocalModel, sharingOptionChoices } from '../../ui/pool-home/choice-availability.js';
+import { ownDevicesChoice, protectionChoices, routeChoices, startingLocalModel } from '../../ui/pool-home/choice-availability.js';
 import { withComputerLabels } from '../../ui/pool-home/computer-labels.js';
 import { projectThreadContext } from '../../ui/pool-home/context-indicator.js';
 import {
@@ -36,6 +36,7 @@ import { projectModelChoices } from './model-choices.js';
 import { promptDisclosure } from './prompt-disclosure.js';
 import { modelKey, preparingStatus, selectableStatus, servesPublicAnswers, storedHere } from './model-state.js';
 import { createTranscript } from './transcript.js';
+import { createDownloadDialog } from './download-dialog.js';
 import workProfile from '../../config/work-profile.json' with { type: 'json' };
 import chatPrompts from '../../config/chat-prompts.json' with { type: 'json' };
 
@@ -129,7 +130,6 @@ export function createConversationController(session, {
   // "Who can read it?": the staged protection, route and own-devices choice; they apply only with Apply.
   let privacyDialog = { open: false, protection: null, route: null, ownDevices: false, editable: true, error: '' };
   let rename = { open: false, id: null, value: '' };
-  let download = null;
   let attachmentHelp = false, focus = { target: null, seq: 0 };
   // Up to three distinct starters, chosen at random from the set and kept for this view's life so nothing moves.
   const startingPrompts = pickStartingPrompts(chatPrompts, random);
@@ -697,7 +697,7 @@ export function createConversationController(session, {
       sheet: sheet.open ? projectSheet(state) : { open: false },
       privacy: projectPrivacy(state),
       rename: { ...rename },
-      download: download ? { ...download } : null,
+      download: downloads.view(),
       remotePermission: pendingApproval ? {
         key: `${pendingApproval.id}:${pendingApproval.approval.id}`,
         title: 'Send to another computer?', what: remotePermissionText(pendingApproval.approval.permissionNeed).what,
@@ -850,7 +850,7 @@ export function createConversationController(session, {
       || pickerLocation === 'local' && state.activeThread?.permissions?.sharingScope === 'local' && isDownloadableBaseModel(item) && !state.localDownloadIssue));
     if (!model) {
       const wanted = (state.models || []).find(item => modelKey(item) === next);
-      if (pickerLocation !== 'network' && wanted && downloadableHere(wanted, state)) { sheet = { open: false, title: 'Answer on' }; openDownload(next); return; }
+      if (pickerLocation !== 'network' && wanted && downloadableHere(wanted, state)) { sheet = { open: false, title: 'Answer on' }; downloads.open(next); return; }
       notify(); return;
     }
     const staged = stagedDestination && stagedDestination !== destinationKey(state) ? stagedDestination : null;
@@ -919,9 +919,9 @@ export function createConversationController(session, {
     const state = sessionState;
     const model = state.models?.find(item => modelIdentity(item) === modelIdentity(pickerModel));
     if (!model || !downloadableHere(model, state) || busyAcquisition(state)) { notify(); return; }
-    if (pickerLocation !== 'network') { sheet = { open: false, title: 'Answer on' }; openDownload(modelKey(model)); return; }
+    if (pickerLocation !== 'network') { sheet = { open: false, title: 'Answer on' }; downloads.open(modelKey(model)); return; }
     const revision = ++pickerRevision, scope = queueScope(state, model);
-    openDownload(modelKey(model), {
+    downloads.open(modelKey(model), {
       keepSheet: true,
       isCurrent(id) {
         const current = sessionState;
@@ -939,92 +939,9 @@ export function createConversationController(session, {
     });
   };
 
-  // ---- the reviewed download (the vanilla model setup dialog in its local mode) ----
-  let downloadRequest = null, downloadReview = null;
-  // `mode` is 'local' (store it to answer here) or 'contribute' (Computers' Start sharing: answer public requests).
-  // The button and explanation name what confirming does: answering requests (compute), sharing model files only
-  // (storage), or neither. Storage alone never starts compute.
-  const confirmLabel = (mode, sharingValues, cached) => {
-    const compute = sharingValues.includes('compute'), files = sharingValues.includes('files');
-    if (compute && (mode === 'contribute' || !cached)) return cached ? 'Start sharing' : 'Download & share';
-    if (files && !compute) return cached ? 'Share model files' : 'Download and share model files';
-    return cached ? 'Apply settings' : 'Download model';
-  };
-  const downloadExplanation = (mode, sharingValues, cached) => {
-    if (mode === 'local') return 'Store this model on this device to answer when network capacity is unavailable. Sharing choices apply to cached models on this device when you confirm.';
-    const compute = sharingValues.includes('compute'), files = sharingValues.includes('files');
-    if (compute) return cached ? 'Answer public requests while this page is open. Pause anytime.' : 'Download a model to answer public requests while this page is open. Pause anytime.';
-    if (files) return cached ? 'Share this model\u2019s files with other computers while this page is open. This device does not answer requests. Pause anytime.'
-      : 'Download this model and share its files with other computers while this page is open. This device does not answer requests. Pause anytime.';
-    return cached ? 'This device shares nothing for this model.' : 'Download this model without sharing it. This device does not answer requests or share files.';
-  };
-  const openDownload = (modelId, review = null, mode = 'local') => {
-    downloadReview = review;
-    const state = sessionState;
-    const models = (state.models || []).filter(model => !model.partition
-      && (hasBrowserModelOrigin(model) || mode !== 'local' && (model.localReady || model.localCached))
-      && (mode !== 'local' || !model.adapters?.length));
-    const chosen = models.find(model => modelKey(model) === modelId) || null;
-    const network = state.network || {};
-    const compute = mode === 'contribute' || !!(network.computeEnabled ?? network.sharing), filesShared = !!(network.files?.enabled ?? network.files?.sharing);
-    const cached = mode !== 'local' && !!chosen && !!(chosen.localCached || chosen.localReady);
-    download = { open: true, mode, cached, modelId: chosen ? modelKey(chosen) : modelKey(models[0]) ?? null, choose: !chosen,
-      title: chosen ? (mode === 'local' ? `Download ${chosen.name || chosen.id}` : chosen.name || chosen.id) : mode === 'local' ? 'Download model' : 'Start sharing',
-      models: models.map(model => ({ value: modelKey(model), title: modelVariantLabel(model) })),
-      explanation: downloadExplanation(mode, [...(compute ? ['compute'] : []), ...(filesShared ? ['files'] : [])], cached),
-      sharing: sharingOptionChoices({ canShareCompute: !!session.setComputeContribution, canShareFiles: !!session.setCachedFileContribution, compute, files: filesShared })
-        .map(option => ({ value: option.value, title: option.title, status: option.status, disabled: !!option.disabled })),
-      sharingValues: [...(compute ? ['compute'] : []), ...(filesShared ? ['files'] : [])],
-      size: cached ? 'Downloaded' : 'Checking download size…', ready: cached, retry: false, fit: '', info: cached ? { cached: true } : null,
-      confirm: confirmLabel(mode, [...(compute ? ['compute'] : []), ...(filesShared ? ['files'] : [])], cached) };
-    requestFocus('download');
-    notify();
-    if (!cached) void checkDownload();
-  };
-  const checkDownload = async () => {
-    if (!download) return;
-    downloadRequest?.abort(); const request = downloadRequest = new AbortController();
-    download = { ...download, cached: false, size: 'Checking download size…', ready: false, retry: false, info: null };
-    notify();
-    try {
-      if (!download.modelId) throw new Error('No model is available to download.');
-      const info = await session.getModelDownload(download.modelId, { signal: request.signal });
-      if (request.signal.aborted || disposed || !download) return;
-      const model = sessionState.models?.find(row => modelKey(row) === info.id) || sessionState.models?.find(row => modelKey(row) === download.modelId);
-      download = { ...download, info, size: Math.ceil(info.sizeBytes / 1e6) + ' MB download', ready: true, fit: localFitText(model, null, { sizeBytes: info.sizeBytes }) };
-      notify();
-      if (model && session.getLocalModelFit) session.getLocalModelFit(model, { signal: request.signal }).then(fit => {
-        if (!request.signal.aborted && !disposed && download) { download = { ...download, fit: localFitText(model, fit, { sizeBytes: info.sizeBytes }) }; notify(); }
-      }).catch(() => {});
-    } catch (cause) {
-      if (!request.signal.aborted && !disposed && download) { download = { ...download, size: cause.message, retry: true }; notify(); }
-    }
-  };
-  const closeDownload = () => { downloadRequest?.abort(); download = null; downloadReview = null; requestFocus(sheet.open ? 'sheet' : 'composer'); notify(); };
-  const confirmDownload = () => {
-    if (!download?.ready || !download.info) return;
-    const { modelId, sharingValues, mode, cached } = download, review = downloadReview;
-    download = null; downloadReview = null; notify();
-    if (review && !review.isCurrent(modelId)) return;
-    const compute = sharingValues.includes('compute'), shareFiles = sharingValues.includes('files');
-    const contribute = mode === 'contribute' && compute;
-    void act(async () => {
-      const network = sessionState.network || {};
-      const changeCompute = session.setComputeContribution && compute !== !!(network.computeEnabled ?? network.sharing);
-      const changeFiles = session.setCachedFileContribution && shareFiles !== !!(network.files?.enabled ?? network.files?.sharing);
-      if (changeCompute && !compute) await session.setComputeContribution(false);
-      if (changeFiles) await session.setCachedFileContribution(shareFiles);
-      if (changeCompute && compute) await session.setComputeContribution(true);
-      if (contribute) {
-        if (network.paused) await session.connect();
-        await session.setSharing(true, modelId, true);
-      } else if (!cached) {
-        if (review && !review.isCurrent(modelId)) return;
-        await session.downloadLocalModel(modelId, true);
-        if (!disposed && review?.isCurrent(modelId)) review.onStored();
-      }
-    });
-  };
+  // ---- the reviewed download (download-dialog.js) ----
+  const downloads = createDownloadDialog({ session, getState: () => sessionState, notify, requestFocus, act,
+    sheetOpen: () => sheet.open, disposed: () => disposed });
 
   let retryPending = false, retryDeadline = null;
   const unsubscribe = session.subscribe(state => { sessionState = state; notify(); });
@@ -1071,7 +988,7 @@ export function createConversationController(session, {
     downloadLocal() {
       const state = sessionState;
       const model = state.activeThread?.model || (state.models || []).find(item => modelKey(item) === currentKey) || chosenModel || state.defaultModel;
-      if (model) openDownload(modelKey(model));
+      if (model) downloads.open(modelKey(model));
     },
     reviewSharedModel() {
       const alternative = recoveryAlternative(sessionState);
@@ -1188,19 +1105,14 @@ export function createConversationController(session, {
       })();
     },
     // The reviewed download.
-    selectDownloadModel(modelId) { if (download) { download = { ...download, modelId }; void checkDownload(); } },
-    setDownloadSharing(values) {
-      if (!download) return;
-      download = { ...download, sharingValues: [...values], confirm: confirmLabel(download.mode, values, download.cached),
-        explanation: downloadExplanation(download.mode, values, download.cached) };
-      notify();
-    },
+    selectDownloadModel: downloads.selectModel,
+    setDownloadSharing: downloads.setSharing,
     /** Computers' Start sharing: the same reviewed download, sharing this device's compute with the model. */
-    startSharing(modelId) { openDownload(modelId ?? null, null, 'contribute'); },
+    startSharing(modelId) { downloads.open(modelId ?? null, null, 'contribute'); },
     /** The context prompt a new thread starts with; a sent thread keeps its own (Conversation details). */
     setDraftContext(selection) { contextPrompt = selection; viewState.contextPrompt = selection; notify(); },
-    retryDownloadCheck() { void checkDownload(); },
-    closeDownload, confirmDownload,
+    retryDownloadCheck() { void downloads.check(); },
+    closeDownload: downloads.close, confirmDownload: downloads.confirm,
     // Threads.
     newThread() {
       queuedSend = null;
@@ -1274,7 +1186,7 @@ export function createConversationController(session, {
       queuedSend = null;
       disposed = true;
       clearTimeout(retryDeadline);
-      fitRequest?.abort(); downloadRequest?.abort(); attachmentReader.close(); if (clock) clearInterval(clock);
+      fitRequest?.abort(); downloads.dispose(); attachmentReader.close(); if (clock) clearInterval(clock);
       unsubscribe(); unsubscribeSearch(); unsubscribeWebSearch(); listeners.clear();
     }
   };
