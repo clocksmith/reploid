@@ -262,10 +262,13 @@ async function checkAttempt(attempt, { policy, at, coordinatorKey }) {
     if (hold.placed !== agreed.maximum) fail(`the coordinator states a hold of ${hold.placed}; the signed maximum is ${agreed.maximum}`);
     if (hold.remaining !== 0) fail(`the coordinator states ${hold.remaining} still held`);
     facts.hold = { basis: 'coordinator-signed', coordinatorId, ...hold, released: hold.released, releaseShown: hold.remaining === 0 && hold.placed === agreed.maximum,
-      keyChecked: Boolean(coordinatorKey), signedAt: stated.signedAt };
+      keyChecked: Boolean(coordinatorKey), signedAt: stated.signedAt,
+      // The hold claim counts as verified only under a coordinator key the verifier pinned itself (--coordinator-key).
+      verified: Boolean(coordinatorKey) && hold.remaining === 0 && hold.placed === agreed.maximum };
   } else {
     if (hold.remaining !== null && hold.remaining !== 0) fail(`the publisher states ${hold.remaining} still held`);
-    facts.hold = { basis: hold.remaining === null ? 'not-stated' : 'publisher-stated', coordinatorId: null, ...hold, releaseShown: false };
+    // An unsigned "0 held" is the publisher's word: never verified.
+    facts.hold = { basis: hold.remaining === null ? 'not-stated' : 'publisher-stated', coordinatorId: null, ...hold, releaseShown: false, verified: false };
   }
   return done();
 }
@@ -291,7 +294,8 @@ export async function verifyRecords({ trade, at = Date.now(), coordinatorKey = n
   return { ok: attempts.every(row => row.ok), at: new Date(at).toISOString(), id: trade.id ?? null, attempts,
     coordinatorKey: coordinatorKey?.coordinatorId ?? null,
     holdReleaseShown: attempts.filter(row => row.facts.hold?.releaseShown).length,
-    holdReleaseShownByGivenKey: attempts.filter(row => row.facts.hold?.releaseShown && row.facts.hold.keyChecked).length };
+    holdReleaseShownByGivenKey: attempts.filter(row => row.facts.hold?.releaseShown && row.facts.hold.keyChecked).length,
+    holdReleaseVerified: attempts.filter(row => row.facts.hold?.verified).length };
 }
 
 /** The lines a person reads for one attempt. */
@@ -312,11 +316,11 @@ export function describeAttempt(row) {
   const h = f.hold;
   if (h.basis === 'coordinator-signed') {
     lines.push(`  hold: placed ${h.placed}, released ${h.released}, remaining ${h.remaining}; signed by the coordinator ${h.coordinatorId}`
-      + (h.releaseShown ? ': the release is shown by that signature' : ': the release is NOT shown'));
+      + (h.verified ? ': the release is verified under the coordinator key you pinned' : h.releaseShown ? ': the release is NOT verified (no pinned coordinator key)' : ': the release is NOT shown'));
     lines.push(h.keyChecked ? '  coordinator key: the statement is signed by the coordinator key you supplied'
-      : '  coordinator key: none supplied; the signing key is the one the file itself carries, so this shows only that some key signed it (pass --coordinator-key)');
+      : '  coordinator key: none supplied; the signing key is the one the file itself carries, so this shows only that some key signed it, not the hold release (pass --coordinator-key)');
   } else if (h.basis === 'publisher-stated') {
-    lines.push(`  hold: the publisher states ${h.remaining} held afterwards; no signed record covers the hold, so its release is NOT proven here`);
+    lines.push(`  hold: the publisher states ${h.remaining} held afterwards, unsigned; no signed record covers the hold, so its release is NOT proven here`);
   } else lines.push('  hold: nothing stated; no signed record covers the hold, so its release is NOT proven here');
   for (const problem of row.problems) lines.push(`  problem: ${problem}`);
   return lines;
@@ -341,7 +345,8 @@ export async function recordsCommand(args) {
     for (const row of verdict.attempts) for (const line of describeAttempt(row)) console.log(line);
     for (const problem of verdict.problems ?? []) console.log(`FAIL ${problem}`);
     console.log(verdict.ok ? `The stated amounts follow from the signed records. Hold release shown by a signed statement in ${verdict.holdReleaseShown} of ${verdict.attempts.length} attempts`
-      + (coordinatorKey ? `, ${verdict.holdReleaseShownByGivenKey} of them by the coordinator key supplied.` : '.')
+      + (coordinatorKey ? `, ${verdict.holdReleaseShownByGivenKey} of them by the coordinator key supplied. Hold release verified in ${verdict.holdReleaseVerified} of ${verdict.attempts.length}.`
+        : `. Hold release verified in 0 of ${verdict.attempts.length}: no coordinator key was pinned (pass --coordinator-key).`)
       : 'The stated amounts do NOT follow from the signed records.');
   }
   process.exitCode = verdict.ok ? 0 : 1;

@@ -130,8 +130,8 @@ async function route({ requester, provider, execute, signs = true, requireVerifi
     const signed = await verifyRecords({ trade: buildRecordsExport({ id: 'drill', label: 'In-process drill with test keys', records, trace, statement }), at,
       coordinatorKey: coordinator.publicKey });
     expect(signed.attempts[0].problems).toEqual([]);
-    expect(signed).toMatchObject({ ok: true, holdReleaseShownByGivenKey: 1, attempts: [{ facts: { status, debit,
-      hold: { basis: 'coordinator-signed', coordinatorId: coordinator.publicKey.coordinatorId, placed: 16 * PRICE, released: 16 * PRICE, remaining: 0, releaseShown: true, keyChecked: true } } }] });
+    expect(signed).toMatchObject({ ok: true, holdReleaseShownByGivenKey: 1, holdReleaseVerified: 1, attempts: [{ facts: { status, debit,
+      hold: { basis: 'coordinator-signed', coordinatorId: coordinator.publicKey.coordinatorId, placed: 16 * PRICE, released: 16 * PRICE, remaining: 0, releaseShown: true, keyChecked: true, verified: true } } }] });
     return { trace, records, statement, replay: full.attempts[0].facts, recordsOnly: only.attempts[0].facts };
   };
   return { ask, sent, exported, stored, providerRecords: kept, mesh, agree, wholeRequester };

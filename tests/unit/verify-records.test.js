@@ -86,7 +86,8 @@ describe('a records-only export of a receipt', () => {
   it('does not call the hold released on the publisher\'s word', async () => {
     const verdict = await judged(fromFixture());
     expect(verdict.holdReleaseShown).toBe(0);
-    expect(verdict.attempts.every(row => row.facts.hold.basis === 'publisher-stated' && row.facts.hold.releaseShown === false)).toBe(true);
+    expect(verdict.attempts.every(row => row.facts.hold.basis === 'publisher-stated' && row.facts.hold.releaseShown === false && row.facts.hold.verified === false)).toBe(true);
+    expect(verdict.holdReleaseVerified).toBe(0);
     expect(problems(await judged(fromFixture(), t => { t.attempts[0].stated.hold.remaining = 4; })).join('\n')).toMatch(/states 4 still held/);
   });
 
@@ -119,7 +120,7 @@ describe('a records-only export of a receipt', () => {
         const out = execFileSync(process.execPath, [...args, '--at', new Date(AT).toISOString()], { encoding: 'utf8' });
         expect(out).toMatch(/^PASS split: settled/m);
         expect(out).toMatch(/its release is NOT proven here/);
-        expect(out).toMatch(/Hold release shown by a signed statement in 0 of 3 attempts\./);
+        expect(out).toMatch(/Hold release shown by a signed statement in 0 of 3 attempts\. Hold release verified in 0 of 3: no coordinator key was pinned/);
       }
     } finally { rmSync(directory, { recursive: true, force: true }); }
   });
@@ -153,7 +154,8 @@ describe('the simulated v3 trades with the coordinator\'s signed statement', () 
     const verdict = await judged(trade);
     expect(verdict.holdReleaseShown).toBe(4);
     for (const row of verdict.attempts) {
-      expect(row.facts.hold).toMatchObject({ basis: 'coordinator-signed', placed: 24, released: 24, remaining: 0, releaseShown: true });
+      // Without a pinned coordinator key the signature is shown but the hold claim is not verified.
+      expect(row.facts.hold).toMatchObject({ basis: 'coordinator-signed', placed: 24, released: 24, remaining: 0, releaseShown: true, verified: false });
       expect(row.facts.hold.coordinatorId).toBe(trade.attempts[0].statement.coordinatorId);
     }
     // An edited statement no longer verifies; nothing falls back to trusting it.

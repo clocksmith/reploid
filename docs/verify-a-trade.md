@@ -18,6 +18,23 @@ Two things to hold on to before reading a result.
   and neither does an operator verifying their own receipt: signatures show
   which key signed, never who holds it.
 
+## Four separate claims
+
+"Verified" means four different things. Report each one on its own; a pass on
+one says nothing about another.
+
+| Claim | What establishes it | What does not |
+| --- | --- | --- |
+| **Signature valid** | Each record verifies against the key it carries | Anything about who holds the key |
+| **Operator identified** | Each key is tied to a known, distinct human operator by evidence outside the records (who ran which machine, confirmed by that person) | A signature, a participant ID, an account name, or the publisher saying so |
+| **Arithmetic replayed** | Both replays recompute the debit and every payout from the signed records and agree with the stated amounts | The ledger's own totals; a stated amount nobody recomputed |
+| **Hold release signed** | The coordinator's signed statement, checked with `--coordinator-key` against a coordinator public key the verifier pinned independently (fetched and compared with a copy published outside the service) | A statement checked only against the key the file carries; an unsigned "0 held"; a publisher-supplied grouping of stages onto the requester's account |
+
+The command prints `Hold release verified in N of M` and counts an attempt only
+under a key you supplied. An unsigned "0 held" and a stage placed on the
+requester's own account by the publisher's grouping are never counted as
+verified; the command names them as the publisher's statement.
+
 To run one yourselves, two people on two machines, start at
 [Run a trade between two people](#run-a-trade-between-two-people).
 
@@ -393,8 +410,16 @@ split between the stages by the signed weights.
 
 A pass means: the published records, signed by the keys they name, imply exactly
 the debit and payouts the ledger posted, under the policy the requester signed.
+That is **signature valid** and **arithmetic replayed** from
+[the four claims](#four-separate-claims). **Hold release signed** needs, in
+addition, a passing statement under a coordinator key you pinned yourself.
+**Operator identified** is never shown by this command.
 
 It does not show:
+- that the hold was released, unless the statement verified under a coordinator
+  key you pinned (`--coordinator-key`). A statement checked only against the key
+  inside the file shows that some key signed it. An unsigned "0 held" is the
+  publisher's word;
 - who owns a key, or that the stage keys belong to different people;
 - that any computation was correct;
 - for a receipt without signed accounts, that a stage the receipt places on
