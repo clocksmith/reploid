@@ -12,6 +12,7 @@ import { presetDisclosure } from '../../apps/poolday/ui/pool-home/privacy-contro
 import { ownDevicesChoice, protectionChoices, routeChoices } from '../../apps/poolday/ui/pool-home/choice-availability.js';
 import { SPLIT_DISPLAY, splitReadersLine } from '../../shared/vendor/reploid/inference/protections.js';
 import { DISCLOSURE_WORDING, promptDisclosure } from '../../apps/poolday/host/decisions/prompt-disclosure.js';
+import { routeAlternatives } from '../../apps/poolday/ui/pool-home/route-alternatives.js';
 import { describeAnswerChoice } from '../../apps/poolday/ui/pool-home/conversation-model-picker.js';
 
 const cleanups = [];
@@ -181,4 +182,19 @@ it('draws every wording from promptDisclosure, one table of cases by site', () =
   // The cases whose sites state them in different words: the owner picks one wording for each.
   const differing = Object.entries(table).filter(([, sites]) => new Set(Object.values(sites)).size > 1).map(([name]) => name);
   expect(differing).toEqual(['local', 'operator', 'blocked', 'blocked-pool', 'stages', 'answering']);
+});
+
+it('states who can read it in the composer\'s route alternatives', () => {
+  const desktop = { label: 'Studio', status: 'online' };
+  // Stored here but not served: from Contributors, this device and the desktop are offered.
+  const here = routeAlternatives({ current: 'contributors', model: { ...stored(SMALL) }, desktop });
+  // Served but not stored: from this device, a public computer is offered.
+  const there = routeAlternatives({ current: 'device', model: served(MEDIUM), desktop: null });
+  expect(Object.fromEntries([...here, ...there].map(offer => [offer.key, offer.reads]))).toMatchInlineSnapshot(`
+    {
+      "contributors": "The operator of the computer that answers can read this conversation.",
+      "desktop": "The operator of Studio can read this conversation.",
+      "device": "Stays on this device.",
+    }
+  `);
 });
