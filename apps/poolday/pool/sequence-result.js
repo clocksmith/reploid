@@ -6,7 +6,8 @@ import { hashJson, sha256Hex } from '../../../shared/pool/inference-receipt.js';
 import { dopplerSequenceMethod, encodeSequenceWithDopplerSession } from '../../../shared/vendor/reploid/adapters/doppler-session.js';
 import {
   SEQUENCE_RESULT_SCHEMA,
-  SEQUENCE_WORKLOADS
+  SEQUENCE_WORKLOADS,
+  sequenceAlphabetFromDoppler
 } from '../../../shared/pool/sequence-workload.js';
 
 export const sequenceMethodName = dopplerSequenceMethod;
@@ -245,7 +246,7 @@ export async function callDopplerSequence(
 
 export async function reduceDopplerSequenceResult(result, request) {
   if (!result || typeof result !== 'object') throw new Error('Doppler sequence result is required');
-  if (result.alphabet !== request.alphabet) {
+  if (sequenceAlphabetFromDoppler(result.alphabet) !== request.alphabet) {
     throw new Error(`Doppler sequence result alphabet ${result.alphabet || 'missing'} does not match ${request.alphabet}`);
   }
 

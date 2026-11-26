@@ -17,6 +17,21 @@ export const SEQUENCE_ALPHABETS = Object.freeze({
   nucleotide: 'nucleotide'
 });
 
+// Doppler names alphabets in its own vocabulary: DopplerX 0.1.x wrote
+// amino_acid and 0.2.0 writes amino-acid. Map either to Poolday's name at the
+// Doppler boundary; anything else is returned unchanged so callers still reject it.
+const DOPPLER_SEQUENCE_ALPHABETS = Object.freeze({
+  'amino-acid': SEQUENCE_ALPHABETS.aminoAcid,
+  amino_acid: SEQUENCE_ALPHABETS.aminoAcid,
+  nucleotide: SEQUENCE_ALPHABETS.nucleotide
+});
+
+export const sequenceAlphabetFromDoppler = (value) => (
+  typeof value === 'string' && Object.hasOwn(DOPPLER_SEQUENCE_ALPHABETS, value)
+    ? DOPPLER_SEQUENCE_ALPHABETS[value]
+    : value
+);
+
 export const SEQUENCE_DISCLOSURE = 'selected_providers_only';
 export const SEQUENCE_PUBLIC_SENSITIVITY = 'public';
 export const MAX_PUBLIC_PROTEIN_SEQUENCE_LENGTH = 1024;

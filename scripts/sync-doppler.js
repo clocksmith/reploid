@@ -12,9 +12,12 @@ import { resolveServedFile } from '../server/browser-roots.js';
 const root = resolve(import.meta.dirname, '..');
 const exec = promisify(execFile);
 const rawArg = process.argv[2];
-const isLocalDirectory = !rawArg || existsSync(resolve(rawArg));
+// An exact packed archive (.tgz) is installed as-is, never re-packed, so the
+// bytes Reploid verifies are the bytes that are published.
+const archiveArg = rawArg && rawArg.endsWith('.tgz') && existsSync(resolve(rawArg)) ? resolve(rawArg) : null;
+const isLocalDirectory = !archiveArg && (!rawArg || existsSync(resolve(rawArg)));
 const source = isLocalDirectory ? resolve(rawArg || resolve(root, '../doppler')) : null;
-const registrySpec = !isLocalDirectory
+const registrySpec = !isLocalDirectory && !archiveArg
   ? (rawArg.startsWith('dopplerx@') ? rawArg : `dopplerx@${rawArg}`)
   : null;
 let staging;
@@ -25,7 +28,24 @@ try {
   const oldFilename = `${old.name}-${old.version}.tgz`;
   let version;
   let filename;
-  if (isLocalDirectory) {
+  if (archiveArg) {
+    const { stdout: manifestText } = await exec('tar', ['-xOf', archiveArg, 'package/package.json']);
+    const manifest = JSON.parse(manifestText);
+    if (manifest.name !== 'dopplerx') throw new Error(`Archive is ${manifest.name}, not dopplerx`);
+    version = manifest.version;
+    filename = `${manifest.name}-${version}.tgz`;
+    const archive = resolve(artifacts, filename);
+    const archiveBytes = await readFile(archiveArg);
+    try {
+      if (!(await readFile(archive)).equals(archiveBytes)) {
+        throw new Error(`${archive} already holds different ${version} bytes; remove it only if that archive was never published`);
+      }
+    } catch (error) { if (error.code !== 'ENOENT') throw error; }
+    await copyFile(archiveArg, archive);
+    await exec('npm', ['install', '--save-exact', '--ignore-scripts', `file:${relative(root, archive)}`], { cwd: root });
+    await exec(process.execPath, ['scripts/vendor-doppler.js', archive], { cwd: root });
+    console.log(`[doppler] installed exact archive sha256 ${createHash('sha256').update(archiveBytes).digest('hex')}`);
+  } else if (isLocalDirectory) {
     staging = await mkdtemp(resolve(tmpdir(), 'reploid-doppler-package-'));
     const { stdout } = await exec('npm', ['pack', source, '--pack-destination', staging, '--json'], { cwd: root });
     const [packed] = JSON.parse(stdout);

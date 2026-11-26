@@ -8,6 +8,10 @@
 
 import { BROWSER_QUALIFICATION_CHECKS } from './browser-qualification.js';
 import { exactModelContractKey } from '../../../shared/pool/model-contract.js';
+import { sequenceAlphabetFromDoppler } from '../../../shared/pool/sequence-workload.js';
+
+// Doppler's qualification abort mode: after_start in DopplerX 0.1.x, after-start in 0.2.0.
+const isAfterStartAbort = (mode) => mode === 'after_start' || mode === 'after-start';
 
 export const DOPPLER_BROWSER_PROTEIN_OBSERVATION_SCHEMA = 'poolday.doppler_browser_protein_observation/v1';
 
@@ -68,7 +72,7 @@ export function validateDopplerBrowserProteinObservation(observation = {}, { mod
     || observation.browser?.hardwareGpuRequested !== true || !text(observation.browser?.adapter?.description)) {
     reasons.push('browser observation browser and GPU identity is incomplete');
   }
-  if (observation.fixture?.sequenceAlphabet !== model.sequence?.alphabet
+  if (sequenceAlphabetFromDoppler(observation.fixture?.sequenceAlphabet) !== model.sequence?.alphabet
     || observation.fixture?.embeddingDimension !== model.embeddingDimensions) {
     reasons.push('browser observation fixture does not match the exact protein model contract');
   }
@@ -108,7 +112,7 @@ export function validateDopplerBrowserProteinObservation(observation = {}, { mod
   }
   const cancellation = observation.runs?.cancellation;
   if (
-    cancellation?.mode !== 'after_start'
+    !isAfterStartAbort(cancellation?.mode)
     || cancellation?.resultEnvelopePublished !== false
     || cancellation?.errorName !== 'AbortError'
   ) {
@@ -116,7 +120,7 @@ export function validateDopplerBrowserProteinObservation(observation = {}, { mod
   }
   const staleResult = observation.runs?.staleResultRejection;
   if (
-    staleResult?.mode !== 'after_start'
+    !isAfterStartAbort(staleResult?.mode)
     || staleResult?.resultEnvelopePublished !== false
     || staleResult?.errorName !== 'StaleResultError'
   ) {
