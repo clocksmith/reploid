@@ -232,7 +232,7 @@ Failure tracking and recovery:
 
 - Track consecutive failures per tool
 - Trip breaker after threshold
-- Emit `tool:circuit_open` for UI warning
+- Emit `circuit:open` (the error store records it as a warning)
 
 ### `infrastructure/rate-limiter.js`
 
@@ -332,7 +332,7 @@ The operator's control room:
 
 Proto subscribes to:
 - `agent:status`, `agent:history`, `agent:stream`
-- `tool:error`, `tool:circuit_open`, `tool:file_written`
+- `tool:error`, `tool:file_written` (circuit-breaker trips reach the Status tab through the error store's `circuit:open` warning)
 - `worker:spawned`, `worker:progress`, `worker:completed`
 - `vfs:write`, `vfs:artifact`
 - `reflection:added`

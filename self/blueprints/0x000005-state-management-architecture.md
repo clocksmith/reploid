@@ -43,4 +43,4 @@ There are no transactions, no artifact-metadata API and no checkpoints in this m
 
 ### 4. Verification
 
-Incomplete: no test exercises this module. `tests/unit/state-manager.test.js` defines its own mock `StateManager` with an artifact API this module does not have, so it verifies neither the real file path, the validation fallback, `setGoal` nor the save retry. A test that imports `self/core/state-manager.js` is the missing evidence.
+`tests/unit/state-manager.test.js` runs `self/core/state-manager.js` with the real `StateHelpersPure` and an in-memory VFS: fresh, stored, invalid and corrupt state at `/.system/state.json`; `getState` before `init` and its copy semantics; `updateState`; goals and subgoals with the `goal:set` event and audit record; cycle counting; and the save retry with its `error:persistence` event.

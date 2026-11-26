@@ -82,8 +82,9 @@ the session's advanced capability; unsupported requests fail before context init
   and 0 otherwise. It is a host heuristic.
 - `evolveFunctionGemmaNetwork` requires an explicit `random` function, bounded population,
   elite and mutation settings, and finite fitness.
-- Stored genomes are per-task routing state inside `ReflectionStore`: `execute` reuses them
-  on the next call for that task type. They do not load new adapters, change files under
+- Stored genomes are per-task routing state inside `ReflectionStore`. A stored genome starts
+  unadopted; `storeGenome` queues an `approve_genome_reuse` request, and only after the operator
+  approves it (`ReflectionStore.adoptGenome`) does `getBestGenome` return it for reuse. They do not load new adapters, change files under
   `/self`, or change boot. Any of those needs operator adoption through HITL or `Promote`
   ([`promotion-contract.md`](promotion-contract.md)); a score never grants activation.
 

@@ -54,7 +54,7 @@ Wired once when the factory runs, only if `EventBus` exists (`error-store.js:128
 | --- | --- | --- |
 | `tool:error` `{ tool, error, context }` | error, type `tool:error` | `packages/reploid/src/agent/lab-strategy-tools.js:43` |
 | `error:persistence` `{ message, details }` | error, type `persistence` | `self/core/state-manager.js:59` |
-| `tool:circuit_open` `{ tool, reason }` | warning, type `circuit:open` | None found in `self/` or `packages/reploid/src`; the subscription is currently inert |
+| `circuit:open` `{ breaker, key, failures, error }` | warning, type `circuit:open` | `CircuitBreaker` when a circuit trips (`self/infrastructure/circuit-breaker.js`) |
 | `agent:error` `{ message, error }` | error, type `agent:error` | `self/ui/proto/index.js:938,993`, `packages/reploid/src/agent/lab-strategy-cycle.js:250` |
 
 ## Events emitted

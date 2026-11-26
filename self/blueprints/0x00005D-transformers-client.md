@@ -60,7 +60,7 @@ All use `device: 'webgpu'`.
 ## Known gaps
 
 - `isTransformersModel` accepts `transformers:<anything>`, but `loadModel` only accepts the table IDs, so such an ID routes here and then fails with `Unknown Transformers.js model`.
-- `LLMClient.releaseGPUMemory` calls `TransformersClient.cleanup` (`llm-client.js:1068`), which this module does not export; the model stays loaded until `unload()` is called directly.
+- `LLMClient.releaseGPUMemory` calls `TransformersClient.unload`, which releases the loaded model.
 - The prompt template is generic rather than each model's own chat template.
 - No unit test for this module exists in `tests/`.
 

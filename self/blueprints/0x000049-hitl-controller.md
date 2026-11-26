@@ -76,6 +76,6 @@ A timed-out item is rejected with `'Approval timed out'` and emits `hitl:approva
 
 ### 7. Incomplete boundary
 
-- `ToolRunner` never calls `registerModule` and passes the key `'APPROVE_TOOL_EXECUTION'` rather than the value `approve_tool_execution`. In `hitl` mode, `requiresApproval('ToolRunner', ...)` therefore returns `false` and critical tool calls proceed without a queued decision; only `every_n` mode or `alwaysRequireHuman` queues them. Until ToolRunner registers the value and a test exercises a queued tool call, `hitl` mode is not a verified gate for tools.
+- `ToolRunner` registers `approve_tool_execution` at construction and requests it for critical tools, so in `hitl` mode a critical tool call waits in the queue until approved or rejected (`tests/unit/tool-runner.test.js`, "HITL approval of critical tools", with the real controller). `GEPAOptimizer` (`approve_persona_change`) and `FunctionGemmaOrchestrator` (`approve_genome_reuse`) queue their adoptions with `alwaysRequireHuman`.
 - `approve` does not check who called it. Any code on the page bus can emit `hitl:approve`; the operator-only property rests on no module doing so.
-- No unit test exercises this module.
+- No unit test of its own; the tool-runner, GEPA and orchestrator tests exercise it through their approval paths.

@@ -12,7 +12,7 @@
 
 **Former Blueprint Paths:** `self/blueprints/0x000067-gepa-prompt-evolution.md`
 
-**Incomplete boundary:** operator adoption. `promoteCandidate` (`self/capabilities/cognition/gepa-optimizer.js:335`) writes the best candidate to `/.memory/gepa/safe-prompts.json` and, with `applyToPersona`, replaces a persona slot whenever the caller passes `promoteBest` (`RunGEPA` exposes it as `promote`). No operator step sits between that call and the write. Until one exists, this specification stays In-Progress; section 6.4 states the required gate.
+**Operator adoption:** `promoteCandidate` (`self/capabilities/cognition/gepa-optimizer.js`) writes the best candidate to `/.memory/gepa/safe-prompts.json` as evidence. With `applyToPersona` it does not change the persona: it queues an `approve_persona_change` request with `alwaysRequireHuman` and returns `{ applied: false, status: 'awaiting-adoption', approvalId }`; only the operator's approval applies the slot and emits `gepa:persona:adopted`. Without a HITL controller nothing is applied. The approval shows the candidate content, not yet its parent, scores and diff (step 2 of section 6.4), so this specification stays In-Progress.
 
 **Objective:** Implement Genetic-Pareto prompt evolution with execution trace reflection, enabling multi-objective optimization of prompts and text components.
 
@@ -717,7 +717,7 @@ Every path from a candidate to an active prompt, persona slot or `/self` file re
 3. Only an approved candidate is written to `safe-prompts.json` or applied to a persona slot. Changes under `/self` go through Promote.
 4. Rejection leaves the active prompt unchanged and keeps the candidate for audit.
 
-The current `promoteBest` option does not yet enforce step 2 (see the incomplete boundary at the top).
+`promoteBest` now waits for the operator's approval before step 3; the approval does not yet show the parent, scores and diff of step 2.
 
 ---
 

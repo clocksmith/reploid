@@ -49,7 +49,7 @@ unsubscribe();
 
 A module that registers many listeners passes its ID as `ownerId` and calls `EventBus.unsubscribeModule(id)` when it unloads. Removing the last listener for an event deletes that event's entry, so empty sets do not accumulate.
 
-Known defect: `self/capabilities/cognition/semantic/semantic-memory-llm.js` and `self/ui/panels/cognition-panel.js` call `EventBus.off(...)`, which does not exist. Those calls throw when reached; the callers should keep and call the unsubscribe function instead.
+There is no `EventBus.off`. Callers keep the unsubscribe function `on` returns and call it on dispose (as `semantic-memory-llm.js` and `cognition-panel.js` do), instead.
 
 ### 4. Delivery semantics
 

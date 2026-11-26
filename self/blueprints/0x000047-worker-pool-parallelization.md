@@ -2,7 +2,7 @@
 
 **Classification:** Canonical Full Specification
 
-**Implementation Status:** In-Progress
+**Implementation Status:** Implemented
 
 **Verified Artifacts:** `/self/core/worker-manager.js`, `/self/core/worker-agent.js`, `/self/tools/SpawnWorker.js`, `/self/tools/AwaitWorkers.js`, `/self/tools/ListWorkers.js`, `/tests/unit/worker-manager.test.js`
 
@@ -58,9 +58,7 @@ So tool execution keeps the main thread's permission, policy, audit and HITL pat
 
 ## Boundaries and gaps
 
-The first gap below leaves a declared boundary (no nested workers) unenforced, so this blueprint stays In-Progress until `SpawnWorker` passes the caller's depth or the manager reads `canSpawnWorkers`.
-
-- The flat-hierarchy check relies on `depth`, but `SpawnWorker` always passes `depth: 0`, and the `canSpawnWorkers: false` setting in the genesis config is not read by any code. An `execute` worker (tools `*`) is therefore not prevented from calling `SpawnWorker`; only the 10-worker cap bounds nesting.
+- Flat hierarchy: a worker reaches tools only through the manager's RPC. Unless its type sets `canSpawnWorkers: true` (none does), the manager leaves `SpawnWorker` and `AwaitWorkers` out of the schemas it offers the worker and refuses them in `tool:execute` with "flat hierarchy enforced", even for an `execute` worker with tools `*`. `spawn` still rejects `depth > 0` for direct callers.
 - `spawn` reads the type from the genesis config directly, while `getToolsForType` prefers a `SchemaRegistry` definition; a type registered only in `SchemaRegistry` gets `explore` tools at spawn.
 - `terminate` stops the Web Worker; a model request or tool call already running on the main thread for it is not cancelled.
 - A worker's result is untrusted model output for the main agent to check; spawning grants no permission beyond the type's tool list.

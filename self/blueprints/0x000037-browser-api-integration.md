@@ -40,7 +40,7 @@ File writes go only into the directory the user picked with `requestDirectoryAcc
 
 ### 2. Known gaps
 
-- `syncArtifactToFilesystem` calls `StateManager.getArtifactContent`, which `self/core/state-manager.js` does not provide, so it fails and returns `false`. Reading through `VFS` would fix it.
+- `syncArtifactToFilesystem` reads the artifact through `VFS` (`VFS.exists`, then `VFS.read`) and returns `false` for a missing path; `tests/unit/browser-apis.test.js` covers it.
 - No other module or tool calls `BrowserAPIs`; it is loaded by genesis level but unused.
 
 ### 3. Verification conditions

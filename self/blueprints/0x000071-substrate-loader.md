@@ -37,7 +37,7 @@ Dependencies: `Utils`, `VFS`, optional `VerificationManager`, `VFSSandbox`, `HIT
 
 | Function | Behavior | Source |
 | --- | --- | --- |
-| `loadModule(path, options)` | Throws `Module not found` if the VFS has no file. Reads the code, applies the approval and sandbox gates below, then calls `loadVfsModule` with `options.expectedSha256`. Other options, such as the `force` flag passed by `self/tools/LoadModule.js:45`, are ignored | `:76-113` |
+| `loadModule(path, options)` | Throws `Module not found` if the VFS has no file. Reads the code, applies the approval and sandbox gates below, then calls `loadVfsModule` with `options.expectedSha256` and, for `options.force` (passed by `self/tools/LoadModule.js`), `forceReload`, which bypasses the loader's cache | `:76-113` |
 | `loadWidget(path, containerId)` | Loads the module, requires `default.render()`, clears the container and appends the returned element | `:115-128` |
 
 ### Gates

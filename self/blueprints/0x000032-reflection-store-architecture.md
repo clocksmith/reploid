@@ -48,7 +48,7 @@ Writers include the agent tool path, which records each tool result with `contex
 
 ## Genomes and adapter statistics
 
-- `storeNetworkGenome(taskType, genome, fitness)` keeps the 10 highest-fitness entries per task type and emits `reflection:genome:stored`. `getBestGenome`, `getGenomes`, `getAllWinnerConfigs`, `getGenomeTaskTypes`, `clearGenomes` read or clear them. `pruneOldGenomes({ maxAge = 30 days, keepTop = 3 })` drops old entries outside the top ones.
+- `storeNetworkGenome(taskType, genome, fitness)` keeps the 10 highest-fitness entries per task type and emits `reflection:genome:stored`. Entries start with `adopted: false`; `adoptGenome(taskType, timestamp)` marks one adopted, and `getBestGenome` returns the best adopted entry only. `getGenomes`, `getAllWinnerConfigs`, `getGenomeTaskTypes`, `clearGenomes` read or clear them. `pruneOldGenomes({ maxAge = 30 days, keepTop = 3 })` drops old entries outside the top ones.
 - `exportWinnerConfigs()` and `importWinnerConfigs(data, { merge = true, overwrite = false })` move genomes and adapter stats between instances.
 - `updateAdapterStats(taskType, adapterId, success)` counts attempts and successes and emits `reflection:adapter:updated`; `getAdapterStats` reads them. `selectAdapterUCB1(taskType, adapterIds, explorationWeight = 2)` returns an untried adapter first, a random one when none has been tried, and otherwise the highest `mean + sqrt(weight * ln(total) / attempts)`.
 

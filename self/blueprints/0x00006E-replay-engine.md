@@ -77,7 +77,7 @@ Post-mortem review needs to step through what an agent did. The Replay Engine lo
 | `replay:comparison` | Comparison record | `:383` |
 | `replay:execution_started`, `replay:execution_iteration`, `replay:execution_complete` | Mode, progress, final report | `:431,460,510` |
 
-There is no `replay:${type}` re-emission and no `replay:started`, `replay:paused`, `replay:stopped`, `replay:stepped`, `replay:seeked` or `replay:speed-changed` event. `ui/proto/replay.js:210-223` still subscribes to `replay:started`, `replay:paused` and `replay:stopped`; those handlers never fire, and the panel refreshes through `replay:progress` instead.
+There is no `replay:${type}` re-emission and no `replay:started`, `replay:paused`, `replay:stopped`, `replay:stepped`, `replay:seeked` or `replay:speed-changed` event. `ui/proto/replay.js` refreshes through `replay:progress` and clears its event log on `replay:reset`, so after a seek backwards the log shows only the events up to the new position.
 
 ## 5. Proto panel (`ui/proto/replay.js`)
 
