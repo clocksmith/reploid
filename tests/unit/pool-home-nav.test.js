@@ -195,9 +195,12 @@ describe('poolday home navigation', () => {
   });
 
   it('leaves the workspace to the React product and keeps the vanilla shell to the focused routes', () => {
-    // Home and the conversation are the React product (index.html loads /ui/react/app.js there); the vanilla
-    // shell renders no app bar or panel for them, and its links reach them as pages of their own.
-    expect(WORKSPACE_PATHS).toEqual(['/', '/network']);
+    // Home and the conversation, with the /work alias, are the React product (index.html loads /ui/react/app.js
+    // there); the vanilla shell renders no app bar or panel for them, and its links reach them as pages of their own.
+    expect(WORKSPACE_PATHS).toEqual(['/', '/network', '/work']);
+    // The page loader must agree, or a workspace address would load the vanilla shell, which reloads it for ever.
+    const loader = readFileSync('apps/poolday/index.html', 'utf8');
+    expect(JSON.parse(loader.match(/const productBundle = (\[[^\]]+\])\.includes/)[1].replaceAll("'", '"'))).toEqual([...WORKSPACE_PATHS]);
     expect(renderNav('home')).toBe(''); expect(renderNav('network')).toBe('');
     expect(renderRoutePanel('home')).toBe(''); expect(renderRoutePanel('network')).toBe('');
     // A focused route's settings menu still reaches Changes, Examples, Experiments and the Network computers.
