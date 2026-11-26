@@ -2924,10 +2924,11 @@
     {
       "path": "self/host/circle-invites.js",
       "owner": "self",
-      "sha256": "sha256:79a2716cf66de14dfd4ea35ad2f5fa66eff89a9865d04416996bce36c2d45816",
+      "sha256": "sha256:c8def2c979667ddf38992711ba8c9055115df6cbf6a5efe4555fd321a9c96b88",
       "imports": [
         "../vendor/reploid/transport/index.js",
-        "./circle-http-client.js"
+        "./circle-http-client.js",
+        "./decisions/prompt-disclosure.js"
       ]
     },
     {
@@ -3020,7 +3021,7 @@
     {
       "path": "self/host/decisions/conversation-controller.js",
       "owner": "self",
-      "sha256": "sha256:0ac8d8aa2faafe0039abbdd43caf7a29931fc3a307642f09fdc5895a5514f4bd",
+      "sha256": "sha256:aaf5f9afd3e02d2badcd28983a76a6f89d6ba0e32645de6cd323dfc7d2ad6015",
       "imports": [
         "../../config/chat-prompts.json",
         "../../config/work-profile.json",
@@ -3043,6 +3044,7 @@
         "../circle-invites.js",
         "../execution-route.js",
         "./model-choices.js",
+        "./prompt-disclosure.js",
         "./transcript.js"
       ]
     },
@@ -3072,6 +3074,15 @@
       "owner": "self",
       "sha256": "sha256:9aed2c405fd3be668c34203593dbec8aa1f5af2fa9efc65018df1d62d27de18a",
       "imports": []
+    },
+    {
+      "path": "self/host/decisions/prompt-disclosure.js",
+      "owner": "self",
+      "sha256": "sha256:5526ec08df233dd825f5cb188dc55fce34aed552cd4eb0d7b0e986c334b61061",
+      "imports": [
+        "../../vendor/reploid/chat/execution-policy.js",
+        "../../vendor/reploid/inference/protections.js"
+      ]
     },
     {
       "path": "self/host/decisions/settings.js",
@@ -4470,7 +4481,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:7ec636ce33caac464fa02abab1a126352d74528d75dfbf8d3e09a478817aa55f",
+      "sha256": "sha256:e6bb0a9fa9992db74a706d993e861adebbcb24d9b0d25a5fdb196cb39906afe9",
       "imports": []
     },
     {
@@ -4493,8 +4504,9 @@
     {
       "path": "ui/pool-home/choice-availability.js",
       "owner": "ui",
-      "sha256": "sha256:18b3f6ea1e1d3cfddd761fdd6143b65799527fd35a224136016273c1612d2927",
+      "sha256": "sha256:f2a800842d294646617da4bb262e183ec92725656fac829ed1dcbbad259585e1",
       "imports": [
+        "../../host/decisions/prompt-disclosure.js",
         "../../host/route-preference.js",
         "../../vendor/reploid/inference/protections.js"
       ]
@@ -4600,8 +4612,9 @@
     {
       "path": "ui/pool-home/conversation-model-picker.js",
       "owner": "ui",
-      "sha256": "sha256:d9c8c76303e2b91ae9ffaf804d3ea0500bcc9dc53a9f4a5a703e60bb2191219f",
+      "sha256": "sha256:e6959d6b9a638fe96d74aacc0bc9080336dd163606e9bf98312cf89a27550d85",
       "imports": [
+        "../../host/decisions/prompt-disclosure.js",
         "../components/model-select.js",
         "./privacy-controls.js"
       ]
@@ -4877,8 +4890,9 @@
     {
       "path": "ui/pool-home/privacy-controls.js",
       "owner": "ui",
-      "sha256": "sha256:34bc9a400a0d0088e561fdde3210682b53e7208e697cad8180865a53cdf10cd4",
+      "sha256": "sha256:198c36ddeb495a5b8cab2719ae7fd5d2e2e59685902ff19ba64853e242597bc9",
       "imports": [
+        "../../host/decisions/prompt-disclosure.js",
         "../../host/execution-route.js",
         "../../vendor/reploid/chat/execution-policy.js",
         "../../vendor/reploid/inference/protections.js",
@@ -5584,13 +5598,13 @@
     {
       "path": "ui/react/app.js",
       "owner": "ui",
-      "sha256": "sha256:6b33611b187763478fdde6eee79d740c8f3ce6e7b6eef3a3963f80a65848c7b3",
+      "sha256": "sha256:488da5293480cf37f152f68a8f8b03ea14469e05a841732ebaeda2d07e499d3a",
       "imports": []
     },
     {
       "path": "ui/react/design.js",
       "owner": "ui",
-      "sha256": "sha256:5b71bb8db4a0f09b69f83139952e71ec9d63531ca9e8aa5431cc1c3ad1841181",
+      "sha256": "sha256:7555a8e4b4847038f7a72094b9c7c74ecae10c4ae87c6241c15db192fa1510b1",
       "imports": []
     },
     {

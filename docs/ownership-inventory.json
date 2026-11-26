@@ -18,7 +18,7 @@
     "kernel/boot.js"
   ],
   "counts": {
-    "apps/poolday": 397,
+    "apps/poolday": 398,
     "self": 457,
     "shared": 2526
   },
@@ -2387,6 +2387,12 @@
       "source": "apps/poolday/host/decisions/projected-store.js",
       "owner": "apps/poolday",
       "basis": "Product decisions and helpers the React bundle (ui/react/app.js) compiles in; the bundle is not traced by import."
+    },
+    {
+      "served": "host/decisions/prompt-disclosure.js",
+      "source": "apps/poolday/host/decisions/prompt-disclosure.js",
+      "owner": "apps/poolday",
+      "basis": "Reached only from product entries."
     },
     {
       "served": "host/decisions/settings.js",
