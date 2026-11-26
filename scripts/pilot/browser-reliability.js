@@ -151,14 +151,17 @@ async function newThread(page) {
   await page.waitForFunction(() => globalThis.document.querySelectorAll('[data-message-stream] [data-message-role]').length === 0, null, { timeout: 5000 });
 }
 
-/** Chooses `model` on Contributors through "Answer on", as a person would. A usable choice applies on tap. */
+/**
+ * Chooses `model` on Contributors through "Answer on", as a person would. A usable choice applies on tap. The tap goes
+ * to the row's radio input: it covers the row, so a click aimed at the label is intercepted and never lands.
+ */
 async function chooseModel(page, model) {
   await closeSheet(page);
   await page.locator('[data-open-model]').click({ timeout: 5000 });
   await page.locator('[data-execution-choice=network]').click({ timeout: 5000 }).catch(() => {});
   await page.locator(`[data-model-picker] [data-model-choice="${model}"]`).waitFor({ timeout: 15000 }).catch(() => {});
   await learnModels(page);
-  await page.locator(`[data-model-picker] [data-model-choice="${model}"] label`).click({ timeout: 15000 }).catch(() => {});
+  await page.locator(`[data-model-picker] [data-model-choice="${model}"] input`).click({ timeout: 15000 }).catch(() => {});
   await page.waitForFunction(() => !globalThis.document.querySelector('[data-model-picker]')?.open, null, { timeout: 5000 }).catch(() => {});
   await closeSheet(page);
 }
@@ -217,8 +220,11 @@ async function sendAndWatch(page, record, { timeoutMs, model = null, expectModel
       const listed = !model || await page.waitForFunction(id => Boolean(globalThis.document.querySelector(`[data-model-picker] [data-choice-group=shared] [data-model-choice="${id}"]`)),
         model, { timeout: sheetWaitMs }).then(() => true, () => false);
       await learnModels(page);
-      if (listed && model) await page.locator(`[data-model-picker] [data-model-choice="${model}"] label`).click({ timeout: 15000 }).catch(() => {});
-      const chosen = !model || !await pickerOpen(page) || await selectedModel(page) === model;
+      if (listed && model) await page.locator(`[data-model-picker] [data-model-choice="${model}"] input`).click({ timeout: 15000 }).catch(() => {});
+      // The tap applies a moment later: the sheet closes and sends, or stays open with the row checked.
+      const checked = id => { const picker = globalThis.document.querySelector('[data-model-picker]'); return !picker?.open || Boolean(picker.querySelector(`[data-model-choice="${id}"] input:checked`)); };
+      if (listed && model) await page.waitForFunction(checked, model, { timeout: 5000 }).catch(() => {});
+      const chosen = !model || await page.evaluate(checked, model) || await selectedModel(page) === model;
       if (!listed || !chosen) {
         const row = await page.evaluate(id => (globalThis.document.querySelector(`[data-model-picker] [data-model-choice="${id}"]`)?.textContent ?? 'not listed').trim().replace(/\s+/g, ' '), model).catch(() => '');
         sheetProblem = `${model} was not offered by a public computer (${row.slice(0, 120)}); nothing was sent`;
