@@ -906,7 +906,7 @@
     {
       "path": "blueprints/canonical-inventory.md",
       "byteLength": 18868,
-      "sha256": "sha256:0a8164b38fbb757beb58e362915f9c853304af0e45ed7a1b23d21a829ba0648d"
+      "sha256": "sha256:ff87c85788e33244967ddffd51b320f86223940b5dac53d5353468aa4fab6e89"
     },
     {
       "path": "blueprints/deduplication-audit.md",
@@ -12839,5 +12839,5 @@
       "sha256": "sha256:abb6c18f6167d6afc8ee1b3adfcbbb89c0e93fb4fc4e98d7a12250f78aab206a"
     }
   ],
-  "bundleHash": "sha256:4689a53eb50ee145cae39530c9ecc99a3e82959253803ea97e82284996896847"
+  "bundleHash": "sha256:62b8916780480d1e841de776fdeff24d7df103fd1ca175df488587ff51fdf3b6"
 }
