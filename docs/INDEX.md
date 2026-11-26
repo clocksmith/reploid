@@ -12,7 +12,7 @@ lists its contracts first, then designs, then evidence.
 | [Settlement replay](#settlement-replay) | [Settlement replay](settlement-replay.md) |
 | [Poolday](#poolday) | [Product code charter](../apps/poolday/CATSCAN.md), [specialist routes](poolday/README.md) |
 | [Zero / X](#zero--x) | [X/Zero setup](zero-x-quick-start.md), [agent and VFS architecture](system-architecture.md) |
-| [Releases and evidence](#releases-and-evidence) | [Claim index](status/surface-claim-index.json), [evidence status](status/README.md), [0.1.5, the last qualified release](../reports/release-015-qualification/README.md) |
+| [Releases and evidence](#releases-and-evidence) | [Claim index](status/surface-claim-index.json), [evidence status](status-index.md), [0.1.5, the last qualified release](../reports/release-015-qualification/README.md) |
 | [Operations](#operations) | [Configuration](CONFIGURATION.md), [testing](TESTING.md) |
 | [Code organization](#code-organization) | [Ownership inventory](ownership-inventory.md), [component index](component-index.md) |
 
@@ -196,7 +196,7 @@ Poolday is the internal name for the product code in `apps/poolday`; the
 
 ## Releases and evidence
 
-- **[docs/status/README.md](./status/README.md)** - What the status files are and which one to read for each surface
+- **[docs/status-index.md](status-index.md)** - What the status files are and which one to read for each surface
 - **[docs/status/surface-claim-index.json](./status/surface-claim-index.json)** - Machine-checked surface status, evidence, blockers, and claim permission
 - **[docs/critical-user-journeys.md](./critical-user-journeys.md)** - The one Reploid journey catalogue: the owner's four first-visit journeys as the public-page bar (FIRST-01 to FIRST-04) and the rules and checks that follow from them, every outcome journey with its acceptance criteria and evidence status, and coverage variants
 - **[docs/first-visit-journeys.md](./first-visit-journeys.md)** - Redirect to the public-page bar in the journey catalogue
