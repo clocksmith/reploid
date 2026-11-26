@@ -165,6 +165,13 @@ const WorkerManager = {
       return allowedTools.includes(toolName);
     };
 
+    // Tools that create or wait on workers. A worker type may use them only if its definition sets
+    // canSpawnWorkers; no shipped type does. Workers reach tools through this module's RPC, and a tool
+    // cannot see which worker called it, so the hierarchy is enforced here, not in SpawnWorker.
+    const WORKER_SPAWN_TOOLS = new Set(['SpawnWorker', 'AwaitWorkers']);
+    const _workerMaySpawn = (record) => record?.canSpawnWorkers === true;
+    const _withoutSpawnTools = (schemas) => schemas.filter(s => !WORKER_SPAWN_TOOLS.has(s?.function?.name));
+
     /**
      * Generate unique worker ID
      */
@@ -209,7 +216,8 @@ const WorkerManager = {
                 : []
             }, { tags: ['llm'] });
           }
-          const toolSchemas = ToolRunner.getToolSchemasFiltered(record.allowedTools);
+          const offered = ToolRunner.getToolSchemasFiltered(record.allowedTools);
+          const toolSchemas = _workerMaySpawn(record) ? offered : _withoutSpawnTools(offered);
           const response = await LLMClient.chat(payload.messages, record.modelConfig, null, { tools: toolSchemas });
           if (TraceStore && traceSessionId) {
             await TraceStore.record(traceSessionId, 'llm:response', {
@@ -228,6 +236,14 @@ const WorkerManager = {
 
         if (op === 'tool:execute') {
           const { call, iteration } = payload;
+          if (WORKER_SPAWN_TOOLS.has(call?.name) && !_workerMaySpawn(record)) {
+            _postRpcResponse(worker, requestId, true, {
+              result: null,
+              rawResult: null,
+              error: `Workers cannot use ${call.name} (flat hierarchy enforced)`
+            });
+            return;
+          }
           const { result, rawResult, error } = await ToolExecutor.executeWithRetry(call, {
             iteration,
             workerId,
@@ -380,6 +396,7 @@ const WorkerManager = {
           logs: [],
           worker,
           allowedTools,
+          canSpawnWorkers: workerType?.canSpawnWorkers === true,
           modelConfig: resolvedModelConfig,
           traceSessionId
         };

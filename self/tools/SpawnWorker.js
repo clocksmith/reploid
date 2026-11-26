@@ -31,7 +31,8 @@ async function call(args = {}, deps = {}) {
   }
 
   try {
-    // Spawn the worker with timeout and retry (depth=0 since this is called from main agent)
+    // Spawn with timeout and retry. Only the main agent reaches this tool: WorkerManager refuses
+    // SpawnWorker and AwaitWorkers in worker tool calls, so depth is 0 here.
     const { workerId } = await withTimeoutAndRetry(
       async (_attempt, signal) => WorkerManager.spawn({
         type,

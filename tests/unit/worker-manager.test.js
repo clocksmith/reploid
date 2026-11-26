@@ -20,7 +20,9 @@ const makeDeps = () => ({
   },
   ToolRunner: {
     setWorkerManager: vi.fn(),
-    getToolSchemasFiltered: vi.fn().mockReturnValue([])
+    getToolSchemasFiltered: vi.fn().mockReturnValue([
+      { function: { name: 'ReadFile' } }, { function: { name: 'SpawnWorker' } }, { function: { name: 'AwaitWorkers' } }
+    ])
   },
   ResponseParser: {
     parseToolCalls: vi.fn().mockReturnValue([])
@@ -227,5 +229,48 @@ describe('WorkerManager', () => {
       error: null
     });
     expect(result.rpcPayload.rawResult).toEqual({ ok: false, reasons: ['worker evidence failed'] });
+  });
+
+  // A worker that asks for SpawnWorker over RPC. Workers reach tools only through this RPC, so
+  // the manager must refuse it: no worker type sets canSpawnWorkers.
+  const runWorkerRpc = async (workerTypes, type, rpc) => {
+    let fakeWorker = null;
+    class FakeWorker {
+      constructor() { fakeWorker = this; this.onmessage = null; this.onerror = null; this.rpcResponse = null; }
+      postMessage(message) {
+        if (message.type === 'start') {
+          queueMicrotask(() => this.onmessage?.({ data: { type: 'rpc', workerId: message.workerId, requestId: 'rpc_1', ...rpc } }));
+          return;
+        }
+        if (message.type === 'rpc:response') {
+          this.rpcResponse = message;
+          queueMicrotask(() => this.onmessage?.({ data: { type: 'complete', workerId: 'worker_1', result: 'done' } }));
+        }
+      }
+      terminate() {}
+    }
+    vi.stubGlobal('Worker', FakeWorker);
+    const deps = makeDeps();
+    const workerManager = WorkerManagerModule.factory(deps);
+    await workerManager.init({ workerTypes }, { id: 'test-model', provider: 'test' });
+    const { promise } = await workerManager.spawn({ type, task: 'try to spawn', maxIterations: 1 });
+    await promise;
+    return { deps, response: fakeWorker.rpcResponse };
+  };
+
+  it('refuses SpawnWorker from a worker whose type allows every tool', async () => {
+    const { deps, response } = await runWorkerRpc(
+      { execute: { tools: '*', canSpawnWorkers: false, defaultModelRole: 'fast' } }, 'execute',
+      { op: 'tool:execute', payload: { iteration: 1, call: { name: 'SpawnWorker', args: { task: 'nested' } } } });
+    expect(deps.ToolExecutor.executeWithRetry).not.toHaveBeenCalled();
+    expect(response.payload.error).toMatch(/flat hierarchy/);
+  });
+
+  it('does not offer SpawnWorker or AwaitWorkers to a worker', async () => {
+    const { deps } = await runWorkerRpc(
+      { execute: { tools: '*', canSpawnWorkers: false, defaultModelRole: 'fast' } }, 'execute',
+      { op: 'llm:chat', payload: { messages: [] } });
+    const offered = deps.LLMClient.chat.mock.calls[0][3].tools.map(t => t.function.name);
+    expect(offered).toEqual(['ReadFile']);
   });
 });
