@@ -52,6 +52,19 @@ export async function tradeKey({ state, name = os.hostname().slice(0, 64) || 'Th
   return { identity, entry: { name: String(name).slice(0, 64), providers: [{ participantId: identity.peerId, publicJwk: identity.publicJwk }] } };
 }
 
+/**
+ * What a person should know about the release window before the silent-provider drill. Since 5935063ab the
+ * requester's whole-model terms sign `wholeModelUnclaimedReleaseMs` (mode "whole-model"), the window the ledger
+ * releases a silent whole-model hold after, so the two agree whatever the split window is. Only a requester host
+ * older than that commit signs the split window, which is why every party runs the same commit.
+ */
+export function releaseWindowNotes(policy) {
+  if (policy.wholeModelUnclaimedReleaseMs === policy.partitionUnclaimedReleaseMs) return [];
+  return [`This route's signed terms and the ledger both use the whole-model release window, ${policy.wholeModelUnclaimedReleaseMs} ms; `
+    + `the split window (${policy.partitionUnclaimedReleaseMs} ms) does not apply. A requester host older than reploid 5935063ab would sign the split one instead: `
+    + 'both people must run the same commit.'];
+}
+
 /** The ledger's published coordinator key, or null when it publishes none. */
 export async function fetchCoordinatorKey(serviceUrl, { ca = null } = {}) {
   const target = `${serviceUrl.replace(/\/+$/, '')}/coordinator`;
@@ -93,10 +106,7 @@ export async function prepareTradeHost({ role, state, service, signaling, room, 
   const mine = (await client.call('computers', {})).computers.find(row => row.participantIds?.includes(identity.peerId));
   assert(mine, 'The ledger enrolls this key but lists no computer for it');
   const { policy } = await client.call('terms', { id: model.id, identity: model.identity });
-  if (policy.wholeModelUnclaimedReleaseMs !== policy.partitionUnclaimedReleaseMs) {
-    notes.push(`The ledger releases a silent whole-model hold after ${policy.wholeModelUnclaimedReleaseMs} ms but the signed terms name ${policy.partitionUnclaimedReleaseMs} ms: `
-      + 'for the silent-provider drill, wait for the longer of the two before exporting.');
-  }
+  notes.push(...releaseWindowNotes(policy));
   const coordinator = await fetchCoordinatorKey(service, { ca: caBytes });
   if (!coordinator) {
     assert(role === 'earner' || allowUnsignedHold, 'This ledger publishes no coordinator key, so it signs no settlement statement and the release of your hold could not be proven. '

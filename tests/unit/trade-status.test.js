@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, it, expect } from 'vitest';
-import { tradeStatus } from '../../scripts/settlement/trade.js';
+import { releaseWindowNotes, tradeStatus } from '../../scripts/settlement/trade.js';
 
 const state = (network, rest = {}) => ({ computerId: 'c', preparing: false, error: null, selected: { modelId: 'tiny' }, network, execution: { ready: false, offering: false }, ...rest });
 
@@ -34,5 +34,21 @@ describe('the status lines of a trade host', () => {
     const lines = [], status = tradeStatus({ role: 'spender', signaling: 'ws://x/signaling', say: line => lines.push(line) });
     status(state({ connectionState: 'connected', peerCount: 1 }));
     expect(lines).toEqual(['Signaling: connected.', 'Other computers in the room: 1.']);
+  });
+});
+
+describe('the release-window note before a trade', () => {
+  const policy = (wholeModel, partition) => ({ wholeModelUnclaimedReleaseMs: wholeModel, partitionUnclaimedReleaseMs: partition });
+
+  it('says nothing when the two windows are equal', () => {
+    expect(releaseWindowNotes(policy(120000, 120000))).toEqual([]);
+  });
+
+  it('does not claim the signed terms name the split window: whole-model terms sign the whole-model one', () => {
+    const [note, ...rest] = releaseWindowNotes(policy(120000, 60000));
+    expect(rest).toEqual([]);
+    expect(note).toContain('whole-model release window, 120000 ms');
+    expect(note).not.toMatch(/signed terms name 60000/);
+    expect(note).not.toMatch(/longer of the two/);
   });
 });
