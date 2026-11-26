@@ -7,6 +7,15 @@
 export type Availability = 'ready' | 'waiting' | 'unavailable';
 export type NextAction = 'join' | 'cancel-download' | 'cancel-queued' | 'review-shared' | 'network-opt-in' | 'download-local' | 'retry';
 export type FocusTarget = 'composer' | 'answer-on' | 'sheet' | 'sheet-commit' | 'privacy' | 'download' | 'threads';
+/** A destination the composer offers when the chosen one cannot answer. */
+export type RouteAlternativeKey = 'device' | 'desktop' | 'contributors';
+/** What the sheet's primary button does; empty when nothing on the sheet can fix the outcome. */
+export type OutcomeAction = 'commit' | 'download' | 'use-contributors' | 'use-device';
+/** How data is processed (`execution.protection`). */
+export type Protection = 'plaintext' | 'secret-sharing' | 'homomorphic' | 'attested';
+/** Where it runs (`execution.route`), or let it choose. */
+export type PrivacyRoute = 'local' | 'remote' | 'split' | 'split-local-edges' | 'auto';
+export type PrivacyPreset = 'standard' | 'own-devices';
 
 export type ComposerView = {
   readonly draft: string;
@@ -37,7 +46,7 @@ export type ComposerView = {
   readonly nextAction: NextAction | null;
   readonly nextLabels: { readonly join: string; readonly reviewShared: string; readonly downloadLocal: string; readonly retry: string; readonly retryPending: boolean };
   readonly disclosure: string;
-  readonly routeAlternatives: ReadonlyArray<{ readonly key: 'device' | 'desktop' | 'contributors'; readonly title: string; readonly reads: string }>;
+  readonly routeAlternatives: ReadonlyArray<{ readonly key: RouteAlternativeKey; readonly title: string; readonly reads: string }>;
   readonly executionSettingsReset: boolean;
   readonly startingPrompt: { readonly text: string; readonly texts: readonly string[]; readonly inert: boolean } | null;
   readonly error: string;
@@ -76,7 +85,7 @@ export type SheetView =
       readonly threadNote: boolean;
       readonly sections: ReadonlyArray<ModelSection>;
       readonly selectedKey: string | null;
-      readonly outcome: { readonly issue: string; readonly action: string; readonly label: string; readonly disabled: boolean };
+      readonly outcome: { readonly issue: string; readonly action: OutcomeAction | ''; readonly label: string; readonly disabled: boolean };
       readonly facts: string;
       readonly localFit: string;
       readonly routes: ReadonlyArray<{ readonly selectionId: string; readonly type: string; readonly status: string }>;
@@ -85,7 +94,7 @@ export type SheetView =
       readonly detailsOpen: boolean;
     };
 
-export type PrivacyOption = { readonly value: string; readonly title: string; readonly status: string; readonly disabled: boolean };
+export type PrivacyOption<T extends string = string> = { readonly value: T; readonly title: string; readonly status: string; readonly disabled: boolean };
 
 /** "Who can read it?": the protection, where it runs and whether only your devices may run it, staged until Apply. */
 export type PrivacyView = {
@@ -93,17 +102,17 @@ export type PrivacyView = {
   readonly editable: boolean;
   readonly error: string;
   readonly applying: boolean;
-  readonly protection: string | null;
-  readonly route: string | null;
+  readonly protection: Protection | null;
+  readonly route: PrivacyRoute | null;
   readonly ownDevices: boolean;
-  readonly protections: ReadonlyArray<PrivacyOption>;
-  readonly routes: ReadonlyArray<PrivacyOption>;
-  readonly ownDevicesOption: PrivacyOption;
+  readonly protections: ReadonlyArray<PrivacyOption<Protection>>;
+  readonly routes: ReadonlyArray<PrivacyOption<PrivacyRoute>>;
+  readonly ownDevicesOption: PrivacyOption<'own-devices'>;
   /** How many computers can read a plaintext split, or the requester-edges line; empty otherwise. */
   readonly splitNote: string;
-  readonly preset: 'standard' | 'own-devices';
+  readonly preset: PrivacyPreset;
   readonly note: string;
-  readonly notes: Readonly<Record<'standard' | 'own-devices', string>>;
+  readonly notes: Readonly<Record<PrivacyPreset, string>>;
 };
 
 export type DownloadView = {
@@ -204,7 +213,7 @@ export type ConversationCommands = {
   readonly downloadLocal: () => void;
   readonly reviewSharedModel: () => void;
   readonly reviewNetworkExecution: () => void;
-  readonly takeRouteAlternative: (key: string) => void;
+  readonly takeRouteAlternative: (key: RouteAlternativeKey) => void;
   readonly joinHost: () => void;
   readonly openSheet: () => void;
   readonly closeSheet: () => void;
@@ -215,8 +224,8 @@ export type ConversationCommands = {
   readonly runSheetAction: () => void;
   readonly modelProviders: (key: string) => { readonly providerIds: ReadonlyArray<string>; readonly label: string } | null;
   readonly openPrivacy: () => void;
-  readonly pickProtection: (value: string) => void;
-  readonly pickRoute: (value: string) => void;
+  readonly pickProtection: (value: Protection) => void;
+  readonly pickRoute: (value: PrivacyRoute) => void;
   readonly setOwnDevices: (on: boolean) => void;
   readonly closePrivacy: () => void;
   readonly applyPrivacy: () => void;

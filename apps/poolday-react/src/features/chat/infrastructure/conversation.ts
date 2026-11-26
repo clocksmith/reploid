@@ -2,14 +2,10 @@
 // (apps/poolday/host/decisions/conversation-controller.js) makes every decision with the host's
 // decision functions; this adapter only supplies the page's ports: this browser's storage for the
 // remembered "Answer on" choice, the address bar an invite link is read from, and the clipboard.
-import * as controllerModule from '../../../../../poolday/host/decisions/conversation-controller.js';
+import { createConversationController, type ConversationSession } from '../../../../../poolday/host/decisions/conversation-controller.js';
 import type { ConversationPort } from '../domain/conversation';
 
-type Host = { readonly chat: object; readonly webSearch?: object | null; readonly search?: object | null; readonly historyHandover?: object | null };
-
-const { createConversationController } = controllerModule as unknown as {
-  readonly createConversationController: (session: object, options: object) => ConversationPort;
-};
+type Host = { readonly chat: ConversationSession; readonly webSearch?: object | null; readonly search?: object | null; readonly historyHandover?: object | null };
 
 function safeStorage(): Storage | null {
   try {
@@ -31,7 +27,8 @@ function viewStateOf(product: object): object {
 
 export function createConversation(product: { readonly host: object }, viewState: object = viewStateOf(product)): ConversationPort {
   const host = product.host as Host;
-  return createConversationController(host.chat, {
+  // The domain's record of the controller is checked against the controller's declaration here.
+  const port: ConversationPort = createConversationController(host.chat, {
     storage: safeStorage(),
     viewState,
     webSearch: host.webSearch ?? null,
@@ -42,4 +39,5 @@ export function createConversation(product: { readonly host: object }, viewState
     forgetInvite: () => window.history.replaceState(window.history.state, '', window.location.pathname + window.location.search),
     clipboard: (text: string) => navigator.clipboard?.writeText(text),
   });
+  return port;
 }

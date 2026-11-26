@@ -1,26 +1,20 @@
 // Adapts the Poolday host to Settings: the chat session's preferences and file sharing, model storage, local data,
 // the credits account, web search and the change list. The host decides and stores everything; the wording comes
 // from apps/poolday/host/decisions/settings.js, so both shells say the same thing.
-import * as decisions from '../../../../../poolday/host/decisions/settings.js';
+import * as settings from '../../../../../poolday/host/decisions/settings.js';
 import * as localDataModule from '../../../../../poolday/host/local-data.js';
 import * as context from '../../../../../poolday/host/product-context.js';
 import * as peerRoom from '../../../../../poolday/pool/peer-room.js';
 import { createProjectedStore, type ProjectedStore } from '../../../../../poolday/host/decisions/projected-store.js';
 import type {
   CreditAccountPort,
-  CreditAccountView,
-  FileSharingSelection,
-  FileSharingView,
   ImportPlan,
   LocalDataPort,
-  RoutePreferenceView,
   SettingsServices,
   SettingsSnapshot,
-  SignInView,
   StoragePort,
   Store,
   WebSearchPort,
-  WebSearchView,
 } from '../domain/services';
 
 type State = Record<string, unknown> & { readonly network?: unknown };
@@ -63,20 +57,6 @@ type Host = {
   readonly evolution?: { readonly list: () => Promise<ReadonlyArray<{ readonly status: string }>> } | null;
 };
 
-const settings = decisions as unknown as {
-  readonly projectRoutePreference: (state: State, session: Session) => RoutePreferenceView;
-  readonly storageSummary: (state: State) => string;
-  readonly storedModelLabel: (row: { name: string; sizeBytes: number }) => string;
-  readonly projectFileSharing: (state: State, selection: FileSharingSelection) => FileSharingView;
-  readonly fileSharingRequest: (state: State, selection: FileSharingSelection) => {
-    readonly enable: boolean; readonly paused: boolean; readonly cachedOnly: boolean; readonly modelId: string | null; readonly controls: unknown;
-  };
-  readonly remoteAnswersText: (state: State) => string;
-  readonly projectWebSearch: (state: WebSearchState, search: SearchStatus | null | undefined) => WebSearchView;
-  readonly projectCreditAccount: (state: Record<string, unknown>) => CreditAccountView;
-  readonly projectSignIn: (state: Record<string, unknown>) => SignInView;
-  readonly localSignInText: (state: Record<string, unknown>) => string;
-};
 const { createLocalData, LOCAL_DATA_MAX_BYTES } = localDataModule as unknown as {
   readonly createLocalData: (options: { chat: Session; computers: unknown }) => {
     readonly export: () => { readonly conversations: ReadonlyArray<unknown> };

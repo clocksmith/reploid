@@ -1,7 +1,7 @@
 // Adapts the host's chat session to Conversation details. The projections are
 // apps/poolday/host/decisions/conversation-details.js, shared with the vanilla inspector's wording; the session
 // records, revokes and exports, and the paired host's ledger issues receipts.
-import * as projections from '../../../../../poolday/host/decisions/conversation-details.js';
+import { projectConversationDetails, ledgerOutcomeText, CONTEXT_WORD_LIMITS } from '../../../../../poolday/host/decisions/conversation-details.js';
 import { createProjectedStore } from '../../../../../poolday/host/decisions/projected-store.js';
 import type { ContextSelection, ContextView, DetailsServices, DetailsView } from '../domain/services';
 
@@ -20,11 +20,6 @@ type Session = {
   readonly privateComputers?: { readonly receipt?: (id: string) => Promise<unknown> } | null;
 };
 
-const { projectConversationDetails, ledgerOutcomeText, CONTEXT_WORD_LIMITS } = projections as unknown as {
-  readonly CONTEXT_WORD_LIMITS: ReadonlyArray<number>;
-  readonly projectConversationDetails: (state: State, options: { labels: unknown; inspected: { threadId: string | null; attemptId: string } | null }) => DetailsView;
-  readonly ledgerOutcomeText: (receipt: unknown, prefix: string) => string;
-};
 
 function saveFile(text: string, name: string, type: string) {
   const url = URL.createObjectURL(new Blob([text], { type }));

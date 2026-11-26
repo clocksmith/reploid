@@ -1,7 +1,7 @@
 // Adapts the Poolday host's computers, pairing, accounts, discovery and contribution to the Computers screens.
 // Every line comes from apps/poolday/host/decisions/computers.js, the decisions the vanilla pane used; this
 // file only reads host snapshots, calls host commands and hands files to the browser.
-import * as decisions from '../../../../../poolday/host/decisions/computers.js';
+import * as host$ from '../../../../../poolday/host/decisions/computers.js';
 import * as ownerPairingHost from '../../../../../poolday/host/owner-pairing.js';
 import { createProjectedStore } from '../../../../../poolday/host/decisions/projected-store.js';
 import type {
@@ -9,8 +9,6 @@ import type {
   ComputersServices,
   ComputersView,
   CreditActivity,
-  DiagnosticView,
-  FleetAccountView,
   GuestInvite,
   OperationView,
   PairingTarget,
@@ -91,24 +89,6 @@ type Host = {
   readonly operationSharing?: Participation;
 };
 
-type Decisions = {
-  readonly projectComputers: (state: State, options: { filter: { providerIds: ReadonlyArray<string>; label: string } | null; sizes: Map<string, { sizeBytes?: number; error?: string }>; names?: Record<string, string>; selected: string | null }) => Omit<ComputersView, 'message' | 'fleet' | 'circleInvites' | 'diagnostic' | 'specialized'> & { networkIssue: string };
-  readonly projectFleetAccount: (port: FleetPort | null | undefined) => FleetAccountView;
-  readonly projectDiagnostic: (view: unknown) => DiagnosticView;
-  readonly withComputerLabels: (state: State, session: object) => State;
-  readonly setComputerNames: (session: object, names: Record<string, string>) => void;
-  readonly setBlockedComputers: (session: object, ids: ReadonlyArray<string>) => void;
-  readonly creditActivity: (statement: Statement, options?: { modelName?: (id: string) => string }) => ReadonlyArray<{ at: number; requestId: string; text: string }>;
-  readonly creditAccounts: (snapshot: unknown, ownId: string | undefined) => { own: { name: string } | null; others: ReadonlyArray<{ name: string }> };
-  readonly accountText: (row: unknown) => string;
-  readonly relayUnavailableReason: () => string | null;
-  readonly RELAY_UNAVAILABLE_TEXT: string;
-  readonly operationModels: () => ReadonlyArray<{ modelId: string; label?: string }>;
-  readonly operationLimitsText: () => string;
-  readonly operationStatusText: (state: { phase: string; modelId?: string; error?: string }) => string;
-  readonly operationSelection: (input: { modelId?: string; file?: File | null }) => Promise<object>;
-};
-const host$ = decisions as unknown as Decisions;
 const { parseOwnerPairingUrl } = ownerPairingHost as unknown as { readonly parseOwnerPairingUrl: (value: string) => PairingTarget | null };
 
 const messageOf = (cause: unknown) => (cause instanceof Error ? cause.message : String(cause));
