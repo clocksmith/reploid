@@ -108,17 +108,12 @@ test('queues Send while public computers are found and cancels back to an editab
   // Send itself queues; there is no separate opt-in button.
   await expect(page.locator('[data-queue-send]')).toBeHidden();
   await input.fill('Explain ocean tides.');
-  // A first Send with no computer chosen asks where to run before anything can leave this device.
-  await send.click();
-  await expect(page.locator('[data-model-picker]')).toBeVisible();
-  await expect(page.locator('[data-picker-title]')).toHaveText('Where should this run?');
-  await expect(page.locator('[data-execution-choice=local] input')).toBeChecked();
-  await page.locator('[data-execution-choice=network]').click();
-  await expect(page.locator('[data-execution-choice=network] input')).toBeChecked();
-  await page.locator('[data-model-picker-close]').click();
+  // A first Send asks nothing (docs/first-visit-journeys.md): while computers are being found it waits for one.
+  // This fixture starts with a model already chosen, so the wait names it.
   await expect(status).toContainText('Finding computers');
   await expect(cancel).toBeHidden();
   await send.click();
+  await expect(page.locator('[data-model-picker]')).toBeHidden();
   await expect(status).toContainText('Waiting for a computer running');
   await expect(cancel).toHaveText('Cancel');
   await cancel.click();

@@ -100,17 +100,14 @@ describe('ChatWorkspace', () => {
     expect(document.querySelector('[data-composer-model-source]')?.textContent).toBe('Contributors');
   });
 
-  it('asks where to run, queues Send while computers are found, and sends when one arrives', async () => {
+  it('queues a first Send while computers are found, asks nothing, and sends when one arrives', async () => {
     const demo = mount({ searching: true, stored: false });
     await userEvent.type(composer(), 'Explain ocean tides.');
     await userEvent.click(screen.getByRole('button', { name: 'Send' }));
-    await waitFor(() => expect(sheet().hasAttribute('open')).toBe(true));
-    expect(sheet().querySelector('[data-picker-title]')?.textContent).toBe('Where should this run?');
-    await userEvent.click(within(sheet()).getByRole('radio', { name: 'Contributors' }));
-    await closeSheet();
-    await userEvent.click(screen.getByRole('button', { name: 'Send' }));
-    await waitFor(() => expect(document.querySelector('[data-model-status]')?.textContent).toContain('Waiting for a computer running'));
-    expect(screen.getByRole('button', { name: 'Cancel' })).toBeTruthy();
+    // Type and send is the whole journey (docs/first-visit-journeys.md): no sheet asks where this should run.
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Cancel' })).toBeTruthy());
+    expect(sheet().hasAttribute('open')).toBe(false);
+    expect(document.querySelector('[data-model-status]')?.textContent).toContain('Finding computers');
     act(() => demo.contributorsArrive());
     await waitFor(() => expect(within(transcript()).getByText('A synthetic answer to: Explain ocean tides.')).toBeTruthy());
   });

@@ -110,6 +110,12 @@ export function createConversationController(session, {
   // ---- view state: what the person has staged on this page (the vanilla page's viewState and closures) ----
   let archived = false, chosenModel = viewState.chosenModel || null, pickerModel = null, pickerLocation = 'auto';
   let changingModel = false, pickerTouched = false, recoverySelection = null, pickerRevision = 0, pickerModelImplied = false;
+  // Whether the chosen model came with a computer or a default (it then follows availability) or the person picked
+  // it (it stays, and is never replaced for them), and whether the sheet's staged model is such a pick.
+  let chosenAuto = !!viewState.chosenAuto, pickerPicked = false;
+  const setChosen = (model, automatic = false) => {
+    chosenModel = viewState.chosenModel = model || null; chosenAuto = viewState.chosenAuto = !!model && automatic;
+  };
   let files = [], composerRevision = 0, queuedSend = null, draftText = '', currentKey = '';
   let contextPrompt = viewState.contextPrompt || null;
   let executionLocation = viewState.executionLocation || 'auto';
@@ -135,9 +141,24 @@ export function createConversationController(session, {
     if (!device) viewState.privacyPreset = 'standard';
     executionLocation = viewState.executionLocation = device ? 'local' : 'network';
   }
-  const rememberChoice = (model, privacy, location) => writeAnswerChoice(storage, model,
-    location === 'local' || privacy?.placement === 'local-only' ? 'device' : privacy?.recipients?.kind === 'open' ? 'contributors' : null);
-  const explicitPrivacy = state => (state.activeThread ? state.activeThread.privacy : viewState.privacy) ?? localPolicy;
+  const rememberChoice = (model, privacy, location, picked) => writeAnswerChoice(storage, model,
+    location === 'local' || privacy?.placement === 'local-only' ? 'device' : privacy?.recipients?.kind === 'open' ? 'contributors' : null, picked);
+  const storedHere = model => !model.partition && !model.fleet && (model.localReady || model.localCached || model.availability === 'cached');
+  const publicAnswers = model => !model.fleet && !model.partition && modelExecutionState(model, 'network').usable;
+  const openDefault = openPolicy();
+  /**
+   * A visitor who has chosen nothing asks the public network: no computer, model or permission is a step before
+   * the first Send. It holds while computers are being found or one can answer, and only while this device stores
+   * no model, network answers are on and no paired desktop or invite names the computer. The composer states the
+   * computer, the model and who can read the prompt before Send. With nobody to answer, the draft stays on this device.
+   */
+  const automaticContributors = state => !state.activeThread && viewState.privacy === undefined && !viewState.privacyTouched
+    && state.remoteAnswersEnabled !== false && !lockedDestination(state) && !(state.models || []).some(storedHere)
+    && (state.discoveryPhase === 'searching' || (state.models || []).some(publicAnswers));
+  const explicitPrivacy = state => (state.activeThread ? state.activeThread.privacy : viewState.privacy)
+    ?? (automaticContributors(state) ? openDefault : localPolicy);
+  /** Such a visitor's Send, pressed while computers are being found, waits for whichever model turns up: none is named yet. */
+  const waitsForAnyModel = state => automaticContributors(state) && (!chosenModel || chosenAuto);
 
   const lockedDestination = state => {
     const owner = state.ownerPairing, invite = viewState.guestInvite, guest = state.guestAccess;
@@ -194,6 +215,7 @@ export function createConversationController(session, {
     return key === 'named' && ids?.length === 1 && ids[0] === state.ownerPairing?.hostParticipantId ? 'desktop' : key;
   };
   const effectiveLocation = state => {
+    if (automaticContributors(state)) return 'network';
     const thread = state.activeThread, privacy = explicitPrivacy(state);
     return thread?.permissions?.sharingScope === 'local' || privacy.placement === 'local-only' || privacy.recipients?.kind === 'none'
       ? 'local' : thread?.permissions?.executionLocation ?? executionLocation;
@@ -217,7 +239,7 @@ export function createConversationController(session, {
     }
     if (!chosenModel && destination.readyModel) {
       const model = (state.models || []).find(item => item.id === destination.readyModel || modelKey(item) === destination.readyModel);
-      if (model) chosenModel = viewState.chosenModel = model;
+      if (model) setChosen(model, true);
     }
   };
   const choiceAvailable = (model, state) => {
@@ -228,16 +250,17 @@ export function createConversationController(session, {
   const applyRememberedChoice = state => {
     if (state.activeThread) return;
     if (rememberedChoice && !chosenModel && !viewState.draftModel) {
-      const model = findAnswerChoice(rememberedChoice, state.models);
-      if (model) { chosenModel = viewState.chosenModel = model; provisionalChoice = true; rememberedChoice = null; }
-      else if (choiceWaitOver(state)) rememberedChoice = null;
+      // Only a pick names a model for a later visit; any other record has already given its computer above.
+      const model = rememberedChoice.picked ? findAnswerChoice(rememberedChoice, state.models) : null;
+      if (model) { setChosen(model); provisionalChoice = true; rememberedChoice = null; }
+      else if (!rememberedChoice.picked || choiceWaitOver(state)) rememberedChoice = null;
     }
     if (!provisionalChoice) return;
     const current = chosenModel && findAnswerChoice(answerChoiceOf(chosenModel), state.models);
-    if (current && choiceAvailable(current, state)) { chosenModel = viewState.chosenModel = current; provisionalChoice = false; }
-    else if (!chosenModel || choiceWaitOver(state) && !draftText.trim() && !files.length) {
-      chosenModel = viewState.chosenModel = null; provisionalChoice = false;
-    }
+    if (current && choiceAvailable(current, state)) { setChosen(current); provisionalChoice = false; }
+    // A pick that nothing serves after the wait stays the choice: the composer says it is unavailable and Send
+    // stays off until the person chooses another model. It is never replaced for them.
+    else if (!chosenModel || choiceWaitOver(state)) provisionalChoice = false;
   };
   const withChoiceWait = state => provisionalChoice && !state.activeThread && state.discoveryPhase === 'observed' && !choiceWaitOver(state)
     ? { ...state, discoveryPhase: 'searching' } : state;
@@ -296,7 +319,7 @@ export function createConversationController(session, {
   }
   function queueScope(state, model) {
     const privacy = explicitPrivacy(state);
-    return JSON.stringify([state.selectedId, modelIdentity(model), effectiveLocation(state), privacy,
+    return JSON.stringify([state.selectedId, waitsForAnyModel(state) ? 'automatic' : modelIdentity(model), effectiveLocation(state), privacy,
       state.remoteNetworkId, state.remoteAnswersEnabled, state.activeThread?.permissions, contextPrompt,
       state.activeThread?.systemContext, searching(), composerRevision, draftText]);
   }
@@ -327,6 +350,7 @@ export function createConversationController(session, {
     if (pickerModelImplied && pickerLocation === 'network' && pickerChoice === 'contributors' && !block) {
       const current = state.models?.find(model => modelKey(model) === modelKey(pickerModel)) || pickerModel;
       pickerModel = modelForLocation(state.models, current, 'network', { state, canDownload });
+      if (modelKey(pickerModel) !== modelKey(current)) pickerPicked = false;
     }
     if (!pickerTouched) pickerModel = (state.models || []).find(model => modelKey(model) === currentKey) || pickerModel;
     const models = [...(state.models || [])];
@@ -399,6 +423,13 @@ export function createConversationController(session, {
     }
     const thread = state.activeThread, catalogModels = state.models || [], runningIds = state.runningIds || [];
     if (!thread && !draftText.trim() && !files.length && !attachmentReader.pending) viewState.draftModel = null;
+    // An automatic choice follows availability: when its model is no longer served or stored and another one is,
+    // the composer moves to that one before Send, so the model it names is the model that answers.
+    if (!thread && state.defaultModels?.[effectiveLocation(state)] && !lockedDestination(state)) {
+      const served = model => { const item = findAnswerChoice(answerChoiceOf(model), catalogModels); return !!item && choiceAvailable(item, state); };
+      if (viewState.draftModel && !chosenModel && !served(viewState.draftModel)) viewState.draftModel = null;
+      if (chosenModel && chosenAuto && !provisionalChoice && !served(chosenModel)) setChosen(null);
+    }
     const pinnedModel = thread?.model || chosenModel || viewState.draftModel;
     const models = catalogModels.filter(model => modelKey(model) !== modelKey(pinnedModel)
       || !pinnedModel?.identity || modelIdentity(model) === modelIdentity(pinnedModel));
@@ -412,12 +443,17 @@ export function createConversationController(session, {
       ? startingLocalModel(models, { defaultModel: servedDownload || defaultModel, canDownloadHere: downloadable }) : null;
     const current = modelKey(pinnedModel) || modelKey(localStart)
       || modelKey(models.find(model => modelKey(model) === modelKey(defaultModel) && selectable(model)))
-      || modelKey(models.find(selectable)) || modelKey(models[0]);
+      || modelKey(models.find(selectable))
+      // While computers are being found for a visitor who chose nothing, a queued Send needs a whole model to wait on.
+      || (automaticContributors(state) ? modelKey(models.find(model => modelKey(model) === modelKey(defaultModel))) : undefined)
+      || modelKey(models[0]);
     currentKey = current || '';
     const selectedModel = catalogModels.find(model => modelKey(model) === current
       && (!pinnedModel?.identity || modelIdentity(model) === modelIdentity(pinnedModel)));
-    if (!thread && !chosenModel && !viewState.draftModel && (draftText.trim() || files.length)) viewState.draftModel = selectedModel;
     const execution = modelExecutionState(selectedModel, location);
+    // A typed draft keeps the model it was written for, once computers are known: nothing is pinned while they are being found.
+    if (!thread && !chosenModel && !viewState.draftModel && (draftText.trim() || files.length)
+      && !(freshVisitor && state.discoveryPhase === 'searching' && !execution.usable)) viewState.draftModel = selectedModel;
     const prepareHere = location === 'local' && selectedModel?.localCached === true;
     const usable = explicitPrivacy(state).computation === 'plaintext' && (execution.usable || prepareHere);
     const localPreparing = state.localModel?.phase === 'loading';
@@ -491,7 +527,7 @@ export function createConversationController(session, {
     const permitted = !busy && canWaitForPublicModel(state, selectedModel, location);
     if (queuedSend && (!permitted || queuedSend.scope !== queueScope(state, selectedModel))) queuedSend = null;
     if (queuedSend) {
-      statusText = `Waiting for a computer running ${modelVariantLabel(selectedModel)}…`;
+      statusText = waitsForAnyModel(state) ? 'Finding computers…' : `Waiting for a computer running ${modelVariantLabel(selectedModel)}…`;
       const intent = queuedSend;
       if (!intent.scheduled && readyForQueuedSend(state, intent)) {
         intent.scheduled = true;
@@ -512,7 +548,7 @@ export function createConversationController(session, {
       || catalogModels.find(model => modelKey(model) === current) || requestedModel;
     const lockedHost = lockedDestination(state), destination = destinationKey(state);
     const runsHereNow = destination === 'device' || location === 'local' || execution.usable && execution.source === 'local';
-    const findingFirst = freshVisitor && !pinnedModel && phase === 'searching' && !execution.usable;
+    const findingFirst = freshVisitor && !(thread?.model || chosenModel) && phase === 'searching' && !execution.usable;
     const computerName = runsHereNow ? 'This device' : destination === 'desktop' ? lockedHost?.label
       : destination === 'named' ? 'Named computers' : selectedModel?.fleet ? execution.label : 'Contributors';
     const availability = execution.usable ? 'ready' : preparing || phase === 'searching' ? 'waiting' : 'unavailable';
@@ -706,6 +742,8 @@ export function createConversationController(session, {
     pickerTouched = !!alternative;
     pickerModelImplied = false;
     const state = sessionState;
+    // The sheet opens on the current model. It is a pick only if the person picked it earlier, or picks one here.
+    pickerPicked = !state.activeThread && !!chosenModel && !chosenAuto;
     pickerModel = alternative || (state.models || []).find(model => modelKey(model) === currentKey)
       || state.activeThread?.model || chosenModel || state.defaultModel || null;
     const key = destinationKey(state);
@@ -755,7 +793,7 @@ export function createConversationController(session, {
   const resumeAfterChoice = () => { if (sendAfterDestination) { sendAfterDestination = false; submitDraft(); } };
   function commitPickerChoice() {
     if (changingModel || attachmentReader.pending) return;
-    const next = modelKey(pickerModel);
+    const next = modelKey(pickerModel), picked = pickerPicked;
     const state = sessionState;
     if (recoverySelection && !matchesRecovery(state)) { notify(); return; }
     const model = (state.models || []).find(item => modelKey(item) === next && (modelExecutionState(item, pickerLocation).usable
@@ -798,9 +836,9 @@ export function createConversationController(session, {
           if (disposed || selectedId !== destination) return;
         }
         viewState.privacy = privacy;
-        chosenModel = model; viewState.chosenModel = chosenModel; rememberedChoice = null; provisionalChoice = false;
+        setChosen(model, !picked); rememberedChoice = null; provisionalChoice = false;
         executionLocation = location; viewState.executionLocation = executionLocation;
-        rememberChoice(model, privacy, location);
+        rememberChoice(model, privacy, location, picked);
         closePicker(); requestFocus('composer');
         resumeAfterChoice();
       } finally {
@@ -818,7 +856,9 @@ export function createConversationController(session, {
     pickerRevision++; pickerTouched = true;
     if (action === 'use-device') { pickerLocation = 'local'; pickerChoice = 'device'; stagedDestination = null; }
     else { viewState.privacyPreset = 'standard'; pickerLocation = 'network'; pickerChoice = 'contributors'; stagedDestination = 'contributors'; }
+    const kept = pickerModel;
     pickerModel = modelForLocation(state.models, pickerModel, pickerLocation, { state, canDownload });
+    if (modelKey(pickerModel) !== modelKey(kept)) pickerPicked = false;
     pickerModelImplied = true;
     commitPickerChoice();
   };
@@ -998,7 +1038,10 @@ export function createConversationController(session, {
       pickerChoice = choice === 'local' ? 'device' : choice === 'desktop' ? 'desktop' : 'contributors';
       stagedDestination = null;
       pickerModelImplied = choice !== 'desktop';
+      const kept = pickerModel;
       if (choice !== 'desktop') pickerModel = modelForLocation(current.models, pickerModel, pickerLocation, { state: current, canDownload });
+      // A model that came with the computer is not the person's pick.
+      if (modelKey(pickerModel) !== modelKey(kept)) pickerPicked = false;
       if (choice === 'network' && blockFor(current)) { notify(); return; }
       if (!current.activeThread) applyDraftDestination(pickerChoice);
       notify();
@@ -1011,6 +1054,7 @@ export function createConversationController(session, {
       pickerTouched = true; pickerModelImplied = false;
       const state = sessionState;
       pickerModel = (state.models || []).find(model => modelKey(model) === key) || pickerModel;
+      pickerPicked = modelKey(pickerModel) === key;
       const side = locationForModel(pickerModel, pickerLocation, { block: blockFor(state), choice: pickerChoice });
       const moved = side !== (pickerLocation === 'local' ? 'local' : 'network');
       if (moved) { pickerLocation = side; pickerChoice = side === 'local' ? 'device' : 'contributors'; stagedDestination = side === 'network' ? 'contributors' : null; }
@@ -1098,8 +1142,9 @@ export function createConversationController(session, {
       queuedSend = null;
       try {
         observe(after(saveDraft(), () => after(session.select(null), () => {
-          if (chosenModel) rememberedChoice = answerChoiceOf(chosenModel);
-          chosenModel = null; provisionalChoice = false; viewState.chosenModel = null; archived = false;
+          // A pick carries to the new thread; an automatic choice is made again from what is available.
+          if (chosenModel && !chosenAuto) rememberedChoice = answerChoiceOf(chosenModel, null, true);
+          setChosen(null); provisionalChoice = false; archived = false;
           requestFocus('composer'); notify();
         })));
       } catch (cause) { error(cause); }

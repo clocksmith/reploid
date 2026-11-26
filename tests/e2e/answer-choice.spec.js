@@ -100,11 +100,39 @@ test('the shipped page reads the stored Answer on choice and waits for it while 
   const model = await page.evaluate(async () => {
     const { CANONICAL_CHAT_MODELS } = await import('/host/chat-session.js');
     const model = CANONICAL_CHAT_MODELS.at(-1);
-    localStorage.setItem('reploid.answer-choice.v1', JSON.stringify({ selectionId: model.id, identity: model.identity, route: 'contributors' }));
+    localStorage.setItem('reploid.answer-choice.v1', JSON.stringify({ selectionId: model.id, identity: model.identity, route: 'contributors', picked: true }));
     return { name: model.name };
   });
   await page.reload();
   // The network is unreachable here, so nothing shows the model absent: the choice keeps its place on Contributors.
   await expect(page.locator('[data-open-model]')).toHaveAttribute('aria-label', new RegExp(`^Answer on Contributors · ${model.name}`));
   await expect(page.locator('[data-prompt-disclosure]')).not.toHaveText('Nothing leaves this device.');
+});
+
+// docs/first-visit-journeys.md, journey 2, on the shipped page: the bar is type and send.
+test('a first visitor types and sends once, and the model the composer named is the model asked', async ({ page, baseURL }) => {
+  await localOnly(page, baseURL);
+  await page.goto('/network');
+  await installTwoContributors(page);
+  // Nothing was chosen: the composer already says where the question goes, to which model, and who can read it.
+  await expect(page.locator('[data-open-model]')).toHaveAttribute('aria-label', /^Answer on Contributors · .+, Ready$/);
+  await expect(page.locator('[data-prompt-disclosure]')).toHaveText('The answering computer can read your prompt.');
+  const name = await page.locator('[data-open-model] [data-composer-model-name]').textContent();
+  const named = await page.evaluate(name => window.fixture.models.find(model => model.name === name)?.id, name);
+  expect(named).toBeTruthy();
+  await page.locator('[data-composer-input]').fill('First question');
+  await page.locator('[data-composer-send]').click();
+  // One press: no sheet and no permission prompt stand between Send and the answer.
+  const answer = page.locator('[data-message-stream] [data-message-role=assistant]').last();
+  await expect(answer).toContainText('Controlled answer');
+  await expect(page.locator('[data-model-picker]')).toBeHidden();
+  await expect(page.locator('[data-remote-permission] [data-remote-permission-allow]')).toBeHidden();
+  expect(await page.evaluate(() => window.fixture.asked)).toEqual([named]);
+  await expect(answer.locator('[data-execution-activity]')).toContainText(name);
+  // The page's own choice is not stored as the visitor's pick.
+  expect(await page.evaluate(() => localStorage.getItem('reploid.answer-choice.v1'))).toBeNull();
+  // The conversation continues on the same model.
+  await send(page, 'Second question');
+  expect(await page.evaluate(() => window.fixture.asked)).toEqual([named, named]);
+  await page.evaluate(() => window.fixture.close());
 });

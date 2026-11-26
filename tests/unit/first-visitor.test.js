@@ -29,46 +29,48 @@ function fixture({ automatic = false, viewState, fresh = false } = {}) {
   return { api, view, c: view.controller,
     publish(update) { state = { ...state, ...update }; listeners.forEach(callback => callback(state)); }, state: () => state };
 }
-it('asks once where to run before a first visitor prompt can reach a network provider', async () => {
+it('names the public computer and model a first visitor would send to, and asks nothing on Send', async () => {
   const f = fixture({ fresh: true });
   const model = { ...f.state().models[0], availability: 'ready', networkAvailability: 'ready',
     providerIds: ['peer'], reachableProviderIds: ['peer'] };
   f.publish({ ...observedDiscovery, models: [model] });
-  // Send is available, but nothing is sent until the visitor picks a computer in the one sheet.
+  // Before Send the composer says where the question goes and who can read it.
   expect(f.view.composer().send.disabled).toBe(false);
-  f.view.send('First question');
-  expect(f.view.sheet().open).toBe(true);
-  expect(f.view.sheet().title).toBe('Where should this run?');
-  expect(f.view.checkedComputer()).toBe('local');
-  // A first visitor starts on this device with a model it can run there: its download. Never a network-only pair.
-  expect(f.view.sheet().outcome.issue).toMatch(/^Not on this device yet/);
+  expect(f.view.composer().chip.source).toBe('Contributors');
+  expect(f.view.composer().chip.selectionId).toBe(model.id);
+  expect(f.view.composer().disclosure).toBe('The answering computer can read your prompt.');
+  expect(f.view.composer().nextAction).toBeNull();
+  // The sheet is the optional change of computer or model: opened from its control, it starts where the composer is.
+  f.c.openSheet();
+  expect(f.view.sheet().title).toBe('Answer on');
+  expect(f.view.checkedComputer()).toBe('network');
+  expect(f.view.sheet().outcome.label).toBe('Answer with contributors');
+  // This device stays one tap away, as a download the visitor reviews.
+  f.c.pickComputer('local');
+  await vi.waitFor(() => expect(f.view.checkedComputer()).toBe('local'));
   expect(f.view.sheet().outcome.label).toBe(`Download ${model.name}`);
-  expect(f.view.sheet().outcome.disabled).toBe(false);
-  expect(f.api.connect).not.toHaveBeenCalled();
-  f.c.pickComputer('network');
-  await vi.waitFor(() => expect(f.view.checkedComputer()).toBe('network'));
-  // The sheet was opened by Send, so its button says what pressing it does.
-  expect(f.view.sheet().outcome.label).toBe('Send to contributors');
+  f.c.closeSheet();
+  f.view.send('First question');
+  expect(f.view.sheet().open).toBe(false);
 });
-it('waits calmly when a first visitor picks contributors before discovery settles, then offers Send for the model they serve', async () => {
+it('waits calmly when a first visitor opens the sheet before discovery settles, then offers the model contributors serve', async () => {
   const f = fixture({ fresh: true });
   const [first, second] = CANONICAL_CHAT_MODELS;
   f.publish({ models: [first, second] });
   const chosen = f.view.composer().chip.selectionId;
   const served = [first, second].find(model => (model.selectionId || model.id) !== chosen);
-  f.view.send('First question');
-  expect(f.view.sheet().title).toBe('Where should this run?');
+  f.c.openSheet();
   f.c.pickComputer('network');
   await vi.waitFor(() => expect(f.view.checkedComputer()).toBe('network'));
   // No contributor is known yet, and none is known absent: no download offer and no "No contributor serves" verdict.
   expect(f.view.sheet().outcome.issue).toMatch(/^Finding computers/);
-  expect(f.view.sheet().outcome.label).toBe('Send to contributors');
+  expect(f.view.sheet().outcome.label).toBe('Answer with contributors');
   expect(f.view.sheet().outcome.disabled).toBe(true);
   // A contributor appears serving a different model: the sheet follows the tapped computer to it.
   f.publish({ models: [first, second].map(model => model === served ? { ...model, availability: 'ready', networkAvailability: 'ready',
     providerIds: ['peer'], reachableProviderIds: ['peer'] } : model) });
   expect(f.view.sheet().selectedKey).toBe(served.selectionId || served.id);
-  expect(f.view.sheet().outcome.label).toBe('Send to contributors');
+  expect(f.view.sheet().outcome.label).toBe('Answer with contributors');
   expect(f.view.sheet().outcome.disabled).toBe(false);
   expect(f.view.sheet().outcome.issue).toBe('');
 });
@@ -78,7 +80,7 @@ it('offers Send, not a download, when the first advertisement is also what settl
   f.publish({ models: [first, second] });
   const chosen = f.view.composer().chip.selectionId;
   const served = [first, second].find(model => (model.selectionId || model.id) !== chosen);
-  f.view.send('First question');
+  f.c.openSheet();
   f.c.pickComputer('network');
   await vi.waitFor(() => expect(f.view.checkedComputer()).toBe('network'));
   expect(f.view.sheet().outcome.issue).toMatch(/^Finding computers/);
@@ -86,12 +88,12 @@ it('offers Send, not a download, when the first advertisement is also what settl
   f.publish({ ...observedDiscovery, models: [first, second].map(model => model === served ? { ...model, availability: 'ready',
     networkAvailability: 'ready', providerIds: ['peer'], reachableProviderIds: ['peer'] } : model) });
   expect(f.view.sheet().selectedKey).toBe(served.selectionId || served.id);
-  expect(f.view.sheet().outcome.label).toBe('Send to contributors');
+  expect(f.view.sheet().outcome.label).toBe('Answer with contributors');
   expect(f.view.sheet().outcome.disabled).toBe(false);
 });
 it('offers the download only once discovery has settled with no contributor for the model', async () => {
   const f = fixture({ fresh: true });
-  f.view.send('First question');
+  f.c.openSheet();
   f.c.pickComputer('network');
   await vi.waitFor(() => expect(f.view.checkedComputer()).toBe('network'));
   expect(f.view.sheet().outcome.disabled).toBe(true);
@@ -100,13 +102,16 @@ it('offers the download only once discovery has settled with no contributor for 
   expect(f.view.sheet().outcome.label).toMatch(/^Download /);
   expect(f.view.sheet().outcome.disabled).toBe(false);
 });
-it('tells a first visitor a public computer can answer instead of reporting a dead end', () => {
+it('moves a first visitor to a public computer when one appears instead of reporting a dead end', () => {
   const f = fixture({ fresh: true }), status = () => f.view.composer().status.text;
   f.publish(observedDiscovery);
   expect(status()).toBe('Model unavailable here.');
+  expect(f.view.composer().chip.source).toBe('This device');
   f.publish({ models: [{ ...f.state().models[0], availability: 'ready', networkAvailability: 'ready',
     providerIds: ['peer'], reachableProviderIds: ['peer'] }] });
-  expect(status()).toBe('Not on this device. A public computer can answer.');
+  expect(status()).toBe('');
+  expect(f.view.composer().chip.source).toBe('Contributors');
+  expect(f.view.composer().disclosure).toBe('The answering computer can read your prompt.');
   // The Answer on sheet opened from its own control does not say Send: nothing is waiting to be sent.
   f.c.openSheet();
   expect(f.view.sheet().outcome.label).not.toMatch(/^Send/);
@@ -122,9 +127,9 @@ it('names no model before discovery settles, then the smallest one a contributor
   const served = model => ({ ...model, availability: 'ready', networkAvailability: 'ready', providerIds: ['peer'], reachableProviderIds: ['peer'] });
   f.publish({ ...observedDiscovery, models: [served(small), served(medium)] });
   expect(f.view.composer().chip.selectionId).toBe(small.id);
-  expect(chip()).toEqual(['This device', small.name]);
+  expect(chip()).toEqual(['Contributors', small.name]);
 });
-it('starts a first visitor on a model contributors serve and says a public computer can answer', () => {
+it('starts a first visitor on a model contributors serve, on their computers', () => {
   const f = fixture({ fresh: true }), status = () => f.view.composer().status.text;
   const [first, second] = CANONICAL_CHAT_MODELS;
   f.publish({ ...observedDiscovery, models: [first, second] });
@@ -135,8 +140,9 @@ it('starts a first visitor on a model contributors serve and says a public compu
   // A model contributors serve and this device could download is where a first visitor starts.
   const served = [first, second].find(model => (model.selectionId || model.id) !== starting);
   expect(f.view.composer().chip.selectionId).toBe(served.selectionId || served.id);
-  expect(status()).toBe('Not on this device. A public computer can answer.');
-  expect(f.view.composer().nextAction).not.toBe('download-local');
+  expect(f.view.composer().chip.source).toBe('Contributors');
+  expect(status()).toBe('');
+  expect(f.view.composer().nextAction).toBeNull();
 });
 
 it('bounds the host discovery window even when signaling never connects, without acquiring anything', async () => {
@@ -315,7 +321,7 @@ it('returns a failed local cache to acquisition recovery while preserving the co
 
 // The owner's contradiction: a fresh visitor must never see a computer and a model that disagree.
 for (const [preset, viewState, expected] of [
-  ['Only your devices (a fresh visitor)', null, { computer: 'local', group: 'download', action: /^Download /, chip: 'This device' }],
+  ['nothing chosen (a fresh visitor)', null, { computer: 'network', group: 'shared', action: /^Answer with contributors$/, chip: 'Contributors' }],
   ['Standard', { privacy: openPolicy }, { computer: 'network', group: 'shared', action: /^Answer with contributors$/, chip: 'Contributors' }]
 ]) {
   it(`starts a fresh draft with a runnable computer and model under ${preset}`, () => {

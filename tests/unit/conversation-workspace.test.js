@@ -209,7 +209,7 @@ describe('Conversation workspace', () => {
     expect(selected()).toBe(small.id);
     await chooseShared(medium.id);
     expect(selected()).toBe(medium.id); expect(composer().chip.source).toBe('Contributors');
-    expect(JSON.parse(saved.get('reploid.answer-choice.v1'))).toEqual({ selectionId: medium.id, identity: medium.identity, route: 'contributors' });
+    expect(JSON.parse(saved.get('reploid.answer-choice.v1'))).toEqual({ selectionId: medium.id, identity: medium.identity, route: 'contributors', picked: true });
     // An answered thread, then New thread: the same model and computer, not the default.
     session.createThread({ model: medium, privacy: openPolicy, executionLocation: 'network' });
     await vi.waitFor(() => expect(session.getState().activeThread).not.toBeNull());
@@ -238,11 +238,15 @@ describe('Conversation workspace', () => {
       expectSendDoesNotDispatch();
       serve([medium, small]);
       expect(selected()).toBe(medium.id); expect(composer().send.disabled).toBe(false);
-      // A visit where it never arrives: after the bounded wait the default answers instead of a choice that cannot.
+      // A visit where it never arrives: the pick stays after the bounded wait. The composer says nothing serves it
+      // and Send is off; the served model is not sent to in its place.
       visit([small]);
       expect(selected()).toBe(medium.id);
       vi.advanceTimersByTime(8000);
-      expect(selected()).toBe(small.id);
+      expect(selected()).toBe(medium.id);
+      expect(composer().chip.availability).toBe('unavailable');
+      expect(composer().status.text).toContain('No eligible computer found for this model.');
+      expect(composer().send.disabled).toBe(true);
       // The choice stays remembered for a visit where it is served again.
       expect(JSON.parse(saved.get('reploid.answer-choice.v1')).selectionId).toBe(medium.id);
       visit([medium, small]);

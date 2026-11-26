@@ -45,23 +45,16 @@ describe('conversation controller', () => {
     controller.dispose();
   });
 
-  it('asks where to run on the first Send, queues it while computers are found, and cancels back to the draft', async () => {
+  it('queues the first Send while computers are found without asking where to run, and cancels back to the draft', async () => {
     const fixture = fixtureSession({ discoveryPhase: 'searching' });
     const controller = createConversationController(fixture.api, { href: () => 'http://localhost/' });
     controller.setDraft('Explain ocean tides.');
-    controller.send();
-    let snapshot = controller.getSnapshot();
-    expect(snapshot.sheet.open).toBe(true);
-    expect(snapshot.sheet.title).toBe('Where should this run?');
-    expect(snapshot.sheet.computers.find(row => row.checked).choice).toBe('local');
-    controller.pickComputer('network');
-    await tick();
-    expect(controller.getSnapshot().sheet.computers.find(row => row.checked).choice).toBe('network');
-    controller.closeSheet();
     expect(controller.getSnapshot().composer.status.text).toContain('Finding computers');
     controller.send();
-    snapshot = controller.getSnapshot();
-    expect(snapshot.composer.status.text).toContain('Waiting for a computer running');
+    let snapshot = controller.getSnapshot();
+    expect(snapshot.sheet.open).toBe(false);
+    // No model is named yet, so the wait names none.
+    expect(snapshot.composer.status.text).toBe('Finding computers…');
     expect(snapshot.composer.nextAction).toBe('cancel-queued');
     controller.cancelQueuedSend();
     expect(controller.getSnapshot().composer.status.text).toContain('Finding computers');
