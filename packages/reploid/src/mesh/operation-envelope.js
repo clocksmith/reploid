@@ -363,6 +363,10 @@ export async function openMeshOperationCharge({ signer, requestId, planDigest, r
     attemptId: requestId, routeHash, requesterId: signer.participantId, count, chain, signedAt: iso(now()) });
   const charge = await acknowledgment(0, genesis);
   const held = { acceptance: null, receipt: null, fault: null, acknowledged: null, stop: null };
+  // An attempt is acknowledged or stopped, never both (docs/settlement-replay.md: an acknowledgment of N with a stop at
+  // zero would have the replay charge N while the ledger settled the stop). `stopping` is set the moment a stop is
+  // asked for, before it is signed, so an acknowledgment still being signed is discarded.
+  let stopping = null;
   // The windows the replay counts a record in (docs/settlement-replay.md, steps 4 to 9): an acceptance and an
   // acknowledgment from notBefore to the deadline, a close or a fault until the release window has also passed, each
   // with the policy's clock allowance. A record outside its window would be held here and ignored by the replay, so the
@@ -409,18 +413,40 @@ export async function openMeshOperationCharge({ signer, requestId, planDigest, r
      * acknowledgment of exactly that count; throws when the receipt commits to anything else, or when this requester's
      * own clock is past the window an acknowledgment counts in. Asked again for the receipt it already acknowledged,
      * it returns the same acknowledgment.
+     *
+     * An attempt that was stopped is never acknowledged: this throws when a stop was asked for before or while the
+     * acknowledgment was being signed. `send(acknowledgment)`, when given, runs synchronously at the moment the
+     * acknowledgment becomes held, so the caller can send it in the same step; if it returns false or throws, the
+     * acknowledgment is discarded as if it had never been signed. From that moment a stop is refused.
      */
-    async acknowledge({ receipt, units: delivered, outputDigest }) {
-      if (held.acknowledged && held.receipt?.signature === receipt?.signature) return structuredClone(held.acknowledged);
+    async acknowledge({ receipt, units: delivered, outputDigest, send = undefined }) {
+      const stopped = () => settlementRefusal('This attempt was stopped; nothing is acknowledged');
+      if (held.acknowledged && held.receipt?.signature === receipt?.signature) {
+        send?.(structuredClone(held.acknowledged));
+        return structuredClone(held.acknowledged);
+      }
+      if (stopping) throw stopped();
       const row = await ownReceipt(receipt);
       if (!inTime(iso(now()))) throw settlementRefusal('The answer arrived outside the window its settlement terms cover');
       if (!units(delivered) || delivered > maxCostUnits || row.status !== 'settled' || row.steps !== delivered || row.output?.count !== delivered
         || row.output.done !== true || row.output.chain !== await meshOperationOutputChain({ reservationId, routeHash, units: delivered, outputDigest })) {
         throw settlementRefusal('The provider\'s closing record does not commit to the output that arrived');
       }
+      const signed = delivered === 0 ? structuredClone(charge) : await acknowledgment(delivered, row.output.chain);
+      // From here to the return there is no await: the acknowledgment is held and sent in one step, or not at all.
+      if (stopping) throw stopped();
+      if (held.acknowledged) throw settlementRefusal('This attempt already acknowledged another closing record');
+      const before = held.receipt;
       held.receipt = structuredClone(receipt);
-      held.acknowledged = delivered === 0 ? structuredClone(charge) : await acknowledgment(delivered, row.output.chain);
-      return structuredClone(held.acknowledged);
+      held.acknowledged = signed;
+      let sent;
+      try { sent = typeof send === 'function' ? send(structuredClone(signed)) : true; }
+      catch (error) { held.receipt = before; held.acknowledged = null; throw error; }
+      if (sent === false) {
+        held.receipt = before; held.acknowledged = null;
+        throw settlementRefusal('The acknowledgment was not sent, so it is not held');
+      }
+      return structuredClone(signed);
     },
     /**
      * Keeps what the provider signed for an answer that did not complete: its closing receipt, or its stage fault when
@@ -432,9 +458,14 @@ export async function openMeshOperationCharge({ signer, requestId, planDigest, r
       held.receipt ??= structuredClone(record);
       return true;
     },
-    /** The requester's signed stop of this attempt: a whole-model answer has no acknowledged prefix, so it stops at zero. */
+    /**
+     * The requester's signed stop of this attempt: a whole-model answer has no acknowledged prefix, so it stops at zero.
+     * Refused once the attempt's acknowledgment is held: that answer completed and its charge stands.
+     */
     async stop() {
-      held.stop ??= await signSettlementStop({ signer, terms: body, acknowledged: 0, now });
+      if (held.acknowledged) throw settlementRefusal('This attempt was acknowledged before the stop; it completed and cannot be stopped');
+      stopping ??= signSettlementStop({ signer, terms: body, acknowledged: 0, now });
+      held.stop = await stopping;
       return structuredClone(held.stop);
     },
     /** Every record this requester holds of the attempt, in the order they were signed. */

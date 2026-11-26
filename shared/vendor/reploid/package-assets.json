@@ -1151,8 +1151,8 @@
     },
     {
       "path": "mesh/operation-envelope.js",
-      "bytes": 36693,
-      "sha256": "90fcb68c0e8cc97e9aa35e139b378a84ffe4b9cea77c08c88786ac900f113598"
+      "bytes": 38694,
+      "sha256": "8de68e76cb90e61fdc6a856075798007489010c1dca799ee3a634935cee77c90"
     },
     {
       "path": "mesh/partitions/automatic-ordered-partitions.d.ts",
@@ -1536,8 +1536,8 @@
     },
     {
       "path": "mesh/peer-generation.js",
-      "bytes": 101238,
-      "sha256": "68bb82bf00b613627bfee5289758c25fb3f11971e3e26d49e62574205c444b72"
+      "bytes": 103407,
+      "sha256": "a8d07a2504a6c18d1ecb6f6869fb4c2c7ab658e9586463abb5791be166c2cb57"
     },
     {
       "path": "mesh/peer-identity.js",

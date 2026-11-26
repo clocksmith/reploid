@@ -544,3 +544,74 @@ it('the inference result never hides a charge: a stop after the executor finishe
     expect(await run(kind), kind).toMatchObject({ status: 'failed', output: null, error: { code: 'RESULT_UNVERIFIED' }, settlement: { charge: 6 } });
   }
 });
+
+it('a stop that arrives after the acknowledgment was sent does not undo a completed answer: the person is charged for it and told so', async () => {
+  const controller = new AbortController();
+  const fixture = await route({ requester: 1, provider: 0, execute: honest,
+    // The requester's own bookkeeping after the acknowledgment left: the person presses Stop in that gap.
+    onIdentitySave: async index => {
+      if (index !== 0 || controller.signal.aborted) return;
+      controller.abort(Object.assign(new Error('Stopped'), { requesterStop: true }));
+      await new Promise(resolve => setTimeout(resolve, 30));
+    } });
+  const result = await fixture.ask({ signal: controller.signal });
+  expect(controller.signal.aborted).toBe(true);
+  expect(result.content).toBe('1 2 3');
+  expect(result.serviceCredit).toMatchObject({ charge: 3 * PRICE, outputTokens: 3 });
+  const { records } = await fixture.agree(result.settlementRecords.reservationId, { status: 'settled', debit: 3 * PRICE, payout: 3 * PRICE });
+  expect(records).toMatchObject({ label: 'signed-records', acknowledged: 3, stopped: false });
+  expect(schemas(records.records)).not.toContain(SETTLEMENT_STOP_SCHEMA);
+});
+
+/** The two sides' charge objects for one attempt, with the provider's acceptance already held by the requester. */
+async function chargePair() {
+  const { policy } = await clients[1].call('terms', { id: model.id, identity: model.identity });
+  const requestId = crypto.randomUUID(), reservationId = `service:${keys[1].peerId}:${requestId}`;
+  const planDigest = await wholeModelOperationPlanDigest({ operation: 'generate', modelId: model.id, manifestDigest: model.identity, recipient: keys[0].peerId });
+  const charge = await openMeshOperationCharge({ signer: createAttemptEvidenceSigner({ identity: keys[1] }), requestId, planDigest, recipient: keys[0].peerId,
+    reservationId, policy, maxCostUnits: 16, debitAccount: 'account-1' });
+  const serve = () => acceptMeshOperationCharge({ signer: createAttemptEvidenceSigner({ identity: keys[0] }), settlement: { terms: charge.terms, charge: charge.charge },
+    consumer: keys[1].peerId, requestId, planDigest, payoutAccount: 'account-0' });
+  const provider = await serve();
+  await charge.accept(provider.acceptance);
+  const outputDigest = 'sha256:' + 'b'.repeat(64);
+  return { charge, provider, serve, outputDigest, delivered: async () => ({ receipt: await provider.close({ units: 3, outputDigest, stopReason: 'eos-token', promptUnits: 11 }), units: 3, outputDigest }) };
+}
+const acknowledgedCount = charge => charge.records().filter(row => row.schema === OUTPUT_ACKNOWLEDGMENT_SCHEMA && row.count > 0).length;
+const stops = charge => charge.records().filter(row => row.schema === SETTLEMENT_STOP_SCHEMA).length;
+
+it('a charge holds an acknowledgment or a stop, never both, whichever is asked first and however the two interleave', async () => {
+  // Acknowledged first: the stop is refused.
+  let pair = await chargePair();
+  await pair.charge.acknowledge(await pair.delivered());
+  await expect(pair.charge.stop()).rejects.toThrow(/acknowledg/i);
+  expect([acknowledgedCount(pair.charge), stops(pair.charge)]).toEqual([1, 0]);
+  // Stopped first: the acknowledgment is refused and the close is still kept as a close nobody acknowledged.
+  pair = await chargePair();
+  await pair.charge.stop();
+  await expect(pair.charge.acknowledge(await pair.delivered())).rejects.toThrow(/stop/i);
+  expect([acknowledgedCount(pair.charge), stops(pair.charge)]).toEqual([0, 1]);
+  // Both in flight at once, in either order: exactly one is held.
+  for (const order of [['acknowledge', 'stop'], ['stop', 'acknowledge']]) {
+    pair = await chargePair();
+    const delivered = await pair.delivered();
+    const calls = { acknowledge: () => pair.charge.acknowledge(delivered), stop: () => pair.charge.stop() };
+    const results = await Promise.allSettled(order.map(name => calls[name]()));
+    expect(results.filter(result => result.status === 'fulfilled'), order.join(' then ')).toHaveLength(1);
+    expect(acknowledgedCount(pair.charge) + stops(pair.charge), order.join(' then ')).toBe(1);
+    expect(pair.charge.summary().stopped).toBe(stops(pair.charge) === 1);
+    expect(pair.charge.summary().acknowledged).toBe(acknowledgedCount(pair.charge) === 1 ? 3 : null);
+  }
+  // An acknowledgment that could not be sent is discarded, and the attempt can still be stopped.
+  pair = await chargePair();
+  await expect(pair.charge.acknowledge({ ...await pair.delivered(), send: () => false })).rejects.toThrow();
+  expect(acknowledgedCount(pair.charge)).toBe(0);
+  await pair.charge.stop();
+  expect([acknowledgedCount(pair.charge), stops(pair.charge)]).toEqual([0, 1]);
+  // The send runs at the moment the acknowledgment is held: a stop asked for inside it is already too late.
+  pair = await chargePair();
+  let stopping;
+  await pair.charge.acknowledge({ ...await pair.delivered(), send: () => { stopping = pair.charge.stop(); stopping.catch(() => {}); return true; } });
+  await expect(stopping).rejects.toThrow(/acknowledg/i);
+  expect([acknowledgedCount(pair.charge), stops(pair.charge)]).toEqual([1, 0]);
+});

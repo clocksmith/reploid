@@ -1119,6 +1119,14 @@ every step above applies unchanged. Source:
   limit). Such an answer fails with nothing charged. After the acknowledgment
   nothing refuses the answer: a host check that still fails reports the failure
   together with the charge that was settled, never without it.
+- **An attempt is acknowledged or stopped, never both.** The requester holds
+  the acknowledgment, sends it with the countersigned receipt and completes the
+  request in one step. A stop that came first, even while the acknowledgment
+  was being signed, means no acknowledgment is kept or sent and the stop
+  settles at zero. A stop that comes after that step finds a completed answer:
+  no stop is signed, the charge stands, and the person is shown the answer and
+  what it cost. The records therefore never hold both an acknowledgment of a
+  count and a stop at zero.
 - **A provider that signed the acceptance is charged for only with its close.**
   When its closing receipt is missing, late, `failed`, or commits to another
   count or chain than the output that arrived, the requester acknowledges
