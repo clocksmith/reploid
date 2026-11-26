@@ -318,7 +318,9 @@ the maximum and the weights the requester signed; the number of outputs the requ
 a close or a fault; and the amounts stated. Then:
 
 1. The charged outputs are the acknowledged outputs, at most the ceiling. If the outcome is \`expired\` nothing is
-   charged or paid.
+   charged or paid: under the earlier terms (\`...provider-relief/v1\`, \`...provider-loss-free/v1\`) that is an
+   unfinished answer in which some stage signed no close; under the failed-stage terms it is one with nothing
+   acknowledged.
 2. Units are the charged outputs times the price.
 3. Each stage's share is the units times its weight, divided by the sum of the weights, rounded down; the last stage
    takes what is left, so the shares add up to the units.
