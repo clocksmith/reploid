@@ -21,6 +21,8 @@ import { createFleetExecutionAdmission } from '../../server/fleet/execution-admi
 import { buildTradeReceipt } from '../../server/fleet/trade-records.js';
 import { createWholeModelRequester } from '../../server/whole-model-requester.js';
 import { verifyTrade } from '../../scripts/settlement/verify-trade.js';
+import { exportFromReceipt } from '../../scripts/settlement/records-export.js';
+import { verifyRecords } from '../../scripts/settlement/verify-records.js';
 import { createRecoveryMesh } from '../helpers/generation-recovery-mesh.js';
 
 const run = promisify(execFile);
@@ -146,6 +148,11 @@ it('a requester with no weights spends credits it earned by serving, and both ve
   const cli = await run(process.execPath, ['scripts/settlement/verify-trade.js', directory], { cwd: path.resolve(import.meta.dirname, '../..') });
   expect(cli.stdout).toMatch(/PASS answer: settled debit 6/);
   expect(cli.stdout).toMatch(/The trade verifies\./);
+
+  // The records-only form of the same trade (no answer text, no ledger journal) verifies with the second verifier alone.
+  const trade = exportFromReceipt({ id: 'whole-model-test-trade', label: 'In-process whole-model trade with test keys', receipt });
+  const recordsOnly = await verifyRecords({ trade, at: Date.now() });
+  expect(recordsOnly.ok, JSON.stringify(recordsOnly)).toBe(true);
 
   // A ledger that posted another amount, or records without the acknowledgment, do not verify.
   const overcharged = structuredClone(receipt);
