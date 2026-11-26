@@ -106,7 +106,8 @@ coordinator's signed statement (cancellation, unattributed disconnect, provider
 failure with a signed fault and silent; test keys, one machine, labelled as
 simulated; `"simulated": false` leaves them out), those two verifier files,
 `docs/settlement-replay.md` as `SPECIFICATION.md`, the expected result, a
-README and `node verify.mjs`. Without `--records-only` the builder still
+README, `node verify.mjs`, and `node inputs.mjs`, which prints the numbers
+each amount is worked out from for someone doing the arithmetic by hand. Without `--records-only` the builder still
 writes the older package described above, which hands over whole receipts and
 the service's own verifier files; use it only with someone who may see the
 answer text and the ledger trace.

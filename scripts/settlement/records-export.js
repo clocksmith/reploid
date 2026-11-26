@@ -70,7 +70,7 @@ const summed = (rows, key, value) => {
  * that carries signed settlement records keeps those records and nothing else of the attempt; the ledger trace in the
  * receipt becomes the publisher's stated amounts.
  */
-export function exportFromReceipt({ id, label, receipt, policy: supplied = null, source = 'a published trade receipt, with everything but its signed records removed' }) {
+export function exportFromReceipt({ id, label, receipt, policy: supplied = null, source = 'a trade receipt, with everything but its signed records removed' }) {
   const attempts = [];
   let policy = supplied;
   for (const [name, attempt] of Object.entries(receipt ?? {})) {

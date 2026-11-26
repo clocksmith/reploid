@@ -79,7 +79,7 @@ describe('records-only outside-verifier package', () => {
   afterAll(async () => { await fs.rm(root, { recursive: true, force: true }); });
 
   it('holds the specification, the second verifier and the trades, and no service code or receipt', async () => {
-    expect(files).toEqual(['README.md', 'SHA256SUMS', 'SPECIFICATION.md', 'expected.json', 'trades/fixture/trade.json', 'trades/simulated-v3-failure-cases/trade.json',
+    expect(files).toEqual(['README.md', 'SHA256SUMS', 'SPECIFICATION.md', 'expected.json', 'inputs.mjs', 'trades/fixture/trade.json', 'trades/simulated-v3-failure-cases/trade.json',
       'verifier/scripts/settlement/independent/replay.js', 'verifier/scripts/settlement/verify-records.js', 'verify.mjs']);
     expect(verifierFiles(undefined, 'scripts/settlement/verify-records.js').some(file => file.startsWith('server/'))).toBe(false);
     expect(await fs.readFile(path.join(out, 'SPECIFICATION.md'), 'utf8')).toContain('## The coordinator\'s statement');
@@ -106,6 +106,12 @@ describe('records-only outside-verifier package', () => {
     // Everything the command prints is in the README, line for line.
     for (const line of text.trim().split('\n')) expect(readme, line).toContain(line);
     expect(readme).toContain('There is no prompt, no answer text, no token IDs');
+    // The other commands the README gives work as written.
+    const one = readme.match(/^node verifier\/scripts\/settlement\/verify-records\.js (trades\/\S+)$/m)[1];
+    expect(execFileSync(process.execPath, ['verifier/scripts/settlement/verify-records.js', one], { cwd: out, encoding: 'utf8' })).toContain('The stated amounts follow from the signed records.');
+    const inputs = execFileSync(process.execPath, ['inputs.mjs', readme.match(/^node inputs\.mjs (\S+)$/m)[1]], { cwd: out, encoding: 'utf8' });
+    expect(inputs).toContain('outputs acknowledged by the requester with the final stage\'s chain value: 4');
+    expect(inputs).toContain('stages that signed a close: 0, 2 of 0, 1, 2; stages that signed a fault: 1');
   });
 
   it('refuses a changed trade, and a stated amount that no longer follows', async () => {

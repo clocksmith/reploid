@@ -287,7 +287,8 @@ export function describeAttempt(row) {
 export async function recordsCommand(args) {
   const flag = name => { const at = args.indexOf(`--${name}`); return at === -1 ? null : args[at + 1] ?? true; };
   const target = args.find((value, index) => !value.startsWith('--') && args[index - 1] !== '--at');
-  if (!target || !existsSync(target)) { console.error('Usage: node scripts/settlement/verify-records.js TRADE.json_or_DIRECTORY [--at ISO_TIME] [--json]'); process.exitCode = 2; return; }
+  if (target && !existsSync(target)) { console.error(`There is no file or folder named ${target}. Name a trade.json or the folder that holds one.`); process.exitCode = 2; return; }
+  if (!target) { console.error('Usage: node scripts/settlement/verify-records.js TRADE.json_or_DIRECTORY [--at ISO_TIME] [--json]'); process.exitCode = 2; return; }
   const at = flag('at') ? Date.parse(flag('at')) : Date.now();
   if (!Number.isFinite(at)) { console.error('--at needs an ISO time'); process.exitCode = 2; return; }
   const verdict = await verifyRecords({ trade: readRecordsTrade(path.resolve(target)), at });
