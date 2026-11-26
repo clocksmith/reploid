@@ -207,19 +207,11 @@ export const createReplayManager = (deps) => {
         if (engine) updateUI(engine.getState());
       });
 
-      EventBus.on('replay:started', async () => {
-        const engine = await resolveReplayEngine();
-        if (engine) updateUI(engine.getState());
-      });
-
-      EventBus.on('replay:paused', async () => {
-        const engine = await resolveReplayEngine();
-        if (engine) updateUI(engine.getState());
-      });
-
-      EventBus.on('replay:stopped', async () => {
-        const engine = await resolveReplayEngine();
-        if (engine) updateUI(engine.getState());
+      // The engine reports play, pause and seek through replay:progress, and emits replay:reset
+      // before re-applying events up to a new position (seek, stop, load). Clear the log then,
+      // or it keeps events past the new position.
+      EventBus.on('replay:reset', () => {
+        clearEventLog();
       });
 
       EventBus.on('replay:completed', async () => {

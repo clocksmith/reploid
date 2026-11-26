@@ -99,4 +99,16 @@ describe('Proto replay caller compatibility', () => {
       expect(log.querySelector('.replay-event')).toBeNull();
     }
   );
+  it('shows only the events up to the position after a seek backwards', async () => {
+    await manager.loadRunFile({ name: 'recording.json', text: async () => JSON.stringify(currentTrace()) });
+    await flush();
+    const total = engine.getState().totalEvents;
+    for (let index = 0; index < total; index++) document.getElementById('replay-step').click();
+    await flush();
+    engine.seek(2);
+    await flush();
+    const log = document.getElementById('replay-event-log');
+    expect(log.querySelectorAll('.replay-event')).toHaveLength(2);
+    expect(log.textContent).not.toContain('Observed failure');
+  });
 });
