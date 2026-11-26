@@ -709,9 +709,9 @@ zero there; the replay sees that stage unclosed and expires the attempt, also at
 zero. Under the failed-stage terms neither difference arises: that stage
 forfeits in both (see [Failed stages](#failed-stages)). What remains is a
 difference of status when nothing was acknowledged: a stage owner's claim
-decides that stage in the ledger, and the ledger never sees a requester's own
-stage contradict itself, so the ledger can settle at 0 where the replay calls
-the row `expired`. Nobody is charged or paid in either.
+decides that stage in the ledger, and the ledger sees a requester's own stage
+contradict itself only at its final stage, so the ledger can settle at 0 where
+the replay calls the row `expired`. Nobody is charged or paid in either.
 
 ## Unfinished answers
 
@@ -903,13 +903,21 @@ only them. It posts what the replay computes from the same records:
   requester's signed acknowledgment without the final-stage receipt it
   acknowledged, and the charge stops at the step cap (outputs past it are
   recorded as `beyondStageSteps`, never charged).
-- The ledger keeps one receipt per stage, so it never sees a requester's own
-  stage contradict itself; it pays the outside stages what the replay pays them
-  after failing that stage. One case is left: when that stage is the final one
-  and signs two receipts at its last `sequence`, the replay finds no delivered
-  answer (step 5) while the ledger, holding one of them, may find one. An
-  outside stage that did not close is then paid by the ledger and forfeits in
-  the replay. A stage that closes is not affected.
+- The ledger keeps one receipt per stage, and pays the outside stages what the
+  replay pays them after failing a requester's own stage that contradicted
+  itself. Only the final stage's contradiction can change an amount, by changing
+  whether an answer was delivered (step 5), so the ledger keeps that one as
+  evidence: a different receipt of the requester's own final stage at the
+  `sequence` of one the ledger holds, late or not, and a receipt that
+  contradicts that stage's close (the close itself stands). It keeps the
+  receipts at the highest such `sequence`, at most two, returns them in the
+  request's evidence as `finalStageTwin`, and reads how the answer ended as
+  step 5 does: from that stage's highest-`sequence` receipt signed in time, and
+  only when no other receipt it holds has that `sequence`. An outside stage
+  that did not close then forfeits in both. A stage that closes is not
+  affected. The ledger decides from what it was handed and kept: a late receipt
+  handed in before the receipt it contradicts is not kept, and a record that
+  only the replay is given can still make the two differ.
 
 `tests/unit/settlement-own-stage-ledger.test.js` drives a live ledger through
 every attack in the table above and compares each outcome with the replay, and

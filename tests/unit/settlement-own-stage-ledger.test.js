@@ -201,16 +201,18 @@ describe('the requester\'s own stage contradicts itself (T2)', () => {
     await live.collect(a, { receipts: [own.find(row => row.sequence === 4)] });
     const backwards = await signerOf(parties.stages[0], Date.parse(own[4].signedAt)).sign(STAGE_RECEIPT_SCHEMA, { ...bodyOf(own[4]), steps: 1 });
     expect(await live.collect(a, { receipts: [backwards] })).toMatchObject({ status: 'pending' });
-    // Its own final stage hands in a second receipt at the sequence of its close.
+    // Its own final stage hands in a second, different receipt at the sequence of its close. The close the ledger
+    // holds stands and the other is kept as that stage's contradiction; both operators closed, so both are paid.
     for (const index of [1, 2, 3]) await live.close(a, all, index);
-    await expect(live.collect(a, { receipts: [await twinOf(parties, 3, closeOf(all, 3), recount(closeOf(all, 3)))] })).rejects.toThrow('Conflicting stage closure');
+    const second = await twinOf(parties, 3, closeOf(all, 3), recount(closeOf(all, 3)));
+    expect(await live.collect(a, { receipts: [second] })).toMatchObject({ status: 'pending' });
     expect(await live.acknowledge(a, all)).toMatchObject({ status: 'pending', acknowledgedOutputTokens: 6, awaitingStages: [0] });
     const outcome = await live.decide(a);
-    expect(outcome).toMatchObject({ charge: 16, outputTokens: 6, forfeitedStages: [{ partitionIndex: 0, cause: 'no-close' }] });
+    expect(outcome).toMatchObject({ charge: 16, outputTokens: 6, forfeitedStages: [{ partitionIndex: 0, cause: 'no-close' }, { partitionIndex: 3, cause: 'contradiction' }] });
     expect(amounts(outcome, a)).toEqual([0, 8, 8, 0]);
-    const presented = [...all.filter(record => !(isReceiptOf(0)(record) && record.sequence >= 5)), backwards];
+    const presented = [...all.filter(record => !(isReceiptOf(0)(record) && record.sequence >= 5)), backwards, second];
     const row = await live.replay(presented);
-    expect(row).toMatchObject({ debit: 16, forfeited: [{ partitionIndex: 0, cause: 'contradiction' }] });
+    expect(row).toMatchObject({ debit: 16, forfeited: [{ partitionIndex: 0, cause: 'contradiction' }, { partitionIndex: 3, cause: 'contradiction' }] });
     sameAsReplay(outcome, row, a);
     await live.statementsVerify();
   });
@@ -263,6 +265,110 @@ describe('the requester\'s own stage contradicts itself (T2)', () => {
     expect(row.forfeited.map(item => item.partitionIndex)).toEqual([0, 2, 3]);
     expect(outcome.forfeitedStages.map(item => item.partitionIndex)).toEqual([0, 2, 3]);
     expect(live.ledger.request(a.reservationId).evidence.finalStageTwin).toBeDefined();
+    sameAsReplay(outcome, row, a);
+    expect(await live.ledger.settle(a.reservationId, live.ledger.request(a.reservationId).evidence)).toEqual(outcome);
+    await live.statementsVerify();
+  });
+
+  it('its own final stage signs a second, different close: the ledger keeps it as that stage\'s contradiction and the unclosed outside stage forfeits, as in the replay', async () => {
+    const parties = await createParties(4), live = await open(parties, EDGE_OWNERS);
+    const a = await edges(parties), all = [...new Set(a.all())];
+    live.admit(a);
+    await live.close(a, all, 1);
+    await live.collect(a, { receipts: [receiptsOf(all, 2).filter(row => row.status === 'executing').at(-1)] });
+    // Its own final stage closes, and then signs a close at that sequence that says something else.
+    await live.close(a, all, 3);
+    const twin = await twinOf(parties, 3, closeOf(all, 3), recount(closeOf(all, 3)));
+    expect(await live.collect(a, { receipts: [twin] })).toMatchObject({ status: 'pending' });
+    await live.acknowledgments(a, all);
+    live.fence(a);
+    const outcome = await live.decide(a);
+    const presented = [...all.filter(record => !isReceiptOf(0)(record) && !(isReceiptOf(2)(record) && record.status !== 'executing')), twin];
+    const row = await live.replay(presented);
+    expect(row.forfeited.map(item => item.partitionIndex)).toEqual([0, 2, 3]);
+    expect(outcome.forfeitedStages.map(item => item.partitionIndex)).toEqual([0, 2, 3]);
+    expect(amounts(outcome, a)).toEqual([0, 8, 0, 0]);
+    sameAsReplay(outcome, row, a);
+    // The close the ledger holds is unchanged, and the evidence it settled on carries the second one.
+    expect(live.ledger.request(a.reservationId).evidence.finalStageTwin).toEqual(twin);
+    expect(await live.ledger.settle(a.reservationId, live.ledger.request(a.reservationId).evidence)).toEqual(outcome);
+    await live.statementsVerify();
+  });
+
+  it('its own final stage signs a step receipt after its close: the answer\'s end is read from that receipt, as in the replay', async () => {
+    const parties = await createParties(4), live = await open(parties, EDGE_OWNERS);
+    const a = await edges(parties), all = [...new Set(a.all())];
+    live.admit(a);
+    await live.close(a, all, 1);
+    await live.collect(a, { receipts: [receiptsOf(all, 2).filter(row => row.status === 'executing').at(-1)] });
+    await live.close(a, all, 3);
+    // One more receipt of its own final stage, a sequence after its close, that no longer shows a finished answer.
+    const close = closeOf(all, 3), at = Date.parse(close.signedAt) + 1;
+    const after = await signerOf(parties.stages[3], at).sign(STAGE_RECEIPT_SCHEMA, { ...bodyOf(close), sequence: close.sequence + 1, status: 'executing',
+      signedAt: new Date(at).toISOString(), timing: { ...close.timing, closedAt: null }, output: { ...close.output, done: false } });
+    expect(await live.collect(a, { receipts: [after] })).toMatchObject({ status: 'pending' });
+    await live.acknowledgments(a, all);
+    live.fence(a);
+    const outcome = await live.decide(a);
+    const presented = [...all.filter(record => !isReceiptOf(0)(record) && !(isReceiptOf(2)(record) && record.status !== 'executing')), after];
+    const row = await live.replay(presented);
+    expect(row.forfeited.map(item => item.partitionIndex)).toEqual([0, 2, 3]);
+    expect(outcome.forfeitedStages.map(item => item.partitionIndex)).toEqual([0, 2, 3]);
+    sameAsReplay(outcome, row, a);
+    expect(await live.ledger.settle(a.reservationId, live.ledger.request(a.reservationId).evidence)).toEqual(outcome);
+    await live.statementsVerify();
+  });
+
+  it('two different receipts of its own final stage after its close show no delivered answer either', async () => {
+    const parties = await createParties(4), live = await open(parties, EDGE_OWNERS);
+    const a = await edges(parties), all = [...new Set(a.all())];
+    live.admit(a);
+    await live.close(a, all, 1);
+    await live.collect(a, { receipts: [receiptsOf(all, 2).filter(row => row.status === 'executing').at(-1)] });
+    await live.close(a, all, 3);
+    // A sequence after its close, a receipt that still shows the finished answer: alone it changes nothing the stages are paid.
+    const close = closeOf(all, 3), at = Date.parse(close.signedAt) + 1;
+    const after = changes => signerOf(parties.stages[3], at).sign(STAGE_RECEIPT_SCHEMA, { ...bodyOf(close), sequence: close.sequence + 1, status: 'executing',
+      signedAt: new Date(at).toISOString(), timing: { ...close.timing, closedAt: null }, ...changes });
+    const first = await after({}), second = await after(recount(close));
+    await live.collect(a, { receipts: [first] });
+    await live.acknowledgments(a, all);
+    const presented = [...all.filter(record => !isReceiptOf(0)(record) && !(isReceiptOf(2)(record) && record.status !== 'executing')), first];
+    expect((await live.replay(presented)).credits.map(credit => credit.amount)).toEqual([0, 8, 8, 0]);
+    // A second, different one at that sequence: no receipt shows how the answer ended, and the unclosed operator forfeits.
+    await live.collect(a, { receipts: [second] });
+    live.fence(a);
+    const outcome = await live.decide(a), row = await live.replay([...presented, second]);
+    expect(row.forfeited.map(item => item.partitionIndex)).toEqual([0, 2, 3]);
+    expect(outcome.forfeitedStages.map(item => item.partitionIndex)).toEqual([0, 2, 3]);
+    expect(amounts(outcome, a)).toEqual([0, 8, 0, 0]);
+    sameAsReplay(outcome, row, a);
+    expect(live.ledger.request(a.reservationId).evidence.finalStageTwin).toHaveLength(2);
+    expect(await live.ledger.settle(a.reservationId, live.ledger.request(a.reservationId).evidence)).toEqual(outcome);
+    await live.statementsVerify();
+  });
+
+  it('a late second receipt at its own final stage\'s last sequence is still its contradiction: the unclosed outside stage forfeits, as in the replay', async () => {
+    const parties = await createParties(4), live = await open(parties, EDGE_OWNERS);
+    const a = await edges(parties), all = [...new Set(a.all())];
+    live.admit(a);
+    await live.close(a, all, 1);
+    const lastStep = index => receiptsOf(all, index).filter(row => row.status === 'executing').at(-1);
+    await live.collect(a, { receipts: [lastStep(2)] });
+    // Signed after the deadline and the clock allowance: never the stage's receipt, but still what the stage signed.
+    const finalStep = lastStep(3), lateAt = Date.parse(a.terms.deadline) + POLICY.maxClockSkewMs + 5;
+    const late = await signerOf(parties.stages[3], lateAt).sign(STAGE_RECEIPT_SCHEMA, { ...bodyOf(finalStep), signedAt: new Date(lateAt).toISOString(), ...recount(finalStep) });
+    await live.collect(a, { receipts: [finalStep] });
+    await live.acknowledgments(a, all);
+    expect(await live.collect(a, { receipts: [late] }, lateAt + 10)).toMatchObject({ status: 'pending' });
+    live.fence(a);
+    const outcome = await live.decide(a);
+    const presented = [...all.filter(record => !isReceiptOf(0)(record) && !(isReceiptOf(2)(record) && record.status !== 'executing')
+      && !(isReceiptOf(3)(record) && record.status !== 'executing')), late];
+    const row = await live.replay(presented);
+    expect(row.forfeited.map(item => item.partitionIndex)).toEqual([0, 2, 3]);
+    expect(outcome.forfeitedStages.map(item => item.partitionIndex)).toEqual([0, 2, 3]);
+    expect(amounts(outcome, a)).toEqual([0, 8, 0, 0]);
     sameAsReplay(outcome, row, a);
     expect(await live.ledger.settle(a.reservationId, live.ledger.request(a.reservationId).evidence)).toEqual(outcome);
     await live.statementsVerify();

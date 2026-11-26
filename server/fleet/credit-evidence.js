@@ -167,11 +167,14 @@ export function decideFailedStages(request, { receipts, acknowledgment, acknowle
   const inTime = value => Date.parse(value) <= request.deadline + skew;
   const held = index => [receipts.find(row => row.partitionIndex === index), index === finalIndex ? acknowledgedReceipt : null]
     .filter(Boolean).sort((a, b) => a.sequence - b.sequence);
-  // A requester's own final stage that signed two different receipts at the sequence of its last in-time one
-  // contradicted itself there: as in the replay (ownFinalEnd), it then shows no delivered answer, and it forfeits.
-  const last = held(finalIndex).filter(row => inTime(row.signedAt)).at(-1);
-  const twinned = ownFinal && Boolean(last) && [...held(finalIndex), ...(twins ?? [])]
-    .some(row => row.partitionIndex === finalIndex && row.sequence === last.sequence && !same(row, last));
+  // A requester's own final stage that contradicted itself: as in the replay (ownFinalEnd), how the answer ended is
+  // read from its highest-sequence in-time receipt, the ones the ledger kept as its contradiction (`twins`) included,
+  // and only when no other receipt of it has that sequence. Two different receipts at that sequence show no delivered
+  // answer; so does a receipt signed after its close that no longer shows one. The stage then forfeits.
+  const kept = ownFinal ? (twins ?? []).filter(row => row.partitionIndex === finalIndex) : [];
+  const last = [...held(finalIndex), ...kept].filter(row => inTime(row.signedAt)).sort((a, b) => a.sequence - b.sequence).at(-1);
+  const twinned = ownFinal && Boolean(last) && [...held(finalIndex), ...kept].some(row => row.sequence === last.sequence && !same(row, last));
+  const contradicted = twinned || kept.includes(last);
   const delivered = twinned ? null : last?.output;
   const answerDelivered = count > 0 && inTime(acknowledgment.signedAt) && delivered?.done === true && delivered.count === count
     && (ownFinal || delivered.chain === acknowledgment.chain);
@@ -179,7 +182,7 @@ export function decideFailedStages(request, { receipts, acknowledgment, acknowle
   for (let index = 0; index <= finalIndex; index++) {
     const receipt = receipts.find(row => row.partitionIndex === index), closed = Boolean(receipt && closedReceipt(receipt));
     const claim = claims.find(row => row.stage === index);
-    if (twinned && index === finalIndex) { forfeitedStages.push({ partitionIndex: index, cause: 'contradiction' }); continue; }
+    if (contradicted && index === finalIndex) { forfeitedStages.push({ partitionIndex: index, cause: 'contradiction' }); continue; }
     if (claim && (claim.closure.payload.fault || !closed)) { forfeitedStages.push({ partitionIndex: index, cause: closed ? 'fault-and-close' : 'fault' }); continue; }
     if (closed) {
       if (!own(index)) { paidSteps.push(receipt.steps); if (!ownFinal && receipt.steps < count) short.push(index); }
@@ -304,9 +307,15 @@ export async function verifyCreditEvidence(request, evidence, enrollment, now, s
     assert(Array.isArray(presented) && presented.every(claim => interrupted.some(row => same(claim, row.closure))), 'Unmatched interrupted stage owner closure');
     const claims = interrupted.filter(row => presented.some(claim => same(claim, row.closure)));
     const stop = evidence.stop === undefined || evidence.stop === null ? null : await verifySplitStop(request, evidence.stop, enrollment, now, skew);
-    // A second signed receipt of the requester's own final stage, kept by the ledger as its contradiction (credit-recovery.js).
-    const twins = evidence.finalStageTwin === undefined ? [] : (await verifyPartitionComponents(request,
-      { identity: evidence.identity, receipts: [evidence.finalStageTwin] }, enrollment, now, skew)).receipts;
+    // Further signed receipts of the requester's own final stage, kept by the ledger as its contradiction
+    // (credit-recovery.js): one receipt, or the two it keeps at one sequence.
+    const presentedTwins = evidence.finalStageTwin === undefined ? [] : [evidence.finalStageTwin].flat();
+    assert(presentedTwins.length <= 2, 'Bounded final-stage contradiction required');
+    const twins = [];
+    for (const receipt of presentedTwins) {
+      const verified = await verifyPartitionComponents(request, { identity: evidence.identity, receipts: [receipt] }, enrollment, now, skew);
+      twins.push(...verified.receipts, ...verified.late);
+    }
     assert(twins.every(row => row.partitionIndex === request.providers.length - 1), 'A final-stage contradiction must be the final stage\'s receipt');
     return observeFailedStageRules(request, { ...proof, twins }, { claims, unadmitted, stop, maxUnacknowledgedOutputs, skew, own: ownStageOf(request, enrollment),
       stated: { closedAtLastStep: evidence.closedAtLastStep, forfeitedStages: evidence.forfeitedStages },
@@ -398,8 +407,10 @@ export async function verifyPartitionComponents(request, evidence, enrollment, n
   };
   assert(Array.isArray(evidence.receipts) && evidence.receipts.length <= request.providers.length, 'Bounded stage receipts required');
   // A step receipt signed after the deadline (plus the clock allowance) is late: verified, then ignored, as in the replay.
-  const receipts = (await Promise.all(evidence.receipts.map(checkReceipt)))
-    .filter(row => !rules || closedReceipt(row) || executionTime(row.signedAt));
+  // (`late` lists them: a late receipt is still its signer's statement, and can be its own stage's contradiction.)
+  const checked = await Promise.all(evidence.receipts.map(checkReceipt));
+  const counts = row => !rules || closedReceipt(row) || executionTime(row.signedAt);
+  const receipts = checked.filter(counts), late = checked.filter(row => !counts(row));
   assert(new Set(receipts.map(row => row.partitionIndex)).size === receipts.length, 'Duplicate stage receipt');
   const acknowledgment = evidence.acknowledgment ?? evidence.acknowledged?.acknowledgment ?? null;
   const acknowledgedReceipt = evidence.acknowledgedReceipt ?? evidence.acknowledged?.receipt ?? null;
@@ -421,6 +432,6 @@ export async function verifyPartitionComponents(request, evidence, enrollment, n
     // one is verified and set aside: its receipts still count, and the requester's earlier acknowledgment still binds.
     if (!executionTime(acknowledgment.signedAt)) lateAcknowledgment = acknowledgment;
   } else assert(!acknowledgedReceipt, 'Output prefix needs its acknowledgment');
-  if (lateAcknowledgment) return { identity: request.route, receipts, acknowledgment: null, acknowledgedReceipt: null, lateAcknowledgment };
-  return { identity: request.route, receipts, acknowledgment, acknowledgedReceipt };
+  if (lateAcknowledgment) return { identity: request.route, receipts, late, acknowledgment: null, acknowledgedReceipt: null, lateAcknowledgment };
+  return { identity: request.route, receipts, late, acknowledgment, acknowledgedReceipt };
 }
