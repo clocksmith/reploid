@@ -1031,13 +1031,56 @@ What it does not establish:
 - **Other reservations.** It speaks for one reservation's hold, not for the
   account's total.
 
-`server/fleet/settlement-statement.js` signs and checks the record. The live
-fleet service does not issue it yet: its ledger has no signing key, and which
-key speaks for a coordinator is an operator decision. Today only
-`scripts/settlement/failure-cases.js` produces it, from a real ledger's state in
-one process and with a test key, and every trade settled before 2026-11-26 has
-none. For those, the release of the hold is the publisher's unsigned statement
-and is not proven by any record.
+`server/fleet/settlement-statement.js` signs and checks the record.
+
+**Who issues it.** The fleet ledger service, through its signed
+`settlementStatement` operation, to a participant of the reservation that
+presents the signed records it holds (`issueSettlementStatement`). The service
+signs only when all of this holds:
+
+- the reservation is final in the ledger and holds nothing (a reservation
+  released before dispatch has no terms and gets no statement);
+- the presented terms are signed by the reservation's requester for its
+  attempt and name the policy, maximum, output limit, price, shares and debit
+  account the reservation was held under;
+- a replay of the presented records, run by the service at its own time, is
+  `settled` or `expired`;
+- that replay's debit and per-account payouts are exactly what the ledger's
+  journal posted for the reservation.
+
+Otherwise it refuses with a stable code (`not-final`, `never-dispatched`,
+`terms-missing`, `terms-differ`, `records-rejected`, `records-not-final`,
+`ledger-differs`, `hold-open`, or `no-coordinator-key`). The `debit`,
+`payouts` and `hold` are ledger state. `status` and `forfeited` are the
+replay's words for the records presented, which is what a verifier compares
+them with. Two consequences:
+
+- A whole-model reservation names no settlement rules in the ledger, so its
+  statement names the current rule set of the unfinished-answer terms the
+  requester signed.
+- Presented with fewer records, the same zero-charge reservation can be stated
+  `expired` where the full set reads `settled` (a close left out after the
+  window). No amount and no hold line can differ between two statements of one
+  reservation.
+
+**The coordinator's key.** The service is given one key file
+(`coordinatorKeyFile` in a `reploid.fleet-service/v1` or
+`reploid.fleet-self-serve-config/v1` configuration, or the
+`REPLOID_FLEET_COORDINATOR_KEY` secret for the hosted mount). It never makes
+one: `node server/fleet/coordinator-key.js create FILE` makes it once and
+refuses to overwrite, a named file that is missing or readable by others stops
+the service, and a service with no key runs as before and signs nothing. The
+public part (`reploid.coordinator-key/v1`: the coordinator ID and its public
+key) is served to anyone at `GET /v1/fleet/coordinator`, and
+`verify-records.js --coordinator-key` holds a statement to it. That makes the
+key independent of whoever publishes a given trade, not of the ledger: see
+[verify-a-trade.md](verify-a-trade.md#the-outsider) for what trust that leaves.
+
+Every trade settled before 2026-11-26 has no statement, and a ledger that runs
+without a key issues none. For those the release of the hold is the
+publisher's unsigned statement and is not proven by any record.
+`scripts/settlement/failure-cases.js` still signs its simulated cases with a
+test key in one process.
 
 ## Whole-model operations
 
@@ -1108,16 +1151,31 @@ receipt, the requester's stop, or the provider's signed terminal record. It does
 not read the terms, so the records are an outsider's check on the amounts it
 posted, not its input. It also has no word for the replay's `settled` and
 `expired` when the charge is zero (its own outcomes are `cancelled`, `failed`
-and `expired`), so a records-only export of such a request states the word the
-held records imply, and the debit, the payout and the remaining hold from the
-ledger. A provider that runs code from before these records signs none of them;
+and `expired`). When the ledger signs its
+[statement](#the-coordinators-statement) it replays the presented records and
+states the replay's word with its own amounts and hold. An export without a
+statement states the word the held records imply, and the debit, the payout and
+the remaining hold from the ledger, unsigned. One timing detail: the terms sign
+the policy's `partitionUnclaimedReleaseMs` as their release window, and the
+ledger releases a silent whole-model hold after
+`wholeModelUnclaimedReleaseMs`. Run a ledger with the two equal; where they
+differ, the ledger and the replay reach the same zero outcome at different
+times, and a statement is issued only once both have. A provider that runs code from before these records signs none of them;
 the request is then served and labelled `no-verifiable-receipt`, or refused
 before any hold when the requester requires a verifiable charge.
 
+Both hosts keep these records on disk
+([verify-a-trade.md](verify-a-trade.md#where-the-records-are-kept)): the
+requester from the moment its terms are signed, the provider from its
+acceptance, each adding the later records as they are signed or arrive.
+
 The drills are separate tests in
 [`whole-model-signed-charge.test.js`](../tests/integration/whole-model-signed-charge.test.js):
-each ends with no hold, and the ledger, both replays and the records-only check
-give the same debit and payout.
+each ends with no hold, the ledger, both replays and the records-only check
+give the same debit and payout, and the ledger's signed statement shows the
+whole hold released under the coordinator key the verifier was given.
+`scripts/settlement/rehearsal.js` runs the same drills across separate
+processes ([verify-a-trade.md](verify-a-trade.md#rehearse-it-on-one-machine)).
 
 ## Checking it
 

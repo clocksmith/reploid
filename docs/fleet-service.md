@@ -389,13 +389,20 @@ node server/fleet/native-host.js /absolute/operator/host.json
 
 The service configuration uses schema `reploid.fleet-service/v1` and declares
 `enrollmentFile`, `modelsFile`, `databaseFile`, `creditPolicy`, `placementPolicy`,
-`listenHost`, `port`, and optional `tls: {keyFile, certFile}`. Non-loopback binding
-requires TLS. Pin a private CA for the service processes rather than disabling
+`listenHost`, `port`, and optional `tls: {keyFile, certFile}` and
+`coordinatorKeyFile` (the key it signs settlement statements with, made once by
+`node server/fleet/coordinator-key.js create`; see
+[settlement-replay.md](settlement-replay.md#the-coordinators-statement)).
+Non-loopback binding requires TLS. Pin a private CA for the service processes rather than disabling
 certificate checks. Requests are authenticated with enrolled signing keys.
 
 Host configuration uses schema `reploid.fleet-native/v1`, explicit `computerId`,
 `name`, `identityFile`, private `roomId`, `roomTokenFile`, `signalingUrl`,
-`serviceUrl`, `maxOutputTokens` and `models`. Each model entry supplies the exact
+`serviceUrl`, `maxOutputTokens` and `models`. Optional `tradeRecordsDirectory`
+names where the host keeps the signed settlement records of charged whole-model
+requests (by default `trade-records/` beside the identity file), and
+`requireVerifiableCharge: true` sends whole-model requests only to a contributor
+that signs them. Each model entry supplies the exact
 catalog `model`, local artifact `directory`, `mode`, and, for ordered shards,
 `ordered` stage configuration. Doppler's public partition API owns the layer plan.
 The model manifest digest is checked before preparation. For a private LAN whose

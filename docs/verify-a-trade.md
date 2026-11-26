@@ -18,6 +18,9 @@ Two things to hold on to before reading a result.
   and neither does an operator verifying their own receipt: signatures show
   which key signed, never who holds it.
 
+To run one yourselves, two people on two machines, start at
+[Run a trade between two people](#run-a-trade-between-two-people).
+
 ## What you need
 
 - Node 22 or later. No npm packages, no keys, no account and no network.
@@ -62,7 +65,9 @@ the same check with their own clone instead.
 An ordinary answer from one computer has the same check. The requester's host
 returns one request's signed records with the ledger's own record of it
 (`tradeRecords` on the paired host, `POST /trade` on its browser bridge; the
-ledger part is the signed `trace` operation). Save that object as
+ledger part is the signed `trace` operation). The records are read from the
+host's disk ([Where the records are kept](#where-the-records-are-kept)), so a
+restart does not lose them. Save that object as
 `receipt.json` in an empty directory and run the command above on it. Its
 `label` is `signed-records` when the requester holds its terms, the provider's
 acceptance and closing receipt, and its own acknowledgment or stop, and
@@ -110,7 +115,10 @@ It does not need the ledger trace and does not use it. For each attempt it
 4. compares the stated debit, payouts and forfeits with the recomputed ones;
 5. reports the hold: `signed by the coordinator` when the coordinator's
    statement is present, verifies and says the whole hold was released, and
-   otherwise that the release is not proven.
+   otherwise that the release is not proven. With
+   `--coordinator-key KEY.json` the statement must be signed by that key, and
+   a statement by any other key fails the check. Without it the line says the
+   signing key is only the one the file carries.
 
 `verify-records.js` and `independent/replay.js` import each other and Node
 built-ins only. Neither imports the service's replay, signers or ledger. The
@@ -136,6 +144,185 @@ each amount is worked out from for someone doing the arithmetic by hand. Without
 writes the older package described above, which hands over whole receipts and
 the service's own verifier files; use it only with someone who may see the
 answer text and the ledger trace.
+
+## Run a trade between two people
+
+This is the charged route as it exists: the spender's page talks to the
+spender's own native host, which holds the spender's key; that host asks the
+earner's host over the mesh; a ledger service holds the credits. Three roles,
+three different people. A fourth party runs the ledger and may be one of the
+first two, which the result then has to say.
+
+What each person needs: Node 22 or later, a clone of this repository at the
+same commit with `npm ci`, and from whoever runs the ledger: its address, the
+signaling address, the room name, the room token as a file only they can read,
+and `model.json`, the exact model entry the ledger credits (its `id`, its
+`identity`, which is the SHA-256 of the model's `manifest.json`, and
+`generation.maxTokens`). The commands are in
+[`scripts/settlement/trade.js`](../scripts/settlement/trade.js).
+
+**Before the day, both people:** make a key and send its public part to the
+ledger's operator, saying which account it belongs to.
+
+```sh
+node scripts/settlement/trade.js key --state "$HOME/.reploid/trade"
+```
+
+It prints public JSON only. The private key stays in
+`~/.reploid/trade/identity.json`. The two keys must be enrolled under two
+different accounts: a ledger refuses to credit a computer for serving its own
+account.
+
+### The earner
+
+Runs the model on their own machine, with their own key, and is paid into
+their own account.
+
+```sh
+node scripts/settlement/trade.js earner --state "$HOME/.reploid/trade" \
+  --service https://LEDGER/v1/fleet --signaling wss://SIGNALING/signaling \
+  --room ROOM --room-token-file /absolute/room-token \
+  --model /absolute/model.json --weights /absolute/model-directory
+```
+
+Before it starts anything it prints the key, the account the ledger will pay
+(**check that it is yours**), and the ledger's coordinator key. If the ledger
+does not know the key it prints the public entry again, starts nothing and
+exits with status 3. Then it loads the model and serves. Leave it running.
+Every charged request it serves leaves its own signed copies in
+`~/.reploid/trade/trade-records/`.
+
+### The spender
+
+Runs a host that holds no weights, pairs the page with it, asks, and exports.
+
+```sh
+node scripts/settlement/trade.js spender --state "$HOME/.reploid/trade" \
+  --service https://LEDGER/v1/fleet --signaling wss://SIGNALING/signaling \
+  --room ROOM --room-token-file /absolute/room-token --model /absolute/model.json
+```
+
+It prints the account that will be charged, the coordinator key, and the
+address and secret file to pair the page with. It refuses to start against a
+ledger that publishes no coordinator key (`--allow-unsigned-hold` overrides,
+and every export then says the hold's release is not proven). The host it
+starts sends a request only to a contributor that signs the settlement
+records, and refuses before any hold otherwise
+(`requireVerifiableCharge`). A caller of the bridge can ask the same for one
+request with `"verifiableCharge": "required"` in the body of
+`POST /generate`.
+
+1. Open the page, go to Computers, and pair your private computers with the
+   printed address and secret.
+2. Pick the model, read the most the answer can cost and who will receive the
+   prompt, and send.
+3. Export the records of that request:
+
+   ```sh
+   node scripts/settlement/trade.js export --state "$HOME/.reploid/trade" --out trade.json
+   ```
+
+   It prints the reservation, a label and the number of signed records.
+   `signed-records; coordinator statement included` is a complete trade. A
+   label that starts `INCOMPLETE` names what is missing and why. `NOT A TRADE`
+   means the host holds no signed records for it; that file verifies as
+   nothing. `--id RESERVATION` exports an earlier request.
+
+Give `trade.json` to the outsider. It holds signed records, the ledger's
+statement and the public policy: no prompt and no answer.
+
+### The outsider
+
+Someone who is neither of the two and does not run the ledger. They need
+Node, `trade.json`, and two files from this repository:
+`scripts/settlement/verify-records.js` and
+`scripts/settlement/independent/replay.js`, kept in those two relative places.
+They fetch the coordinator's key themselves:
+
+```sh
+curl -s https://LEDGER/v1/fleet/coordinator > coordinator-key.json
+node scripts/settlement/trade.js outsider trade.json --coordinator-key coordinator-key.json
+```
+
+(`node verify-records.js trade.json --coordinator-key coordinator-key.json`
+is the same command without the rest of the repository.) A passing result
+prints the debit, the payout per account, and
+`hold: placed N, released N, remaining 0; signed by the coordinator …` followed
+by `the statement is signed by the coordinator key you supplied`.
+
+**What trust the coordinator key leaves.** The statement is the ledger
+operator's signed word about its own database, checked against a key the
+outsider fetched from the operator. So the release of the hold is shown as far
+as: the party that publishes that key signed that it released the whole hold
+and posted exactly these amounts, and cannot later deny it. It is not shown
+that the database really holds that, and nothing ties the key to a person. The
+ledger service serves its own key, which is independent of whoever handed over
+the trade but not of the ledger. An operator who wants more should also publish
+the same key somewhere dated and outside the service (a commit in a public
+repository, a signed announcement), and the outsider should compare the two.
+The debit and the payouts do not rest on the coordinator at all: they are
+recomputed from the two people's own signatures.
+
+### The failure drills
+
+Run these on purpose, one request each, and export each one. In every case the
+outsider's result must show debit 0, no payout, and the whole hold released
+under the coordinator's signature. Text the spender already received is never
+charged on this route
+([why](settlement-replay.md#what-an-unfinished-whole-model-answer-settles)).
+
+| Drill | What to do | What the export and the outsider must show |
+| --- | --- | --- |
+| Stop mid-answer | The spender presses Stop while text is arriving. Export a few seconds later. | Records: terms, charge binding, acceptance, the earner's close with status `failed` and 0 steps, the spender's stop. Outsider: `settled`, debit 0, hold released. |
+| The provider signs a fault | The earner's model runtime must fail during an answer while its host process stays up (a lost GPU device, an allocation the device refuses). No command forces this on a real model. If the two of you cannot produce one, record that this drill was not run; the rehearsal's scripted failure is not a substitute. | Records: terms, charge binding, acceptance, the earner's stage fault, no close. Outsider: `expired`, debit 0, hold released at once, the stage listed as forfeited. |
+| The provider is killed silently | The earner kills its host process outright (`kill -9`) while text is arriving and leaves it down. | Until the deadline plus the release window has passed: the hold is still placed, the export is labelled `INCOMPLETE, missing close` with `no coordinator statement (not-final)`, and the outsider's check **fails** with `the replay is not final: open`. After it (the policy's `maxRequestMs` plus its release window plus its clock allowance; about seven and a half minutes with a 300 s deadline, a 120 s window and a 30 s allowance): export again. Outsider: `expired`, debit 0, hold released. |
+
+Two things the drills cannot show, and the result must not claim. A killed
+provider and a spender whose connection dropped leave the same records, so the
+third drill is unattributed: the stage is listed as forfeited with cause
+`no-close`, which on this route names nobody. And a spender can take a
+finished answer and never acknowledge it; the earner is then paid nothing.
+
+After the drills, restart each host once and export the completed trade again
+from the spender, and ask the earner's host for its own copy
+(`{"id":"1","op":"trade","reservationId":"RESERVATION","format":"records"}` on
+its standard input, or `{"id":"1","op":"trades"}` to list what it holds).
+Both must verify exactly as before.
+
+### Where the records are kept
+
+Each host keeps the signed records of the charged whole-model requests it
+asked for or served in `trade-records/` beside its key (the host setting
+`tradeRecordsDirectory` moves it): one owner-only file per reservation,
+written atomically. A file only ever gains records, and holds nothing but
+signed-record fields, the public policy and the coordinator's statement.
+A record with any other member, or a text longer than a record field, is
+refused, which is what keeps prompts and answers out. The store keeps the
+2048 reservations saved most recently and removes older files first; copy a
+trade's export elsewhere to keep it. The spender's file starts when its terms
+are signed; the earner's when it signs its acceptance. Records that never
+reached a host (a close the provider never signed) are not there, and the
+export says so instead of passing.
+
+### Rehearse it on one machine
+
+```sh
+node scripts/settlement/rehearsal.js --out /absolute/new-directory
+```
+
+This runs the ledger service, a signaling server, an earner host and a spender
+host as four processes with separate key files and data directories, and
+drives the spender's bridge over HTTP with the page's own client module. It
+does a completed trade and the three drills, restarts both hosts, and checks
+every export in a directory that holds only the export, the coordinator key
+fetched from the ledger service, and the two verifier files. It takes under a
+minute because its policy uses a 20 s deadline and an 8 s release window.
+
+It is a **one-operator rehearsal, not a trade**: one person holds both keys and
+the coordinator key on one machine, the model is a script that returns fixed
+words (no weights, no GPU), and no browser is opened. It shows that the
+commands, the records and the checks fit together. It says nothing about two
+people, a real model, or two networks.
 
 ## What it checks
 
