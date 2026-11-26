@@ -15,7 +15,7 @@ test.beforeEach(async ({ page }) => {
       return route.fulfill({ contentType: name.endsWith('.json') ? 'application/json' : 'text/javascript', body: await readFile('.' + name) });
     }
     if (name.includes('..') || !['/host/', '/core/', '/vendor/', '/config/', '/infrastructure/', '/providers/', '/pool/'].some(prefix => name.startsWith(prefix))) return route.abort();
-    return route.fulfill({ contentType: name.endsWith('.json') ? 'application/json' : 'text/javascript', body: await readFile('self' + name) });
+    return route.fulfill({ contentType: name.endsWith('.json') ? 'application/json' : 'text/javascript', body: await readServedText(name.slice(1)) });
   });
   await page.goto('http://127.0.0.1:5199/');
 });
