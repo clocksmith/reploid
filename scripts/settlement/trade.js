@@ -107,7 +107,7 @@ export async function prepareTradeHost({ role, state, service, signaling, room, 
   if (!existsSync(manifestFile)) {
     // A spender holds no weights, only the model's manifest: the one named, or the one this repository pins for a catalog model.
     const bundled = path.join(repo, 'shared/config/model-manifests', `${model.identity.slice(7)}.json`);
-    const source = manifest ? path.resolve(manifest) : existsSync(bundled) ? bundled : null;
+    const pinned = existsSync(bundled) ? bundled : null, source = manifest ? path.resolve(manifest) : pinned;
     assert(role === 'spender' && source, role === 'earner' ? `No manifest.json in ${directory}: --weights must name the directory that holds this model's files`
       : 'No manifest for this model: pass --manifest FILE (the model\'s manifest.json)');
     await fs.copyFile(source, manifestFile);

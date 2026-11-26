@@ -25,7 +25,8 @@ const WORDS = ['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', '
 /** Stands where server/native-whole-model.js stands: the same ports, a scripted answer, no device. */
 export function createScriptedWholeModel({ model, onChange = () => {} }) {
   let offering = false, executing = false, completed = 0, closed = false;
-  const getState = () => ({ phase: executing ? 'executing' : offering ? 'ready' : 'idle', mode: 'whole-model', offering, ready: offering && !closed,
+  const phase = () => { if (executing) return 'executing'; return offering ? 'ready' : 'idle'; };
+  const getState = () => ({ phase: phase(), mode: 'whole-model', offering, ready: offering && !closed,
     modelId: model.id, modelIdentity: offering ? model.identity : null, adapterIdentities: [], completed, supportedOperations: ['generate'] });
   const wait = (ms, signal) => new Promise((resolve, reject) => {
     const timer = setTimeout(resolve, ms);
