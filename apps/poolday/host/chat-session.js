@@ -169,8 +169,10 @@ export function createChatSession({
   const acquireApprovedModel = model => {
     assert(!zeroRequesterWeights, ZERO_WEIGHT_NOTICE);
     assert(downloadSizes.has(model.id), 'Check the model download size first');
-    return acquisition.start(model, true, downloadSizes.get(model.id)).then(cached => {
+    return acquisition.start(model, true, downloadSizes.get(model.id)).then(async cached => {
       if (!closed) { failedLocalModel = null; cachedModels = [...cachedModels.filter(item => item.id !== cached.id), cached]; notifyAll(); }
+      // Part of the same approved download; a failure here leaves the model usable and file sharing explains itself.
+      await swarm?.retainModelMetadata?.(model).catch(() => {});
     });
   };
   let remotePermissions = loadPermissions(storage);

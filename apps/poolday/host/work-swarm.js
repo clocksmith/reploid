@@ -502,6 +502,8 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
       if (!filesEnabled || paused || closed) return;
       await modelFiles.share(model, approved, controls);
     },
+    /** After an approved download: keep what cached-only file sharing needs (the model's piece index). */
+    retainModelMetadata: model => modelFiles?.retainPieceIndex?.(model) ?? Promise.resolve(false),
     stopFiles: () => { filesEnabled = false; storage?.setItem(PRODUCER_FILES_CHOICE, 'false'); notify(); return modelFiles?.stop(); },
     autoConnectEnabled: () => !closed && !paused && automaticAllowed,
     getInviteUrl: () => options.getInviteUrl(),

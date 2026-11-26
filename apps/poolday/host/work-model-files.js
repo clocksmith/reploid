@@ -395,6 +395,17 @@ export function createWorkModelFiles({ getTransport, getIdentity = () => null, o
       return { manifest, manifestText, manifestHash: model.identity, storageContext };
     },
     acquireAdapter: (artifact, controls) => read({ ...artifact, hash: artifact.hash.replace(/^sha256:/, ''), hashAlgorithm: 'sha256' }, controls),
+    /**
+     * Part of an approved model download: stores the model's piece index (small metadata pinned by hash, served by this
+     * site, never taken from a peer), so cached-only file sharing can later offer the downloaded model without fetching.
+     */
+    async retainPieceIndex(model, { signal } = {}) {
+      const pinned = LOCAL_DOPPLER_MODELS.find(item => item.id === model.id && item.identity === model.identity);
+      const descriptor = pinned?.source?.files.find(file => file.role === 'model-piece-index');
+      if (!descriptor) return false;
+      await read(descriptor, { signal, originOnly: true });
+      return true;
+    },
     share(model, approved, { mode = 'cached-only', downloadBytes = policy.defaultAcquisitionBytes } = {}) {
       return ownStorage((async () => {
         assert(approved === true, 'Approve distributing model files separately from compute');
@@ -444,11 +455,12 @@ export function createWorkModelFiles({ getTransport, getIdentity = () => null, o
           } else {
             const descriptor = files.find(file => file.role === 'model-piece-index');
             assert(descriptor, 'File contribution requires an authenticated piece index');
-            // The piece index is small catalog metadata pinned by hash, not model bytes. A model downloaded for answering
-            // (Doppler storage) never stored it, so cached-only sharing fetches it once from the catalog and verifies it;
-            // weights and pieces still come only from this device's cache in that mode. It is read from the catalog, not a
-            // peer: a peer that announced it and then left would time the whole offer out.
-            const indexBytes = await read(descriptor, { signal, onProgress, ...(mode === 'cached-only' ? { originOnly: true } : controls) });
+            // Cached-only never fetches (CONTRIB-02): the index must already be here, stored with an approved download
+            // (retainPieceIndex) or by an earlier bounded or full-model offer.
+            if (mode === 'cached-only' && !await cached(descriptor)) {
+              throw new Error('This model was downloaded before file sharing could use it. Download it again, or share with a download allowance.');
+            }
+            const indexBytes = await read(descriptor, { signal, onProgress, ...controls });
             const { createVerifiedPieceStorage } = await import(DOPPLER_PARTITIONS_MODULE_URL);
             const verified = await createVerifiedPieceStorage({ manifestBytes: new TextEncoder().encode(manifestText).buffer,
               indexBytes: indexBytes.slice().buffer, indexIdentity: 'sha256:' + descriptor.hash, signal,

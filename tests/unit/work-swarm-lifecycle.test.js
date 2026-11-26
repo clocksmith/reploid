@@ -488,3 +488,16 @@ it('offers cached files from a requester-only ordered browser when the person tu
   expect(share.mock.calls[0][2]).toEqual({ mode: 'cached-only' });
   await swarm.close();
 });
+
+it('keeps the piece index after an approved download so cached-only sharing never has to fetch it', async () => {
+  ports.ensure.mockResolvedValue({ peerId: 'fixture', contribution: {} });
+  ports.createTransport.mockReturnValue({ init: async () => true, disconnect: vi.fn(), onMessage: vi.fn(), broadcast: vi.fn() });
+  const retainPieceIndex = vi.fn(async () => true), model = LOCAL_DOPPLER_MODELS[0];
+  const swarm = fixture({}, {}, { retainPieceIndex });
+  // Before the file exchange exists there is nothing to keep it in; the download itself is unaffected.
+  expect(await swarm.retainModelMetadata(model)).toBe(false);
+  await swarm.connect();
+  expect(await swarm.retainModelMetadata(model)).toBe(true);
+  expect(retainPieceIndex).toHaveBeenCalledWith(model);
+  await swarm.close();
+});
