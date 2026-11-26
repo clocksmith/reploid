@@ -1151,8 +1151,8 @@
     },
     {
       "path": "mesh/operation-envelope.js",
-      "bytes": 39504,
-      "sha256": "3f402ed532f87bc76a7949e01f66ca5f967f12b682987ec0c1e58e394ca97d8e"
+      "bytes": 39558,
+      "sha256": "e9e81f79886d4960d4167762e13fa7f93e6f41b43939b7b04fc1e00ce591fcad"
     },
     {
       "path": "mesh/partitions/automatic-ordered-partitions.d.ts",
@@ -1591,8 +1591,8 @@
     },
     {
       "path": "mesh/settlement-terms.js",
-      "bytes": 18406,
-      "sha256": "1eedff194108a5755fbee5aacbcebdd2d541717064f739e52be13743ef42220e"
+      "bytes": 19641,
+      "sha256": "60524853e490ee6e070a6babfda150278c7f4f479a0c4af4aba8b853a2daeac6"
     },
     {
       "path": "mesh/swarm-coordination.d.ts",

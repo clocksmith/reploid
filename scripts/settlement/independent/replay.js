@@ -229,11 +229,15 @@ const KINDS = new Map([
     },
     // A newer shape is accepted as well: terms that have every member above, K included, may carry
     // one more, `debitAccount`, the ledger account the requester is charged from (step 8).
-    optional: { debitAccount: text(128) },
+    optional: { debitAccount: text(128), mode: (v) => v === 'whole-model' },
     across(body) {
       // "K included": terms of the older shape, which sign no K, may not carry it (DOC-GAPS 88).
       if (Object.hasOwn(body, 'debitAccount') && !Object.hasOwn(body, 'maxUnacknowledgedOutputs')) {
         return 'debitAccount on terms without maxUnacknowledgedOutputs';
+      }
+      // `mode` marks whole-model terms: K included and exactly one share.
+      if (Object.hasOwn(body, 'mode') && (!Object.hasOwn(body, 'maxUnacknowledgedOutputs') || body.shares.length !== 1)) {
+        return 'mode on terms without maxUnacknowledgedOutputs or with more than one share';
       }
       const product = BigInt(body.maxOutputTokens) * BigInt(body.creditsPerOutputToken);
       if (BigInt(body.maximum) !== product) return 'maximum is not maxOutputTokens * creditsPerOutputToken';
@@ -438,7 +442,9 @@ function policyFault(agreed, policy, receiverK) {
   }
   if (policy.unit !== terms.unit) return 'unit is not the policy\'s';
   if (policy.creditsPerOutputToken !== terms.creditsPerOutputToken) return 'creditsPerOutputToken is not the policy\'s';
-  if (policy.partitionUnclaimedReleaseMs !== terms.releaseWindowMs) return 'releaseWindowMs is not the policy\'s';
+  // Whole-model terms that say so name the whole-model window; all other terms name the split one.
+  const window = terms.mode === 'whole-model' ? policy.wholeModelUnclaimedReleaseMs : policy.partitionUnclaimedReleaseMs;
+  if (window !== terms.releaseWindowMs) return 'releaseWindowMs is not the policy\'s';
   if (typeof policy.maxOutputTokens !== 'number' || !(terms.maxOutputTokens <= policy.maxOutputTokens)) {
     return 'maxOutputTokens is above the policy\'s';
   }
@@ -857,7 +863,9 @@ async function decide(reservationId, requesterId, attempt, { policyByDigest, rec
   const unclosed = stages.filter((stage) => !hasClosed(stage));
   // The release window has passed after the last instant at which closesInTime holds.
   // CHOICE: `at` is milliseconds since the epoch; without a usable one the window has not passed.
-  const windowPassed = typeof at === 'number' && at > agreed.deadline + terms.releaseWindowMs + skew;
+  // Whole-model terms that say so pass at deadline + releaseWindowMs, as the ledger releases a whole-model hold.
+  const windowPassed = typeof at === 'number' && (terms.mode === 'whole-model' ? at >= agreed.deadline + terms.releaseWindowMs
+    : at > agreed.deadline + terms.releaseWindowMs + skew);
   const forfeiting = new Set(); // the partition indexes of the stages step 6 forfeits
   if (failedStageTerms) {
     // Failed stages. Under the failed-stage terms this rule replaces the two bullets below, and no

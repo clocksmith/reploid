@@ -11,6 +11,18 @@ Purchased credits and payouts are separate. The same ledger can also run with op
 enrollment behind replo.id's accounts, where people pair their own computers by code:
 see [self-serve accounts](self-serve-credits.md).
 
+## Settlement rules at a glance
+
+The signed settlement terms decide every charge; [settlement replay](settlement-replay.md) is the full specification.
+
+| Route and signed terms | Finished answer | Requester signs a stop | Stops with no signed stop | A stage fails | Silent hold released at |
+| --- | --- | --- | --- | --- | --- |
+| Whole-model (one stage) | Charged for the acknowledged count | Nothing charged | Nothing charged | Nothing charged; the hold is released at once on a signed fault | deadline + `wholeModelUnclaimedReleaseMs` |
+| Split, current terms (`reploid.unfinished-answer/acknowledged-prefix-failed-stage-forfeits/v1`, rules `reploid.settlement-replay/v3`) | Charged for the acknowledged count | Acknowledged prefix charged | Acknowledged prefix charged when the stages closed | Only the failed stage's share is forfeited; the other stages are paid | deadline + `partitionUnclaimedReleaseMs` + `maxClockSkewMs` |
+| Split, older terms | See [Older rules](settlement-replay.md#older-rules) | | | | |
+
+Whole-model is completion-only: there is no acknowledged prefix on that route. Nothing is charged when nothing was acknowledged. Signed terms are never reinterpreted: each attempt settles under the terms it signed.
+
 ## Computer identity
 
 An owner-only `identityFile` retains an Ed25519 signing identity across launches.
@@ -233,7 +245,9 @@ is missing. Use a private local filesystem with SQLite locking for the journal a
 No hold outlives its request deadline plus a release window. A whole-model
 provider that admitted a request and then never returns has the deadline plus
 `creditPolicy.wholeModelUnclaimedReleaseMs` to submit completion or cleanup
-evidence. After that the hold is released with status `expired`, no charge and
+evidence. Whole-model settlement terms sign this window (terms signed before
+2026-11-26 named `partitionUnclaimedReleaseMs`; see
+[Release window](settlement-replay.md#release-window)). After that the hold is released with status `expired`, no charge and
 no credit, and a later claim for that request is refused. A provider that did the
 work but returns after the window is therefore not paid for it.
 

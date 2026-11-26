@@ -28,7 +28,7 @@ export const SETTLEMENT_STATEMENT_RECORD_SCHEMA = 'reploid.settlement-statement/
 /** Every member name a signed record or the coordinator's statement defines, at any depth (docs/settlement-replay.md, "Record fields"). */
 export const SIGNED_RECORD_KEYS = Object.freeze(['schema', 'reservationId', 'attemptId', 'routeHash', 'requesterId', 'policyDigest', 'unit', 'creditsPerOutputToken',
   'maxOutputTokens', 'maximum', 'shares', 'partitionIndex', 'participantId', 'weight', 'unfinishedTerms', 'maxUnacknowledgedOutputs', 'notBefore', 'deadline',
-  'releaseWindowMs', 'signedAt', 'debitAccount', 'termsDigest', 'payoutAccount', 'acknowledged', 'sequence', 'status', 'steps', 'tokens', 'prompt', 'processed',
+  'releaseWindowMs', 'signedAt', 'debitAccount', 'mode', 'termsDigest', 'payoutAccount', 'acknowledged', 'sequence', 'status', 'steps', 'tokens', 'prompt', 'processed',
   'timing', 'reservedAt', 'firstStepAt', 'lastStepAt', 'closedAt', 'output', 'count', 'chain', 'done', 'stopReason', 'publicJwk', 'kty', 'crv', 'x', 'y', 'signature',
   // the coordinator's statement
   'coordinatorId', 'settlementRules', 'debit', 'payouts', 'account', 'amount', 'forfeited', 'hold', 'placed', 'released', 'remaining']);

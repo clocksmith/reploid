@@ -185,9 +185,13 @@ async function replayOne(reservationId, requesterId, group, { policies, at, comp
   const bound = published ? policy.maxUnacknowledgedOutputs : maxUnacknowledgedOutputs;
   // Terms signed before terms carried K have no such member (settlement-terms.js): K is then the receiver policy's
   // value, and a policy that publishes K was never theirs.
+  // Whole-model terms that say so sign the whole-model window; every other terms, historical whole-model ones included,
+  // sign the split window (docs/settlement-replay.md, "Release window").
+  const wholeModel = agreed.mode === 'whole-model';
+  const releaseWindow = wholeModel ? policy.wholeModelUnclaimedReleaseMs : policy.partitionUnclaimedReleaseMs;
   const boundAgrees = Object.hasOwn(agreed, 'maxUnacknowledgedOutputs') ? agreed.maxUnacknowledgedOutputs === bound : !published;
   if (agreed.unit !== policy.unit || agreed.creditsPerOutputToken !== policy.creditsPerOutputToken
-    || agreed.maxOutputTokens > policy.maxOutputTokens || agreed.releaseWindowMs !== policy.partitionUnclaimedReleaseMs
+    || agreed.maxOutputTokens > policy.maxOutputTokens || agreed.releaseWindowMs !== releaseWindow
     || ms(agreed.deadline) - ms(agreed.notBefore) > policy.maxRequestMs || !boundAgrees) {
     return { ...base, status: 'invalid', reason: 'the terms differ from the named policy' };
   }
@@ -195,7 +199,9 @@ async function replayOne(reservationId, requesterId, group, { policies, at, comp
   const inTime = within(agreed, skew);
   // The release window has passed once no closing receipt signed in time can still arrive: after its last instant,
   // deadline + releaseWindowMs + maxClockSkewMs. Until then an attempt with an unclosed stage stays `open`.
-  const windowOpen = at <= closesAt + skew;
+  // Whole-model terms that say so follow the ledger's whole-model release: the hold is released at deadline +
+  // releaseWindowMs, with no clock allowance after it.
+  const windowOpen = wholeModel ? at < closesAt : at <= closesAt + skew;
   // A closing receipt counts when signed by deadline + release window + clock allowance, even after the deadline: a stage that closes
   // honestly late is then paid what one that backdates its close would be. The charge stays capped by the requester's
   // in-time acknowledgments. Both ends carry the clock allowance, as `inTime`'s do.

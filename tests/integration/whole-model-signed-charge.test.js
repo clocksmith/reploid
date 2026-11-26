@@ -43,7 +43,7 @@ const ledgerNow = () => Date.now() + clockOffset;
 const account = index => credits.snapshot().accounts.find(row => row.id === `account-${index}`);
 const openRequests = () => credits.snapshot().accounts.reduce((sum, row) => sum + row.held, 0);
 
-beforeEach(async () => {
+async function openLedger(policyExtra = {}) {
   clockOffset = 0; cleanup = [];
   root = await mkdtemp(path.join(os.tmpdir(), 'whole-model-signed-charge-'));
   keys = await Promise.all([0, 1].map(() => createSigningIdentity({ algorithm: 'Ed25519' })));
@@ -53,19 +53,21 @@ beforeEach(async () => {
       ...(index === 0 ? { debtLimit: 0 } : {}), providers: [{ participantId: key.peerId, publicJwk: key.publicJwk }] })),
     policy: { schema: 'reploid.service-credit-policy/v1', version: 'test/1', unit: 'noncash-service-credit',
       creditsPerOutputToken: PRICE, maxDebt: 100, maxOutputTokens: 16, maxPendingPerComputer: 2,
-      maxClockSkewMs: 10000, maxRequestMs: 60000, allowSameOwner: false, wholeModelTerminalCharge: 0 } });
+      maxClockSkewMs: 10000, maxRequestMs: 60000, allowSameOwner: false, wholeModelTerminalCharge: 0, ...policyExtra } });
   // The ledger's own signing key, as its operator would configure it. Here it is a test key made for the run.
   coordinator = await coordinatorFor(await createSigningIdentity({ algorithm: 'Ed25519' }));
   service = await startFleetService({ credits, models: [model], coordinator,
     placementPolicy: { maxMeasurementAgeMs: 60000, maxObservationAgeMs: 10000, minResidencyMs: 1000, maxRouteCandidates: 100, queuedRequestsPerReplica: 2 } });
   clients = keys.map(identity => createFleetClient({ url: service.url, identity }));
-});
-afterEach(async () => {
+}
+async function closeLedger() {
   for (const close of cleanup.reverse()) await close();
   await service?.close();
   credits?.close();
   await rm(root, { recursive: true, force: true });
-});
+}
+beforeEach(() => openLedger());
+afterEach(closeLedger);
 
 /**
  * One requester and one provider on the shared ledger. `signs: false` is a contributor on code that predates the
@@ -660,4 +662,41 @@ it('a requester whose connection drops mid-answer is recorded as cancelled, not 
   fixture.mesh.buses[0].emit('swarm:peer-disconnected', { peerId: fixture.mesh.channels[1] });
   await asking;
   expect(account(0).balance).toBe(0);
+});
+
+it('with unequal release windows, whole-model terms sign the whole-model window and the ledger and both replays release a silent hold at the same time', async () => {
+  const WHOLE = 5000, SPLIT = 40000, MARGIN = 1000;
+  await closeLedger();
+  await openLedger({ wholeModelUnclaimedReleaseMs: WHOLE, partitionUnclaimedReleaseMs: SPLIT });
+  let dead = false;
+  const killed = await route({ requester: 1, provider: 0, meshConfig: index => (index === 0 ? { generationTimeoutMs: 400 } : {}),
+    drop: (type, _payload, sender) => dead && (sender === 1 || type === 'reploid:generation-cancel'),
+    execute: (_messages, update, controls) => new Promise((_, reject) => {
+      update('1'); dead = true;
+      controls.signal.addEventListener('abort', () => reject(controls.signal.reason), { once: true });
+    }) });
+  const failure = await killed.ask().catch(error => error);
+  const reservationId = failure.settlementRecords.reservationId;
+  const records = killed.stored.get(reservationId)();
+  const terms = records.records.find(row => row.schema === SETTLEMENT_TERMS_SCHEMA);
+  expect(terms).toMatchObject({ mode: 'whole-model', releaseWindowMs: WHOLE });
+  const releaseAt = Date.parse(terms.deadline) + WHOLE;
+  const readAll = async at => {
+    clockOffset = at - Date.now();
+    const trace = credits.trace(reservationId);
+    const full = await verifyTrade({ receipt: buildTradeReceipt({ records, trace }), at });
+    const only = await verifyRecords({ trade: buildRecordsExport({ id: 'drill', label: 'In-process drill with test keys', records, trace }), at });
+    return { ledger: trace.status ?? trace.state, full: full.attempts[0].facts.status, only: only.attempts[0].facts.status,
+      problems: [...full.attempts[0].problems, ...only.attempts[0].problems] };
+  };
+  const before = await readAll(releaseAt - MARGIN);
+  expect(before.problems.every(problem => problem.startsWith('the replay is not final: open'))).toBe(true);
+  expect(before.ledger).not.toBe('expired');
+  expect(credits.request(reservationId).state).not.toBe('settled');
+  expect([before.full, before.only]).toEqual(['open', 'open']);
+  // Inside the split window plus the clock allowance: under the old terms the replays would still read open here.
+  const after = await readAll(releaseAt + MARGIN);
+  expect(after.problems).toEqual([]);
+  expect(after).toMatchObject({ ledger: 'expired', full: 'expired', only: 'expired' });
+  await killed.agree(reservationId, { status: 'expired', at: ledgerNow(), trace: { ...credits.trace(reservationId), policyDigest: null } });
 });

@@ -10,6 +10,16 @@ implementation is `server/fleet/settlement-replay.js`; the signers are
 `server/fleet/settlement-terms.js` and
 `packages/reploid/src/mesh/partitions/partition-attempt-evidence.js`.
 
+## Rules at a glance
+
+| Route and signed terms | Finished answer | Requester signs a stop | Stops with no signed stop | A stage fails | Silent hold released at |
+| --- | --- | --- | --- | --- | --- |
+| Whole-model (one stage) | Charged for the acknowledged count | Nothing charged | Nothing charged | Nothing charged; the hold is released at once on a signed fault | deadline + `wholeModelUnclaimedReleaseMs` |
+| Split, current terms (`reploid.unfinished-answer/acknowledged-prefix-failed-stage-forfeits/v1`, rules `reploid.settlement-replay/v3`) | Charged for the acknowledged count | Acknowledged prefix charged | Acknowledged prefix charged when the stages closed | Only the failed stage's share is forfeited; the other stages are paid | deadline + `partitionUnclaimedReleaseMs` + `maxClockSkewMs` |
+| Split, older terms | See [Older rules](settlement-replay.md#older-rules) | | | | |
+
+Whole-model is completion-only: there is no acknowledged prefix on that route. Nothing is charged when nothing was acknowledged. Signed terms are never reinterpreted: each attempt settles under the terms it signed.
+
 ## Records
 
 | Record | Signed by | When | Binds |
@@ -118,6 +128,8 @@ a safe integer `>= 0`; "positive" is a safe integer `> 0`.
   decided rules always sign `K`. A newer shape is accepted as well: terms that
   have every member above, `K` included, may carry one more, `debitAccount`
   text 128, the ledger account the requester is charged from (see step 8).
+  Whole-model terms with `K` and exactly one share may also carry `mode`, whose
+  only value is `"whole-model"` (see [Release window](#release-window)).
 - **Acceptance** (signer: `participantId`): `schema`; `termsDigest` digest;
   `reservationId` text 160; `attemptId`; `participantId`; `partitionIndex` count;
   `signedAt` time. An acceptance has exactly these members, or these and
@@ -145,9 +157,12 @@ a safe integer `>= 0`; "positive" is a safe integer `> 0`.
 
 The policy fields the replay reads are `unit`, `creditsPerOutputToken`,
 `maxOutputTokens`, `maxRequestMs`, `maxClockSkewMs`,
-`partitionUnclaimedReleaseMs` and `maxUnacknowledgedOutputs`. Terms repeat some
+`partitionUnclaimedReleaseMs`, `wholeModelUnclaimedReleaseMs` (whole-model terms only) and
+`maxUnacknowledgedOutputs`. Terms repeat some
 of them: `unit`, `creditsPerOutputToken` and `maxUnacknowledgedOutputs` under the
-same names, and `partitionUnclaimedReleaseMs` as `releaseWindowMs`.
+same names, and the release window as `releaseWindowMs`: `partitionUnclaimedReleaseMs`
+for split terms, and `wholeModelUnclaimedReleaseMs` for whole-model terms that carry
+`mode: "whole-model"` (see [Release window](#release-window)).
 `maxUnacknowledgedOutputs` is `K`. A policy published before it carried `K` has
 no such member; for such a policy `K` is the stages' receiver policy's value,
 which `replaySettlement` takes as its `maxUnacknowledgedOutputs` input (by
@@ -183,7 +198,9 @@ release window is longer than the allowance, the closing window ends at least
 instant where the same receipt without `closedAt` would count. The **release
 window has passed** at `at > deadline + releaseWindowMs + maxClockSkewMs`, after
 the last instant at which `closesInTime` holds: until then a closing receipt
-signed in time can still be presented and change the outcome.
+signed in time can still be presented and change the outcome. For whole-model terms with `mode: "whole-model"` it has
+passed at `at >= deadline + releaseWindowMs`, as the ledger releases that hold
+([Release window](#release-window)).
 
 1. **Which terms.** Terms count unless another route contradicts them. Look at
    the records with the terms' `attemptId`. If any stage receipt from a
@@ -204,7 +221,9 @@ signed in time can still be presented and change the outcome.
    `conflict`.
 3. **Policy.** `invalid` unless the policy digest names a supplied policy whose
    `partitionUnclaimedReleaseMs` is greater than its `maxClockSkewMs`, and the
-   terms repeat its `unit`, `creditsPerOutputToken` and `releaseWindowMs`, with
+   terms repeat its `unit`, `creditsPerOutputToken` and release window (`releaseWindowMs`:
+   `wholeModelUnclaimedReleaseMs` for terms with `mode: "whole-model"`, otherwise
+   `partitionUnclaimedReleaseMs`), with
    `maxOutputTokens` at most the policy's, `deadline - notBefore` at most
    `maxRequestMs`, and `maxUnacknowledgedOutputs` equal to `K`: the policy's
    `maxUnacknowledgedOutputs`, or for a policy without one the receiver policy's
@@ -1137,6 +1156,26 @@ every step above applies unchanged. Source:
   requester that no longer holds the attempt's terms (it restarted) countersigns
   nothing.
 
+### Release window
+
+Whole-model terms signed since 2026-11-26 carry one more member, `mode`, whose
+only value is `"whole-model"`. It is allowed only on terms that carry `K` and have
+exactly one share. Such terms sign the policy's `wholeModelUnclaimedReleaseMs` as
+`releaseWindowMs`, the window the ledger uses to release a silent whole-model hold,
+and step 3 compares `releaseWindowMs` with that member of the policy. For these terms
+the release window has passed at `at >= deadline + releaseWindowMs`, with no clock
+allowance after it, which is when the ledger releases the hold. A closing receipt
+still counts when signed by `deadline + releaseWindowMs + maxClockSkewMs`.
+
+Terms without `mode` are split terms, or whole-model terms signed before it. They
+name `partitionUnclaimedReleaseMs` and are read exactly as before. Before the
+change, whole-model terms named the split window while the ledger used the
+whole-model one, so the ledger and the replays released a silent hold at different
+times unless the two policy values were equal. The ledger is unchanged.
+`tests/integration/whole-model-signed-charge.test.js` checks, with unequal windows, that
+the ledger and both replays read `open` before deadline + window and `expired`
+after it.
+
 ### What an unfinished whole-model answer settles
 
 **There is no acknowledged prefix on this route.** The provider signs its count
@@ -1191,12 +1230,13 @@ and `expired`). When the ledger signs its
 [statement](#the-coordinators-statement) it replays the presented records and
 states the replay's word with its own amounts and hold. An export without a
 statement states the word the held records imply, and the debit, the payout and
-the remaining hold from the ledger, unsigned. One timing detail: the terms sign
-the policy's `partitionUnclaimedReleaseMs` as their release window, and the
-ledger releases a silent whole-model hold after
-`wholeModelUnclaimedReleaseMs`. Run a ledger with the two equal; where they
-differ, the ledger and the replay reach the same zero outcome at different
-times, and a statement is issued only once both have. A provider that runs code from before these records signs none of them;
+the remaining hold from the ledger, unsigned. Whole-model terms with
+`mode: "whole-model"` sign `wholeModelUnclaimedReleaseMs`, so the ledger and the
+replays release a silent hold at the same instant whatever the two policy values
+are ([Release window](#release-window)). Older whole-model terms name
+`partitionUnclaimedReleaseMs`; with unequal policy values the ledger and the
+replay reach the same zero outcome for them at different times, and a statement
+is issued only once both have. A provider that runs code from before these records signs none of them;
 the request is then served and labelled `no-verifiable-receipt`, or refused
 before any hold when the requester requires a verifiable charge. That label is
 only ever given to a charge from a provider that signed nothing: a provider

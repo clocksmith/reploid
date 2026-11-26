@@ -20,7 +20,7 @@ const EXPORT_KEYS = new Set(['schema', 'id', 'label', 'simulated', 'source', 'po
   'placed', 'released', 'remaining']);
 const RECORD_KEYS = new Set(['schema', 'reservationId', 'attemptId', 'routeHash', 'requesterId', 'policyDigest', 'unit', 'creditsPerOutputToken', 'maxOutputTokens',
   'maximum', 'shares', 'partitionIndex', 'participantId', 'weight', 'unfinishedTerms', 'maxUnacknowledgedOutputs', 'notBefore', 'deadline', 'releaseWindowMs',
-  'signedAt', 'debitAccount', 'termsDigest', 'payoutAccount', 'acknowledged', 'sequence', 'status', 'steps', 'tokens', 'prompt', 'processed', 'timing', 'reservedAt',
+  'signedAt', 'debitAccount', 'mode', 'termsDigest', 'payoutAccount', 'acknowledged', 'sequence', 'status', 'steps', 'tokens', 'prompt', 'processed', 'timing', 'reservedAt',
   'firstStepAt', 'lastStepAt', 'closedAt', 'output', 'count', 'chain', 'done', 'stopReason', 'publicJwk', 'kty', 'crv', 'x', 'y', 'signature',
   // the coordinator's statement
   'coordinatorId', 'settlementRules', 'debit', 'payouts', 'account', 'amount', 'forfeited', 'hold', 'placed', 'released', 'remaining']);

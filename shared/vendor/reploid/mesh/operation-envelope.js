@@ -17,7 +17,7 @@ import {
 } from './partitions/partition-attempt-evidence.js';
 import {
   SETTLEMENT_ACCEPTANCE_SCHEMA, SETTLEMENT_FAULT_SCHEMA, SETTLEMENT_STOP_SCHEMA, SETTLEMENT_TERMS_SCHEMA, acceptSettlementTerms, signSettlementStop,
-  signSettlementTermsFor, signStageFaultRecord, termsDigest, verifySettlementAcceptance, verifySettlementFault, verifySettlementTerms
+  WHOLE_MODEL_TERMS_MODE, signSettlementTermsFor, signStageFaultRecord, termsDigest, verifySettlementAcceptance, verifySettlementFault, verifySettlementTerms
 } from './settlement-terms.js';
 
 export const MESH_OPERATION_SCHEMA = 'reploid.mesh-operation/v1';
@@ -356,7 +356,7 @@ export async function openMeshOperationCharge({ signer, requestId, planDigest, r
   const notBefore = now();
   const terms = await signSettlementTermsFor({ signer, reservationId, attemptId: requestId, routeHash, requesterId: signer.participantId,
     participants: [recipient], weights: [1], policy, maxOutputTokens: maxCostUnits, notBefore, deadline: notBefore + policy.maxRequestMs,
-    maxUnacknowledgedOutputs: policy.maxUnacknowledgedOutputs ?? MAX_UNACKNOWLEDGED_OUTPUTS, debitAccount, now });
+    maxUnacknowledgedOutputs: policy.maxUnacknowledgedOutputs ?? MAX_UNACKNOWLEDGED_OUTPUTS, debitAccount, mode: WHOLE_MODEL_TERMS_MODE, now });
   const { publicJwk: _key, signature: _signature, ...body } = terms;
   const digest = await termsDigest(body), genesis = await outputChainGenesis({ reservationId, routeHash });
   const acknowledgment = (count, chain) => signer.sign(OUTPUT_ACKNOWLEDGMENT_SCHEMA, { schema: OUTPUT_ACKNOWLEDGMENT_SCHEMA, reservationId,

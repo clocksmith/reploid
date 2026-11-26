@@ -54,6 +54,12 @@ const TERMS_KEYS_BEFORE_K = Object.freeze(TERMS_KEYS.filter(key => key !== 'maxU
  * publishes the receipt.
  */
 const TERMS_KEYS_WITH_ACCOUNT = Object.freeze([...TERMS_KEYS, 'debitAccount']);
+/**
+ * Whole-model terms (signed since 2026-11-26) carry one more member, `mode: 'whole-model'`, and sign the policy's
+ * `wholeModelUnclaimedReleaseMs` as their release window. Terms without the member are split terms, or whole-model
+ * terms signed before it, and name `partitionUnclaimedReleaseMs` (docs/settlement-replay.md, "Release window").
+ */
+export const WHOLE_MODEL_TERMS_MODE = 'whole-model';
 const ACCEPTANCE_KEYS = Object.freeze(['schema', 'termsDigest', 'reservationId', 'attemptId', 'participantId', 'partitionIndex', 'signedAt']);
 const ACCEPTANCE_KEYS_WITH_ACCOUNT = Object.freeze([...ACCEPTANCE_KEYS, 'payoutAccount']);
 const STOP_KEYS = Object.freeze(['schema', 'reservationId', 'attemptId', 'requesterId', 'acknowledged', 'signedAt']);
@@ -71,7 +77,11 @@ export const policyDigest = policy => digestText(canonicalize(policy));
 /** The digest a stage accepts: the requester's terms body without its key and signature. */
 export const termsDigest = body => digestText(canonicalPartitionJson(body));
 
-function termsProblem(body) {
+function termsProblem(signed) {
+  if (signed && typeof signed === 'object' && Object.hasOwn(signed, 'mode') && (signed.mode !== WHOLE_MODEL_TERMS_MODE
+    || !Object.hasOwn(signed, 'maxUnacknowledgedOutputs') || !Array.isArray(signed.shares) || signed.shares.length !== 1)) return 'terms_malformed';
+  const { mode: _mode, ...body } = signed ?? {};
+  if (!signed) return 'terms_malformed';
   const beforeK = exact(body, TERMS_KEYS_BEFORE_K) && (body.unfinishedTerms === null || body.unfinishedTerms === UNFINISHED_ANSWER_TERMS);
   const withAccount = exact(body, TERMS_KEYS_WITH_ACCOUNT) && text(body.debitAccount, 128);
   if (!(beforeK || withAccount || exact(body, TERMS_KEYS)) || body.schema !== SETTLEMENT_TERMS_SCHEMA || !text(body.reservationId, 160) || !text(body.attemptId)
@@ -195,20 +205,24 @@ export async function signSettlementTerms({ signer, identity, reservationId, pol
  */
 export async function signSettlementTermsFor({ signer, reservationId, attemptId, routeHash, requesterId, participants, weights, policy,
   maxOutputTokens, notBefore, deadline, unfinishedTerms = UNFINISHED_ANSWER_TERMS_V3, maxUnacknowledgedOutputs = policy?.maxUnacknowledgedOutputs,
-  debitAccount = undefined, now = signer?.now ?? Date.now }) {
+  debitAccount = undefined, mode = undefined, now = signer?.now ?? Date.now }) {
   if (signer?.participantId !== requesterId) throw Error('Settlement terms need the requester\'s own signing identity');
   if (policy?.maxUnacknowledgedOutputs !== undefined && maxUnacknowledgedOutputs !== policy.maxUnacknowledgedOutputs) {
     throw Error('Settlement terms must sign the acknowledgment bound their policy publishes');
   }
   if (!Array.isArray(participants) || !Array.isArray(weights) || weights.length !== participants.length) throw Error('One weight per stage is required');
-  const releaseWindowMs = policy.partitionUnclaimedReleaseMs;
+  if (mode !== undefined && mode !== WHOLE_MODEL_TERMS_MODE) throw Error('Settlement terms mode must be whole-model or absent');
+  // The ledger releases a silent whole-model hold after wholeModelUnclaimedReleaseMs and a split one after
+  // partitionUnclaimedReleaseMs; the terms sign the window the ledger will use for this attempt.
+  const releaseWindowMs = mode === WHOLE_MODEL_TERMS_MODE ? policy.wholeModelUnclaimedReleaseMs : policy.partitionUnclaimedReleaseMs;
   const body = {
     schema: SETTLEMENT_TERMS_SCHEMA, reservationId, attemptId, routeHash,
     requesterId, policyDigest: await policyDigest(policy), unit: policy.unit,
     creditsPerOutputToken: policy.creditsPerOutputToken, maxOutputTokens, maximum: maxOutputTokens * policy.creditsPerOutputToken,
     shares: participants.map((participantId, index) => ({ partitionIndex: index, participantId, weight: weights[index] })),
     unfinishedTerms, maxUnacknowledgedOutputs, notBefore: new Date(notBefore).toISOString(), deadline: new Date(deadline).toISOString(),
-    releaseWindowMs, signedAt: new Date(now()).toISOString(), ...(debitAccount === undefined ? {} : { debitAccount })
+    releaseWindowMs, signedAt: new Date(now()).toISOString(), ...(debitAccount === undefined ? {} : { debitAccount }),
+    ...(mode === undefined ? {} : { mode })
   };
   const problem = termsProblem(body);
   if (problem) throw Error(`Settlement terms are invalid: ${problem}`);
