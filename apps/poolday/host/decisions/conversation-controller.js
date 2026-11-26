@@ -160,8 +160,16 @@ export function createConversationController(session, {
     && (state.discoveryPhase === 'searching' || (state.models || []).some(publicAnswers));
   const explicitPrivacy = state => (state.activeThread ? state.activeThread.privacy : viewState.privacy)
     ?? (automaticContributors(state) ? openDefault : localPolicy);
+  /**
+   * The model is the page's to choose: no thread, no pick, and a route on which any public computer may answer. That
+   * is the visitor above and also a returning one whose stored record names only the computer (every record from
+   * before picks were marked, and a sheet commit without a model pick).
+   */
+  const anyPublicModel = state => automaticContributors(state) || (!state.activeThread && viewState.privacy !== undefined
+    && allowsOpenPlaintext(viewState.privacy) && state.remoteAnswersEnabled !== false && !lockedDestination(state)
+    && effectiveLocation(state) === 'network');
   /** Such a visitor's Send, pressed while computers are being found, waits for whichever model turns up: none is named yet. */
-  const waitsForAnyModel = state => automaticContributors(state) && (!chosenModel || chosenAuto);
+  const waitsForAnyModel = state => anyPublicModel(state) && (!chosenModel || chosenAuto);
 
   const lockedDestination = state => {
     const owner = state.ownerPairing, invite = viewState.guestInvite, guest = state.guestAccess;
@@ -250,6 +258,9 @@ export function createConversationController(session, {
     return execution.usable || ['loading', 'preparing'].includes(execution.status);
   };
   const choiceWaitOver = state => state.peerDiscoveryTimedOut === true && state.discoveryPhase === 'observed';
+  /** Whether the page is still choosing the model among the computers that answer: no draft is pinned to one meanwhile. */
+  const choosingStill = state => automaticContributors(state) ? !choiceWaitOver(state)
+    : waitsForAnyModel(state) && (state.discoveryPhase === 'searching' || state.discoveryPhase === 'observed' && !choiceWaitOver(state));
   /**
    * A remembered pick whose model the catalog does not list yet (a private pool's model before the pool's state has
    * loaded, a split route that is down, a build that changed). It stands as the chosen model so the composer names
@@ -330,8 +341,8 @@ export function createConversationController(session, {
   };
   const downloadableHere = (model, state) => canDownloadModelHere(model, state, canDownload);
   function pinDraftModel(state) {
-    // Not during the discovery wait of a visitor who chose nothing: see the pin in project().
-    if (automaticContributors(state) && !choiceWaitOver(state)) return;
+    // Not during the discovery wait of a visitor who picked no model: see the pin in project().
+    if (choosingStill(state)) return;
     if (state.selectedId == null && !chosenModel && !viewState.draftModel) {
       viewState.draftModel = state.models?.find(model => modelKey(model) === currentKey);
     }
@@ -464,7 +475,7 @@ export function createConversationController(session, {
       || modelKey(models.find(model => modelKey(model) === modelKey(defaultModel) && selectable(model)))
       || modelKey(models.find(selectable))
       // While computers are being found for a visitor who chose nothing, a queued Send needs a whole model to wait on.
-      || (automaticContributors(state) ? modelKey(models.find(model => modelKey(model) === modelKey(defaultModel))) : undefined)
+      || (automaticContributors(state) || waitsForAnyModel(state) ? modelKey(models.find(model => modelKey(model) === modelKey(defaultModel))) : undefined)
       || modelKey(models[0]);
     currentKey = current || '';
     const selectedModel = catalogModels.find(model => modelKey(model) === current
@@ -474,8 +485,8 @@ export function createConversationController(session, {
     // being found. For a visitor who chose nothing that lasts the whole bounded discovery wait, so the model is the
     // preferred one among the computers that answered in it, not whichever advertised first.
     if (!thread && !chosenModel && !viewState.draftModel && (draftText.trim() || files.length)
-      && !(freshVisitor && state.discoveryPhase === 'searching' && !execution.usable)
-      && !(automaticContributors(state) && !choiceWaitOver(state))) viewState.draftModel = selectedModel;
+      && !((freshVisitor || waitsForAnyModel(state)) && state.discoveryPhase === 'searching' && !execution.usable)
+      && !choosingStill(state)) viewState.draftModel = selectedModel;
     const prepareHere = location === 'local' && selectedModel?.localCached === true;
     const usable = explicitPrivacy(state).computation === 'plaintext' && (execution.usable || prepareHere);
     const localPreparing = state.localModel?.phase === 'loading';
@@ -548,6 +559,8 @@ export function createConversationController(session, {
     // The queued Send: it waits for a computer running this model while discovery runs, and lapses when that can't happen.
     const permitted = !busy && canWaitForPublicModel(state, selectedModel, location);
     if (queuedSend && (!permitted || queuedSend.scope !== queueScope(state, selectedModel))) queuedSend = null;
+    // A Send held for whichever model turns up ends with the wait when none did: the status below says so.
+    if (queuedSend && waitsForAnyModel(state) && choiceWaitOver(state) && !usable) queuedSend = null;
     if (queuedSend) {
       statusText = waitsForAnyModel(state) ? 'Finding computers…' : `Waiting for a computer running ${modelVariantLabel(selectedModel)}…`;
       const intent = queuedSend;
@@ -570,7 +583,7 @@ export function createConversationController(session, {
       || catalogModels.find(model => modelKey(model) === current) || requestedModel;
     const lockedHost = lockedDestination(state), destination = destinationKey(state);
     const runsHereNow = destination === 'device' || location === 'local' || execution.usable && execution.source === 'local';
-    const findingFirst = freshVisitor && !(thread?.model || chosenModel) && phase === 'searching' && !execution.usable;
+    const findingFirst = (freshVisitor || waitsForAnyModel(state)) && !(thread?.model || chosenModel) && phase === 'searching' && !execution.usable;
     const computerName = runsHereNow ? 'This device' : destination === 'desktop' ? lockedHost?.label
       : destination === 'named' ? 'Named computers' : selectedModel?.fleet ? execution.label : 'Contributors';
     const availability = execution.usable ? 'ready' : preparing || phase === 'searching' ? 'waiting' : 'unavailable';

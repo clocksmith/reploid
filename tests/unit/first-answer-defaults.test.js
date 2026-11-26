@@ -280,3 +280,31 @@ it('keeps a remembered pick whose selection never appears: unavailable, Send off
   expect([chip(rebuilt).selectionId, chip(rebuilt).availability]).toEqual([key(MEDIUM), 'unavailable']);
   expect(rebuilt.view.composer().send.disabled).toBe(true);
 });
+
+it('holds a returning visitor\'s Send for whichever model turns up when their record names only a computer', async () => {
+  // Every record written before picks were marked, and any sheet commit without a model pick, is such a record.
+  const record = () => memory({ [ANSWER_CHOICE_STORAGE_KEY]: JSON.stringify({ selectionId: key(SMALL), identity: SMALL.identity, route: 'contributors' }) });
+  const f = fixture({ storage: record() });
+  f.c.setDraft('Typed before discovery settled');
+  // No model is named while none is known: the record's model is not a pick.
+  expect([chip(f).source, chip(f).name]).toEqual(['', 'Finding computers…']);
+  expect(f.view.composer().send.disabled).toBe(false);
+  f.c.send();
+  expect(f.view.composer().status.text).toBe('Finding computers…');
+  expect(f.view.composer().nextAction).toBe('cancel-queued');
+  f.publish({ discoveryPhase: 'observed', peerDiscoveryTimedOut: false, network: observed.network, models: [SMALL, served(MEDIUM)] });
+  await vi.waitFor(() => expect(f.sent).toHaveLength(1));
+  expect(key(f.created[0].model)).toBe(key(MEDIUM));
+  expect(f.created[0]).toMatchObject({ executionLocation: 'network', privacy: { recipients: { kind: 'open' } } });
+
+  // With nobody to answer when the wait ends, the hold ends with a stated reason and the draft stays.
+  const alone = fixture({ storage: record() });
+  alone.view.send('Typed before discovery settled');
+  expect(alone.view.composer().nextAction).toBe('cancel-queued');
+  alone.publish(observed);
+  await new Promise(resolve => setTimeout(resolve, 0));
+  expect(alone.created).toHaveLength(0);
+  expect(alone.view.composer().status.text).toBe('No eligible computer found for this model.');
+  expect(alone.view.composer().nextAction).toBe('retry');
+  expect(alone.view.composer().draft).toBe('Typed before discovery settled');
+});
