@@ -74,20 +74,30 @@ are rejected. This additive field preserves existing v1 documents.
 
 ```text
 index.html                  Generated interactive preview
- diagram.json               Canonical full document
- ecosystem.json             Standalone ecosystem document
- schema.json                Format description
- source/core.mjs            Validation, routing, SVG export
- source/three-renderer.mjs   Three.js geometry adapter
- source/viewer.js            Editing and viewport interaction
- source/page.html            HTML/CSS template
- build.mjs                  Regenerate the embedded preview
- server.mjs                 Read-only loopback server
- test/diagram.test.mjs       Data and geometry tests
- test/browser-check.mjs      Browser interaction checks (Playwright)
- ecosystem.svg              Static export
- interfaces.svg             Static export
- sequence.svg               Static export
+diagram.json                Canonical full document
+ecosystem.json              Standalone ecosystem document
+schema.json                 Format description
+package.json                Scripts (start, test, build) and the pinned three dependency
+source/core.mjs             Validation, routing, SVG export
+source/three-renderer.mjs   Three.js geometry adapter
+source/viewer.js            Editing and viewport interaction
+source/page.html            HTML/CSS template
+build.mjs                   Regenerate the embedded preview
+server.mjs                  Read-only loopback server
+test/diagram.test.mjs       Data and geometry tests; writes one SVG per view
+test/browser-check.mjs      Browser interaction checks (Playwright)
+test/unit-results.txt       Recorded unit test output
+test/browser-results.txt    Recorded browser check output
+review-runtime-improvement.md  Review record for the runtime-improvement view
+ecosystem.svg               Static export: Products
+interfaces.svg              Static export: Interfaces
+runtime-improvement.svg     Static export: Evolve
+improvement.svg             Static export: Improve
+placement.svg               Static export: Placement
+sequence.svg                Static export: Stream
+cancellation.svg            Static export: Cancel
+recovery.svg                Static export: Recover
+adoption.svg                Static export: Adopt
 ```
 
 When served, the viewer reads `diagram.json`. After editing canonical files, `npm run build` regenerates the standalone embedded copy. `npm start` runs that build automatically. No build tool is required beyond Node for this step.

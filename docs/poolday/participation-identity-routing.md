@@ -38,21 +38,10 @@ device root, capability, profile hash, or advertised limits disagree.
 
 ## Artifact authority
 
-Reploid does not decide that an adapter is good enough to use. Authority remains
-split:
-
-```text
-Columbo / Tinker     creates a candidate adapter
-Gamma                evaluates and selects under a frozen contract
-human promotion      approves the exact candidate
-Doppler              verifies compatibility and executes it
-Reploid              publishes, routes, transfers, activates, and revokes it
-```
-
-An adapter becomes routable only after its bytes, Doppler parity receipt, Gamma
-selection receipt, human-promotion receipt, signed publication, and exact base
-model are present. Revocation removes it from routing without rewriting prior
-receipts.
+Reploid does not decide that an adapter is good enough to use. The split of
+authority and the evidence an adapter needs before it becomes routable are in
+[Trained adapter promotion](../trained-adapter-promotion.md#authority).
+Revocation removes an adapter from routing without rewriting prior receipts.
 
 ## Route decision
 
@@ -71,12 +60,10 @@ providers, and artifact source. Its hash is bound into each assignment,
 adapter-acquisition record, peer transfer, and inference receipt. A receipt with
 a different route hash cannot enter agreement.
 
-## Model-shard boundary
+## Pieces, partitions and routes
 
-Every provider still loads and runs the complete selected model. Model manifests
-and shards come from pinned artifact hosting and are cached locally by Doppler.
-The active runtime verifies the loaded manifest identity and artifact hashes
-before provider registration and assignment. The current live peer-room path
-does not relay base-model shards between browsers. Adapter chunks do have a
-verified peer-transfer path. Poolday does not claim tensor, layer, attention,
-or KV-cache sharding.
+Stored model pieces, split computation and replicas are defined in the
+[glossary](../glossary.md#terms-used-in-code). Which routes run a whole model on
+one computer and which split it across stages is in the product specification's
+[route table](../product-specification.md#5-contribution-and-execution).
+Adapter chunks have a verified peer-transfer path.

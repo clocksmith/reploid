@@ -44,9 +44,5 @@ result. A passing command reported only in prose does not advance journey status
 
 Remaining work belongs in the registry's `openWork` collection and must reference
 one or more journeys. Architecture documents may explain a design, but they do not
-own completion status.
-
-`openWork` records describe journey acceptance gaps, not a second execution
-queue. The owner's private roadmap selects implementation; a selected item links
-back to the existing journey and evidence IDs. Unselected gaps remain visible
-without authorizing another campaign.
+own completion status. See
+[what `openWork` records are](../x/critical-user-journeys.md#open-work).

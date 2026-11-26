@@ -14,7 +14,7 @@ worker, cognition, optimization, or swarm tools.
 | Grow the tool surface | Conditional | CreateTool can fixture-test, replay, install, load, and use a new tool when the model authors a valid contract. |
 | Apply a self-modification | Conditional | A created `self:write` tool can preserve rollback evidence and patch live tools, UI, or mirrored core code. |
 | Steer and stop | Limited | The operator can queue a note and stop or cancel retry, but cannot resume from the Zero shell. |
-| Inspect and recover evidence | Limited | VFS files persist locally, but Zero has no built-in VFS browser, export, replay, or automatic created-tool recovery proof. |
+| Inspect and recover evidence | Limited | VFS files persist locally. The **Recordings** panel on the boot screen and **Inspect** in the running shell import, reopen and play a recorded run trace without running models or tools, and Inspect exports run JSON. Zero has no built-in VFS browser and no proof that created tools recover automatically. |
 | Prove actual local RSI | Conditional | An opt-in hardware lane executes real Doppler cognition, but it is skipped by default and uses a supplied target transcript. |
 
 ## Critical boundary
@@ -41,9 +41,5 @@ currently linked. Zero remains conditional until an artifact binds deployment,
 model, provider, cycles, mutations, visible result, and final verdict.
 
 Remaining work belongs only in the registry's `openWork` collection. Narrative
-docs and blueprint checklists do not own current journey status.
-
-`openWork` records describe journey acceptance gaps, not a second execution
-queue. The owner's private roadmap selects implementation; a selected item links
-back to the existing journey and evidence IDs. Unselected gaps remain visible
-without authorizing another campaign.
+docs and blueprint checklists do not own current journey status. See
+[what `openWork` records are](../x/critical-user-journeys.md#open-work).

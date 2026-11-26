@@ -2,8 +2,10 @@
 
 X is the mature governed agent workspace at `/x`. Its canonical status registry
 is [`../status/x-critical-user-journeys.json`](../status/x-critical-user-journeys.json).
-X is a declared superset of Zero with prebuilt file, promotion, optimization,
-cognition, worker, and swarm capabilities and a denser operator UI.
+X starts from the Zero core: its **Optional upgrades** selector defaults to
+"None: Zero core" ([self-source contract](self-source.md)). The prebuilt file,
+promotion, optimization, cognition, worker, and swarm capabilities arrive only
+with an operator-selected upgrade level. X also has a denser operator UI.
 
 ## Current journey status
 
@@ -39,10 +41,13 @@ itself a completed user journey. Workers, memory, replay, optimization, and
 swarm are separately marked supported, conditional, or limited according to
 the strongest executable user-level evidence currently present.
 
+## Open work
+
 Remaining work belongs only in the registry's `openWork` collection. Blueprint
 checklists and architecture prose do not own current journey status.
 
 `openWork` records describe journey acceptance gaps, not a second execution
-queue. The owner's private roadmap selects implementation; a selected item links
-back to the existing journey and evidence IDs. Unselected gaps remain visible
+queue. This applies to the X, Zero and archived Poolday registries. The owner's
+private roadmap selects implementation; a selected item links back to the
+existing journey and evidence IDs. Unselected gaps remain visible
 without authorizing another campaign.

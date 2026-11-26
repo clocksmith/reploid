@@ -48,7 +48,21 @@ strict subset of this target contract:
 - monotonic child lineage that retains every parent archive input and rejects
   an unchanged child input set;
 - browser-local persistence, coordinator validation, reload recovery, and one
-  checkpoint control inside the Research Room history disclosure.
+  checkpoint control inside the Research Room history disclosure;
+- bounded exact-sequence retrieval across public rooms with browser-side
+  signature and room-link revalidation, source version and declared-license
+  metadata, and provisional current-room attachment without inherited acceptance;
+- signed family/domain annotation identities that bind a declared namespace
+  term and ontology release to an exact sequence, retain source coordinates,
+  and normalize them to one-based closed protein-residue intervals before
+  automatic cross-room reuse;
+- signed origin-versus-current decision-context comparisons for cross-room
+  attachments, with explicit public-reuse consent and an independent
+  current-room relevance determination required before decision-memory admission;
+- deterministic deduplication of the same declared versioned source across
+  rooms, with every signed origin retained in the archive and at most one
+  accepted contribution to current decision memory; supersession remains
+  explicit through accepted corrections or authorized revocations.
 
 The projection is defined by
 [`discovery-contract.js`](../../apps/poolday/pool/discovery-contract.js) and
@@ -345,7 +359,7 @@ consensus do not establish improvement.
 
 | Surface | Authority |
 | --- | --- |
-| Poolday `/` | Own admitted records, contract projections, action allocation, replication state, closure checkpoints, and active scientific policy. |
+| Research Room-1 (`/room-1`, a specialist route; `/` is the conversation workspace) | Own admitted records, contract projections, action allocation, replication state, closure checkpoints, and active scientific policy. |
 | Zero `/zero` | Produce candidate decompositions, tools, estimators, and action-selection methods. It cannot activate them in Poolday. |
 | X `/x` | Stage and evaluate candidate methods and policies in Shadow. It cannot use its own candidate as the sole evaluator. |
 

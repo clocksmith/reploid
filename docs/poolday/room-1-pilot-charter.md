@@ -48,13 +48,13 @@ Each case record in [`apps/poolday/pool/adjudication-pilot-manifest.json`](../..
 
 ## 4. Governing Metric & Success Criteria
 
-* **Governing North-Star Metric:**
-  `median_normalized_cost_to_predeclared_independently_replicated_conclusion_relative_to_baseline`
+* **Governing North-Star Metric:** the median normalized cost to a predeclared
+  independently replicated conclusion, frozen by `poolday.adjudication_north_star_policy/v1`
+  and defined in [Discovery Contract: measured improvement](discovery-contract.md#measured-improvement).
 * **Success Paths (Predeclared Gate):**
   1. **Quality Path:** Higher proportion of independently replicated, non-contradicted decisions at equivalent curator active time ($p < 0.05$).
   2. **Effort Path:** $\ge 20\%$ reduction in median curator active time with non-inferior decision replication quality.
-* **Operational Counters (Excluded from Product Success):**
-  - Peer count, total inference calls, WebGPU receipts, and gossip messages are tracked as operational diagnostics only and cannot substitute for curator decision value.
+* **Operational Counters (Excluded from Product Success):** peers, jobs, receipts and other activity counters are operational metrics only; see [measured improvement](discovery-contract.md#measured-improvement).
 
 ---
 

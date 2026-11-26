@@ -1,11 +1,12 @@
-# Reploid Agent Release Passport Product Intent
+# Change Passport Product Intent
 
 Status: inactive alternative. Zero and X are minimal and extended configurations
 of the same agent. Preserve this implementation and its independent proof criteria.
+The pilot manifest and its verifier still use the earlier name "Agent Release Passport".
 
 ## Product statement
 
-Reploid Agent Release Passport decides whether an exact versioned agent policy,
+Change Passport decides whether an exact versioned agent policy,
 tool, MCP server, permission bundle, or production-agent configuration is
 eligible to proceed. It preserves why eligibility was granted and reopens the
 decision when an authoritative observation invalidates its evidence or policy
@@ -33,21 +34,10 @@ Model, prompt, and ordinary source-code changes may use the contract later.
 The change is represented in GitHub and evaluated through CI. Ordinary code
 changes and generic pull-request review may use the same contract later.
 
-## Frozen baseline workflow
+## Baseline and proof
 
-The pilot compares Change Passport with the team's existing combination of:
-
-```text
-GitHub pull request and branch protection
-+ CI tests and model evaluations
-+ trace or monitoring output
-+ manual approval
-+ deployment and rollback records
-```
-
-The pilot freezes the repository, change class, baseline checks, evaluator,
-approval authority, deployment target, rollback owner, evidence cutoff, cost
-units, and success thresholds before observing outcomes.
+The frozen baseline workflow, the comparison, the admission sequence and the
+measures are defined once in the [external pilot charter](pilot-charter.md).
 
 ## User journey
 
@@ -148,22 +138,6 @@ collaboration and execution with workflow-specific evidence admission; it does
 not acquire generic change-control authority. Room-1 remains the separately
 scoped scientific proof of contradiction-preserving decision memory.
 
-## First proof
-
-An external proof requires a real operator to:
-
-1. Freeze its current change-control workflow and success rules.
-2. Run agent-generated model, prompt, tool, policy, or configuration changes
-   through both the baseline and Reploid workflow.
-3. Place Reploid in the required merge or promotion path.
-4. Preserve all failed, contested, rejected, and unresolved cases.
-5. Exercise at least one real or safely injected reopening trigger.
-6. Verify the exported passport independently.
-
-The evaluator must report reconstruction cost, prevented regressions, escaped
-regressions, false blocks, review effort, reopening correctness, and rollback
-record completeness under predeclared definitions.
-
 ## Non-goals
 
 - General agent identity or access management.
@@ -176,4 +150,4 @@ record completeness under predeclared definitions.
 
 ---
 
-*Last updated: September 2026*
+*Last updated: November 2026*

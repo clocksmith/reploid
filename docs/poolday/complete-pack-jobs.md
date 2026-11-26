@@ -98,6 +98,44 @@ when transport or verification fails. Treat partial display as provisional, dedu
 replayed additions by event index and digest, and pass only verified final output
 back into the agent's tool result.
 
+## Base model plus one signed adapter
+
+Complete jobs can name an exact base model and one exact, signed LoRA publication.
+The current combination policy permits one `peft_safetensors` adapter, at most
+64 MiB. `pool-config.json.peerJobs.execution.adapters` owns those limits and
+whether a provider may fetch missing bytes. The default request uses the base
+model alone. Missing policy fails before assignment.
+
+`normalizeExecutionAdapterSet()` verifies the publication, exact base identity,
+source/tokenizer compatibility, runtime version, format and size. The assignment
+and durable attempt retain that exact set. Providers require an already admitted,
+current publication in their adapter registry; a job cannot publish its own
+adapter into that registry. Revocation is checked before execution, throughout
+output processing and before replaying an old completion.
+
+`createPeerAdapterResolver()` uses `peer-pack-custody.js` with an authorized
+`artifactSet` containing adapter weights only. Its authorization and signed
+supplier inventory come from the application's existing custody arrangement.
+Verified chunks use native browser storage and survive a browser restart. The
+Doppler operation receives immutable adapter descriptors and a byte-store port;
+Doppler verifies bytes, activates tensors and unloads them when the operation
+settles. Its selected signed execution plan must explicitly permit adapter
+execution and include the required kernel closure.
+
+## Operation room helper
+
+`createOperationRoomNetwork()` and `createOperationRoomProvider()` compose the
+existing room bus, signing, WebRTC, message framing and durable execution owners.
+On the Sequence provider route (`/compute`), the helper lets an operator choose a
+**Model to share** or import a signed model descriptor, approve publisher trust
+and public inputs, then **Share this capability** or **Stop sharing**.
+Applications can also call `start()` with selected models, current capability
+observations and an admission callback. Discovery and signed connection tickets
+contain identities only; operation inputs use the data channel. The public
+document UI composes the requester port automatically. Application code may
+supply a room network through `initPoolHome`'s `operationNetwork` option. Browser
+contexts on one machine are not independent operators.
+
 ## Acceptance and recovery
 
 The current v3 assignment binds the signed intent, selected provider advert, route,
@@ -115,7 +153,10 @@ remains current. The requester then applies the predeclared comparison policy.
 Numerical comparisons use declared tolerances; generation qualification uses an
 exact-text reference. Explicit `acceptanceMode: 'execution'` permits generation
 without a reference under the `execution-identity-only` claim. This verifies the
-declared execution and completion, not the answer's quality.
+declared execution and completion, not the answer's quality. For ordinary
+generation use `acceptanceMode: "execution"`, `comparisonPolicy: null`, and
+`reference: null`; verification jobs retain the reference mode. Partial text
+remains provisional, and a retry never joins two generations into one answer.
 Signed records are evidence of key-bound claims, not hardware attestation or
 proof of honest GPU execution. Matching browser outputs do not establish truth.
 
@@ -213,6 +254,27 @@ physical model quality or independent-computer evidence.
   the v3 candidate plan executes real ESM-2 and recovers a dropped completion.
   One physical candidate and one machine; competing choices remain synthetic
   test evidence, and historical selection remains disabled.
+
+Adapter and reviewed-task checks:
+
+```sh
+npx vitest run --config tests/vitest.config.js tests/unit/pool-peer-pack-job.test.js tests/unit/pool-peer-adapter-execution.test.js tests/unit/pool-document-delegation.test.js
+REPLOID_E2E_SKIP_LOCAL_SERVER=1 npx playwright test --config tests/playwright.config.js tests/e2e/peer-pack-jobs.spec.js --project=chromium
+```
+
+These protocol and browser tests use synthetic model outputs. They cover exact
+identities, adapter acquisition, revocation, native restart persistence, real
+WebRTC, reviewed disclosure and durable replay. They do not qualify a specialist
+adapter or establish independently operated machines. When they were written
+(September 2026), the public Doppler package (then 0.5.1) lacked this operation
+bridge. Reploid now pins the package named in
+[`shared/config/doppler-package.json`](../../shared/config/doppler-package.json);
+a public adapter claim still needs an adapter-enabled signed model release
+qualified on that pin. The
+[physical adapter diagnostic](../status/remote-adapter-2026-09-06/README.md)
+retains direct GPU activation, declared auxiliary shaders, and unchanged model
+bytes. It separates those observations from signed execution, source comparison,
+specialist quality, and independent-machine proof.
 
 Independent operators, useful scheduling history, public release installations,
 and model qualification remain separate acceptance gates.

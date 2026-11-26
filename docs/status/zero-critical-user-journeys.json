@@ -211,15 +211,18 @@
       "implementationPaths": [
         "self/boot-helpers/vfs-bootstrap.js",
         "self/core/vfs.js",
-        "self/ui/zero/index.js"
+        "self/ui/zero/index.js",
+        "self/ui/zero/replay-panel.js",
+        "self/ui/zero-home/index.js"
       ],
       "testPaths": [
         "tests/e2e/boot-replay.spec.js",
+        "tests/unit/zero-boot-recordings.test.js",
         "tests/e2e/vfs-roundtrip.spec.js",
         "tests/e2e/iteration-artifacts.spec.js"
       ],
       "limitations": [
-        "The minimal Zero UI has no VFS browser, export control, or replay importer.",
+        "The minimal Zero UI has no VFS browser. Its Recordings and Inspect panels import, reopen and play a recorded run trace without running models or tools, and Inspect exports run JSON.",
         "Persisted created tools are not proved to auto-load into a fresh ToolRunner after reload.",
         "Recovery remains local to one browser instance."
       ],

@@ -2,12 +2,15 @@
 
 Poolday carries governed protein-sequence assignments to one selected browser
 provider, executes them through Doppler, and returns signed result receipts.
-ESM-2 35M is the only enabled Poolday model. Its catalog entry pins the hosted
+ESM-2 35M is the only enabled model in this coordinator lane's catalog
+(`modelCatalog` in [`shared/pool/pool-config.json`](../../shared/pool/pool-config.json)).
+The conversation product's chat models are a separate list in
+[`shared/config/chat-models.json`](../../shared/config/chat-models.json). The ESM-2 catalog entry pins the hosted
 RDRR manifest, tokenizer, shard identity, source revision, protein-sequence
 capabilities, and Doppler browser execution mode. Nucleotide Transformer is a
 disabled, separately governed future DNA candidate; it is not admitted to the
-protein lane. Text, generic embedding, vision, and RNA models are not admitted
-by Poolday.
+protein lane. Text, generic embedding, vision, and RNA models are not enabled
+in this lane's catalog.
 
 ## Target models
 
@@ -77,21 +80,13 @@ accepted and later-durable claims, not from activity count.
 
 ## AdapterPack integration
 
-A sequence adapter follows the existing governed AdapterPack path:
-
-1. The pack names the exact biological base model and manifest.
-2. Doppler parity and Gamma selection receipts qualify its target modules and
-   outputs for that model.
-3. The requester signs approval over the pack, sequence hash, and base model.
-4. A provider advertises the pack as cached or fetchable.
-5. The provider verifies cache, peer, or origin bytes and calls Doppler
-   `loadLoRA()` before `encodeSequence()`.
-6. The inference receipt requires adapter state `active` and records the
-   acquisition source.
-
-Adapter transport support does not prove model-specific LoRA parity. No
-biological AdapterPack should be published until Doppler qualifies the exact
-target modules for the exact converted base artifact.
+A sequence adapter follows the governed AdapterPack path in
+[Trained adapter promotion](../trained-adapter-promotion.md): the pack names the
+exact biological base model and manifest, and the provider verifies the bytes and
+calls Doppler `loadLoRA()` before `encodeSequence()`. Adapter transport support does
+not prove model-specific LoRA parity. No biological AdapterPack should be
+published until Doppler qualifies the exact target modules for the exact
+converted base artifact.
 
 ## Promotion gate
 

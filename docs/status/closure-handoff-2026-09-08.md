@@ -1,5 +1,6 @@
 > Historical checkpoint. Package, deployment and next-work statements below
 > apply only to this dated observation. Follow the current integration closure sequence (private roadmap) for active work.
+> It also mentions deployments of other products (Simulatte, Mandate) that live outside this repository; those lines are not Reploid evidence.
 
 Reploid, Simulatte, and Mandate are deployed, but the complete product finish line remains open. Retained [evidence](https://github.com/clocksmith/reploid/blob/e543183bed54dfdf2b6e6139dd4c31c8686f47bd/artifacts/product-closure-2026-09-08/README.md) separates implementation, physical execution, semantic review, and independent operation. The archive preserves failures, exact outputs, source identities, and subsequent corrections.
 

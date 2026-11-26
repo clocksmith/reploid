@@ -22,8 +22,11 @@ reservations, transport coordination, and durable conversation publication.
 Extend these owners; do not introduce another runtime, cache, receiver, or scheduler.
 
 A piece is verified model data. A partition is a valid computation segment. A
-stage is a prepared partition on a particular resident/process/device. A route
-is either one whole-request stage or exactly two sequential layer stages.
+stage is a prepared partition on a particular resident/process/device. Under
+this contract's block protocol, a route is either one whole-request stage or
+exactly two sequential layer stages. Other Reploid routes, such as the recorded
+three-stage route in the [README](../../README.md#how-a-model-is-stored-and-split),
+are outside this contract.
 Independent jobs have their own complete-operation lifecycle. They are not
 speculative tokens.
 

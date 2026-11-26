@@ -1,4 +1,4 @@
-# Agent Release Passport External Pilot Charter
+# Change Passport External Pilot Charter
 
 ## Product boundary
 
@@ -51,8 +51,20 @@ effect adapters and are prohibited in the initial pilot.
 
 Both arms receive the same candidate, baseline, evidence cutoff, resource
 budget, and outcome window. The baseline arm uses the operator's existing
-GitHub, CI, approval, monitoring, and rollback workflow. The Reploid arm adds
-the Passport eligibility check and verified export.
+workflow, frozen before any outcome is observed:
+
+```text
+GitHub pull request and branch protection
++ CI tests and model evaluations
++ trace or monitoring output
++ manual approval
++ deployment and rollback records
+```
+
+The Reploid arm adds the Passport eligibility check in the required merge or
+promotion path and a verified export. At least one real or safely injected
+reopening trigger must be exercised, and the exported Passport must be verified
+independently.
 
 Every attempted case remains counted, including missing evidence, failed CI,
 rejected and unresolved changes, false blocks, invalid triggers, activation
@@ -62,10 +74,12 @@ fails; eligibility never overrides another system's authority.
 ## Measures and claim boundary
 
 Measure reconstruction minutes, source retrieval count, unresolved questions,
-missing evidence found before approval, false blocks, escaped regressions,
+missing evidence found before approval, review effort, prevented regressions,
+false blocks, escaped regressions,
 reopening precision, invalidation-to-reopening time, and rollback-target
 completeness. At least 20 prospective paired cases must reach their declared
-observation boundary.
+observation boundary. Every measure uses a definition frozen before the first
+case.
 
 Internal dogfood, structural validation, installation, or a passing check proves
 none of customer value, incident reduction, qualification, adoption, deployment

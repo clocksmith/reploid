@@ -4,7 +4,7 @@ Parent: [Documentation](../CATSCAN.md)
 
 ## Target
 
-Poolday is the internal name for Reploid's inference-pool surface. Define the network product through voluntary storage, computation, agent
+Document the specialist-route coordinator and research lane ([naming](../glossary.md#1-overview), [index](README.md)) through voluntary storage, computation, agent
 work and evaluated improvement. Standalone usefulness belongs to participants.
 
 ## Authority
@@ -19,7 +19,7 @@ This directory and unchartered descendants.
 ## Contracts
 
 Inputs: [goals](../../GOALS.md) and [runtime charter](../../apps/poolday/pool/CATSCAN.md).
-Outputs: [public product contract](../product-specification.md), [bounded claims](claims-and-nonclaims.md), and [compatibility links](product-intent.md).
+Outputs: [public product contract](../product-specification.md), [bounded claims](claims-and-nonclaims.md), and [coordinator protocol](coordinator-protocol.md).
 
 ## Invariants
 
@@ -30,7 +30,7 @@ Outputs: [public product contract](../product-specification.md), [bounded claims
 - Bayesian coordination preserves uncertainty, provenance and dependent observations.
 - Mechanism changes require independent evaluation and authorized adoption; weight changes require separate evaluation. Granted adaptation/adoption are CI-independent.
 - Pack identity and qualification differ from availability and successful execution.
-- Work, Network and Improve are connected activities; Poolday is an internal network name.
+- Work, Network and Improve are connected activities.
 - Recent jobs remains execution-only; Room-1 administration stays separate.
 
 ## Acceptance

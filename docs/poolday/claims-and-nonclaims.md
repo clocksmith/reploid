@@ -1,7 +1,9 @@
 # Poolday Claims And Nonclaims
 
-Poolday is the internal/docs name for the public Reploid browser inference pool.
-The public UI uses the Reploid name.
+For what "Poolday" names, see the [glossary](../glossary.md#1-overview). This page
+covers the coordinator and research lane on the specialist routes described in
+this folder's [README](README.md); the coordinator journeys were retired on
+2026-11-26.
 
 The [public product contract](../product-specification.md) owns requirements;
 [architecture](../open-mesh-architecture.md) owns participation and component
@@ -17,177 +19,28 @@ unqualified local + peer and remote-only splits. Do not transfer a result
 across routes, model versions, or deployments. [Wire visibility](../wire-visibility.md)
 explains why transport encryption does not hide input from its executor.
 
-### Retained mechanisms and research evidence
-
-The list below describes scoped mechanisms and specialist or historical evidence,
-not a set of features qualified together in the current public inference service.
-Check the claim index and a route's receipts before calling any of them shipped.
-
-- signed assignment-bound inference receipts
-- deterministic output comparison
-- artifact hash binding
-- redundant provider quorum
-- canary audits
-- challenge reruns
-- provider reputation
-- requester countersignatures
-- policy-controlled admission
-- immutable signed public protein submissions with requester intent and consent
-- deterministic question-clarity gaps for signed public research submissions
-- separately signed and attributable human claims, reviews, replication
-  requests, and corrections
-- public room-scoped evidence links and exact-contract embedding comparison
-- fail-closed accepted room memory that excludes provisional, disputed,
-  replication-requested, corrected, revoked, and compute evidence without
-  embedded signed receipt evidence from distinct receipt identities, provider
-  identities, and provider keys
-- versioned v1 evidence retention and a separate quarantine cache for records
-  that fail current verification or admission
-- separate complete-archive and named-policy decision-memory projections
-- bounded exact-sequence retrieval across public rooms with browser-side
-  signature and room-link revalidation, source version and declared-license
-  metadata, and provisional current-room attachment without inherited acceptance
-- signed `poolday.public_protein_evidence/v1` imports for public sequence,
-  structure, domain, annotation, publication, assay, negative-result, and
-  failed-attempt evidence, with required source version, conditions, versioned
-  transformation, license, source identity, retrieval provenance, and explicit
-  finding state
-- retrieval and action-selection preservation of negative, ambiguous, and
-  failed evidence, while failed attempts remain outside completed-replica counts
-- a bounded `poolday.protein_uncertainty_campaign_queue/v1` projection over
-  locally reverified signed inputs. Its uncalibrated score counts only declared
-  disagreement in exact-contract embeddings, normalized public annotations at
-  the same scope and canonical residue interval,
-  independent reviewer decisions, and comparable completed experimental
-  findings; evidence volume does not increase the score
-- signed family/domain annotation identities that bind a declared namespace
-  term and ontology release to an exact sequence, retain source coordinates,
-  and normalize them to one-based closed protein-residue intervals before
-  automatic cross-room reuse
-- signed origin-versus-current decision-context comparisons for cross-room
-  attachments, with explicit public-reuse consent and an independent
-  current-room relevance determination required before decision-memory admission
-- deterministic deduplication of the same declared versioned source across
-  rooms, with every signed origin retained in the archive and at most one
-  accepted contribution to current decision memory; supersession remains
-  explicit through accepted corrections or authorized revocations
-- signed frozen annotation-adjudication experiment contracts that require a
-  named catalog and curator role, exact baseline and candidate revisions, a
-  family-disjoint paired cohort, fully defined quality and effort metrics, and
-  an exact blinded evaluator identity and artifact. Current v3 contracts also
-  freeze the baseline action-selection artifact, inputs, budget, ranking and
-  stop rule; hidden-versus-future outcome access and evidence cutoff; and paired
-  task, input-order, resource, failure, timeout, and seed controls
-- a frozen five-metric campaign measurement plan that keeps information gained
-  per action, contradiction-resolution cost, duplicate work avoided,
-  uncertainty calibration error, and held-out protein-family performance
-  distinct from one another and from the quality-or-effort success gate. Every
-  metric binds its unit, direction, source, aggregation, validity conditions,
-  noise model, minimum sample, and confidence level
-- a frozen north-star policy that binds the normalized scientific-cost unit and
-  conversion artifact, all six raw cost components, failed and unresolved case
-  treatment, stop rule, conclusion states, replication minimum, declared
-  independence dimensions, paired-median aggregation, interval method,
-  confidence, improvement threshold, and missing-case policy. It explicitly
-  classifies peers, jobs, receipts, records, claims, and total compute as
-  operational metrics without success authority
-- independently authored adjudication evaluations whose paired sample,
-  missing-case, regression, raw-manifest, interval, and conclusion fields are
-  checked against the frozen quality-or-effort and north-star rules. Current v3
-  evaluations bind case, raw-cost, conclusion-audit, independence-audit, and
-  conversion-audit manifests and remain inconclusive unless both arms contain
-  complete real-world independently replicated conclusions
-- signed Discovery Contract checkpoints that bind a question, named policy,
-  parent checkpoints, versioned projection contract, complete ordered archive
-  inputs, active inputs, and deterministic state, with fail-closed coordinator
-  validation and browser reload replay
-- explicit checkpoint lineage and deterministic reopening evidence for
-  contradictions, corrections, revocations, failed replications, policy-active
-  input invalidation, and removal from named-policy decision memory
-- signed computation, retrieval, review, assay, and replication candidate
-  actions that bind affected hypotheses, predicted observations, falsifiers,
-  exact workload or protocol hashes, feasibility, independence, safety, public
-  consent, and separate compute, money, labor, instrument, sample, and elapsed
-  time costs
-- explicit measurement, model, cross-source, missing-alternative, protocol,
-  and decision-change uncertainty sources, with ordinal or set-valued forms and
-  a fail-closed requirement that numeric probabilities name a calibration
-  method and independently accepted frozen cohort
-- deterministic candidate ranking that binds exact input and candidate hashes,
-  policy, method, version, parameters, cost assumptions, calibration evidence,
-  and heuristic status, while preserving rejected actions and exposing raw
-  components, selection, and independent approval in the Research Room
-- deterministic flat similarity, evidence-aware reranking, clustering, and
-  exact-contract approval-gated task proposals with explicit accepted-memory
-  basis
-- signed `poolday.realized_action_value/v1` records that bind an independently
-  approved candidate action, frozen evaluation, current accepting outcome and
-  evaluation reviews, complete metric vector, and named causal contributions;
-  usefulness credit requires independent acceptance and is deduplicated per
-  candidate-action and contribution record
-
-A bounded description of the evidenced inference mechanisms is:
+The coordinator lane's configured claim string (`claim` in
+[`shared/pool/pool-config.json`](../../shared/pool/pool-config.json)) is:
 
 ```text
 receipt-backed, audit-backed, reputation-backed, policy-controlled browser inference
 ```
 
-The evidence collection is not a managed vector database. It compares only
-explicitly published embeddings made by the same exact model contract and
-dimensions. The broader retrieval extension in [Poolday Receipt-Backed
-Retrieval](./receipt-backed-retrieval.md) remains a target until index, query,
-and reranking receipts exist.
+It describes scoped mechanisms of the retired coordinator lane, not a set of
+features qualified together in the current public service. The mechanisms are
+defined where they are implemented:
 
-The [Discovery Contract](./discovery-contract.md) is a scoped research protocol.
-It does not set the inference pool's launch direction or expand public qualification. In particular, the current claim does not
-include calibrated information-gain ranking, independently verified laboratory
-qualification, scientific conclusion, independent biological replication, or
-contract closure. A `poolday.laboratory_capability_claim/v1` record binds the
-signer's declared institution identity, versioned capability evidence, exact
-protocol custody, safety limits, availability, consent, and conflicts. Its
-signature does not verify those declarations externally.
+- receipts, quorum, canaries, challenges, reputation, requester countersignatures
+  and policy classes: [coordinator protocol](coordinator-protocol.md);
+- signed public protein submissions, results and human claims:
+  [protein sequence lane](biological-sequence-lane.md);
+- Research Room records, accepted memory, checkpoints, candidate actions,
+  laboratory claims, work orders, resolution policies, frozen experiments and
+  promotion eligibility: [Discovery Contract](discovery-contract.md);
+- the bounded evidence collection and retrieval direction:
+  [receipt-backed retrieval](receipt-backed-retrieval.md).
 
-A `poolday.research_work_order/v1` record binds the exact protocol, controls,
-conditions, readouts, normalization, planned analysis, allowed failures,
-custody, blinding, and complete-publication scope. Link validation requires an
-independent acceptance before a current qualified laboratory claim and rejects
-outcomes using an unplanned analysis or failure category. The order remains
-unallocated and does not itself authorize work.
-
-The work order also freezes at least two replication-independence dimensions,
-including operator identity. Each new outcome binds signed institution,
-instrument, sample-batch, preparation-batch, and analysis-execution hashes.
-Replication link validation requires every declared dimension to differ from
-the original under the same exact protocol. This establishes consistency among
-signed identities, not physical or biological independence.
-
-A `poolday.research_resolution_policy/v1` record can predeclare a bounded
-conclusion and scope, provisional-acceptance and rejection mappings,
-continued-uncertainty and reopening triggers, uncertainty thresholds, reviewer
-and replication counts, and closure-eligibility conditions. It must predate
-work orders and be independently accepted before a current laboratory claim.
-It remains governance outside decision memory. Reploid does not yet evaluate
-the criteria, accept or reject the conclusion, or sign a closure checkpoint.
-
-Current governed work orders accept only a fixed declared scope:
-public/non-pathogenic/non-clinical protocols, explicitly public synthetic or
-public-reference samples, independent human safety review, prohibited medical
-use and private samples, and no biological-interpretation or laboratory
-authority. A current laboratory claim must match that exact safety class. This
-is a fail-closed data contract, not external biosafety review or proof that the
-operator followed it.
-
-The internal scientific-policy promotion contract validates canonical Zero
-candidate, frozen X cohort, paired Shadow evaluation, and Poolday eligibility
-records. It enforces four-way authority separation and binds prospective proof,
-safety, revocation, and rollback evidence. It does not show that a real
-candidate passed, activate a policy, or prove prospective product improvement.
-
-A realized action-value record establishes that accountable participants signed
-and independently accepted one metric-bound causal attribution under the named
-contracts. It does not establish biological causality or truth. Its usefulness
-credit is a governed reward projection, while peer jobs, receipts, and other
-activity counters remain operational measures.
+Check the claim index and a route's receipts before calling any of them shipped.
 
 ## Nonclaims
 
@@ -199,6 +52,8 @@ Poolday does not provide:
 - proof that a provider did not simulate a result
 - proof that a GPU performed the computation
 - trustless compute
+- a managed vector database; the evidence collection compares only explicitly
+  published embeddings made by the same exact model contract and dimensions
 - model-generated biological meaning or diagnosis
 - conversion of submitted human claims into model facts
 - private-sequence protection in the public evidence collection
@@ -249,20 +104,15 @@ A receipt proves that a provider key signed an assignment-bound artifact.
 It does not prove untampered browser execution or hardware-attested GPU computation.
 Distinct provider keys do not prove distinct people, devices, or organizations.
 
-## Required Copy Rule
+## Copy rule for the coordinator lane
 
-Public copy must use terms such as:
+Copy that describes the retired coordinator lane on its specialist routes may use
+its mechanism terms: receipt-backed, audit-backed, deterministically comparable,
+reputation-backed, challengeable, policy-controlled. These terms are not required
+in current product copy, which follows the
+[product specification](../product-specification.md).
 
-- receipt-backed
-- audit-backed
-- deterministically comparable
-- reputation-backed
-- challengeable
-- policy-controlled
-
-Public copy must not imply hardware-backed or tamper-proof execution.
-
-*Last updated: August 2026*
+No copy may imply hardware-backed or tamper-proof execution.
 
 ## Network-value rejection conditions
 
@@ -277,3 +127,5 @@ A network-value claim remains unsupported when:
 - participants will not contribute lawful artifact custody or bounded compute;
 - the network requires claims of physical independence or honest hardware that
   its evidence cannot establish.
+
+*Last updated: November 2026*

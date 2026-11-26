@@ -1,3 +1,5 @@
+> Note: the `evaluate.py` step described below ran outside this repository, which is JavaScript only. Its scripts are kept only inside the evidence archives.
+
 # Prompt development: both candidates rejected
 
 Two prompt candidates were tested with the same verified Qwen3-0.6B checkpoint,

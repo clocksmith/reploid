@@ -55,7 +55,12 @@ Provider startup must:
 The coordinator can provide artifact hints.
 It is not the source of truth for artifact identity.
 
-## Adapter Package Shape
+## Adapter packages
+
+The adapter pack contents, the exact base it binds and the promotion evidence it
+needs are in [Trained adapter promotion](../trained-adapter-promotion.md). This
+page covers only where adapter bytes are kept and how they are delivered. A
+stored adapter package holds:
 
 ```text
 adapter_model.safetensors
@@ -64,18 +69,6 @@ source-training-manifest.json
 training-export-receipt.json
 runtime-adapter-manifest.json
 ```
-
-`reploid.pool.adapter-pack/v2` binds the weight SHA-256 and size, LoRA rank,
-alpha and target modules, the exact source checkpoint, the exact converted RDRR
-base, evidence receipts, chunks, visibility, one primary origin, and optional
-preservation mirrors. The exact RDRR base includes:
-
-- model, manifest, tokenizer, and weight-pack hashes;
-- source repository and immutable source revision;
-- weight-pack and manifest-variant IDs; and
-- conversion-config digest.
-
-A model ID alone is insufficient adapter compatibility evidence.
 
 ## Origin Rules
 

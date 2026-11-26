@@ -13,10 +13,11 @@ them. Recent jobs distinguishes these local searches from peer evidence.
 
 ## Selecting models
 
-Open Model Packs, select an application-owned JSON configuration, review its
-publisher keys, confirm trust, and choose Use these Packs. This selects models
-locally. It does not admit a model to the public catalog, advertise compute,
-authorize artifact redistribution, or send documents to peers.
+Open **Models**, choose an application-owned JSON file under **Model settings
+(.json)**, review its publisher keys, check **I trust these publishers to supply
+model files**, and choose **Use models**. This selects models locally. It does
+not admit a model to the public catalog, advertise compute, authorize artifact
+redistribution, or send documents to peers.
 
 The configuration has schema `reploid.document-models/v1`, an explicit
 `queryPrefix` string, an `embedding` model, and either a `reranker` model or
@@ -100,12 +101,14 @@ review identifies incomplete support in two cases. Source parity does not
 qualify answer faithfulness. The candidate's GitHub browser and offline checks
 also pass; it has not been published to npm or enabled in the public catalog.
 
-The installed/public Doppler 0.5.1 package lacks the required Pack operation
-surface. The paired Doppler source repair and browser fixtures are tested, but
-this is not a production-ready model offering. No candidate is enabled by this
-change. Release the repaired package under a new immutable package identity,
-update Reploid's verified pin, and qualify actual embedding and reranker Packs
-before public enablement. No production deployment occurred.
+When these experiments ran, the installed public Doppler package (then 0.5.1)
+lacked the required Pack operation surface. Doppler 0.6.0 was then published and
+pinned ([release continuation](../status/doppler-060-release-2026-09-07/README.md));
+Reploid's current pin is in
+[`shared/config/doppler-package.json`](../../shared/config/doppler-package.json).
+No document model is enabled in the public catalog by this work: actual
+embedding and reranker Packs still need qualification on the current pin before
+public enablement. No production deployment of this workflow occurred.
 
 ## Verification
 
@@ -124,7 +127,17 @@ Set `DOPPLER_TEST_FORMAT=capsule` with a Capsule runtime checkout to exercise th
 new signed producer, peer-only artifact recovery, all four operations, and exact
 receipt validation. These tests inject programs; they do not qualify model math.
 
-*Last updated: September 2026*
+## Reviewed public tasks
 
-Reviewed public tasks and complete remote operations are described in
-[remote operations](remote-operations.md).
+The document assistant keeps retrieval local. After a local search, **Ask another
+computer** offers **Local only** (the default), **Share a derived task** and
+**Share a public task**, and starts with an empty task field. **Review task**
+shows the exact text, recipient and model. **Send this task** requires checking
+**This text is public and can be sent to this computer**. Editing the text,
+changing local inputs, cancelling or allowing the preview to expire invalidates
+approval. The returned signed episode is verified before the local model quotes
+the remote draft alongside local passages. Citation-number validation does not
+prove that an answer faithfully represents the sources. The remote job itself
+follows [complete Pack jobs](complete-pack-jobs.md).
+
+*Last updated: November 2026*

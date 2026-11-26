@@ -62,11 +62,8 @@ needs a stricter receipt, index, policy, and benchmark layer.
 
 ## Current Boundary
 
-Base compute claim:
-
-```text
-receipt-backed, audit-backed, reputation-backed, policy-controlled browser inference
-```
+Base compute claim: the coordinator lane's claim string in
+[claims and nonclaims](claims-and-nonclaims.md#claim).
 
 Supported public protein collection:
 

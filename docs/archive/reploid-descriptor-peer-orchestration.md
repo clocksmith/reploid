@@ -1,7 +1,7 @@
 # Archived Reploid Descriptor Peer Orchestration Proposal
 
 > [!CAUTION]
-> **Archived research, not the active Reploid plan.** This layer-pipelining proposal predates the shipped whole-job peer-room product and is not a release checklist. The canonical product contract lives in [`../../shared/pool/pool-config.json`](../../shared/pool/pool-config.json), and current outcomes plus remaining work live in the [Poolday critical user journey registry](poolday-critical-user-journeys.json) (archived; current journeys are in the [catalogue](../critical-user-journeys.md)). Nothing below authorizes public claims that Reploid currently distributes individual model layers.
+> **Archived research, not the active Reploid plan.** This layer-pipelining proposal predates the shipped whole-job peer-room product and is not a release checklist. The product contract is the [product specification](../product-specification.md); the coordinator lane's runtime policy is [`../../shared/pool/pool-config.json`](../../shared/pool/pool-config.json). Current journeys and remaining work are in the [catalogue](../critical-user-journeys.md); the older [Poolday journey registry](poolday-critical-user-journeys.json) is archived. Split-stage routes that exist today are described in the [README](../../README.md#how-a-model-is-stored-and-split) and the specification's route table; nothing below adds to those claims.
 
 > [!IMPORTANT]
 > **Primary Directive:** Browser-Native Distributed Inference
