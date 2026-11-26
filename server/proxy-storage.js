@@ -3,7 +3,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { sha256Hex } from './hashing.js';
 
-/** Explicitly rooted VFS backups and development console storage. */
+/** Explicitly rooted VFS backups. */
 export function mountProxyStorageRoutes(app, { rootDirectory, requireServerAccess }) {
 const VFS_BACKUP_DIRECTORY = path.join(rootDirectory, 'vfs_backups');
 const VFS_BACKUP_MAX_BYTES = Number(process.env.REPLOID_VFS_BACKUP_MAX_BYTES || 1024 * 1024);
@@ -67,44 +67,4 @@ app.get('/api/vfs/restore', requireServerAccess, (req, res) => {
   }
 });
 // --- End VFS Persistence Endpoints ---
-
-// --- Console Logging Endpoint ---
-const CONSOLE_LOG_PATH = path.join(rootDirectory, 'console.log');
-
-// Endpoint to receive browser console logs
-app.post('/api/console-logs', (req, res) => {
-  try {
-    const { logs } = req.body;
-    if (!logs || !Array.isArray(logs)) {
-      return res.status(400).json({ error: 'Invalid log format' });
-    }
-
-    // Append logs to file
-    const logLines = logs.map(log => {
-      return `[${log.timestamp}] [${log.level.toUpperCase()}] ${log.message}`;
-    }).join('\n') + '\n';
-
-    fs.appendFileSync(CONSOLE_LOG_PATH, logLines);
-    res.json({ success: true, logsReceived: logs.length });
-  } catch (error) {
-    console.error('Error saving console logs:', error);
-    res.status(500).json({ error: 'Failed to save logs' });
-  }
-});
-
-// Endpoint to read console logs
-app.get('/api/console-logs', (req, res) => {
-  try {
-    if (fs.existsSync(CONSOLE_LOG_PATH)) {
-      const logs = fs.readFileSync(CONSOLE_LOG_PATH, 'utf8');
-      const lines = logs.split('\n').filter(line => line.trim()).slice(-100); // Last 100 lines
-      res.json({ logs: lines });
-    } else {
-      res.json({ logs: [] });
-    }
-  } catch (error) {
-    console.error('Error reading console logs:', error);
-    res.status(500).json({ error: 'Failed to read logs' });
-  }
-});
 }

@@ -151,6 +151,7 @@ const SERVER_ACCESS_TOKEN = process.env.REPLOID_SERVER_ACCESS_TOKEN || null;
 const ALLOW_UNAUTHENTICATED_LOOPBACK = process.env.REPLOID_ALLOW_UNAUTHENTICATED_LOOPBACK !== 'false';
 const getGeminiHeaders = () => ({
   'Content-Type': 'application/json',
+  'x-goog-api-key': GEMINI_API_KEY || '',
   Referer: GEMINI_REFERER
 });
 

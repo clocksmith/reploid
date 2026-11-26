@@ -231,13 +231,14 @@ export const zeroGemini = onRequest({
     maxOutputTokens: Math.max(1, Math.min(maxAllowedOutputTokens, Number.isFinite(maxOutputTokens) ? maxOutputTokens : maxAllowedOutputTokens))
   });
 
-  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${key}`;
+  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`;
 
   try {
     const response = await fetch(endpoint, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'x-goog-api-key': key,
         'Referer': process.env.GEMINI_REFERER || DEFAULT_REFERER
       },
       body: JSON.stringify(payload)
@@ -248,12 +249,13 @@ export const zeroGemini = onRequest({
 
 
     if (!geminiResponse.ok && geminiResponse.status === 404 && fallbackModel) {
-      const fallbackEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(fallbackModel)}:generateContent?key=${key}`;
+      const fallbackEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(fallbackModel)}:generateContent`;
       try {
         const fallbackResponse = await fetch(fallbackEndpoint, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
+            'x-goog-api-key': key,
             'Referer': process.env.GEMINI_REFERER || DEFAULT_REFERER
           },
           body: JSON.stringify(payload)
@@ -291,6 +293,7 @@ export const zeroGemini = onRequest({
       usage: data.usageMetadata || null
     });
   } catch (error) {
-    res.status(502).json({ error: error?.message || 'Gemini request failed.' });
+    console.error('Zero Gemini request failed:', error?.name || 'Error');
+    res.status(502).json({ error: 'Gemini request failed.' });
   }
 });

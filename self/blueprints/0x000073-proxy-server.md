@@ -48,7 +48,6 @@ The exact route implementation in `server/proxy.js` is authoritative. Current fa
 | Provider proxy | `/api/gemini/*`, `/api/local/*`, `/api/openai/*`, `/api/anthropic/*`, `/api/huggingface/models/:model(*)`, `/api/chat` | Access-controlled provider compatibility. |
 | Local model control | `/api/ollama/models` | Local runtime discovery. |
 | VFS compatibility | `/api/vfs/status`, `/api/vfs/backup`, `/api/vfs/restore` | Explicit server-side backup/restore; not the browser VFS authority. |
-| Logs | `/api/console-logs` | Bounded diagnostic logging. |
 | WebSocket stats | `/api/signaling/stats`, `/api/agent-bridge/stats` | Read-only operational projections. |
 | Product routes | `/`, `/ask`, `/compute`, `/records`, `/history`, `/network` | Poolday/Reploid product entry. |
 | Lab routes | `/zero`, `/x` | Separate Zero and X surfaces. |

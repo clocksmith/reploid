@@ -12,7 +12,7 @@ app.post('/api/gemini/*', requireServerAccess, async (req, res) => {
 
   // Extract the Gemini API path
   const geminiPath = req.params[0];
-  const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/${geminiPath}?key=${GEMINI_API_KEY}`;
+  const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/${geminiPath}`;
 
   try {
     const response = await fetch(geminiUrl, {
@@ -41,8 +41,7 @@ app.post('/api/gemini/*', requireServerAccess, async (req, res) => {
   } catch (error) {
     console.error('Proxy error:', error);
     res.status(500).json({
-      error: 'Failed to proxy request to Gemini API',
-      details: error.message
+      error: 'Failed to proxy request to Gemini API'
     });
   }
 });
@@ -98,7 +97,7 @@ app.post('/zero/gemini', async (req, res) => {
   }
 
   const callGemini = async (targetModel) => {
-    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(targetModel)}:generateContent?key=${GEMINI_API_KEY}`;
+    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(targetModel)}:generateContent`;
     return fetch(endpoint, {
       method: 'POST',
       headers: getGeminiHeaders(),
@@ -135,7 +134,7 @@ app.post('/zero/gemini', async (req, res) => {
     });
   } catch (error) {
     console.error('[Proxy /zero/gemini] Request failed:', error);
-    res.status(502).json({ error: error?.message || 'Gemini request failed.' });
+    res.status(502).json({ error: 'Gemini request failed.' });
   }
 });
 
@@ -357,8 +356,8 @@ app.post('/api/chat', admitAnonymousInference, async (req, res) => {
           console.log(`[API Chat ${requestId}] ERROR: Gemini API key not configured`);
           return res.status(500).json({ error: 'Gemini API key not configured' });
         }
-        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`;
-        console.log(`[API Chat ${requestId}] Calling Gemini API: ${geminiUrl.split('?')[0]}`);
+        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
+        console.log(`[API Chat ${requestId}] Calling Gemini API: ${geminiUrl}`);
         response = await fetch(geminiUrl, {
           method: 'POST',
           headers: getGeminiHeaders(),
