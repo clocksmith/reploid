@@ -20,7 +20,7 @@
   "counts": {
     "apps/poolday": 395,
     "self": 457,
-    "shared": 2525
+    "shared": 2526
   },
   "pendingMoves": 0,
   "violations": [],
@@ -17407,6 +17407,11 @@
     {
       "served": "vendor/reploid/mesh/request-delivery.js",
       "source": "shared/vendor/reploid/mesh/request-delivery.js",
+      "owner": "shared"
+    },
+    {
+      "served": "vendor/reploid/mesh/settlement-terms.js",
+      "source": "shared/vendor/reploid/mesh/settlement-terms.js",
       "owner": "shared"
     },
     {

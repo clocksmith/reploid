@@ -1146,13 +1146,13 @@
     },
     {
       "path": "mesh/operation-envelope.d.ts",
-      "bytes": 6001,
-      "sha256": "fec4f186b07e915fdd5f8205c86c7919a5ec9b41469185978d8243fbf52438ad"
+      "bytes": 9233,
+      "sha256": "884a68c0e75a1d6021fbc7401f055cd4da1c7f97952506245184fed1238e625c"
     },
     {
       "path": "mesh/operation-envelope.js",
-      "bytes": 19238,
-      "sha256": "5fa753e154167209cf67c71970a5d659a358cdf0eaa48674e5461f5bc5a82ed4"
+      "bytes": 33267,
+      "sha256": "aa664fcc6058e3fba33bdf820fb103e0f85b0a43ed5bf08e041093bfadea0d5b"
     },
     {
       "path": "mesh/partitions/automatic-ordered-partitions.d.ts",
@@ -1536,8 +1536,8 @@
     },
     {
       "path": "mesh/peer-generation.js",
-      "bytes": 88107,
-      "sha256": "5f758eb4f9620a19aa8b4b9580ab00705a1ccc4607b10ddd6b64fd45f4bf034d"
+      "bytes": 97024,
+      "sha256": "7707bee5b6ed44965ecc57ef983a4e0e83f969cecdb53aca32faf04f3a7bb3c9"
     },
     {
       "path": "mesh/peer-identity.js",
@@ -1588,6 +1588,11 @@
       "path": "mesh/request-delivery.js",
       "bytes": 8893,
       "sha256": "6ecb8b2a5dda44270f32e36e5a5c9a8864bb7134d615fa2a384fe5086e819cdd"
+    },
+    {
+      "path": "mesh/settlement-terms.js",
+      "bytes": 18406,
+      "sha256": "1eedff194108a5755fbee5aacbcebdd2d541717064f739e52be13743ef42220e"
     },
     {
       "path": "mesh/swarm-coordination.d.ts",

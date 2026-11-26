@@ -3309,7 +3309,7 @@
     {
       "path": "self/host/private-computers.js",
       "owner": "self",
-      "sha256": "sha256:9fb7947c596f751c2c87866944d536c55466a43993a20baf154ae254574dacf5",
+      "sha256": "sha256:726d95f0d7d7a9f497a006883a432774dfcadcc393b92726fb33a3b522901f85",
       "imports": [
         "../vendor/reploid/cancellation.js",
         "../vendor/reploid/chat/index.js"
@@ -4461,7 +4461,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:d321b33868b5e5887c82fe74aafc7d36fe581e7c0f3421460d48ca9347486160",
+      "sha256": "sha256:9ae7a9be56bd9691658f9def98a18b49e0a5900bb14b12b96dc653c5571909a7",
       "imports": []
     },
     {
@@ -5575,7 +5575,7 @@
     {
       "path": "ui/react/app.js",
       "owner": "ui",
-      "sha256": "sha256:161fe1f4956c94f0578f0059ded403ae9a8956d813eb5e72c76e9a210e1bf7c8",
+      "sha256": "sha256:8c50f9cf9e9b9a86ab9ccebcad2a8dca99d004c643abb8896bf48fd5a326645c",
       "imports": []
     },
     {
@@ -19405,11 +19405,13 @@
     {
       "path": "vendor/reploid/mesh/operation-envelope.js",
       "owner": "vendor",
-      "sha256": "sha256:5fa753e154167209cf67c71970a5d659a358cdf0eaa48674e5461f5bc5a82ed4",
+      "sha256": "sha256:aa664fcc6058e3fba33bdf820fb103e0f85b0a43ed5bf08e041093bfadea0d5b",
       "imports": [
         "../artifacts/receipt.js",
         "../artifacts/signatures.js",
-        "../chat/execution-policy.js"
+        "../chat/execution-policy.js",
+        "./partitions/partition-attempt-evidence.js",
+        "./settlement-terms.js"
       ]
     },
     {
@@ -19797,7 +19799,7 @@
     {
       "path": "vendor/reploid/mesh/peer-generation.js",
       "owner": "vendor",
-      "sha256": "sha256:5f758eb4f9620a19aa8b4b9580ab00705a1ccc4607b10ddd6b64fd45f4bf034d",
+      "sha256": "sha256:7707bee5b6ed44965ecc57ef983a4e0e83f969cecdb53aca32faf04f3a7bb3c9",
       "imports": [
         "../artifacts/generation-terminal.js",
         "../artifacts/receipt.js",
@@ -19812,6 +19814,7 @@
         "./generation-recovery.js",
         "./generation-settings.js",
         "./operation-envelope.js",
+        "./partitions/partition-attempt-evidence.js",
         "./peer-identity.js",
         "./preparation-progress.js",
         "./provider-hardware.js",
@@ -19872,6 +19875,18 @@
       "owner": "vendor",
       "sha256": "sha256:6ecb8b2a5dda44270f32e36e5a5c9a8864bb7134d615fa2a384fe5086e819cdd",
       "imports": []
+    },
+    {
+      "path": "vendor/reploid/mesh/settlement-terms.js",
+      "owner": "vendor",
+      "sha256": "sha256:1eedff194108a5755fbee5aacbcebdd2d541717064f739e52be13743ef42220e",
+      "imports": [
+        "../artifacts/canonical-json.js",
+        "../artifacts/participant-proofs.js",
+        "../artifacts/signatures.js",
+        "./partitions/partition-attempt-evidence.js",
+        "./partitions/partition-contract.js"
+      ]
     },
     {
       "path": "vendor/reploid/mesh/swarm-coordination.js",

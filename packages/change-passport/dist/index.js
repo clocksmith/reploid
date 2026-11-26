@@ -196,6 +196,80 @@ var AUTO_ROUTES = Object.freeze({
 });
 var plaintextBackends = Object.keys(EXECUTION_BACKENDS);
 
+// shared/vendor/reploid/artifacts/participant-proofs.js
+var DEVICE_HOSTS = Object.freeze(["browser", "native"]);
+var PROOF_KEYS = Object.freeze(["schema", "challengeId", "nonce", "accountId", "audience", "participantId", "publicJwk", "host", "signature"]);
+var SESSION_BINDING_KEYS = Object.freeze(["schema", "challengeId", "nonce", "accountId", "sessionId", "participantId", "signature"]);
+var P256_ORDER = 0xffffffff00000000ffffffffffffffffbce6faada7179e84f3b9cac2fc632551n;
+var P256_HALF_ORDER = P256_ORDER >> 1n;
+
+// shared/vendor/reploid/mesh/partitions/partition-receiver-policy.json
+var partition_receiver_policy_default = {
+  maxControlBytes: 65536,
+  maxCompletedSequences: 2,
+  maxRetentionMs: 6e4,
+  maxRetainedBytes: 1048576,
+  maxUnacknowledgedOutputs: 2
+};
+
+// shared/vendor/reploid/mesh/partitions/partition-attempt-evidence.js
+var STAGE_RECEIPT_SCHEMA = "reploid.stage-receipt/v1";
+var OUTPUT_ACKNOWLEDGMENT_SCHEMA = "reploid.output-acknowledgment/v1";
+var STAGE_RECEIPT_STATUSES = Object.freeze(["executing", "settled", "failed"]);
+var MAX_UNACKNOWLEDGED_OUTPUTS = partition_receiver_policy_default.maxUnacknowledgedOutputs;
+if (!Number.isSafeInteger(MAX_UNACKNOWLEDGED_OUTPUTS) || MAX_UNACKNOWLEDGED_OUTPUTS < 0) {
+  throw new Error("partition-receiver-policy.json must declare maxUnacknowledgedOutputs as a non-negative integer");
+}
+var RECEIPT_KEYS = Object.freeze([
+  "schema",
+  "reservationId",
+  "attemptId",
+  "routeHash",
+  "partitionIndex",
+  "participantId",
+  "sequence",
+  "status",
+  "steps",
+  "tokens",
+  "timing",
+  "output",
+  "signedAt"
+]);
+var ACKNOWLEDGMENT_KEYS = Object.freeze(["schema", "reservationId", "attemptId", "routeHash", "requesterId", "count", "chain", "signedAt"]);
+var TIMING_KEYS = Object.freeze(["reservedAt", "firstStepAt", "lastStepAt", "closedAt"]);
+var OUTPUT_KEYS = Object.freeze(["count", "chain", "done", "stopReason"]);
+var BUNDLE_KEYS = Object.freeze(["schema", "reservationId", "attemptId", "identity", "receipts", "acknowledged"]);
+
+// shared/vendor/reploid/mesh/settlement-terms.js
+var SETTLEMENT_TERMS_SCHEMA = "reploid.settlement-terms/v1";
+var SETTLEMENT_ACCEPTANCE_SCHEMA = "reploid.settlement-acceptance/v1";
+var SETTLEMENT_STOP_SCHEMA = "reploid.settlement-stop/v1";
+var TERMS_KEYS = Object.freeze([
+  "schema",
+  "reservationId",
+  "attemptId",
+  "routeHash",
+  "requesterId",
+  "policyDigest",
+  "unit",
+  "creditsPerOutputToken",
+  "maxOutputTokens",
+  "maximum",
+  "shares",
+  "unfinishedTerms",
+  "maxUnacknowledgedOutputs",
+  "notBefore",
+  "deadline",
+  "releaseWindowMs",
+  "signedAt"
+]);
+var TERMS_KEYS_BEFORE_K = Object.freeze(TERMS_KEYS.filter((key) => key !== "maxUnacknowledgedOutputs"));
+var TERMS_KEYS_WITH_ACCOUNT = Object.freeze([...TERMS_KEYS, "debitAccount"]);
+var ACCEPTANCE_KEYS = Object.freeze(["schema", "termsDigest", "reservationId", "attemptId", "participantId", "partitionIndex", "signedAt"]);
+var ACCEPTANCE_KEYS_WITH_ACCOUNT = Object.freeze([...ACCEPTANCE_KEYS, "payoutAccount"]);
+var STOP_KEYS = Object.freeze(["schema", "reservationId", "attemptId", "requesterId", "acknowledged", "signedAt"]);
+var FAULT_KEYS = Object.freeze(["schema", "reservationId", "attemptId", "routeHash", "partitionIndex", "participantId", "signedAt"]);
+
 // shared/vendor/reploid/mesh/operation-envelope.js
 var MESH_OPERATIONS = Object.freeze({
   generate: Object.freeze({ costUnit: "output-token", orderedSplit: true }),
@@ -212,6 +286,14 @@ var MESH_OPERATION_ERROR_CODES = Object.freeze({
   OPERATION_RESULT_INVALID: "OPERATION_RESULT_INVALID"
 });
 var SPLIT_ROUTES = Object.freeze(["split", "split-local-edges"]);
+var WHOLE_MODEL_EXECUTION = Object.freeze({ protection: "plaintext", route: "remote" });
+var MESH_OPERATION_SETTLEMENT_RECORD_SCHEMAS = Object.freeze([
+  SETTLEMENT_TERMS_SCHEMA,
+  OUTPUT_ACKNOWLEDGMENT_SCHEMA,
+  SETTLEMENT_ACCEPTANCE_SCHEMA,
+  STAGE_RECEIPT_SCHEMA,
+  SETTLEMENT_STOP_SCHEMA
+]);
 
 // shared/vendor/reploid/mesh/request-delivery.js
 var DELIVERY_PROTOCOL = 1;
@@ -291,48 +373,6 @@ fn main(@builtin(workgroup_id) group: vec3u, @builtin(local_invocation_index) la
     atomicStore(&result[1u + ${gpu_signature_policy_default.workgroups}u + group.x], checksum);
   }
 }`;
-
-// shared/vendor/reploid/artifacts/participant-proofs.js
-var DEVICE_HOSTS = Object.freeze(["browser", "native"]);
-var PROOF_KEYS = Object.freeze(["schema", "challengeId", "nonce", "accountId", "audience", "participantId", "publicJwk", "host", "signature"]);
-var SESSION_BINDING_KEYS = Object.freeze(["schema", "challengeId", "nonce", "accountId", "sessionId", "participantId", "signature"]);
-var P256_ORDER = 0xffffffff00000000ffffffffffffffffbce6faada7179e84f3b9cac2fc632551n;
-var P256_HALF_ORDER = P256_ORDER >> 1n;
-
-// shared/vendor/reploid/mesh/partitions/partition-receiver-policy.json
-var partition_receiver_policy_default = {
-  maxControlBytes: 65536,
-  maxCompletedSequences: 2,
-  maxRetentionMs: 6e4,
-  maxRetainedBytes: 1048576,
-  maxUnacknowledgedOutputs: 2
-};
-
-// shared/vendor/reploid/mesh/partitions/partition-attempt-evidence.js
-var STAGE_RECEIPT_STATUSES = Object.freeze(["executing", "settled", "failed"]);
-var MAX_UNACKNOWLEDGED_OUTPUTS = partition_receiver_policy_default.maxUnacknowledgedOutputs;
-if (!Number.isSafeInteger(MAX_UNACKNOWLEDGED_OUTPUTS) || MAX_UNACKNOWLEDGED_OUTPUTS < 0) {
-  throw new Error("partition-receiver-policy.json must declare maxUnacknowledgedOutputs as a non-negative integer");
-}
-var RECEIPT_KEYS = Object.freeze([
-  "schema",
-  "reservationId",
-  "attemptId",
-  "routeHash",
-  "partitionIndex",
-  "participantId",
-  "sequence",
-  "status",
-  "steps",
-  "tokens",
-  "timing",
-  "output",
-  "signedAt"
-]);
-var ACKNOWLEDGMENT_KEYS = Object.freeze(["schema", "reservationId", "attemptId", "routeHash", "requesterId", "count", "chain", "signedAt"]);
-var TIMING_KEYS = Object.freeze(["reservedAt", "firstStepAt", "lastStepAt", "closedAt"]);
-var OUTPUT_KEYS = Object.freeze(["count", "chain", "done", "stopReason"]);
-var BUNDLE_KEYS = Object.freeze(["schema", "reservationId", "attemptId", "identity", "receipts", "acknowledged"]);
 
 // shared/vendor/reploid/transport/partition-data-channel.js
 var encoder2 = new TextEncoder();
