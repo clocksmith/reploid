@@ -2998,7 +2998,7 @@
     {
       "path": "self/host/decisions/computers.js",
       "owner": "self",
-      "sha256": "sha256:470363d63b320705985eb573641deb73c74b781546e3dae3fb22d9e7968b712a",
+      "sha256": "sha256:007173dffb42ba4974274733d3d690d07de8cc03834f77dffad8490a43c73962",
       "imports": [
         "../../capabilities/communication/library-adapter.js",
         "../../pool/model-contract.js",
@@ -3013,7 +3013,8 @@
         "../../ui/pool-home/model-providers.js",
         "../../ui/pool-home/network-controls.js",
         "../../ui/pool-home/service-credit-text.js",
-        "../chat-view.js"
+        "../chat-view.js",
+        "./settings.js"
       ]
     },
     {
@@ -3069,7 +3070,7 @@
     {
       "path": "self/host/decisions/settings.js",
       "owner": "self",
-      "sha256": "sha256:364da31c60d69d828b75a79e6321f4b5e8103d893826bb4d3dc9e80159ce9763",
+      "sha256": "sha256:3f1958e42af096dd98c5fe5dccd365ea609861c41e65741d642de118cc0c99d8",
       "imports": [
         "../../ui/pool-home/choice-availability.js",
         "../../ui/pool-home/web-search-settings.js",
@@ -3561,7 +3562,7 @@
     {
       "path": "self/host/work-model-files.js",
       "owner": "self",
-      "sha256": "sha256:de6ac1e70db585c5fe40de4f3b23d3427ec344cc0b2db608d38151678e34596f",
+      "sha256": "sha256:e0ddc0d43feaeb8a74ff2dfd08dc89f0e45d932b48f4fe5c036874ec1eafade9",
       "imports": [
         "../config/chat-files.json",
         "../config/doppler-local-models.js",
@@ -3702,7 +3703,7 @@
     {
       "path": "self/host/work-swarm.js",
       "owner": "self",
-      "sha256": "sha256:d696ca3fcd4b09b3018ea74e538fd8aacc5dbbee1d0a31378cf9b834b8dbf8ba",
+      "sha256": "sha256:c656763e1191264208328c2fe22c815fc226a53241861a4292ff27b0c1f80dbe",
       "imports": [
         "../capabilities/communication/library-adapter.js",
         "../config/doppler-local-models.js",
@@ -4463,7 +4464,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:65e524617c542cc35abb61d96a73b6f696410975b54695e212e95406c32ac015",
+      "sha256": "sha256:9cbb103b265383aee12a6580c6c3eea53f4b2c893defdf8f239e7439a4fa5721",
       "imports": []
     },
     {
@@ -5577,13 +5578,13 @@
     {
       "path": "ui/react/app.js",
       "owner": "ui",
-      "sha256": "sha256:702b48574b611c2e62257b5ef61295e0e4433dfe94130591959f6f4bc7735cd0",
+      "sha256": "sha256:da8d3d2b1bceb01f1dc2d5192bdc2bb401d04b156e4683859b9f7df9b58ed1fb",
       "imports": []
     },
     {
       "path": "ui/react/design.js",
       "owner": "ui",
-      "sha256": "sha256:316e1556dde35e928c29fdf155ab14fee6522f48a9bbcaea5bb68d87f57181de",
+      "sha256": "sha256:2794efba643691de25ea7f5363da10d0c4a30325134b881f8d561bd353e11e6d",
       "imports": []
     },
     {
@@ -18804,7 +18805,7 @@
     {
       "path": "vendor/reploid/artifacts/custody/exchange.js",
       "owner": "vendor",
-      "sha256": "sha256:c5d7cf83988dc3056f355ab5c7bc8ddc0e55320766e8a05b24a6b834dac306bd",
+      "sha256": "sha256:eeaa1ecfe2b1ca919aaf429a1accc708373c570d22e12f8df0892ebc4abe9594",
       "imports": [
         "../../cancellation.js",
         "../delivery-attestation.js"

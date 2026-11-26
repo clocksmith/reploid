@@ -353,7 +353,9 @@ export function createCustodyExchange({ transport, identity, policy, ports }) {
   });
   return Object.freeze({
     announce,
-    getState: () => { connected(); return { sharing: supply, suppliedBytes: Math.max(reserved, ports.supplyBudget?.getState()?.reservedBytes || 0), pending: acquiring, peers: [...peers.keys()] }; },
+    getState: () => { connected(); return { sharing: supply, suppliedBytes: Math.max(reserved, ports.supplyBudget?.getState()?.reservedBytes || 0), pending: acquiring, peers: [...peers.keys()],
+      // Peers whose latest announced inventory is non-empty: an empty announcement withdraws the offer.
+      offering: [...peers].filter(([, artifacts]) => artifacts.length > 0).map(([peer]) => peer) }; },
     has: artifact => candidates(artifact).length > 0,
     offer(artifacts) {
       if (!Array.isArray(artifacts) || artifacts.length > policy.maxInventoryFiles || !artifacts.every(valid)) throw new Error('Invalid file inventory');
