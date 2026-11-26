@@ -76,6 +76,29 @@ describe('Reflection System - Integration Tests', () => {
     });
   });
 
+  describe('ReflectionStore genomes', () => {
+    it('returns a stored winning configuration only after an operator adopts it', async () => {
+      await reflectionStore.init();
+      const genome = { topology: { type: 'chain' }, nodes: [{ id: 'a' }], edges: [] };
+      const stored = await reflectionStore.storeNetworkGenome('task', genome, 0.9);
+      expect(stored).toMatchObject({ taskType: 'task', retained: true });
+      expect(reflectionStore.getBestGenome('task')).toBeNull();
+      expect(await reflectionStore.adoptGenome('task', stored.timestamp)).toBe(true);
+      expect(reflectionStore.getBestGenome('task')).toEqual(genome);
+      expect(await reflectionStore.adoptGenome('task', -1)).toBe(false);
+    });
+
+    it('a higher-scoring unadopted configuration does not replace the adopted one', async () => {
+      await reflectionStore.init();
+      const adopted = { topology: { type: 'chain' }, nodes: [{ id: 'a' }], edges: [] };
+      const first = await reflectionStore.storeNetworkGenome('task', adopted, 0.5);
+      await reflectionStore.adoptGenome('task', first.timestamp);
+      await new Promise(resolve => setTimeout(resolve, 2)); // distinct timestamps
+      await reflectionStore.storeNetworkGenome('task', { topology: { type: 'ring' }, nodes: [{ id: 'b' }], edges: [] }, 0.99);
+      expect(reflectionStore.getBestGenome('task')).toEqual(adopted);
+    });
+  });
+
   describe('ReflectionStore.init', () => {
     it('should initialize with empty cache if no store file exists', async () => {
       mockVFS.exists.mockResolvedValue(false);

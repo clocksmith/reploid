@@ -144,6 +144,25 @@ describe('FunctionGemma public session integration', () => {
     await instance.close();
   });
 
+  it('queues reuse of a stored winning configuration for operator adoption', async () => {
+    const f = fixture(); DopplerRuntimeService.open.mockResolvedValue(f.session);
+    const storeNetworkGenome = vi.fn().mockResolvedValue({ taskType: 'task', timestamp: 42, retained: true });
+    const adoptGenome = vi.fn().mockResolvedValue(true);
+    let request = null;
+    const HITLController = { registerModule: vi.fn(), requestApproval: vi.fn(r => { request = r; return 'approval_1'; }) };
+    const instance = Orchestrator.factory({ Utils: { logger: { info() {}, warn() {}, error() {} }, Errors: { ValidationError: Error, StateError: Error } },
+      ReflectionStore: { storeNetworkGenome, adoptGenome }, HITLController });
+    await instance.initBase({ modelId: 'selected' }); await instance.registerExperts([{ id: 'base' }]);
+    await instance.runArenaEvolution([{ type: 'task', prompt: 'output' }], {
+      random: () => 0.2, populationSize: 2, eliteCount: 1, generations: 0, persistCount: 1
+    });
+    expect(request).toMatchObject({ moduleId: 'FunctionGemmaOrchestrator', capability: 'APPROVE_GENOME_REUSE', alwaysRequireHuman: true });
+    expect(adoptGenome).not.toHaveBeenCalled();
+    await request.onApprove();
+    expect(adoptGenome).toHaveBeenCalledWith('task', 42);
+    await instance.close();
+  });
+
   it('waits for initialization and cleanup when a model changes and never republishes stale readiness', async () => {
     const opening = deferred(), closeGate = deferred(), events = [];
     const orchestrator = {

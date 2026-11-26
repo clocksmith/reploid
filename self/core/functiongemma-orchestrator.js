@@ -19,6 +19,7 @@ const FunctionGemmaOrchestrator = {
       'ContextManager?',
       'SchemaRegistry?',
       'ReflectionStore?',
+      'HITLController?',
       'VFS'
     ],
     async: true,
@@ -26,7 +27,7 @@ const FunctionGemmaOrchestrator = {
   },
 
   factory: (deps) => {
-    const { Utils, EventBus, SemanticMemory, ArenaHarness, ContextManager, SchemaRegistry, ReflectionStore } = deps;
+    const { Utils, EventBus, SemanticMemory, ArenaHarness, ContextManager, SchemaRegistry, ReflectionStore, HITLController } = deps;
     const { logger, Errors } = Utils;
 
     let _network = null;
@@ -426,7 +427,21 @@ const FunctionGemmaOrchestrator = {
      */
     const storeGenome = async (taskType, genome, fitness) => {
       if (!ReflectionStore?.storeNetworkGenome) return;
-      await ReflectionStore.storeNetworkGenome(taskType, genome, fitness);
+      const stored = await ReflectionStore.storeNetworkGenome(taskType, genome, fitness);
+      // Storing ranks the configuration; reuse needs an operator. Queue its adoption (even in
+      // autonomous mode); without a controller it stays a candidate and getCachedGenome ignores it.
+      if (!stored?.retained || !ReflectionStore.adoptGenome || !HITLController?.requestApproval) return;
+      HITLController.registerModule?.('FunctionGemmaOrchestrator', ['APPROVE_GENOME_REUSE'], 'FunctionGemma - reuse an evolved routing configuration');
+      HITLController.requestApproval({
+        moduleId: 'FunctionGemmaOrchestrator',
+        capability: 'APPROVE_GENOME_REUSE',
+        action: `Reuse the ${genome?.topology?.type || 'evolved'} configuration for ${taskType} (fitness ${Number(fitness).toFixed(3)})`,
+        data: { taskType, timestamp: stored.timestamp, fitness, genome },
+        alwaysRequireHuman: true,
+        onApprove: () => ReflectionStore.adoptGenome(taskType, stored.timestamp)
+          .catch(error => logger.error('[FunctionGemma] Genome adoption failed', error)),
+        onReject: (reason) => logger.info(`[FunctionGemma] Configuration for ${taskType} not adopted: ${reason}`)
+      });
     };
 
     /**

@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-26T21:47:16.500Z",
+  "generatedAt": "2026-11-26T21:56:21.924Z",
   "modules": {
     "AgentLoop": {
       "id": "AgentLoop",
@@ -540,6 +540,10 @@
           "optional": true
         },
         {
+          "id": "HITLController",
+          "optional": true
+        },
+        {
           "id": "VFS",
           "optional": false
         }
@@ -580,6 +584,10 @@
         },
         {
           "id": "PromptMemory",
+          "optional": true
+        },
+        {
+          "id": "HITLController",
           "optional": true
         }
       ],

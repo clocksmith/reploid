@@ -168,11 +168,15 @@ const ReflectionStore = {
         _genomes[taskType] = { generations: [] };
       }
 
-      _genomes[taskType].generations.push({
+      const entry = {
         genome,
         fitness,
-        timestamp: Date.now()
-      });
+        timestamp: Date.now(),
+        // A score ranks a configuration; it does not adopt it. getBestGenome returns only
+        // configurations an operator adopted (adoptGenome), so winning never activates a setup by itself.
+        adopted: false
+      };
+      _genomes[taskType].generations.push(entry);
 
       // Keep top 10 configurations sorted by fitness
       _genomes[taskType].generations.sort((a, b) => b.fitness - a.fitness);
@@ -187,6 +191,23 @@ const ReflectionStore = {
       });
 
       logger.info(`[Reflection] Genome stored for ${taskType} (fitness: ${fitness.toFixed(3)})`);
+      return { taskType, timestamp: entry.timestamp, retained: _genomes[taskType].generations.includes(entry) };
+    };
+
+    /**
+     * Mark a stored configuration as adopted by an operator, so getBestGenome may return it.
+     * @param {string} taskType - Type of task
+     * @param {number} timestamp - The timestamp storeNetworkGenome returned
+     * @returns {Promise<boolean>} True if the configuration was found and adopted
+     */
+    const adoptGenome = async (taskType, timestamp) => {
+      const entry = _genomes[taskType]?.generations.find(g => g.timestamp === timestamp);
+      if (!entry) return false;
+      entry.adopted = true;
+      entry.adoptedAt = Date.now();
+      await _saveGenomes();
+      EventBus.emit('reflection:genome:adopted', { taskType, timestamp, fitness: entry.fitness });
+      return true;
     };
 
     /**
@@ -195,8 +216,9 @@ const ReflectionStore = {
      * @returns {Object|null} Best genome or null if none stored
      */
     const getBestGenome = (taskType) => {
+      // Highest-fitness configuration that an operator adopted; unadopted winners are candidates only.
       const stored = _genomes[taskType];
-      return stored?.generations[0]?.genome || null;
+      return stored?.generations.find(g => g.adopted === true)?.genome || null;
     };
 
     /**
@@ -453,6 +475,7 @@ const ReflectionStore = {
       getReflections,
       // Genome storage
       storeNetworkGenome,
+      adoptGenome,
       getBestGenome,
       getGenomes,
       // Winner config management (Phase 5)

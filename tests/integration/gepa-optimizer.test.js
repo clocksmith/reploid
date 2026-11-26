@@ -5,6 +5,8 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import GEPAOptimizerModule from '../../capabilities/cognition/gepa-optimizer.js';
+import HITLControllerModule from '../../self/infrastructure/hitl-controller.js';
+import UtilsModule from '../../shared/core/utils.js';
 
 describe('GEPA Optimizer - Integration Tests', () => {
   let gepaOptimizer;
@@ -94,6 +96,49 @@ describe('GEPA Optimizer - Integration Tests', () => {
       expect(GEPAOptimizerModule.metadata.async).toBe(true);
       expect(GEPAOptimizerModule.metadata.dependencies).toContain('LLMClient');
       expect(GEPAOptimizerModule.metadata.dependencies).toContain('VFS');
+    });
+  });
+
+  describe('promoteCandidate() and the live persona', () => {
+    // A winning score may record a candidate, but changing the agent's persona needs an operator.
+    const candidate = { id: 'cand_1', targetType: 'persona_slot', content: 'Be terse.', payload: { personaId: 'p1', slot: 'instructions' } };
+    const makePersona = () => ({ applySlotMutation: vi.fn().mockResolvedValue(true), getPromptSlots: vi.fn().mockResolvedValue({ personaId: 'p1' }) });
+
+    it('queues the persona change for adoption, even in autonomous mode, and applies it only when approved', async () => {
+      const PersonaManager = makePersona();
+      const HITLController = HITLControllerModule.factory({ Utils: UtilsModule.factory(), EventBus: { on: vi.fn(() => () => {}), emit: vi.fn() } });
+      HITLController.init();
+      HITLController.setApprovalMode('autonomous');
+      const optimizer = GEPAOptimizerModule.factory({ LLMClient: mockLLMClient, EventBus: mockEventBus, Utils: mockUtils, VFS: mockVFS, PersonaManager, HITLController });
+
+      const result = await optimizer.api.promoteCandidate(candidate, { applyToPersona: true });
+      expect(result).toMatchObject({ promoted: true, persona: { applied: false, status: 'awaiting-adoption' } });
+      expect(PersonaManager.applySlotMutation).not.toHaveBeenCalled();
+      const [item] = HITLController.getApprovalQueue();
+      expect(item).toMatchObject({ moduleId: 'GEPAOptimizer', capability: 'APPROVE_PERSONA_CHANGE' });
+
+      HITLController.approve(item.id);
+      await new Promise(resolve => setTimeout(resolve, 0));
+      expect(PersonaManager.applySlotMutation).toHaveBeenCalledWith({ personaId: 'p1', slot: 'instructions', content: 'Be terse.', mode: 'replace' });
+    });
+
+    it('does not change the persona when the operator rejects it', async () => {
+      const PersonaManager = makePersona();
+      const HITLController = HITLControllerModule.factory({ Utils: UtilsModule.factory(), EventBus: { on: vi.fn(() => () => {}), emit: vi.fn() } });
+      HITLController.init();
+      const optimizer = GEPAOptimizerModule.factory({ LLMClient: mockLLMClient, EventBus: mockEventBus, Utils: mockUtils, VFS: mockVFS, PersonaManager, HITLController });
+      await optimizer.api.promoteCandidate(candidate, { applyToPersona: true });
+      HITLController.reject(HITLController.getApprovalQueue()[0].id, 'no');
+      await new Promise(resolve => setTimeout(resolve, 0));
+      expect(PersonaManager.applySlotMutation).not.toHaveBeenCalled();
+    });
+
+    it('applies nothing to the persona when no HITL controller is present', async () => {
+      const PersonaManager = makePersona();
+      const optimizer = GEPAOptimizerModule.factory({ LLMClient: mockLLMClient, EventBus: mockEventBus, Utils: mockUtils, VFS: mockVFS, PersonaManager });
+      const result = await optimizer.api.promoteCandidate(candidate, { applyToPersona: true });
+      expect(result.persona).toMatchObject({ applied: false, status: 'not-applied' });
+      expect(PersonaManager.applySlotMutation).not.toHaveBeenCalled();
     });
   });
 

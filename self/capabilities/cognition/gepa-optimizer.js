@@ -21,13 +21,13 @@ const GEPAOptimizer = {
     id: 'GEPAOptimizer',
     version: '2.0.0',
     genesis: { introduced: 'cognition' },
-    dependencies: ['LLMClient', 'EventBus', 'Utils', 'VFS', 'PersonaManager?', 'ArenaHarness?', 'PromptMemory?'],
+    dependencies: ['LLMClient', 'EventBus', 'Utils', 'VFS', 'PersonaManager?', 'ArenaHarness?', 'PromptMemory?', 'HITLController?'],
     async: true,
     type: 'capability'
   },
 
   factory: (deps) => {
-    const { LLMClient, EventBus, Utils, VFS, PersonaManager, ArenaHarness, PromptMemory } = deps;
+    const { LLMClient, EventBus, Utils, VFS, PersonaManager, ArenaHarness, PromptMemory, HITLController } = deps;
     const { logger, Errors, generateId, sanitizeLlmJsonRespPure } = Utils;
 
     // Load boot config from localStorage if available
@@ -332,6 +332,28 @@ const GEPAOptimizer = {
       return true;
     };
 
+    const requestPersonaAdoption = ({ personaId, slot, content, candidateId }) => {
+      if (!HITLController?.requestApproval) {
+        logger.warn('[GEPA] Persona change not applied: no HITL controller to collect operator adoption');
+        return { applied: false, status: 'not-applied', reason: 'operator adoption unavailable' };
+      }
+      const apply = async () => {
+        await PersonaManager.applySlotMutation({ personaId, slot, content, mode: 'replace' });
+        EventBus?.emit?.('gepa:persona:adopted', { personaId, slot, candidateId });
+      };
+      HITLController.registerModule?.('GEPAOptimizer', ['APPROVE_PERSONA_CHANGE'], 'GEPA - apply an evolved prompt to a persona');
+      const approvalId = HITLController.requestApproval({
+        moduleId: 'GEPAOptimizer',
+        capability: 'APPROVE_PERSONA_CHANGE',
+        action: `Replace persona ${personaId} ${slot} with evolved candidate ${candidateId}`,
+        data: { personaId, slot, candidateId, content },
+        alwaysRequireHuman: true,
+        onApprove: () => apply().catch(error => logger.error('[GEPA] Adopted persona change failed', error)),
+        onReject: (reason) => logger.info(`[GEPA] Persona change for ${personaId} rejected: ${reason}`)
+      });
+      return { applied: false, status: 'awaiting-adoption', approvalId };
+    };
+
     const promoteCandidate = async (candidate, options = {}) => {
       if (!candidate) return { promoted: false, error: 'No candidate provided' };
       const storagePath = options.storagePath || '/.memory/gepa/safe-prompts.json';
@@ -362,18 +384,17 @@ const GEPAOptimizer = {
 
       await saveSafePrompts(storagePath, next);
 
+      // Writing the safe-prompt store records the candidate; changing the live persona changes the
+      // agent. A score never grants that: the persona slot changes only after an operator adopts it
+      // through the HITL queue (queued even in autonomous mode). Without a controller, nothing is applied.
+      let persona = null;
       if (options.applyToPersona && candidate.targetType === 'persona_slot' && PersonaManager?.applySlotMutation) {
         const slot = candidate.payload?.slot || 'instructions';
         const personaId = candidate.payload?.personaId || (await PersonaManager.getPromptSlots()).personaId;
-        await PersonaManager.applySlotMutation({
-          personaId,
-          slot,
-          content: candidate.content,
-          mode: 'replace'
-        });
+        persona = await requestPersonaAdoption({ personaId, slot, content: candidate.content, candidateId: candidate.id });
       }
 
-      return { promoted: true, passed: true, path: storagePath };
+      return { promoted: true, passed: true, path: storagePath, ...(persona ? { persona } : {}) };
     };
 
     // =========================================================================
