@@ -33,7 +33,8 @@
  *
  * Host file, per operator: `listen` (the operator listens; `endpoint` is { host, port }) or `connect` (the operator dials
  * the requester, for hosts that accept no inbound connections; `endpoint` is { accept: 'HOST:PORT' } on the requester),
- * and an optional `device` ('cpu' by default). `jsRequester` may set `threads` (default 1), `returnShift` (24 for 40-bit
+ * an optional `device` ('cpu' by default), and an optional `node`: the command array that runs Node for the operator on its host
+ * (for a host whose GPU binding needs a loader around Node; default the share agent's own Node). `jsRequester` may set `threads` (default 1), `returnShift` (24 for 40-bit
  * returns) and `prg` ('aes256-ctr'); the requester uses an option only with operators that advertise it.
  *
  * Operator processes are started per attempt and stopped after it; standing services are not touched. The receipt
@@ -145,6 +146,7 @@ export function validateSecretSharedConfig(config) {
     if ((op.listen === undefined) === (op.connect === undefined)) refuse(`operator.listen or operator.connect: ${op.label} needs exactly one`);
     if (op.connect !== undefined && typeof op.endpoint?.accept !== 'string') refuse(`operator.endpoint: ${op.label} dials the requester, so its endpoint is { accept: 'HOST:PORT' }`);
     if (op.device !== undefined && !['cpu', 'gpu'].includes(op.device)) refuse(`operator.device: ${op.label} is cpu or gpu`);
+    if (op.node !== undefined && (!Array.isArray(op.node) || op.node.length === 0 || !op.node.every(part => typeof part === 'string' && part))) refuse(`operator.node: ${op.label} needs a command array that runs Node`);
     if (!JS_SCRIPT.test(op.operatorScript)) refuse(`operator.operatorScript: ${op.label} must be a JavaScript operator (.js/.mjs); the Go operator is refused`);
     stages.set(op.stage, [...(stages.get(op.stage) ?? []), op]);
   }
@@ -344,7 +346,7 @@ export async function runSecretShared({ config, directory, log = () => {}, now =
             await session.hello;
             await session.call('identity', { file: op.identityFile });
             await session.call('open', { operatorScript: op.operatorScript, plan: planBytes.toString('utf8'), modelDirectory: op.modelDirectory, stage: op.stage, share: op.share,
-              listen: op.listen, connect: op.connect, device: op.device ?? 'cpu', threads: op.threads ?? 0, token, workDirectory: op.workDirectory });
+              listen: op.listen, connect: op.connect, device: op.device ?? 'cpu', threads: op.threads ?? 0, token, workDirectory: op.workDirectory, node: op.node ?? null });
             held.acceptances.push(await session.call('accept', { terms: held.terms, partitionIndex: index + 1 }));
           }
           held.acceptances.push(await acceptSettlementTerms({ signer: signers.edgeOut, terms: held.terms, partitionIndex: stageIds.length - 1 }));

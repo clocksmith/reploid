@@ -63,8 +63,12 @@ export function createShareAgent({ spawnOperator = (command, args, env) => spawn
       signer = createAttemptEvidenceSigner({ identity, now });
       return { participantId: identity.peerId, publicJwk: identity.publicJwk, host: os.hostname().length > 0 };
     },
-    /** Start the operator child for one stage share and wait until it listens. */
-    async open({ operatorScript, plan, modelDirectory, stage, share, listen, connect, device = 'cpu', threads = 0, token, workDirectory }) {
+    /**
+     * Start the operator child for one stage share and wait until it listens. `node` is the command that runs Node for
+     * the operator (default: this agent's own Node), for hosts whose GPU binding needs a loader wrapper around Node; the
+     * operator is still the JavaScript script.
+     */
+    async open({ operatorScript, plan, modelDirectory, stage, share, listen, connect, device = 'cpu', threads = 0, token, workDirectory, node = null }) {
       if (child) throw Error('An operator is already running');
       if (!/\.m?js$/.test(operatorScript ?? '')) throw Error('operator-refused: the operator must be a JavaScript script (.js/.mjs); Reploid runs JavaScript only');
       await fs.mkdir(workDirectory, { recursive: true });
@@ -72,8 +76,12 @@ export function createShareAgent({ spawnOperator = (command, args, env) => spawn
       await fs.writeFile(planFile, plan);
       if ((listen === undefined) === (connect === undefined)) throw Error('operator-refused: give the operator exactly one of listen or connect');
       if (!['cpu', 'gpu'].includes(device)) throw Error('operator-refused: device is cpu or gpu');
+      if (node !== null && (!Array.isArray(node) || node.length === 0 || !node.every(part => typeof part === 'string' && part.length > 0))) {
+        throw Error('operator-refused: node is a non-empty command array that runs Node');
+      }
+      const [command, ...prefix] = node ?? [process.execPath];
       // --connect: the operator dials the requester (hosts that accept no inbound connections); the protocol is unchanged.
-      child = spawnOperator(process.execPath, [operatorScript, '--plan', planFile, '--model-dir', modelDirectory, '--stage', String(stage), '--share', String(share),
+      child = spawnOperator(command, [...prefix, operatorScript, '--plan', planFile, '--model-dir', modelDirectory, '--stage', String(stage), '--share', String(share),
         ...(connect !== undefined ? ['--connect', connect] : ['--listen', listen]), '--device', device, '--threads', String(threads), '--gate'], { ...process.env, SS_TOKEN: token });
       exited = new Promise(resolve => child.once('exit', (code, signal) => resolve({ code, signal })));
       ready = new Promise((resolve, reject) => {

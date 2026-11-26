@@ -40,6 +40,21 @@ describe('secret-shared harness is JavaScript only', () => {
     expect(() => validateSecretSharedConfig(config({ operators: [operator(1, 0, 'a'), { ...dialing, device: 'tpu' }] }))).toThrow(/cpu or gpu/);
   });
 
+  it('runs the JS operator under a given node command, and refuses a malformed one', async () => {
+    const spawned = [];
+    const agent = createShareAgent({ spawnOperator: (...args) => { spawned.push(args); throw Error('stop after spawn'); } });
+    const open = node => agent.ops.open({ operatorScript: '/opt/doppler/tools/secret-shared/gpu/operator-gpu.js', plan: '{}', modelDirectory: 'm', stage: 1, share: 0,
+      listen: '127.0.0.1:7750', device: 'gpu', token: 't', workDirectory: `/tmp/ss-agent-test-${process.pid}`, node });
+    await expect(open(['/opt/node-loader.sh', '--flag'])).rejects.toThrow(/stop after spawn/);
+    expect(spawned[0][0]).toBe('/opt/node-loader.sh');
+    expect(spawned[0][1].slice(0, 2)).toEqual(['--flag', '/opt/doppler/tools/secret-shared/gpu/operator-gpu.js']);
+    await expect(open('/opt/node-loader.sh')).rejects.toThrow(/operator-refused/);
+    await expect(open([])).rejects.toThrow(/operator-refused/);
+    expect(spawned).toHaveLength(1);
+    expect(() => validateSecretSharedConfig(config({ operators: [{ ...operator(1, 0, 'a'), node: 'loader' }, operator(1, 1, 'b')] }))).toThrow(/operator.node/);
+    expect(validateSecretSharedConfig(config({ operators: [{ ...operator(1, 0, 'a'), node: ['/opt/node-loader.sh'] }, operator(1, 1, 'b')] }))).toBeTruthy();
+  });
+
   it('starts the JS operator with its device, and with --connect when it dials the requester', async () => {
     for (const [where, flag] of [[{ listen: '127.0.0.1:7750' }, '--listen'], [{ connect: '100.64.0.1:7751' }, '--connect']]) {
       const spawned = [];
