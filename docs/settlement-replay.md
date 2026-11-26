@@ -1095,6 +1095,24 @@ key) is served to anyone at `GET /v1/fleet/coordinator`, and
 key independent of whoever publishes a given trade, not of the ledger: see
 [verify-a-trade.md](verify-a-trade.md#the-outsider) for what trust that leaves.
 
+**The key's fingerprint and publication.** The fingerprint of a coordinator
+key is the first 32 hex digits of the SHA-256 of the canonical JSON of
+`{ kty, crv, x, y, n, e }` (absent members `null`), the same digest whose first
+24 hex digits make the coordinator ID, written lowercase as eight groups of
+four joined by `-`. A verifier compares it after removing `-`, `:` and spaces
+and lowering the case. The operator publishes it outside the ledger as a
+`reploid.coordinator-publication/v1` object, exactly
+`{ schema, coordinatorId, publicJwk, fingerprint, ledger, publishedAt,
+statement, signature }`: `publicJwk` is exactly `{ kty: "OKP", crv: "Ed25519",
+x }`, `coordinatorId` and `fingerprint` derive from it, `ledger` is the ledger
+address or `null`, `publishedAt` is an ISO time with milliseconds, `statement`
+is one sentence of at most 1024 characters, and `signature` is the canonical
+base64url Ed25519 signature by that key over the canonical JSON of
+`{ signatureDomain: "reploid.coordinator-publication/v1", payload }`, where
+`payload` is every other member. `trade.js coordinator-fingerprint` makes it;
+`verify-records.js --publication` checks it, and
+`--coordinator-fingerprint` refuses a fetched key with another fingerprint.
+
 Every trade settled before 2026-11-26 has no statement, and a ledger that runs
 without a key issues none. For those the release of the hold is the
 publisher's unsigned statement and is not proven by any record.

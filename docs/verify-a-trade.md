@@ -28,7 +28,7 @@ one says nothing about another.
 | **Signature valid** | Each record verifies against the key it carries | Anything about who holds the key |
 | **Operator identified** | Each key is tied to a known, distinct human operator by evidence outside the records (who ran which machine, confirmed by that person) | A signature, a participant ID, an account name, or the publisher saying so |
 | **Arithmetic replayed** | Both replays recompute the debit and every payout from the signed records and agree with the stated amounts | The ledger's own totals; a stated amount nobody recomputed |
-| **Hold release signed** | The coordinator's signed statement, checked with `--coordinator-key` against a coordinator public key the verifier pinned independently (fetched and compared with a copy published outside the service) | A statement checked only against the key the file carries; an unsigned "0 held"; a publisher-supplied grouping of stages onto the requester's account |
+| **Hold release signed** | The coordinator's signed statement, checked with `--coordinator-key` against a coordinator public key the verifier pinned independently: fetched, and matched with `--coordinator-fingerprint` against the fingerprint the operator published outside the service ([how](#the-ledger-operator-publish-the-coordinator-key)) | A statement checked only against the key the file carries; an unsigned "0 held"; a publisher-supplied grouping of stages onto the requester's account |
 
 The command prints `Hold release verified in N of M` and counts an attempt only
 under a key you supplied. An unsigned "0 held" and a stage placed on the
@@ -190,6 +190,47 @@ It prints public JSON only. The private key stays in
 different accounts: a ledger refuses to credit a computer for serving its own
 account.
 
+### The ledger operator: publish the coordinator key
+
+The outsider must learn the coordinator's key from somewhere that is neither
+the ledger nor whoever hands them a trade. Make the key once, then print its
+publication:
+
+```sh
+node server/fleet/coordinator-key.js create /absolute/coordinator-key.json
+node scripts/settlement/trade.js coordinator-fingerprint --key /absolute/coordinator-key.json \
+  --ledger https://LEDGER/v1/fleet > coordinator-publication.json
+```
+
+The second command writes the publication (JSON, public only) and prints the
+coordinator ID, the fingerprint (eight groups of four hex digits, such as
+`2396-9e47-ec92-c548-f11d-19b2-c067-079c`) and a DNS TXT value. The
+publication holds the public key, its fingerprint, the ledger address, the
+time and one sentence, signed by the coordinator key itself. The fingerprint is
+the first 128 bits of the SHA-256 whose first 96 bits are the coordinator ID,
+so the ID's 24 hex digits begin it. Post it before the trade, in at least one
+place you control that the ledger does not serve:
+
+1. **A public gist.** Its revision history dates it and names its owner, and
+   any later edit shows as a new revision:
+
+   ```sh
+   gh gist create --public --desc "Reploid coordinator key of https://LEDGER" coordinator-publication.json
+   ```
+
+   Hand out the gist's address. The outsider downloads the raw file.
+2. **A DNS TXT record** on a domain you control, named
+   `_reploid-coordinator.DOMAIN`, holding the printed value
+   (`reploid-coordinator=v1 id=peer:… fp=… date=YYYY-MM-DD`). The outsider
+   reads it with `dig +short TXT _reploid-coordinator.DOMAIN`. DNS keeps no
+   history, so the date is only the one in the value; use it alongside the
+   gist, or alongside a signed tag (`git tag -s` with the publication as its
+   message) in a public repository you own.
+
+Run the command on the public part alone (`coordinator-key.js public`, or
+what `GET /v1/fleet/coordinator` returns) and it prints the fingerprint and
+signs nothing.
+
 ### The earner
 
 Runs the model on their own machine, with their own key, and is paid into
@@ -203,7 +244,8 @@ node scripts/settlement/trade.js earner --state "$HOME/.reploid/trade" \
 ```
 
 Before it starts anything it prints the key, the account the ledger will pay
-(**check that it is yours**), and the ledger's coordinator key. If the ledger
+(**check that it is yours**), and the ledger's coordinator key with its
+fingerprint (**check that it is the published one**). If the ledger
 does not know the key it prints the public entry again, starts nothing and
 exits with status 3. Then it loads the model and serves. Leave it running.
 Every charged request it serves leaves its own signed copies in
@@ -233,7 +275,8 @@ node scripts/settlement/trade.js spender --state "$HOME/.reploid/trade" \
   --room ROOM --room-token-file /absolute/room-token --model /absolute/model.json
 ```
 
-It prints the account that will be charged, the coordinator key, and the
+It prints the account that will be charged, the coordinator key and its
+fingerprint (check it against the published one), and the
 address and secret file to pair the page with. It refuses to start against a
 ledger that publishes no coordinator key (`--allow-unsigned-hold` overrides,
 and every export then says the hold's release is not proven). The host it
@@ -283,18 +326,26 @@ Someone who is neither of the two and does not run the ledger. They need
 Node, `trade.json`, and two files from this repository:
 `scripts/settlement/verify-records.js` and
 `scripts/settlement/independent/replay.js`, kept in those two relative places.
-They fetch the coordinator's key themselves:
+They fetch the coordinator's key from the ledger themselves, and read its
+fingerprint from where the ledger operator published it (the gist or the DNS
+record), never from whoever handed over the trade:
 
 ```sh
 curl -s https://LEDGER/v1/fleet/coordinator > coordinator-key.json
-node scripts/settlement/trade.js outsider trade.json --coordinator-key coordinator-key.json
+node verify-records.js --publication coordinator-publication.json   # the gist's file: checks its signature, prints FP
+node verify-records.js trade.json --coordinator-key coordinator-key.json --coordinator-fingerprint FP
 ```
 
-(`node verify-records.js trade.json --coordinator-key coordinator-key.json`
-is the same command without the rest of the repository.) A passing result
-prints the debit, the payout per account, and
+(`node scripts/settlement/trade.js outsider …` takes the same arguments in a
+clone.) If the fetched key does not have that fingerprint the command prints
+`FAIL the coordinator key … has fingerprint …, not the published …`, checks
+nothing and exits 1. Otherwise its first line is
+`coordinator key peer:…: its fingerprint … is the published one`, and a
+passing result prints the debit, the payout per account, and
 `hold: placed N, released N, remaining 0; signed by the coordinator …` followed
-by `the statement is signed by the coordinator key you supplied`.
+by `the statement is signed by the coordinator key you supplied`. The
+publication's own signature shows only that whoever holds the key wrote it;
+what ties it to the operator is the place it is posted.
 
 **What trust the coordinator key leaves.** The statement is the ledger
 operator's signed word about its own database, checked against a key the
@@ -303,9 +354,11 @@ as: the party that publishes that key signed that it released the whole hold
 and posted exactly these amounts, and cannot later deny it. It is not shown
 that the database really holds that, and nothing ties the key to a person. The
 ledger service serves its own key, which is independent of whoever handed over
-the trade but not of the ledger. An operator who wants more should also publish
-the same key somewhere dated and outside the service (a commit in a public
-repository, a signed announcement), and the outsider should compare the two.
+the trade but not of the ledger. The published fingerprint
+([above](#the-ledger-operator-publish-the-coordinator-key)) is the second,
+dated channel: a key the ledger serves to one person only, or swaps in later,
+does not match a fingerprint that was posted publicly before the trade. It
+still names a key, not a person.
 The debit and the payouts do not rest on the coordinator at all: they are
 recomputed from the two people's own signatures.
 
