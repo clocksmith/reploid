@@ -81,6 +81,7 @@ function verifyRequestBinding(request, requestId, enrollment, policy) {
   }
   const {
     requestHash, computerId: _computerId, accountId: _accountId, maximum, policyVersion: _policyVersion,
+    creditsPerOutputToken: pinnedPrice, maxUnacknowledgedOutputs: pinnedK,
     terminalCharge, terminalPolicyVersion: _terminalPolicyVersion, admissionVersion: _admissionVersion,
     createdAt, deadline, ...reservedValue
   } = request;
@@ -88,6 +89,9 @@ function verifyRequestBinding(request, requestId, enrollment, policy) {
   assert(typeof requestHash === 'string' && requestHash === expectedHash, 'Request binding hash mismatch');
   assert(Number.isSafeInteger(createdAt) && deadline === createdAt + policy.maxRequestMs
     && maximum === request.maxOutputTokens * policy.creditsPerOutputToken
+    // Pinned with the reservation (credits.js): the statement's policy must be the one that priced it.
+    && (pinnedPrice === undefined || pinnedPrice === policy.creditsPerOutputToken)
+    && (pinnedK === undefined || request.mode === 'partition' && pinnedK === (policy.maxUnacknowledgedOutputs ?? MAX_UNACKNOWLEDGED_OUTPUTS))
     && (terminalCharge === null || request.mode === 'whole-model' && terminalCharge === 0)
     // Each rules id comes with the unfinished-answer terms it was reserved with; provider-loss-free terms also predate any rules id.
     && (request.unfinishedTerms === undefined || request.mode === 'partition' && (request.settlementRules === undefined
@@ -256,7 +260,7 @@ export async function verifyCreditStatement(statement, { computers, participantI
         assert(!expiredWorkIds.has(workId), 'Claim window closed; expired hold cannot reopen settlement');
         assert(!seenWorkIds.has(workId), 'Duplicate settled work evidence');
       }
-      const totalUnits = settledCreditUnits(entry.request, observed, policy.creditsPerOutputToken);
+      const totalUnits = settledCreditUnits(entry.request, observed, entry.request.creditsPerOutputToken ?? policy.creditsPerOutputToken);
       // Failed-stage rules: the stages the evidence shows as failed are credited 0, and the charge falls by their shares.
       const { split, delta, attribution } = shareOf(entry.request, totalUnits, (observed.forfeitedStages ?? []).map(row => row.partitionIndex));
       recomputedDelta = delta;

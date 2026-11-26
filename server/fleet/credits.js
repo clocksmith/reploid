@@ -123,7 +123,7 @@ export async function openFleetCredits({ file, computers, policy: supplied, now 
   const postSettlement = (id, observed, evidence) => {
     const current = read(id);
     assert(['dispatched', 'closing'].includes(current.state), 'Request no longer admits settlement');
-    const request = current.binding, totalUnits = settledCreditUnits(request, observed, policy.creditsPerOutputToken);
+    const request = current.binding, totalUnits = settledCreditUnits(request, observed, request.creditsPerOutputToken ?? policy.creditsPerOutputToken);
     // Failed-stage rules: a forfeiting stage is credited 0 and the charge falls by exactly its share (credit-shares.js).
     const forfeitedStages = observed.forfeitedStages?.length ? observed.forfeitedStages : null;
     const { credits, ownComputeUnits, charge, entries, deltas } = accountSettlement(request, totalUnits, placeOf,
@@ -261,7 +261,11 @@ export async function openFleetCredits({ file, computers, policy: supplied, now 
             { quote, spendable: Math.max(0, spendable), accountId, reason: 'network-debt-cap' });
         }
         const createdAt = now();
+        // The price and, for a split answer, K are pinned with the reservation: it settles under the terms it was
+        // reserved with, never under a later policy's or today's defaults. A reservation made before they were pinned
+        // has neither and settles under its ledger's policy, as it always did.
         const binding = { ...value, requestHash, computerId: consumer.computerId, accountId, maximum,
+          creditsPerOutputToken: policy.creditsPerOutputToken, ...(value.mode === 'partition' ? { maxUnacknowledgedOutputs } : {}),
           policyVersion: policy.version, terminalCharge: value.mode === 'whole-model' ? policy.wholeModelTerminalCharge ?? null : null,
           // admissionVersion says the ledger journals every admission of this request, which is what lets a
           // fenced request that nobody admitted settle at zero. A pre-disclosure commitment is versioned by its
