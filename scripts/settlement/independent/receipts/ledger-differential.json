@@ -1,9 +1,9 @@
 {
   "schema": "reploid.settlement-ledger-differential/v1",
-  "generatedAt": "2026-11-25T21:56:04.902Z",
-  "finishedAt": "2026-11-25T21:56:28.673Z",
+  "generatedAt": "2026-11-26T13:54:10.219Z",
+  "finishedAt": "2026-11-26T13:54:22.690Z",
   "command": "node scripts/settlement/independent/ledger-differential.js --out scripts/settlement/independent/receipts/ledger-differential.json",
-  "commit": "6275e8df1261b4405f36fcb91a8d8c2e75d57bb6",
+  "commit": "be60534193d1b9efa75e6ac8224be77f82184594",
   "uncommittedChangesInComparedCode": false,
   "node": "v22.20.0",
   "note": "All parties are simulated identities on one machine under one operator. The ledger is given each acknowledgment when it was signed, then what a live route retains (latest records and the signed stop) at the moment the last of them was signed, then a stage owner's interruption claim where the case has one, and asked again after the release window; the replay judges the same records (and the claim's fault record, when it carries one) after the window, and for a claim also at the moment of the claim. Status pairs are ledger / replay.",
