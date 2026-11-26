@@ -18,7 +18,6 @@ import {
 } from '../../ui/pool-home/privacy-controls.js';
 import { ownDevicesChoice, protectionChoices, routeChoices, startingLocalModel } from '../../ui/pool-home/choice-availability.js';
 import { withComputerLabels } from '../../ui/pool-home/computer-labels.js';
-import { projectThreadContext } from '../../ui/pool-home/context-indicator.js';
 import {
   hasBrowserModelOrigin, isDownloadableBaseModel, modelExecutionState, modelVariantLabel, unavailableModelChoice, modelFacts
 } from '../../ui/components/model-select.js';
@@ -37,6 +36,9 @@ import { promptDisclosure } from './prompt-disclosure.js';
 import { modelKey, preparingStatus, selectableStatus, servesPublicAnswers, storedHere } from './model-state.js';
 import { createTranscript } from './transcript.js';
 import { createDownloadDialog } from './download-dialog.js';
+import { createThreadList } from './threads.js';
+
+export { relativeTime } from './threads.js';
 import workProfile from '../../config/work-profile.json' with { type: 'json' };
 import chatPrompts from '../../config/chat-prompts.json' with { type: 'json' };
 
@@ -69,21 +71,6 @@ export const creditCapText = model => {
 
 export const ATTACHMENT_HELP = `TXT, Markdown, JSON, JS, TS, HTML and CSS. Up to ${workProfile.files.maxInputs}, ${workProfile.files.maxFileBytes / 1024} KB each, ${workProfile.files.maxInputBytes / 1024} KB total.`;
 export const ATTACHMENT_ACCEPT = '.txt,.md,.json,.js,.ts,.html,.css';
-const THREAD_LABELS = { queued: 'Queued', loading: 'Loading', executing: 'Generating', approval: 'Permission needed', cancelled: 'Stopped',
-  cancelling: 'Stopping', failed: 'Failed', interrupted: 'Interrupted', disconnected: 'Disconnected', recovering: 'Recovering' };
-const ATTENTION = new Set(['queued', 'loading', 'recovering', 'cancelling', 'approval', 'failed', 'interrupted', 'disconnected']);
-const activityTime = thread => thread.attempts.at(-1)?.finishedAt ?? thread.attempts.at(-1)?.createdAt ?? thread.createdAt;
-
-/** Relative time of the last activity: now, minutes, hours or days. */
-export function relativeTime(timestamp, now) {
-  if (!Number.isFinite(timestamp)) return '';
-  const minutes = Math.max(0, Math.floor((now - timestamp) / 60000));
-  if (minutes < 1) return 'now';
-  if (minutes < 60) return `${minutes}m`;
-  const hours = Math.floor(minutes / 60);
-  return hours < 24 ? `${hours}h` : `${Math.floor(hours / 24)}d`;
-}
-
 const shortIdentity = identity => typeof identity === 'string' ? identity.slice(0, 15) + '…' : '';
 /** The highlighted adapter's purpose, evaluation and availability, as the vanilla sheet's adapter details state them. */
 function projectAdapterDetails(state, model) {
@@ -110,7 +97,7 @@ export function createConversationController(session, {
   const notify = () => { if (disposed) return; snapshot = project(); for (const listener of listeners) listener(); };
 
   // ---- view state: what the person has staged on this page (the vanilla page's viewState and closures) ----
-  let archived = false, chosenModel = viewState.chosenModel || null, pickerModel = null, pickerLocation = 'auto';
+  let chosenModel = viewState.chosenModel || null, pickerModel = null, pickerLocation = 'auto';
   let changingModel = false, pickerTouched = false, recoverySelection = null, pickerRevision = 0, pickerModelImplied = false;
   // Whether the chosen model came with a computer or a default (it then follows availability) or the person picked
   // it (it stays, and is never replaced for them), and whether the sheet's staged model is such a pick.
@@ -129,7 +116,6 @@ export function createConversationController(session, {
   let sheet = { open: false, title: 'Answer on' };
   // "Who can read it?": the staged protection, route and own-devices choice; they apply only with Apply.
   let privacyDialog = { open: false, protection: null, route: null, ownDevices: false, editable: true, error: '' };
-  let rename = { open: false, id: null, value: '' };
   let attachmentHelp = false, focus = { target: null, seq: 0 };
   // Up to three distinct starters, chosen at random from the set and kept for this view's life so nothing moves.
   const startingPrompts = pickStartingPrompts(chatPrompts, random);
@@ -305,7 +291,7 @@ export function createConversationController(session, {
     return candidate && modelIdentity(candidate) === modelIdentity(recoverySelection);
   };
 
-  viewState.positions ??= new Map(); viewState.seen ??= new Map();
+  viewState.positions ??= new Map();
   const transcript = createTranscript({ onProject: onProjectMessage });
   const drafts = new Map();
   let selectedId = sessionState.selectedId;
@@ -372,7 +358,7 @@ export function createConversationController(session, {
   }
 
   // ---- the projection: the vanilla render(), producing a record instead of DOM writes ----
-  let fitRequest, fitKey, fitInfo, sendDisabled = true, clock = null;
+  let fitRequest, fitKey, fitInfo, sendDisabled = true;
   function projectSheet(snapshotState) {
     if (pickerLocation === 'local') pickerChoice = 'device';
     else if (!pickerChoice || pickerChoice === 'device') pickerChoice = 'contributors';
@@ -668,42 +654,20 @@ export function createConversationController(session, {
       error: errorText || state.storageError || '',
       answerLimit
     };
-    const threadsAll = state.threads || [];
-    const recent = item => item.attempts.at(-1)?.createdAt ?? item.createdAt ?? 0;
-    const time = now();
-    const threads = threadsAll.filter(item => !!item.closed === archived).sort((a, b) => recent(b) - recent(a)).map(item => {
-      const attempt = item.attempts.at(-1), status = attempt?.status || '';
-      const completion = `${attempt?.id || ''}:${status}`;
-      if (item.id === state.selectedId) viewState.seen.set(item.id, completion);
-      const label = status === 'completed' ? viewState.seen.get(item.id) === completion ? 'Complete' : 'New answer' : THREAD_LABELS[status] || status;
-      const firstInput = item.messages.find(message => message.role === 'user')?.content;
-      const sources = firstInput && session.getDocumentSources?.(firstInput);
-      const title = item.title || item.purpose || (sources ? sources.question.split('\n')[0] : firstInput) || 'New thread';
-      const summary = label || item.model?.name || 'New thread';
-      const timestamp = activityTime(item);
-      return { id: item.id, title, summary, current: item.id === state.selectedId, monogram: Array.from(title.trim())[0]?.toUpperCase() || 'N',
-        working: status === 'executing', unread: label === 'New answer', attention: ATTENTION.has(status),
-        time: Number.isFinite(timestamp) ? relativeTime(timestamp, time) : '', timestamp: Number.isFinite(timestamp) ? timestamp : null,
-        // How much of the model's advertised context the last answer used, when the record says.
-        context: (({ percent, text }) => percent === null ? null : { percent: Math.round(percent), text })(projectThreadContext(item, catalogModels)) };
-    });
-    // Ages ("3m") move on while threads are listed, without any other change; nothing ticks with no threads.
-    if (threads.some(item => item.time) && !clock && !disposed) clock = setInterval(notify, 60000);
-    else if (!threads.some(item => item.time) && clock) { clearInterval(clock); clock = null; }
     const messageRows = transcript.update(thread, { usable: usable && !thread?.closed, busy, state, getSources: session.getDocumentSources });
     return Object.freeze({
       selectedId: state.selectedId, threadClosed: !!thread?.closed, busy, hasMessages: !!thread?.messages.length,
       composer,
       sheet: sheet.open ? projectSheet(state) : { open: false },
       privacy: projectPrivacy(state),
-      rename: { ...rename },
+      rename: threadList.renameView(),
       download: downloads.view(),
       remotePermission: pendingApproval ? {
         key: `${pendingApproval.id}:${pendingApproval.approval.id}`,
         title: 'Send to another computer?', what: remotePermissionText(pendingApproval.approval.permissionNeed).what,
         recipient: pendingApproval.approval.recipientIdentity || pendingApproval.approval.permissionNeed.routeId || 'another computer'
       } : null,
-      threads: { archived, items: threads, empty: archived ? 'No archived threads.' : 'No threads yet.' },
+      threads: threadList.project(state, catalogModels),
       messages: messageRows,
       canExport: !!thread?.messages.length,
       draftContext: contextPrompt,
@@ -939,6 +903,10 @@ export function createConversationController(session, {
     });
   };
 
+  // ---- the Threads list (threads.js) ----
+  const threadList = createThreadList({ session, getState: () => sessionState, notify, now, act, requestFocus, saveDraft, viewState,
+    disposed: () => disposed });
+
   // ---- the reviewed download (download-dialog.js) ----
   const downloads = createDownloadDialog({ session, getState: () => sessionState, notify, requestFocus, act,
     sheetOpen: () => sheet.open, disposed: () => disposed });
@@ -1120,7 +1088,7 @@ export function createConversationController(session, {
         observe(after(saveDraft(), () => after(session.select(null), () => {
           // A pick carries to the new thread; an automatic choice is made again from what is available.
           if (chosenModel && !chosenAuto) rememberedChoice = answerChoiceOf(chosenModel, null, true);
-          setChosen(null); provisionalChoice = false; archived = false;
+          setChosen(null); provisionalChoice = false; threadList.showCurrent();
           requestFocus('composer'); notify();
         })));
       } catch (cause) { error(cause); }
@@ -1129,26 +1097,9 @@ export function createConversationController(session, {
       queuedSend = null;
       try { observe(after(saveDraft(), () => session.select(id))); } catch (cause) { error(cause); }
     },
-    showArchived(value) { archived = !!value; notify(); },
-    archiveThread(id) {
-      void act(async () => {
-        await saveDraft();
-        if (archived) { archived = false; await session.restoreThread(id); } else await session.archiveThread(id);
-        requestFocus('threads'); notify();
-      });
-    },
-    openRename(id) {
-      const item = sessionState.threads.find(entry => entry.id === id);
-      if (!item) return;
-      rename = { open: true, id, value: item.title || item.purpose || item.messages.find(message => message.role === 'user')?.content || 'New thread' };
-      notify();
-    },
-    setRenameValue(value) { rename = { ...rename, value }; notify(); },
-    closeRename() { rename = { open: false, id: null, value: '' }; notify(); },
-    saveRename() {
-      const { id, value } = rename;
-      void act(async () => { await session.renameThread(id, value); rename = { open: false, id: null, value: '' }; notify(); });
-    },
+    showArchived: threadList.showArchived, archiveThread: threadList.archiveThread,
+    openRename: threadList.openRename, setRenameValue: threadList.setRenameValue,
+    closeRename: threadList.closeRename, saveRename: threadList.saveRename,
     // The transcript.
     retryAttempt(attemptId) {
       void act(async () => {
@@ -1186,7 +1137,7 @@ export function createConversationController(session, {
       queuedSend = null;
       disposed = true;
       clearTimeout(retryDeadline);
-      fitRequest?.abort(); downloads.dispose(); attachmentReader.close(); if (clock) clearInterval(clock);
+      fitRequest?.abort(); downloads.dispose(); attachmentReader.close(); threadList.dispose();
       unsubscribe(); unsubscribeSearch(); unsubscribeWebSearch(); listeners.clear();
     }
   };
