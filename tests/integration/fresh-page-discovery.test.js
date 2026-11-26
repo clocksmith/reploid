@@ -52,7 +52,11 @@ async function peer({ peerId, answerDelayMs = 0, forwards = false, takesIntroduc
     getRtcConfig: async () => { if (answerDelayMs) await sleep(answerDelayMs); return { iceServers: [] }; },
     getRoomCredentials: () => ({ roomId: bootstrap.publicRoomId, token: bootstrap.publicJoinMarker }),
     introductions: { getIdentity: () => identity,
-      authorize: async request => request.action === 'forward' ? forwards : request.action === 'connect' ? takesIntroductions : true },
+      authorize: async request => {
+        if (request.action === 'forward') return forwards;
+        if (request.action === 'connect') return takesIntroductions;
+        return true;
+      } },
     Utils: { logger, generateId: () => peerId }, EventBus: { emit() {} } });
   running.push(swarm);
   expect(await swarm.init()).toBe(true);
