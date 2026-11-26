@@ -44,6 +44,73 @@ result with `expected.json`. Its `README.md` lists the expected output and the
 commit the verifier was copied from. `node verify.mjs --verifier REPLOID` runs
 the same check with their own clone instead.
 
+## Records only
+
+A receipt carries more than an outsider should be given: the answer text, the
+output token IDs, a description of the work, and the coordinator ledger's own
+charge, credits and journal. The signed records in it hold none of that, only
+counts, times, keys, signatures and digests. A **records-only export** keeps
+just them:
+
+- the public credit policy;
+- for each attempt, its signed records: the requester's terms (the quote: price,
+  ceiling, maximum, each stage's weight), each stage's acceptance and payout
+  account, the stage receipts and closes, the acknowledgments, any stop or
+  stage fault;
+- the published list of which key belongs to which account;
+- the publisher's stated amounts: debit, each account's payout, forfeits and
+  hold. Either the coordinator's signed statement
+  ([settlement-replay.md](settlement-replay.md#the-coordinators-statement)), or,
+  for a trade settled before that record existed, a plain unsigned statement
+  taken from the receipt's ledger trace.
+
+`scripts/settlement/records-export.js` makes one from a receipt and refuses any
+member that is not a field of a signed record. Check one with:
+
+```sh
+node scripts/settlement/verify-records.js /path/to/trade.json
+node scripts/settlement/verify-trade.js --records /path/to/trade.json   # the same
+```
+
+It does not need the ledger trace and does not use it. For each attempt it
+
+1. replays the signed records with the second verifier
+   (`scripts/settlement/independent/replay.js`), which gives the debit and
+   each stage's payout;
+2. recomputes each stage's share from the signed weights with its own
+   arithmetic and requires every stage to be paid that share, or to have
+   forfeited it, or to be on the requester's own account;
+3. requires the debit, recomputed and stated, to be within the maximum the
+   requester signed;
+4. compares the stated debit, payouts and forfeits with the recomputed ones;
+5. reports the hold: `signed by the coordinator` when the coordinator's
+   statement is present, verifies and says the whole hold was released, and
+   otherwise that the release is not proven.
+
+`verify-records.js` and `independent/replay.js` import each other and Node
+built-ins only. Neither imports the service's replay, signers or ledger. The
+split arithmetic and the statement check in `verify-records.js` were written
+by a session that had read the service's code, so only the replay itself is
+the separately written part.
+
+### The package for an outsider
+
+```sh
+node scripts/settlement/outsider-package.js --records-only --manifest MANIFEST.json --out NEW_DIRECTORY
+```
+
+`MANIFEST.json` is `{ "title": "...", "receipts": [{ "id", "label", "directory" }] }`;
+`receipts` may be empty. The package holds each receipt as a records-only
+export, the simulated failure cases under the current rules with the
+coordinator's signed statement (cancellation, unattributed disconnect, provider
+failure with a signed fault and silent; test keys, one machine, labelled as
+simulated; `"simulated": false` leaves them out), those two verifier files,
+`docs/settlement-replay.md` as `SPECIFICATION.md`, the expected result, a
+README and `node verify.mjs`. Without `--records-only` the builder still
+writes the older package described above, which hands over whole receipts and
+the service's own verifier files; use it only with someone who may see the
+answer text and the ledger trace.
+
 ## What it checks
 
 For each attempt, from the records in the receipt:

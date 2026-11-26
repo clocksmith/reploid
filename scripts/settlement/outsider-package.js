@@ -16,6 +16,20 @@
  *   README.md      plain instructions and the expected output;
  *   SHA256SUMS     every other file's digest, which verify.mjs checks first.
  * The verifier files must be committed and unchanged, so the package names the exact public commit they come from.
+ *
+ * That package hands over whole receipts: answer text, token IDs and the coordinator ledger's journal. With
+ * `--records-only` it builds the package an outsider should get instead (buildRecordsPackage):
+ *
+ *   node scripts/settlement/outsider-package.js --records-only --manifest MANIFEST.json --out NEW_DIRECTORY
+ *
+ *   trades/ID/trade.json  each receipt as a records-only export (records-export.js): signed records and the publisher's
+ *                         stated amounts, nothing else; plus, unless the manifest says `"simulated": false`, the simulated
+ *                         v3 failure cases with the coordinator's signed statement;
+ *   verifier/             verify-records.js and the second verifier it imports (independent/replay.js): Node built-ins
+ *                         only, none of the service's ledger or replay code;
+ *   SPECIFICATION.md      docs/settlement-replay.md, the wire specification, from the same commit;
+ *   expected.json, verify.mjs (outsider-records-verify.mjs), README.md and SHA256SUMS as above.
+ * A manifest for it may list no receipts at all; the package then holds the simulated trades only.
  */
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
@@ -24,10 +38,14 @@ import { existsSync, readFileSync, realpathSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
+import { exportFailureCases, exportFromReceipt } from './records-export.js';
+import { describeAttempt, verifyRecords } from './verify-records.js';
 import { readTrade, verifyTrade } from './verify-trade.js';
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const ENTRY = 'scripts/settlement/verify-trade.js';
+const RECORDS_ENTRY = 'scripts/settlement/verify-records.js';
+const SPECIFICATION = 'docs/settlement-replay.md';
 
 /** verify-trade.js and its relative imports, transitively. Any import that is not relative or `node:` is refused. */
 export function verifierFiles(root = repoRoot, entry = ENTRY) {
@@ -154,6 +172,12 @@ export async function buildOutsiderPackage({ manifest, out }) {
   const copied = (await fs.readdir(path.join(out, 'receipts'), { recursive: true, withFileTypes: true })).filter(entry => entry.isFile()).length;
   await fs.writeFile(path.join(out, 'README.md'), readme({ title: manifest.title, commit, receipts: manifest.receipts, expected,
     fileCount: files.length + copied + 3 }));
+  const listed = await writeSums(out);
+  return { commit, files: listed + 1, expected };
+}
+
+/** Lists every file under `out` with its digest in SHA256SUMS. Returns how many it listed. */
+async function writeSums(out) {
   const listed = [];
   const walk = async directory => {
     for (const entry of (await fs.readdir(directory, { withFileTypes: true })).sort((a, b) => a.name.localeCompare(b.name))) {
@@ -165,14 +189,220 @@ export async function buildOutsiderPackage({ manifest, out }) {
   await walk(out);
   const sums = await Promise.all(listed.map(async file => `${sha256(await fs.readFile(path.join(out, file)))}  ${file}`));
   await fs.writeFile(path.join(out, 'SHA256SUMS'), sums.join('\n') + '\n');
-  return { commit, files: listed.length + 1, expected };
+  return listed.length;
+}
+
+/** What verify.mjs prints for one trade of a records-only package; the README lists the same lines. */
+export function recordsTradeLines(item) {
+  return [item.label, ...(item.simulated ? [`  ${item.simulated}`] : []), ...item.attempts.flatMap(row => describeAttempt(row).map(line => `  ${line}`)),
+    `  ${item.ok ? 'The stated amounts follow from the signed records' : 'The stated amounts do NOT follow from the signed records'}, and the result is the expected one.`];
+}
+
+/** The split of one attempt written out, for the README's worked example. */
+function workedExample(item, row) {
+  const f = row.facts, total = f.stages.map(stage => stage.weight), units = f.chargedOutputs * f.quote.creditsPerOutputToken;
+  const sum = total.reduce((a, b) => a + b, 0), last = f.stages.length - 1;
+  const stageLines = f.stages.map((stage, index) => {
+    const share = index === last && last > 0 ? `${units} - ${f.stages.slice(0, -1).map(other => other.signedShare).join(' - ')} = ${stage.signedShare} (the last stage takes what remains)`
+      : `floor(${units} x ${stage.weight} / ${sum}) = ${stage.signedShare}`;
+    const paid = stage.ownAccount ? `on the requester's own account, so neither charged nor paid: 0` : stage.forfeited ? `it forfeited (${stage.forfeited}), so it is paid 0` : `paid ${stage.paid}`;
+    return `stage ${stage.partitionIndex}: ${share}; ${paid}`;
+  });
+  return `Trade \`${item.id}\`, attempt "${row.name}":
+
+\`\`\`
+charged outputs   = the smaller of acknowledged (${f.acknowledgedOutputs}) and the signed ceiling (${f.quote.maxOutputTokens}) = ${f.chargedOutputs}
+units             = ${f.chargedOutputs} outputs x ${f.quote.creditsPerOutputToken} credits = ${units}
+sum of weights    = ${total.join(' + ')} = ${sum}
+${stageLines.join('\n')}
+debit             = ${f.stages.map(stage => stage.specified).join(' + ')} = ${f.debit}   (signed maximum: ${f.quote.maximum})
+\`\`\``;
+}
+
+function recordsReadme({ title, commit, expected, fileCount, files }) {
+  const attempts = expected.trades.flatMap(item => item.attempts.map(row => ({ item, row })));
+  const example = attempts.find(({ row }) => row.facts.forfeited?.length) ?? attempts.find(({ row }) => row.facts.status === 'settled') ?? attempts[0];
+  const shown = attempts.filter(({ row }) => row.facts.hold?.releaseShown).length;
+  const simulated = expected.trades.filter(item => item.simulated), real = expected.trades.filter(item => !item.simulated);
+  return `# ${title}
+
+This folder lets you check, on your own computer, that the credits charged and paid in ${attempts.length} attempts
+(${expected.trades.length} trades) follow from records the participants signed. You recompute every debit and every
+payout yourself; the publisher's amounts are in the folder only so that you can compare them with yours.
+
+## What is in this folder, and what is not
+
+- \`trades/ID/trade.json\`: for each trade, the public credit policy, the signed records of each attempt (the
+  requester's terms with its maximum and each stage's weight, each stage's acceptance and payout account, the stage
+  receipts and closes, the requester's acknowledgments, and any stop or stage fault), the published list of which key
+  belongs to which account, and the amounts the publisher states: debit, payouts, forfeits and hold.
+- \`SPECIFICATION.md\`: the wire specification. It defines every record, how it is signed, and how an outcome and its
+  amounts are decided. It is meant to be enough to write your own verifier.
+- \`verifier/\`: a verifier written from that specification (${files.length} files). \`verify.mjs\` runs it on every trade.
+- \`expected.json\`, \`SHA256SUMS\`: the result each trade should give, and every file's digest.
+
+There is no prompt, no answer text, no token IDs, no description of the work, and nothing from the coordinator's
+ledger: no journal, no balances. The records hold only counts, times, keys, signatures and digests.
+
+${simulated.length ? `**${simulated.length === expected.trades.length ? 'Every trade' : `${simulated.length} of the ${expected.trades.length} trades`} here ${simulated.length === 1 && expected.trades.length > 1 ? 'is' : 'are'} simulated** (${simulated.map(item => `\`${item.id}\``).join(', ')}): the keys are test keys made for the run, every party ran in
+one process on one machine with a fake clock, and no model ran. They show the rules for a cancellation, an
+unattributed disconnect and a provider failure working on records signed by the real signing code. They are not
+trades between real hosts.${real.length ? ` The other${real.length === 1 ? '' : 's'} (${real.map(item => `\`${item.id}\``).join(', ')}) ${real.length === 1 ? 'was' : 'were'} exported from published receipts.` : ''}
+` : ''}
+## What you need
+
+Node 22 or later, and nothing else: no account, no keys, no network, no other software. To see which Node you have,
+open a terminal and type \`node --version\`. If it is missing or older, install the current version from
+https://nodejs.org and open a new terminal.
+
+## The one command
+
+Open a terminal in this folder (the one that holds this README) and type:
+
+\`\`\`
+node verify.mjs
+\`\`\`
+
+It takes a few seconds, sends nothing anywhere, and changes nothing.
+
+## What you should see
+
+\`\`\`
+Step 1 of 2: all ${fileCount} package files are intact.
+Step 2 of 2: recomputing ${expected.trades.length} trades from their signed records with the verifier in this package.
+
+${expected.trades.map(item => recordsTradeLines(item).join('\n')).join('\n\n')}
+
+RESULT: all ${expected.trades.length} trades give the expected result: every debit and payout was recomputed from signed records.
+Hold release is shown by a coordinator-signed statement in ${shown} of ${attempts.length} attempts${shown < attempts.length ? '; in the others it rests on the publisher\'s unsigned word' : ''}.
+\`\`\`
+
+Please send back the whole output, whatever it says, and the output of \`node --version\`.
+
+## How to read an attempt
+
+- **signed maximum**: the most the requester agreed to be charged, from the terms it signed before anything was sent.
+- **debit: recomputed, stated**: what the signed records imply the requester owes, and what the publisher says it
+  was charged. They must be equal and no more than the signed maximum.
+- **stage lines**: each stage's signed weight, the share that weight gives it, and what it is paid. A stage on the
+  requester's own account is neither charged nor paid. A stage that failed (it signed a fault, or never signed a
+  close) forfeits its own share; nobody else's amount changes.
+- **payouts by account**: the recomputed payouts added up per account, and the publisher's stated ones.
+- **accounts**: whether each party signed its own account, or the grouping is only the publisher's list.
+- **hold**: see the next section but one.
+
+To check one trade alone: \`node verifier/scripts/settlement/verify-records.js trades/ID\`. Add \`--json\` for
+every number as data.
+
+## Reproduce one by hand
+
+${workedExample(example.item, example.row)}
+
+The inputs are in \`trades/${example.item.id}/trade.json\`. To print them for every attempt of that trade without
+the verifier (this reads the records but checks no signature):
+
+\`\`\`
+node -e "const t=require('./trades/${example.item.id}/trade.json');for(const a of t.attempts){const r=a.records,T=r.find(x=>x.schema.includes('terms')),last=T.shares.length-1,chains=new Set(r.filter(x=>x.schema.includes('stage-receipt')&&x.partitionIndex===last&&x.output).map(x=>x.output.count+' '+x.output.chain));console.log(a.name,'| price',T.creditsPerOutputToken,'| ceiling',T.maxOutputTokens,'| maximum',T.maximum,'| weights',T.shares.map(s=>s.weight).join(','),'| acknowledged',Math.max(0,...r.filter(x=>x.schema.includes('acknowledgment')&&chains.has(x.count+' '+x.chain)).map(x=>x.count)),'| faults',r.filter(x=>x.schema.includes('fault')).map(x=>x.partitionIndex).join(',')||'none','| stages with a close',[...new Set(r.filter(x=>x.schema.includes('stage-receipt')&&x.status!=='executing').map(x=>x.partitionIndex))].sort().join(','))}"
+\`\`\`
+
+"acknowledged" is the highest output count the requester signed for whose chain value the final stage also signed
+(SPECIFICATION.md, step 5). The exact rules, including the time windows this shortcut ignores, are in
+SPECIFICATION.md under "Deciding an outcome" and "Split arithmetic".
+
+## What the hold line means
+
+Before a request is sent, the coordinator's ledger places a hold on the requester's account for the signed maximum.
+Whether that hold was released afterwards is ledger state. No record that a requester or a stage signs can show it.
+
+- \`signed by the coordinator\`: the trade carries the coordinator's own signed statement (SPECIFICATION.md, "The
+  coordinator's statement") that it placed a hold equal to the signed maximum, released all of it, and holds nothing
+  for this attempt. The verifier checks that signature, that the statement names the agreed terms, and that its debit
+  and payouts equal the recomputed ones. This shows what the coordinator committed to: a hold that survived would
+  contradict its own signature. It does not let you look into the ledger, and no record signed by a participant names
+  the coordinator's key, so you learn the coordinator's key from this folder.
+- \`NOT proven here\`: the trade was settled before that statement existed. The publisher says nothing was held
+  afterwards, and nothing signed backs it.
+
+## What a pass shows, and what it does not
+
+A pass shows that the signed records, checked by the keys they carry, imply exactly the debit and payouts the
+publisher states, under the public credit policy whose digest the requester signed; that the debit is within the
+maximum the requester signed; and that every stage was paid the share its signed weight specifies, or forfeited it.
+
+It does not show who owns a key, that the computation itself was correct, that nobody withheld a record, or when a
+record was really signed. Where the output says the accounts are \`the publisher's grouping (not signed)\`, which
+stages count as the requester's own is the publisher's statement only.
+
+## Where the verifier comes from
+
+\`verifier/\` holds ${files.map(file => `\`${file}\``).join(' and ')}, copied unchanged from the public
+repository https://github.com/clocksmith/reploid at commit \`${commit}\`. They import each other and Node's
+built-in modules, and nothing else: none of the coordinator service's ledger or replay code is in this folder.
+\`independent/replay.js\` decides each outcome and its amounts. It was written from SPECIFICATION.md alone, by a
+separate working session under the same operator as the service: it is a second implementation, not an independent
+party's. \`verify-records.js\` reads the trade, recomputes each stage's share with its own arithmetic, checks the
+coordinator's statement and compares the stated amounts.
+
+The strongest check is your own verifier written from SPECIFICATION.md. To check instead with your own copy of that
+commit (this needs git, and downloads that one commit only):
+
+\`\`\`
+git init reploid
+git -C reploid fetch --depth 1 https://github.com/clocksmith/reploid ${commit}
+git -C reploid checkout --quiet FETCH_HEAD
+node verify.mjs --verifier reploid
+\`\`\`
+`;
+}
+
+/**
+ * Builds the records-only package. `manifest`: `{ title, receipts?: [{ id, label, directory }], simulated?: boolean }`.
+ * Every receipt is exported as signed records and stated amounts only; the verifier is the second one, with no
+ * service code; the wire specification comes along.
+ */
+export async function buildRecordsPackage({ manifest, out }) {
+  if (existsSync(out)) throw Error(`${out} already exists`);
+  const files = verifierFiles(repoRoot, RECORDS_ENTRY);
+  const service = files.filter(file => !file.startsWith('scripts/settlement/'));
+  if (service.length) throw Error(`The records-only verifier must not import service code: ${service.join(', ')}`);
+  const dirty = git(['status', '--porcelain', '--', ...files, SPECIFICATION]);
+  if (dirty) throw Error(`The verifier files and the specification are not committed as they are:\n${dirty}`);
+  const commit = git(['rev-parse', 'HEAD']);
+  const committed = file => execFileSync('git', ['-C', repoRoot, 'show', `${commit}:${file}`]);
+  await fs.mkdir(out, { recursive: true });
+  for (const file of files) {
+    await fs.mkdir(path.join(out, 'verifier', path.dirname(file)), { recursive: true });
+    await fs.writeFile(path.join(out, 'verifier', file), committed(file));
+  }
+  await fs.writeFile(path.join(out, 'SPECIFICATION.md'), committed(SPECIFICATION));
+  const trades = [];
+  for (const item of manifest.receipts ?? []) {
+    trades.push(exportFromReceipt({ id: item.id, label: item.label, ...readTrade(item.directory) }));
+  }
+  if (manifest.simulated !== false) trades.push(await exportFailureCases());
+  if (!trades.length) throw Error('The manifest lists no receipt and turns the simulated trades off');
+  const expected = { title: manifest.title, verifierCommit: commit, trades: [] };
+  for (const trade of trades) {
+    if (!/^[a-z0-9][a-z0-9-]{0,63}$/.test(trade.id) || expected.trades.some(item => item.id === trade.id)) throw Error(`trade id ${trade.id}`);
+    await fs.mkdir(path.join(out, 'trades', trade.id), { recursive: true });
+    await fs.writeFile(path.join(out, 'trades', trade.id, 'trade.json'), JSON.stringify(trade, null, 1) + '\n');
+    const verdict = await verifyRecords({ trade });
+    expected.trades.push({ id: trade.id, label: trade.label, simulated: trade.simulated, ok: verdict.ok, attempts: verdict.attempts });
+  }
+  await fs.writeFile(path.join(out, 'expected.json'), JSON.stringify(expected, null, 2) + '\n');
+  await fs.copyFile(path.join(repoRoot, 'scripts/settlement/outsider-records-verify.mjs'), path.join(out, 'verify.mjs'));
+  // Listed in SHA256SUMS: the verifier, the trades, the specification, expected.json, verify.mjs and README.md.
+  await fs.writeFile(path.join(out, 'README.md'), recordsReadme({ title: manifest.title, commit, expected, files, fileCount: files.length + trades.length + 4 }));
+  const listed = await writeSums(out);
+  // `receipts` keeps main()'s report the same for both kinds of package.
+  return { commit, files: listed + 1, expected: { ...expected, receipts: expected.trades } };
 }
 
 async function main() {
-  const { values } = parseArgs({ options: { manifest: { type: 'string' }, out: { type: 'string' } } });
-  if (!values.manifest || !values.out) throw Error('Usage: outsider-package.js --manifest MANIFEST.json --out NEW_DIRECTORY');
+  const { values } = parseArgs({ options: { manifest: { type: 'string' }, out: { type: 'string' }, 'records-only': { type: 'boolean' } } });
+  if (!values.manifest || !values.out) throw Error('Usage: outsider-package.js [--records-only] --manifest MANIFEST.json --out NEW_DIRECTORY');
   const manifest = JSON.parse(await fs.readFile(values.manifest, 'utf8'));
-  const built = await buildOutsiderPackage({ manifest, out: path.resolve(values.out) });
+  const built = await (values['records-only'] ? buildRecordsPackage : buildOutsiderPackage)({ manifest, out: path.resolve(values.out) });
   console.log(`Package at ${path.resolve(values.out)}: ${built.files} files, verifier from ${built.commit}`);
   for (const item of built.expected.receipts) console.log(`  ${item.ok ? 'PASS' : 'FAIL'} ${item.id}`);
   if (!built.expected.receipts.every(item => item.ok)) process.exitCode = 1;
