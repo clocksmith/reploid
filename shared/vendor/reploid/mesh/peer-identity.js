@@ -11,6 +11,33 @@ const signedBytes = (challenge, participantId) => encodeBytes(JSON.stringify([
   challenge.requester, challenge.provider, challenge.local, challenge.remote, participantId
 ]));
 
+// One computer can join on two connections with two signing keys: its requester and a contributor. The
+// requester key signs a statement naming the contributor key, and the contributor carries it. A statement
+// groups the two only on a connection already proven (above) to hold the contributor key it names, so a third
+// peer cannot use it: it names someone else's key, and no one but the requester key's holder can sign another.
+const PARTICIPANT = /^peer:[a-f0-9]{24}$/;
+const linkBytes = (roomId, computerId, participantId) => encodeBytes(JSON.stringify(['reploid.same-computer/v1', roomId, computerId, participantId]));
+
+/** The statement `identity` (this computer's requester key) signs that `participantId` is the same computer. */
+export async function signComputerLink({ identity, participantId, roomId }) {
+  const key = await importSigningKey(identity);
+  const signature = await crypto.subtle.sign(getIdentitySignAlgorithm(identity), key, linkBytes(roomId, identity.peerId, participantId));
+  return { computerId: identity.peerId, participantId, publicJwk: identity.publicJwk, signature: toBase64Url(signature) };
+}
+
+/** { computerId, participantId } when `link` is a valid statement for this room, else null. */
+export async function verifyComputerLink(link, roomId) {
+  if (!link || typeof link !== 'object' || !PARTICIPANT.test(link.computerId) || !PARTICIPANT.test(link.participantId)
+    || link.computerId === link.participantId || typeof link.signature !== 'string' || link.signature.length > 2048
+    || !link.publicJwk || typeof link.publicJwk !== 'object') return null;
+  try {
+    if (await createPeerIdFromPublicJwk(link.publicJwk) !== link.computerId) return null;
+    const key = await importVerificationKey(link.publicJwk);
+    return await crypto.subtle.verify(getIdentitySignAlgorithm(link.publicJwk), key, fromBase64Url(link.signature),
+      linkBytes(roomId, link.computerId, link.participantId)) ? { computerId: link.computerId, participantId: link.participantId } : null;
+  } catch { return null; }
+}
+
 export function createMeshPeerIdentity({ transport, getIdentity, roomId, timeoutMs, maxPending, onVerified = () => {} }) {
   let closed = false;
   const signing = new Set();

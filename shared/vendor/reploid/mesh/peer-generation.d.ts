@@ -45,6 +45,9 @@ export interface PeerGenerationMeshPorts {
   /** Optional requester-side order over eligible providers: connection ids or identities proven on this channel, best first.
    * Providers it does not name keep the default order after it. The choice and its reason reach `authorize` as `placement`. */
   rankProviders?(candidates: PlacementCandidate[], request: { modelId: string | null; modelIdentity: string | null }): string[] | null | undefined;
+  /** Contributor side: the signing identity of this computer's requester connection, or null. Its key signs a link to
+   * this connection's key, so peers can show the two connections as one computer (snapshot peers' `computerId`). */
+  computerIdentity?(): { peerId: string; publicJwk: object; privateJwk?: object } | null | undefined;
   generate(messages: Message[], onUpdate: ((chunk: string) => void) | null | undefined,
     controls: { privacyBinding?: import('../chat/execution-policy.js').ExecutionBinding; privacy?: import('../chat/execution-policy.js').ExecutionPolicy; signal?: AbortSignal; adapterIdentities?: string[]; requestId?: string; consumer?: string;
       contextId?: string | null; contextOwner?: string | null;

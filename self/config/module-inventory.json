@@ -3000,7 +3000,7 @@
     {
       "path": "self/host/decisions/computers.js",
       "owner": "self",
-      "sha256": "sha256:fb96086b9c5b6355b4861f4afff3f60c7438d2b424601b30d366862c45a4922b",
+      "sha256": "sha256:33322f39fb3191a241e1651fbb52f41248e4927a990b4c3098dfaf6dd354ab22",
       "imports": [
         "../../capabilities/communication/library-adapter.js",
         "../../pool/model-contract.js",
@@ -3772,7 +3772,7 @@
     {
       "path": "self/host/work-swarm.js",
       "owner": "self",
-      "sha256": "sha256:67a7ba12e3e218ce64403f4a7925bc78d2d812526588c54dbee02ae4f40c6211",
+      "sha256": "sha256:689e49279bc9d1e045a8a0d38fb7954c873d2bc9f75ff68f6bc50960e6abb9de",
       "imports": [
         "../capabilities/communication/library-adapter.js",
         "../config/doppler-local-models.js",
@@ -4536,7 +4536,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:fdf1f1dff93cb00300bc5e0c315060ca30a1f3d7ddc94731164e56f8a1ebf5c3",
+      "sha256": "sha256:9c28b9269cf7de0598e77623a1c7da1a589fa722538a2e114ed8ee63bfa62e0d",
       "imports": []
     },
     {
@@ -5659,13 +5659,13 @@
     {
       "path": "ui/react/app.js",
       "owner": "ui",
-      "sha256": "sha256:f61a48b876b3099aea0f7ccfb7b5eaf2c43ea709c684bb9785417af164511e65",
+      "sha256": "sha256:5cc82ab5249cd8fc267545d4b3ad4274438f3abc3e9e0823a24287829a7f771a",
       "imports": []
     },
     {
       "path": "ui/react/design.js",
       "owner": "ui",
-      "sha256": "sha256:24cb8bc85c2d988998c150fda5965cd416e7667dde11f99edd740c14176097ea",
+      "sha256": "sha256:640e550988c20d007f87e05e9d463d478f3bc148d396da7bdd621cfd5809b462",
       "imports": []
     },
     {
@@ -19884,7 +19884,7 @@
     {
       "path": "vendor/reploid/mesh/peer-generation.js",
       "owner": "vendor",
-      "sha256": "sha256:36a6ca4e86627d33f5780f35d4608ad9992ddaf19ab87364dd101879347fee96",
+      "sha256": "sha256:ca75f2bc23ec6b1155d6605e9837fb0901eecb78fd36aa0a62543cfb01a3712b",
       "imports": [
         "../artifacts/generation-terminal.js",
         "../artifacts/receipt.js",
@@ -19911,7 +19911,7 @@
     {
       "path": "vendor/reploid/mesh/peer-identity.js",
       "owner": "vendor",
-      "sha256": "sha256:1de6bd715d6347fb276e2f9100885d4b7628101db7ee1ba6afd0e1bd8e4ec2d6",
+      "sha256": "sha256:6882bedefa417038bc3c65d869538b2eb8bcc8b21d9feae571809e7173c4af77",
       "imports": [
         "../artifacts/identity.js",
         "./computer-identity.policy.json",
