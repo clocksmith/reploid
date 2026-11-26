@@ -1,321 +1,160 @@
 /**
- * @fileoverview Unit tests for StateManager module
- * Note: StateManager has complex dependencies (Storage, config), so these are more integration-style tests
+ * @fileoverview Unit tests for the real StateManager (self/core/state-manager.js).
+ *
+ * This file used to test a StateManager written inside the test, with an artifact API the
+ * module does not have. These cases run the module itself with the real StateHelpersPure and an
+ * in-memory VFS.
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import StateManagerModule from '../../self/core/state-manager.js';
+import StateHelpersPureModule from '../../self/core/state-helpers-pure.js';
+
+const STATE_PATH = '/.system/state.json';
+
+const makeVFS = (initial = {}) => {
+  const files = new Map(Object.entries(initial));
+  return {
+    files,
+    read: vi.fn(async path => {
+      if (!files.has(path)) throw new Error(`missing ${path}`);
+      return files.get(path);
+    }),
+    write: vi.fn(async (path, content) => { files.set(path, content); return true; })
+  };
+};
+
+const makeUtils = () => ({
+  logger: { info: vi.fn(), warn: vi.fn(), error: vi.fn(), debug: vi.fn() },
+  Errors: { StateError: class StateError extends Error {} },
+  generateId: vi.fn(prefix => `${prefix}_1`)
+});
 
 describe('StateManager', () => {
-  let StateManager;
-  let mockStorage;
-  let mockConfig;
-  let mockUtils;
-  let stateManager;
+  let VFS;
+  let Utils;
+  let EventBus;
+  let AuditLogger;
 
-  beforeEach(async () => {
-    // Mock dependencies
-    mockStorage = {
-      getState: vi.fn().mockResolvedValue(null),
-      saveState: vi.fn().mockResolvedValue(undefined),
-      getArtifactContent: vi.fn().mockResolvedValue('mock content'),
-      setArtifactContent: vi.fn().mockResolvedValue(undefined),
-      deleteArtifact: vi.fn().mockResolvedValue(undefined)
-    };
-
-    mockConfig = {
-      apiKey: 'test-api-key'
-    };
-
-    mockUtils = {
-      logger: {
-        info: vi.fn(),
-        warn: vi.fn(),
-        error: vi.fn(),
-        debug: vi.fn()
-      },
-      Errors: {
-        StateError: class StateError extends Error {},
-        ArtifactError: class ArtifactError extends Error {}
-      }
-    };
-
-    // Mock StateHelpersPure
-    const mockStateHelpersPure = {};
-
-    // Create mock StateManager factory
-    StateManager = {
-      factory: (deps) => {
-        const { Storage, config, Utils } = deps;
-        const { logger, Errors } = Utils;
-        const { StateError, ArtifactError } = Errors;
-
-        let globalState = null;
-
-        const init = async () => {
-          logger.info("[StateManager] Initializing state...");
-          const savedStateJSON = await Storage.getState();
-          if (savedStateJSON) {
-            globalState = JSON.parse(savedStateJSON);
-          } else {
-            globalState = {
-              totalCycles: 0,
-              artifactMetadata: {},
-              currentGoal: null,
-              apiKey: config.apiKey || ""
-            };
-          }
-          return true;
-        };
-
-        const getState = () => {
-          if (!globalState) throw new StateError("StateManager not initialized.");
-          return globalState;
-        };
-
-        const setState = async (updates) => {
-          if (!globalState) throw new StateError("StateManager not initialized.");
-          globalState = { ...globalState, ...updates };
-          await Storage.saveState(JSON.stringify(globalState));
-          return globalState;
-        };
-
-        const saveState = async () => {
-          if (!globalState) throw new StateError("No state to save");
-          await Storage.saveState(JSON.stringify(globalState));
-        };
-
-        const saveArtifact = async (path, content, metadata = {}) => {
-          await Storage.setArtifactContent(path, content);
-          globalState.artifactMetadata[path] = {
-            path,
-            created: Date.now(),
-            ...metadata
-          };
-          await saveState();
-          logger.info(`[StateManager] Saved artifact: ${path}`);
-        };
-
-        const getArtifactContent = async (path) => {
-          return await Storage.getArtifactContent(path);
-        };
-
-        const getArtifactMetadata = (path) => {
-          return globalState.artifactMetadata[path] || null;
-        };
-
-        const getAllArtifactMetadata = () => {
-          return { ...globalState.artifactMetadata };
-        };
-
-        const deleteArtifact = async (path) => {
-          await Storage.deleteArtifact(path);
-          delete globalState.artifactMetadata[path];
-          await saveState();
-          logger.info(`[StateManager] Deleted artifact: ${path}`);
-        };
-
-        return {
-          api: {
-            init,
-            getState,
-            setState,
-            saveState,
-            saveArtifact,
-            getArtifactContent,
-            getArtifactMetadata,
-            getAllArtifactMetadata,
-            deleteArtifact
-          }
-        };
-      }
-    };
-
-    // Initialize StateManager
-    const instance = StateManager.factory({
-      Storage: mockStorage,
-      config: mockConfig,
-      Utils: mockUtils
-    });
-    stateManager = instance.api;
-    await stateManager.init();
+  const compose = () => StateManagerModule.factory({
+    Utils,
+    VFS,
+    StateHelpersPure: StateHelpersPureModule.factory(),
+    EventBus,
+    AuditLogger
   });
 
-  describe('Initialization', () => {
-    it('should initialize with default state when no saved state exists', async () => {
-      const state = stateManager.getState();
+  beforeEach(() => {
+    VFS = makeVFS();
+    Utils = makeUtils();
+    EventBus = { emit: vi.fn() };
+    AuditLogger = { logAgentAction: vi.fn() };
+  });
 
-      expect(state).toHaveProperty('totalCycles', 0);
-      expect(state).toHaveProperty('artifactMetadata');
-      expect(state).toHaveProperty('currentGoal', null);
-      expect(state).toHaveProperty('apiKey', 'test-api-key');
+  describe('init', () => {
+    it('creates and saves a fresh state when none is stored', async () => {
+      const state = await compose().init();
+      expect(state).toMatchObject({ totalCycles: 0, currentGoal: null, session: { status: 'idle' } });
+      expect(JSON.parse(VFS.files.get(STATE_PATH))).toMatchObject({ totalCycles: 0 });
     });
 
-    it('should load existing state from storage', async () => {
-      const existingState = {
-        totalCycles: 5,
-        artifactMetadata: { '/test.txt': { type: 'text' } },
-        currentGoal: 'Test goal',
-        apiKey: 'existing-key'
-      };
-
-      mockStorage.getState.mockResolvedValue(JSON.stringify(existingState));
-
-      const newInstance = StateManager.factory({
-        Storage: mockStorage,
-        config: mockConfig,
-        Utils: mockUtils
-      });
-      await newInstance.api.init();
-
-      const state = newInstance.api.getState();
-      expect(state.totalCycles).toBe(5);
-      expect(state.currentGoal).toBe('Test goal');
+    it('loads a stored state and keeps defaults for missing fields', async () => {
+      VFS = makeVFS({ [STATE_PATH]: JSON.stringify({ totalCycles: 7, session: { id: 's1' } }) });
+      const state = await compose().init();
+      expect(state.totalCycles).toBe(7);
+      expect(state.session).toEqual({ id: 's1', startTime: null, status: 'idle' });
+      expect(state.stats).toEqual({ apiCalls: 0, errors: 0 });
     });
 
-    it('should throw error when accessing state before init', () => {
-      const uninitInstance = StateManager.factory({
-        Storage: mockStorage,
-        config: mockConfig,
-        Utils: mockUtils
-      });
+    it('resets an invalid stored state instead of using it', async () => {
+      VFS = makeVFS({ [STATE_PATH]: JSON.stringify({ totalCycles: 'many' }) });
+      const state = await compose().init();
+      expect(state.totalCycles).toBe(0);
+      expect(Utils.logger.warn).toHaveBeenCalled();
+    });
 
-      expect(() => uninitInstance.api.getState()).toThrow('StateManager not initialized');
+    it('starts fresh when the stored state is not JSON', async () => {
+      VFS = makeVFS({ [STATE_PATH]: '{not json' });
+      const state = await compose().init();
+      expect(state.totalCycles).toBe(0);
     });
   });
 
-  describe('State Management', () => {
-    it('should get current state', () => {
-      const state = stateManager.getState();
-      expect(state).toBeDefined();
-      expect(state).toHaveProperty('totalCycles');
+  describe('getState', () => {
+    it('throws before init', () => {
+      expect(() => compose().getState()).toThrow('StateManager not initialized');
     });
 
-    it('should update state with setState', async () => {
-      await stateManager.setState({ totalCycles: 10 });
-
-      const state = stateManager.getState();
-      expect(state.totalCycles).toBe(10);
-      expect(mockStorage.saveState).toHaveBeenCalled();
-    });
-
-    it('should persist state changes', async () => {
-      await stateManager.setState({ customField: 'test value' });
-
-      expect(mockStorage.saveState).toHaveBeenCalled();
-      const savedState = JSON.parse(mockStorage.saveState.mock.calls[0][0]);
-      expect(savedState.customField).toBe('test value');
+    it('returns a copy, so callers cannot change the stored state', async () => {
+      const manager = compose();
+      await manager.init();
+      const copy = manager.getState();
+      copy.totalCycles = 99;
+      expect(manager.getState().totalCycles).toBe(0);
     });
   });
 
-  describe('Artifact Management', () => {
-    it('should save artifact with content and metadata', async () => {
-      await stateManager.saveArtifact('/test.txt', 'test content', {
-        type: 'text',
-        author: 'test'
-      });
-
-      expect(mockStorage.setArtifactContent).toHaveBeenCalledWith('/test.txt', 'test content');
-
-      const metadata = stateManager.getArtifactMetadata('/test.txt');
-      expect(metadata).toBeDefined();
-      expect(metadata.path).toBe('/test.txt');
-      expect(metadata.type).toBe('text');
-      expect(metadata.author).toBe('test');
+  describe('updateState', () => {
+    it('merges updates and persists them', async () => {
+      const manager = compose();
+      await manager.init();
+      const next = await manager.updateState({ session: { id: 's2', startTime: 1, status: 'running' } });
+      expect(next.session.status).toBe('running');
+      expect(JSON.parse(VFS.files.get(STATE_PATH)).session.id).toBe('s2');
     });
 
-    it('should get artifact content', async () => {
-      mockStorage.getArtifactContent.mockResolvedValue('file content');
-
-      const content = await stateManager.getArtifactContent('/test.txt');
-
-      expect(content).toBe('file content');
-      expect(mockStorage.getArtifactContent).toHaveBeenCalledWith('/test.txt');
-    });
-
-    it('should get artifact metadata', async () => {
-      await stateManager.saveArtifact('/test.txt', 'content', { type: 'text' });
-
-      const metadata = stateManager.getArtifactMetadata('/test.txt');
-
-      expect(metadata).toBeDefined();
-      expect(metadata.path).toBe('/test.txt');
-      expect(metadata.type).toBe('text');
-    });
-
-    it('should return null for non-existent artifact metadata', () => {
-      const metadata = stateManager.getArtifactMetadata('/nonexistent.txt');
-      expect(metadata).toBeNull();
-    });
-
-    it('should get all artifact metadata', async () => {
-      await stateManager.saveArtifact('/file1.txt', 'content1', { type: 'text' });
-      await stateManager.saveArtifact('/file2.js', 'content2', { type: 'code' });
-
-      const allMetadata = stateManager.getAllArtifactMetadata();
-
-      expect(Object.keys(allMetadata)).toHaveLength(2);
-      expect(allMetadata).toHaveProperty('/file1.txt');
-      expect(allMetadata).toHaveProperty('/file2.js');
-    });
-
-    it('should delete artifact and its metadata', async () => {
-      await stateManager.saveArtifact('/test.txt', 'content');
-
-      await stateManager.deleteArtifact('/test.txt');
-
-      expect(mockStorage.deleteArtifact).toHaveBeenCalledWith('/test.txt');
-
-      const metadata = stateManager.getArtifactMetadata('/test.txt');
-      expect(metadata).toBeNull();
+    it('loads the stored state first when called before init', async () => {
+      VFS = makeVFS({ [STATE_PATH]: JSON.stringify({ totalCycles: 3 }) });
+      const next = await compose().updateState({ currentGoal: null });
+      expect(next.totalCycles).toBe(3);
     });
   });
 
-  describe('Multiple Artifacts', () => {
-    it('should handle multiple artifact operations', async () => {
-      await stateManager.saveArtifact('/file1.txt', 'content1');
-      await stateManager.saveArtifact('/file2.txt', 'content2');
-      await stateManager.saveArtifact('/file3.txt', 'content3');
+  describe('setGoal', () => {
+    it('sets the first goal, then adds later goals as subgoals', async () => {
+      const manager = compose();
+      await manager.init();
+      await manager.setGoal('Build the parser');
+      await manager.setGoal('Write its tests');
+      const { currentGoal } = manager.getState();
+      expect(currentGoal.text).toBe('Build the parser');
+      expect(currentGoal.subgoals).toHaveLength(1);
+      expect(currentGoal.subgoals[0]).toMatchObject({ text: 'Write its tests', status: 'pending' });
+      expect(JSON.parse(VFS.files.get(STATE_PATH)).currentGoal.subgoals).toHaveLength(1);
+    });
 
-      const allMetadata = stateManager.getAllArtifactMetadata();
-      expect(Object.keys(allMetadata)).toHaveLength(3);
-
-      await stateManager.deleteArtifact('/file2.txt');
-
-      const updatedMetadata = stateManager.getAllArtifactMetadata();
-      expect(Object.keys(updatedMetadata)).toHaveLength(2);
-      expect(updatedMetadata).not.toHaveProperty('/file2.txt');
+    it('emits goal:set and records the action', async () => {
+      const manager = compose();
+      await manager.init();
+      await manager.setGoal('Ship it');
+      expect(EventBus.emit).toHaveBeenCalledWith('goal:set', expect.objectContaining({ goal: 'Ship it' }));
+      expect(AuditLogger.logAgentAction).toHaveBeenCalledWith('SET_GOAL', 'StateManager', { goal: 'Ship it' });
     });
   });
 
-  describe('State Persistence', () => {
-    it('should persist artifact metadata across state saves', async () => {
-      await stateManager.saveArtifact('/persistent.txt', 'content', { type: 'test' });
-
-      const savedCalls = mockStorage.saveState.mock.calls;
-      expect(savedCalls.length).toBeGreaterThan(0);
-
-      const lastSave = JSON.parse(savedCalls[savedCalls.length - 1][0]);
-      expect(lastSave.artifactMetadata).toHaveProperty('/persistent.txt');
+  describe('incrementCycle', () => {
+    it('counts cycles and persists the count', async () => {
+      const manager = compose();
+      await manager.init();
+      await manager.incrementCycle();
+      await manager.incrementCycle();
+      expect(manager.getState().totalCycles).toBe(2);
+      expect(JSON.parse(VFS.files.get(STATE_PATH)).totalCycles).toBe(2);
     });
   });
 
-  describe('Error Handling', () => {
-    it('should throw StateError when getting state before initialization', () => {
-      const uninitInstance = StateManager.factory({
-        Storage: mockStorage,
-        config: mockConfig,
-        Utils: mockUtils
-      });
-
-      expect(() => uninitInstance.api.getState()).toThrow();
-    });
-
-    it('should handle storage errors gracefully', async () => {
-      mockStorage.setArtifactContent.mockRejectedValue(new Error('Storage full'));
-
-      await expect(
-        stateManager.saveArtifact('/test.txt', 'content')
-      ).rejects.toThrow('Storage full');
+  describe('save failures', () => {
+    it('retries a failed write and reports a persistence error when every attempt fails', async () => {
+      vi.useFakeTimers();
+      const manager = compose();
+      await manager.init();
+      VFS.write.mockRejectedValue(new Error('disk full'));
+      const pending = manager.updateState({ currentGoal: null });
+      await vi.runAllTimersAsync();
+      await pending;
+      expect(VFS.write).toHaveBeenCalledTimes(1 + 3); // the init save, then one attempt and two retries
+      expect(EventBus.emit).toHaveBeenCalledWith('error:persistence', expect.objectContaining({ details: 'disk full' }));
+      vi.useRealTimers();
     });
   });
 });
