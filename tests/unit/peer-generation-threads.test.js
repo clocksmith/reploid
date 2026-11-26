@@ -1,6 +1,6 @@
 import { createExecutionPolicy, bindExecutionRoute, plaintextExecutionRoute } from '../../packages/reploid/src/chat/execution-policy.js';
 import { it, expect, vi } from 'vitest';
-import { createPeerGenerationMesh } from '../../packages/reploid/src/mesh/peer-generation.js';
+import { REQUESTER_CANCELLED, REQUESTER_DISCONNECTED, createPeerGenerationMesh } from '../../packages/reploid/src/mesh/peer-generation.js';
 import { resolveConfig } from '../../packages/reploid/src/config/index.js';
 
 import { createSigningIdentity, importSigningKey, getIdentitySignAlgorithm, encodeBytes, toBase64Url } from '../../packages/reploid/src/artifacts/identity.js';
@@ -572,5 +572,29 @@ it.each(['deadline', 'disconnect'])('withdraws a whole-model request during vali
     expect(f.authorize.mock.calls.some(([request]) => request.action === 'mesh.execute')).toBe(false);
     await receive('next-consumer', await f.prepareInbound('next-consumer', 'request-2'));
     expect(generate).toHaveBeenCalledOnce();
+  } finally { await f.mesh.close(); }
+});
+
+it.each([
+  ['the requester\'s connection goes away', REQUESTER_DISCONNECTED, f => f.events.emit('swarm:peer-disconnected', { peerId: 'consumer' })],
+  ['the requester leaves the room', REQUESTER_DISCONNECTED, f => f.events.emit('swarm:peer-left', { peerId: 'consumer' })],
+  ['the requester sends a stop', REQUESTER_CANCELLED, f => f.handlers.get('reploid:generation-cancel')('consumer', { requestId: 'request-1' })]
+])('ends a running whole-model job with a coded reason when %s', async (_name, code, end) => {
+  let started;
+  const running = new Promise(resolve => { started = resolve; });
+  const generate = vi.fn((_messages, _onUpdate, { signal }) => new Promise((_resolve, reject) => {
+    started(signal);
+    signal.addEventListener('abort', () => reject(signal.reason), { once: true });
+  }));
+  const f = fixture({ executeJobs: true }, { modelConfig: { id: 'qwen' }, generate });
+  await f.mesh.connect();
+  try {
+    const job = f.handlers.get('reploid:generation-request')('consumer', await f.prepareInbound('consumer', 'request-1'));
+    const signal = await running;
+    end(f);
+    await job;
+    // The settlement decision (requester ended vs provider failed) reads this code; the message is for people only.
+    expect(signal.reason).toMatchObject({ code });
+    expect(typeof signal.reason.message).toBe('string');
   } finally { await f.mesh.close(); }
 });

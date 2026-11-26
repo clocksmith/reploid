@@ -47,6 +47,14 @@ const promptCommitment = (salt, messages, settings) => {
 };
 /** Version of the signed settlement records a provider advertises it produces (operation-envelope.js). */
 const SETTLEMENT_PROTOCOL = 1;
+/**
+ * Codes on the reason an admitted job is aborted with when its requester ended it: a stop frame, or its connection
+ * going away (a closed tab sends no frame). What the provider signs for an unfinished answer is decided on these codes
+ * alone, never on the reason's message, which is for people and may be reworded.
+ */
+export const REQUESTER_CANCELLED = 'REQUESTER_CANCELLED';
+export const REQUESTER_DISCONNECTED = 'REQUESTER_DISCONNECTED';
+const requesterEnded = (code, message) => Object.assign(new Error(message), { code });
 const admissionSalt = () => Array.from(crypto.getRandomValues(new Uint8Array(32)), byte => byte.toString(16).padStart(2, '0')).join('');
 
 // Whole-request generation by authorized peers over the swarm protocol: advertisement,
@@ -1148,7 +1156,7 @@ export function createPeerGenerationMesh({ config, ports }) {
       // (a closed tab sends no frame). Everything signed below uses this one answer, so a requester's leaving is never
       // signed as this provider failing (docs/settlement-replay.md, "What an unfinished whole-model answer settles").
       const ending = controller.signal.aborted ? controller.signal.reason : null;
-      const endedByRequester = ending?.code === 'REQUESTER_CANCELLED' || ending?.message === 'Requester disconnected';
+      const endedByRequester = ending?.code === REQUESTER_CANCELLED || ending?.code === REQUESTER_DISCONNECTED;
       if (claimedRecovery && !retainedResult && typeof ports.settleGeneration === 'function') {
         try {
           // A rejected promise alone cannot prove GPU cleanup. The owning host
@@ -1227,7 +1235,7 @@ export function createPeerGenerationMesh({ config, ports }) {
         swarmTransport.onMessage('reploid:generation-error', handleGenerationError);
         swarmTransport.onMessage('reploid:generation-cancel', (peerId, payload = {}) => {
           const key = `${peerId}:${String(payload.requestId || '')}`;
-          const reason = Object.assign(new Error('Requester stopped this job'), { code: 'REQUESTER_CANCELLED' });
+          const reason = requesterEnded(REQUESTER_CANCELLED, 'Requester stopped this job');
           forgetAdmission(key);
           validatingInbound.get(key)?.abort(reason);
           if (!cancelQueuedInbound(key, reason, true)) inbound.get(key)?.abort(reason);
@@ -1256,9 +1264,10 @@ export function createPeerGenerationMesh({ config, ports }) {
           unresponsivePeers.delete(peerId);
           remoteRequests.retirePeer(peerId);
           for (const key of [...admitted.keys(), ...admitting]) if (key.startsWith(`${peerId}:`)) forgetAdmission(key);
-          for (const [key, controller] of validatingInbound) if (key.startsWith(`${peerId}:`)) controller.abort(new Error('Requester disconnected'));
-          for (const key of [...inboundQueued.keys()]) if (key.startsWith(`${peerId}:`)) cancelQueuedInbound(key, new Error('Requester disconnected'), false);
-          for (const [key, controller] of inbound) if (key.startsWith(`${peerId}:`)) controller.abort(new Error('Requester disconnected'));
+          const gone = () => requesterEnded(REQUESTER_DISCONNECTED, 'Requester disconnected');
+          for (const [key, controller] of validatingInbound) if (key.startsWith(`${peerId}:`)) controller.abort(gone());
+          for (const key of [...inboundQueued.keys()]) if (key.startsWith(`${peerId}:`)) cancelQueuedInbound(key, gone(), false);
+          for (const [key, controller] of inbound) if (key.startsWith(`${peerId}:`)) controller.abort(gone());
           emitSwarmState();
         };
         subscriptions.push(eventBus.on('swarm:peer-left', retirePeer, 'self-bridge'));
