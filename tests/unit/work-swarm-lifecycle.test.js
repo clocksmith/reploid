@@ -467,3 +467,24 @@ it('reports a contribution choice only after the person makes one', async () => 
   expect(swarm.getState()).toMatchObject({ filesEnabled: false, contributionChosen: true });
   await swarm.close();
 });
+
+it('offers cached files from a requester-only ordered browser when the person turns file sharing on', async () => {
+  vi.stubGlobal('navigator', { gpu: {} });
+  ports.ensure.mockResolvedValue({ peerId: 'fixture', contribution: {} });
+  ports.createTransport.mockReturnValue({ init: async () => true, disconnect: vi.fn(), onMessage: vi.fn(), broadcast: vi.fn(), getPeerId: () => 'rtc-fixture' });
+  const limits = { maxStages: 7, maxStageOffersPerPeer: 4, maxRouteBytes: 8192, maxSelectionSteps: 2000, maxRoutes: 4 };
+  const model = LOCAL_DOPPLER_MODELS[0], share = vi.fn(async () => {});
+  // The hosted page opens every browser as a requester-only ordered participant (no assigned stage).
+  const swarm = createWorkSwarm({ service: { open: vi.fn(), close: vi.fn() }, ordered: { stage: null, ...limits },
+    createPartitions: () => ({ getModels: () => [], stop: async () => {}, close: async () => {} }),
+    storage: { getItem: key => values.get(key) ?? null, setItem: (key, value) => values.set(key, value) },
+    createModelFiles: () => ({ attach: async () => {}, close: async () => {}, announce() {}, getState: () => ({}), prepareSource: async item => item.id, share }),
+    networkOptions: () => ({ autoConnect: true, discoveryScope: 'public', config: resolveConfig({ overrides: { mesh: { enabled: true, roomId: 'reploid-swarm-public' } } }) }) });
+  await swarm.shareCachedModels([{ id: model.id, identity: model.identity }]);
+  expect(share).not.toHaveBeenCalled();
+  await swarm.allowCachedFiles(true);
+  expect(share).toHaveBeenCalledOnce();
+  expect(share.mock.calls[0][0].id).toBe(model.id);
+  expect(share.mock.calls[0][2]).toEqual({ mode: 'cached-only' });
+  await swarm.close();
+});

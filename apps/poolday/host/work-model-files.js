@@ -96,7 +96,7 @@ export function createWorkModelFiles({ getTransport, getIdentity = () => null, o
       pieceWaiters.push(waiter); signal.addEventListener('abort', abort, { once: true });
     }
   });
-  const getState = () => ({ ...(exchange?.getState() || { sharing: false, suppliedBytes: 0, pending: 0, peers: [] }),
+  const getState = () => ({ ...(exchange?.getState() || { sharing: false, suppliedBytes: 0, pending: 0, peers: [], offering: [] }),
     model: sharedModel && { ...sharedModel }, mode: sharingMode, acquisitionBudget: acquisitionBudget?.getState() || null,
     acquisitionBudgetError: acquisitionError && { code: acquisitionError.code, message: acquisitionError.message },
     supplyBudgetError: budgetError && { code: budgetError.code || 'CUSTODY_BUDGET_STORAGE', message: budgetError.message },
@@ -444,7 +444,11 @@ export function createWorkModelFiles({ getTransport, getIdentity = () => null, o
           } else {
             const descriptor = files.find(file => file.role === 'model-piece-index');
             assert(descriptor, 'File contribution requires an authenticated piece index');
-            const indexBytes = await read(descriptor, { signal, onProgress, ...controls });
+            // The piece index is small catalog metadata pinned by hash, not model bytes. A model downloaded for answering
+            // (Doppler storage) never stored it, so cached-only sharing fetches it once from the catalog and verifies it;
+            // weights and pieces still come only from this device's cache in that mode. It is read from the catalog, not a
+            // peer: a peer that announced it and then left would time the whole offer out.
+            const indexBytes = await read(descriptor, { signal, onProgress, ...(mode === 'cached-only' ? { originOnly: true } : controls) });
             const { createVerifiedPieceStorage } = await import(DOPPLER_PARTITIONS_MODULE_URL);
             const verified = await createVerifiedPieceStorage({ manifestBytes: new TextEncoder().encode(manifestText).buffer,
               indexBytes: indexBytes.slice().buffer, indexIdentity: 'sha256:' + descriptor.hash, signal,

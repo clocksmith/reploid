@@ -607,7 +607,9 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
     shareCachedModels(models) {
       cachedModels = models.map(({ id, identity }) => ({ id, identity }));
       if (cachedSharing) return cachedSharing;
-      if (closed || paused || !automaticAllowed || ordered || canonical || (!computeEnabled && !filesEnabled)) return Promise.resolve();
+      // An assigned ordered stage owns this browser's GPU and pieces; a requester-only ordered browser (no stage) may
+      // still offer cached files and a whole model, as share() allows. Returning here for it made both switches do nothing.
+      if (closed || paused || !automaticAllowed || ordered?.stage || canonical || (!computeEnabled && !filesEnabled)) return Promise.resolve();
       const model = LOCAL_DOPPLER_MODELS.find(item => cachedModels.some(cached => cached.id === item.id && cached.identity === item.identity));
       if (!model) return Promise.resolve();
       cachedSharing = (async () => {
