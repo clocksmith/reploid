@@ -595,8 +595,8 @@
     },
     {
       "path": "blueprints/0x000073-proxy-server.md",
-      "byteLength": 5203,
-      "sha256": "sha256:7c6052dc2ce999326ea8ef1fabc5b9b18859be24f5ad60dd007cb59665257f8c"
+      "byteLength": 5142,
+      "sha256": "sha256:97b76934bbfcff3cde748b99ddf033c11553a1fe4377579c08891304d1d82a0d"
     },
     {
       "path": "blueprints/0x000074-model-config-ui.md",
@@ -12839,5 +12839,5 @@
       "sha256": "sha256:abb6c18f6167d6afc8ee1b3adfcbbb89c0e93fb4fc4e98d7a12250f78aab206a"
     }
   ],
-  "bundleHash": "sha256:25024e1c2bb18a651d2ce8b2f414404e68ca07e230616b1fd9a437e8e8723019"
+  "bundleHash": "sha256:5a228f0c7aadc784d823319cd89f1032366c9038db6fc3d5d6e2b25f4b4aa46b"
 }
