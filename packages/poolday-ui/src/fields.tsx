@@ -133,6 +133,7 @@ export function TextArea({
   maxLength,
   autoFocus,
   focusSignal,
+  describedBy: describedByExtra,
   data,
 }: FieldProps & {
   readonly rows?: number;
@@ -140,6 +141,8 @@ export function TextArea({
   readonly onSubmit?: () => void;
   /** Focuses the field each time this number changes (after a choice returns to the draft). */
   readonly focusSignal?: number;
+  /** The id of text shown outside the field that describes it, read after the label. */
+  readonly describedBy?: string;
 }) {
   const id = useId();
   const field = useRef<HTMLTextAreaElement>(null);
@@ -169,7 +172,7 @@ export function TextArea({
         maxLength={maxLength}
         autoFocus={autoFocus}
         aria-invalid={error ? true : undefined}
-        aria-describedby={describedBy(id, hint, error)}
+        aria-describedby={[describedByExtra, describedBy(id, hint, error)].filter(Boolean).join(' ') || undefined}
         onKeyDown={onKeyDown}
         onChange={(event) => onChange(event.currentTarget.value)}
         {...dataProps(data)}

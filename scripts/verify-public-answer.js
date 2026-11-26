@@ -10,6 +10,9 @@
  *     [--timeout-seconds 180] [--channel chrome] [--screenshots DIR]
  *
  * Prints one JSON line. Exit 0 only when all of these held:
+ *   - before Send, and again with the question typed, the sentence saying who can read the prompt is shown beside
+ *     the message field: drawn at a readable size, inside the window, not clipped and not covered. Text kept for a
+ *     screen reader only does not count;
  *   - an answer completed after exactly one press (Send): no sheet, permission prompt, Join step or payment text;
  *   - the model the composer named before Send, the model the answer row names, the conversation's model and the
  *     model identity in the stored execution record (read from Settings, "Export my data") are the same; a
@@ -41,6 +44,17 @@ function readPage() {
   const doc = globalThis.document, one = selector => doc.querySelector(selector);
   const shown = node => Boolean(node) && node.getClientRects().length > 0;
   const text = node => (node?.textContent ?? '').replace(/\s+/g, ' ').trim();
+  // Shown to a sighted visitor: a box of readable size inside the window, every ancestor visible, no clip on the
+  // text, all of it inside its box, and nothing drawn over its middle. Screen-reader-only text fails each of these.
+  const readable = node => {
+    if (!node || text(node) === '' || !node.checkVisibility({ opacityProperty: true, visibilityProperty: true })) return false;
+    const box = node.getBoundingClientRect(), style = globalThis.getComputedStyle(node);
+    if (box.width < 8 || box.height < 8 || style.clipPath !== 'none') return false;
+    if (node.scrollWidth > node.clientWidth + 1 || node.scrollHeight > node.clientHeight + 1) return false;
+    if (box.top < 0 || box.left < 0 || box.bottom > globalThis.innerHeight || box.right > globalThis.innerWidth) return false;
+    const top = doc.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2);
+    return top === node || node.contains(top);
+  };
   const rows = [...doc.querySelectorAll('[data-message-stream] [data-message-role=assistant]')];
   const last = rows.at(-1);
   return {
@@ -48,6 +62,7 @@ function readPage() {
     computer: text(one('[data-composer-model-source]')), model: text(one('[data-composer-model-name]')),
     chip: one('[data-open-model]')?.getAttribute('aria-label') ?? '',
     whoCanRead: one('[data-open-privacy]')?.getAttribute('aria-label') ?? '', disclosure: text(one('[data-prompt-disclosure]')),
+    disclosureShown: readable(one('[data-prompt-disclosure]')),
     status: text(one('[data-model-status]')), sendUsable: shown(one('[data-composer-send]')) && !one('[data-composer-send]').disabled,
     dialogs: [...doc.querySelectorAll('dialog[open]')].map(node => text(node.querySelector('h1,h2,h3,[data-picker-title]')) || text(node).slice(0, 80)),
     permission: shown(one('[data-remote-permission] [data-remote-permission-allow]')), join: shown(one('[data-join-host]')),
@@ -115,11 +130,13 @@ try {
   const before = await page.evaluate(readPage);
   result.discoveryMs = before.at;
   result.before = { computer: before.computer, model: before.model, chip: before.chip, whoCanRead: before.whoCanRead,
-    disclosure: before.disclosure, status: before.status, sendUsable: before.sendUsable };
+    disclosure: before.disclosure, disclosureShown: before.disclosureShown, status: before.status, sendUsable: before.sendUsable };
   await shot('before-send');
   if (before.join) fail('a Join step is shown before the first question');
   if (before.dialogs.length) fail(`a dialog is open before the first question: ${before.dialogs[0]}`);
   if (/credit|cost|pay|budget|spending/i.test(`${before.status} ${before.disclosure}`)) fail('the composer mentions a charge before the first question');
+  if (!before.disclosureShown) fail(before.disclosure ? `who can read the prompt is not shown before the first question; "${before.disclosure}" is on the page but not visible`
+    : 'who can read the prompt is not stated before the first question');
   if (!before.sendUsable) fail(`Send is not usable for a first visitor: ${before.status || before.chip}`);
 
   // Journey 2: type and send, nothing else. The question is typed key by key, as a person types it: the page may
@@ -127,7 +144,8 @@ try {
   result.stage = 'send';
   await page.locator('[data-composer-input]').pressSequentially(PROMPT, { delay: 40 });
   const typed = await page.evaluate(readPage);
-  result.atSend = { at: typed.at, computer: typed.computer, model: typed.model, disclosure: typed.disclosure };
+  result.atSend = { at: typed.at, computer: typed.computer, model: typed.model, disclosure: typed.disclosure, disclosureShown: typed.disclosureShown };
+  if (!typed.disclosureShown) fail(`who can read the prompt is not shown when Send is pressed${typed.disclosure ? `; "${typed.disclosure}" is on the page but not visible` : ''}`);
   const started = Date.now();
   await press(send);
   const picker = page.locator('[data-model-picker]');

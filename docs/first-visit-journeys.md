@@ -46,6 +46,7 @@ them is the conversation controller
 - **Before Send the composer states where the question goes and who can read it.** A visitor
   who chose nothing, on a device that stores no model, asks a public computer; the composer
   names that computer kind, the model and "The answering computer can read your prompt."
+  That sentence is shown on the line above the message field, not kept for a screen reader.
   With nobody to answer, nothing leaves the device.
 
 ## Checking them
@@ -53,8 +54,8 @@ them is the conversation controller
 - `npm run verify:public-answer -- --url <site> [--viewport mobile|desktop] [--follow-up]`
   ([`scripts/verify-public-answer.js`](../scripts/verify-public-answer.js)) walks the journeys in
   a fresh browser profile and prints what held and what did not. It sends one fixed public
-  prompt to a public computer (two with `--follow-up`). It checks that one press produced the
-  answer, that the composer, the answer row, the conversation and the stored execution record
+  prompt to a public computer (two with `--follow-up`). It checks that who can read the prompt
+  is visible beside the message field before Send, that one press produced the answer, that the composer, the answer row, the conversation and the stored execution record
   name one model, that a provider-signed receipt verifies when one was sent, and that the
   Computers view lists ready computers, shows where to contribute and shows this device as not
   sharing. It never starts a contribution. `npm run deploy` runs it after each deploy. For

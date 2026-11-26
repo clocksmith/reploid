@@ -253,16 +253,15 @@ request with `"verifiableCharge": "required"` in the body of
    answer is the model listed as `Ready` under "Your private computers" when
    you choose a model.
 2. Pick that model. Above the message box the page shows
-   `This answer costs at most N service credits.` Who can read the prompt is
-   not shown beside the message box: the sentence
-   `The answering computer can read your prompt.` is there for a screen
-   reader only. To see it, open the model chooser again (it reads
-   `The answering computer in your private pool can read your prompt.`) or
-   the `Standard` control (`Computers that process your request can read the
-   data they receive.`). The earner's computer reads the whole prompt and the
-   whole answer; the spender should know that before sending. Every request
-   holds its maximum until it settles, so the account's debt limit has to
-   cover the maximum of each request you mean to send.
+   `This answer costs at most N service credits.` and, on the line directly
+   above the box, who can read the prompt:
+   `The answering computer can read your prompt.` The model chooser says the
+   same of the choice (`The answering computer in your private pool can read
+   your prompt.`), as does the `Standard` control (`Computers that process
+   your request can read the data they receive.`). The earner's computer reads
+   the whole prompt and the whole answer; read both lines, and send. Every
+   request holds its maximum until it settles, so the account's debt limit
+   has to cover the maximum of each request you mean to send.
 3. Export the records of that request:
 
    ```sh

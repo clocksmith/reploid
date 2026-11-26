@@ -1,6 +1,6 @@
 import { useId } from 'react';
 import {
-  Button, Chip, FilePicker, Grow, IconButton, InputGroup, Progress, Row, SelectorButton, Stack, StatusLine, Text, TextArea, Toolbar, VisuallyHidden,
+  Button, Chip, FilePicker, Grow, IconButton, InputGroup, Progress, Row, SelectorButton, Stack, StatusLine, Text, TextArea, Toolbar,
 } from '@reploid/poolday-ui';
 import type { ComposerView, ConversationCommands, NextAction } from '../domain/conversation';
 import { conversation as t } from '../../../l10n/conversation';
@@ -29,8 +29,8 @@ function NextActionButton({ action, composer, commands }: { readonly action: Nex
 }
 
 /**
- * The message field with its status above and its controls below: attach, search, "Answer on" (where and with
- * which model, and whether it can answer), "Who can read it", and Send or Stop. Every line of status and every
+ * The message field with its status and who can read the prompt above it, and its controls below: attach, search,
+ * "Answer on" (where and with which model, and whether it can answer), "Who can read it", and Send or Stop. Every line of status and every
  * action comes from the host's decisions; the status line keeps at most one next action.
  */
 export function ComposerBar({
@@ -107,6 +107,11 @@ export function ComposerBar({
           {composer.attachmentHelpText}
         </Text>
       )}
+      {composer.disclosure !== '' && (
+        <StatusLine id={disclosureId} data={{ 'data-prompt-disclosure': true }}>
+          {composer.disclosure}
+        </StatusLine>
+      )}
       <InputGroup activity="idle" data={{ 'data-composer-field': true, 'data-execution-source': chip.executionSource }}>
         {composer.files.length > 0 && (
           <Row gap="sm" data={{ 'data-attachments-preview': true }}>
@@ -125,6 +130,7 @@ export function ComposerBar({
           onChange={commands.setDraft}
           onSubmit={commands.send}
           focusSignal={focusSignal}
+          describedBy={composer.disclosure !== '' ? disclosureId : undefined}
           data={{ 'data-composer-input': true }}
         />
         <Toolbar>
@@ -185,16 +191,13 @@ export function ComposerBar({
               variant="primary"
               label={t.send}
               icon="send"
-              describedBy={disclosureId}
+              describedBy={composer.disclosure !== '' ? disclosureId : undefined}
               onPress={composer.send.disabled ? undefined : commands.send}
               data={{ 'data-composer-send': true }}
             />
           )}
         </Toolbar>
       </InputGroup>
-      <VisuallyHidden id={disclosureId} data={{ 'data-prompt-disclosure': true }}>
-        {composer.disclosure}
-      </VisuallyHidden>
     </Stack>
   );
 }
