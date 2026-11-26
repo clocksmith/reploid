@@ -3018,7 +3018,7 @@
     {
       "path": "self/host/decisions/conversation-controller.js",
       "owner": "self",
-      "sha256": "sha256:5571b3ae9790409e7002cf9445b73e6a48642d6fd6e4604928c5ff92b0b9c29e",
+      "sha256": "sha256:091a65689693ff26686425b022090da9d6752c50a3cc854589e54882aead0205",
       "imports": [
         "../../config/chat-prompts.json",
         "../../config/work-profile.json",
@@ -4461,7 +4461,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:d1aa23bbed250244b9b56a2d3409fa9924426ab0845a8da654bde473bb07ca72",
+      "sha256": "sha256:e60038a8a158ac9df6c06326000bd6a182cb2ce032924e1ec7020415b99f5029",
       "imports": []
     },
     {
@@ -5575,13 +5575,13 @@
     {
       "path": "ui/react/app.js",
       "owner": "ui",
-      "sha256": "sha256:d043dbde478fc3ca8a4d454e354ad2bb597d080d23e9ccdb9517a8df704d3dcc",
+      "sha256": "sha256:6083cb1624a1938e266c61d3052a41fb708462a25dd9f75f3038a79d33d82052",
       "imports": []
     },
     {
       "path": "ui/react/design.js",
       "owner": "ui",
-      "sha256": "sha256:b48053a9c8982ca055b4fd483fc088596e93d80a1591258aa289a9cf7f0ae68c",
+      "sha256": "sha256:0871b65d5a6f1646255d91805c120ff2f0c307b11d7f6916a38ab82c24f15466",
       "imports": []
     },
     {
