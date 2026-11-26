@@ -107,6 +107,8 @@ export function createPeerGenerationMesh({ config, ports }) {
   const signsSettlement = admitsBeforeDisclosure && typeof ports.settlementAccount === 'function';
   // Provider side: the signed records of recent charged requests, until the requester's acknowledgment arrives.
   const settlementCharges = new Map();
+  // Served receipts already counted (consumer and job), so a resent receipt adds nothing.
+  const countedReceipts = new Set();
   // This provider's own copy of a charged request's signed records, handed to its host each time one is signed or
   // received: at acceptance, at its close or fault, and at the requester's acknowledgment. The host's store is its own;
   // a failure there never changes the request.
@@ -576,6 +578,11 @@ export function createPeerGenerationMesh({ config, ports }) {
           || payload.receipt.consumer !== identityBundle?.peerId || payload.receipt.model !== response.model) {
           throw new Error('Remote receipt is invalid or does not bind this request');
         }
+        // Every receipt version names the provider this request was admitted to. Version 1 does not tie the signing
+        // key to that name (verifyReceipt), so this binding is what keeps another key's receipt from being accepted.
+        if (!pending.providerIdentity || payload.receipt.provider !== pending.providerIdentity) {
+          throw new Error('The receipt does not come from the admitted provider');
+        }
         const bound = await expectedReceiptBinding(pending.settings, pending.settingsDigest);
         if (!current()) return;
         if (!receiptBindsRequest(payload.receipt, response, pending.settings, bound)) {
@@ -585,8 +592,7 @@ export function createPeerGenerationMesh({ config, ports }) {
           throw new Error('Provider output violates the generation settings of this request');
         }
         if (!current()) return;
-        if ([2, 3].includes(Number(payload.receipt.version)) && (!pending.providerIdentity || payload.receipt.provider !== pending.providerIdentity
-          || !await matchesWholeModelReceipt(payload.receipt, pending.messages, response, bound))) {
+        if ([2, 3].includes(Number(payload.receipt.version)) && (!await matchesWholeModelReceipt(payload.receipt, pending.messages, response, bound))) {
           throw new Error('Measured receipt differs from the admitted request or provider output');
         }
         await acceptedByCaller();
@@ -679,7 +685,19 @@ export function createPeerGenerationMesh({ config, ports }) {
     remoteRequests.settle(pending, { error });
   };
 
-  const handleReceipt = async (_remotePeerId, payload = {}) => {
+  // Whether `receipt` is the one this provider signed for a request it served: the same provider signature as the
+  // result it sent, found among recent results or in the journal. Version 1 binds no key to the provider field, so a
+  // receipt naming this provider proves nothing by itself.
+  const servedReceipt = async (remotePeerId, receipt) => {
+    const requestId = typeof receipt.jobHash === 'string' && receipt.jobHash.startsWith('request:') ? receipt.jobHash.slice('request:'.length) : null;
+    if (!requestId || typeof receipt.providerSignature !== 'string') return false;
+    const signedBy = outcome => outcome?.type === 'reploid:generation-result' && outcome.payload?.receipt?.providerSignature === receipt.providerSignature;
+    if (signedBy(completed.get(`${remotePeerId}:${requestId}`))) return true;
+    const journaled = await generationJournal.get({ provider: identityBundle.peerId, consumer: receipt.consumer, requestId }).catch(() => null);
+    return signedBy(journaled?.outcome);
+  };
+
+  const handleReceipt = async (remotePeerId, payload = {}) => {
     if (!payload?.receipt || !identityBundle) return;
     const verification = await verifyReceipt(payload.receipt);
     if (!verification.valid || !verification.consumerValid) return;
@@ -692,6 +710,12 @@ export function createPeerGenerationMesh({ config, ports }) {
       settlementCharges.delete(chargeKey);
       await keepSettlementRecords(charge);
     }
+    // Only a receipt this provider issued for a request it served reaches the host and its contribution, and once.
+    if (!await servedReceipt(remotePeerId, payload.receipt)) return;
+    const servedKey = `${payload.receipt.consumer}:${payload.receipt.jobHash}`;
+    if (countedReceipts.has(servedKey)) return;
+    countedReceipts.add(servedKey);
+    while (countedReceipts.size > policy.mesh.maxRetainedJobs) countedReceipts.delete(countedReceipts.values().next().value);
     await ports.onReceipt?.(snapshotJson(payload.receipt));
     await updateProviderContribution(payload.receipt);
   };

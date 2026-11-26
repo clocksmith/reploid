@@ -4,16 +4,17 @@ import { expect, it, vi } from 'vitest';
 import { createPeerGenerationMesh } from '../../packages/reploid/src/mesh/peer-generation.js';
 import { resolveConfig } from '../../packages/reploid/src/config/index.js';
 import { createSigningIdentity } from '../../packages/reploid/src/artifacts/identity.js';
-import { verifyReceipt } from '../../packages/reploid/src/artifacts/receipt.js';
+import { countersignReceipt, createReceiptDraft, signReceiptDraft, verifyReceipt } from '../../packages/reploid/src/artifacts/receipt.js';
 
-async function fixture(tamper = false, measured = true, onReceipt) {
+async function fixture(tamper = false, measured = true, onReceipt, rewrite = null) {
   const identities = await Promise.all(['ECDSA', 'Ed25519'].map(algorithm => createSigningIdentity({ algorithm })));
   const handlers = [new Map(), new Map()], wire = [], failures = [];
   const modelIdentity = 'sha256:' + 'a'.repeat(64);
   const deliver = (i, type, payload) => {
     payload = structuredClone(payload); wire.push({ i, type, payload });
     if (tamper && type === 'reploid:generation-result') payload.response.content = 'substituted';
-    queueMicrotask(() => Promise.resolve(handlers[1 - i].get(type)?.('connection-' + i, payload)).catch(error => failures.push(error)));
+    queueMicrotask(() => Promise.resolve(rewrite ? rewrite(type, payload) : payload)
+      .then(value => handlers[1 - i].get(type)?.('connection-' + i, value)).catch(error => failures.push(error)));
     return true;
   };
   const meshes = [0, 1].map(i => {
@@ -37,7 +38,7 @@ async function fixture(tamper = false, measured = true, onReceipt) {
   });
   await meshes[0].connect(); await meshes[1].connect(); meshes[1].refreshAdvertisement();
   await vi.waitFor(() => expect(meshes[0].getSwarmSnapshot().peers.some(peer => peer.readiness === 'ready')).toBe(true));
-  return { identities, meshes, wire, failures, modelIdentity, close: () => Promise.all(meshes.map(mesh => mesh.close())) };
+  return { identities, meshes, wire, failures, modelIdentity, handlers, close: () => Promise.all(meshes.map(mesh => mesh.close())) };
 }
 it('identifies whole-model peers for labels before any generation and does not repeat proofs on heartbeats', async () => {
   const f = await fixture();
@@ -88,4 +89,48 @@ it('waits for admitted receipt persistence before closing the provider mesh', as
     await Promise.resolve(); expect(closed).toBe(false);
     release.resolve(); await closing; expect(closed).toBe(true);
   } finally { release.resolve(); await f.close(); }
+});
+
+const openPrivacy = () => createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'open', ids: [] } });
+// A version-1 (unmetered) receipt for the same request, signed by a key that is not the admitted provider's. Version 1
+// does not tie the signing key to the provider field, so it verifies; only the requester's own binding can refuse it.
+const strangerReceipt = async (stranger, receipt, fields = {}) => signReceiptDraft(await createReceiptDraft({ provider: stranger.peerId,
+  consumer: receipt.consumer, jobHash: receipt.jobHash, model: receipt.model, inputTokens: 0, outputTokens: 0, status: 'unmetered', ...fields }), stranger);
+
+it('refuses a version-1 receipt that does not come from the admitted provider', async () => {
+  const stranger = await createSigningIdentity({ algorithm: 'Ed25519' });
+  const f = await fixture(false, false, undefined, async (type, payload) => type === 'reploid:generation-result'
+    ? { ...payload, receipt: await strangerReceipt(stranger, payload.receipt) } : payload);
+  try {
+    await expect(f.meshes[0].generate([{ role: 'user', content: 'prompt' }], null, { privacy: openPrivacy(), modelId: 'model', modelIdentity: f.modelIdentity }))
+      .rejects.toThrow('does not come from the admitted provider');
+    expect(f.wire.some(message => message.type === 'reploid:receipt')).toBe(false);
+  } finally { await f.close(); }
+});
+
+it('counts a countersigned receipt only for a request this provider served, and only once', async () => {
+  const counted = vi.fn();
+  const f = await fixture(false, true, counted);
+  try {
+    await f.meshes[0].generate([{ role: 'user', content: 'prompt' }], null, { privacy: openPrivacy(), modelId: 'model', modelIdentity: f.modelIdentity });
+    await vi.waitFor(() => expect(counted).toHaveBeenCalledOnce());
+    const served = structuredClone(f.identities[1].contribution);
+    const receive = f.handlers[1].get('reploid:receipt');
+    // The same receipt again, from the requester or anyone it reached.
+    const sent = f.wire.find(message => message.type === 'reploid:receipt').payload;
+    await receive('connection-0', structuredClone(sent));
+    await receive('elsewhere', structuredClone(sent));
+    // A version-1 receipt naming this provider for a request it never served, signed and countersigned by others:
+    // it verifies (version 1 does not bind keys to identities), and must not count.
+    for (const requestId of ['never-served-1', 'never-served-2']) {
+      const forger = await createSigningIdentity({ algorithm: 'Ed25519' });
+      const forged = await strangerReceipt(forger, { consumer: forger.peerId, jobHash: 'request:' + requestId, model: 'model' },
+        { provider: f.identities[1].peerId, inputTokens: 4000, outputTokens: 4000 });
+      const countersigned = await countersignReceipt(forged, forger);
+      expect(await verifyReceipt(countersigned)).toMatchObject({ valid: true, consumerValid: true });
+      await receive('elsewhere', { receipt: countersigned });
+    }
+    expect(counted).toHaveBeenCalledOnce();
+    expect(f.identities[1].contribution).toEqual(served);
+  } finally { await f.close(); }
 });
