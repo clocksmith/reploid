@@ -385,3 +385,45 @@ it('keeps finding computers, and keeps a held Send, when a split route or a priv
   await vi.waitFor(() => expect(f.sent).toHaveLength(1));
   expect(key(f.created[0].model)).toBe(key(SMALL));
 });
+
+it('lists a model nobody serves yet in the "Answer on" sheet the way it reads while computers are still being found', () => {
+  // A model this device can neither store nor download: only a computer serving it can answer.
+  const LARGE = { ...MEDIUM, id: 'large', name: 'Large', identity: 'sha256:' + 'b'.repeat(64), source: null,
+    availability: 'unavailable', networkAvailability: 'unavailable', providerIds: [], reachableProviderIds: [] };
+  const f = fixture();
+  const row = id => f.view.modelRows().find(item => item.value === id);
+  const section = id => f.view.sheet().sections.find(item => item.rows.some(row => row.value === id))?.label;
+  f.publish({ models: [SMALL, LARGE] });
+  f.c.openSheet();
+  // Discovery is still searching.
+  expect([section('large'), row('large').status]).toMatchInlineSnapshot(`
+    [
+      "Unavailable · 1",
+      "Unavailable",
+    ]
+  `);
+  // Another model's computer answered first: discovery has settled on it, inside the bounded wait.
+  f.publish({ discoveryPhase: 'observed', peerDiscoveryTimedOut: false, network: observed.network, models: [served(SMALL), LARGE] });
+  expect([section('large'), row('large').status]).toMatchInlineSnapshot(`
+    [
+      "Unavailable · 1",
+      "Unavailable",
+    ]
+  `);
+  // The wait is over and nobody serves it.
+  f.publish({ ...observed, models: [served(SMALL), LARGE] });
+  expect([section('large'), row('large').status]).toMatchInlineSnapshot(`
+    [
+      "Unavailable · 1",
+      "Unavailable",
+    ]
+  `);
+  // Its computer arrives.
+  f.publish({ ...observed, models: [served(SMALL), served(LARGE)] });
+  expect([section('large'), row('large').status]).toMatchInlineSnapshot(`
+    [
+      "Public network",
+      "Ready · 1 computer",
+    ]
+  `);
+});
