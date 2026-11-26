@@ -161,18 +161,24 @@ export const ownStageOf = (request, enrollment) => index => request.accountId !=
  * stage is `short`, the requester's acknowledgment needs no matching chain to show a delivered answer, and the charge
  * stops at `stepCap`, the fewest steps signed by any outside stage that is paid (Infinity when there is none).
  */
-export function decideFailedStages(request, { receipts, acknowledgment, acknowledgedReceipt }, { claims = [], unadmitted = [], skew, own = () => false }) {
+export function decideFailedStages(request, { receipts, acknowledgment, acknowledgedReceipt, twins }, { claims = [], unadmitted = [], skew, own = () => false }) {
   const count = acknowledgment?.count ?? 0, finalIndex = request.providers.length - 1, ownFinal = own(finalIndex);
   const inTime = value => Date.parse(value) <= request.deadline + skew;
   const held = index => [receipts.find(row => row.partitionIndex === index), index === finalIndex ? acknowledgedReceipt : null]
     .filter(Boolean).sort((a, b) => a.sequence - b.sequence);
-  const delivered = held(finalIndex).filter(row => inTime(row.signedAt)).at(-1)?.output;
+  // A requester's own final stage that signed two different receipts at the sequence of its last in-time one
+  // contradicted itself there: as in the replay (ownFinalEnd), it then shows no delivered answer, and it forfeits.
+  const last = held(finalIndex).filter(row => inTime(row.signedAt)).at(-1);
+  const twinned = ownFinal && Boolean(last) && [...held(finalIndex), ...(twins ?? [])]
+    .some(row => row.partitionIndex === finalIndex && row.sequence === last.sequence && !same(row, last));
+  const delivered = twinned ? null : last?.output;
   const answerDelivered = count > 0 && inTime(acknowledgment.signedAt) && delivered?.done === true && delivered.count === count
     && (ownFinal || delivered.chain === acknowledgment.chain);
   const closedAtLastStep = [], forfeitedStages = [], silent = [], skipped = [], short = [], paidSteps = [];
   for (let index = 0; index <= finalIndex; index++) {
     const receipt = receipts.find(row => row.partitionIndex === index), closed = Boolean(receipt && closedReceipt(receipt));
     const claim = claims.find(row => row.stage === index);
+    if (twinned && index === finalIndex) { forfeitedStages.push({ partitionIndex: index, cause: 'contradiction' }); continue; }
     if (claim && (claim.closure.payload.fault || !closed)) { forfeitedStages.push({ partitionIndex: index, cause: closed ? 'fault-and-close' : 'fault' }); continue; }
     if (closed) {
       if (!own(index)) { paidSteps.push(receipt.steps); if (!ownFinal && receipt.steps < count) short.push(index); }
@@ -203,6 +209,8 @@ export function decideFailedStages(request, { receipts, acknowledgment, acknowle
  */
 export function observeFailedStageRules(request, proof, { claims = [], unadmitted = [], stated = {}, windowPassed = false, stop = null,
   maxUnacknowledgedOutputs = MAX_UNACKNOWLEDGED_OUTPUTS, skew, own = () => false }) {
+  // K as the reservation pinned it; the caller's value only for a reservation made before K was pinned.
+  maxUnacknowledgedOutputs = request.maxUnacknowledgedOutputs ?? maxUnacknowledgedOutputs;
   const { receipts, acknowledgment, acknowledgedReceipt } = proof, count = acknowledgment.count;
   const decided = decideFailedStages(request, proof, { claims, unadmitted, skew, own });
   assert(decided.short.length === 0, 'Settled stage receipt does not match the acknowledged work');
@@ -240,6 +248,8 @@ export function observeFailedStageRules(request, proof, { claims = [], unadmitte
  * rules it admits, the same way, evidence in which a stage with no closing receipt forfeits (`forfeitedStages`). */
 export async function verifyCreditEvidence(request, evidence, enrollment, now, skew, { unadmitted = [], interrupted = [], releaseWindowMs = null,
   maxUnacknowledgedOutputs = MAX_UNACKNOWLEDGED_OUTPUTS } = {}) {
+  // K as the reservation pinned it; the caller's value only for a reservation made before K was pinned.
+  maxUnacknowledgedOutputs = request.maxUnacknowledgedOutputs ?? maxUnacknowledgedOutputs;
   const within = at => Number.isFinite(at) && at >= request.createdAt - skew
     && at <= Math.min(now, request.deadline) + skew;
   if (request.mode === 'whole-model') {
@@ -290,7 +300,11 @@ export async function verifyCreditEvidence(request, evidence, enrollment, now, s
     assert(Array.isArray(presented) && presented.every(claim => interrupted.some(row => same(claim, row.closure))), 'Unmatched interrupted stage owner closure');
     const claims = interrupted.filter(row => presented.some(claim => same(claim, row.closure)));
     const stop = evidence.stop === undefined || evidence.stop === null ? null : await verifySplitStop(request, evidence.stop, enrollment, now, skew);
-    return observeFailedStageRules(request, proof, { claims, unadmitted, stop, maxUnacknowledgedOutputs, skew, own: ownStageOf(request, enrollment),
+    // A second signed receipt of the requester's own final stage, kept by the ledger as its contradiction (credit-recovery.js).
+    const twins = evidence.finalStageTwin === undefined ? [] : (await verifyPartitionComponents(request,
+      { identity: evidence.identity, receipts: [evidence.finalStageTwin] }, enrollment, now, skew)).receipts;
+    assert(twins.every(row => row.partitionIndex === request.providers.length - 1), 'A final-stage contradiction must be the final stage\'s receipt');
+    return observeFailedStageRules(request, { ...proof, twins }, { claims, unadmitted, stop, maxUnacknowledgedOutputs, skew, own: ownStageOf(request, enrollment),
       stated: { closedAtLastStep: evidence.closedAtLastStep, forfeitedStages: evidence.forfeitedStages },
       windowPassed: Number.isSafeInteger(releaseWindowMs) && releaseWindowPassed(request, now, releaseWindowMs, skew) });
   }

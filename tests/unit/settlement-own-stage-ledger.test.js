@@ -215,6 +215,59 @@ describe('the requester\'s own stage contradicts itself (T2)', () => {
     await live.statementsVerify();
   });
 
+  it('two receipts from its own final stage at its last sequence: an outside stage that never closed forfeits, as in the replay (Deco #109)', async () => {
+    const parties = await createParties(4), live = await open(parties, EDGE_OWNERS);
+    const a = await edges(parties), all = [...new Set(a.all())];
+    live.admit(a);
+    // Operator 1 closes. Operator 2 hands in only its last step receipt, which covers the whole answer, and never closes.
+    // The requester's own final stage hands in its last step receipt and then a second, different one at that sequence.
+    await live.close(a, all, 1);
+    const lastStep = index => receiptsOf(all, index).filter(row => row.status === 'executing').at(-1);
+    await live.collect(a, { receipts: [lastStep(2)] });
+    const finalStep = lastStep(3), twin = await twinOf(parties, 3, finalStep, recount(finalStep));
+    await live.collect(a, { receipts: [finalStep] });
+    await live.collect(a, { receipts: [twin] });
+    await live.acknowledgments(a, all);
+    live.fence(a);
+    const outcome = await live.decide(a);
+    // The replay over the same records: its own final stage contradicted itself at the sequence that would show the
+    // answer was delivered, so no stage is treated as closed at its last step and operator 2 forfeits.
+    const presented = [...all.filter(record => !isReceiptOf(0)(record) && !(isReceiptOf(2)(record) && record.status !== 'executing')
+      && !(isReceiptOf(3)(record) && record.status !== 'executing')), twin];
+    const row = await live.replay(presented);
+    expect(row).toMatchObject({ forfeited: [{ partitionIndex: 0, cause: 'no-close' }, { partitionIndex: 2, cause: 'no-close' },
+      { partitionIndex: 3, cause: 'contradiction' }] });
+    expect(outcome.forfeitedStages.map(item => item.partitionIndex)).toEqual([0, 2, 3]);
+    expect(amounts(outcome, a)).toEqual([0, 8, 0, 0]);
+    sameAsReplay(outcome, row, a);
+    // Presented again, the evidence it settled on (which carries the second receipt) verifies and changes nothing.
+    expect(await live.ledger.settle(a.reservationId, live.ledger.request(a.reservationId).evidence)).toEqual(outcome);
+    await live.statementsVerify();
+  });
+
+  it('its own final stage\'s close signed twice: the ledger keeps the replaced close as evidence and forfeits the unclosed outside stage', async () => {
+    const parties = await createParties(4), live = await open(parties, EDGE_OWNERS);
+    const a = await edges(parties), all = [...new Set(a.all())];
+    live.admit(a);
+    await live.close(a, all, 1);
+    await live.collect(a, { receipts: [receiptsOf(all, 2).filter(row => row.status === 'executing').at(-1)] });
+    // The same close signed a millisecond later: the ledger takes it as the same close and holds only one of the two.
+    await live.close(a, all, 3);
+    const twin = await twinOf(parties, 3, closeOf(all, 3));
+    expect(await live.collect(a, { receipts: [twin] })).toMatchObject({ status: 'pending' });
+    await live.acknowledgments(a, all);
+    live.fence(a);
+    const outcome = await live.decide(a);
+    const presented = [...all.filter(record => !isReceiptOf(0)(record) && !(isReceiptOf(2)(record) && record.status !== 'executing')), twin];
+    const row = await live.replay(presented);
+    expect(row.forfeited.map(item => item.partitionIndex)).toEqual([0, 2, 3]);
+    expect(outcome.forfeitedStages.map(item => item.partitionIndex)).toEqual([0, 2, 3]);
+    expect(live.ledger.request(a.reservationId).evidence.finalStageTwin).toBeDefined();
+    sameAsReplay(outcome, row, a);
+    expect(await live.ledger.settle(a.reservationId, live.ledger.request(a.reservationId).evidence)).toEqual(outcome);
+    await live.statementsVerify();
+  });
+
   it('an outside stage\'s second receipt is refused the same way, and its own close still settles the request', async () => {
     const parties = await createParties(4), live = await open(parties, EDGE_OWNERS);
     const a = await edges(parties), all = [...new Set(a.all())];

@@ -34,7 +34,7 @@ export function createCreditRecovery({ db, transaction, read, settle, post, enro
     if (forfeitRules(request)) {
       // Failed-stage rules: a stage whose owner claimed an interruption has decided itself (it forfeits), so nobody
       // waits for it. Every other stage still owes a closing receipt that covers the acknowledged output.
-      const decided = decideFailedStages(request, { receipts: stages.filter(Boolean), ...data.ack }, { claims: interrupted, unadmitted: missing, skew: policy.maxClockSkewMs,
+      const decided = decideFailedStages(request, { receipts: stages.filter(Boolean), ...data.ack, twins: data.twin ? [data.twin] : [] }, { claims: interrupted, unadmitted: missing, skew: policy.maxClockSkewMs,
         own: ownStageOf(request, enrollment) });
       awaitingStages.push(...[...decided.silent, ...decided.short].sort((a, b) => a - b));
       return { data, missing, interrupted, acknowledgedOutputTokens, stages, awaitingStages };
@@ -76,7 +76,7 @@ export function createCreditRecovery({ db, transaction, read, settle, post, enro
   const failedStageSettlement = (request, { data, stages, interrupted, missing }, windowPassed) => {
     if (!data.ack) return null;
     try {
-      const receipts = stages.filter(Boolean), proof = { receipts, ...data.ack }, claims = interrupted, own = ownStageOf(request, enrollment);
+      const receipts = stages.filter(Boolean), proof = { receipts, ...data.ack, twins: data.twin ? [data.twin] : [] }, claims = interrupted, own = ownStageOf(request, enrollment);
       const decided = decideFailedStages(request, proof, { claims, unadmitted: missing, skew: policy.maxClockSkewMs, own });
       if (decided.short.length || decided.silent.length && !(windowPassed && data.ack.acknowledgment.count > 0)) return null;
       const stated = { ...(decided.closedAtLastStep.length ? { closedAtLastStep: decided.closedAtLastStep } : {}),
@@ -84,7 +84,7 @@ export function createCreditRecovery({ db, transaction, read, settle, post, enro
       const observed = observeFailedStageRules(request, proof, { claims, unadmitted: missing, stated, windowPassed, stop: data.stop ?? null,
         maxUnacknowledgedOutputs, skew: policy.maxClockSkewMs, own });
       return { observed, evidence: { identity: request.route, receipts, ...(claims.length ? { interruptedOwners: claims.map(row => row.closure) } : {}),
-        ...data.ack, ...(data.stop ? { stop: data.stop } : {}), ...stated } };
+        ...data.ack, ...(data.stop ? { stop: data.stop } : {}), ...(data.twin ? { finalStageTwin: data.twin } : {}), ...stated } };
     } catch { return null; }
   };
   const expiry = () => transaction(() => {
@@ -254,7 +254,16 @@ export function createCreditRecovery({ db, transaction, read, settle, post, enro
         return row.outcome;
       }
       transaction(() => {
-        const retained = pieces(id);
+        const retained = pieces(id), finalIndex = row.binding.providers.length - 1;
+        // Failed-stage rules, final stage on the requester's own account: a different signed receipt at the sequence of
+        // one the ledger holds is that stage contradicting itself. The ledger keeps one stage receipt, so it keeps the
+        // one it replaces as `twin`: at the sequence of the final stage's last receipt it means no delivered answer
+        // can be read from that stage (decideFailedStages), as in the replay.
+        const keepsTwin = forfeitRules(row.binding) && ownStageOf(row.binding, enrollment)(finalIndex);
+        const noteTwin = (held, receipt) => {
+          if (keepsTwin && held && receipt && held.partitionIndex === finalIndex && held.sequence === receipt.sequence && !same(held, receipt)
+            && !(retained.twin?.sequence > held.sequence)) { store(id, 'twin', held); retained.twin = held; }
+        };
         for (const receipt of proof.receipts) {
           const key = `stage:${receipt.partitionIndex}`, prior = retained[key];
           if (prior && prior.sequence > receipt.sequence) continue;
@@ -262,8 +271,10 @@ export function createCreditRecovery({ db, transaction, read, settle, post, enro
             const semantic = ({ signature: _signature, publicJwk: _key, signedAt: _at, ...body }) => body;
             assert(same(semantic(prior), semantic(receipt)), 'Conflicting stage closure');
           }
+          noteTwin(prior, receipt);
           store(id, key, receipt);
         }
+        noteTwin(retained.ack?.acknowledgedReceipt, proof.acknowledgedReceipt);
         if (stop && !retained.stop) store(id, 'stop', stop);
         const ack = proof.acknowledgment, prior = retained.ack?.acknowledgment;
         if (ack && (!prior || ack.count >= prior.count)) {
