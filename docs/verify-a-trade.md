@@ -192,6 +192,20 @@ exits with status 3. Then it loads the model and serves. Leave it running.
 Every charged request it serves leaves its own signed copies in
 `~/.reploid/trade/trade-records/`.
 
+The `{"ready":true,...}` line means the host process is up, not that it can
+serve. It then prints one line per change. The three to wait for are
+`Signaling: connected.`, `Other computers in the room: 1.` once the spender is
+up, and `The model ... is loaded and offered. This host can now serve.` A line
+that starts `NOT CONNECTED` means the signaling server refused the host or
+cannot be reached, and nobody can reach it until that is fixed. `--verbose`
+prints every state event as JSON instead.
+
+Both roles give the signaling server the page's origin (`https://replo.id`
+unless `--page-origin` says otherwise). A signaling server started on a
+loopback address for a one-machine run (`node server/reploid-signaling.js`)
+accepts only a loopback origin, so both commands then need
+`--page-origin http://localhost:PORT`, the address of the local page.
+
 ### The spender
 
 Runs a host that holds no weights, pairs the page with it, asks, and exports.
@@ -213,9 +227,19 @@ request with `"verifiableCharge": "required"` in the body of
 `POST /generate`.
 
 1. Open the page, go to Computers, and pair your private computers with the
-   printed address and secret.
-2. Pick the model, read the most the answer can cost and who will receive the
-   prompt, and send.
+   printed address and secret. A page served over HTTPS reaches the host on
+   this computer only with the browser's permission: Chrome asks whether the
+   site may reach apps on this device, and the page shows `Failed to fetch`
+   until that is allowed. Computers then lists both enrolled computers. The
+   earner's is shown as `Offline` even while it serves (a host started by
+   this command does not report its presence to the ledger); what shows it can
+   answer is the model listed as `Ready` under "Your private computers" when
+   you choose a model.
+2. Pick that model. Above the message box the page says
+   `This answer costs at most N service credits.` and under it
+   `The answering computer can read your prompt.` Read both, and send. Every
+   request holds its maximum until it settles, so the account's debt limit
+   has to cover the maximum of each request you mean to send.
 3. Export the records of that request:
 
    ```sh
@@ -273,7 +297,7 @@ charged on this route
 
 | Drill | What to do | What the export and the outsider must show |
 | --- | --- | --- |
-| Stop mid-answer | The spender presses Stop while text is arriving. Export a few seconds later. | Records: terms, charge binding, acceptance, the earner's close with status `failed` and 0 steps, the spender's stop. Outsider: `settled`, debit 0, hold released. |
+| Stop mid-answer | The spender presses Stop, beside the answer, while text is arriving (ask for something long: a short answer ends before anyone can press it). Export a few seconds later. | Records: terms, charge binding, acceptance, the spender's stop, the earner's close with status `failed` and 0 steps. Outsider: `settled`, debit 0, hold released. A page that is closed instead of stopped leaves the same records without the spender's stop, and settles the same way once the earner hears of it. |
 | The provider signs a fault | The earner's model runtime must fail during an answer while its host process stays up (a lost GPU device, an allocation the device refuses). No command forces this on a real model. If the two of you cannot produce one, record that this drill was not run; the rehearsal's scripted failure is not a substitute. | Records: terms, charge binding, acceptance, the earner's stage fault, no close. Outsider: `expired`, debit 0, hold released at once, the stage listed as forfeited. |
 | The provider is killed silently | The earner kills its host process outright (`kill -9`) while text is arriving and leaves it down. | Until the deadline plus the release window has passed: the hold is still placed, the export is labelled `INCOMPLETE, missing close` with `no coordinator statement (not-final)`, and the outsider's check **fails** with `the replay is not final: open`. After it (the policy's `maxRequestMs` plus its release window plus its clock allowance; about seven and a half minutes with a 300 s deadline, a 120 s window and a 30 s allowance): export again. Outsider: `expired`, debit 0, hold released. |
 

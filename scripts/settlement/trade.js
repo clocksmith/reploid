@@ -16,9 +16,11 @@
  * `outsider` is scripts/settlement/verify-records.js.
  *
  * Optional flags: `--ca FILE` (a private certificate authority for the ledger), `--lan` (the two computers reach each
- * other directly; no relay servers), `--name NAME`, and for the spender `--bridge-port N`, `--page-origin ORIGIN`,
- * `--manifest FILE` and `--allow-unsigned-hold` (run against a ledger that signs no statement; the hold's release is
- * then not proven and every export says so).
+ * other directly; no relay servers), `--name NAME`, `--page-origin ORIGIN` (the page the spender pairs, and for both
+ * roles the Origin the host gives the signaling server: a signaling server that listens on a loopback address accepts
+ * only a loopback origin such as http://localhost:8000), `--verbose` (every state event of the host as JSON, instead
+ * of one line per change), and for the spender `--bridge-port N`, `--manifest FILE` and `--allow-unsigned-hold` (run
+ * against a ledger that signs no statement; the hold's release is then not proven and every export says so).
  *
  * Nothing here decides an amount, and none of it makes two keys two people: that is for the people to arrange.
  */
@@ -129,6 +131,36 @@ export async function prepareTradeHost({ role, state, service, signaling, room, 
     ...(role === 'spender' ? { bridge: { url: `http://127.0.0.1:${bridgePort}`, secretFile: bridgeTokenFile, origin: pageOrigin } } : {}) };
 }
 
+/**
+ * What a person watching the terminal needs from the running host, one line per change: whether the signaling server
+ * took the connection, how many other computers are in the room, and for the earner when the model is loaded and
+ * offered. The host reports its whole state several times a second; this keeps the lines that change what to do.
+ */
+export function tradeStatus({ role, signaling, say }) {
+  const seen = { connection: null, peers: null, model: null, error: null, refused: false };
+  const changed = (key, value) => { const is = seen[key] !== value; seen[key] = value; return is; };
+  return value => {
+    if (typeof value.warning === 'string') {
+      // The transport reports a refused connection as an event object, which prints as nothing useful.
+      if (/Signaling failed: \[object/.test(value.warning) && !seen.refused) {
+        seen.refused = true;
+        say(`NOT CONNECTED: the signaling server at ${signaling} refused this host or cannot be reached, so nobody can reach it. Check the address. `
+          + 'A signaling server on a loopback address accepts only a loopback --page-origin (for example http://localhost:8000).');
+      }
+      return;
+    }
+    const connection = value.network?.connectionState ?? null, peers = value.network?.peerCount ?? null;
+    if (connection && changed('connection', connection)) say(connection === 'connected' ? 'Signaling: connected.' : `Signaling: ${connection}.`);
+    if (connection === 'connected') seen.refused = false;
+    if (Number.isSafeInteger(peers) && changed('peers', peers)) say(`Other computers in the room: ${peers}.`);
+    const model = role === 'earner' && value.preparing === false && value.execution?.ready === true && value.execution.offering === true;
+    const offeredBefore = seen.model !== null;
+    const notOffered = offeredBefore ? 'The model is no longer offered: this host is not serving.' : 'The model is loading: nothing can be served yet.';
+    if (role === 'earner' && changed('model', model)) say(model ? `The model ${value.selected?.modelId ?? ''} is loaded and offered. This host can now serve.` : notOffered);
+    if (changed('error', value.error ?? null) && value.error) say(`Host error: ${value.error}`);
+  };
+}
+
 /** Asks the spender's running host, over its own bridge, for the records-only file of one request (the latest by default). */
 export async function exportTrade({ state, id = null }) {
   const config = JSON.parse(await fs.readFile(path.join(state, 'host.json'), 'utf8'));
@@ -154,7 +186,7 @@ async function main(argv) {
   if (command === 'outsider') return recordsCommand(rest);
   const { values } = parseArgs({ args: rest, options: { state: { type: 'string' }, name: { type: 'string' }, service: { type: 'string' }, signaling: { type: 'string' },
     room: { type: 'string' }, 'room-token-file': { type: 'string' }, model: { type: 'string' }, weights: { type: 'string' }, manifest: { type: 'string' }, ca: { type: 'string' },
-    lan: { type: 'boolean' }, 'bridge-port': { type: 'string' }, 'page-origin': { type: 'string' }, 'allow-unsigned-hold': { type: 'boolean' }, out: { type: 'string' }, id: { type: 'string' } } });
+    lan: { type: 'boolean' }, verbose: { type: 'boolean' }, 'bridge-port': { type: 'string' }, 'page-origin': { type: 'string' }, 'allow-unsigned-hold': { type: 'boolean' }, out: { type: 'string' }, id: { type: 'string' } } });
   assert(['key', 'earner', 'spender', 'export'].includes(command) && values.state, 'Usage: node scripts/settlement/trade.js key|earner|spender|export --state DIR ... (see the top of this file), or outsider TRADE.json --coordinator-key KEY.json');
   const state = path.resolve(values.state);
   const sendThis = (entry, participantId) => {
@@ -189,7 +221,10 @@ async function main(argv) {
   for (const note of prepared.notes) say(`Note: ${note}`);
   if (prepared.bridge) say(`Pair the page (${prepared.bridge.origin}, Computers, your private computers) with ${prepared.bridge.url} and the secret in ${prepared.bridge.secretFile}.`);
   const { openFleetNativeHost, runFleetNativeCommands } = await import('../../server/fleet/native-host.js');
-  const host = await openFleetNativeHost({ configuration: prepared.config, onChange: value => process.stderr.write(JSON.stringify({ event: 'fleet-state', ...value }) + '\n') });
+  const onChange = values.verbose === true ? value => process.stderr.write(JSON.stringify({ event: 'fleet-state', ...value }) + '\n')
+    : tradeStatus({ role: command, signaling: values.signaling, say });
+  const host = await openFleetNativeHost({ configuration: prepared.config, onChange });
+  // The host process is up. For the earner the model loads next: the line "The model ... is loaded and offered" is when it can serve.
   console.log(JSON.stringify({ ready: true, role: command, computerId: prepared.computerId, participantId: prepared.participantId, account: prepared.account }));
   await runFleetNativeCommands({ host, config: prepared.config });
 }
