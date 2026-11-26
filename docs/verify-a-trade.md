@@ -235,11 +235,17 @@ request with `"verifiableCharge": "required"` in the body of
    this command does not report its presence to the ledger); what shows it can
    answer is the model listed as `Ready` under "Your private computers" when
    you choose a model.
-2. Pick that model. Above the message box the page says
-   `This answer costs at most N service credits.` and under it
-   `The answering computer can read your prompt.` Read both, and send. Every
-   request holds its maximum until it settles, so the account's debt limit
-   has to cover the maximum of each request you mean to send.
+2. Pick that model. Above the message box the page shows
+   `This answer costs at most N service credits.` Who can read the prompt is
+   not shown beside the message box: the sentence
+   `The answering computer can read your prompt.` is there for a screen
+   reader only. To see it, open the model chooser again (it reads
+   `The answering computer in your private pool can read your prompt.`) or
+   the `Standard` control (`Computers that process your request can read the
+   data they receive.`). The earner's computer reads the whole prompt and the
+   whole answer; the spender should know that before sending. Every request
+   holds its maximum until it settles, so the account's debt limit has to
+   cover the maximum of each request you mean to send.
 3. Export the records of that request:
 
    ```sh
