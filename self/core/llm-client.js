@@ -1065,8 +1065,8 @@ const LLMClient = {
     // Release GPU memory (useful when switching providers or on error)
     const releaseGPUMemory = async () => {
       await cleanupWebLlmEngine();
-      if (TransformersClient?.cleanup) {
-        await TransformersClient.cleanup();
+      if (TransformersClient?.unload) {
+        await TransformersClient.unload();
       }
       const dopplerProvider = ProviderRegistry?.getLoadedProvider?.('doppler');
       if (dopplerProvider?.destroy) {

@@ -48,7 +48,7 @@ describe('LLMClient - Integration Tests', () => {
       chat: vi.fn(),
       isTransformersModel: vi.fn().mockReturnValue(false),
       getStatus: vi.fn().mockReturnValue({ available: true }),
-      cleanup: vi.fn().mockResolvedValue(true)
+      unload: vi.fn().mockResolvedValue(true)
     };
 
     // StreamParser mock - enables streaming mode in LLMClient
@@ -867,8 +867,8 @@ describe('LLMClient - Integration Tests', () => {
     it('should release GPU memory', async () => {
       await llmClient.releaseGPUMemory();
 
-      // Should call TransformersClient cleanup
-      expect(mockTransformersClient.cleanup).toHaveBeenCalled();
+      // The transformers client's release method is unload(); it has no cleanup().
+      expect(mockTransformersClient.unload).toHaveBeenCalled();
       expect(mockUtils.logger.info).toHaveBeenCalledWith('[LLM] All GPU memory released');
     });
   });
