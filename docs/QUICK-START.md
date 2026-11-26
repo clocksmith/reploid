@@ -29,7 +29,10 @@ Cloud-provider keys are not a prerequisite for prepared peer execution.
    approval dialog, charge or budget step. Before you send, the composer names
    the computer kind and the model, and says the answering computer can read
    your prompt. Send authorizes that attempt's messages, attached text and
-   derived model data to verified eligible executors for the model shown. It creates no future-message grant and authorizes no local
+   derived model data to verified eligible executors for the model shown. With
+   network answers on (the default in Settings), the first Send records a stored
+   contributor permission and later Sends it covers reuse it; turning network
+   answers off stops new remote disclosures. Send authorizes no local
    contribution, candidate evaluation or adoption.
 3. Watch the answer stream into its originating conversation. Using an already
    prepared remote path requires no requester weights. Preparation on
