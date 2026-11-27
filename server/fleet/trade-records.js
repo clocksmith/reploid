@@ -9,7 +9,21 @@
  * (docs/verify-a-trade.md). Nothing here decides an amount: a receipt whose records are incomplete says so in
  * `label` and does not verify.
  */
-import { operationRoles } from '../computer-records.js';
+import { isParticipantId, operationRoles } from '../computer-records.js';
+
+/**
+ * The roles of one whole-model request (reploid.operation-roles/1): the requester's key consumed, the computer that
+ * ran it provided (its ledger enrollment ID when known, its key otherwise). Unsigned and derived, beside the fields it
+ * restates; null until the reservation and a provider are known, and for a split answer, which has several providers.
+ */
+export function requestOperationRoles({ reservationId, consumerId = null, providerId = null, providerIdentity = null }) {
+  const key = value => (isParticipantId(value) ? value : null);
+  if (!reservationId || !(providerId || key(providerIdentity)) || !key(consumerId)) return null;
+  try {
+    return operationRoles({ operation: 'inference', operationId: reservationId, consumer: { computerId: consumerId, participantId: consumerId },
+      provider: { computerId: providerId ?? key(providerIdentity), participantId: key(providerIdentity) } });
+  } catch { return null; }
+}
 
 export const TRADE_RECEIPT_SCHEMA = 'reploid.whole-model-trade-receipt/v1';
 /** What a host returns instead of a records-only export when it cannot build one. It is not a trade and verifies as nothing. */

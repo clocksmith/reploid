@@ -6,6 +6,7 @@ import { effectiveRequestDigest, normalizeGenerationSettings } from '../../share
 import { signSettlementStop } from './settlement-terms.js';
 import { countersignReceipt } from '../../shared/vendor/reploid/artifacts/receipt.js';
 import { MESH_OPERATION_SETTLEMENT_RECORDS_SCHEMA, executeMeshOperation, openMeshOperationCharge } from '../../shared/vendor/reploid/mesh/operation-envelope.js';
+import { requestOperationRoles } from './trade-records.js';
 
 /** How a charged whole-model answer is labelled: with every signed record an outsider needs, or without. */
 export const VERIFIABLE_CHARGE_LABELS = Object.freeze({ signed: 'signed-records', none: 'no-verifiable-receipt' });
@@ -19,14 +20,15 @@ export function settlementRecordsOf({ reservationId, charge, policy, reason = nu
   const summary = charge?.summary() ?? null;
   return { schema: MESH_OPERATION_SETTLEMENT_RECORDS_SCHEMA, reservationId,
     label: summary?.complete ? VERIFIABLE_CHARGE_LABELS.signed : VERIFIABLE_CHARGE_LABELS.none,
-    ...(summary ? { attemptId: summary.attemptId, requesterId: summary.requesterId, providerId: summary.providerId, missing: summary.missing,
+    ...(summary ? { attemptId: summary.attemptId, requesterId: summary.requesterId, providerId: summary.providerId,
+      operationRoles: requestOperationRoles({ reservationId, consumerId: summary.requesterId, providerIdentity: summary.providerId }), missing: summary.missing,
       acknowledged: summary.acknowledged, stopped: summary.stopped, faulted: summary.faulted } : { missing: ['terms', 'acceptance', 'close', 'acknowledgment'] }),
     ...(reason ? { reason } : {}), policy: charge ? structuredClone(policy) : null, records: charge ? charge.records() : [] };
 }
 
 export function buildFleetRequestOutcome({
   attemptId = null, threadId = null, reservationId = null, executionId = null,
-  mode, model, providerId = null, providerIdentity = null, inputDigest,
+  mode, model, providerId = null, providerIdentity = null, consumerId = null, inputDigest,
   phase, dispatched, acknowledged, settlement = null, maximum = 0, recordedAt = Date.now()
 }) {
   const settled = typeof settlement?.settledAt === 'number';
@@ -68,6 +70,8 @@ export function buildFleetRequestOutcome({
     model: Object.freeze({ id: model.id, identity: model.identity }),
     providerId,
     providerIdentity,
+    // Beside the provider fields above, unsigned: who consumed and who provided this request (requestOperationRoles).
+    operationRoles: mode === 'whole-model' ? requestOperationRoles({ reservationId, consumerId, providerId, providerIdentity }) : null,
     inputDigest,
     phase,
     dispatched,
@@ -282,6 +286,7 @@ export function createFleetRequester({
           executionId: reservation?.executionId ?? null,
           mode,
           model: request.model,
+          consumerId: identity.peerId,
           inputDigest,
           phase: 'queued',
           dispatched: false,
@@ -337,6 +342,7 @@ export function createFleetRequester({
         model: request.model,
         providerId: disclosedProviderId,
         providerIdentity: disclosedProviderIdentity,
+        consumerId: identity.peerId,
         inputDigest,
         phase: 'in-flight',
         dispatched: true,
@@ -399,6 +405,7 @@ export function createFleetRequester({
           model: row.binding.model,
           providerId: resolvedPeer ?? prior?.providerId ?? null,
           providerIdentity: row.binding.providers[0]?.participantId ?? null,
+          consumerId: row.binding.consumer,
           inputDigest,
           phase: dispatched ? 'in-flight' : 'queued',
           dispatched,

@@ -18,6 +18,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { createHash, randomUUID } from 'node:crypto';
+import { requestOperationRoles } from './trade-records.js';
 
 export const TRADE_RECORD_FILE_SCHEMA = 'reploid.trade-record-file/v1';
 const TERMS = 'reploid.settlement-terms/v1', ACCEPTANCE = 'reploid.settlement-acceptance/v1', RECEIPT = 'reploid.stage-receipt/v1',
@@ -80,8 +81,12 @@ export function summarizeTradeRecords(records, reservationId = null) {
   const delivered = Boolean(receipt) && receipt.status === 'settled' && receipt.output?.done === true;
   const acknowledged = delivered ? own.find(row => row.schema === ACKNOWLEDGMENT && row.count === receipt.output.count && row.chain === receipt.output.chain) ?? null : null;
   const missing = [...(terms ? [] : ['terms']), ...(acceptance ? [] : ['acceptance']), ...(receipt || fault ? [] : ['close']), ...(delivered && !acknowledged ? ['acknowledgment'] : [])];
-  return { reservationId: terms?.reservationId ?? reservationId, attemptId: terms?.attemptId ?? null, requesterId: terms?.requesterId ?? null,
-    providerId: terms?.shares?.[0]?.participantId ?? acceptance?.participantId ?? null, accepted: Boolean(acceptance), closed: Boolean(receipt), faulted: Boolean(fault),
+  const id = terms?.reservationId ?? reservationId, requesterId = terms?.requesterId ?? null;
+  const providerId = terms?.shares?.[0]?.participantId ?? acceptance?.participantId ?? null;
+  return { reservationId: id, attemptId: terms?.attemptId ?? null, requesterId, providerId,
+    // The same two keys as reploid.operation-roles/1, unsigned and derived from the records (requester.js requestOperationRoles).
+    operationRoles: requestOperationRoles({ reservationId: id, consumerId: requesterId, providerIdentity: providerId }),
+    accepted: Boolean(acceptance), closed: Boolean(receipt), faulted: Boolean(fault),
     acknowledged: acknowledged?.count ?? null, stopped: Boolean(stop), complete: missing.length === 0, missing };
 }
 
