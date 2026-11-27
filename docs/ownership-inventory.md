@@ -18,10 +18,10 @@ Product entries: `index.html`, `pool-entry.html`, `design.html`, `document-study
 
 | Owner | Files |
 | --- | ---: |
-| apps/poolday | 409 |
+| apps/poolday | 410 |
 | self | 457 |
-| shared | 2526 |
-| total | 3392 |
+| shared | 2528 |
+| total | 3395 |
 
 Every file lives in its owner's root.
 
@@ -32,7 +32,7 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | Served tree | Files | Owner |
 | --- | ---: | --- |
 | `vendor/doppler/` | 2069 | shared |
-| `vendor/reploid/` | 372 | shared |
+| `vendor/reploid/` | 374 | shared |
 
 ## Files
 
@@ -479,6 +479,7 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `host/research-plugins.js` | `apps/poolday/host/research-plugins.js` | apps/poolday | Reached only from product entries. |
 | `host/route-preference.js` | `apps/poolday/host/route-preference.js` | apps/poolday | Reached only from product entries. |
 | `host/seed-vfs.js` | `self/host/seed-vfs.js` | self | Reached only from substrate entries. |
+| `host/send-intents.js` | `apps/poolday/host/send-intents.js` | apps/poolday | Reached only from product entries. |
 | `host/server-search.js` | `apps/poolday/host/server-search.js` | apps/poolday | Reached only from product entries. |
 | `host/start-app.js` | `self/host/start-app.js` | self | Reached only from substrate entries. |
 | `host/start-reploid.js` | `self/host/start-reploid.js` | self | Reached only from substrate entries. |

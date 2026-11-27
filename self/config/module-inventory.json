@@ -2880,7 +2880,7 @@
     {
       "path": "self/host/chat-session.js",
       "owner": "self",
-      "sha256": "sha256:2fb223bc4612acfb0ab818e1021157cba64a9c4e44d117f0200cb568ad3e9601",
+      "sha256": "sha256:7a1cf64bf7832da2b7a3efa26411b55a9ee7e65f0bc5a4a09c2df69485d84bd2",
       "imports": [
         "../config/doppler-local-models.js",
         "../config/requester-weights.json",
@@ -2907,7 +2907,8 @@
         "./owner-pairing.js",
         "./partition-release.js",
         "./private-computers.js",
-        "./readonly-view.js"
+        "./readonly-view.js",
+        "./send-intents.js"
       ]
     },
     {
@@ -3023,7 +3024,7 @@
     {
       "path": "self/host/decisions/conversation-controller.js",
       "owner": "self",
-      "sha256": "sha256:96ec7881954b7427e2b9605e2c8271d6d4cfb196ea32457ae1e6c6e01e305bb0",
+      "sha256": "sha256:22ed360384ca024abf2076b242c4637c1b35b62011104c57e246cd0489a619a5",
       "imports": [
         "../../config/chat-prompts.json",
         "../../config/work-profile.json",
@@ -3040,6 +3041,7 @@
         "../../ui/pool-home/web-search-settings.js",
         "../../vendor/reploid/chat/execution-policy.js",
         "../circle-invites.js",
+        "../send-intents.js",
         "./download-dialog.js",
         "./model-choices.js",
         "./model-state.js",
@@ -3149,9 +3151,10 @@
     {
       "path": "self/host/decisions/transcript.js",
       "owner": "self",
-      "sha256": "sha256:1af5c7e3ea3fb9ff815270731d90b8f2e144f9c1cca18e290a5091bba8775747",
+      "sha256": "sha256:7e3f74f2f604f829b34daccccbbef89125d1c535d26ec6372d8b071b8f5497da",
       "imports": [
         "../../ui/pool-home/execution-activity.js",
+        "../../ui/pool-home/execution-ribbon.js",
         "../../ui/pool-home/message-list.js",
         "../../ui/pool-home/privacy-controls.js"
       ]
@@ -3505,6 +3508,14 @@
         "../lab/mirrors.js",
         "../lab/profiles.js",
         "./vfs-bootstrap.js"
+      ]
+    },
+    {
+      "path": "self/host/send-intents.js",
+      "owner": "self",
+      "sha256": "sha256:69d4bd686cd4b0a0b5103ba9adb6fc628932c9dc4058af5fbf40eae70a072f99",
+      "imports": [
+        "../vendor/reploid/chat/send-intent.js"
       ]
     },
     {
@@ -4536,7 +4547,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:c4a495d2161ca69d40dae2b1c8d7653b495f1588877c752e5013ef30f7426da5",
+      "sha256": "sha256:a380947a5c692ed9bf161ac9bbc7a5ddd6be2078db8bae881dad168b6791d89a",
       "imports": []
     },
     {
@@ -4713,7 +4724,7 @@
     {
       "path": "ui/pool-home/execution-activity.js",
       "owner": "ui",
-      "sha256": "sha256:c287fdfe107092ad32d3f489364e57d413df616664f675ca6c5e218ec6e7a8df",
+      "sha256": "sha256:d051f1a268e84b2bc9107cb89cf36ffd590f2e4bb50e38bcaa7435aad99ca7a7",
       "imports": [
         "../components/attachments.js",
         "../components/interface-icons.js",
@@ -4724,7 +4735,7 @@
     {
       "path": "ui/pool-home/execution-ribbon.js",
       "owner": "ui",
-      "sha256": "sha256:1bde6bc843b9a8e315bab13ffb89993f17d9783b825f34756fc78daa0eabb899",
+      "sha256": "sha256:91efd7cd5f02f31c8a1df96f2978bb5fa88b9c2919bcf8c9427a7b81460ffdf8",
       "imports": [
         "../../vendor/reploid/mesh/provider-hardware.js",
         "./computer-labels.js",
@@ -5659,13 +5670,13 @@
     {
       "path": "ui/react/app.js",
       "owner": "ui",
-      "sha256": "sha256:5cc82ab5249cd8fc267545d4b3ad4274438f3abc3e9e0823a24287829a7f771a",
+      "sha256": "sha256:1a4ecf47957693eb63173cfe130909b56f4f1182a1267bc0876344f4f4996d94",
       "imports": []
     },
     {
       "path": "ui/react/design.js",
       "owner": "ui",
-      "sha256": "sha256:434c0a4b81c82adf4152f48c2a0f73ca2553931562d8f467f890214dd69f0af9",
+      "sha256": "sha256:46da774de50391137ff0899cd4643acb132e39dd370bb14cfca8550935c7b22d",
       "imports": []
     },
     {
@@ -19054,13 +19065,14 @@
     {
       "path": "vendor/reploid/chat/index.js",
       "owner": "vendor",
-      "sha256": "sha256:5c4f7fcd1555c953e094a07c3551baf427b4b373b978db675909e323a748351d",
+      "sha256": "sha256:a8e5677f0bdc1e06a635fd6ce083221abaaf047c174c91b223dc93cc43f795bd",
       "imports": [
         "./execution-offers.js",
         "./execution-policy.js",
         "./remote-permission.js",
         "./scheduler.js",
         "./search-permission.js",
+        "./send-intent.js",
         "./supply-provenance.js",
         "./workspace-history.js",
         "./workspace-publication.js",
@@ -19089,6 +19101,12 @@
         "./remote-permission.js",
         "./search-permission.json"
       ]
+    },
+    {
+      "path": "vendor/reploid/chat/send-intent.js",
+      "owner": "vendor",
+      "sha256": "sha256:a966511fff2afb544ce1653fbf2ab43f7fa6258b7655f39217512b35e7108f7d",
+      "imports": []
     },
     {
       "path": "vendor/reploid/chat/supply-provenance.js",

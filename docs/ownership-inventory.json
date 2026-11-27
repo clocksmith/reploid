@@ -18,9 +18,9 @@
     "kernel/boot.js"
   ],
   "counts": {
-    "apps/poolday": 409,
+    "apps/poolday": 410,
     "self": 457,
-    "shared": 2526
+    "shared": 2528
   },
   "pendingMoves": 0,
   "violations": [],
@@ -2675,6 +2675,12 @@
       "source": "self/host/seed-vfs.js",
       "owner": "self",
       "basis": "Reached only from substrate entries."
+    },
+    {
+      "served": "host/send-intents.js",
+      "source": "apps/poolday/host/send-intents.js",
+      "owner": "apps/poolday",
+      "basis": "Reached only from product entries."
     },
     {
       "served": "host/server-search.js",
@@ -16531,6 +16537,16 @@
     {
       "served": "vendor/reploid/chat/search-permission.json",
       "source": "shared/vendor/reploid/chat/search-permission.json",
+      "owner": "shared"
+    },
+    {
+      "served": "vendor/reploid/chat/send-intent.d.ts",
+      "source": "shared/vendor/reploid/chat/send-intent.d.ts",
+      "owner": "shared"
+    },
+    {
+      "served": "vendor/reploid/chat/send-intent.js",
+      "source": "shared/vendor/reploid/chat/send-intent.js",
       "owner": "shared"
     },
     {
