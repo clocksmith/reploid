@@ -170,9 +170,7 @@ its root carries `class="pool-page"` so the page shell uses the same tokens.
 ### Choosing the right control
 
 Pick the control from the kind of decision, never from the look. The components in
-`@reploid/poolday-ui` (`packages/poolday-ui/src/choices.tsx`, `rows.tsx`) render each one. The
-vanilla specialist routes use the matching helpers in `apps/poolday/ui/components/choices.js`
-until they move to React.
+`@reploid/poolday-ui` (`packages/poolday-ui/src/choices.tsx`, `rows.tsx`) render each one.
 
 | Decision | Control | Semantics |
 |----------|---------|-----------|
@@ -247,7 +245,7 @@ same place can share one cell in `pool-reserve`, where the tallest sets the
 height; text that only repeats a chosen row belongs in a collapsed disclosure
 instead. Badges have a fixed height and never wrap.
 
-Dialogs use the `Dialog` shell (`renderDialog` on the vanilla routes): a fixed header (title and Close), a
+Dialogs use the `Dialog` shell: a fixed header (title and Close), a
 scrolling body and a pinned footer. A dialog whose body shows live data
 (discovery, download checks) adds `pool-dialog-fixed`, which sets its height at
 first paint. On narrow screens every dialog becomes a bottom sheet with the same

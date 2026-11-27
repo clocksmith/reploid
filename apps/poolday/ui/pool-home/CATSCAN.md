@@ -3,7 +3,7 @@
 Parent: [Poolday Product](../../CATSCAN.md)
 
 ## Target
-The vanilla shell for the specialist routes (`/ask`, `/compute`, `/records`, `/room-1`, `/history`, `/improve`, `/examples`, `/experiments`); contribution remains available. The conversation workspace belongs to [apps/poolday-react](../../../poolday-react/CATSCAN.md).
+Framework-free projections, labels and browser-local stores that the [host decisions](../../host/decisions) read for the React screens. No interface is rendered here; every screen belongs to [apps/poolday-react](../../../poolday-react/CATSCAN.md).
 
 ## Authority
 Owns framework-free projections, wording and browser-local stores read by the [host decisions](../../host/decisions). No markup or presentation; never execution, admission, promotion or scientific/financial truth.

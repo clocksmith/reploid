@@ -108,33 +108,28 @@ then primitives from simplest to most complex, then compositions from small piec
 screens. Each token lists the primitives that read it, and each primitive lists its tokens and
 the compositions that use it. The Zero / X RD specimen is at `/x/design`.
 
-## Migration status
+## Current state
 
-The conversation workspace is the React product. `index.html` and `pool-entry.html` load
-`/ui/react/app.js` on `/`, `/network` and its `/work` alias, and the vanilla bundle only on the specialist routes.
-`apps/poolday-react/src/main-app.tsx` keeps the vanilla entry contract (`initPoolHome`) and adds
-`mountPoolday(root, { host, viewState })`, which the browser journeys use to mount the product on
-a fixture host.
+React is the only Poolday interface. `index.html` and `pool-entry.html` load one bundle,
+`/ui/react/app.js` (built from `apps/poolday-react/src/main-app.tsx`), on every product route:
+the conversation workspace on `/`, `/network` and `/work`, and the pages `/ask`, `/compute`,
+`/records` (also `/history`), `/room-1`, `/improve`, `/examples` and `/experiments`
+(`features/shell/domain/routes.ts`). `/design` loads `/ui/react/design.js`. The vanilla
+shell and its composition stylesheets were deleted in `63eec5cbe`; no vanilla bundle is built
+or served.
 
-The screens render records and call commands; the decisions stay framework-free in
-`apps/poolday/host/decisions/`. The conversation controller
-(`conversation-controller.js`) is the vanilla workspace binding with the DOM taken out: drafts,
-"Answer on", "Who can read it?", the queued Send, the reviewed download, threads and the
-transcript, decided by the same functions the vanilla page called. The transcript keeps each
-message's record until that message or its attempt changes, so an update costs the same with 2
-threads or 30 (`tests/unit/poolday-conversation-controller.test.js`).
+`main-app.tsx` exports `initPoolHome(root, { signal })`, the entry contract the HTML pages
+call, and `mountPoolday(root, { host, viewState })`, which the browser journeys use to mount the
+product on a fixture host.
 
-| Screen | React (`@reploid/poolday-ui`) | Still vanilla |
-| --- | --- | --- |
-| `/design` | Whole page | |
-| Conversation: transcript, receipts, composer, queued Send | `features/chat` | |
-| Answer on, Who can read it?, the reviewed download | `features/chat` | |
-| Threads: list, rename, archive, new | `features/chat` | |
-| Conversation details | `features/details` | |
-| Computers, Connect a desktop, the account, contribution | `features/computers` | |
-| Settings | `features/settings` | |
-| First visit, loading, failure, history handover | `app/` | |
-| Specialist routes (`/ask`, `/compute`, `/records`, `/room-1`, `/history`, `/improve`, `/examples`, `/experiments`) | | Vanilla shell |
+The screens render records and send commands. Routing, consent and receipt decisions stay
+framework-free in `apps/poolday/host/decisions/` and the host; `apps/poolday/ui/pool-home/` keeps
+only framework-free projections and wording those decisions read. The conversation controller
+(`conversation-controller.js`) owns drafts, "Answer on", "Who can read it?", the queued Send,
+the reviewed download, threads and the transcript. The transcript keeps each message's record
+until that message or its attempt changes, so an update costs the same with 2 threads or 30
+(`tests/unit/poolday-conversation-controller.test.js`).
 
-`scripts/poolday-ui-ratchet.json` records what remains in the vanilla interface; it falls as
-each vanilla screen is deleted.
+`scripts/poolday-ui-ratchet.json` records zero for every count (raw controls, class
+attributes, composition classes and rules). The ratchet may only go down, so any markup written
+outside `@reploid/poolday-ui` fails `npm run verify:poolday-ui`.

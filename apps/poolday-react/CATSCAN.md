@@ -3,7 +3,7 @@
 Parent: [Reploid](../../CATSCAN.md)
 
 ## Target
-The replo.id conversation workspace (`/`, `/network`, `/work`): shared models first, independent conversations.
+Every replo.id screen ([routes](src/features/shell/domain/routes.ts)): the conversation workspace on `/`, `/network` and `/work`, and the specialist pages.
 
 ## Authority
 - Owns the React screens and workspace navigation: conversation and Threads drawer ([chat](src/features/chat)), the end drawer (Conversation details, Computers, Settings) and first-visit, loading and failure states ([app](src/app)).
@@ -30,7 +30,7 @@ Outputs: the [app entry](src/main-app.tsx) (`initPoolHome`, `mountPoolday`) buil
 - Evidence: [shell](../../tests/e2e/poolday-react-shell.spec.js), [navigation](../../tests/e2e/workspace-navigation.spec.js), [conversations](../../tests/e2e/chat-material.spec.js), [workspace](../../tests/unit/poolday-ui/chat-workspace.test.tsx), [boundaries](../../scripts/check-poolday-ui-boundaries.mjs).
 
 ## Non-goals
-Specialist routes ([vanilla shell](../poolday/ui/pool-home/CATSCAN.md)), primitives, host decisions.
+Primitives ([@reploid/poolday-ui](../../packages/poolday-ui)), host decisions, [projections](../poolday/ui/pool-home/CATSCAN.md).
 
 ## Freedom
 Preserve contracts and acceptance.
