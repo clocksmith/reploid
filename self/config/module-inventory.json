@@ -19047,7 +19047,7 @@
     {
       "path": "vendor/reploid/mesh/operation-envelope.js",
       "owner": "vendor",
-      "sha256": "sha256:798fc89638cb0dcdfac39354d5940df5528c2f5db4e38f8b004e1750b829fcbc",
+      "sha256": "sha256:503591f652ef8da8687514706a1c3524fe60e8270f5a39fd51e844434d1ea64f",
       "imports": [
         "../artifacts/receipt.js",
         "../artifacts/signatures.js",

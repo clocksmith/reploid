@@ -615,13 +615,13 @@ export async function openMeshOperationCharge({ signer, requestId, planDigest, r
   // asked for, before it is signed, so an acknowledgment still being signed is discarded.
   let stopping = null;
   // The windows the replay counts a record in (docs/settlement-replay.md, steps 4 to 9): an acceptance and an
-  // acknowledgment from notBefore to the deadline, a close or a fault until the release window has also passed, each
-  // with the policy's clock allowance. A record outside its window would be held here and ignored by the replay, so the
+  // acknowledgment from notBefore to the deadline, each with the policy's clock allowance, and a close or a fault
+  // until the ledger releases a silent whole-model hold, strictly before deadline + releaseWindowMs ("Release window"). A record outside its window would be held here and ignored by the replay, so the
   // ledger would charge what the records do not show; it is refused instead.
   const skew = Number.isFinite(policy?.maxClockSkewMs) && policy.maxClockSkewMs > 0 ? policy.maxClockSkewMs : 0;
   const opensAt = Date.parse(body.notBefore) - skew, endsAt = Date.parse(body.deadline) + skew;
   const inTime = value => Date.parse(value) >= opensAt && Date.parse(value) <= endsAt;
-  const closesInTime = value => Date.parse(value) >= opensAt && Date.parse(value) <= endsAt + body.releaseWindowMs;
+  const closesInTime = value => Date.parse(value) >= opensAt && Date.parse(value) < Date.parse(body.deadline) + body.releaseWindowMs;
   const ownFault = async fault => {
     const checked = await verifySettlementFault(fault);
     const row = checked.body;
