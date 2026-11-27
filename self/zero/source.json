@@ -13,6 +13,16 @@
       "sha256": "f23dfa769b5364188b9f280e6a2be438ebd271195730a9ecab57cd2d64a48e05"
     },
     {
+      "path": "config/hosted-api.js",
+      "bytes": 684,
+      "sha256": "1d43a1050ef2d895464db9541e3f08592316a3e1f098fd7f5290f33beb82d668"
+    },
+    {
+      "path": "config/hosted-api.json",
+      "bytes": 279,
+      "sha256": "716bf38eaed6be80091119dab9bb4719c195e9b4580de71444739c219d395c21"
+    },
+    {
       "path": "config/service-worker.js",
       "bytes": 132,
       "sha256": "406a6b3abcdf443754656226b2883fdf8ecf9e438e4ffc10b647f2ff4c5f56e5"
@@ -29,8 +39,8 @@
     },
     {
       "path": "config/zero-inference.js",
-      "bytes": 6879,
-      "sha256": "30d5edc4fc554d7699edc45706ad0cd0124ed13e7eca52b91a3830419f8745a2"
+      "bytes": 7016,
+      "sha256": "8cd3c2febd2eb8ba9ac42de081d8f63b83f56753bf24dee0cc59eb50cb915139"
     },
     {
       "path": "core/create-tool.js",
@@ -219,8 +229,8 @@
     },
     {
       "path": "zero/provider.js",
-      "bytes": 9811,
-      "sha256": "eba841f8cb065bea154623e524da0e3f9bb3fe859fb11c0b497627b71f90f87a"
+      "bytes": 9865,
+      "sha256": "bec15efb10d7c3091a32d479e8d63059143247574bae2bdb9efe7ccce7f18d31"
     },
     {
       "path": "zero/store.js",

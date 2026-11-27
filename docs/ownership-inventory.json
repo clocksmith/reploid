@@ -19,7 +19,7 @@
   "counts": {
     "apps/poolday": 357,
     "self": 458,
-    "shared": 2536
+    "shared": 2538
   },
   "pendingMoves": 0,
   "violations": [],
@@ -1636,6 +1636,18 @@
       "source": "self/config/genesis-template.json",
       "owner": "self",
       "basis": "Substrate module registry, Genesis levels and Zero configuration."
+    },
+    {
+      "served": "config/hosted-api.js",
+      "source": "shared/config/hosted-api.js",
+      "owner": "shared",
+      "basis": "Reached from native hosts and browser entries."
+    },
+    {
+      "served": "config/hosted-api.json",
+      "source": "shared/config/hosted-api.json",
+      "owner": "shared",
+      "basis": "Reached from native hosts and browser entries."
     },
     {
       "served": "config/immutability.js",

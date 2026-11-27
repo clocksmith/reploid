@@ -261,6 +261,8 @@
     "config/firebase-public.json",
     "config/genesis-levels.json",
     "config/genesis-template.json",
+    "config/hosted-api.js",
+    "config/hosted-api.json",
     "config/immutability.js",
     "config/lab-upgrades.js",
     "config/lora-adapters/doppler-wgsl-qwen35-9b-v12-external20-seed11.json",

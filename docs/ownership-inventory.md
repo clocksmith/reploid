@@ -20,8 +20,8 @@ Product entries: `index.html`, `pool-entry.html`, `design.html`, `document-study
 | --- | ---: |
 | apps/poolday | 357 |
 | self | 458 |
-| shared | 2536 |
-| total | 3351 |
+| shared | 2538 |
+| total | 3353 |
 
 Every file lives in its owner's root.
 
@@ -306,6 +306,8 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `config/firebase-public.json` | `shared/config/firebase-public.json` | shared | Reached from native hosts and browser entries. |
 | `config/genesis-levels.json` | `self/config/genesis-levels.json` | self | Reached only from substrate entries. |
 | `config/genesis-template.json` | `self/config/genesis-template.json` | self | Substrate module registry, Genesis levels and Zero configuration. |
+| `config/hosted-api.js` | `shared/config/hosted-api.js` | shared | Reached from native hosts and browser entries. |
+| `config/hosted-api.json` | `shared/config/hosted-api.json` | shared | Reached from native hosts and browser entries. |
 | `config/immutability.js` | `shared/config/immutability.js` | shared | Reached from product and substrate entries. |
 | `config/lab-upgrades.js` | `self/config/lab-upgrades.js` | self | Reached only from substrate entries. |
 | `config/lora-adapters/doppler-wgsl-qwen35-9b-v12-external20-seed11.json` | `self/config/lora-adapters/doppler-wgsl-qwen35-9b-v12-external20-seed11.json` | self | Adapter manifests the substrate neural compiler reads from /config/lora-adapters. |

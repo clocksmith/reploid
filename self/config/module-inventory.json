@@ -363,6 +363,14 @@
       "imports": []
     },
     {
+      "path": "config/hosted-api.js",
+      "owner": "config",
+      "sha256": "sha256:1d43a1050ef2d895464db9541e3f08592316a3e1f098fd7f5290f33beb82d668",
+      "imports": [
+        "./hosted-api.json"
+      ]
+    },
+    {
       "path": "config/immutability.js",
       "owner": "config",
       "sha256": "sha256:6f343344d22c601c0bd1c99320d608c96e37dfd62f569dceb806d33b22592169",
@@ -454,8 +462,10 @@
     {
       "path": "config/zero-inference.js",
       "owner": "config",
-      "sha256": "sha256:30d5edc4fc554d7699edc45706ad0cd0124ed13e7eca52b91a3830419f8745a2",
-      "imports": []
+      "sha256": "sha256:8cd3c2febd2eb8ba9ac42de081d8f63b83f56753bf24dee0cc59eb50cb915139",
+      "imports": [
+        "./hosted-api.js"
+      ]
     },
     {
       "path": "core/agent-context.js",
@@ -1034,9 +1044,10 @@
     {
       "path": "infrastructure/scoped-model-provider.js",
       "owner": "infrastructure",
-      "sha256": "sha256:ab1a69200bfc192dbabbc541b210bdbcde390f29c09d3e298113dea0693cc583",
+      "sha256": "sha256:14c7b530f1a2ace57911a2b26912bdced37ae99586123e9d6d2bcf2e9aa4f445",
       "imports": [
         "../config/doppler-local-models.js",
+        "../config/hosted-api.js",
         "../vendor/reploid/mesh/generation-context-cache.js",
         "../vendor/reploid/mesh/provider-hardware.js",
         "./generation-completion.js",
@@ -2627,8 +2638,9 @@
     {
       "path": "pool/sdk.js",
       "owner": "pool",
-      "sha256": "sha256:11939588b2262a7fc4d45dfb8dd52852717fdcf653b5505d2ef040574b0fad73",
+      "sha256": "sha256:195d28267c1d5cd69db6d5c526af33f48ce7d52a64634ed81874c573733bba7a",
       "imports": [
+        "../config/hosted-api.js",
         "../config/swarm-bootstrap.json",
         "./identity.js",
         "./inference-receipt.js"
@@ -3593,9 +3605,10 @@
     {
       "path": "self/host/product-session.js",
       "owner": "self",
-      "sha256": "sha256:d72d9ae582cfeb2ca10c599ac87eed26bb4932881caeaa1a73a6b785cfe3837f",
+      "sha256": "sha256:22c16f5cf4e4baae26a01e231f5e604618289fce8e4f6c42b6b48231c7bb72ee",
       "imports": [
         "../config/doppler-metadata-contract.js",
+        "../config/hosted-api.js",
         "../config/ordered-participation.json",
         "../config/swarm-bootstrap.json",
         "../infrastructure/doppler-runtime-service.js",
@@ -5158,13 +5171,13 @@
     {
       "path": "ui/react/app.js",
       "owner": "ui",
-      "sha256": "sha256:27332a4c36731d970e871a00b77b2fb61b0da18a66857fdb7ab25ec2f77ad072",
+      "sha256": "sha256:2a985a3711dc2c9396c71ad7d18b2643ae186f94b49aa134a7ba531f04851942",
       "imports": []
     },
     {
       "path": "ui/react/design.js",
       "owner": "ui",
-      "sha256": "sha256:ca485568ea0e631833700170deaefbd2cc49c1e15df41ad0cfcca245f425c240",
+      "sha256": "sha256:24eb463baed8e01bec6f860c6bfc7912848180c31b93f8f4831f3a599c84d391",
       "imports": []
     },
     {
@@ -19957,7 +19970,7 @@
     {
       "path": "zero/provider.js",
       "owner": "zero",
-      "sha256": "sha256:eba841f8cb065bea154623e524da0e3f9bb3fe859fb11c0b497627b71f90f87a",
+      "sha256": "sha256:bec15efb10d7c3091a32d479e8d63059143247574bae2bdb9efe7ccce7f18d31",
       "imports": [
         "../config/zero-inference.js",
         "../instance.js",
