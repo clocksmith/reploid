@@ -320,5 +320,7 @@ export function pickStartingPrompts(prompts: ReadonlyArray<unknown>, random?: ()
 export function creditCapText(model: { readonly creditCap?: { readonly maximum?: number; readonly spendable?: number } } | null | undefined): string;
 export const ATTACHMENT_HELP: string;
 export const ATTACHMENT_ACCEPT: string;
+/** How Ask names this device's paired desktop; its own name stays in device management. */
+export const OWN_DESKTOP: string;
 /** Relative time of the last activity: now, minutes, hours or days. */
 export function relativeTime(timestamp: number, now: number): string;

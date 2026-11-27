@@ -268,9 +268,11 @@ void main() {
         // Read the live link from the provider this run will actually meet.
         final live = await _linkOf(room);
         final invite = repository.readInvite(live)!;
+        // A desktop's link names no computer, so the phone shows its participantId.
         expect(
           invite.label,
-          (room.link!.ready['pairing']! as Json)['hostLabel'],
+          (room.link!.ready['pairing']! as Json)['hostLabel'] ??
+              invite.participantId,
         );
         await repository.pair(live);
         final desktop = await repository.watchNetwork().firstWhere(
