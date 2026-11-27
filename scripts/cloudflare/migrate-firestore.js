@@ -20,6 +20,9 @@ const { values } = parseArgs({ options: { 'dry-run': { type: 'boolean' }, apply:
   api: { type: 'string', default: 'https://reploid-api.reploid.workers.dev' }, project: { type: 'string', default: 'reploid' } } });
 if (Boolean(values['dry-run']) === Boolean(values.apply)) throw new Error('Pass exactly one of --dry-run or --apply');
 const SKIP_COLLECTIONS = new Set(['rate_limits']);
+// The Pool store never nests collections under relay messages (server/pool/firebase-store.js), so
+// the copy skips one subcollection lookup per message there.
+const FLAT_COLLECTIONS = new Set(['peer_room_messages']);
 const BATCH = 500;
 
 const canonical = (value) => {
@@ -46,15 +49,15 @@ const expired = (data) => {
 async function readCollection(collection, out, counts) {
   const parent = collection.path;
   const entry = counts[parent] ||= { source: 0, copied: 0, skipped: 0 };
+  for (const snapshot of (await collection.get()).docs) {
+    entry.source += 1;
+    const data = toJson(snapshot.data(), snapshot.ref.path);
+    if (parent === 'peer_room_messages' && expired(data)) entry.skipped += 1;
+    else { entry.copied += 1; out.push({ path: snapshot.ref.path, data }); }
+  }
+  if (FLAT_COLLECTIONS.has(parent)) return;
   // listDocuments also returns documents that exist only as parents of subcollections.
   for (const ref of await collection.listDocuments()) {
-    const snapshot = await ref.get();
-    if (snapshot.exists) {
-      entry.source += 1;
-      const data = toJson(snapshot.data(), ref.path);
-      if (parent === 'peer_room_messages' && expired(data)) entry.skipped += 1;
-      else { entry.copied += 1; out.push({ path: ref.path, data }); }
-    }
     for (const sub of await ref.listCollections()) await readCollection(sub, out, counts);
   }
 }
