@@ -1,0 +1,285 @@
+{
+  "layers": {
+    "core": {
+      "paths": [
+        "^packages/core/lib/"
+      ],
+      "dependsOn": [
+        "core"
+      ],
+      "packages": []
+    },
+    "ui": {
+      "paths": [
+        "^packages/ui/lib/"
+      ],
+      "dependsOn": [
+        "ui"
+      ],
+      "packages": [
+        "flutter/material.dart",
+        "flutter/widgets.dart",
+        "flutter/foundation.dart"
+      ]
+    },
+    "domain": {
+      "paths": [
+        "^app/lib/features/[^/]+/domain/"
+      ],
+      "dependsOn": [
+        "core",
+        "domain"
+      ],
+      "packages": []
+    },
+    "application": {
+      "paths": [
+        "^app/lib/features/[^/]+/application/",
+        "^app/lib/application/"
+      ],
+      "dependsOn": [
+        "core",
+        "domain",
+        "application"
+      ],
+      "packages": []
+    },
+    "infrastructure": {
+      "paths": [
+        "^app/lib/features/[^/]+/infrastructure/",
+        "^app/lib/infrastructure/"
+      ],
+      "dependsOn": [
+        "core",
+        "domain",
+        "infrastructure"
+      ],
+      "packages": [
+        "flutter/services.dart",
+        "flutter/foundation.dart",
+        "cryptography/cryptography.dart",
+        "pointycastle/api.dart",
+        "pointycastle/digests/sha256.dart",
+        "pointycastle/ecc/api.dart",
+        "pointycastle/ecc/curves/secp256r1.dart",
+        "pointycastle/signers/ecdsa_signer.dart",
+        "flutter_secure_storage/flutter_secure_storage.dart",
+        "flutter_webrtc/flutter_webrtc.dart",
+        "file_picker/file_picker.dart",
+        "path_provider/path_provider.dart"
+      ],
+      "deviceAccess": true
+    },
+    "presentation": {
+      "paths": [
+        "^app/lib/features/[^/]+/presentation/"
+      ],
+      "dependsOn": [
+        "core",
+        "ui",
+        "domain",
+        "application",
+        "presentation",
+        "l10n"
+      ],
+      "packages": [
+        "flutter/widgets.dart",
+        "flutter_hooks/flutter_hooks.dart",
+        "flutter_riverpod/flutter_riverpod.dart"
+      ]
+    },
+    "composition": {
+      "paths": [
+        "^app/lib/app/",
+        "^app/lib/main.dart$"
+      ],
+      "dependsOn": [
+        "core",
+        "ui",
+        "domain",
+        "application",
+        "infrastructure",
+        "presentation",
+        "composition",
+        "design",
+        "l10n"
+      ],
+      "packages": [
+        "flutter/material.dart",
+        "flutter/widgets.dart",
+        "flutter_localizations/flutter_localizations.dart",
+        "flutter_riverpod/flutter_riverpod.dart",
+        "flutter_riverpod/misc.dart"
+      ]
+    },
+    "design": {
+      "paths": [
+        "^app/lib/design_system/"
+      ],
+      "dependsOn": [
+        "ui",
+        "design"
+      ],
+      "packages": [
+        "flutter/material.dart",
+        "flutter/widgets.dart",
+        "flutter/foundation.dart"
+      ]
+    },
+    "l10n": {
+      "paths": [
+        "^app/lib/l10n/"
+      ],
+      "dependsOn": [
+        "core",
+        "l10n"
+      ],
+      "packages": []
+    }
+  },
+  "dartLibraries": [
+    "async",
+    "collection",
+    "convert",
+    "core",
+    "math",
+    "typed_data"
+  ],
+  "deviceLibraries": [
+    "io",
+    "ffi",
+    "isolate",
+    "html",
+    "js",
+    "js_interop",
+    "js_util"
+  ],
+  "workspacePackages": {
+    "core": "packages/core/lib/",
+    "ui": "packages/ui/lib/",
+    "reploid_mobile": "app/lib/"
+  },
+  "publicEntries": {
+    "core": "core.dart",
+    "ui": "ui.dart"
+  },
+  "presentationFrameworkSymbols": [
+    "BuildContext",
+    "Widget",
+    "StatelessWidget",
+    "StatefulWidget",
+    "State",
+    "Key",
+    "ValueKey",
+    "VoidCallback",
+    "ValueChanged",
+    "TextEditingController",
+    "FocusNode",
+    "ScrollController",
+    "WidgetBuilder"
+  ],
+  "visualSymbols": [
+    "Color",
+    "Colors",
+    "ColorScheme",
+    "TextStyle",
+    "Theme",
+    "ThemeData",
+    "ThemeExtension",
+    "TextTheme",
+    "EdgeInsets",
+    "EdgeInsetsDirectional",
+    "BorderRadius",
+    "BorderRadiusDirectional",
+    "Border",
+    "BorderSide",
+    "BoxDecoration",
+    "BoxShadow",
+    "ShapeDecoration",
+    "Decoration",
+    "FontWeight",
+    "FontStyle",
+    "Alignment",
+    "AlignmentDirectional",
+    "Curves",
+    "Curve",
+    "AnimationController",
+    "AnimatedContainer",
+    "AnimatedOpacity",
+    "Tween",
+    "Container",
+    "Padding",
+    "SizedBox",
+    "ConstrainedBox",
+    "BoxConstraints",
+    "Column",
+    "Row",
+    "Wrap",
+    "Stack",
+    "Align",
+    "Center",
+    "Text",
+    "RichText",
+    "Icon",
+    "Icons",
+    "Card",
+    "Scaffold",
+    "AppBar",
+    "TextField",
+    "InputDecoration",
+    "TextButton",
+    "OutlinedButton",
+    "FilledButton",
+    "ElevatedButton",
+    "IconButton",
+    "InkWell",
+    "Divider",
+    "LinearProgressIndicator",
+    "CircularProgressIndicator",
+    "SnackBar",
+    "SingleChildScrollView"
+  ],
+  "compositionFrameworkSymbols": [
+    "BuildContext",
+    "Widget",
+    "StatelessWidget",
+    "StatefulWidget",
+    "State",
+    "Key",
+    "ValueKey",
+    "VoidCallback",
+    "ValueChanged",
+    "TextEditingController",
+    "FocusNode",
+    "ScrollController",
+    "WidgetBuilder",
+    "MaterialApp",
+    "Locale",
+    "Navigator",
+    "MaterialPageRoute",
+    "ScaffoldMessenger",
+    "KeyedSubtree",
+    "Builder",
+    "runApp"
+  ],
+  "deviceSymbols": [
+    "Platform",
+    "Process",
+    "File",
+    "Directory",
+    "Socket",
+    "HttpClient",
+    "WebSocket",
+    "Clipboard",
+    "SystemChrome",
+    "SystemNavigator",
+    "HapticFeedback",
+    "MethodChannel",
+    "EventChannel",
+    "BasicMessageChannel",
+    "PlatformDispatcher",
+    "ServicesBinding",
+    "rootBundle",
+    "defaultBinaryMessenger"
+  ]
+}
