@@ -1,0 +1,26 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  // Public front for the pilot fleet ledger (server/fleet/ledger-edge-worker.js). Not deployed yet.
+  // It is its own Worker: it shares nothing with reploid-fleet-api (different tunnel, VPC service and name).
+  "name": "reploid-ledger",
+  "account_id": "a83dfba998fd42d3dab5dc607e7c6b60",
+  "main": "../../server/fleet/ledger-edge-worker.js",
+  "compatibility_date": "2026-09-26",
+  "workers_dev": true,
+  "preview_urls": false,
+  "vars": {
+    // "enabled" only by the owner's decision; while "disabled" every request is a 404 and nothing reaches the binding.
+    "LEDGER_ROUTE": "disabled"
+  },
+  // The LEDGER binding is added only after the owner creates this Worker's own tunnel and VPC service:
+  // "vpc_services": [{ "binding": "LEDGER", "service_id": "<the new VPC service id>" }]
+  // Without it an enabled Worker answers 503 and reaches nothing.
+  "ratelimits": [
+    { "name": "LEDGER_ADDRESS_LIMIT", "namespace_id": "4101", "simple": { "limit": 240, "period": 60 } },
+    { "name": "LEDGER_PARTICIPANT_LIMIT", "namespace_id": "4102", "simple": { "limit": 240, "period": 60 } },
+    { "name": "LEDGER_TOTAL_LIMIT", "namespace_id": "4103", "simple": { "limit": 1200, "period": 60 } }
+  ],
+  "observability": {
+    "enabled": false
+  }
+}
