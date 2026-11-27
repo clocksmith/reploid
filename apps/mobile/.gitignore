@@ -11,3 +11,30 @@ coverage/
 **/.symlinks/
 **/Generated.xcconfig
 **/flutter_export_environment.sh
+
+# Build outputs and generated platform files
+.flutter-plugins
+.packages
+*.apk
+*.aab
+*.ipa
+*.app.dSYM.zip
+**/ios/Flutter/Generated.xcconfig
+**/ios/Flutter/App.framework
+**/ios/Flutter/Flutter.framework
+**/ios/Flutter/Flutter.podspec
+**/macos/Flutter/ephemeral/
+
+# Signing material and service configs never belong in this public repository
+key.properties
+*.jks
+*.keystore
+*.p12
+*.p8
+*.mobileprovision
+*.provisionprofile
+google-services.json
+GoogleService-Info.plist
+firebase_options.dart
+.env
+.env.*

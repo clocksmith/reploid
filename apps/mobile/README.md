@@ -101,6 +101,20 @@ flutter run --dart-define=REPLOID_NETWORK=room \
 After changing the contract or the model catalog, run
 `dart run tool/generate_contract.dart` and commit the result.
 
+### CI
+
+Reploid's CI (`.github/workflows/test.yml`) installs no Flutter, so it does
+not run these checks; run `bash tool/check.sh` (and `tool/e2e_macos.sh` for a
+change to the transport or the request flow) before pushing a change under
+`apps/mobile/`. CI covers one shared rule: `npm run lint` includes `verify:js-only`, which
+allows Dart, pub manifests and Flutter's generated runner files only in this
+directory. Run `npm run verify:requester-contract` at the repository root
+after a change to the contract, its vectors or the web modules they come
+from; it is not in CI either. A CI job
+for `tool/check.sh` would be cheap (a pinned Flutter SDK on a Linux runner,
+free on this public repository, a few minutes with the pub cache); the
+macOS end-to-end run needs a macOS runner and is better left local.
+
 ## Releases
 
 `codemagic.yaml` describes three builds: the full check on every pull
