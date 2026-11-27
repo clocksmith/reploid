@@ -17,7 +17,8 @@ const requiredSelectors = {
   '/': '[data-composer-area]',
   '/work': '[data-composer-area]',
   '/network': '[data-network-workspace]',
-  '/improve': '[data-work-history]',
+  // Past attempts render only once this visitor has some; a fresh release visitor has none.
+  '/improve': '[data-route-page-content="improve"]',
   '/examples': '[data-pool-home-ask-form]',
   '/ask': '[data-pool-run-prompt]',
   '/compute': '[data-pool-provider-worker-toggle]',
