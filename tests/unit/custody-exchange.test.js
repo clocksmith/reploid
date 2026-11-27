@@ -1,4 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
+import { operationRoles, weightSupplyOfferFromInventory } from '../../packages/reploid/src/contracts/computer-records.js';
 import { createCustodyExchange } from '../../packages/reploid/src/artifacts/custody/exchange.js';
 import { CUSTODY_CERTIFICATE_LIFETIME_MS, checkCustodyKeyCertificate, createCustodyKeyCertifier } from '../../packages/reploid/src/artifacts/custody-certificate.js';
 import { createSigningIdentity } from '../../packages/reploid/src/artifacts/identity.js';
@@ -18,7 +19,9 @@ function channelPair() {
   });
   return channels;
 }
-async function fixture({ afterCheckpoint = () => {}, count = 2, maxPeers = 16, maxSupplyBytes = 100, commitArtifact, onChange = () => {}, clockOffsets = [], grantMs = [], supplierGrant = () => {}, supplyBudgets = [], sendResult = () => true, onSupplier = () => {}, timeoutMs = 1000, down = new Set(), certify = null } = {}) {
+async function fixture({ afterCheckpoint = () => {}, count = 2, maxPeers = 16, maxSupplyBytes = 100, commitArtifact, onChange = () => {}, clockOffsets = [], grantMs = [], supplierGrant = () => {}, supplyBudgets = [], sendResult = () => true, onSupplier = () => {}, timeoutMs = 1000, down = new Set(), certify = null, prefix = '' } = {}) {
+  // Connection IDs are prefix + index; a prefix makes them valid transport session IDs (contracts/identifiers.js).
+  const id = i => prefix + i, index = peer => Number(peer.slice(prefix.length));
   const bytes = new Uint8Array([1, 2, 3, 4, 5]), stores = Array.from({ length: count }, () => new Map()), callbacks = [], owners = [], receipts = [], requests = [], deliveries = [];
   const file = { path: 'shard.bin', role: 'model-weights', sizeBytes: 5, hash: (await sha256Hex(bytes)).slice(7), hashAlgorithm: 'sha256' };
   const policy = { maxTransfers: 2, maxPeers, maxAcquisitionAttempts: 4, maxSupplyBytes, maxArtifactBytes: 20, maxInventoryFiles: 128, grantMs: 5000,
@@ -32,19 +35,19 @@ async function fixture({ afterCheckpoint = () => {}, count = 2, maxPeers = 16, m
       async reserve(bytes) { if (durableReserved + bytes > maxSupplyBytes) throw new Error('File contribution limit reached'); durableReserved += bytes; return this.getState(); } };
     const checkpoints = new Map();
     // A peer id in `down` is disconnected from everyone until it is removed again.
-    const transport = { getConnectedPeers: () => stores.map((_, index) => ({ id: String(index) }))
-      .filter(peer => peer.id !== String(i) && !down.has(peer.id) && !down.has(String(i))),
+    const transport = { getConnectedPeers: () => stores.map((_, n) => ({ id: id(n) }))
+      .filter(peer => peer.id !== id(i) && !down.has(peer.id) && !down.has(id(i))),
       onMessage: (type, handler) => stores[i].set(type, handler),
       sendToPeer: (peer, type, payload) => {
         if (!sendResult(i, peer, type, payload)) return false;
         if (type === 'reploid:custody-request' && payload.maxExpiresAt !== undefined) requests.push(structuredClone(payload));
-        queueMicrotask(() => stores[Number(peer)].get(type)?.(String(i), structuredClone(payload))); return true;
+        queueMicrotask(() => stores[index(peer)].get(type)?.(id(i), structuredClone(payload))); return true;
       },
       broadcast(type, payload) { for (const peer of this.getConnectedPeers()) this.sendToPeer(peer.id, type, payload); },
       onDataChannel: (_, callback) => { callbacks[i] = callback; return () => {}; },
-      openDataChannel(peer) { const [left, right] = channelPair(); callbacks[Number(peer)](String(i), right); return left; }
+      openDataChannel(peer) { const [left, right] = channelPair(); callbacks[index(peer)](id(i), right); return left; }
     };
-    owners.push(createCustodyExchange({ transport, identity: { peerId: String(i), privateKey: pair.privateKey, publicKey },
+    owners.push(createCustodyExchange({ transport, identity: { peerId: id(i), privateKey: pair.privateKey, publicKey },
       policy: { ...policy, grantMs: grantMs[i] ?? policy.grantMs },
       ports: { supplyBudget, now: () => Date.now() + (clockOffsets[i] || 0),
         createSupplier: async options => { supplierGrant(options.authorization, i); const supplier = await createPeerPackSupplier(options); onSupplier(supplier, i); return supplier; }, createStore: createPeerPackArtifactStore,
@@ -58,7 +61,7 @@ async function fixture({ afterCheckpoint = () => {}, count = 2, maxPeers = 16, m
         },
         hash: hashDopplerEvidence, hashBytes: sha256Hex, observe: receipt => receipts.push(receipt),
         observeDelivery: record => deliveries.push({ owner: i, ...record }),
-        ...(certify?.(i) ? { certificate: certify(i)({ custodyPeerId: String(i), custodyPublicKey: publicKey, privateKey: pair.privateKey }) } : {}),
+        ...(certify?.(i) ? { certificate: certify(i)({ custodyPeerId: id(i), custodyPublicKey: publicKey, privateKey: pair.privateKey }) } : {}),
         onChange: () => onChange(i) } }));
   }
   return { owners, file, bytes, reads, receipts, stores, requests, deliveries, close: () => owners.forEach(owner => owner.close()) };
@@ -562,6 +565,22 @@ describe('identity certificates beside custody grants', () => {
       expect(await verifyCanonicalSignature(attested, requesterRecord.authorization.requester.publicKey, signature,
         { domain: DELIVERY_ATTESTATION_SCHEMA })).toBe(true);
       expect(supplierRecord.attestation).toBeNull();
+    } finally { f.close(); }
+  });
+
+  it('records the transfer\'s roles and each announced inventory as a weight-supply offer', async () => {
+    const identities = [await createSigningIdentity({ algorithm: 'Ed25519' }), await createSigningIdentity({ algorithm: 'Ed25519' })];
+    const f = await fixture({ certify: certifierFor(identities), prefix: 'peer-' });
+    try {
+      const { requesterRecord, supplierRecord } = await transfer(f);
+      expect(f.owners[0].getState().offers).toEqual([weightSupplyOfferFromInventory([f.file], { connectionId: 'peer-1' })]);
+      // Each side names its own certified computer; the other party's certificate is not verified here, so it names none.
+      expect(requesterRecord.roles).toEqual(operationRoles({ operation: 'weight-transfer', operationId: requesterRecord.transferId,
+        consumer: { computerId: identities[0].peerId, participantId: identities[0].peerId, connectionId: 'peer-0' }, provider: { connectionId: 'peer-1' } }));
+      expect(supplierRecord.roles).toEqual(operationRoles({ operation: 'weight-transfer', operationId: supplierRecord.transferId,
+        consumer: { connectionId: 'peer-0' }, provider: { computerId: identities[1].peerId, participantId: identities[1].peerId, connectionId: 'peer-1' } }));
+      f.owners[1].stopSupply();
+      await vi.waitFor(() => expect(f.owners[0].getState().offers).toEqual([]));
     } finally { f.close(); }
   });
 

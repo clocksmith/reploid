@@ -1,4 +1,5 @@
 import type { SwarmTransport } from '../../transport/swarm.js';
+import type { OperationRoles, WeightSupplyOffer } from '../../contracts/computer-records.js';
 import type { CustodyCheckpoints, createPeerPackArtifactStore, createPeerPackSupplier } from '../../contracts/pool/peer-pack-custody.js';
 
 export interface FileDescriptor {
@@ -35,6 +36,8 @@ export interface CustodyDeliveryRecord {
   authorization: unknown; index: unknown; receipt: ReturnType<Store['getReceipt']> | null;
   certificates: { requester: CustodyKeyCertificate | null; supplier: CustodyKeyCertificate | null };
   attestation: CustodyDeliveryAttestation | null;
+  /** Requester consumes, supplier provides; a party names a computer only from this side's own certificate. */
+  roles: OperationRoles | null;
 }
 export interface CustodyExchangePorts {
   /** Required for supply, not acquisition. Durable atomic reservations never refund uncertainty. */
@@ -89,7 +92,7 @@ export function createCustodyExchange(options: {
 }): {
   announce(peerId?: string): void;
   /** `offering`: peers whose latest announced inventory is non-empty. */
-  getState(): { sharing: boolean; suppliedBytes: number; pending: number; peers: string[]; offering: string[] };
+  getState(): { sharing: boolean; suppliedBytes: number; pending: number; peers: string[]; offering: string[]; offers: WeightSupplyOffer[] };
   has(file: FileDescriptor): boolean;
   offer(files: FileDescriptor[]): void;
   stopSupply(): void;

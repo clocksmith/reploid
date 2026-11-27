@@ -1,5 +1,13 @@
 import { signDeliveryAttestation } from '../delivery-attestation.js';
 import { untilAborted } from '../../cancellation.js';
+import { operationRoles, weightSupplyOfferFromInventory } from '../../contracts/computer-records.js';
+
+// A transfer's roles (contracts/computer-records.js): the requester consumes, the supplier provides. Only this side's
+// own certified participant names a computer; the other party's certificate is not verified here, so it names none.
+const transferRoles = (operationId, consumer, provider) => {
+  try { return operationRoles({ operation: 'weight-transfer', operationId, consumer, provider }); } catch { return null; }
+};
+const certified = certificate => ({ computerId: certificate?.participantId ?? null, participantId: certificate?.participantId ?? null });
 
 /** Discovery composition for the existing signed custody store and bounded byte channel. */
 export function createCustodyExchange({ transport, identity, policy, ports }) {
@@ -231,7 +239,8 @@ export function createCustodyExchange({ transport, identity, policy, ports }) {
           throw error;
         }
         ports.observeDelivery?.({ role: 'supplier', transferId: authorization.transferId, peerId: peer,
-          authorization: structuredClone(authorization), index: structuredClone(index), receipt: null, certificates, attestation: null });
+          authorization: structuredClone(authorization), index: structuredClone(index), receipt: null, certificates, attestation: null,
+          roles: transferRoles(authorization.transferId, { connectionId: peer }, { ...certified(certificates.supplier), connectionId: identity.peerId }) });
       } finally { preparing--; notify(); }
     })().catch(error => {
       if (!closed) transport.sendToPeer(peer, 'reploid:custody-response', { id: message?.id, error: error.message });
@@ -323,7 +332,8 @@ export function createCustodyExchange({ transport, identity, policy, ports }) {
             authorization: structuredClone(grant), index: structuredClone(result.index), receipt,
             certificates: { requester: requesterCertificate,
               supplier: bound(result.supplierCertificate, grant.suppliers[0]) ? structuredClone(result.supplierCertificate) : null },
-            attestation: await attest(receipt, requesterCertificate) });
+            attestation: await attest(receipt, requesterCertificate),
+            roles: transferRoles(grant.transferId, { ...certified(requesterCertificate), connectionId: identity.peerId }, { connectionId: peer }) });
         }
         return bytes;
       } catch (error) {
@@ -355,7 +365,9 @@ export function createCustodyExchange({ transport, identity, policy, ports }) {
     announce,
     getState: () => { connected(); return { sharing: supply, suppliedBytes: Math.max(reserved, ports.supplyBudget?.getState()?.reservedBytes || 0), pending: acquiring, peers: [...peers.keys()],
       // Peers whose latest announced inventory is non-empty: an empty announcement withdraws the offer.
-      offering: [...peers].filter(([, artifacts]) => artifacts.length > 0).map(([peer]) => peer) }; },
+      offering: [...peers].filter(([, artifacts]) => artifacts.length > 0).map(([peer]) => peer),
+      // The same announcements as weight-supply offer records, one per offering connection.
+      offers: [...peers].map(([peer, artifacts]) => { try { return weightSupplyOfferFromInventory(artifacts, { connectionId: peer }); } catch { return null; } }).filter(Boolean) }; },
     has: artifact => candidates(artifact).length > 0,
     offer(artifacts) {
       if (!Array.isArray(artifacts) || artifacts.length > policy.maxInventoryFiles || !artifacts.every(valid)) throw new Error('Invalid file inventory');
