@@ -1,0 +1,1013 @@
+{
+ "description": "Valid and invalid weight-supply records (contracts/weight-supply.js), from one in-process private-room run; regenerate only when a schema changes.",
+ "records": [
+  {
+   "name": "policy file in force",
+   "schema": "reploid.weight-supply-policy/1",
+   "value": {
+    "schema": "reploid.weight-supply-policy/1",
+    "demand": {
+     "windowMs": 600000,
+     "minConsumers": 1
+    },
+    "supply": {
+     "targetCopies": 3
+    },
+    "offer": {
+     "maxPieces": 8,
+     "maxBytes": 67108864,
+     "ttlMs": 600000
+    },
+    "approval": {
+     "ttlMs": 2592000000
+    },
+    "acquisition": {
+     "maxConcurrent": 2
+    },
+    "report": {
+     "maxReplacements": 32,
+     "maxTransfers": 256
+    }
+   },
+   "valid": true
+  },
+  {
+   "name": "policy without a copy target",
+   "schema": "reploid.weight-supply-policy/1",
+   "value": {
+    "schema": "reploid.weight-supply-policy/1",
+    "demand": {
+     "windowMs": 600000,
+     "minConsumers": 1
+    },
+    "supply": {},
+    "offer": {
+     "maxPieces": 8,
+     "maxBytes": 67108864,
+     "ttlMs": 600000
+    },
+    "approval": {
+     "ttlMs": 2592000000
+    },
+    "acquisition": {
+     "maxConcurrent": 2
+    },
+    "report": {
+     "maxReplacements": 32,
+     "maxTransfers": 256
+    }
+   },
+   "valid": false
+  },
+  {
+   "name": "request demand from a custody announcement",
+   "schema": "reploid.weight-demand/1",
+   "value": {
+    "schema": "reploid.weight-demand/1",
+    "kind": "request",
+    "consumer": {
+     "connectionId": "consumer-peer",
+     "computerId": null
+    },
+    "modelIdentity": null,
+    "pieceIds": [
+     "sha256:63ad4fc50bc4f2e66dcf439c440605b599c111554712adfb1968b050c8dfc2f4",
+     "sha256:1b398f8a9a94b4628e392a65858f10bfcbff3b40822244c01c090bcb9dc01032",
+     "sha256:2e9b1026c49aa8ec9091a3aa159d69060e77c1abf84fa54ba2d81aec7df1ee4c"
+    ],
+    "observedAt": 1795741690870
+   },
+   "valid": true
+  },
+  {
+   "name": "load demand from a preparing inference offer",
+   "schema": "reploid.weight-demand/1",
+   "value": {
+    "schema": "reploid.weight-demand/1",
+    "kind": "load",
+    "consumer": {
+     "connectionId": "consumer-peer",
+     "computerId": null
+    },
+    "modelIdentity": "sha256:e6954ed9cce48114b2875996c433c4ada96795c4f7b5401b3ed7578086bbe242",
+    "pieceIds": [],
+    "observedAt": 1
+   },
+   "valid": true
+  },
+  {
+   "name": "demand naming nothing",
+   "schema": "reploid.weight-demand/1",
+   "value": {
+    "schema": "reploid.weight-demand/1",
+    "kind": "load",
+    "consumer": {
+     "connectionId": "consumer-peer",
+     "computerId": null
+    },
+    "modelIdentity": null,
+    "pieceIds": [],
+    "observedAt": 1
+   },
+   "valid": false
+  },
+  {
+   "name": "empty-cache recommendation with a bounded offer",
+   "schema": "reploid.weight-supply-recommendation/1",
+   "value": {
+    "schema": "reploid.weight-supply-recommendation/1",
+    "computerId": "peer:2a2e1f7ae902d1a8a8529f2a",
+    "computedAt": 1795741690876,
+    "storageCapBytes": 8192,
+    "cached": [],
+    "offer": {
+     "schema": "reploid.weight-supply-offer/1",
+     "offerId": "wso_dc85ccbf-7e02-49b2-88bc-597d358f8e64",
+     "computerId": "peer:2a2e1f7ae902d1a8a8529f2a",
+     "modelId": "fixture-model",
+     "modelIdentity": "sha256:e6954ed9cce48114b2875996c433c4ada96795c4f7b5401b3ed7578086bbe242",
+     "pieceIndexDigest": "sha256:edff9083773d5ce89b30e7761327277ca7bfbc3cf2f2ddcd0ec84ff2ecc76a4b",
+     "pieces": [
+      {
+       "pieceId": "sha256:63ad4fc50bc4f2e66dcf439c440605b599c111554712adfb1968b050c8dfc2f4",
+       "path": "shard_00000.bin",
+       "offset": 0,
+       "sizeBytes": 4096,
+       "demand": {
+        "consumers": 1,
+        "loads": 0,
+        "requests": 1
+       },
+       "supply": {
+        "verifiedCopies": 1
+       }
+      },
+      {
+       "pieceId": "sha256:1b398f8a9a94b4628e392a65858f10bfcbff3b40822244c01c090bcb9dc01032",
+       "path": "shard_00000.bin",
+       "offset": 4096,
+       "sizeBytes": 4096,
+       "demand": {
+        "consumers": 1,
+        "loads": 0,
+        "requests": 1
+       },
+       "supply": {
+        "verifiedCopies": 1
+       }
+      }
+     ],
+     "totalDownloadBytes": 8192,
+     "storageCapBytes": 8192,
+     "createdAt": 1795741690876,
+     "expiresAt": 1795742290876
+    },
+    "noOffer": null
+   },
+   "valid": true
+  },
+  {
+   "name": "recommendation after approval carries no offer",
+   "schema": "reploid.weight-supply-recommendation/1",
+   "value": {
+    "schema": "reploid.weight-supply-recommendation/1",
+    "computerId": "peer:2a2e1f7ae902d1a8a8529f2a",
+    "computedAt": 1795741690936,
+    "storageCapBytes": 8192,
+    "cached": [
+     {
+      "modelId": "fixture-model",
+      "modelIdentity": "sha256:e6954ed9cce48114b2875996c433c4ada96795c4f7b5401b3ed7578086bbe242",
+      "pieceIndexDigest": "sha256:edff9083773d5ce89b30e7761327277ca7bfbc3cf2f2ddcd0ec84ff2ecc76a4b",
+      "heldPieces": 2,
+      "heldBytes": 8192,
+      "totalPieces": 3,
+      "complete": false
+     }
+    ],
+    "offer": null,
+    "noOffer": "approved"
+   },
+   "valid": true
+  },
+  {
+   "name": "recommendation with neither offer nor reason",
+   "schema": "reploid.weight-supply-recommendation/1",
+   "value": {
+    "schema": "reploid.weight-supply-recommendation/1",
+    "computerId": "peer:2a2e1f7ae902d1a8a8529f2a",
+    "computedAt": 1795741690936,
+    "storageCapBytes": 8192,
+    "cached": [
+     {
+      "modelId": "fixture-model",
+      "modelIdentity": "sha256:e6954ed9cce48114b2875996c433c4ada96795c4f7b5401b3ed7578086bbe242",
+      "pieceIndexDigest": "sha256:edff9083773d5ce89b30e7761327277ca7bfbc3cf2f2ddcd0ec84ff2ecc76a4b",
+      "heldPieces": 2,
+      "heldBytes": 8192,
+      "totalPieces": 3,
+      "complete": false
+     }
+    ],
+    "offer": null,
+    "noOffer": null
+   },
+   "valid": false
+  },
+  {
+   "name": "recommendation with an offer and a reason",
+   "schema": "reploid.weight-supply-recommendation/1",
+   "value": {
+    "schema": "reploid.weight-supply-recommendation/1",
+    "computerId": "peer:2a2e1f7ae902d1a8a8529f2a",
+    "computedAt": 1795741690876,
+    "storageCapBytes": 8192,
+    "cached": [],
+    "offer": {
+     "schema": "reploid.weight-supply-offer/1",
+     "offerId": "wso_dc85ccbf-7e02-49b2-88bc-597d358f8e64",
+     "computerId": "peer:2a2e1f7ae902d1a8a8529f2a",
+     "modelId": "fixture-model",
+     "modelIdentity": "sha256:e6954ed9cce48114b2875996c433c4ada96795c4f7b5401b3ed7578086bbe242",
+     "pieceIndexDigest": "sha256:edff9083773d5ce89b30e7761327277ca7bfbc3cf2f2ddcd0ec84ff2ecc76a4b",
+     "pieces": [
+      {
+       "pieceId": "sha256:63ad4fc50bc4f2e66dcf439c440605b599c111554712adfb1968b050c8dfc2f4",
+       "path": "shard_00000.bin",
+       "offset": 0,
+       "sizeBytes": 4096,
+       "demand": {
+        "consumers": 1,
+        "loads": 0,
+        "requests": 1
+       },
+       "supply": {
+        "verifiedCopies": 1
+       }
+      },
+      {
+       "pieceId": "sha256:1b398f8a9a94b4628e392a65858f10bfcbff3b40822244c01c090bcb9dc01032",
+       "path": "shard_00000.bin",
+       "offset": 4096,
+       "sizeBytes": 4096,
+       "demand": {
+        "consumers": 1,
+        "loads": 0,
+        "requests": 1
+       },
+       "supply": {
+        "verifiedCopies": 1
+       }
+      }
+     ],
+     "totalDownloadBytes": 8192,
+     "storageCapBytes": 8192,
+     "createdAt": 1795741690876,
+     "expiresAt": 1795742290876
+    },
+    "noOffer": "paused"
+   },
+   "valid": false
+  },
+  {
+   "name": "bounded offer",
+   "schema": "reploid.weight-supply-offer/1",
+   "value": {
+    "schema": "reploid.weight-supply-offer/1",
+    "offerId": "wso_dc85ccbf-7e02-49b2-88bc-597d358f8e64",
+    "computerId": "peer:2a2e1f7ae902d1a8a8529f2a",
+    "modelId": "fixture-model",
+    "modelIdentity": "sha256:e6954ed9cce48114b2875996c433c4ada96795c4f7b5401b3ed7578086bbe242",
+    "pieceIndexDigest": "sha256:edff9083773d5ce89b30e7761327277ca7bfbc3cf2f2ddcd0ec84ff2ecc76a4b",
+    "pieces": [
+     {
+      "pieceId": "sha256:63ad4fc50bc4f2e66dcf439c440605b599c111554712adfb1968b050c8dfc2f4",
+      "path": "shard_00000.bin",
+      "offset": 0,
+      "sizeBytes": 4096,
+      "demand": {
+       "consumers": 1,
+       "loads": 0,
+       "requests": 1
+      },
+      "supply": {
+       "verifiedCopies": 1
+      }
+     },
+     {
+      "pieceId": "sha256:1b398f8a9a94b4628e392a65858f10bfcbff3b40822244c01c090bcb9dc01032",
+      "path": "shard_00000.bin",
+      "offset": 4096,
+      "sizeBytes": 4096,
+      "demand": {
+       "consumers": 1,
+       "loads": 0,
+       "requests": 1
+      },
+      "supply": {
+       "verifiedCopies": 1
+      }
+     }
+    ],
+    "totalDownloadBytes": 8192,
+    "storageCapBytes": 8192,
+    "createdAt": 1795741690876,
+    "expiresAt": 1795742290876
+   },
+   "valid": true
+  },
+  {
+   "name": "offer whose total misstates its pieces",
+   "schema": "reploid.weight-supply-offer/1",
+   "value": {
+    "schema": "reploid.weight-supply-offer/1",
+    "offerId": "wso_dc85ccbf-7e02-49b2-88bc-597d358f8e64",
+    "computerId": "peer:2a2e1f7ae902d1a8a8529f2a",
+    "modelId": "fixture-model",
+    "modelIdentity": "sha256:e6954ed9cce48114b2875996c433c4ada96795c4f7b5401b3ed7578086bbe242",
+    "pieceIndexDigest": "sha256:edff9083773d5ce89b30e7761327277ca7bfbc3cf2f2ddcd0ec84ff2ecc76a4b",
+    "pieces": [
+     {
+      "pieceId": "sha256:63ad4fc50bc4f2e66dcf439c440605b599c111554712adfb1968b050c8dfc2f4",
+      "path": "shard_00000.bin",
+      "offset": 0,
+      "sizeBytes": 4096,
+      "demand": {
+       "consumers": 1,
+       "loads": 0,
+       "requests": 1
+      },
+      "supply": {
+       "verifiedCopies": 1
+      }
+     },
+     {
+      "pieceId": "sha256:1b398f8a9a94b4628e392a65858f10bfcbff3b40822244c01c090bcb9dc01032",
+      "path": "shard_00000.bin",
+      "offset": 4096,
+      "sizeBytes": 4096,
+      "demand": {
+       "consumers": 1,
+       "loads": 0,
+       "requests": 1
+      },
+      "supply": {
+       "verifiedCopies": 1
+      }
+     }
+    ],
+    "totalDownloadBytes": 8193,
+    "storageCapBytes": 8193,
+    "createdAt": 1795741690876,
+    "expiresAt": 1795742290876
+   },
+   "valid": false
+  },
+  {
+   "name": "offer larger than its storage cap",
+   "schema": "reploid.weight-supply-offer/1",
+   "value": {
+    "schema": "reploid.weight-supply-offer/1",
+    "offerId": "wso_dc85ccbf-7e02-49b2-88bc-597d358f8e64",
+    "computerId": "peer:2a2e1f7ae902d1a8a8529f2a",
+    "modelId": "fixture-model",
+    "modelIdentity": "sha256:e6954ed9cce48114b2875996c433c4ada96795c4f7b5401b3ed7578086bbe242",
+    "pieceIndexDigest": "sha256:edff9083773d5ce89b30e7761327277ca7bfbc3cf2f2ddcd0ec84ff2ecc76a4b",
+    "pieces": [
+     {
+      "pieceId": "sha256:63ad4fc50bc4f2e66dcf439c440605b599c111554712adfb1968b050c8dfc2f4",
+      "path": "shard_00000.bin",
+      "offset": 0,
+      "sizeBytes": 4096,
+      "demand": {
+       "consumers": 1,
+       "loads": 0,
+       "requests": 1
+      },
+      "supply": {
+       "verifiedCopies": 1
+      }
+     },
+     {
+      "pieceId": "sha256:1b398f8a9a94b4628e392a65858f10bfcbff3b40822244c01c090bcb9dc01032",
+      "path": "shard_00000.bin",
+      "offset": 4096,
+      "sizeBytes": 4096,
+      "demand": {
+       "consumers": 1,
+       "loads": 0,
+       "requests": 1
+      },
+      "supply": {
+       "verifiedCopies": 1
+      }
+     }
+    ],
+    "totalDownloadBytes": 8192,
+    "storageCapBytes": 8191,
+    "createdAt": 1795741690876,
+    "expiresAt": 1795742290876
+   },
+   "valid": false
+  },
+  {
+   "name": "offer with no pieces",
+   "schema": "reploid.weight-supply-offer/1",
+   "value": {
+    "schema": "reploid.weight-supply-offer/1",
+    "offerId": "wso_dc85ccbf-7e02-49b2-88bc-597d358f8e64",
+    "computerId": "peer:2a2e1f7ae902d1a8a8529f2a",
+    "modelId": "fixture-model",
+    "modelIdentity": "sha256:e6954ed9cce48114b2875996c433c4ada96795c4f7b5401b3ed7578086bbe242",
+    "pieceIndexDigest": "sha256:edff9083773d5ce89b30e7761327277ca7bfbc3cf2f2ddcd0ec84ff2ecc76a4b",
+    "pieces": [],
+    "totalDownloadBytes": 0,
+    "storageCapBytes": 8192,
+    "createdAt": 1795741690876,
+    "expiresAt": 1795742290876
+   },
+   "valid": false
+  },
+  {
+   "name": "signed approval",
+   "schema": "reploid.weight-supply-approval/1",
+   "value": {
+    "schema": "reploid.weight-supply-approval/1",
+    "approvalId": "wsa_6f92dd6d-b85b-4140-8cce-24afc9fcd14e",
+    "offerId": "wso_dc85ccbf-7e02-49b2-88bc-597d358f8e64",
+    "computerId": "peer:2a2e1f7ae902d1a8a8529f2a",
+    "publicJwk": {
+     "key_ops": [
+      "verify"
+     ],
+     "ext": true,
+     "kty": "EC",
+     "x": "bysQDSVWGX9a79r6Tw4GTfgLNQaOJgysxNMdw9Kl9oY",
+     "y": "Y9Rn1C8rK_-hSUI0gK81JWK6HNmpLb8MQaPneTb9Dr8",
+     "crv": "P-256"
+    },
+    "storageCapBytes": 8192,
+    "modelIdentities": [
+     "sha256:e6954ed9cce48114b2875996c433c4ada96795c4f7b5401b3ed7578086bbe242"
+    ],
+    "pieceIndexDigests": [
+     "sha256:edff9083773d5ce89b30e7761327277ca7bfbc3cf2f2ddcd0ec84ff2ecc76a4b"
+    ],
+    "approvedAt": 1795741690879,
+    "expiresAt": 1798333690879,
+    "signature": "wyRJM2QoUwYC-_5ZTsFq-sGcG2oUPp8d4hEoaRmff0lvwWFNpH-t495qbpsBOdLOc-M42pISn90_cAkuXt6c6g"
+   },
+   "valid": true
+  },
+  {
+   "name": "approval without a signature",
+   "schema": "reploid.weight-supply-approval/1",
+   "value": {
+    "schema": "reploid.weight-supply-approval/1",
+    "approvalId": "wsa_6f92dd6d-b85b-4140-8cce-24afc9fcd14e",
+    "offerId": "wso_dc85ccbf-7e02-49b2-88bc-597d358f8e64",
+    "computerId": "peer:2a2e1f7ae902d1a8a8529f2a",
+    "publicJwk": {
+     "key_ops": [
+      "verify"
+     ],
+     "ext": true,
+     "kty": "EC",
+     "x": "bysQDSVWGX9a79r6Tw4GTfgLNQaOJgysxNMdw9Kl9oY",
+     "y": "Y9Rn1C8rK_-hSUI0gK81JWK6HNmpLb8MQaPneTb9Dr8",
+     "crv": "P-256"
+    },
+    "storageCapBytes": 8192,
+    "modelIdentities": [
+     "sha256:e6954ed9cce48114b2875996c433c4ada96795c4f7b5401b3ed7578086bbe242"
+    ],
+    "pieceIndexDigests": [
+     "sha256:edff9083773d5ce89b30e7761327277ca7bfbc3cf2f2ddcd0ec84ff2ecc76a4b"
+    ],
+    "approvedAt": 1795741690879,
+    "expiresAt": 1798333690879
+   },
+   "valid": false
+  },
+  {
+   "name": "approval expiring before it was given",
+   "schema": "reploid.weight-supply-approval/1",
+   "value": {
+    "schema": "reploid.weight-supply-approval/1",
+    "approvalId": "wsa_6f92dd6d-b85b-4140-8cce-24afc9fcd14e",
+    "offerId": "wso_dc85ccbf-7e02-49b2-88bc-597d358f8e64",
+    "computerId": "peer:2a2e1f7ae902d1a8a8529f2a",
+    "publicJwk": {
+     "key_ops": [
+      "verify"
+     ],
+     "ext": true,
+     "kty": "EC",
+     "x": "bysQDSVWGX9a79r6Tw4GTfgLNQaOJgysxNMdw9Kl9oY",
+     "y": "Y9Rn1C8rK_-hSUI0gK81JWK6HNmpLb8MQaPneTb9Dr8",
+     "crv": "P-256"
+    },
+    "storageCapBytes": 8192,
+    "modelIdentities": [
+     "sha256:e6954ed9cce48114b2875996c433c4ada96795c4f7b5401b3ed7578086bbe242"
+    ],
+    "pieceIndexDigests": [
+     "sha256:edff9083773d5ce89b30e7761327277ca7bfbc3cf2f2ddcd0ec84ff2ecc76a4b"
+    ],
+    "approvedAt": 1795741690879,
+    "expiresAt": 1795741690879,
+    "signature": "wyRJM2QoUwYC-_5ZTsFq-sGcG2oUPp8d4hEoaRmff0lvwWFNpH-t495qbpsBOdLOc-M42pISn90_cAkuXt6c6g"
+   },
+   "valid": false
+  },
+  {
+   "name": "provider-recorded served transfer",
+   "schema": "reploid.weight-transfer/1",
+   "value": {
+    "schema": "reploid.weight-transfer/1",
+    "transferId": "97277be8-53bd-4abd-a274-0278591a8757",
+    "recordedBy": "provider",
+    "pieceId": "sha256:63ad4fc50bc4f2e66dcf439c440605b599c111554712adfb1968b050c8dfc2f4",
+    "modelIdentity": "sha256:e6954ed9cce48114b2875996c433c4ada96795c4f7b5401b3ed7578086bbe242",
+    "pieceBytes": 4096,
+    "deliveredBytes": 4096,
+    "startedAt": 1795741690945,
+    "completedAt": 1795741690950,
+    "roles": {
+     "schema": "reploid.operation-roles/1",
+     "operation": "weight-transfer",
+     "operationId": "97277be8-53bd-4abd-a274-0278591a8757",
+     "consumer": {
+      "computerId": "peer:4f0437feeff6956849700f8f",
+      "participantId": "peer:4f0437feeff6956849700f8f",
+      "connectionId": "consumer-peer"
+     },
+     "provider": {
+      "computerId": "peer:2a2e1f7ae902d1a8a8529f2a",
+      "participantId": "peer:2a2e1f7ae902d1a8a8529f2a",
+      "connectionId": "new-peer"
+     }
+    }
+   },
+   "valid": true
+  },
+  {
+   "name": "consumer-recorded transfer",
+   "schema": "reploid.weight-transfer/1",
+   "value": {
+    "schema": "reploid.weight-transfer/1",
+    "transferId": "97277be8-53bd-4abd-a274-0278591a8757",
+    "recordedBy": "consumer",
+    "pieceId": "sha256:63ad4fc50bc4f2e66dcf439c440605b599c111554712adfb1968b050c8dfc2f4",
+    "modelIdentity": "sha256:e6954ed9cce48114b2875996c433c4ada96795c4f7b5401b3ed7578086bbe242",
+    "pieceBytes": 4096,
+    "deliveredBytes": 4096,
+    "startedAt": 1795741690943,
+    "completedAt": 1795741690950,
+    "roles": {
+     "schema": "reploid.operation-roles/1",
+     "operation": "weight-transfer",
+     "operationId": "97277be8-53bd-4abd-a274-0278591a8757",
+     "consumer": {
+      "computerId": "peer:4f0437feeff6956849700f8f",
+      "participantId": "peer:4f0437feeff6956849700f8f",
+      "connectionId": "consumer-peer"
+     },
+     "provider": {
+      "computerId": "peer:2a2e1f7ae902d1a8a8529f2a",
+      "participantId": "peer:2a2e1f7ae902d1a8a8529f2a",
+      "connectionId": "new-peer"
+     }
+    }
+   },
+   "valid": true
+  },
+  {
+   "name": "transfer delivering more than the piece",
+   "schema": "reploid.weight-transfer/1",
+   "value": {
+    "schema": "reploid.weight-transfer/1",
+    "transferId": "97277be8-53bd-4abd-a274-0278591a8757",
+    "recordedBy": "provider",
+    "pieceId": "sha256:63ad4fc50bc4f2e66dcf439c440605b599c111554712adfb1968b050c8dfc2f4",
+    "modelIdentity": "sha256:e6954ed9cce48114b2875996c433c4ada96795c4f7b5401b3ed7578086bbe242",
+    "pieceBytes": 4096,
+    "deliveredBytes": 4097,
+    "startedAt": 1795741690945,
+    "completedAt": 1795741690950,
+    "roles": {
+     "schema": "reploid.operation-roles/1",
+     "operation": "weight-transfer",
+     "operationId": "97277be8-53bd-4abd-a274-0278591a8757",
+     "consumer": {
+      "computerId": "peer:4f0437feeff6956849700f8f",
+      "participantId": "peer:4f0437feeff6956849700f8f",
+      "connectionId": "consumer-peer"
+     },
+     "provider": {
+      "computerId": "peer:2a2e1f7ae902d1a8a8529f2a",
+      "participantId": "peer:2a2e1f7ae902d1a8a8529f2a",
+      "connectionId": "new-peer"
+     }
+    }
+   },
+   "valid": false
+  },
+  {
+   "name": "transfer whose roles are another operation",
+   "schema": "reploid.weight-transfer/1",
+   "value": {
+    "schema": "reploid.weight-transfer/1",
+    "transferId": "97277be8-53bd-4abd-a274-0278591a8757",
+    "recordedBy": "provider",
+    "pieceId": "sha256:63ad4fc50bc4f2e66dcf439c440605b599c111554712adfb1968b050c8dfc2f4",
+    "modelIdentity": "sha256:e6954ed9cce48114b2875996c433c4ada96795c4f7b5401b3ed7578086bbe242",
+    "pieceBytes": 4096,
+    "deliveredBytes": 4096,
+    "startedAt": 1795741690945,
+    "completedAt": 1795741690950,
+    "roles": {
+     "schema": "reploid.operation-roles/1",
+     "operation": "weight-transfer",
+     "operationId": "other",
+     "consumer": {
+      "computerId": "peer:4f0437feeff6956849700f8f",
+      "participantId": "peer:4f0437feeff6956849700f8f",
+      "connectionId": "consumer-peer"
+     },
+     "provider": {
+      "computerId": "peer:2a2e1f7ae902d1a8a8529f2a",
+      "participantId": "peer:2a2e1f7ae902d1a8a8529f2a",
+      "connectionId": "new-peer"
+     }
+    }
+   },
+   "valid": false
+  },
+  {
+   "name": "report after serving one piece",
+   "schema": "reploid.weight-supply-report/1",
+   "value": {
+    "schema": "reploid.weight-supply-report/1",
+    "computerId": "peer:2a2e1f7ae902d1a8a8529f2a",
+    "reportedAt": 1795741690951,
+    "paused": false,
+    "approval": {
+     "approvalId": "wsa_6f92dd6d-b85b-4140-8cce-24afc9fcd14e",
+     "storageCapBytes": 8192,
+     "expiresAt": 1798333690879
+    },
+    "offer": {
+     "schema": "reploid.offer/1",
+     "kind": "weight-supply",
+     "connectionId": "new-peer",
+     "readiness": "ready",
+     "paused": false,
+     "expiresAt": 1798333690879,
+     "scope": {
+      "modelIdentities": [
+       "sha256:e6954ed9cce48114b2875996c433c4ada96795c4f7b5401b3ed7578086bbe242"
+      ],
+      "pieceIndexDigests": [
+       "sha256:edff9083773d5ce89b30e7761327277ca7bfbc3cf2f2ddcd0ec84ff2ecc76a4b"
+      ],
+      "files": [
+       {
+        "hashAlgorithm": "sha256",
+        "hash": "63ad4fc50bc4f2e66dcf439c440605b599c111554712adfb1968b050c8dfc2f4",
+        "sizeBytes": 4096
+       },
+       {
+        "hashAlgorithm": "sha256",
+        "hash": "1b398f8a9a94b4628e392a65858f10bfcbff3b40822244c01c090bcb9dc01032",
+        "sizeBytes": 4096
+       }
+      ],
+      "maxStorageBytes": 8192
+     }
+    },
+    "verifiedBytes": 8192,
+    "servedBytes": 4096,
+    "servedTransfers": 1,
+    "acquisition": {
+     "queuedPieces": 0,
+     "acquiringPieces": 0,
+     "failedPieces": 0,
+     "pendingBytes": 0
+    },
+    "pieces": [
+     {
+      "pieceId": "sha256:63ad4fc50bc4f2e66dcf439c440605b599c111554712adfb1968b050c8dfc2f4",
+      "modelIdentity": "sha256:e6954ed9cce48114b2875996c433c4ada96795c4f7b5401b3ed7578086bbe242",
+      "pieceIndexDigest": "sha256:edff9083773d5ce89b30e7761327277ca7bfbc3cf2f2ddcd0ec84ff2ecc76a4b",
+      "sizeBytes": 4096,
+      "state": "verified",
+      "verifiedAt": 1795741690936,
+      "servedBytes": 4096,
+      "servedTransfers": 1
+     },
+     {
+      "pieceId": "sha256:1b398f8a9a94b4628e392a65858f10bfcbff3b40822244c01c090bcb9dc01032",
+      "modelIdentity": "sha256:e6954ed9cce48114b2875996c433c4ada96795c4f7b5401b3ed7578086bbe242",
+      "pieceIndexDigest": "sha256:edff9083773d5ce89b30e7761327277ca7bfbc3cf2f2ddcd0ec84ff2ecc76a4b",
+      "sizeBytes": 4096,
+      "state": "verified",
+      "verifiedAt": 1795741690935,
+      "servedBytes": 0,
+      "servedTransfers": 0
+     }
+    ],
+    "replacements": []
+   },
+   "valid": true
+  },
+  {
+   "name": "report whose verified bytes misstate its pieces",
+   "schema": "reploid.weight-supply-report/1",
+   "value": {
+    "schema": "reploid.weight-supply-report/1",
+    "computerId": "peer:2a2e1f7ae902d1a8a8529f2a",
+    "reportedAt": 1795741690951,
+    "paused": false,
+    "approval": {
+     "approvalId": "wsa_6f92dd6d-b85b-4140-8cce-24afc9fcd14e",
+     "storageCapBytes": 8192,
+     "expiresAt": 1798333690879
+    },
+    "offer": {
+     "schema": "reploid.offer/1",
+     "kind": "weight-supply",
+     "connectionId": "new-peer",
+     "readiness": "ready",
+     "paused": false,
+     "expiresAt": 1798333690879,
+     "scope": {
+      "modelIdentities": [
+       "sha256:e6954ed9cce48114b2875996c433c4ada96795c4f7b5401b3ed7578086bbe242"
+      ],
+      "pieceIndexDigests": [
+       "sha256:edff9083773d5ce89b30e7761327277ca7bfbc3cf2f2ddcd0ec84ff2ecc76a4b"
+      ],
+      "files": [
+       {
+        "hashAlgorithm": "sha256",
+        "hash": "63ad4fc50bc4f2e66dcf439c440605b599c111554712adfb1968b050c8dfc2f4",
+        "sizeBytes": 4096
+       },
+       {
+        "hashAlgorithm": "sha256",
+        "hash": "1b398f8a9a94b4628e392a65858f10bfcbff3b40822244c01c090bcb9dc01032",
+        "sizeBytes": 4096
+       }
+      ],
+      "maxStorageBytes": 8192
+     }
+    },
+    "verifiedBytes": 8193,
+    "servedBytes": 4096,
+    "servedTransfers": 1,
+    "acquisition": {
+     "queuedPieces": 0,
+     "acquiringPieces": 0,
+     "failedPieces": 0,
+     "pendingBytes": 0
+    },
+    "pieces": [
+     {
+      "pieceId": "sha256:63ad4fc50bc4f2e66dcf439c440605b599c111554712adfb1968b050c8dfc2f4",
+      "modelIdentity": "sha256:e6954ed9cce48114b2875996c433c4ada96795c4f7b5401b3ed7578086bbe242",
+      "pieceIndexDigest": "sha256:edff9083773d5ce89b30e7761327277ca7bfbc3cf2f2ddcd0ec84ff2ecc76a4b",
+      "sizeBytes": 4096,
+      "state": "verified",
+      "verifiedAt": 1795741690936,
+      "servedBytes": 4096,
+      "servedTransfers": 1
+     },
+     {
+      "pieceId": "sha256:1b398f8a9a94b4628e392a65858f10bfcbff3b40822244c01c090bcb9dc01032",
+      "modelIdentity": "sha256:e6954ed9cce48114b2875996c433c4ada96795c4f7b5401b3ed7578086bbe242",
+      "pieceIndexDigest": "sha256:edff9083773d5ce89b30e7761327277ca7bfbc3cf2f2ddcd0ec84ff2ecc76a4b",
+      "sizeBytes": 4096,
+      "state": "verified",
+      "verifiedAt": 1795741690935,
+      "servedBytes": 0,
+      "servedTransfers": 0
+     }
+    ],
+    "replacements": []
+   },
+   "valid": false
+  },
+  {
+   "name": "report with served bytes below its pieces",
+   "schema": "reploid.weight-supply-report/1",
+   "value": {
+    "schema": "reploid.weight-supply-report/1",
+    "computerId": "peer:2a2e1f7ae902d1a8a8529f2a",
+    "reportedAt": 1795741690951,
+    "paused": false,
+    "approval": {
+     "approvalId": "wsa_6f92dd6d-b85b-4140-8cce-24afc9fcd14e",
+     "storageCapBytes": 8192,
+     "expiresAt": 1798333690879
+    },
+    "offer": {
+     "schema": "reploid.offer/1",
+     "kind": "weight-supply",
+     "connectionId": "new-peer",
+     "readiness": "ready",
+     "paused": false,
+     "expiresAt": 1798333690879,
+     "scope": {
+      "modelIdentities": [
+       "sha256:e6954ed9cce48114b2875996c433c4ada96795c4f7b5401b3ed7578086bbe242"
+      ],
+      "pieceIndexDigests": [
+       "sha256:edff9083773d5ce89b30e7761327277ca7bfbc3cf2f2ddcd0ec84ff2ecc76a4b"
+      ],
+      "files": [
+       {
+        "hashAlgorithm": "sha256",
+        "hash": "63ad4fc50bc4f2e66dcf439c440605b599c111554712adfb1968b050c8dfc2f4",
+        "sizeBytes": 4096
+       },
+       {
+        "hashAlgorithm": "sha256",
+        "hash": "1b398f8a9a94b4628e392a65858f10bfcbff3b40822244c01c090bcb9dc01032",
+        "sizeBytes": 4096
+       }
+      ],
+      "maxStorageBytes": 8192
+     }
+    },
+    "verifiedBytes": 8192,
+    "servedBytes": 0,
+    "servedTransfers": 1,
+    "acquisition": {
+     "queuedPieces": 0,
+     "acquiringPieces": 0,
+     "failedPieces": 0,
+     "pendingBytes": 0
+    },
+    "pieces": [
+     {
+      "pieceId": "sha256:63ad4fc50bc4f2e66dcf439c440605b599c111554712adfb1968b050c8dfc2f4",
+      "modelIdentity": "sha256:e6954ed9cce48114b2875996c433c4ada96795c4f7b5401b3ed7578086bbe242",
+      "pieceIndexDigest": "sha256:edff9083773d5ce89b30e7761327277ca7bfbc3cf2f2ddcd0ec84ff2ecc76a4b",
+      "sizeBytes": 4096,
+      "state": "verified",
+      "verifiedAt": 1795741690936,
+      "servedBytes": 4096,
+      "servedTransfers": 1
+     },
+     {
+      "pieceId": "sha256:1b398f8a9a94b4628e392a65858f10bfcbff3b40822244c01c090bcb9dc01032",
+      "modelIdentity": "sha256:e6954ed9cce48114b2875996c433c4ada96795c4f7b5401b3ed7578086bbe242",
+      "pieceIndexDigest": "sha256:edff9083773d5ce89b30e7761327277ca7bfbc3cf2f2ddcd0ec84ff2ecc76a4b",
+      "sizeBytes": 4096,
+      "state": "verified",
+      "verifiedAt": 1795741690935,
+      "servedBytes": 0,
+      "servedTransfers": 0
+     }
+    ],
+    "replacements": []
+   },
+   "valid": false
+  },
+  {
+   "name": "replacement within the cap",
+   "schema": "reploid.weight-supply-replacement/1",
+   "value": {
+    "schema": "reploid.weight-supply-replacement/1",
+    "replacementId": "wsr_fixture",
+    "approvalId": "wsa_6f92dd6d-b85b-4140-8cce-24afc9fcd14e",
+    "recordedAt": 1795741691879,
+    "removed": [
+     {
+      "pieceId": "sha256:63ad4fc50bc4f2e66dcf439c440605b599c111554712adfb1968b050c8dfc2f4",
+      "modelIdentity": "sha256:e6954ed9cce48114b2875996c433c4ada96795c4f7b5401b3ed7578086bbe242",
+      "sizeBytes": 4096,
+      "reason": "well-supplied"
+     }
+    ],
+    "added": [
+     {
+      "pieceId": "sha256:2e9b1026c49aa8ec9091a3aa159d69060e77c1abf84fa54ba2d81aec7df1ee4c",
+      "modelIdentity": "sha256:e6954ed9cce48114b2875996c433c4ada96795c4f7b5401b3ed7578086bbe242",
+      "sizeBytes": 4096
+     }
+    ],
+    "storageCapBytes": 8192,
+    "heldBytesBefore": 8192,
+    "heldBytesAfter": 8192
+   },
+   "valid": true
+  },
+  {
+   "name": "replacement exceeding the cap",
+   "schema": "reploid.weight-supply-replacement/1",
+   "value": {
+    "schema": "reploid.weight-supply-replacement/1",
+    "replacementId": "wsr_fixture",
+    "approvalId": "wsa_6f92dd6d-b85b-4140-8cce-24afc9fcd14e",
+    "recordedAt": 1795741691879,
+    "removed": [
+     {
+      "pieceId": "sha256:63ad4fc50bc4f2e66dcf439c440605b599c111554712adfb1968b050c8dfc2f4",
+      "modelIdentity": "sha256:e6954ed9cce48114b2875996c433c4ada96795c4f7b5401b3ed7578086bbe242",
+      "sizeBytes": 4096,
+      "reason": "well-supplied"
+     }
+    ],
+    "added": [
+     {
+      "pieceId": "sha256:2e9b1026c49aa8ec9091a3aa159d69060e77c1abf84fa54ba2d81aec7df1ee4c",
+      "modelIdentity": "sha256:e6954ed9cce48114b2875996c433c4ada96795c4f7b5401b3ed7578086bbe242",
+      "sizeBytes": 4096
+     }
+    ],
+    "storageCapBytes": 8192,
+    "heldBytesBefore": 8192,
+    "heldBytesAfter": 8193
+   },
+   "valid": false
+  },
+  {
+   "name": "replacement changing nothing",
+   "schema": "reploid.weight-supply-replacement/1",
+   "value": {
+    "schema": "reploid.weight-supply-replacement/1",
+    "replacementId": "wsr_fixture",
+    "approvalId": "wsa_6f92dd6d-b85b-4140-8cce-24afc9fcd14e",
+    "recordedAt": 1795741691879,
+    "removed": [],
+    "added": [],
+    "storageCapBytes": 8192,
+    "heldBytesBefore": 8192,
+    "heldBytesAfter": 8192
+   },
+   "valid": false
+  }
+ ],
+ "pinnedModel": {
+  "input": {
+   "modelId": "fixture-model",
+   "modelIdentity": "sha256:e6954ed9cce48114b2875996c433c4ada96795c4f7b5401b3ed7578086bbe242",
+   "pieceIndexDigest": "sha256:edff9083773d5ce89b30e7761327277ca7bfbc3cf2f2ddcd0ec84ff2ecc76a4b",
+   "index": {
+    "schema": "doppler.verified-pieces/v1",
+    "manifestIdentity": "sha256:e6954ed9cce48114b2875996c433c4ada96795c4f7b5401b3ed7578086bbe242",
+    "maxPieceBytes": 4096,
+    "files": [
+     {
+      "path": "shard_00000.bin",
+      "size": 12288,
+      "pieces": [
+       {
+        "offset": 0,
+        "size": 4096,
+        "identity": "sha256:63ad4fc50bc4f2e66dcf439c440605b599c111554712adfb1968b050c8dfc2f4"
+       },
+       {
+        "offset": 4096,
+        "size": 4096,
+        "identity": "sha256:1b398f8a9a94b4628e392a65858f10bfcbff3b40822244c01c090bcb9dc01032"
+       },
+       {
+        "offset": 8192,
+        "size": 4096,
+        "identity": "sha256:2e9b1026c49aa8ec9091a3aa159d69060e77c1abf84fa54ba2d81aec7df1ee4c"
+       }
+      ]
+     }
+    ]
+   }
+  },
+  "expected": {
+   "modelId": "fixture-model",
+   "modelIdentity": "sha256:e6954ed9cce48114b2875996c433c4ada96795c4f7b5401b3ed7578086bbe242",
+   "pieceIndexDigest": "sha256:edff9083773d5ce89b30e7761327277ca7bfbc3cf2f2ddcd0ec84ff2ecc76a4b",
+   "pieces": [
+    {
+     "pieceId": "sha256:63ad4fc50bc4f2e66dcf439c440605b599c111554712adfb1968b050c8dfc2f4",
+     "path": "shard_00000.bin",
+     "offset": 0,
+     "sizeBytes": 4096
+    },
+    {
+     "pieceId": "sha256:1b398f8a9a94b4628e392a65858f10bfcbff3b40822244c01c090bcb9dc01032",
+     "path": "shard_00000.bin",
+     "offset": 4096,
+     "sizeBytes": 4096
+    },
+    {
+     "pieceId": "sha256:2e9b1026c49aa8ec9091a3aa159d69060e77c1abf84fa54ba2d81aec7df1ee4c",
+     "path": "shard_00000.bin",
+     "offset": 8192,
+     "sizeBytes": 4096
+    }
+   ]
+  }
+ }
+}
