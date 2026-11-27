@@ -17,10 +17,7 @@ import {
 } from '../../../../shared/pool/sequence-workload.js';
 import { LAB_SURFACE_IDS, SURFACE_INTENTS } from '../../../../shared/config/surface-intents.js';
 import { POOLDAY_NAME, ROUTE_COPY, choosePooldayAskPlaceholderForLane } from '../../ui/pool-home/constants.js';
-import {
-  extractOutputText, extractResultSummary, formatErrorResultText, formatResultMessage, isEmbeddingPublicationPermitted, isErrorResult,
-  sequenceOutputFor
-} from '../../ui/pool-home/run-result-format.js';
+import { isErrorResult } from '../../ui/pool-home/run-result-format.js';
 import { compactHash, safeJsonStringify } from '../../ui/pool-home/view-markup.js';
 import { displayPoolError } from '../../ui/pool-home/control-display-text.js';
 import {
@@ -32,34 +29,14 @@ import { participantLabel } from '../../ui/pool-home/computer-labels.js';
 import { bindDiamondRenderer } from '../../ui/components/diamond-renderer.js';
 import { subscribeContributionState } from '../../ui/pool-home/contribution-state.js';
 import { readTextAttachments } from '../../ui/components/attachments.js';
+import {
+  RUN_ACTIVITY_COPY, RUN_STATE_COPY, interruptedRecovery as buildInterruptedRecovery,
+  localConsentRecovery as buildLocalConsentRecovery, missingProviderRecovery as buildMissingProviderRecovery,
+  policyLabel, projectContributionLayer, projectRunResult as projectPeerRunResult
+} from './run-result.js';
 import documentPolicy from '../../pool/document-search-policy.json' with { type: 'json' };
 
 const CONSENT_KEY = 'reploid.pool.sequence-public-consent.v1';
-const RUN_STATE_COPY = Object.freeze({ idle: 'Ready', submitting: 'Preparing request', running: 'Running on the network',
-  complete: 'Answer verified', error: 'Run needs attention', inspecting: 'Inspecting proof' });
-const RUN_ACTIVITY_COPY = Object.freeze({
-  peer_run_intent_created: 'Request signed',
-  peer_provider_discovery_started: 'Finding compatible contributor tabs',
-  peer_assignment_planned: 'Contributor tabs matched',
-  'relay-publish-retrying': 'Retrying relay publish',
-  'relay-poll-failed': 'Relay delayed — retrying',
-  'relay-dispatch-retrying': 'Retrying local message delivery',
-  'relay-dispatch-recovered': 'Message delivery recovered',
-  'relay-circuit-open': 'Relay unavailable — retrying shortly',
-  'relay-circuit-half-open': 'Checking relay recovery',
-  'relay-circuit-closed': 'Relay connection recovered',
-  peer_inference_started: 'Contributor tabs are answering',
-  peer_provider_queued: 'Request queued behind existing contributor work',
-  peer_provider_execution_started: 'Contributor started this request',
-  peer_transport_retrying: 'Retrying through relay transport',
-  peer_receipts_received: 'Checking returned receipts',
-  peer_agreement_verified: 'Agreement verified',
-  peer_run_completed: 'Answer verified',
-  peer_run_failed: 'Run needs attention'
-});
-const POLICY_LABELS = Object.freeze({ fastest_receipt: 'One peer', canary_audited: 'One peer with audit',
-  redundant_agreement: 'Two matching peers', ring_quorum_receipt: 'Peer quorum' });
-const policyLabel = policyId => POLICY_LABELS[policyId] || String(policyId || 'default').replace(/_/g, ' ');
 
 /** What the page shows above the task: its name, its promise and the experiments it links to. */
 export function examplesPageCopy() {
@@ -101,100 +78,43 @@ const describeSelectedRun = ({ policyId, modelId, status = 'finding_peer_provide
   };
 };
 
-const receiptTokenTotal = (record = {}) => {
-  const receipt = record.receipt || record.body?.receipt || record;
-  const counts = receipt.tokenCounts || record.tokenCounts || {};
-  const input = Number(counts.input || 0), output = Number(counts.output || 0);
-  const tokenIds = record.tokenIds || record.body?.tokenIds || receipt.tokenIds || [];
-  const inputCount = Number.isFinite(input) ? input : 0;
-  const fallbackOutput = Array.isArray(tokenIds) ? tokenIds.length : 0;
-  const outputCount = Number.isFinite(output) && output > 0 ? output : fallbackOutput;
-  return inputCount + outputCount;
-};
-
-/** Which contributor tabs were selected, matched, flagged or excluded, under which policy (run-contribution-evidence.js). */
+/** Which contributor tabs were selected, matched, flagged or excluded, under which policy. */
 export function projectContributors(value = {}) {
-  if (value.transport === 'local_capsule') {
-    return { local: true, summary: [['Execution', 'This device'], ['Sharing', 'Unchanged']],
-      note: 'Signed model and local execution receipt verified. No independent contributor comparison.', route: null, excluded: [], rows: [] };
-  }
-  const payloads = Array.isArray(value.receiptPayloads) ? value.receiptPayloads : [];
-  const assignments = Array.isArray(value.assignments) ? value.assignments : [];
-  const agreement = value.agreement || {};
-  const accepted = new Set(agreement.receiptHashes || []);
-  const valid = new Set((agreement.validRecords || []).map(record => record.receiptHash).filter(Boolean));
-  const rejected = new Map((agreement.rejectedRecords || []).map(record => [
-    record.receiptHash || record.receiptPayload?.body?.receiptHash || record.receiptPayload?.fromPeerId || 'unknown', record.reasons || []]));
-  const rows = payloads.map(payload => {
-    const body = payload.body || payload, receipt = body.receipt || {};
-    const hash = body.receiptHash || receipt.receiptHash || '';
-    const providerId = body.providerId || receipt.providerId || payload.fromPeerId || 'unknown';
-    let status = 'flagged';
-    if (accepted.has(hash)) status = 'matched';
-    else if (valid.has(hash)) status = 'returned';
-    return { provider: compactHash(providerId), status,
-      reason: rejected.get(hash)?.join('; ') || null, tokens: String(receiptTokenTotal(body)),
-      output: compactHash(receipt.outputHash || body.outputHash || hash || '—') };
-  });
-  const listed = rows.length ? rows : assignments.map(assignment => ({ provider: compactHash(assignment.providerId || 'unknown'), status: 'selected',
-    reason: null, tokens: '—', output: compactHash(assignment.assignmentId || assignment.jobId || '—') }));
-  const policyId = value.policyId || agreement.policyId || value.assignment?.policyId || 'default';
-  let check = 'not accepted';
-  if (agreement.accepted) check = `${agreement.acceptedProviderCount || accepted.size || 1}/${agreement.requiredAgreement || 1} matched`;
-  else if (value.status === 'finding_peer_provider') check = 'waiting for matching tabs';
-  const shared = assignments.length || value.acceptedSessionCount || rows.length || 0;
-  const decision = value.plan?.routeDecision || value.routeDecision || null;
-  const candidates = Array.isArray(decision?.candidates) ? decision.candidates : [];
-  const selected = candidates.find(candidate => decision.selectedProviderIds?.includes(candidate.providerId));
-  const excluded = candidates.filter(candidate => !candidate.eligible);
+  const layer = projectContributionLayer(value);
   return {
-    local: false,
-    summary: [['Shared', `${shared} contributor tab${shared === 1 ? '' : 's'}`], ['Match', check], ['Policy', policyLabel(policyId)]],
-    note: listed.length ? '' : 'Contributor evidence appears after matching tabs answer.',
-    route: decision ? [['Artifact', String(selected?.artifactSourcePlan || 'provider_loaded_model').replace(/_/g, ' ')],
-      ['Eligible', String(candidates.filter(candidate => candidate.eligible).length)], ['Excluded', String(excluded.length)]] : null,
-    excluded: excluded.map(candidate => `${compactHash(candidate.providerId || 'unknown')}: ${(candidate.rejectionReasons || []).join(', ') || 'not eligible'}`),
-    rows: listed
+    local: layer.local,
+    summary: layer.summary,
+    note: layer.note,
+    route: layer.route,
+    excluded: layer.rejected.map(item => `${item.providerId}: ${item.reasons}`),
+    rows: layer.rows.map(row => ({
+      provider: row.providerId,
+      status: row.status,
+      reason: row.reason === row.status ? null : row.reason,
+      tokens: row.tokens,
+      output: row.output
+    }))
   };
 }
 
-/** A run result as the vanilla result box shows it: summary, embedding outcome, answer text, recovery, proof, raw. */
+/** A run result as the result box shows it: summary, embedding outcome, answer text, recovery, proof, raw. */
 export function projectRunResult(value) {
   if (value === undefined || value === null || value === '') return null;
-  const summary = value && typeof value === 'object' ? extractResultSummary(value)
-    .map(([label, fieldValue]) => [label, label === 'Status' ? String(fieldValue) : compactHash(fieldValue)]) : [];
-  let raw;
-  if (typeof value === 'string') raw = value;
-  else if (isErrorResult(value)) raw = formatErrorResultText(value);
-  else raw = safeJsonStringify(value, { redactSequenceOutput: true }) || String(value);
-  const pooled = value && typeof value === 'object' ? sequenceOutputFor(value)?.pooledEmbedding : null;
-  let embedding = null;
-  if (Array.isArray(pooled) && pooled.length) {
-    const identity = compactHash(value.sequenceResultHash || value.vectorHash || '');
-    const permitted = isEmbeddingPublicationPermitted(value);
-    embedding = {
-      permitted,
-      meta: permitted ? `${pooled.length} dimensions · Result ${identity}`
-        : `${pooled.length} dimensions · Result ${identity} · Raw vector withheld because embedding publication consent was not granted.`,
-      detailMeta: permitted ? `${pooled.length} dimensions · ${identity}` : `${pooled.length} dimensions · ${identity} · Raw vector withheld`,
-      vector: permitted ? safeJsonStringify(pooled) || '[]' : '',
-      withheld: permitted ? '' : 'The raw embedding is withheld because publication consent was not granted.'
-    };
-  }
-  const recovery = value && typeof value === 'object' && value.recovery && (value.recovery.title || value.recovery.message || value.recovery.actions?.length)
-    ? { kind: value.recovery.kind || 'attention', title: value.recovery.title || '', message: value.recovery.message || '',
-      details: (value.recovery.details || []).filter(Boolean),
-      actions: (value.recovery.actions || []).filter(action => action?.id && action?.label)
-        .map(action => ({ id: action.id, label: action.label, primary: action.primary === true, href: action.href || null })) }
-    : null;
+  const projected = projectPeerRunResult(value);
   return {
     error: isErrorResult(value),
-    summary,
-    embedding,
-    output: extractOutputText(value) || formatResultMessage(value),
-    recovery,
+    summary: projected.summary,
+    embedding: projected.embedding ? {
+      permitted: projected.embedding.permitted,
+      meta: projected.embedding.outcomeMeta,
+      detailMeta: projected.embedding.meta,
+      vector: projected.embedding.vector,
+      withheld: projected.embedding.withheld
+    } : null,
+    output: projected.output,
+    recovery: projected.recovery,
     contributors: value && typeof value === 'object' ? projectContributors(value) : null,
-    raw
+    raw: projected.raw
   };
 }
 
@@ -262,29 +182,14 @@ export function createExamplesRun({ storage = null, sessionStorageAvailable = tr
   const notify = () => { if (disposed) return; snapshot = project(); for (const listener of listeners) listener(); };
   const setVisual = (runState, phase = '', message = '') => { state.visual = { state: runState, phase, message: message || RUN_STATE_COPY[runState] || RUN_STATE_COPY.idle }; };
   const inviteUrl = () => createPeerRoomInviteUrl({ roomId: getPeerRoomId(), relay: getPeerRelayMode(), baseUrl: globalThis.location?.href || '' });
-  const modelLabelOf = (contract = {}) => contract.label || contract.name || contract.modelId || 'the selected model';
-  const missingProviderRecovery = request => ({
-    kind: 'provider_missing', title: 'No matching browser is ready',
-    message: `No contributor in "${getPeerRoomId()}" is currently advertising ${modelLabelOf(request.selectedModel)}.${supportsLocalRequest(request) ? ' Run here without sharing compute, or keep searching.' : ' The selected checks require a matching contributor; local execution cannot replace them.'}`,
-    actions: [{ id: 'retry_network', label: 'Keep searching', primary: true },
-      ...(supportsLocalRequest(request) ? [{ id: 'offer_local_provider', label: 'Run on this device' }] : []),
-      { id: 'invite_contributor', label: 'Invite a contributor', href: inviteUrl() }]
+  const missingProviderRecovery = request => buildMissingProviderRecovery({
+    roomId: getPeerRoomId(), model: request.selectedModel, localAllowed: supportsLocalRequest(request), inviteUrl: inviteUrl()
   });
-  const localConsentRecovery = request => ({
-    kind: 'local_provider_consent', title: 'Run on this device?',
-    message: `${modelLabelOf(request.selectedModel)} may need to download before this browser can answer the preserved request.`,
-    details: ['Uses WebGPU and browser storage after a capability check.',
-      'Runs only your request. Does not advertise this tab or change Share compute.',
-      'Verifies the signed model and local execution receipt; does not claim independent peer agreement.'],
-    actions: [{ id: 'confirm_local_provider', label: 'Download and run here', primary: true }, { id: 'back_to_network', label: 'Back' },
-      { id: 'invite_contributor', label: 'Invite a contributor', href: inviteUrl() }]
+  const localConsentRecovery = request => buildLocalConsentRecovery({
+    model: request.selectedModel, inviteUrl: inviteUrl()
   });
-  const interruptedRecovery = request => ({
-    kind: 'request_interrupted', title: 'Previous request was interrupted',
-    message: `This tab reloaded before a verified result arrived from "${getPeerRoomId()}". The request has not been resumed or sent again.`,
-    details: [`The explicitly public protein sequence remains in this browser tab for ${Math.round(POOL_PENDING_REQUEST_TTL_MS / 60000)} minutes.`,
-      'Retry creates a new peer request and a new receipt path.', `Selected model: ${modelLabelOf(request.selectedModel)}.`],
-    actions: [{ id: 'retry_interrupted_request', label: 'Retry request', primary: true }, { id: 'discard_interrupted_request', label: 'Discard' }]
+  const interruptedRecovery = request => buildInterruptedRecovery({
+    roomId: getPeerRoomId(), model: request.selectedModel, ttlMs: POOL_PENDING_REQUEST_TTL_MS
   });
   const requestFromRecord = record => {
     const selectedModel = getEnabledPoolModelContract(record?.selectedModelId);

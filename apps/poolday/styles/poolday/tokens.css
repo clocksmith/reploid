@@ -113,7 +113,6 @@
 
   --pool-surface-primary: linear-gradient(135deg, #38bdf8, #c084fc);
   --pool-surface-backdrop: blur(20px) saturate(180%);
-  --pool-surface-button-ripple: radial-gradient(circle, transparent 38%, rgb(255 255 255 / 25%) 42%, rgb(192 132 252 / 20%) 45%, transparent 49%), radial-gradient(circle at 35% 32%, rgb(255 255 255 / 65%) 0.7%, transparent 1.8%), radial-gradient(circle at 67% 38%, rgb(56 189 248 / 65%) 0.6%, transparent 1.5%), radial-gradient(circle at 56% 69%, rgb(192 132 252 / 60%) 0.8%, transparent 1.8%);
   --pool-surface-ambient-mesh: radial-gradient(ellipse at 12% 8%, rgb(56 189 248 / 7%), transparent 48%), radial-gradient(ellipse at 90% 84%, rgb(168 85 247 / 8%), transparent 52%);
   /* Fine grid and sparse hexagons recede into charcoal; prism light stays peripheral. */
   --pool-surface-page: radial-gradient(ellipse at 50% 32%, transparent 12%, color-mix(in srgb, var(--pool-color-page) 75%, transparent) 100%) fixed, url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='216' height='216' viewBox='0 0 216 216'%3E%3Cpath d='M108 81 131.4 94.5V121.5L108 135 84.6 121.5V94.5Z' fill='none' stroke='%2395abc2' stroke-opacity='.09' stroke-width='.7'/%3E%3C/svg%3E") 0 0 / 216px 216px repeat fixed, radial-gradient(rgb(177 196 215 / 15%) 0.65px, transparent 1px) 0 0 / 18px 18px repeat fixed, var(--pool-surface-ambient-mesh), var(--pool-color-page);

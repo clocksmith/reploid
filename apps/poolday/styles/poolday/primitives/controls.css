@@ -34,13 +34,6 @@
   transition: opacity var(--pool-duration-base) var(--pool-ease-standard);
 }
 .pool-home :is(.pool-button, :where(.btn)):hover:not(:disabled)::before { opacity: 1; }
-.pool-home .pool-button-ripple {
-  position: absolute; pointer-events: none; z-index: -1;
-  width: var(--pool-param-ripple-size); height: var(--pool-param-ripple-size);
-  left: var(--pool-param-ripple-x); top: var(--pool-param-ripple-y);
-  margin-left: calc(-1 * var(--pool-param-ripple-size) / 2); margin-top: calc(-1 * var(--pool-param-ripple-size) / 2);
-  border-radius: 50%; background: var(--pool-surface-button-ripple);
-}
 /* Hover feedback fills the surface without moving the control. */
 .pool-home :is(.pool-button, :where(.btn)):is(:active, [aria-pressed='true'], [aria-current='true'], [aria-expanded='true']):not(:disabled) { box-shadow: var(--pool-shadow-button-pressed); }
 .pool-home details[open] > summary.pool-button { box-shadow: var(--pool-shadow-button-pressed); }
@@ -87,18 +80,8 @@
 /* A square icon button at the touch-target size. */
 .pool-home .pool-button.pool-icon { display: inline-grid; place-items: center; width: var(--pool-size-44); padding: 0; }
 .pool-home :is(.pool-button, :where(.btn)):not(.pool-icon) { text-align: start; }
-@media (max-width: 760px) {
-  .pool-home .pool-button > .pool-nav-label { font-size: var(--pool-text-xs); line-height: var(--pool-leading-tight); text-align: center; }
-}
 .pool-home .pool-button.btn-ghost { background: transparent; box-shadow: none; }
 .pool-home .pool-button.btn-ghost:is([aria-pressed='true'], [aria-current='true']) { background: var(--pool-color-inset); box-shadow: var(--pool-shadow-inset); }
-.pool-choice:has(.pool-choice-mark) { position: relative; }
-.pool-choice:has(.pool-choice-mark) > input[type="radio"] {
-  position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: inherit;
-}
-.pool-choice > .pool-choice-mark { margin-inline-start: auto; flex: none; visibility: hidden; }
-.pool-choice:has(input:checked) > .pool-choice-mark { visibility: visible; }
-.pool-choice[aria-pressed='true'] > .pool-choice-mark { visibility: visible; }
 .pool-home .pool-choice:is(:has(input:checked), [aria-pressed='true']) { background: var(--pool-color-inset); box-shadow: var(--pool-shadow-inset); }
 .pool-home .pool-choice:has(input:focus-visible) { outline: var(--pool-border-thick) solid var(--pool-color-focus); outline-offset: var(--pool-border-thick); }
 /* A field inside another field's material (the composer) carries no material of its own;

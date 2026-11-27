@@ -16,7 +16,7 @@
   "compositions": [],
   "externalCompositions": {
     "server/daily/site/style.css": {
-      "tokenReferences": 15
+      "tokenReferences": 0
     }
   }
 }

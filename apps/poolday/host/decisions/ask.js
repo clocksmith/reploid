@@ -16,34 +16,14 @@ import { describeSelectedRun } from '../../ui/pool-home/route-controls.js';
 import { displayPoolError } from '../../ui/pool-home/control-display-text.js';
 import { getRequesterIdentityNamespace, pageIdentityNavigationType } from '../../ui/pool-home/page-identity.js';
 import { addReceiptLedgerRow, latestAcceptedReceipt, recordPeerLedgerEvents } from './run-ledger.js';
-import { projectRunResult } from './run-result.js';
+import {
+  RUN_ACTIVITY_COPY, RUN_STATE_COPY, interruptedRecovery as buildInterruptedRecovery,
+  localConsentRecovery as buildLocalConsentRecovery, missingProviderRecovery as buildMissingProviderRecovery, projectRunResult
+} from './run-result.js';
 import { DEFAULT_MODEL_ID, canRequestWith, modelChoices, packFacts, policyChoices, readDeviceIdentity, workloadLabel } from './run-routes.js';
 
-const RUN_ACTIVITY_COPY = Object.freeze({
-  peer_run_intent_created: 'Request signed',
-  peer_provider_discovery_started: 'Finding compatible contributor tabs',
-  peer_assignment_planned: 'Contributor tabs matched',
-  'relay-publish-retrying': 'Retrying relay publish',
-  'relay-poll-failed': 'Relay delayed — retrying',
-  'relay-dispatch-retrying': 'Retrying local message delivery',
-  'relay-dispatch-recovered': 'Message delivery recovered',
-  'relay-circuit-open': 'Relay unavailable — retrying shortly',
-  'relay-circuit-half-open': 'Checking relay recovery',
-  'relay-circuit-closed': 'Relay connection recovered',
-  peer_inference_started: 'Contributor tabs are answering',
-  peer_provider_queued: 'Request queued behind existing contributor work',
-  peer_provider_execution_started: 'Contributor started this request',
-  peer_transport_retrying: 'Retrying through relay transport',
-  peer_receipts_received: 'Checking returned receipts',
-  peer_agreement_verified: 'Agreement verified',
-  peer_run_completed: 'Answer verified',
-  peer_run_failed: 'Run needs attention'
-});
 /** The room this page runs in, its relay and where its saved answers are listed. */
 export const roomContext = () => ({ id: getPeerRoomId(), relay: getPeerRelayMode(), recordsHref: `/records?${new URLSearchParams({ room: getPeerRoomId() })}` });
-
-const RUN_STATE_COPY = Object.freeze({ idle: 'Ready', submitting: 'Preparing request', running: 'Running on the network', complete: 'Answer verified',
-  error: 'Run needs attention', inspecting: 'Inspecting proof' });
 
 // The remembered consent to send a public sequence (ui/pool-home/sequence-consent.js) and the bounded recovery of an
 // interrupted request (pending-request-recovery.js): the same keys and limits, so either page reads the other's record.
@@ -85,30 +65,14 @@ export function createAskController({ local = globalThis.localStorage, session =
   const inviteUrl = () => createPeerRoomInviteUrl({ roomId: getPeerRoomId(), relay: getPeerRelayMode(), baseUrl: href() });
   const runSession = createPeerRunSession({ identityNamespace: getRequesterIdentityNamespace() });
   const { requesterIdentity } = runSession;
-  const modelLabelOf = (model = {}) => model.label || model.name || model.modelId || 'the selected model';
-
-  const missingProviderRecovery = request => ({
-    kind: 'provider_missing', title: 'No matching browser is ready',
-    message: `No contributor in "${getPeerRoomId()}" is currently advertising ${modelLabelOf(request.selectedModel)}.${supportsLocalRequest(request) ? ' Run here without sharing compute, or keep searching.' : ' The selected checks require a matching contributor; local execution cannot replace them.'}`,
-    actions: [{ id: 'retry_network', label: 'Keep searching', primary: true },
-      ...(supportsLocalRequest(request) ? [{ id: 'offer_local_provider', label: 'Run on this device' }] : []),
-      { id: 'invite_contributor', label: 'Invite a contributor', href: inviteUrl() }]
+  const missingProviderRecovery = request => buildMissingProviderRecovery({
+    roomId: getPeerRoomId(), model: request.selectedModel, localAllowed: supportsLocalRequest(request), inviteUrl: inviteUrl()
   });
-  const localConsentRecovery = request => ({
-    kind: 'local_provider_consent', title: 'Run on this device?',
-    message: `${modelLabelOf(request.selectedModel)} may need to download before this browser can answer the preserved request.`,
-    details: ['Uses WebGPU and browser storage after a capability check.',
-      'Runs only your request. Does not advertise this tab or change Share compute.',
-      'Verifies the signed model and local execution receipt; does not claim independent peer agreement.'],
-    actions: [{ id: 'confirm_local_provider', label: 'Download and run here', primary: true }, { id: 'back_to_network', label: 'Back' },
-      { id: 'invite_contributor', label: 'Invite a contributor', href: inviteUrl() }]
+  const localConsentRecovery = request => buildLocalConsentRecovery({
+    model: request.selectedModel, inviteUrl: inviteUrl()
   });
-  const interruptedRecovery = request => ({
-    kind: 'request_interrupted', title: 'Previous request was interrupted',
-    message: `This tab reloaded before a verified result arrived from "${getPeerRoomId()}". The request has not been resumed or sent again.`,
-    details: [`The explicitly public protein sequence remains in this browser tab for ${Math.round(PENDING_REQUEST_TTL_MS / 60000)} minutes.`,
-      'Retry creates a new peer request and a new receipt path.', `Selected model: ${modelLabelOf(request.selectedModel)}.`],
-    actions: [{ id: 'retry_interrupted_request', label: 'Retry request', primary: true }, { id: 'discard_interrupted_request', label: 'Discard' }]
+  const interruptedRecovery = request => buildInterruptedRecovery({
+    roomId: getPeerRoomId(), model: request.selectedModel, ttlMs: PENDING_REQUEST_TTL_MS
   });
 
   const sequenceRequestFor = model => ({ workload: getPoolModelWorkload(model), alphabet: model.sequence?.alphabet || SEQUENCE_ALPHABETS.aminoAcid,

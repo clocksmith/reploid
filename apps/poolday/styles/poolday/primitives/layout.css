@@ -78,3 +78,14 @@
   .pool-home .pool-sidebar-nav .pool-nav-list-nested { display: none; }
   .pool-home .pool-sidebar-nav .pool-nav-item[data-contains-current] { background: var(--pool-color-inset); box-shadow: var(--pool-shadow-inset); }
 }
+
+/* Single-column page shell primitives (used by standalone Poolday surfaces such as Daily). */
+.pool-home .pool-page-header { max-width: var(--pool-size-1280); margin-inline: auto; padding: var(--pool-size-16) var(--pool-space-page-gutter); }
+.pool-home .pool-page-main { width: min(calc(100% - var(--pool-size-32)), var(--pool-size-640)); margin: clamp(var(--pool-size-24), 10vh, var(--pool-size-96)) auto var(--pool-size-32); }
+.pool-home .pool-page-dialog { width: min(calc(100% - var(--pool-size-32)), var(--pool-size-480)); max-height: 85svh; margin: auto; overflow: auto; }
+.pool-home .pool-ordered-list { padding-inline-start: var(--pool-size-24); }
+.pool-home .pool-disclosure-padded > :not(summary) { padding: var(--pool-size-16); }
+@media (max-width: 760px) {
+  .pool-home .pool-page-header { padding: var(--pool-size-8) var(--pool-size-16); }
+  .pool-home .pool-page-main { margin-block-start: var(--pool-size-24); }
+}

@@ -23,6 +23,80 @@ const receiptTokenTotal = (record = {}) => {
 const POLICY_LABELS = { fastest_receipt: 'One peer', canary_audited: 'One peer with audit', redundant_agreement: 'Two matching peers', ring_quorum_receipt: 'Peer quorum' };
 export const policyLabel = policyId => POLICY_LABELS[policyId] || String(policyId || 'default').replace(/_/g, ' ');
 
+export const RUN_STATE_COPY = Object.freeze({
+  idle: 'Ready',
+  submitting: 'Preparing request',
+  running: 'Running on the network',
+  complete: 'Answer verified',
+  error: 'Run needs attention',
+  inspecting: 'Inspecting proof'
+});
+
+export const RUN_ACTIVITY_COPY = Object.freeze({
+  peer_run_intent_created: 'Request signed',
+  peer_provider_discovery_started: 'Finding compatible contributor tabs',
+  peer_assignment_planned: 'Contributor tabs matched',
+  'relay-publish-retrying': 'Retrying relay publish',
+  'relay-poll-failed': 'Relay delayed — retrying',
+  'relay-dispatch-retrying': 'Retrying local message delivery',
+  'relay-dispatch-recovered': 'Message delivery recovered',
+  'relay-circuit-open': 'Relay unavailable — retrying shortly',
+  'relay-circuit-half-open': 'Checking relay recovery',
+  'relay-circuit-closed': 'Relay connection recovered',
+  peer_inference_started: 'Contributor tabs are answering',
+  peer_provider_queued: 'Request queued behind existing contributor work',
+  peer_provider_execution_started: 'Contributor started this request',
+  peer_transport_retrying: 'Retrying through relay transport',
+  peer_receipts_received: 'Checking returned receipts',
+  peer_agreement_verified: 'Agreement verified',
+  peer_run_completed: 'Answer verified',
+  peer_run_failed: 'Run needs attention'
+});
+
+const modelLabelOf = (model = {}) => model.label || model.name || model.modelId || 'the selected model';
+
+export const missingProviderRecovery = ({ roomId, model, localAllowed, inviteUrl }) => ({
+  kind: 'provider_missing',
+  title: 'No matching browser is ready',
+  message: `No contributor in "${roomId}" is currently advertising ${modelLabelOf(model)}.${localAllowed ? ' Run here without sharing compute, or keep searching.' : ' The selected checks require a matching contributor; local execution cannot replace them.'}`,
+  actions: [
+    { id: 'retry_network', label: 'Keep searching', primary: true },
+    ...(localAllowed ? [{ id: 'offer_local_provider', label: 'Run on this device' }] : []),
+    { id: 'invite_contributor', label: 'Invite a contributor', href: inviteUrl }
+  ]
+});
+
+export const localConsentRecovery = ({ model, inviteUrl }) => ({
+  kind: 'local_provider_consent',
+  title: 'Run on this device?',
+  message: `${modelLabelOf(model)} may need to download before this browser can answer the preserved request.`,
+  details: [
+    'Uses WebGPU and browser storage after a capability check.',
+    'Runs only your request. Does not advertise this tab or change Share compute.',
+    'Verifies the signed model and local execution receipt; does not claim independent peer agreement.'
+  ],
+  actions: [
+    { id: 'confirm_local_provider', label: 'Download and run here', primary: true },
+    { id: 'back_to_network', label: 'Back' },
+    { id: 'invite_contributor', label: 'Invite a contributor', href: inviteUrl }
+  ]
+});
+
+export const interruptedRecovery = ({ roomId, model, ttlMs }) => ({
+  kind: 'request_interrupted',
+  title: 'Previous request was interrupted',
+  message: `This tab reloaded before a verified result arrived from "${roomId}". The request has not been resumed or sent again.`,
+  details: [
+    `The explicitly public protein sequence remains in this browser tab for ${Math.round(ttlMs / 60000)} minutes.`,
+    'Retry creates a new peer request and a new receipt path.',
+    `Selected model: ${modelLabelOf(model)}.`
+  ],
+  actions: [
+    { id: 'retry_interrupted_request', label: 'Retry request', primary: true },
+    { id: 'discard_interrupted_request', label: 'Discard' }
+  ]
+});
+
 /** Which contributor tabs were selected, matched, flagged or excluded, under which policy. */
 export function projectContributionLayer(value = {}) {
   if (value.transport === 'local_capsule') {

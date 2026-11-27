@@ -86,7 +86,6 @@
 .pool-home :is(.pool-option, .pool-toggle-row, .pool-action-row):has(> .pool-icon-box:first-child) {
   grid-template-columns: var(--pool-size-24) minmax(0, 1fr) auto;
 }
-.pool-home :is(.pool-option, .pool-toggle-row, .pool-action-row).pool-row-flush { padding-inline: 0; }
 
 /* Choice lists. The native input is the control; the row is its target and its look. */
 /* Named for assistive technology only; takes no space. */
