@@ -1,12 +1,13 @@
 /* Workspace primitives: the application frame of the product routes.
    pool-workspace        a frame one visual viewport tall (--pool-param-workspace-height); data-compact while it is short
-   pool-workspace-bar    vertical navigation rail pinned on the start edge on desktop; floating button + menu on mobile
-   pool-bar-button       a destination in the rail: stacked icon and compact label
-   pool-drawer           a side panel over the page margin (pool-drawer-start, pool-drawer-end), heading then a scrolling body
-   pool-workspace-main   the main column; it never moves when a drawer opens */
+   pool-workspace-bar    expandable vertical navigation rail on desktop; floating button + left-to-right menu on mobile
+   pool-bar-button       a destination in the rail: pinned icon with label that expands left to right
+   pool-drawer           a side panel expanding left to right from the rail, heading then a scrolling body
+   pool-workspace-main   the main column; it never moves when the rail expands or a drawer opens */
 .pool-home .pool-workspace {
   --pool-param-workspace-gutter: var(--pool-size-16);
-  --pool-param-rail-width: var(--pool-size-80);
+  --pool-param-rail-width: var(--pool-size-64);
+  --pool-param-rail-expanded: var(--pool-size-160);
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
@@ -24,7 +25,7 @@
   inset-block: var(--pool-param-workspace-gutter);
   inset-inline-start: var(--pool-param-workspace-gutter);
   inset-inline-end: auto;
-  z-index: 8;
+  z-index: calc(var(--pool-z-overlay) + 1);
   display: flex;
   flex-direction: column;
   align-items: stretch;
@@ -32,7 +33,12 @@
   gap: var(--pool-size-8);
   inline-size: var(--pool-param-rail-width);
   min-inline-size: 0;
-  padding: var(--pool-size-8) var(--pool-size-4);
+  padding: var(--pool-size-8) var(--pool-size-8);
+  overflow: hidden;
+  transition: inline-size var(--pool-duration-fast) var(--pool-ease-emphasis);
+}
+.pool-home .pool-workspace-bar:is(:hover, :focus-within, [data-rail-open]) {
+  inline-size: var(--pool-param-rail-expanded);
 }
 .pool-home .pool-rail-toggle { display: none; }
 .pool-home .pool-workspace-bar-items {
@@ -59,24 +65,43 @@
 }
 .pool-home .pool-bar-button {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  justify-content: center;
-  gap: var(--pool-size-4);
-  block-size: auto;
-  min-block-size: var(--pool-size-48);
+  justify-content: flex-start;
+  gap: var(--pool-size-12);
+  block-size: var(--pool-size-44);
+  min-block-size: var(--pool-size-44);
   min-inline-size: var(--pool-size-44);
   margin: 0;
-  padding: var(--pool-size-8) var(--pool-size-4);
-  font-size: var(--pool-text-xs);
-  text-align: center;
-  white-space: normal;
-  overflow-wrap: anywhere;
+  padding: 0 var(--pool-size-12);
+  font-size: var(--pool-text-sm);
+  text-align: start;
+  white-space: nowrap;
+  overflow: hidden;
 }
-.pool-home .pool-bar-label { display: inline; line-height: var(--pool-leading-tight); }
+.pool-home .pool-bar-button > .pool-icon-box,
+.pool-home .pool-bar-button > .pool-mark { flex: none; }
+.pool-home .pool-bar-label {
+  display: inline-block;
+  max-inline-size: 0;
+  opacity: 0;
+  overflow: hidden;
+  line-height: var(--pool-leading-tight);
+  transform: translateX(calc(-1 * var(--pool-size-4)));
+  transition:
+    opacity var(--pool-duration-fast) var(--pool-ease-emphasis),
+    max-inline-size var(--pool-duration-fast) var(--pool-ease-emphasis),
+    transform var(--pool-duration-fast) var(--pool-ease-emphasis);
+}
+.pool-home .pool-workspace-bar:is(:hover, :focus-within, [data-rail-open]) .pool-bar-label {
+  max-inline-size: var(--pool-size-128);
+  opacity: 1;
+  transform: translateX(0);
+}
 .pool-home .pool-drawer {
   position: fixed;
   inset-block: var(--pool-param-workspace-gutter);
+  inset-inline-start: calc(var(--pool-param-rail-width) + var(--pool-param-workspace-gutter) * 2);
   z-index: var(--pool-z-overlay);
   display: flex;
   flex-direction: column;
@@ -86,14 +111,17 @@
   margin: 0;
   padding: var(--pool-size-16);
   overflow: hidden;
+  transform-origin: left center;
 }
 .pool-home .pool-drawer-start {
-  inset-inline-start: calc(var(--pool-param-rail-width) + var(--pool-param-workspace-gutter) * 2);
   inline-size: min(var(--pool-size-320), calc(100vw - var(--pool-param-rail-width) - var(--pool-size-48)));
 }
 .pool-home .pool-drawer-end {
-  inset-inline-end: var(--pool-param-workspace-gutter);
   inline-size: min(var(--pool-size-360), calc(100vw - var(--pool-param-rail-width) - var(--pool-size-48)));
+}
+.pool-home .pool-workspace[data-start-open] > .pool-drawer-end {
+  inset-inline-start: calc(var(--pool-param-rail-width) + var(--pool-size-320) + var(--pool-param-workspace-gutter) * 3);
+  inline-size: min(var(--pool-size-360), calc(100vw - var(--pool-param-rail-width) - var(--pool-size-320) - var(--pool-size-64)));
 }
 .pool-home .pool-drawer-header { display: flex; flex: none; align-items: center; justify-content: space-between; gap: var(--pool-size-8); }
 .pool-home .pool-drawer-header > h2 { margin: 0; }
@@ -123,6 +151,10 @@
     inline-size: auto;
     padding: var(--pool-size-4);
     border-radius: var(--pool-radius-pill);
+    transform-origin: left top;
+  }
+  .pool-home .pool-workspace-bar:is(:hover, :focus-within):not([data-rail-open]) {
+    inline-size: auto;
   }
   .pool-home .pool-rail-toggle {
     display: inline-flex;
@@ -134,23 +166,21 @@
   .pool-home .pool-workspace-bar[data-rail-open] {
     border-radius: var(--pool-radius-panel);
     padding: var(--pool-size-8);
-    min-inline-size: var(--pool-size-160);
+    inline-size: var(--pool-param-rail-expanded);
+    animation: pool-expand-ltr var(--pool-duration-fast) var(--pool-ease-emphasis);
   }
   .pool-home .pool-workspace-bar[data-rail-open] .pool-workspace-bar-items {
     display: flex;
     flex-direction: column;
     gap: var(--pool-size-4);
   }
-  .pool-home .pool-bar-button {
-    flex-direction: row;
-    justify-content: flex-start;
-    gap: var(--pool-size-8);
-    min-block-size: var(--pool-size-44);
-    padding: var(--pool-size-8) var(--pool-size-12);
-    font-size: var(--pool-text-sm);
-    text-align: start;
+  .pool-home .pool-workspace-bar[data-rail-open] .pool-bar-label {
+    max-inline-size: var(--pool-size-128);
+    opacity: 1;
+    transform: translateX(0);
   }
-  .pool-home .pool-drawer {
+  .pool-home .pool-drawer,
+  .pool-home .pool-workspace[data-start-open] > .pool-drawer-end {
     inset-block: max(var(--pool-size-8), env(safe-area-inset-top)) max(var(--pool-size-8), env(safe-area-inset-bottom));
     inset-inline: max(var(--pool-param-workspace-gutter), env(safe-area-inset-left)) max(var(--pool-param-workspace-gutter), env(safe-area-inset-right));
     inline-size: auto;
@@ -160,17 +190,24 @@
 .pool-home:has(> .pool-workspace) { padding: 0; gap: 0; min-block-size: 0; }
 /* Buttons that carry an icon box keep the icon and the label on one centre line. */
 .pool-home .pool-button:has(> .pool-icon-box) { display: inline-flex; align-items: center; justify-content: center; gap: var(--pool-size-8); }
+.pool-home .pool-bar-button.pool-button:has(> .pool-icon-box) { justify-content: flex-start; }
 /* For anyone who prefers reduced motion, the rail and the drawers change state without any transition. */
 @media (prefers-reduced-motion: reduce) {
-  .pool-home :is(.pool-bar-button, .pool-drawer) { transition: none !important; animation: none !important; }
+  .pool-home :is(.pool-workspace-bar, .pool-bar-button, .pool-bar-label, .pool-drawer) { transition: none !important; animation: none !important; }
 }
 /* A page's main column scrolls (pool-workspace-scroll); pool-bar-brand is the product mark linking home. */
 .pool-home .pool-workspace-scroll { display: block; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; }
 .pool-home .pool-workspace-scroll > * { inline-size: min(100%, var(--pool-size-1120)); margin-inline: auto; }
-.pool-home .pool-bar-brand { gap: var(--pool-size-4); }
-/* Drawers open from their own side, mirrored (the 7 to the 7 transition), as a reveal that never moves their box;
-   reduced motion turns it off above. */
-.pool-home .pool-drawer-start:not([hidden]) { animation: pool-drawer-in-start var(--pool-duration-slow) var(--pool-ease-emphasis); }
-.pool-home .pool-drawer-end:not([hidden]) { animation: pool-drawer-in-end var(--pool-duration-slow) var(--pool-ease-emphasis); }
-@keyframes pool-drawer-in-start { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0); } }
-@keyframes pool-drawer-in-end { from { clip-path: inset(0 0 0 100%); } to { clip-path: inset(0); } }
+.pool-home .pool-bar-brand { gap: var(--pool-size-12); }
+/* All drawers and the mobile rail expand smoothly and snappily from left to right; reduced motion turns it off above. */
+.pool-home .pool-drawer:not([hidden]) { animation: pool-expand-ltr var(--pool-duration-fast) var(--pool-ease-emphasis); }
+@keyframes pool-expand-ltr {
+  from {
+    opacity: 0;
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    opacity: 1;
+    clip-path: inset(0);
+  }
+}
