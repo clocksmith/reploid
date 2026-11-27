@@ -169,8 +169,11 @@ export type WeightSupplyView = {
   readonly capOptions: ReadonlyArray<StorageCapOption>;
   /** The largest cap option: the upper bound sent when asking for a recommendation. */
   readonly queryCapBytes: number;
+  readonly verifiedBytes: number;
   readonly verified: string;
   readonly served: string;
+  /** Served-transfer records (reploid.weight-transfer/1): each piece this computer sent, to which consumer connection. */
+  readonly transfers: ReadonlyArray<{ readonly id: string; readonly pieceId: string; readonly deliveredBytes: number; readonly consumer: string }>;
   readonly servedTransfers: number;
   readonly acquisition: { readonly queuedPieces: number; readonly acquiringPieces: number; readonly failedPieces: number; readonly pending: string };
   readonly busy: boolean;

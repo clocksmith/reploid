@@ -107,11 +107,16 @@ it('asks once on opening with the largest cap as the upper bound, and approves o
 });
 
 it('restores an approval without asking, and pauses weight supply without touching Answer requests', async () => {
-  const { session, commands } = fakeSession({ ...idle(), approval: { storageCapBytes: 256 * MIB, expiresAt: Date.now() + 86400000 } });
+  const pieceId = `sha256:${'c'.repeat(64)}`;
+  const { session, commands } = fakeSession({ ...idle(), approval: { storageCapBytes: 256 * MIB, expiresAt: Date.now() + 86400000 },
+    verifiedBytes: 4 * MIB, transfers: [{ transferId: 't1', pieceId, deliveredBytes: 4 * MIB, roles: { consumer: { connectionId: 'consumer-1' } } }] });
   const { query } = mount(session);
   await openSection();
   expect(query('[data-weight-supply]')?.dataset.weightSupplyState).toBe('approved');
+  expect(query('[data-weight-supply]')?.dataset.weightSupplyVerifiedBytes).toBe(String(4 * MIB));
   expect(commands.recommendWeightSupply).not.toHaveBeenCalled();
+  // Each served-transfer record names the piece, the bytes delivered and the consumer's connection.
+  expect(query('[data-weight-supply-transfer="t1"]')?.dataset).toMatchObject({ piece: pieceId, deliveredBytes: String(4 * MIB), consumer: 'consumer-1' });
 
   await userEvent.click(query('[data-weight-supply-pause]')!);
   expect(commands.pauseWeightSupply).toHaveBeenCalledTimes(1);

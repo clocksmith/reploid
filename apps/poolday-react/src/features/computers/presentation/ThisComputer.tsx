@@ -206,7 +206,8 @@ function WeightSupply({ view, services, open }: { readonly view: WeightSupplyVie
   else if (view.noOffer) state = 'no-offer';
   const when = (at: number) => new Date(at).toLocaleString();
   return (
-    <Stack gap="sm" data={{ 'data-weight-supply': true, 'data-weight-supply-state': state, 'data-weight-supply-paused': view.paused ? 'true' : 'false' }}>
+    <Stack gap="sm" data={{ 'data-weight-supply': true, 'data-weight-supply-state': state, 'data-weight-supply-paused': view.paused ? 'true' : 'false',
+      'data-weight-supply-verified-bytes': String(view.verifiedBytes) }}>
       <Text variant="label">{w.title}</Text>
       <Text variant="caption" muted>
         {w.help}
@@ -253,6 +254,18 @@ function WeightSupply({ view, services, open }: { readonly view: WeightSupplyVie
             <StatusLine id="weight-supply-approve-reason">{chosen ? '' : w.approveFirst}</StatusLine>
           </Row>
         </Stack>
+      )}
+      {view.transfers.length > 0 && (
+        <Disclosure quiet summary={w.transfers} status={String(view.transfers.length)} data={{ 'data-weight-supply-transfers': true }}>
+          <Stack gap="xs">
+            {view.transfers.map((row) => (
+              <Text key={row.id} variant="caption" muted
+                data={{ 'data-weight-supply-transfer': row.id, 'data-piece': row.pieceId, 'data-delivered-bytes': String(row.deliveredBytes), 'data-consumer': row.consumer }}>
+                {`${row.pieceId.slice(7, 19)} · ${row.deliveredBytes} B · ${row.consumer}`}
+              </Text>
+            ))}
+          </Stack>
+        </Disclosure>
       )}
       {state === 'no-offer' && (
         <Text variant="small" muted data={{ 'data-weight-supply-no-offer': view.noOffer ?? '' }}>

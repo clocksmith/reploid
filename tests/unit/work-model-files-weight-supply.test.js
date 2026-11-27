@@ -9,13 +9,17 @@
 import { readFileSync } from 'node:fs';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 
-const ports = vi.hoisted(() => ({ exchange: vi.fn() }));
+const ports = vi.hoisted(() => ({ exchange: vi.fn(), budget: null }));
 vi.mock('../../shared/vendor/reploid/artifacts/custody/exchange.js', () => ({ createCustodyExchange: ports.exchange }));
 vi.mock('../../apps/poolday/infrastructure/pack-transfer-storage.js', () => ({
   openPeerPackFileCheckpoints: async () => ({ close() {}, getStats: async () => ({ storedBytes: 0 }), deleteChunk: async () => {} }) }));
 vi.mock('../../apps/poolday/infrastructure/custody-supply-budget.js', () => ({
   openBrowserSupplyBudget: async ({ maxBytes }) => ({ getState: () => ({ maxBytes, reservedBytes: 0 }), reserve: async () => ({ maxBytes, reservedBytes: 0 }), close() {} }),
-  openBrowserAcquisitionBudget: async () => { throw Object.assign(new Error('none'), { code: 'CUSTODY_BUDGET_MISSING' }); } }));
+  openBrowserAcquisitionBudget: async ({ maxBytes }) => {
+    if (!ports.budget) throw Object.assign(new Error('none'), { code: 'CUSTODY_BUDGET_MISSING' });
+    return ports.budget(maxBytes);
+  } }));
+vi.mock('/vendor/doppler/0.2.0/src/partitions.js', () => ({ createVerifiedPieceStorage: async () => ({ storage: { close: async () => {} } }) }));
 
 import { createWorkModelFiles } from '../../apps/poolday/host/work-model-files.js';
 import { LOCAL_DOPPLER_MODELS } from '../../shared/config/doppler-local-models.js';
@@ -35,6 +39,7 @@ beforeEach(() => {
   vi.stubGlobal('REPLOID_DOPPLER_STORAGE_MODULE_URL', new URL('../fixtures/doppler-storage-stub.js', import.meta.url).href);
   vi.stubGlobal('location', { href: 'https://replo.id/' });
   ports.exchange.mockReset();
+  ports.budget = null;
   ports.exchange.mockImplementation(options => {
     captured = options;
     let sharing = false, offered = [];
@@ -113,6 +118,30 @@ it('announces the pieces of a weights file as demand while this device\'s own lo
   expect(exchange.demand[0]).toEqual(expected);
   release();
   await loading;
+  expect(exchange.demand.at(-1)).toEqual([]);
+  await files.close();
+});
+
+it('announces the piece a download within a limit is fetching as demand, and withdraws it when the fetch ends', async () => {
+  const shard = index.files[0], piece = shard.pieces[0];
+  const manifest = MODEL.source.files.find(file => file.role === 'model-manifest');
+  const manifestBytes = readFileSync(new URL(`../../shared/config/model-manifests/${manifest.hash}.json`, import.meta.url));
+  let reserved = 0;
+  // The approved allowance also pays for the manifest and piece index this fresh profile reads first: exactly one piece fits.
+  const maxBytes = manifest.sizeBytes + INDEX.sizeBytes + piece.size;
+  ports.budget = () => ({ getState: () => ({ maxBytes, reservedBytes: reserved }),
+    reserve: async bytes => { reserved += bytes; return { maxBytes, reservedBytes: reserved }; }, close() {} });
+  let release;
+  const gate = new Promise(resolve => { release = resolve; });
+  const fetchImpl = origin({ [new URL(manifest.url, 'https://replo.id/').href]: manifestBytes, [new URL(INDEX.url, 'https://replo.id/').href]: indexBytes,
+    // The catalog origin holds the piece's range until the test releases it, then refuses it.
+    [new URL(shard.path, MODEL.source.baseUrl).href]: async () => { await gate; return new Response(null, { status: 503 }); } });
+  const files = createWorkModelFiles({ getTransport: () => transport, fetchImpl });
+  await files.attach();
+  const sharing = files.share(MODEL, true, { mode: 'bounded-acquisition', downloadBytes: maxBytes });
+  await vi.waitFor(() => expect(exchange.demand.at(-1)).toEqual([piece.identity.slice(7)]));
+  release();
+  await expect(sharing).rejects.toThrow(/HTTP 503/);
   expect(exchange.demand.at(-1)).toEqual([]);
   await files.close();
 });

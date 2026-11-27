@@ -605,11 +605,15 @@ export function createWorkModelFiles({ getTransport, getIdentity = () => null, o
                   const state = await acquisitionBudget.reserve(0);
                   if (piece.size > state.maxBytes - state.reservedBytes) continue;
                   pinned.add(fileKey(saved));
-                  if (exchange.has(saved)) bytes = await exchange.acquire(saved, { signal, reserveDownload });
-                  else if (exchange.has(source)) bytes = await exchange.acquire(source, { signal, reserveDownload,
-                    range: { offset: piece.offset, size: piece.size, identity: piece.identity } });
-                  else bytes = await origin({ ...saved, url: source.url }, signal, onProgress, reserveDownload,
-                    { offset: piece.offset, total: source.sizeBytes });
+                  // The piece being fetched is announced to peers as demand meanwhile, as partition fetches announce theirs.
+                  announceDemand([saved], 1);
+                  try {
+                    if (exchange.has(saved)) bytes = await exchange.acquire(saved, { signal, reserveDownload });
+                    else if (exchange.has(source)) bytes = await exchange.acquire(source, { signal, reserveDownload,
+                      range: { offset: piece.offset, size: piece.size, identity: piece.identity } });
+                    else bytes = await origin({ ...saved, url: source.url }, signal, onProgress, reserveDownload,
+                      { offset: piece.offset, total: source.sizeBytes });
+                  } finally { announceDemand([saved], -1); }
                   await check(saved, bytes); signal.throwIfAborted(); await persist(saved, bytes, signal);
                 }
                 if (bytes) add(saved);

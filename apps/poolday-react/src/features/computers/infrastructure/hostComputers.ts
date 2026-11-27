@@ -27,6 +27,8 @@ type WeightSupplyState = {
   readonly servedBytes: number;
   readonly servedTransfers: number;
   readonly acquisition: { readonly queuedPieces: number; readonly acquiringPieces: number; readonly failedPieces: number; readonly pendingBytes: number };
+  readonly transfers?: ReadonlyArray<{ readonly transferId: string; readonly pieceId: string; readonly deliveredBytes: number;
+    readonly roles?: { readonly consumer?: { readonly connectionId?: string | null } } }>;
   readonly error: string | null;
 };
 type State = Record<string, unknown> & {
@@ -163,7 +165,10 @@ function weightSupplyView(state: WeightSupplyState, busy: boolean, error: string
     paused: state.paused,
     capOptions: STORAGE_CAP_OPTIONS.map((bytes) => ({ bytes, label: bytesText(bytes), disabled: !offer || bytes < downloadBytes })),
     queryCapBytes: QUERY_CAP_BYTES,
+    verifiedBytes: state.verifiedBytes,
     verified: bytesText(state.verifiedBytes),
+    transfers: (state.transfers ?? []).map((row) => ({ id: row.transferId, pieceId: row.pieceId, deliveredBytes: row.deliveredBytes,
+      consumer: row.roles?.consumer?.connectionId ?? '' })),
     served: bytesText(state.servedBytes),
     servedTransfers: state.servedTransfers,
     acquisition: { queuedPieces: state.acquisition.queuedPieces, acquiringPieces: state.acquisition.acquiringPieces,

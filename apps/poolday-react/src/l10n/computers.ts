@@ -161,7 +161,7 @@ export const computers = {
     approvalExpires: 'OWNER: Approval expires',
     verified: 'OWNER: Verified',
     served: 'OWNER: Served',
-    transfers: 'OWNER: Transfers',
+    transfers: 'OWNER: Served transfers',
     queued: 'OWNER: Queued pieces',
     acquiring: 'OWNER: Downloading pieces',
     failed: 'OWNER: Failed pieces',
