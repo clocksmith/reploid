@@ -450,8 +450,8 @@
     },
     {
       "path": "artifacts/custody/supply-budget.js",
-      "bytes": 1429,
-      "sha256": "9b59ab5aacbf1f55e3188d0c7fdfdd24c752df92f7140e43e675eaecd0f62a64"
+      "bytes": 1972,
+      "sha256": "47d0cf00c52622cc1530ed9c99b80805188d6a2c3ee3a2352a43839d00257d5d"
     },
     {
       "path": "artifacts/custody/weight-supply.d.ts",

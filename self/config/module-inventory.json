@@ -906,7 +906,7 @@
     {
       "path": "infrastructure/custody-supply-budget.js",
       "owner": "infrastructure",
-      "sha256": "sha256:ef0de15e5f4cf281db3504748405a4a755e1d466815a4834f58e4c7016961c05",
+      "sha256": "sha256:02ea0a11e9f010ff2ca5110fc2a29ff390830d5c801a144eabfec51a25a5343e",
       "imports": [
         "../vendor/reploid/artifacts/custody/supply-budget.js"
       ]
@@ -3852,7 +3852,7 @@
     {
       "path": "self/host/work-model-files.js",
       "owner": "self",
-      "sha256": "sha256:6f7e5178b4f1da06f79b9219a894a10cadc51490108420c245b557e7cb2764b8",
+      "sha256": "sha256:a68885d41e00878526b94f91931c6430e0c394b9c76b5d6d2b93d05679e053e2",
       "imports": [
         "../config/chat-files.json",
         "../config/doppler-local-models.js",
@@ -5183,7 +5183,7 @@
     {
       "path": "ui/react/app.js",
       "owner": "ui",
-      "sha256": "sha256:c94ec4d9004f05758d98239142a3a08bc8df2e71e72d449ad52d6cf712ad85ce",
+      "sha256": "sha256:614d955498b65de0e42d7c43358fee7ed050f6e74b3a5f7b62a1a1a192143a6d",
       "imports": []
     },
     {
@@ -18482,7 +18482,7 @@
     {
       "path": "vendor/reploid/artifacts/custody/supply-budget.js",
       "owner": "vendor",
-      "sha256": "sha256:9b59ab5aacbf1f55e3188d0c7fdfdd24c752df92f7140e43e675eaecd0f62a64",
+      "sha256": "sha256:47d0cf00c52622cc1530ed9c99b80805188d6a2c3ee3a2352a43839d00257d5d",
       "imports": []
     },
     {

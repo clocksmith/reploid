@@ -1240,8 +1240,8 @@
     },
     {
       "path": "config/chat-files.json",
-      "byteLength": 712,
-      "sha256": "sha256:2f23d29da01b2b88e7b09f128b920132148cfedf50fd6b26032da3fe1ee0c4b4"
+      "byteLength": 744,
+      "sha256": "sha256:1b2063ebbcc7601698d2ed57f1843cda539062c01767c31d5b26c51524e959f5"
     },
     {
       "path": "config/chat-models.json",
@@ -1426,7 +1426,7 @@
     {
       "path": "config/module-inventory.json",
       "byteLength": 690632,
-      "sha256": "sha256:f428182696297a26a6ad243ebce33e162a3eb1708040a2ded1c695df2d709507"
+      "sha256": "sha256:e72c3c7ae93dc85a4b5f7c30c38e83aa313346af9923cf9304191cdd8b2b00d0"
     },
     {
       "path": "config/module-registry.json",
@@ -2320,8 +2320,8 @@
     },
     {
       "path": "host/work-model-files.js",
-      "byteLength": 43515,
-      "sha256": "sha256:6f7e5178b4f1da06f79b9219a894a10cadc51490108420c245b557e7cb2764b8"
+      "byteLength": 46047,
+      "sha256": "sha256:a68885d41e00878526b94f91931c6430e0c394b9c76b5d6d2b93d05679e053e2"
     },
     {
       "path": "host/work-partition-artifact-source.js",
@@ -2435,8 +2435,8 @@
     },
     {
       "path": "infrastructure/custody-supply-budget.js",
-      "byteLength": 3416,
-      "sha256": "sha256:ef0de15e5f4cf281db3504748405a4a755e1d466815a4834f58e4c7016961c05"
+      "byteLength": 3816,
+      "sha256": "sha256:02ea0a11e9f010ff2ca5110fc2a29ff390830d5c801a144eabfec51a25a5343e"
     },
     {
       "path": "infrastructure/di-container.js",
@@ -4205,8 +4205,8 @@
     },
     {
       "path": "ui/react/app.js",
-      "byteLength": 3060553,
-      "sha256": "sha256:c94ec4d9004f05758d98239142a3a08bc8df2e71e72d449ad52d6cf712ad85ce"
+      "byteLength": 3061805,
+      "sha256": "sha256:614d955498b65de0e42d7c43358fee7ed050f6e74b3a5f7b62a1a1a192143a6d"
     },
     {
       "path": "ui/react/design.js",
@@ -11700,8 +11700,8 @@
     },
     {
       "path": "vendor/reploid/artifacts/custody/supply-budget.js",
-      "byteLength": 1429,
-      "sha256": "sha256:9b59ab5aacbf1f55e3188d0c7fdfdd24c752df92f7140e43e675eaecd0f62a64"
+      "byteLength": 1972,
+      "sha256": "sha256:47d0cf00c52622cc1530ed9c99b80805188d6a2c3ee3a2352a43839d00257d5d"
     },
     {
       "path": "vendor/reploid/artifacts/custody/weight-supply.js",
@@ -12376,7 +12376,7 @@
     {
       "path": "vendor/reploid/package-assets.json",
       "byteLength": 66157,
-      "sha256": "sha256:1086964821f82929f30492450ae4fa7b376ea25d751f7eba4d92c4b9e5ca2835"
+      "sha256": "sha256:9620c78b415af486f7c5dee6be209e6d588f8f34a24ff1b0bb3cc232ea598660"
     },
     {
       "path": "vendor/reploid/plugins/index.js",
@@ -12669,5 +12669,5 @@
       "sha256": "sha256:abb6c18f6167d6afc8ee1b3adfcbbb89c0e93fb4fc4e98d7a12250f78aab206a"
     }
   ],
-  "bundleHash": "sha256:a1d278800c358e55467ba6bf5ed406d00298ce91609b2612b8716bc86bb769fa"
+  "bundleHash": "sha256:def49942debb72d17e0a1e2a9222a2e3389f0fa93c8078d4e8e87eecb2a438f7"
 }
