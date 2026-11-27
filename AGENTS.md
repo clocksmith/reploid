@@ -45,8 +45,10 @@ Before pushing a Poolday UI change, run:
   which may only go down), the design index and types. `npm run lint` includes it.
 - `npm run verify:pool:css`: the CSS layer manifest and token references.
 - `npm run test:poolday-ui`: component and check tests.
+- `npm run test:e2e:ui`: keyboard, focus and 320/390 px checks in headless Chromium with the GPU
+  disabled (`tests/e2e/ui-keyboard-viewport.spec.js`, a scripted executor, no model).
 
-The CI `design-system` job runs all three.
+The CI `design-system` job runs the first three; the `ui-keyboard` job runs the browser checks.
 
 ## Run and verify
 
@@ -70,7 +72,7 @@ Match the check to the risk. Times are from one laptop; CI runs the same command
 | Before every push | `npm run lint`: ESLint, the new-module rules applied to your work against `origin/main` (uncommitted and untracked files included), JavaScript-only, and the design-system boundaries and types. It is the lint CI runs | 15 s |
 | Before a push that changes served source (`packages/reploid/src`, `apps/poolday`, `shared`, `self`) | `npm run build`, and commit what it writes as its own commit. Rebuild after rebasing onto `main`: the bundles and inventories embed every source change, so a rebase makes them stale | 5-13 s |
 | Before pushing to `main` | The contract checks for each behavior you changed (next table) and, for a page change, the journey for that surface under `tests/e2e/` | 1-5 s a row |
-| Every push to `main` | CI `Smoke` ([test.yml](.github/workflows/test.yml)), three jobs. `smoke`: named contract tests, `npm run lint`, generated-file checks (`verify:browser-bundle:local` and the rest), the bundle and the hosting package. `design-system`: `verify:poolday-ui`, `verify:pool:css`, `test:poolday-ui`. `mobile`: `apps/mobile/tool/check.sh` with the pinned Flutter. No GPU, no browser and no platform build | 2 min |
+| Every push to `main` | CI `Smoke` ([test.yml](.github/workflows/test.yml)), four jobs. `smoke`: named contract tests, `npm run lint`, generated-file checks (`verify:browser-bundle:local` and the rest), the bundle and the hosting package. `design-system`: `verify:poolday-ui`, `verify:pool:css`, `test:poolday-ui`. `mobile`: `apps/mobile/tool/check.sh` with the pinned Flutter. `ui-keyboard`: `test:e2e:ui` in headless Chromium with the GPU disabled. No GPU and no platform build | 2 min |
 | Release, hardware work, or a change that justifies it | `npm test`, `npm run test:heavy`, `npm run test:e2e`, and the physical controllers (`tests/fixtures/*-physical.js`, `tests/contracts/`) | not in CI |
 
 These checks stay when their behavior changes; replace one only with a stronger test at the same boundary.
@@ -88,7 +90,8 @@ These checks stay when their behavior changes; replace one only with a stronger 
 **What opens a GPU device.** Three things, and nothing else:
 
 1. Anything under `tests/e2e/` or any script that launches a browser: `tests/playwright.config.js`
-   starts Chromium with WebGPU enabled.
+   starts Chromium with WebGPU enabled. The exception is `tests/playwright.ui.config.js`
+   (`npm run test:e2e:ui`), which disables the GPU.
 2. The physical controllers above: they load a real model on a real device.
 3. A Node test that loads the `webgpu` package: `grep -rlE "import\('webgpu'\)|from 'webgpu'" server tests scripts`
    lists Reploid's entry points, and Doppler's Node provider loads the same package.

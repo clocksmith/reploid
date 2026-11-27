@@ -141,3 +141,20 @@ jobs:
           # A missing Node provider fails the parity tests instead of skipping them.
           REPLOID_MOBILE_REQUIRE_PROVIDER: '1'
         run: bash apps/mobile/tool/check.sh
+
+  ui-keyboard:
+    # Keyboard, focus and narrow-screen checks of the Poolday interface (tests/playwright.ui.config.js):
+    # headless Chromium with the GPU disabled and no WebGPU, a scripted executor, no model.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 1
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22.x
+          cache: npm
+      - run: npm ci --omit=optional --no-audit --no-fund
+      - run: npx playwright install --with-deps --only-shell chromium
+      - run: npm run test:e2e:ui

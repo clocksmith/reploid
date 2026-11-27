@@ -94,6 +94,12 @@ class attributes, composition classes and rules) against `scripts/poolday-ui-rat
 and fails if a count rises. `tests/unit/poolday-ui-checks.test.js` holds one failing fixture
 per rule.
 
+Keyboard, focus and narrow screens are checked in a browser by `npm run test:e2e:ui`
+(`tests/e2e/ui-keyboard-viewport.spec.js`, headless Chromium with the GPU disabled): no sideways
+scroll or clipped control at 320 and 390 px, a visible focus ring on every control, drawers and
+dialogs that take focus, close on Escape and return it. Where an open drawer covers the main column
+(a phone), `Workspace` makes the main column inert and the drawer closes on Escape from the bar.
+
 These are syntactic checks, not a sandbox. Review owns meaning; behaviour tests own correctness.
 Do not add exemptions: move a boundary by changing the policy and this document together.
 
