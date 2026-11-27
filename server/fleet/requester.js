@@ -501,14 +501,20 @@ export function createFleetRequester({
       return { status: recovered.terminal.status, serviceCredit: settled, outcome };
     },
     /**
-     * A mesh operation other than generation (mesh/operation-envelope.js), on the same ledger, enrollment and stop
-     * as `generate`: the envelope is authorized against `offer(envelope)` before anything is held or sent (a refusal
-     * throws synchronously), the granted recipient must still be enrolled, the hold is the operation's
-     * `maxCostUnits` at the accepted price, and the provider's receipt is countersigned and settled. Cancelling through
-     * `signal` settles the hold at zero with the requester's signed stop; any other failure fences it.
+     * A mesh operation other than generation (mesh/operation-envelope.js), on the same ledger, enrollment, signed
+     * settlement records and stop as a whole-model `generate`: the envelope is authorized against `offer(envelope)`
+     * before anything is held or sent (a refusal throws synchronously), the granted recipient must still be enrolled,
+     * the hold is the operation's `maxCostUnits` at the accepted price, this requester signs the terms of that hold,
+     * and the payload leaves only after the provider's signed acceptance. The provider's close is acknowledged with the
+     * countersigned receipt, which settles. Cancelling through `signal` settles the hold at zero with the requester's
+     * signed stop of those terms; any other failure fences it. Resolves with `settlementRecords`, as generate does.
      */
     executeOperation(envelope, { signal, offer }) {
-      return executeMeshOperation(envelope, { signal }, {
+      let quotedPolicy = null, opened = null;
+      const readRecords = reservation => settlementRecordsOf({ reservationId: reservation.id, charge: opened, policy: quotedPolicy,
+        reason: opened ? null : 'terms-not-signed' });
+      let reserved = null;
+      const run = executeMeshOperation(envelope, { signal }, {
         offer,
         async reserve(value, inputDigest) {
           const recipient = value.recipientGrant.recipient;
@@ -516,6 +522,7 @@ export function createFleetRequester({
           assert((network.computers || []).some(row => row.participantIds?.includes(recipient)),
             'The granted recipient is not enrolled; nothing was sent');
           const terms = await credits.call('terms', { id: value.modelId, identity: value.manifestDigest });
+          quotedPolicy = terms.policy;
           const binding = { id: `service:${identity.peerId}:${value.requestId}`, executionId: value.requestId, consumer: identity.peerId,
             mode: 'whole-model', operation: value.operation, model: { id: value.modelId, identity: value.manifestDigest, adapterIdentities: [] },
             inputDigest, maxOutputTokens: value.maxCostUnits, acceptedQuote: fleetCreditQuote(terms.policy, value.maxCostUnits, 'whole-model'),
@@ -523,13 +530,29 @@ export function createFleetRequester({
           const reservation = await credits.reserve(binding);
           try { await credits.dispatch(reservation.id, identity.peerId); }
           catch (error) { await credits.abandonBeforeDispatch(reservation.id, identity.peerId).catch(() => {}); throw error; }
+          reserved = reservation;
           return reservation;
+        },
+        async open(reservation, value) {
+          opened = await openMeshOperationCharge({ signer: createAttemptEvidenceSigner({ identity }), requestId: value.requestId,
+            planDigest: value.planDigest, recipient: value.recipientGrant.recipient, reservationId: reservation.id, policy: quotedPolicy,
+            maxCostUnits: value.maxCostUnits,
+            ...(typeof reservation.accountId === 'string' && reservation.accountId ? { debitAccount: reservation.accountId } : {}) });
+          // Handed over once the terms are signed, as for generation, so a host that keeps records has them if it dies.
+          try { onSettlementRecords({ reservationId: reservation.id, read: () => readRecords(reservation) }); } catch { /* The caller's store is its own. */ }
+          return opened;
         },
         send: (value, controls) => participant.sendMeshOperation(value, controls),
         countersign: receipt => countersignReceipt(receipt, identity),
         settle: (reservation, receipt) => credits.settle(reservation.id, receipt),
-        // Nothing was countersigned, so the requester's own stop at zero is the whole settlement of a cancelled call.
-        cancel: reservation => (signal?.aborted ? settleStop(reservation) : credits.fence(reservation.id, identity.peerId))
+        // Nothing was countersigned, so the requester's own stop at zero is the whole settlement of a cancelled call, or
+        // of one whose payload never left (refused at admission, or no acceptance). Any other failure is fenced.
+        cancel: (reservation, error, charge) => (signal?.aborted || error?.payloadSent === false ? settleStop(reservation, charge)
+          : credits.fence(reservation.id, identity.peerId))
+      });
+      return run.then(result => ({ ...result, settlementRecords: readRecords(reserved) }), error => {
+        if (reserved) error.settlementRecords = readRecords(reserved);
+        throw error;
       });
     }
   });

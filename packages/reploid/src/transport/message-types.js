@@ -10,6 +10,8 @@ export const PROTOCOL_VERSION = 1;
 export const MESH_OPERATION_REQUEST = 'reploid:mesh-operation-request';
 export const MESH_OPERATION_RESULT = 'reploid:mesh-operation-result';
 export const MESH_OPERATION_CANCEL = 'reploid:mesh-operation-cancel';
+// The requester's countersigned receipt and its acknowledgment of the provider's closing record.
+export const MESH_OPERATION_RECEIPT = 'reploid:mesh-operation-receipt';
 export const APPLICATION_MESSAGE_TYPES = Object.freeze([
   'sync-request', 'sync-response',
   'goal-update', 'reflection-share',
@@ -23,7 +25,7 @@ export const APPLICATION_MESSAGE_TYPES = Object.freeze([
   'reploid:generation-result', 'reploid:generation-error',
   'reploid:generation-cancel', 'reploid:generation-recover', 'reploid:generation-recovery',
   'reploid:receipt', 'reploid:target-score-request', 'reploid:target-score-result',
-  MESH_OPERATION_REQUEST, MESH_OPERATION_RESULT, MESH_OPERATION_CANCEL,
+  MESH_OPERATION_REQUEST, MESH_OPERATION_RESULT, MESH_OPERATION_CANCEL, MESH_OPERATION_RECEIPT,
   'reploid:web-offer', 'reploid:web-request', 'reploid:web-response', 'reploid:web-cancel',
   'reploid:tool-offer', 'reploid:tool-offer-ack',
   'reploid:custody-request', 'reploid:custody-response', 'reploid:custody-offer',

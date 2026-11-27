@@ -11,8 +11,11 @@ import { createSigningIdentity } from '../../packages/reploid/src/artifacts/iden
 import { countersignReceipt, createReceiptDraft, signReceiptDraft, verifyReceipt } from '../../packages/reploid/src/artifacts/receipt.js';
 import { hashJson, sha256Hex } from '../../packages/reploid/src/artifacts/signatures.js';
 import { attachTargetScoring, requestTargetScore, verifyTargetScore } from '../../packages/reploid/src/mesh/target-scoring.js';
-import { MESH_OPERATION_GRANT_SCHEMA, attachMeshOperations, createMeshOperationEnvelope, dispatchMeshOperation, meshOperationOffer,
-  requestMeshOperation } from '../../packages/reploid/src/mesh/operation-envelope.js';
+import { MESH_OPERATION_GRANT_SCHEMA, MESH_OPERATION_RECEIPT, MESH_OPERATION_REQUEST, attachMeshOperations, createMeshOperationEnvelope,
+  dispatchMeshOperation, meshOperationInputDigest, meshOperationOffer, openMeshOperationCharge, requestMeshOperation } from '../../packages/reploid/src/mesh/operation-envelope.js';
+import { OUTPUT_ACKNOWLEDGMENT_SCHEMA, STAGE_RECEIPT_SCHEMA, createAttemptEvidenceSigner }
+  from '../../packages/reploid/src/mesh/partitions/partition-attempt-evidence.js';
+import { SETTLEMENT_ACCEPTANCE_SCHEMA, SETTLEMENT_FAULT_SCHEMA, SETTLEMENT_STOP_SCHEMA, SETTLEMENT_TERMS_SCHEMA } from '../../packages/reploid/src/mesh/settlement-terms.js';
 import { openFleetCredits } from '../../server/fleet/credits.js';
 import { startFleetService, createFleetClient } from '../../server/fleet/service.js';
 import { createFleetRequester } from '../../server/fleet/requester.js';
@@ -56,8 +59,8 @@ function loopback() {
     getPeerBinding: () => ({ local: `cert-${self}`, remote: `cert-${other}` }),
     onMessage: (type, fn) => handlers[self].set(type, fn),
     sendToPeer: (_peer, type, payload) => {
-      wire.push({ from: self, type, bytes: Buffer.byteLength(JSON.stringify(payload)) });
       const copy = structuredClone(payload);
+      wire.push({ from: self, type, bytes: Buffer.byteLength(JSON.stringify(payload)), payload: structuredClone(payload) });
       queueMicrotask(() => handlers[other].get(type)?.(`${self}-peer`, copy));
       return true;
     }
@@ -99,19 +102,24 @@ async function fixture({ partition = false } = {}) {
   // The earlier Daily path: a provider-signed score bound to the answer's receipt (mesh/target-scoring.js).
   attachTargetScoring({ transport: link.provider, identity: provider, verifyPeer: async peer => requesterOf(peer), currentPeer: requesterOf,
     score: request => scoped.scoreTarget(request) });
-  attachMeshOperations({ transport: link.provider, identity: provider,
+  const hostAuthorize = vi.fn(async () => true), providerRecords = [], providerReceipts = [];
+  const operations = attachMeshOperations({ transport: link.provider, identity: provider,
     verifyPeer: async peer => requesterOf(peer), currentPeer: requesterOf,
     offer: () => ({ participantId: provider.peerId, protection: 'plaintext', route: 'remote', modelIdentity: model.identity,
       supportedOperations: scoped.supportedOperations() }),
-    admit: input => admission.operation(input),
+    authorize: hostAuthorize, admit: input => admission.operation(input), settlementAccount: () => admission.settlementAccount(),
+    onSettlementRecords: value => providerRecords.push(value), onReceipt: receipt => providerReceipts.push(receipt),
     dispatch: (envelope, signal) => dispatchMeshOperation(scoped, envelope, { signal }) });
+  cleanup.push(() => operations.close());
   // The requester's discovery: the provider's whole-model route, or an ordered split through it.
   const discovered = partition
     ? { models: [{ ...model, partition: { planId: 'plan-1', route: { backend: 'doppler-partition-plaintext/v1', stages: [{ participantId: provider.peerId }] } } }], peers: [] }
     : { models: [model], peers: [{ peerId: 'provider-peer', participantId: provider.peerId, identityVerified: true, modelIdentity: model.identity,
       supportedOperations: scoped.supportedOperations() }] };
   // What the native host composes for `executeMeshOperation` (server/fleet/native-host.js).
+  const requesterRecords = [];
   const accounted = createFleetRequester({ identity: requester, credits: requesterCredits, maxOutputTokens: 16,
+    onSettlementRecords: value => requesterRecords.push(value),
     participant: { generate: () => { throw Error('not used'); },
       sendMeshOperation: (envelope, controls) => requestMeshOperation({ transport: link.requester,
         verifyPeer: async peer => (peer === 'provider-peer' ? provider.peerId : null), currentPeer: peer => (peer === 'provider-peer' ? provider.peerId : null),
@@ -129,7 +137,8 @@ async function fixture({ partition = false } = {}) {
   const providerOf = peer => (peer === 'provider-peer' ? provider.peerId : null);
   const scoreAgainstReceipt = (receipt, { signal } = {}) => requestTargetScore({ transport: link.requester, verifyPeer: async peer => providerOf(peer),
     currentPeer: providerOf, providerPeer: 'provider-peer', providerParticipantId: provider.peerId, receipt, messages, target: 'I resign.', ...(signal ? { signal } : {}) });
-  return { link, session, text, accounted, execute, authorize, envelope, trust, scoreAgainstReceipt, answerReceipt: () => answerReceipt(provider, requester) };
+  return { link, session, text, accounted, execute, authorize, envelope, trust, scoreAgainstReceipt, answerReceipt: () => answerReceipt(provider, requester),
+    hostAuthorize, operations, providerRecords, providerReceipts, requesterRecords, scoped, discovered };
 }
 
 /** The countersigned receipt of the answer the earlier path scores against: provider-signed, requester-countersigned. */
@@ -216,8 +225,8 @@ describe('scoreTargetSequence through the envelope, against the earlier receipt-
     await expect(f.scoreAgainstReceipt(receipt)).rejects.toThrow('Verified requester required');
     await expect(f.execute(envelope)).rejects.toThrow('Verified requester required');
     expect(f.session.scoreTargetSequence).not.toHaveBeenCalled();
-    // The envelope's hold for the refused call is fenced; the provider never admitted it, so it settles at zero now.
-    expect(credits.request(`service:${keys[0].peerId}:${envelope.requestId}`)).toMatchObject({ state: 'settled', outcome: { charge: 0, outputTokens: 0 } });
+    // The refused call never sent its payload, so the requester settles its hold at zero with its signed stop.
+    expect(credits.request(`service:${keys[0].peerId}:${envelope.requestId}`)).toMatchObject({ state: 'settled', outcome: { charge: 0 } });
     expect(holds()).toEqual([0, 0]);
     const sent = f.link.wire.length;
     const revoked = await f.envelope({ revokedAt: Date.now() });
@@ -270,4 +279,166 @@ it('an operation whose signal is already aborted rejects at once and sends nothi
   expect(f.link.wire).toEqual([]);
   expect(f.session.scoreTargetSequence).not.toHaveBeenCalled();
   expect(credits.request(`service:${keys[0].peerId}:${envelope.requestId}`)).toBeNull();
+});
+
+const schemas = records => records.map(row => row.schema);
+const requesterFrames = f => f.link.wire.filter(frame => frame.from === 'requester');
+
+describe('a non-generation operation goes through the policy and settlement path generation uses', () => {
+  it('signs terms, acceptance, close and acknowledgment, sends the payload only after the acceptance, and settles one unit', async () => {
+    const f = await fixture();
+    const envelope = await f.envelope(), result = await f.execute(envelope);
+    // The first frame asks for admission without the payload; the payload leaves only in the second.
+    const [ask, run, back] = requesterFrames(f);
+    expect(ask).toMatchObject({ type: MESH_OPERATION_REQUEST, payload: { inputDigest: expect.stringMatching(/^sha256:/),
+      settlement: { terms: { schema: SETTLEMENT_TERMS_SCHEMA, maxOutputTokens: 1 } } } });
+    expect(ask.payload.envelope).not.toHaveProperty('payload');
+    expect(JSON.stringify(ask.payload)).not.toContain('I resign.');
+    const answer = f.link.wire.findIndex(frame => frame.from === 'provider' && frame.payload.admitted);
+    expect(answer).toBeGreaterThan(f.link.wire.indexOf(ask));
+    expect(f.link.wire.indexOf(run)).toBeGreaterThan(answer);
+    expect(run.payload.envelope.payload).toEqual({ messages, target: 'I resign.' });
+    // The countersigned receipt and the acknowledgment go back in one frame.
+    expect(back).toMatchObject({ type: MESH_OPERATION_RECEIPT, payload: { requestId: envelope.requestId,
+      settlementAcknowledgment: { schema: OUTPUT_ACKNOWLEDGMENT_SCHEMA, count: 1 } } });
+    // The host was asked at admission and again before running.
+    expect(f.hostAuthorize.mock.calls.map(([call]) => call.action)).toEqual(['operation.admit', 'operation.execute']);
+    expect(f.hostAuthorize.mock.calls[0][0]).toMatchObject({ consumer: keys[0].peerId, envelope: { requestId: envelope.requestId } });
+    expect(f.hostAuthorize.mock.calls[0][0].envelope).not.toHaveProperty('payload');
+    // Generation's records, with one unit: the requester holds all of them, labelled signed.
+    expect(result.settlementRecords).toMatchObject({ label: 'signed-records', acknowledged: 1, stopped: false, faulted: false, missing: [] });
+    expect(schemas(result.settlementRecords.records)).toEqual([SETTLEMENT_TERMS_SCHEMA, OUTPUT_ACKNOWLEDGMENT_SCHEMA,
+      SETTLEMENT_ACCEPTANCE_SCHEMA, STAGE_RECEIPT_SCHEMA, OUTPUT_ACKNOWLEDGMENT_SCHEMA]);
+    expect(f.requesterRecords.at(-1).read()).toMatchObject({ label: 'signed-records' });
+    // The provider's copy completes with the acknowledgment, and its host gets the countersigned receipt.
+    await vi.waitFor(() => expect(f.providerReceipts).toHaveLength(1));
+    expect(await verifyReceipt(f.providerReceipts[0])).toMatchObject({ providerValid: true, consumerValid: true });
+    expect(schemas(f.providerRecords.at(-1).records)).toEqual(schemas(result.settlementRecords.records));
+    expect(credits.request(`service:${keys[0].peerId}:${envelope.requestId}`)).toMatchObject({ state: 'settled', outcome: { outputTokens: 1, charge: PRICE } });
+    expect(holds()).toEqual([0, 0]);
+  });
+
+  it('a requester that sends the payload without an admission is refused before the session is touched', async () => {
+    const f = await fixture();
+    const envelope = await f.envelope(), replies = [];
+    f.link.requester.onMessage('reploid:mesh-operation-result', (_peer, payload) => replies.push(payload));
+    f.link.requester.sendToPeer('provider-peer', MESH_OPERATION_REQUEST, { envelope });
+    await vi.waitFor(() => expect(replies).toHaveLength(1));
+    expect(replies[0]).toMatchObject({ requestId: envelope.requestId, code: 'OPERATION_REQUEST_INVALID', error: expect.stringContaining('not admitted') });
+    expect(f.session.scoreTargetSequence).not.toHaveBeenCalled();
+  });
+
+  it('a host that declines the requester refuses at admission: no payload is sent and the hold settles at zero', async () => {
+    const f = await fixture();
+    f.hostAuthorize.mockResolvedValue(false);
+    const envelope = await f.envelope();
+    await expect(f.execute(envelope)).rejects.toMatchObject({ code: 'OPERATION_REFUSED' });
+    expect(requesterFrames(f).map(frame => frame.payload.envelope?.payload)).toEqual([undefined]);
+    expect(f.session.scoreTargetSequence).not.toHaveBeenCalled();
+    expect(credits.request(`service:${keys[0].peerId}:${envelope.requestId}`)).toMatchObject({ state: 'settled', outcome: { charge: 0 } });
+    expect(holds()).toEqual([0, 0]);
+  });
+
+  it('a provider that does not sign an acceptance of the terms is never sent the payload', async () => {
+    const f = await fixture();
+    const original = f.link.provider.sendToPeer;
+    // The provider's acceptance is altered on the wire, so it no longer verifies.
+    f.link.provider.sendToPeer = (peer, type, payload) => original(peer, type, payload?.admitted
+      ? { ...payload, admitted: { settlementAcceptance: { ...payload.admitted.settlementAcceptance, signature: 'x' } } } : payload);
+    const envelope = await f.envelope();
+    await expect(f.execute(envelope)).rejects.toMatchObject({ code: 'OPERATION_RESULT_INVALID' });
+    expect(requesterFrames(f).some(frame => frame.payload.envelope?.payload)).toBe(false);
+    expect(f.session.scoreTargetSequence).not.toHaveBeenCalled();
+    expect(holds()).toEqual([0, 0]);
+  });
+
+  it('runs one operation at a time: a second admission while one runs is refused as busy', async () => {
+    const f = await fixture();
+    let release;
+    f.session.hold = new Promise(resolve => { release = resolve; });
+    const first = f.execute(await f.envelope());
+    await vi.waitFor(() => expect(f.session.scoreTargetSequence).toHaveBeenCalledTimes(1));
+    expect(f.operations.running()).toBe(1);
+    const second = await f.envelope();
+    await expect(f.execute(second)).rejects.toMatchObject({ code: 'OPERATION_BUSY' });
+    expect(f.session.scoreTargetSequence).toHaveBeenCalledTimes(1);
+    release();
+    await expect(first).resolves.toMatchObject({ acknowledgedUnits: 1 });
+    expect(f.operations.running()).toBe(0);
+    await vi.waitFor(() => expect(holds()).toEqual([0, 0]));
+  });
+
+  it('close() aborts what runs, signs the provider\'s fault, refuses new work and resolves once every attempt ended', async () => {
+    const f = await fixture();
+    f.session.hold = new Promise(() => {});
+    const running = f.execute(await f.envelope());
+    running.catch(() => {});
+    await vi.waitFor(() => expect(f.session.scoreTargetSequence).toHaveBeenCalledTimes(1));
+    await f.operations.close();
+    expect(f.operations.running()).toBe(0);
+    const failure = await running.catch(error => error);
+    expect(failure).toBeInstanceOf(Error);
+    expect(f.session.scoreTargetSequence.mock.calls[0][1].signal.aborted).toBe(true);
+    await vi.waitFor(() => expect(schemas(failure.settlementRecords.records)).toContain(SETTLEMENT_FAULT_SCHEMA));
+    await expect(f.execute(await f.envelope())).rejects.toMatchObject({ code: 'OPERATION_REFUSED' });
+    expect(f.session.scoreTargetSequence).toHaveBeenCalledTimes(1);
+  });
+
+  it('a cancelled operation keeps the provider\'s close that claims nothing and the requester\'s stop', async () => {
+    const f = await fixture();
+    f.session.hold = new Promise(() => {});
+    const envelope = await f.envelope(), controller = new AbortController();
+    const pending = f.execute(envelope, { signal: controller.signal });
+    await vi.waitFor(() => expect(f.session.scoreTargetSequence).toHaveBeenCalledTimes(1));
+    controller.abort(new Error('stopped'));
+    const failure = await pending.catch(error => error);
+    expect(failure.message).toBe('stopped');
+    await vi.waitFor(() => expect(schemas(failure.settlementRecords.records)).toEqual(expect.arrayContaining([SETTLEMENT_STOP_SCHEMA, STAGE_RECEIPT_SCHEMA])));
+    expect(failure.settlementRecords.records.find(row => row.schema === STAGE_RECEIPT_SCHEMA)).toMatchObject({ status: 'failed', output: { count: 0 } });
+    await vi.waitFor(() => expect(credits.request(`service:${keys[0].peerId}:${envelope.requestId}`)).toMatchObject({ state: 'settled', outcome: { charge: 0 } }));
+  });
+});
+
+describe('a request of zero units is refused before anything is held or run', () => {
+  const zero = [['scoreTargetSequence', { messages, target: '' }], ['scoreTargetSequence', { messages: [], target: 'I resign.' }],
+    ['scoreChoices', { prompt: 'Pick one.', choices: [] }], ['embed', { input: '' }]];
+  it.each(zero)('%s with %j is refused when the envelope is made', async (operation, payload) => {
+    const grant = { schema: MESH_OPERATION_GRANT_SCHEMA, recipient: keys[1].peerId, grantedAt: Date.now(), revokedAt: null };
+    await expect(createMeshOperationEnvelope({ requestId: crypto.randomUUID(), operation, modelId: model.id, manifestDigest: model.identity,
+      maxCostUnits: 1, payload, execution: { protection: 'plaintext', route: 'remote' }, recipientGrant: grant }))
+      .rejects.toMatchObject({ code: 'OPERATION_REQUEST_INVALID' });
+  });
+
+  it('a provider refuses a zero-unit payload from a requester that skipped the check, and closes claiming nothing', async () => {
+    const [requester, provider] = keys, link = loopback(), dispatch = vi.fn(async () => SCORE), records = [];
+    const operations = attachMeshOperations({ transport: link.provider, identity: provider, verifyPeer: async () => requester.peerId,
+      currentPeer: () => requester.peerId, authorize: async () => true, onSettlementRecords: value => records.push(value), dispatch,
+      offer: () => ({ participantId: provider.peerId, protection: 'plaintext', route: 'remote', modelIdentity: model.identity,
+        supportedOperations: ['generate', 'scoreTargetSequence'] }) });
+    cleanup.push(() => operations.close());
+    const valid = await createMeshOperationEnvelope({ requestId: crypto.randomUUID(), operation: 'scoreTargetSequence', modelId: model.id,
+      manifestDigest: model.identity, maxCostUnits: 1, payload: { messages, target: 'I resign.' }, execution: { protection: 'plaintext', route: 'remote' },
+      recipientGrant: { schema: MESH_OPERATION_GRANT_SCHEMA, recipient: provider.peerId, grantedAt: Date.now(), revokedAt: null } });
+    const empty = { ...structuredClone(valid), payload: { messages, target: '' } };
+    const { policy } = await createFleetClient({ url: service.url, identity: requester }).call('terms', { id: model.id, identity: model.identity });
+    const charge = await openMeshOperationCharge({ signer: createAttemptEvidenceSigner({ identity: requester }), requestId: empty.requestId,
+      planDigest: empty.planDigest, recipient: provider.peerId, reservationId: `service:${requester.peerId}:${empty.requestId}`, policy, maxCostUnits: 1 });
+    // requestMeshOperation refuses it too, so the frames are sent by hand: admission, then the payload once accepted.
+    await expect(requestMeshOperation({ transport: link.requester, verifyPeer: async () => provider.peerId, currentPeer: () => provider.peerId,
+      providerPeer: 'provider-peer', envelope: empty, settlement: charge })).rejects.toMatchObject({ code: 'OPERATION_REQUEST_INVALID' });
+    const results = [];
+    link.requester.onMessage('reploid:mesh-operation-result', (_peer, payload) => results.push(payload));
+    const { payload: _payload, ...admission } = empty;
+    link.requester.sendToPeer('provider-peer', MESH_OPERATION_REQUEST, { envelope: admission, inputDigest: await meshOperationInputDigest(empty),
+      settlement: { terms: charge.terms, charge: charge.charge } });
+    await vi.waitFor(() => expect(results).toHaveLength(1));
+    await charge.accept(results[0].admitted.settlementAcceptance);
+    link.requester.sendToPeer('provider-peer', MESH_OPERATION_REQUEST, { envelope: empty });
+    await vi.waitFor(() => expect(results).toHaveLength(2));
+    expect(results[1]).toMatchObject({ code: 'OPERATION_REQUEST_INVALID', error: expect.stringContaining('nothing to run') });
+    await charge.close(results[1].settlement.receipt);
+    expect(dispatch).not.toHaveBeenCalled();
+    await vi.waitFor(() => expect(charge.summary()).toMatchObject({ accepted: true, closed: true, faulted: false }));
+    expect(charge.records().find(row => row.schema === STAGE_RECEIPT_SCHEMA)).toMatchObject({ status: 'failed', output: { count: 0, done: false } });
+  });
 });

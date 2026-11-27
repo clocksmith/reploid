@@ -107,7 +107,7 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
   const admission = roomId === bootstrap.publicRoomId ? null : createRoomIntroductionAdmission({ roomId, token: roomToken });
   const generationJournal = wholeMode && generationJournalFile ? await openNativeGenerationJournal({ file: generationJournalFile,
     maxResults: resolvedConfig.mesh.maxRetainedJobs, maxResultBytes: resolvedConfig.webrtc.maxMessageBytes }) : null;
-  let transport, partitions, files, webNetwork, wholeRequester, closePromise, closed = false, gpuPromise;
+  let transport, partitions, files, webNetwork, meshOperations, wholeRequester, closePromise, closed = false, gpuPromise;
   const networks = new Set();
   const earningWrites = new Set();
   let wholeEarningReady = !earning;
@@ -226,7 +226,7 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
   const close = () => closePromise ||= (async () => {
     closed = true;
     endOwnerWait('contribute', 'Native participant closed'); endOwnerWait('share', 'Native participant closed');
-    const results = await Promise.allSettled([webNetwork, whole, partitions, ...networks]
+    const results = await Promise.allSettled([meshOperations, webNetwork, whole, partitions, ...networks]
       .map(owner => Promise.resolve().then(() => closeOwner(owner))));
     // Sources and the mesh outlive resident cancellation/opening settlement.
     for (const owner of [files, mesh]) {
@@ -264,11 +264,18 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
     if (whole) attachTargetScoring({ transport, identity, verifyPeer: mesh.verifyPeerIdentity, currentPeer: mesh.getVerifiedPeerIdentity,
       score: request => whole.scoreTarget(request) });
     // Mesh operations besides generation (mesh/operation-envelope.js) on the resident whole model: authorized against
-    // this provider's own offer, credit-admitted like generation, then run on the same device lane.
-    if (whole) attachMeshOperations({ transport, identity, verifyPeer: mesh.verifyPeerIdentity, currentPeer: mesh.getVerifiedPeerIdentity,
+    // this provider's own offer and by the same host rules as generation (readiness, owner pairing and guests),
+    // credit-admitted, accepted under the requester's signed terms before the payload is sent, one at a time like
+    // generation, then run on the same device lane.
+    if (whole) meshOperations = attachMeshOperations({ transport, identity, verifyPeer: mesh.verifyPeerIdentity, currentPeer: mesh.getVerifiedPeerIdentity,
       offer: () => ({ participantId: identity.peerId, protection: 'plaintext', route: 'remote', modelIdentity: whole.getState().ready ? whole.getState().modelIdentity : null,
         supportedOperations: whole.supportedOperations() }),
-      ...(executionAdmission ? { admit: input => executionAdmission.operation(input) } : {}),
+      authorize: async ({ action, peerId, envelope }) => !closed && whole.getState().ready === true && wholeEarningReady
+        && await allowedOwner({ peerId, request: { requestId: envelope.requestId } }, action === 'operation.execute' ? 'execute' : 'admit'),
+      maxRunning: 1,
+      ...(executionAdmission ? { admit: input => executionAdmission.operation(input), onReceipt: receipt => executionAdmission.receipt(receipt) } : {}),
+      ...(typeof executionAdmission?.settlementAccount === 'function' ? { settlementAccount: () => executionAdmission.settlementAccount() } : {}),
+      ...(typeof onSettlementRecords === 'function' ? { onSettlementRecords } : {}),
       dispatch: (envelope, signal) => dispatchMeshOperation(whole, envelope, { signal }) });
     webNetwork = createWebAccessNetwork({ transport, worker: webWorker, enabled: () => !closed && webWorker !== null,
       verifyPeer: (peer, signal) => mesh.verifyPeerIdentity(peer, signal) });

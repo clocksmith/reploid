@@ -1198,6 +1198,18 @@ every step above applies unchanged. Source:
   after a lost connection: it is acknowledged before it is countersigned, and a
   requester that no longer holds the attempt's terms (it restarted) countersigns
   nothing.
+- **Operations other than generation sign the same records** (`scoreTargetSequence`,
+  `scoreChoices`, `embed`, over `reploid:mesh-operation-*`). The admission is the
+  envelope without its payload, with the input digest the hold binds and the
+  signed terms; the provider's host rule and credit check run there, and the
+  payload is sent only once the provider's acceptance verifies. Each call is one
+  unit, so the closing receipt claims `steps: 1` and its chain commits to the
+  digest of the output. A payload with nothing to run (an empty target, prompt,
+  choice list or input) is refused before any hold. A requester that stops, or
+  whose payload never left because the provider refused or did not sign an
+  acceptance, settles at zero with its stop; the provider then closes claiming
+  nothing. These calls are neither resent nor recovered after a lost connection:
+  their holds are fenced and the release window decides them.
 
 ### Release window
 

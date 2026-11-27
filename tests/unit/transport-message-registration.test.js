@@ -9,9 +9,9 @@ import { createWebRTCSwarm } from '../../packages/reploid/src/transport/swarm.js
 import { createSwarmTransport } from '../../packages/reploid/src/transport/room.js';
 import { resolveConfig } from '../../packages/reploid/src/config/index.js';
 import { RTC_MESSAGE_TYPES, ROOM_MESSAGE_TYPES } from '../../packages/reploid/src/transport/message-types.js';
-import { MESH_OPERATION_CANCEL, MESH_OPERATION_REQUEST, MESH_OPERATION_RESULT } from '../../packages/reploid/src/mesh/operation-envelope.js';
+import { MESH_OPERATION_CANCEL, MESH_OPERATION_RECEIPT, MESH_OPERATION_REQUEST, MESH_OPERATION_RESULT } from '../../packages/reploid/src/mesh/operation-envelope.js';
 
-const MESH_FRAMES = [MESH_OPERATION_REQUEST, MESH_OPERATION_RESULT, MESH_OPERATION_CANCEL];
+const MESH_FRAMES = [MESH_OPERATION_REQUEST, MESH_OPERATION_RESULT, MESH_OPERATION_CANCEL, MESH_OPERATION_RECEIPT];
 const quiet = { info() {}, debug() {}, warn() {}, error() {} };
 
 function openSwarm() {
