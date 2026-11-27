@@ -19,8 +19,12 @@ const KEYWORDS = new Set(['$ref', 'type', 'enum', 'const', 'properties', 'requir
   'minItems', 'maxItems', 'uniqueItems', 'minLength', 'maxLength', 'pattern', 'minimum', 'maximum', 'exclusiveMinimum',
   'minProperties', 'maxProperties', 'oneOf', 'anyOf', 'allOf', 'not']);
 
-const typeOf = value => value === null ? 'null' : Array.isArray(value) ? 'array'
-  : typeof value === 'number' ? (Number.isInteger(value) ? 'integer' : 'number') : typeof value;
+function typeOf(value) {
+  if (value === null) return 'null';
+  if (Array.isArray(value)) return 'array';
+  if (typeof value === 'number') return Number.isInteger(value) ? 'integer' : 'number';
+  return typeof value;
+}
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 const escapePointer = key => String(key).replace(/~/g, '~0').replace(/\//g, '~1');
 

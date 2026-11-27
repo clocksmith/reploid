@@ -183,9 +183,10 @@ export async function probeInboundFrames(cases) {
       let reason = null;
       if (!accepted) {
         const invalid = /Invalid message from \S+: (.*)$/.exec(line || '');
-        reason = invalid ? (invalid[1] === 'undefined' ? 'peerId differs from the connection the frame arrived on' : invalid[1])
-          : /Message too large/.test(line || '') ? 'Frame text is longer than twice maxPayloadSize'
-          : /Failed to parse/.test(line || '') ? 'Frame is not JSON' : 'Rejected';
+        if (invalid) reason = invalid[1] === 'undefined' ? 'peerId differs from the connection the frame arrived on' : invalid[1];
+        else if (/Message too large/.test(line || '')) reason = 'Frame text is longer than twice maxPayloadSize';
+        else if (/Failed to parse/.test(line || '')) reason = 'Frame is not JSON';
+        else reason = 'Rejected';
       }
       results.push({ name: item.name, accepted, reason });
     }
