@@ -339,15 +339,16 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
         return requestTargetScore({ transport, verifyPeer: mesh.verifyPeerIdentity, currentPeer: mesh.getVerifiedPeerIdentity,
           providerPeer, providerParticipantId, receipt, messages, target, ...(signal ? { signal } : {}) });
       },
-      /** Send an authorized mesh operation envelope to its granted recipient; returns its output and signed receipt. */
-      async sendMeshOperation(envelope, { signal } = {}) {
+      /** Send an authorized mesh operation envelope to its granted recipient under the requester's signed settlement
+       * terms (`settlement`, openMeshOperationCharge); returns its output and signed receipt. */
+      async sendMeshOperation(envelope, { signal, settlement } = {}) {
         requireValue(!closed && transport, 'Native requester is unavailable');
         const recipient = envelope.recipientGrant.recipient;
         const providerPeer = (transport.getConnectedPeers?.() || []).map(peer => peer.id)
           .find(peerId => mesh.getVerifiedPeerIdentity(peerId) === recipient);
         requireValue(providerPeer, 'The granted recipient is not connected');
         return requestMeshOperation({ transport, verifyPeer: mesh.verifyPeerIdentity, currentPeer: mesh.getVerifiedPeerIdentity,
-          providerPeer, envelope, ...(signal ? { signal } : {}) });
+          providerPeer, envelope, settlement, ...(signal ? { signal } : {}) });
       },
       recoverGeneration(request, reference, controls) {
         requireValue(!closed && wholeRequester, 'Native whole-model recovery unavailable');
