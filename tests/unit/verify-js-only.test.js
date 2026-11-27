@@ -43,6 +43,18 @@ describe('verify:js-only', () => {
     expect(checkJsOnly({ root, files: Object.keys(files) }).map(row => row.file).sort()).toEqual(['cmd/main.go', 'go.mod', 'requirements.txt', 'tool.py']);
   });
 
+  it('allows only the Flutter app files, and only in apps/mobile/', () => {
+    const allowed = ['apps/mobile/app/lib/main.dart', 'apps/mobile/tool/check_boundaries.dart', 'apps/mobile/pubspec.yaml', 'apps/mobile/app/pubspec.yaml',
+      'apps/mobile/app/ios/Runner/AppDelegate.swift', 'apps/mobile/app/macos/Flutter/GeneratedPluginRegistrant.swift',
+      'apps/mobile/app/ios/Runner/Runner-Bridging-Header.h', 'apps/mobile/app/android/app/src/main/kotlin/id/replo/mobile/MainActivity.kt',
+      'apps/mobile/app/android/app/build.gradle.kts', 'apps/mobile/app/android/settings.gradle.kts'];
+    const refused = ['tools/x.dart', 'pubspec.yaml', 'apps/poolday/a.swift', 'apps/mobile/app/ios/Runner/native.m', 'apps/mobile/app/lib/helper.kt',
+      'apps/mobile/app/ios/Podfile', 'apps/mobile/app/ios/Runner/extra.h', 'native/lib.rs', 'shared/a.c', 'apps/mobile/tool/x.py', 'apps/mobile/go.mod'];
+    const files = Object.fromEntries([...allowed, ...refused].map(file => [file, 'x\n']));
+    const root = fixture(files);
+    expect(checkJsOnly({ root, files: Object.keys(files) }).map(row => row.file).sort()).toEqual([...refused].sort());
+  });
+
   it('fails JavaScript that starts Python or Go', () => {
     expect(findSpawnViolations(`spawn('${PY}', ['-c', 'print(1)']);`)).toHaveLength(1);
     expect(findSpawnViolations(`execFileSync('${GO}', ['build', '-o', out, '.']);`)).toHaveLength(1);
