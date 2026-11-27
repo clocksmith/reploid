@@ -2940,7 +2940,7 @@
     {
       "path": "self/host/circle-invites.js",
       "owner": "self",
-      "sha256": "sha256:c8def2c979667ddf38992711ba8c9055115df6cbf6a5efe4555fd321a9c96b88",
+      "sha256": "sha256:3693056888ebc73678a0b3644010af5154e9921ca8d88cb271325f8550a69754",
       "imports": [
         "../vendor/reploid/transport/index.js",
         "./circle-http-client.js",
@@ -3088,7 +3088,7 @@
     {
       "path": "self/host/decisions/conversation-controller.js",
       "owner": "self",
-      "sha256": "sha256:22ed360384ca024abf2076b242c4637c1b35b62011104c57e246cd0489a619a5",
+      "sha256": "sha256:174e8a7559286a7a21d9b80f6aee4aaa82178ee60d6b2ab2fb91a584514dedc6",
       "imports": [
         "../../config/chat-prompts.json",
         "../../config/work-profile.json",
@@ -3223,7 +3223,7 @@
     {
       "path": "self/host/decisions/prompt-disclosure.js",
       "owner": "self",
-      "sha256": "sha256:ff9320cf59890281ceac4988871be67f49d3413d5a3bd0e2d67d948375ffed24",
+      "sha256": "sha256:025f5b2506bb68e5539af92d4756992c87b9a9779838071e99be4b393c1e8ca1",
       "imports": [
         "../../vendor/reploid/chat/execution-policy.js",
         "../../vendor/reploid/inference/protections.js"
@@ -3535,7 +3535,7 @@
     {
       "path": "self/host/owner-pairing.js",
       "owner": "self",
-      "sha256": "sha256:a776384dd868a4efb6f0a618d21269c3670a42ad515bd018e57a226673e7581e",
+      "sha256": "sha256:e6d62691d592a0fddfbf8c34bb1023474c7dea4c64fa307850f6527db3e8a957",
       "imports": [
         "../vendor/reploid/transport/index.js",
         "./circle-invites.js",
@@ -5183,13 +5183,13 @@
     {
       "path": "ui/react/app.js",
       "owner": "ui",
-      "sha256": "sha256:38128f956289a079e88127fe3cbc0051572a6e91bc8a76ed0730d975c5615650",
+      "sha256": "sha256:e470020649a1a539317e9f8ec4d44f597604056521320cc127203ce6f82977bd",
       "imports": []
     },
     {
       "path": "ui/react/design.js",
       "owner": "ui",
-      "sha256": "sha256:051568c6a324414c79b998000ab91f3dc5b699002f0d870a4882ab6f2dadaad0",
+      "sha256": "sha256:c52e40e81a3dd589d044391a11dd5de3aff726f2a9ad70b81bf5e5369bed6538",
       "imports": []
     },
     {
