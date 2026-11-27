@@ -6,6 +6,7 @@ import { resolveServedFile } from './browser-roots.js';
 import { resolveGenerationOptions } from '../shared/config/doppler-generation-contract.js';
 import { createWorkPartitionPlan } from '../apps/poolday/host/work-partition-plan.js';
 import { modelToolCallFormat } from '../shared/infrastructure/tool-call-constraint.js';
+import { isDigest } from '../shared/vendor/reploid/contracts/identifiers.js';
 
 const requireValue = (condition, message) => { if (!condition) throw new Error(message); };
 
@@ -14,7 +15,7 @@ export function validateWholeRuntime(model, wholeRuntime) {
   const gather = wholeRuntime?.gather;
   requireValue(wholeRuntime && Object.keys(wholeRuntime).every(key => ['gather', 'reversePromptBackend'].includes(key))
     && (wholeRuntime.reversePromptBackend === undefined || typeof wholeRuntime.reversePromptBackend === 'string'
-      && /^sha256:[a-f0-9]{64}$/.test(wholeRuntime.reversePromptBackend)), 'Whole-model runtime policy is invalid');
+      && isDigest(wholeRuntime.reversePromptBackend)), 'Whole-model runtime policy is invalid');
   if (gather === undefined && wholeRuntime.reversePromptBackend) return structuredClone(wholeRuntime);
   requireValue(gather && Object.keys(gather).every(key => ['maxPartBytes', 'memoryBudgetBytes', 'concurrency', 'maxRanges', 'verificationCache'].includes(key))
     && ['maxPartBytes', 'memoryBudgetBytes', 'concurrency'].every(key => Number.isSafeInteger(gather[key]) && gather[key] > 0)
@@ -49,7 +50,7 @@ export async function readNativeModelConfiguration(file, { modelId, modelDirecto
   const catalogReference = typeof configuration.model === 'string';
   const model = structuredClone(catalogReference ? models.find(row => row.id === configuration.model) : configuration.model);
   requireValue(model?.id === modelId && model.provider === 'doppler' && typeof model.name === 'string'
-    && /^sha256:[a-f0-9]{64}$/.test(model.identity), 'Native model configuration requires an exact Doppler model identity');
+    && isDigest(model.identity), 'Native model configuration requires an exact Doppler model identity');
   model.generation = resolveGenerationOptions(model.generation);
   // An optional `toolCallFormat` makes a whole-model provider advertise tools; an unknown one is refused here.
   modelToolCallFormat(model);

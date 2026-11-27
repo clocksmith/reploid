@@ -1,9 +1,10 @@
 import { identifyComputer } from '../../../shared/vendor/reploid/mesh/computer-identity.js';
 import { captureGpuSignature, compareGpuSignatures } from '../../../shared/vendor/reploid/mesh/gpu-signature.js';
 import policy from '../config/computer-preferences.json' with { type: 'json' };
+import { isParticipantId } from '../../../shared/vendor/reploid/contracts/identifiers.js';
 
 const clone = value => structuredClone(value);
-const participant = value => /^peer:[a-f0-9]{24}$/.test(value);
+const participant = value => isParticipantId(value);
 
 /** Local display preferences and an explicitly requested diagnostic, never peer authentication. */
 export function createComputerPreferences({ storage = globalThis.localStorage, verifyPeer, capture = captureGpuSignature } = {}) {

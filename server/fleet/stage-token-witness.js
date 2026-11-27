@@ -5,12 +5,13 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import bootstrap from '../../shared/config/swarm-bootstrap.json' with { type: 'json' };
 import { canonicalPartitionJson, canonicalRouteAttemptBinding } from '../../shared/vendor/reploid/contracts/partition.js';
+import { isParticipantId } from '../../shared/vendor/reploid/contracts/identifiers.js';
 
 const sha256 = value => createHash('sha256').update(value).digest('hex');
 const digest = value => sha256(canonicalPartitionJson(value));
 const validIds = (ids, limit) => Array.isArray(ids) && ids.length > 0 && ids.length <= limit
   && ids.every(id => Number.isSafeInteger(id) && id >= 0 && id <= 0xffffffff);
-const peerId = id => typeof id === 'string' && /^peer:[0-9a-f]{24}$/.test(id);
+const peerId = id => isParticipantId(id);
 
 function referenceTokens(fixture) {
   const reference = fixture.reference;

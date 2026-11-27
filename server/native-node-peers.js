@@ -13,6 +13,7 @@ import { projectChatCatalog } from '../apps/poolday/host/chat-view.js';
 import defaultCatalog from '../shared/config/chat-models.json' with { type: 'json' };
 import { findCatalogModel, supersededIdentities } from './native-model-names.js';
 import { askableRoute } from './native-node-ask.js';
+import { DIGEST_PATTERN, PARTICIPANT_ID_PATTERN } from '../shared/vendor/reploid/contracts/identifiers.js';
 
 export const PEERS_SCHEMA = 'reploid.peers/v1';
 /** The page gives discovery 8 s before it reports that nobody is there (apps/poolday/host/chat-session.js). */
@@ -30,7 +31,7 @@ const READINESS = ['loading', 'ready', 'executing', 'idle', 'failed', 'stopping'
 const STAGE_PHASES = ['idle', 'waiting', 'loading', 'ready', 'stopping', 'failed'];
 const PREPARATION = ['downloading', 'receiving', 'cached', 'pipelines', 'loading'];
 const CLOSED = ['disconnected', 'failed', 'closed'];
-const SHA256 = /^sha256:[a-f0-9]{64}$/, PARTICIPANT = /^peer:[a-f0-9]{24}$/;
+const SHA256 = DIGEST_PATTERN, PARTICIPANT = PARTICIPANT_ID_PATTERN;
 // Text from another computer reaches a terminal: printable ASCII only, and bounded.
 const plain = (value, limit = 64) => typeof value === 'string' && value ? value.replace(/[^\x20-\x7e]/g, '?').slice(0, limit) : null;
 const count = value => Number.isSafeInteger(value) && value >= 0 ? value : null;

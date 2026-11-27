@@ -21,12 +21,13 @@ import {
 import { SETTLEMENT_RULE_SETS, UNFINISHED_TERMS_OF_RULES } from './credit-shares.js';
 import { SETTLEMENT_TERMS_SCHEMA, policyDigest, termsDigest, verifySettlementTerms } from './settlement-terms.js';
 import { replaySettlement } from './settlement-replay.js';
+import { DIGEST_PATTERN } from '../../shared/vendor/reploid/contracts/identifiers.js';
 
 export const SETTLEMENT_STATEMENT_SCHEMA = 'reploid.settlement-statement/v1';
 
 const KEYS = Object.freeze(['schema', 'reservationId', 'attemptId', 'requesterId', 'termsDigest', 'coordinatorId', 'settlementRules', 'status',
   'debit', 'payouts', 'forfeited', 'hold', 'signedAt']);
-const DIGEST = /^sha256:[a-f0-9]{64}$/;
+const DIGEST = DIGEST_PATTERN;
 const exact = (value, keys) => Boolean(value) && typeof value === 'object' && !Array.isArray(value)
   && Object.keys(value).length === keys.length && keys.every(key => Object.hasOwn(value, key));
 const text = (value, max = 256) => typeof value === 'string' && value.length > 0 && value.length <= max;

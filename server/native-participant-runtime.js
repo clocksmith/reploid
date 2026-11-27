@@ -28,6 +28,7 @@ import { requireValue, events } from './native-host-utils.js';
 import { acceptToolResult, expectedConstraintIdentity } from '../shared/infrastructure/tool-call-constraint.js';
 import { openNativePartition } from './native-partition.js';
 import { assertNativeRuntimeSourceMode } from './native-runtime-source.js';
+import { isParticipantId } from '../shared/vendor/reploid/contracts/identifiers.js';
 
 /** `owner` is the optional owner gate from openNativeOwnerControls. It defers or reduces
  * new contribution, stage attempts and piece supply; it never cancels admitted work.
@@ -60,7 +61,7 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
   requireValue(!ownerPairing || wholeMode && roomId && roomId !== bootstrap.publicRoomId && ownerPairing.hostParticipantId === identity?.peerId,
     'Owner pairing requires a private whole-model host bound to this desktop identity');
   requireValue(supplyTo === undefined || Array.isArray(supplyTo) && supplyTo.length > 0
-    && supplyTo.every(id => typeof id === 'string' && /^peer:[a-f0-9]{24}$/.test(id)),
+    && supplyTo.every(id => isParticipantId(id)),
   'File supply recipients must be signing identities (peer: followed by 24 lowercase hex digits)');
   const supplyRecipients = supplyTo && new Set(supplyTo);
   requireValue(executionAdmission === null || ['whole', 'partition', 'partitionReceipt', 'receipt'].every(key => typeof executionAdmission[key] === 'function'),

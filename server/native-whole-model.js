@@ -12,6 +12,7 @@ import profile from '../apps/poolday/config/work-profile.json' with { type: 'jso
 import { resolvePartitionGeneration } from '../apps/poolday/config/partition-generation.js';
 import { GENERATION_SETTINGS_CAPABILITY, assertSettingsSupported, normalizeGenerationSettings } from '../shared/vendor/reploid/mesh/generation-settings.js';
 import { hasToolMessages, modelToolCallFormat } from '../shared/infrastructure/tool-call-constraint.js';
+import { isDigest } from '../shared/vendor/reploid/contracts/identifiers.js';
 
 /** What this provider applies itself: the caller's output limit reaches the sampler options. */
 export const NATIVE_WHOLE_MODEL_SETTINGS = Object.freeze({ ...GENERATION_SETTINGS_CAPABILITY, maxOutputTokens: true });
@@ -23,7 +24,7 @@ export function nativeWholeModelSettings(model) {
   const base = modelToolCallFormat(model) ? NATIVE_TOOL_MODEL_SETTINGS : NATIVE_WHOLE_MODEL_SETTINGS;
   const backend = model.wholeRuntime?.reversePromptBackend;
   if (backend === undefined) return base;
-  if (!/^sha256:[a-f0-9]{64}$/.test(backend)) throw Error('Reverse-prompt contribution requires a qualified backend digest');
+  if (!isDigest(backend)) throw Error('Reverse-prompt contribution requires a qualified backend digest');
   return Object.freeze({ ...base, reversePromptBackends: Object.freeze([backend]) });
 }
 

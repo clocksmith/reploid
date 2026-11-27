@@ -6,6 +6,7 @@
 import policy from '../../config/computer-preferences.json' with { type: 'json' };
 import { setComputerNames, setBlockedComputers } from './computer-labels.js';
 import { hardwareText } from './execution-ribbon.js';
+import { isParticipantId } from '../../../../shared/vendor/reploid/contracts/identifiers.js';
 
 export const renderComputerDiagnostic = () => `<details class="pool-disclosure pool-disclosure-quiet" data-computer-diagnostic hidden>
   <summary>GPU check (optional)</summary><div class="pool-stack pool-gap-sm">
@@ -46,7 +47,7 @@ export function bindComputerPreferences(root, preferences, session, refresh) {
       const local = block.closest('[data-computer-preferences]');
       if (local) local.hidden = false;
       const row = block.closest('[data-computer-id]'), blocked = row.dataset.blocked === 'true';
-      const identity = /^peer:[a-f0-9]{24}$/.test(row.dataset.computerParticipant || '') ? row.dataset.computerParticipant : '';
+      const identity = isParticipantId(row.dataset.computerParticipant || '') ? row.dataset.computerParticipant : '';
       const button = block.querySelector('button');
       block.hidden = false;
       button.textContent = blocked ? 'Unblock' : 'Block';
@@ -59,7 +60,7 @@ export function bindComputerPreferences(root, preferences, session, refresh) {
     for (const form of root.querySelectorAll('[data-computer-rename]')) {
       const identity = form.closest('[data-computer-id]').dataset.computerParticipant || '';
       const input = form.querySelector('input');
-      form.hidden = !/^peer:[a-f0-9]{24}$/.test(identity);
+      form.hidden = !isParticipantId(identity);
       if (form.dataset.identity !== identity || !input.dataset.edited && root.ownerDocument.activeElement !== input) {
         input.value = view.names[identity] || '';
         delete input.dataset.edited;
@@ -98,7 +99,7 @@ export function bindComputerPreferences(root, preferences, session, refresh) {
     const button = event.target.closest?.('[data-computer-block-toggle]');
     if (!button || !root.contains(button)) return;
     const row = button.closest('[data-computer-id]'), id = row.dataset.computerId;
-    const participantId = /^peer:[a-f0-9]{24}$/.test(row.dataset.computerParticipant || '') ? row.dataset.computerParticipant : null;
+    const participantId = isParticipantId(row.dataset.computerParticipant || '') ? row.dataset.computerParticipant : null;
     void observe(async () => {
       if (row.dataset.blocked === 'true') preferences.unblock(id, { participantId });
       else await preferences.block(id, { participantId });
