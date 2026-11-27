@@ -249,3 +249,25 @@ describe('scoreTargetSequence through the envelope, against the earlier receipt-
     release();
   });
 });
+
+it('an operation whose signal is already aborted rejects at once and sends nothing', async () => {
+  const f = await fixture();
+  f.session.hold = new Promise(() => {});
+  const envelope = await f.envelope(), aborted = AbortSignal.abort(new Error('already stopped'));
+  const direct = requestMeshOperation({ transport: f.link.requester, verifyPeer: async () => keys[1].peerId, currentPeer: () => keys[1].peerId,
+    providerPeer: 'provider-peer', envelope, signal: aborted });
+  const settledWithin = (promise, ms) => Promise.race([promise.then(() => 'resolved', error => error.message),
+    new Promise(resolve => setTimeout(() => resolve('pending'), ms))]);
+  expect(await settledWithin(direct, 200)).toBe('already stopped');
+  // A provider that never answers: the call still ends at once and nothing is sent to it.
+  const silent = { sent: [], getPeerBinding: () => ({ local: 'a', remote: 'b' }), onMessage() {}, sendToPeer(_peer, type) { silent.sent.push(type); return true; } };
+  const unanswered = requestMeshOperation({ transport: silent, verifyPeer: async () => keys[1].peerId, currentPeer: () => keys[1].peerId,
+    providerPeer: 'provider-peer', envelope, signal: aborted });
+  expect(await settledWithin(unanswered, 200)).toBe('already stopped');
+  expect(silent.sent).toEqual([]);
+  await expect(f.execute(envelope, { signal: aborted })).rejects.toThrow('already stopped');
+  await new Promise(resolve => setTimeout(resolve, 20));
+  expect(f.link.wire).toEqual([]);
+  expect(f.session.scoreTargetSequence).not.toHaveBeenCalled();
+  expect(credits.request(`service:${keys[0].peerId}:${envelope.requestId}`)).toBeNull();
+});

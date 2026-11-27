@@ -265,10 +265,13 @@ export function attachMeshOperations({ transport, identity, verifyPeer, currentP
 const replies = new WeakMap();
 /** Requester protocol: sends an authorized envelope to the verified provider peer and returns `{ output, receipt }`. */
 export async function requestMeshOperation({ transport, verifyPeer, currentPeer, providerPeer, envelope, signal = AbortSignal.timeout(60_000) }) {
+  // A call that is already stopped ends here, before anything is sent: an abort listener never fires for it.
+  signal.throwIfAborted();
   const providerParticipantId = envelope.recipientGrant.recipient;
   if (!transport.getPeerBinding(providerPeer) || await verifyPeer(providerPeer, signal) !== providerParticipantId) {
     throw meshOperationError('OPERATION_OFFER_MISMATCH', 'Could not verify the granted recipient');
   }
+  signal.throwIfAborted();
   let waiting = replies.get(transport);
   if (!waiting) {
     waiting = new Map();
