@@ -1253,12 +1253,13 @@
     {
       "path": "pool/artifact-router.js",
       "owner": "pool",
-      "sha256": "sha256:3a513f4f2a7b0e577ba16f3d108f74d6db4250d763c602317815a631ab64627f",
+      "sha256": "sha256:d5f2ef055c727591e92b39ce692cb86a902a0dffc76fbbc1fb93d66f78e24407",
       "imports": [
         "./adapter-pack.js",
         "./inference-receipt.js",
         "./model-contract.js",
-        "./participation-profile.js"
+        "./participation-profile.js",
+        "./peer-planning.js"
       ]
     },
     {
@@ -4494,7 +4495,7 @@
     {
       "path": "ui/boot-wizard/detection.js",
       "owner": "ui",
-      "sha256": "sha256:fc0f114d25b3417147c1740711e334ab23ebecf12442cfab9dd29f24c764412e",
+      "sha256": "sha256:8d710a4f3c56a802fe434896b22ecab7acc84b51e1a63532921edf1338e6640b",
       "imports": [
         "../../config/doppler-local-models.js",
         "../../config/zero-inference.js",
@@ -4561,7 +4562,7 @@
     {
       "path": "ui/boot-wizard/state.js",
       "owner": "ui",
-      "sha256": "sha256:769e9b956b4e608374a80a326a182cdfbbf4cef96de285d0d24aa7ae6db28e2f",
+      "sha256": "sha256:9f5b0e13ffa38f3baa0f662bab7745d63c317332314ee637145915fff9904712",
       "imports": [
         "../../config/boot-modes.js",
         "../../config/doppler-local-models.js",
@@ -5177,13 +5178,13 @@
     {
       "path": "ui/react/app.js",
       "owner": "ui",
-      "sha256": "sha256:21bb47025bfa4bf00d80ebf197544e4e6091d587f41804376c23d47156fa807f",
+      "sha256": "sha256:6ad80abfa418e9562fba47be7a98c081421a2e49bd6654de58c52a6b0f722b24",
       "imports": []
     },
     {
       "path": "ui/react/design.js",
       "owner": "ui",
-      "sha256": "sha256:33c45936e33e4c87dc3e50abccc8f5f0dfad7d4c71b84d1e3b85321937ea2908",
+      "sha256": "sha256:e32881fa7c5bd2f3c38a2c3d9439af1add7e29cc4bbe452046d8d8457909929a",
       "imports": []
     },
     {
@@ -18326,7 +18327,7 @@
     {
       "path": "vendor/reploid/agent/response-parser.js",
       "owner": "vendor",
-      "sha256": "sha256:5fb130b889145e2eb1190c880a8d6acecc2aceb47b74d05bfa8e4097454211c3",
+      "sha256": "sha256:586909f1b08ffbb775e8d1945edb2345e51b8ef00336148b2288a0a97c2522f0",
       "imports": []
     },
     {

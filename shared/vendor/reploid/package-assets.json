@@ -290,13 +290,13 @@
     },
     {
       "path": "agent/response-parser.d.ts",
-      "bytes": 628,
-      "sha256": "205c1291fdb2c264f308a2da786dc3378a95c2e84eb4ed70f362acc589740852"
+      "bytes": 645,
+      "sha256": "9d258a8a111c99562c7c986ad6f13dec547e458520b25c244e30c5d7ba71fbc1"
     },
     {
       "path": "agent/response-parser.js",
-      "bytes": 21551,
-      "sha256": "5fb130b889145e2eb1190c880a8d6acecc2aceb47b74d05bfa8e4097454211c3"
+      "bytes": 21585,
+      "sha256": "586909f1b08ffbb775e8d1945edb2345e51b8ef00336148b2288a0a97c2522f0"
     },
     {
       "path": "agent/runtime.d.ts",

@@ -585,11 +585,11 @@ const ResponseParser = {
     };
 
     const parseLegacyJsonArgs = (name, rawArgs) => {
-      const { json } = sanitizeLlmJsonRespPure(rawArgs);
-        try {
-          const args = JSON.parse(json);
+      const { json, method } = sanitizeLlmJsonRespPure(rawArgs);
+      try {
+        const args = JSON.parse(method === 'failed' ? rawArgs : json);
         return { name, args };
-        } catch (e) {
+      } catch (e) {
           logger.warn(`[ResponseParser] Bad args for ${name}`, {
             error: e.message,
             rawLength: rawArgs.length,
