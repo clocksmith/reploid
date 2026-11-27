@@ -7,6 +7,7 @@
   "maxTransfers": 4,
   "maxPeers": 16,
   "maxAcquisitionAttempts": 4,
+  "originIdleTimeoutMs": 30000,
   "maxInventoryFiles": 1024,
   "maxReceipts": 32,
   "grantMs": 1800000,

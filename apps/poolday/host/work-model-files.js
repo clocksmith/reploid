@@ -85,7 +85,10 @@ export function createWorkModelFiles({ getTransport, getIdentity = () => null, o
   };
   const reserveDownload = async bytes => {
     assert(acquisitionBudget, 'Approved download allowance is unavailable');
-    await acquisitionBudget.reserve(bytes); notify();
+    const reserving = acquisitionBudget;
+    await reserving.reserve(bytes); notify();
+    // An origin transfer that fails part-way returns what never arrived; peer transfers ignore this.
+    return async unreceived => { if (unreceived > 0) { await reserving.release(unreceived); notify(); } };
   };
   const acquirePieceSlot = signal => new Promise((resolve, reject) => {
     signal.throwIfAborted();
@@ -212,31 +215,70 @@ export function createWorkModelFiles({ getTransport, getIdentity = () => null, o
     }
     throw new Error('Model file storage attempts exhausted');
   });
+  // Bytes of catalog-origin transfers that failed part-way, kept for this session so a retry asks the origin only for
+  // the rest. Unverified until the whole file is checked; bounded by the transfer staging allowance.
+  const partials = new Map();
+  const keepPartial = (key, bytes, received) => {
+    if (received <= 0 || received >= bytes.byteLength || bytes.byteLength > policy.maxCheckpointBytes) return;
+    partials.set(key, { bytes, received });
+    let kept = [...partials.values()].reduce((total, row) => total + row.bytes.byteLength, 0);
+    for (const [name, row] of partials) {
+      if (kept <= policy.maxCheckpointBytes) break;
+      partials.delete(name); kept -= row.bytes.byteLength;
+    }
+  };
+  const missingBytes = file => {
+    const partial = partials.get(fileKey(file));
+    return file.sizeBytes - (partial?.bytes.byteLength === file.sizeBytes ? partial.received : 0);
+  };
+  // A catalog-origin transfer fails only when no byte arrives for originIdleTimeoutMs (a stall); a slow transfer that
+  // keeps making progress completes however long it takes. `reserve` charges the download allowance up front and
+  // returns a release for what never arrived.
   const origin = async (file, signal, onProgress, reserve, range) => {
-    if (reserve) signal = AbortSignal.any([signal, AbortSignal.timeout(policy.channel.timeoutMs)]);
     signal.throwIfAborted();
-    if (reserve) await reserve(file.sizeBytes);
-    signal.throwIfAborted();
-    const response = await fetchImpl(file.url, { signal,
-      ...(range ? { headers: { Range: `bytes=${range.offset}-${range.offset + file.sizeBytes - 1}` } } : {}) });
+    const key = fileKey(file), partial = partials.get(key);
+    partials.delete(key);
+    const resumed = partial?.bytes.byteLength === file.sizeBytes ? partial : null;
+    const bytes = resumed?.bytes ?? new Uint8Array(file.sizeBytes), start = resumed?.received ?? 0;
+    let offset = start, release = null, timer = null;
+    const idle = new AbortController();
+    const touch = () => {
+      clearTimeout(timer);
+      timer = setTimeout(() => idle.abort(Object.assign(new Error(
+        `Model file download stalled: no data for ${Math.round(policy.originIdleTimeoutMs / 1000)} s`), { code: 'ORIGIN_STALLED' })), policy.originIdleTimeoutMs);
+    };
     try {
-      assert(response.ok, `Model file acquisition HTTP ${response.status}`);
-      if (range) assert(response.status === 206 && response.headers.get('content-range') ===
-        `bytes ${range.offset}-${range.offset + file.sizeBytes - 1}/${range.total}`, 'Origin did not honor the exact piece range');
-    } catch (cause) { await response.body?.cancel(); throw cause; }
-    const reader = response.body.getReader(), bytes = new Uint8Array(file.sizeBytes); let offset = 0;
-    try {
-      while (offset <= bytes.byteLength) {
-        const { done, value } = await reader.read(); if (done) break;
-        assert(value?.byteLength > 0, 'Model file stream made no progress');
-        signal.throwIfAborted(); assert(offset + value.byteLength <= bytes.byteLength, 'Model file exceeds declared size');
-        bytes.set(value, offset); offset += value.byteLength;
-        onProgress?.({ stage: 'acquiring', path: file.path, receivedBytes: offset, totalBytes: file.sizeBytes,
-          message: `Downloading ${file.path}: ${Math.floor(offset / file.sizeBytes * 100)}%` });
-      }
-      assert(offset === bytes.byteLength, 'Model file is truncated');
-    } finally { await reader.cancel(); reader.releaseLock(); }
-    return bytes;
+      if (reserve) release = await reserve(file.sizeBytes - start);
+      signal.throwIfAborted();
+      const transfer = AbortSignal.any([signal, idle.signal]);
+      touch();
+      const base = range?.offset ?? 0, first = base + start, last = base + file.sizeBytes - 1;
+      const ranged = !!range || start > 0;
+      const response = await fetchImpl(file.url, { signal: transfer, ...(ranged ? { headers: { Range: `bytes=${first}-${last}` } } : {}) });
+      try {
+        assert(response.ok, `Model file acquisition HTTP ${response.status}`);
+        if (ranged) assert(response.status === 206 && response.headers.get('content-range') ===
+          `bytes ${first}-${last}/${range?.total ?? file.sizeBytes}`, 'Origin did not honor the exact piece range');
+      } catch (cause) { await response.body?.cancel(); throw cause; }
+      const reader = response.body.getReader();
+      try {
+        while (offset <= bytes.byteLength) {
+          touch();
+          const { done, value } = await reader.read(); if (done) break;
+          assert(value?.byteLength > 0, 'Model file stream made no progress');
+          transfer.throwIfAborted(); assert(offset + value.byteLength <= bytes.byteLength, 'Model file exceeds declared size');
+          bytes.set(value, offset); offset += value.byteLength;
+          onProgress?.({ stage: 'acquiring', path: file.path, receivedBytes: offset, totalBytes: file.sizeBytes,
+            message: `Downloading ${file.path}: ${Math.floor(offset / file.sizeBytes * 100)}%` });
+        }
+        assert(offset === bytes.byteLength, 'Model file is truncated');
+      } finally { await reader.cancel().catch(() => {}); reader.releaseLock(); }
+      return bytes;
+    } catch (cause) {
+      keepPartial(key, bytes, offset);
+      if (typeof release === 'function') await release(file.sizeBytes - offset).catch(() => {});
+      throw cause;
+    } finally { clearTimeout(timer); }
   };
   const read = (file, controls) => own(readOwned(file, controls));
   // This device's demand (reploid.weight-demand/1 as peers read it, exchange.js announceDemand): the pieces its own
@@ -603,7 +645,8 @@ export function createWorkModelFiles({ getTransport, getIdentity = () => null, o
                 }
                 if (!bytes && mode !== 'cached-only') {
                   const state = await acquisitionBudget.reserve(0);
-                  if (piece.size > state.maxBytes - state.reservedBytes) continue;
+                  // A piece an earlier attempt half-received needs only its missing bytes from the allowance.
+                  if (missingBytes(saved) > state.maxBytes - state.reservedBytes) continue;
                   pinned.add(fileKey(saved));
                   // The piece being fetched is announced to peers as demand meanwhile, as partition fetches announce theirs.
                   announceDemand([saved], 1);

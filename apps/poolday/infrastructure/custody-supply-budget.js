@@ -1,5 +1,5 @@
 /** One cumulative allowance per browser origin; IndexedDB serializes competing tabs. */
-import { custodyBudgetError, reserveCustodyBudget } from '../../../shared/vendor/reploid/artifacts/custody/supply-budget.js';
+import { custodyBudgetError, releaseCustodyBudget, reserveCustodyBudget } from '../../../shared/vendor/reploid/artifacts/custody/supply-budget.js';
 
 export async function openBrowserSupplyBudget({ maxBytes, allowInitialize, purpose = 'supply', existingOnly = false,
   name = purpose === 'supply' ? 'reploid-custody-budget-v1' : 'reploid-custody-acquisition-budget-v1', indexedDB = globalThis.indexedDB }) {
@@ -20,7 +20,7 @@ export async function openBrowserSupplyBudget({ maxBytes, allowInitialize, purpo
     opening.onblocked = () => { rejected = true; reject(custodyBudgetError('STORAGE', 'File contribution ledger opening blocked')); };
   });
   let state = null, closed = false;
-  const transaction = bytes => new Promise((resolve, reject) => {
+  const transaction = (bytes, apply = reserveCustodyBudget) => new Promise((resolve, reject) => {
     if (closed) { reject(custodyBudgetError('STORAGE', 'File contribution budget closed')); return; }
     let tx, failure, next;
     try {
@@ -30,7 +30,7 @@ export async function openBrowserSupplyBudget({ maxBytes, allowInitialize, purpo
         try {
           if (!read.result) throw custodyBudgetError('MISSING', 'File contribution ledger missing; previous allowance cannot be inferred');
           if (existingOnly && maxBytes === undefined) maxBytes = read.result?.maxBytes;
-          next = reserveCustodyBudget(read.result, bytes, maxBytes, purpose); store.put(next, purpose); }
+          next = apply(read.result, bytes, maxBytes, purpose); store.put(next, purpose); }
         catch (error) { failure = error; tx.abort(); }
       };
       tx.oncomplete = () => { state = next; resolve({ ...state }); };
@@ -41,9 +41,12 @@ export async function openBrowserSupplyBudget({ maxBytes, allowInitialize, purpo
   db.onversionchange = () => { closed = true; db.close(); };
   try { await transaction(0); }
   catch (error) { db.close(); throw error; }
-  return Object.freeze({ getState: () => state && { ...state }, reserve: transaction,
+  return Object.freeze({ getState: () => state && { ...state }, reserve: bytes => transaction(bytes),
+    // Only a download allowance returns bytes: those a failed transfer reserved and never received.
+    ...(purpose === 'acquisition' ? { release: bytes => transaction(bytes, releaseCustodyBudget) } : {}),
     close() { if (!closed) { closed = true; db.close(); } } });
 }
 
-/** Separate cumulative download grant; failures and retries retain their reservations. */
+/** Separate cumulative download grant: every byte received stays counted, through failures and retries; a failed
+ * transfer returns only the reserved bytes that never arrived (release), so a retry can fetch what is missing. */
 export const openBrowserAcquisitionBudget = options => openBrowserSupplyBudget({ ...options, purpose: 'acquisition' });
