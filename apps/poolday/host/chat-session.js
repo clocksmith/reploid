@@ -775,6 +775,35 @@ export function createChatSession({
       assert(!enabled || !zeroRequesterWeights, ZERO_WEIGHT_NOTICE);
       try { await swarm.allowCachedFiles(enabled); } finally { notifyAll(); }
     },
+    // Weight supply (the Contribute journey for an empty cache). Its data is network.weightSupply in the session state.
+    // The Contribute view asks for a recommendation when it opens; joining never computes one.
+    async recommendWeightSupply(options) {
+      assertOpen();
+      assert(swarm?.recommendWeightSupply, 'Weight supply is unavailable');
+      try { return await swarm.recommendWeightSupply(options); } finally { notifyAll(); }
+    },
+    async approveWeightSupply(options) {
+      assertOpen();
+      assert(swarm?.approveWeightSupply, 'Weight supply is unavailable');
+      assert(!zeroRequesterWeights, ZERO_WEIGHT_NOTICE);
+      try { return await swarm.approveWeightSupply(options); } finally { notifyAll(); }
+    },
+    async refreshWeightSupply() {
+      assertOpen();
+      assert(swarm?.refreshWeightSupply, 'Weight supply is unavailable');
+      try { return await swarm.refreshWeightSupply(); } finally { notifyAll(); }
+    },
+    async pauseWeightSupply() {
+      assertOpen();
+      assert(swarm?.pauseWeightSupply, 'Weight supply is unavailable');
+      try { await swarm.pauseWeightSupply(); } finally { notifyAll(); }
+    },
+    async resumeWeightSupply() {
+      assertOpen();
+      assert(swarm?.resumeWeightSupply, 'Weight supply is unavailable');
+      assert(!zeroRequesterWeights, ZERO_WEIGHT_NOTICE);
+      try { await swarm.resumeWeightSupply(); } finally { notifyAll(); }
+    },
     getRoutePreference: () => routePreference?.get() ?? null,
     setRoutePreference(value) {
       assertOpen();

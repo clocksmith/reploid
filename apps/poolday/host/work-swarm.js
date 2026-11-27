@@ -29,7 +29,8 @@ import { createWorkPartitionNetworks } from './work-partition-networks.js';
 import { createReadinessRecorder, createReadinessRecordStore } from '../../../shared/vendor/reploid/measurement/index.js';
 import partitionPolicy from '../config/partition-policy.json' with { type: 'json' };
 import { createContributionHistory } from './contribution-history.js';
-import { connectionAssistance as assistanceRecord, inferenceOffer, isConnectionId, isDigest, weightSupplyOffer } from './computer-records.js';
+import { connectionAssistance as assistanceRecord, inferenceOffer, isConnectionId, isDigest, offersOfPeer, weightSupplyOffer } from './computer-records.js';
+import { createHostWeightSupply, openWeightSupplyRecords } from './weight-supply-host.js';
 
 const PRODUCER_COMPUTE_CHOICE = 'REPLOID_PRODUCER_COMPUTE_CHOICE', PRODUCER_FILES_CHOICE = 'REPLOID_PRODUCER_FILES_CHOICE';
 
@@ -45,7 +46,8 @@ export const READINESS_RECORDS_KEY = 'REPLOID_READINESS_RECORDS';
 export const REQUESTER_INSTANCE_ID = 'work-swarm:requester';
 
 export function createWorkSwarm({ storage, evolution, onChange = () => {}, service = createReploidDopplerRuntimeService(), networkOptions = createLegacyNetworkOptions,
-  createModelFiles = createWorkModelFiles, createPartitions = createAutomaticPartitions, rankProviders = null, canonical = null, ordered = null, participantIdentity = null, webWorker = null, getBlockedComputers = () => [] }) {
+  createModelFiles = createWorkModelFiles, createPartitions = createAutomaticPartitions, rankProviders = null, canonical = null, ordered = null, participantIdentity = null, webWorker = null, getBlockedComputers = () => [],
+  openWeightRecords = openWeightSupplyRecords }) {
   ordered = snapshotWorkOrderedParticipation(ordered, canonical, LOCAL_DOPPLER_MODELS);
   canonical = canonical ? Object.freeze({ runtime: canonical.runtime, meshId: canonical.meshId,
     participantId: canonical.participantId, participantEpoch: canonical.participantEpoch, coordinatorEpoch: canonical.coordinatorEpoch }) : null;
@@ -85,6 +87,9 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
   let computeEnabled = storage?.getItem(PRODUCER_COMPUTE_CHOICE) === 'true';
   let filesEnabled = storage?.getItem(PRODUCER_FILES_CHOICE) === 'true';
   let cachedSharing = null, cachedModels = [];
+  // This session's weight supply (weight-supply-host.js), built per connection over its file exchange; its saved state
+  // (IndexedDB) carries the approval and held pieces across reconnects and reloads. Joining never builds an offer.
+  let weightSupply = null, weightRecords = null;
 
   // A network the person turned off stays off across a reload, and reads as paused (with Reconnect), not as a
   // search that never connects. disconnect() and connect() below write this setting.
@@ -161,12 +166,24 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
         modelId: contribution.modelId || null, modelIdentities: isDigest(contribution.modelIdentity) ? [contribution.modelIdentity] : [],
         execution: stage ? 'model-stage' : 'whole-model', stageIndex: stage && Number.isSafeInteger(index) && index >= 0 ? index : null }));
     }
-    if (filesEnabled || stored(PRODUCER_FILES_CHOICE) === 'false') {
-      const files = modelFiles?.getState() || {};
-      const identity = LOCAL_DOPPLER_MODELS.find(model => model.id === files.model?.id)?.identity;
-      offers.push(weightSupplyOffer({ connectionId: ownConnection(consumer?.getSwarmSnapshot()), paused: !filesEnabled,
-        readiness: !filesEnabled ? 'unavailable' : files.stopping ? 'stopping' : files.sharing ? 'ready' : files.preparing ? 'preparing' : 'unavailable',
-        modelIdentities: isDigest(identity) ? [identity] : [], maxStorageBytes: getFileContributionLimits().storedBytes ?? null }));
+    // One weight-supply offer for this device: weight supply's (under an approval, over the shared inventory, which the
+    // cached-model path's files join), or the cached-model path's alone when the person chose file sharing.
+    const chosen = filesEnabled || stored(PRODUCER_FILES_CHOICE) === 'false';
+    const files = modelFiles?.getState() || {};
+    const identity = LOCAL_DOPPLER_MODELS.find(model => model.id === files.model?.id)?.identity;
+    let readiness = 'unavailable';
+    if (files.stopping) readiness = 'stopping';
+    else if (files.sharing) readiness = 'ready';
+    else if (files.preparing) readiness = 'preparing';
+    const cached = { chosen, enabled: filesEnabled, readiness, modelIdentities: isDigest(identity) ? [identity] : [],
+      maxStorageBytes: getFileContributionLimits().storedBytes ?? null };
+    const connectionId = ownConnection(consumer?.getSwarmSnapshot());
+    if (weightSupply) {
+      const offer = weightSupply.localOffer(cached);
+      if (offer) offers.push(offer.connectionId || !connectionId ? offer : { ...offer, connectionId });
+    } else if (chosen) {
+      offers.push(weightSupplyOffer({ connectionId, paused: !filesEnabled, readiness: filesEnabled ? readiness : 'unavailable',
+        modelIdentities: cached.modelIdentities, maxStorageBytes: cached.maxStorageBytes }));
     }
     return offers;
   };
@@ -183,7 +200,9 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
     limits: { maxInboundJobs: contribution.partition ? partitionPolicy.limits.maxConcurrentAttempts : 1, maxOutputTokens: profile.generation.maxTokens },
     consumer: consumer?.getSwarmSnapshot() || null, supplier: supplier?.getSwarmSnapshot() || null,
     offers: peerOffers?.getState() || null,
-    localOffers: localOffers(), connectionAssistance: assistanceRecord({ enabled: introductionAssistance }) });
+    localOffers: localOffers(), connectionAssistance: assistanceRecord({ enabled: introductionAssistance }),
+    // Weight supply's projection (weight-supply-host.js getState), null before a connection.
+    weightSupply: weightSupply?.getState() ?? null });
   const notify = () => onChange(getState());
   for (const event of ['swarm:bootstrap-error', 'swarm:connection-failed']) eventBus.on(event, detail => {
     if (!closed && !paused) {
@@ -321,8 +340,10 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
         webNetwork = createWebAccessNetwork({ transport: consumerTransport, worker: webWorker, enabled: () => !closed && !paused && webWorker !== null,
           verifyPeer: (peer, signal) => active.verifyPeerIdentity(peer, signal), onChange: notify });
         await peerOffers?.attach();
-        modelFiles = createModelFiles({ getTransport: () => consumerTransport, getIdentity: () => consumerIdentity, onChange: notify });
+        modelFiles = createModelFiles({ getTransport: () => consumerTransport, getIdentity: () => consumerIdentity, onChange: notify,
+          onServed: event => weightSupply?.recordServed(event) });
         await modelFiles.attach();
+        await startWeightSupply(active);
         partitionNetworks = createWorkPartitionNetworks({ transport: consumerTransport,
           verifyPeer: (peerId, signal) => active.verifyPeerIdentity(peerId, signal) });
         if (canonical && (canonical.participantId !== consumerIdentity.peerId || canonical.meshId !== activeOptions.config.value.mesh.roomId)) {
@@ -364,8 +385,8 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
       return getState();
     }
     catch (cause) {
-      const owners = [webNetwork, partitionMesh, partitionNetworks, modelFiles, consumer];
-      webNetwork = null; partitionMesh = null; partitionRequester = null; partitionNetworks = null; modelFiles = null; consumer = null; consumerTransport = null;
+      const owners = [weightSupply, webNetwork, partitionMesh, partitionNetworks, modelFiles, consumer];
+      weightSupply = null; webNetwork = null; partitionMesh = null; partitionRequester = null; partitionNetworks = null; modelFiles = null; consumer = null; consumerTransport = null;
       peerOffers?.close();
       const finishReadiness = retireReadiness('connection-failed');
       const results = await Promise.allSettled(owners.map(closeOwner));
@@ -400,6 +421,33 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
     }
     if (!connection) connection = connectOnce().finally(() => { connection = null; });
     return connection;
+  };
+  // Builds this connection's weight supply and reloads its saved state. A fresh profile has none: nothing is built
+  // beyond the empty projection, nothing is offered and no recommendation is computed.
+  async function startWeightSupply(active) {
+    const ports = modelFiles.weightSupplyPorts?.();
+    if (!ports || !consumerIdentity?.privateJwk) return;
+    try {
+      weightRecords ??= await openWeightRecords();
+      if (consumer !== active) return;
+      weightSupply = createHostWeightSupply({ identity: consumerIdentity, connectionId: consumerTransport.getPeerId(),
+        exchange: ports.exchange, inventory: ports.inventory, store: ports.store, records: weightRecords, loadModels: ports.loadModels,
+        ports: { hashBytes: ports.hashBytes, fetchPiece: ports.fetchPiece,
+          // Peers loading a model (an inference offer in preparing readiness) are demand for its pieces.
+          inferenceOffers: () => (consumer?.getSwarmSnapshot()?.peers || []).flatMap(peer => offersOfPeer(peer)
+            .map(offer => (offer.connectionId ? offer : { ...offer, connectionId: peer.peerId }))),
+          // A full model cached here counts as cached: it is shared through "Share model files", not downloaded again.
+          cachedPieceIds: async () => (await ports.loadModels()).filter(model => cachedModels.some(row => row.id === model.modelId
+            && row.identity === model.modelIdentity)).flatMap(model => model.pieces.map(piece => piece.pieceId)),
+          onChange: notify, onError: cause => { error = cause.message; notify(); } } });
+      await weightSupply.start();
+    } catch (cause) { error = cause.message; }
+    notify();
+  }
+  const weightSupplyReady = async () => {
+    await connect({ automatic: true });
+    if (!weightSupply) throw new Error('Connect before contributing storage');
+    return weightSupply;
   };
   const generate = async (messages, controls) => {
     if (new TextEncoder().encode(JSON.stringify(messages)).byteLength > profile.peers.maxInferencePayloadBytes) {
@@ -458,6 +506,7 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
     const webStop = closeOwner(webNetwork); webNetwork = null;
     const contributionStop = stopContribution();
     const partitionStop = closeOwner(partitionMesh); partitionMesh = null; partitionRequester = null;
+    const weightStop = closeOwner(weightSupply); weightSupply = null;
     const fileStop = closeOwner(modelFiles); modelFiles = null;
     const previousConsumer = consumer, previousTransport = consumerTransport;
     retainedConnections = (previousTransport?.getPeerStates?.() || []).map(peer => ({ ...peer, phase: 'disconnected', channelState: 'closed' }));
@@ -465,7 +514,7 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
     const transportStop = Promise.resolve().then(() => previousTransport?.disconnect());
     peerOffers?.close();
     const networkStop = closeOwner(partitionNetworks); partitionNetworks = null;
-    const pending = [connection, contributionStop, closeOwner(previousConsumer), fileStop, partitionStop, networkStop, transportStop, webStop,
+    const pending = [connection, contributionStop, closeOwner(previousConsumer), fileStop, partitionStop, networkStop, transportStop, webStop, weightStop,
       ...[...cleanupDebt].map(closeOwner)];
     disconnecting = (async () => {
       const results = await Promise.allSettled(pending);
@@ -531,6 +580,14 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
     },
     /** After an approved download: keep what cached-only file sharing needs (the model's piece index). */
     retainModelMetadata: model => modelFiles?.retainPieceIndex?.(model) ?? Promise.resolve(false),
+    /** Read-only: computed only when asked (the Contribute view opening), never on join. */
+    recommendWeightSupply: async ({ storageCapBytes, deviceLimits = {} }) => (await weightSupplyReady()).recommend({ storageCapBytes, deviceLimits }),
+    /** The owner's approval of a recommended offer under the storage cap the UI passes. */
+    approveWeightSupply: async ({ offerId, storageCapBytes, modelIdentities = [] }) => (await weightSupplyReady()).approve({ offerId, storageCapBytes, modelIdentities }),
+    refreshWeightSupply: async () => (await weightSupplyReady()).refresh(),
+    /** Pauses all serving from this device (approved pieces and cached-model files); consuming is untouched. */
+    pauseWeightSupply: async () => (await weightSupplyReady()).pause(),
+    resumeWeightSupply: async () => (await weightSupplyReady()).resume(),
     stopFiles: () => { filesEnabled = false; storage?.setItem(PRODUCER_FILES_CHOICE, 'false'); notify(); return modelFiles?.stop(); },
     autoConnectEnabled: () => !closed && !paused && automaticAllowed,
     getInviteUrl: () => options.getInviteUrl(),

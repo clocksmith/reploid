@@ -17,7 +17,7 @@ beforeEach(() => {
   ports.exchange.mockReset();
   ports.exchange.mockImplementation((options) => {
     captured = options;
-    return { announce() {}, getState: () => ({}), close: async () => {} };
+    return { announce() {}, getState: () => ({}), offer() {}, stopSupply: async () => [], close: async () => {} };
   });
 });
 afterEach(() => vi.useRealTimers());

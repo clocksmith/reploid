@@ -4,6 +4,8 @@ import { announceModelCacheChange } from './work-model-cache.js';
 import { resolvePartitionArtifactSource } from './work-partition-artifact-source.js';
 /** Host grants and pinned catalog composition for the library's signed artifact custody. */
 import { createCustodyExchange } from '../../../shared/vendor/reploid/artifacts/custody/exchange.js';
+import { createSharedFileInventory } from '../../../shared/vendor/reploid/artifacts/custody/shared-inventory.js';
+import { pieceFile, pinnedModelPieces } from '../../../shared/vendor/reploid/contracts/weight-supply.js';
 import { createCustodyKeyCertifier } from '../../../shared/vendor/reploid/artifacts/custody-certificate.js';
 import { createPeerPackSupplier, createPeerPackArtifactStore } from '../pool/peer-pack-custody.js';
 import { createPeerPackDataChannel } from '../pool/peer-pack-data-channel.js';
@@ -28,6 +30,8 @@ export function fullModelSeedingBytes(model) {
 const SEEDING_BYTES = Object.freeze(Object.fromEntries(LOCAL_DOPPLER_MODELS
   .map(model => [model.id, fullModelSeedingBytes(model)]).filter(([, bytes]) => bytes !== null)));
 
+/** The largest pinned piece index weight supply reads (the 35B index is under 1 MiB). */
+const WEIGHT_SUPPLY_MAX_INDEX_BYTES = 4 << 20;
 const assert = (ok, message) => { if (!ok) throw new Error(message); };
 const decoder = new TextDecoder('utf-8', { fatal: true });
 
@@ -40,7 +44,14 @@ export const catalogModelForFile = (file, models = LOCAL_DOPPLER_MODELS) => mode
   model.source?.files.some(entry => entry.path === file.path && entry.hash === file.hash)
   || !!model.source?.baseUrl && file.url === new URL(file.path, model.source.baseUrl).href) || null;
 
-export function createWorkModelFiles({ getTransport, getIdentity = () => null, onChange = () => {}, fetchImpl = globalThis.fetch }) {
+/** `onServed` receives each transfer a requester confirmed as completed and verified (exchange.js observeServed). */
+export function createWorkModelFiles({ getTransport, getIdentity = () => null, onChange = () => {}, onServed = () => {}, fetchImpl = globalThis.fetch }) {
+  // One inventory for everything this device shares: the cached-model path below and weight supply (weight-supply-host.js).
+  let sharedInventory = null;
+  // Pieces weight supply holds: never evicted to make room for another file.
+  const weightPinned = new Set();
+  // Pieces this device is loading for itself, announced to peers as demand while the load runs.
+  const demanded = new Map();
   let exchange = null, checkpoints = null, attaching = null, closed = false, preparing = false, stopping = false;
   let directory = null, tooling = null, storageFactory = null, lastFile = null, error = '', progress = null;
   const pieceWaiters = [];
@@ -96,7 +107,11 @@ export function createWorkModelFiles({ getTransport, getIdentity = () => null, o
       pieceWaiters.push(waiter); signal.addEventListener('abort', abort, { once: true });
     }
   });
+  const cachedShared = () => sharedInventory?.getState().files.some(row => row.sources.includes('cached-model')) === true;
   const getState = () => ({ ...(exchange?.getState() || { sharing: false, suppliedBytes: 0, pending: 0, peers: [], offering: [] }),
+    // The cached-model path shares when its files are in the inventory and serving is not paused.
+    sharing: cachedShared() && sharedInventory?.getState().paused === false && exchange?.getState().sharing === true,
+    inventory: sharedInventory?.getState() || { paused: false, sharing: false, files: [] },
     model: sharedModel && { ...sharedModel }, mode: sharingMode, acquisitionBudget: acquisitionBudget?.getState() || null,
     acquisitionBudgetError: acquisitionError && { code: acquisitionError.code, message: acquisitionError.message },
     supplyBudgetError: budgetError && { code: budgetError.code || 'CUSTODY_BUDGET_STORAGE', message: budgetError.message },
@@ -171,7 +186,7 @@ export function createWorkModelFiles({ getTransport, getIdentity = () => null, o
       - policy.maxCheckpointBytes - policy.maxArtifactBytes;
     const budget = Math.min(policy.maxStoredBytes, Number.isFinite(remaining) ? Math.max(0, remaining) : policy.maxStoredBytes);
     const previous = entries.find(entry => entry.name === key)?.size || 0;
-    const evictable = entries.filter(entry => entry.name !== key && !pinned.has(entry.name))
+    const evictable = entries.filter(entry => entry.name !== key && !pinned.has(entry.name) && !weightPinned.has(entry.name))
       .sort((a, b) => a.touched - b.touched || a.name.localeCompare(b.name));
     const evict = async () => {
       const entry = evictable.shift();
@@ -224,6 +239,82 @@ export function createWorkModelFiles({ getTransport, getIdentity = () => null, o
     return bytes;
   };
   const read = (file, controls) => own(readOwned(file, controls));
+  // This device's demand (reploid.weight-demand/1 as peers read it, exchange.js announceDemand): the pieces its own
+  // loads are fetching, counted per concurrent load and withdrawn when the last one finishes.
+  const announceDemand = (files, delta) => {
+    if (!files.length) return;
+    for (const file of files) {
+      const id = fileKey(file), row = demanded.get(id) ?? { file, count: 0 };
+      row.count += delta;
+      if (row.count > 0) demanded.set(id, row); else demanded.delete(id);
+    }
+    try { exchange?.announceDemand([...demanded.values()].slice(0, policy.maxInventoryFiles).map(row => row.file)); }
+    catch (cause) { error = cause.message; }
+  };
+  // The pinned pieces of a weights file, from its model's piece index when this device already holds it.
+  const piecesOf = async file => {
+    try {
+      const model = catalogModelForFile(file), descriptor = model?.source?.files.find(item => item.role === 'model-piece-index');
+      const indexBytes = descriptor ? await cached(descriptor) : null;
+      if (!indexBytes) return [];
+      const row = JSON.parse(decoder.decode(indexBytes)).files?.find(item => item.path === file.path);
+      return (row?.pieces ?? []).map(piece => pieceFile({ pieceId: piece.identity, sizeBytes: piece.size }));
+    } catch { return []; }
+  };
+  // The pinned models' pieces (weight supply's catalog), from their pinned piece indexes: small metadata pinned by hash
+  // and served by this site, read once per session and only when weight supply is asked for.
+  let pinnedModels = null;
+  const pinnedPieceModels = ({ signal } = {}) => pinnedModels ??= (async () => {
+    const rows = [];
+    for (const model of LOCAL_DOPPLER_MODELS) {
+      const descriptor = model.source?.files.find(file => file.role === 'model-piece-index');
+      // A model whose piece index is too large to read on a page (the 177B index) is not offered for weight supply.
+      if (!descriptor || descriptor.sizeBytes > WEIGHT_SUPPLY_MAX_INDEX_BYTES) continue;
+      try {
+        const index = JSON.parse(decoder.decode(await read(descriptor, { signal, originOnly: true })));
+        rows.push(Object.freeze({ ...pinnedModelPieces({ modelId: model.id, modelIdentity: model.identity, pieceIndexDigest: 'sha256:' + descriptor.hash, index }),
+          fileSizes: Object.fromEntries(index.files.map(row => [row.path, row.size])), baseUrl: model.source.baseUrl }));
+      } catch (cause) { error = cause.message; }
+    }
+    return rows;
+  })().catch(cause => { pinnedModels = null; throw cause; });
+  // Weight supply's verified piece bytes, in the same model-file cache (one copy per piece, keyed by its hash).
+  const pieceName = pieceId => 'sha256-' + pieceId.slice(7);
+  const pieceStore = Object.freeze({
+    async get(pieceId) {
+      try {
+        const bytes = new Uint8Array(await (await (await (await root()).getFileHandle(pieceName(pieceId))).getFile()).arrayBuffer());
+        // Weight supply reads a piece only to restore it into its held set: keep it from eviction meanwhile.
+        weightPinned.add(pieceName(pieceId)); return bytes;
+      } catch (cause) { if (cause.name === 'NotFoundError') return null; throw cause; }
+    },
+    async put(pieceId, bytes) {
+      weightPinned.add(pieceName(pieceId));
+      await persist(pieceFile({ pieceId, sizeBytes: bytes.byteLength }), bytes, lifetime.signal);
+    },
+    async delete(pieceId) {
+      weightPinned.delete(pieceName(pieceId));
+      await navigator.locks.request('reploid-chat-artifacts-v1:write', async () => {
+        try { await (await root()).removeEntry(pieceName(pieceId)); } catch (cause) { if (cause.name !== 'NotFoundError') throw cause; }
+      });
+      announceModelCacheChange();
+    },
+    async list() {
+      const ids = [];
+      for await (const [name, handle] of (await root()).entries()) if (handle.kind === 'file' && /^sha256-[a-f0-9]{64}$/.test(name)) ids.push('sha256:' + name.slice(7));
+      return ids;
+    }
+  });
+  // A piece weight supply holds under an approval: from a peer offering it, else its exact range from the pinned origin.
+  const fetchWeightPiece = async (row, { signal }) => {
+    const file = pieceFile(row);
+    if (exchange?.has(file)) return exchange.acquire(file, { signal });
+    const model = (await pinnedPieceModels()).find(item => item.modelIdentity === row.modelIdentity);
+    const total = model?.fileSizes[row.path];
+    assert(model?.baseUrl && Number.isSafeInteger(total), 'No verified source offers this piece');
+    return origin({ ...file, url: new URL(row.path, model.baseUrl).href }, AbortSignal.any([signal, lifetime.signal]), undefined, null,
+      { offset: row.offset, total });
+  };
   const readOwned = async (file, { signal, originOnly = false, onProgress, cacheOnly = false, reserveDownload: reserve } = {}) => {
     signal = AbortSignal.any([lifetime.signal, ...(signal ? [signal] : [])]); signal.throwIfAborted();
     assert(Number.isSafeInteger(file.sizeBytes) && file.sizeBytes > 0 && file.sizeBytes <= policy.maxArtifactBytes, 'Invalid model file allowance');
@@ -234,7 +325,12 @@ export function createWorkModelFiles({ getTransport, getIdentity = () => null, o
     assert(existing || !cacheOnly, 'Verified cached model file unavailable');
     const peer = exchange?.has(file) && !originOnly;
     onProgress?.({ stage: 'acquiring', path: file.path, message: `${existing ? 'Reusing' : peer ? 'Receiving from peers:' : 'Downloading'} ${file.path}` });
-    const bytes = existing || (peer ? await exchange.acquire(file, { signal, reserveDownload: reserve }) : await origin(file, signal, onProgress, reserve));
+    // A weights file fetched for this device's own load: its pieces are announced to peers as demand meanwhile.
+    const loading = !existing && file.role === 'model-weights' ? await piecesOf(file) : [];
+    announceDemand(loading, 1);
+    let bytes;
+    try { bytes = existing || (peer ? await exchange.acquire(file, { signal, reserveDownload: reserve }) : await origin(file, signal, onProgress, reserve)); }
+    finally { announceDemand(loading, -1); }
     if (!existing && !peer) { await check(file, bytes); signal.throwIfAborted(); await persist(file, bytes, signal); }
     signal.throwIfAborted();
     lastUsed.set(key, Date.now()); lastFile = { key, bytes }; return bytes;
@@ -272,22 +368,33 @@ export function createWorkModelFiles({ getTransport, getIdentity = () => null, o
       exchange = createCustodyExchange({ transport, identity, policy, ports: { supplyBudget,
         createSupplier: createPeerPackSupplier, createStore: createPeerPackArtifactStore, createChannel: createPeerPackDataChannel,
         readArtifact: (file, controls) => ownStorage((async () => {
-          assert(supplyController && !supplyController.signal.aborted, 'File supply is stopped');
+          assert(sharedInventory?.isServing(file), 'File supply is stopped');
+          const cachedPath = sharedInventory.holds(file, 'cached-model');
+          if (cachedPath && supplyController?.signal.aborted) throw new Error('File supply is stopped');
           try { return await read(file, { ...controls, cacheOnly: true,
-            signal: AbortSignal.any([controls.signal, supplyController.signal].filter(Boolean)) }); }
-          catch (cause) { exchange?.stopSupply(); error = cause.message; notify(); throw cause; }
+            signal: AbortSignal.any([controls.signal, cachedPath ? supplyController?.signal : null].filter(Boolean)) }); }
+          catch (cause) {
+            // A cached-model file that cannot be read stops that path only; weight supply's pieces stay shared.
+            if (cachedPath) sharedInventory.set('cached-model', []);
+            error = cause.message; notify(); throw cause;
+          }
         })()), verifyArtifact: check,
         commitArtifact: (file, bytes, { signal }) => persist(file, bytes, signal),
         hash: hashDopplerEvidence, hashBytes: sha256Hex, checkpoints, onChange: notify,
         observe: receipt => { receipts.push(receipt); if (receipts.length > policy.maxReceipts) receipts.shift(); },
         certificate: () => custodyCertificate(),
-        observeDelivery: record => { deliveries.push(record); if (deliveries.length > policy.maxReceipts) deliveries.shift(); }
+        observeDelivery: record => { deliveries.push(record); if (deliveries.length > policy.maxReceipts) deliveries.shift(); },
+        observeServed: event => { try { onServed(event); } catch (cause) { error = cause.message; } }
       } });
+      sharedInventory = createSharedFileInventory({ exchange, maxFiles: policy.maxInventoryFiles, onChange: notify });
       exchange.announce();
     })().finally(() => { attaching = null; });
     return attaching;
   };
   return Object.freeze({ getState, attach, announce: () => exchange?.announce(),
+    /** What weight-supply-host.js composes: the exchange, the shared inventory, the piece store and sources. */
+    weightSupplyPorts: () => (exchange && sharedInventory ? { exchange, inventory: sharedInventory, store: pieceStore,
+      loadModels: pinnedPieceModels, fetchPiece: fetchWeightPiece, hashBytes: sha256Hex } : null),
     custodyCertificate: () => custodyCertificate(), getDeliveryEvidence: () => structuredClone(deliveries),
     async preparePartitionSource(model, { signal, onProgress }) {
       signal = AbortSignal.any([signal, lifetime.signal].filter(Boolean));
@@ -329,12 +436,13 @@ export function createWorkModelFiles({ getTransport, getIdentity = () => null, o
               message: 'Receiving required model pieces' });
             const started = performance.now();
             try {
+              announceDemand([saved], 1);
               const bytes = exchange.has(saved) ? await exchange.acquire(saved, { signal: combined })
                 : await exchange.acquire(file, { signal: combined,
                   range: { offset: piece.offset, size: piece.size, identity: piece.identity } });
               custody.transfers++; custody.peerBytes += bytes.byteLength; return bytes;
             } catch (cause) { custody.failures++; throw cause; }
-            finally { custody.peerTransferMs += performance.now() - started; }
+            finally { custody.peerTransferMs += performance.now() - started; announceDemand([saved], -1); }
           } finally { release(); }
         };
         opened = await createVerifiedPieceStorage({ manifestBytes: new TextEncoder().encode(manifestText).buffer,
@@ -410,7 +518,7 @@ export function createWorkModelFiles({ getTransport, getIdentity = () => null, o
       return ownStorage((async () => {
         assert(approved === true, 'Approve distributing model files separately from compute');
         assert(['cached-only', 'bounded-acquisition', 'full-model'].includes(mode), 'Unknown file contribution mode');
-        assert(!releaseStorage && !preparing && !stopping && !exchange?.getState().sharing, 'Stop file contribution before changing its mode');
+        assert(!releaseStorage && !preparing && !stopping && !cachedShared(), 'Stop file contribution before changing its mode');
         assert(Number.isSafeInteger(downloadBytes) && downloadBytes > 0 && downloadBytes <= policy.maxAcquisitionBytes, 'Invalid approved download allowance');
         preparing = true; error = ''; sharingMode = mode;
         sharedModel = { id: model.id, name: model.name }; supplyController = new AbortController();
@@ -509,14 +617,14 @@ export function createWorkModelFiles({ getTransport, getIdentity = () => null, o
             }
             assert(inventory.some(file => file.path.startsWith('piece-')), 'No verified model pieces are available within the approved allowance');
           }
-          signal.throwIfAborted(); exchange.offer(inventory);
-        } catch (cause) { pinned.clear(); await exchange?.stopSupply(); await releaseStorage?.(); releaseStorage = null; error = cause.message; throw cause; }
+          signal.throwIfAborted(); sharedInventory.set('cached-model', inventory);
+        } catch (cause) { pinned.clear(); await sharedInventory?.set('cached-model', []); await releaseStorage?.(); releaseStorage = null; error = cause.message; throw cause; }
         finally { preparing = false; progress = null; notify(); }
       })());
     },
     async stop() {
       stopping = true; sharedModel = null; supplyController?.abort(new Error('File contribution stopped'));
-      const supplySettlement = exchange?.stopSupply(); notify();
+      const supplySettlement = sharedInventory?.set('cached-model', []) ?? Promise.resolve(); notify();
       try {
         const settled = await Promise.allSettled([...storageOperations, supplySettlement]);
         if (settled.at(-1).status === 'rejected') throw settled.at(-1).reason;
