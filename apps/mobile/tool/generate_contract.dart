@@ -96,7 +96,17 @@ String render(Map<String, Object?> contract, Object? catalog) {
     'admissionProtocol',
     'offerId',
     'backend',
+    'deliveryProtocol',
+    'requestAckTimeoutMs',
+    'maxRequestResends',
   ]);
+  final offers = constants['offers']! as Map<String, Object?>;
+  group('offers', offers, ['schema']);
+  final advertised = offers['advertisedReadiness']! as Map<String, Object?>;
+  out.writeln(
+    '  static const offersAdvertisedReadiness = {'
+    '${advertised.entries.map((e) => '${_lit(e.key)}: ${_lit(e.value)}').join(', ')}};',
+  );
   final pairing = constants['pairing']! as Map<String, Object?>;
   group('pairing', pairing, [
     'codePattern',

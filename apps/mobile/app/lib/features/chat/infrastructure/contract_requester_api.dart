@@ -87,7 +87,7 @@ final class ContractRequesterApi implements RequesterApi {
       computers: [
         for (final peer in view.peers)
           if (peer.advertisement case final advertisement?
-              when advertisement.role == 'provider')
+              when advertisement.offersInference)
             Computer(
               address: peer.name,
               participantId: peer.participantId,

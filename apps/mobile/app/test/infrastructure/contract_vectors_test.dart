@@ -365,6 +365,13 @@ void main() {
         reason: '${c['name']}: selectable',
       );
       if (stored != null) {
+        // The canonical offer record the web client derives (reploid.offer/1).
+        final connectionId = section['providerConnectionName']! as String;
+        expect(
+          canonicalJson(stored.inferenceOffer(connectionId)),
+          canonicalJson(c['inferenceOffer']),
+          reason: '${c['name']}: inference offer',
+        );
         expect(
           stored.eligibleOffers(row.identity).map((o) => o['id']).toList(),
           result['eligibleOfferIds'],

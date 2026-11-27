@@ -108,11 +108,11 @@ final class RequesterNetwork {
   }
 
   /// Learns a provider's identity in the background, so the list of
-  /// computers can name them. A request never relies on this proof; it
-  /// asks for a fresh one.
+  /// computers can name them. A request on the same connection and binding
+  /// reuses this proof (procedure `identityProofVerification`).
   void _observe(String name, PeerSession session, {bool anyRole = false}) {
     if (session.provenParticipantId != null ||
-        (!anyRole && session.advertisement?.role != 'provider') ||
+        (!anyRole && session.advertisement?.offersInference != true) ||
         !session.usable ||
         !_observing.add(name)) {
       return;

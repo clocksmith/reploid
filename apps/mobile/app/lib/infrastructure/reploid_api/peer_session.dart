@@ -105,6 +105,50 @@ final class RecoveryAnswered extends RecoveryOutcome {
   final Json receipt;
 }
 
+/// Procedure `requestDelivery`, protocol 1, for one request: each stage
+/// sent and not yet acknowledged is sent again on the same connection after
+/// the acknowledgement timeout, at most maxRequestResends times. It never
+/// chooses another recipient.
+final class _Delivery {
+  _Delivery({required this.protocol, required this.ackTimeout});
+
+  final int protocol;
+  final Duration ackTimeout;
+  final Map<String, Timer?> _timers = {};
+  final Set<String> _acknowledged = {};
+  bool _stopped = false;
+
+  void sent(String stage, bool Function(int attempt) resend) {
+    if (_stopped || _timers.containsKey(stage)) return;
+    var attempt = 1;
+    void arm() {
+      _timers[stage] = Timer(ackTimeout, () {
+        if (_stopped ||
+            _acknowledged.contains(stage) ||
+            attempt > Contract.generationMaxRequestResends) {
+          return;
+        }
+        attempt++;
+        if (resend(attempt)) arm();
+      });
+    }
+
+    arm();
+  }
+
+  void acknowledge(Object? stage) {
+    if (stage is! String || !_acknowledged.add(stage)) return;
+    _timers[stage]?.cancel();
+  }
+
+  void stop() {
+    _stopped = true;
+    for (final timer in _timers.values) {
+      timer?.cancel();
+    }
+  }
+}
+
 final class _Waiter {
   _Waiter(this.match);
   final Object? Function(String type, Json payload) match;
@@ -119,6 +163,9 @@ final class PeerSession {
     Entropy? entropy,
     int Function()? now,
     this.timeout = const Duration(milliseconds: Contract.generationTimeoutMs),
+    this.deliveryAckTimeout = const Duration(
+      milliseconds: Contract.generationRequestAckTimeoutMs,
+    ),
     this.onChanged,
   }) : entropy = entropy ?? Entropy(),
        now = now ?? (() => DateTime.now().millisecondsSinceEpoch) {
@@ -134,6 +181,10 @@ final class PeerSession {
   final int Function() now;
   final Duration timeout;
 
+  /// How long a request frame waits for its acknowledgement before it is
+  /// sent again (procedure `requestDelivery`).
+  final Duration deliveryAckTimeout;
+
   /// Called when the advertisement or the proven identity changes.
   final void Function()? onChanged;
 
@@ -142,6 +193,7 @@ final class PeerSession {
   final Set<String> _signing = {};
   Advertisement? _advertisement;
   String? _proven;
+  ({String local, String remote})? _provenBinding;
   bool _reserved = false;
   bool _isClosed = false;
 
@@ -246,6 +298,7 @@ final class PeerSession {
     _isClosed = true;
     _advertisement = null;
     _proven = null;
+    _provenBinding = null;
     unawaited(_subscription.cancel());
     for (final waiter in List.of(_waiters)) {
       waiter.completer.completeError(
@@ -320,12 +373,25 @@ final class PeerSession {
         'Recipient connection changed during verification',
       );
     }
+    _provenBinding = binding;
     if (_proven != participantId) {
       _proven = participantId;
       onChanged?.call();
     }
     return participantId;
   }
+
+  /// The identity proven on this connection with its current binding, or
+  /// null. A proof stands while the connection and binding are unchanged
+  /// (procedure `identityProofVerification`).
+  String? get currentProof =>
+      usable && _provenBinding != null && link.binding == _provenBinding
+      ? _proven
+      : null;
+
+  /// The proven identity for a request: the current proof, or a fresh one.
+  Future<String> provenProvider() async =>
+      currentProof ?? await proveProvider();
 
   // Owner pairing ---------------------------------------------------------------
 
@@ -381,9 +447,10 @@ final class PeerSession {
   /// Cancelling the subscription sends `reploid:generation-cancel`.
   ///
   /// With [namedRecipient] the request goes only to that signing identity:
-  /// if the fresh proof names anyone else, nothing is sent. With
+  /// if the proof (reused from this connection or made now) names anyone
+  /// else, nothing is sent. With
   /// [expectedRecipient] the wire policy stays open, but the prompt is sent
-  /// only if the fresh proof names the computer the person was shown.
+  /// only if the proof names the computer the person was shown.
   Stream<GenerationEvent> ask({
     required CatalogRow model,
     required List<Json> messages,
@@ -394,6 +461,8 @@ final class PeerSession {
   }) {
     late final StreamController<GenerationEvent> controller;
     String? requestId;
+    _Delivery? delivering;
+    _Waiter? acknowledging;
     var sent = false, done = false;
 
     Future<void> run() async {
@@ -403,7 +472,7 @@ final class PeerSession {
         if (before == null || !usable || !before.selectable(model)) {
           throw const ProtocolFailure('No remote host slot available');
         }
-        final proven = await proveProvider();
+        final proven = await provenProvider();
         if (done) return;
         if (namedRecipient != null && proven != namedRecipient) {
           throw const ProtocolFailure('Could not verify the paired desktop');
@@ -452,7 +521,22 @@ final class PeerSession {
           'recoverable': true,
           'admission': {'salt': salt},
         };
-        if (utf8.encode(jsJson(request)).length > Contract.rtcMaxPayloadSize) {
+        // Procedure `requestDelivery`: only a provider that acknowledges
+        // frames and ignores repeats is ever sent one twice.
+        final delivery = before.deliveryProtocol == null
+            ? null
+            : _Delivery(
+                protocol: before.deliveryProtocol!,
+                ackTimeout: deliveryAckTimeout,
+              );
+        Json framed(Json payload, int attempt) => delivery == null
+            ? payload
+            : {
+                ...payload,
+                'delivery': {'protocol': delivery.protocol, 'attempt': attempt},
+              };
+        if (utf8.encode(jsJson(framed(request, 1))).length >
+            Contract.rtcMaxPayloadSize) {
           throw const ProtocolFailure(
             'Conversation exceeds transport payload limit',
           );
@@ -488,6 +572,34 @@ final class PeerSession {
         }
 
         requireStillReady();
+        // A re-send goes to this same connection only, while it still holds
+        // the binding and identity proven above; otherwise it is not sent.
+        bool resend(String type, Json payload, int attempt) {
+          if (done || !usable || currentProof != proven) return false;
+          try {
+            _send(type, framed(payload, attempt));
+            return true;
+          } on StateError {
+            return false;
+          }
+        }
+
+        final acknowledgements = delivery == null
+            ? null
+            : _Waiter((type, payload) {
+                if (type == ChannelType.requestReceived &&
+                    payload['requestId'] == id) {
+                  delivery.acknowledge(payload['stage']);
+                }
+                return null;
+              });
+        delivering = delivery;
+        if (acknowledgements != null) {
+          // It never completes with a frame; a closed connection fails it.
+          acknowledgements.completer.future.ignore();
+          _waiters.add(acknowledgements);
+          acknowledging = acknowledgements;
+        }
         final admitted = _expect(
           (type, payload) =>
               failure(type, payload) ??
@@ -497,8 +609,18 @@ final class PeerSession {
                   : null),
           onTimeout: 'Remote generation timed out',
         );
-        _send(ChannelType.generationAdmit, admitPayload(request, commitment));
-        final admission = await admitted;
+        final admit = admitPayload(request, commitment);
+        _send(ChannelType.generationAdmit, framed(admit, 1));
+        delivery?.sent(
+          'admit',
+          (attempt) => resend(ChannelType.generationAdmit, admit, attempt),
+        );
+        final Json admission;
+        try {
+          admission = await admitted;
+        } finally {
+          delivery?.acknowledge('admit');
+        }
         if (done) return;
         if (admission['admissionProtocol'] !=
                 Contract.generationAdmissionProtocol ||
@@ -521,6 +643,8 @@ final class PeerSession {
         final finished = _expect((type, payload) {
           if (payload['requestId'] != id) return null;
           if (type == ChannelType.generationUpdate) {
+            // Output also shows the request arrived.
+            delivery?.acknowledge('request');
             final chunk = payload['chunk'];
             if (chunk is String && chunk.isNotEmpty) {
               chunks.write(chunk);
@@ -537,8 +661,12 @@ final class PeerSession {
           return failure(type, payload) ??
               (type == ChannelType.generationResult ? payload : null);
         }, onTimeout: 'Remote generation timed out');
-        _send(ChannelType.generationRequest, request);
+        _send(ChannelType.generationRequest, framed(request, 1));
         sent = true;
+        delivery?.sent(
+          'request',
+          (attempt) => resend(ChannelType.generationRequest, request, attempt),
+        );
         controller.add(PromptDispatched(id, model.id));
         final Json result;
         try {
@@ -548,6 +676,9 @@ final class PeerSession {
             _trySend(ChannelType.generationCancel, {'requestId': id});
           }
           rethrow;
+        } finally {
+          delivery?.stop();
+          if (acknowledgements != null) _waiters.remove(acknowledgements);
         }
         if (done) return;
         final receipt = result['receipt'];
@@ -586,6 +717,8 @@ final class PeerSession {
           );
         }
       } finally {
+        delivering?.stop();
+        _waiters.remove(acknowledging);
         _reserved = false;
         done = true;
         await controller.close();

@@ -30,8 +30,13 @@ abstract final class Contract {
   static const generationAdmissionProtocol = 2;
   static const generationOfferId = 'ordinary-generation';
   static const generationBackend = 'doppler-plaintext/v1';
+  static const generationDeliveryProtocol = 1;
+  static const generationRequestAckTimeoutMs = 1500;
+  static const generationMaxRequestResends = 2;
+  static const offersSchema = 'reploid.offer/1';
+  static const offersAdvertisedReadiness = {'loading': 'preparing', 'ready': 'ready', 'executing': 'ready', 'stopping': 'stopping', 'failed': 'failed'};
   static const pairingCodePattern = '^[A-Za-z0-9_-]{24}\$';
-  static const pairingParticipantIdPattern = '^peer:[0-9a-f]{24}\$';
+  static const pairingParticipantIdPattern = '^peer:[a-f0-9]{24}\$';
   static const pairingRoomTokenPrefix = 'reploid-pairing-route-not-a-secret-v1:';
   static const pairingLabelMaxLength = 128;
   static const pairingCodeTtlMs = 600000;
@@ -73,7 +78,7 @@ abstract final class Contract {
   static const idSwarmBootstrap = 'reploid.swarm-bootstrap/v1';
   static const receiptSignedFields = ['version', 'receiptId', 'provider', 'consumer', 'jobHash', 'model', 'inputTokens', 'outputTokens', 'status', 'timestamp', 'modelIdentity', 'adapterIdentities', 'inputDigest', 'outputDigest', 'usage', 'stopReason', 'cleanup', 'ownerPolicyDigest'];
   static const terminalSignedFields = ['schema', 'requestId', 'provider', 'consumer', 'model', 'modelIdentity', 'adapterIdentities', 'inputDigest', 'status', 'cleanup', 'usage', 'timestamp'];
-  static const knownTypes = {'sync-request', 'sync-response', 'goal-update', 'reflection-share', 'artifact-announce', 'artifact-request', 'artifact-chunk', 'artifact-ack', 'reploid:peer-advertisement', 'reploid:identity-challenge', 'reploid:identity-proof', 'reploid:generation-admit', 'reploid:generation-admitted', 'reploid:generation-request', 'reploid:generation-update', 'reploid:generation-result', 'reploid:generation-error', 'reploid:generation-cancel', 'reploid:generation-recover', 'reploid:generation-recovery', 'reploid:receipt', 'reploid:target-score-request', 'reploid:target-score-result', 'reploid:web-offer', 'reploid:web-request', 'reploid:web-response', 'reploid:web-cancel', 'reploid:tool-offer', 'reploid:tool-offer-ack', 'reploid:custody-request', 'reploid:custody-response', 'reploid:custody-offer', 'ping', 'pong', 'raft:request-vote', 'raft:request-vote-response', 'raft:append-entries', 'raft:append-entries-response', 'raft:client-request', 'raft:client-response', 'fl:hello', 'fl:round-start', 'fl:update', 'fl:round-commit', 'fl:round-failed', 'reploid:introduction-contact', 'reploid:introduction-signal', 'reploid:owner-pairing-request', 'reploid:owner-pairing-result', 'reploid:circle-join-request', 'reploid:circle-join-result'};
+  static const knownTypes = {'sync-request', 'sync-response', 'goal-update', 'reflection-share', 'artifact-announce', 'artifact-request', 'artifact-chunk', 'artifact-ack', 'reploid:peer-advertisement', 'reploid:identity-challenge', 'reploid:identity-proof', 'reploid:generation-admit', 'reploid:generation-admitted', 'reploid:request-received', 'reploid:generation-request', 'reploid:generation-update', 'reploid:generation-result', 'reploid:generation-error', 'reploid:generation-cancel', 'reploid:generation-recover', 'reploid:generation-recovery', 'reploid:receipt', 'reploid:target-score-request', 'reploid:target-score-result', 'reploid:mesh-operation-request', 'reploid:mesh-operation-result', 'reploid:mesh-operation-cancel', 'reploid:mesh-operation-receipt', 'reploid:web-offer', 'reploid:web-request', 'reploid:web-response', 'reploid:web-cancel', 'reploid:tool-offer', 'reploid:tool-offer-ack', 'reploid:custody-request', 'reploid:custody-response', 'reploid:custody-offer', 'reploid:custody-demand', 'reploid:custody-delivered', 'ping', 'pong', 'raft:request-vote', 'raft:request-vote-response', 'raft:append-entries', 'raft:append-entries-response', 'raft:client-request', 'raft:client-response', 'fl:hello', 'fl:round-start', 'fl:update', 'fl:round-commit', 'fl:round-failed', 'reploid:introduction-contact', 'reploid:introduction-signal', 'reploid:owner-pairing-request', 'reploid:owner-pairing-result', 'reploid:circle-join-request', 'reploid:circle-join-result'};
 }
 
 /// Data-channel message types the contract defines.
@@ -96,6 +101,7 @@ abstract final class ChannelType {
   static const receipt = 'reploid:receipt';
   static const ownerPairingRequest = 'reploid:owner-pairing-request';
   static const ownerPairingResult = 'reploid:owner-pairing-result';
+  static const requestReceived = 'reploid:request-received';
 }
 
 /// Signaling frame types the contract defines.

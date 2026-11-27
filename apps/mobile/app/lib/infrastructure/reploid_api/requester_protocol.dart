@@ -213,11 +213,9 @@ final class Advertisement {
     return Advertisement._(payload, List.unmodifiable(parsed));
   }
 
-  String? get role => raw['role'] is String ? raw['role']! as String : null;
   String? get model => raw['model'] is String ? raw['model']! as String : null;
   String? get modelIdentity =>
       isDigest(raw['modelIdentity']) ? raw['modelIdentity']! as String : null;
-  bool get hasInference => raw['hasInference'] == true;
 
   String get readiness => switch (raw['readiness']) {
     final String value
@@ -226,7 +224,76 @@ final class Advertisement {
     _ => 'unavailable',
   };
 
-  int get availableSlots => _positive(raw['availableSlots']);
+  /// The reported free slots, or null when the count is missing or invalid.
+  int? get availableSlots {
+    final value = raw['availableSlots'];
+    return value is num && isCount(value) ? value.toInt() : null;
+  }
+
+  /// 1 when the provider acknowledges request frames and ignores repeats
+  /// (procedure `requestDelivery`), else null.
+  int? get deliveryProtocol =>
+      raw['deliveryProtocol'] == Contract.generationDeliveryProtocol
+      ? Contract.generationDeliveryProtocol
+      : null;
+
+  /// Procedure `inferenceOfferFromAdvertisement`: the offer to run a model
+  /// that this advertisement on [connectionId] makes, or null when it makes
+  /// none. Availability is read from it, never from the advertised role or
+  /// hasInference.
+  Json? inferenceOffer(String connectionId) {
+    final String? readiness;
+    if (!raw.containsKey('readiness')) {
+      readiness = raw['hasInference'] == true && raw['swarmEnabled'] == true
+          ? 'ready'
+          : null;
+    } else {
+      final advertised = raw['readiness'];
+      readiness = advertised is String
+          ? Contract.offersAdvertisedReadiness[advertised]
+          : null;
+    }
+    final identity = modelIdentity;
+    if (readiness == null && identity == null) return null;
+    final slots = availableSlots;
+    final adapters = <String>{
+      for (final adapter in raw['adapterIdentities'] as List? ?? const [])
+        if (isDigest(adapter)) adapter as String,
+    };
+    final modelId = raw['model'];
+    return {
+      'schema': Contract.offersSchema,
+      'kind': 'inference',
+      'connectionId': _connectionId.hasMatch(connectionId)
+          ? connectionId
+          : null,
+      'readiness': readiness == 'ready' && slots == 0
+          ? 'busy'
+          : readiness ?? 'unavailable',
+      'paused': false,
+      'expiresAt': null,
+      'scope': {
+        'modelId':
+            modelId is String &&
+                modelId.isNotEmpty &&
+                modelId.length <= 256 &&
+                !_control.hasMatch(modelId)
+            ? modelId
+            : null,
+        'modelIdentities': [?identity],
+        'adapterIdentities': adapters.toList(),
+        'execution': 'whole-model',
+        'stageIndex': null,
+        'availableSlots': slots,
+      },
+    };
+  }
+
+  static final _connectionId = RegExp(
+    r'^[a-z0-9][a-z0-9_-]{2,127}$',
+    caseSensitive: false,
+  );
+  static final _control = RegExp('[\u0000-\u001f\u007f]');
   bool get identityCurrent =>
       raw['identityProtocol'] == Contract.generationIdentityProtocol;
   bool get admissionCurrent =>
@@ -244,9 +311,14 @@ final class Advertisement {
 
   /// Can answer this row; [busy] tells whether it has a free slot now.
   bool readyFor(CatalogRow row) =>
-      compatible(row) && readiness == 'ready' && hasInference;
+      compatible(row) && readiness == 'ready' && inferenceOffer('') != null;
 
-  bool get busy => availableSlots == 0;
+  /// Makes an inference offer in any readiness: a provider, even while it
+  /// loads or is busy.
+  bool get offersInference => inferenceOffer('') != null;
+
+  /// No free slot reported: 0, or a count that is unknown.
+  bool get busy => (availableSlots ?? 0) == 0;
 
   /// Procedure `providerSelectionRule`: the eligible offers, by id.
   List<Json> eligibleOffers(String modelIdentity) =>
@@ -263,10 +335,7 @@ final class Advertisement {
         ..sort((a, b) => (a['id']! as String).compareTo(b['id']! as String));
 
   bool selectable(CatalogRow row) =>
-      role == 'provider' &&
-      readyFor(row) &&
-      !busy &&
-      eligibleOffers(row.identity).isNotEmpty;
+      readyFor(row) && !busy && eligibleOffers(row.identity).isNotEmpty;
 
   /// The parts that must not change between selection and sending.
   String get placementKey => canonicalJson([
