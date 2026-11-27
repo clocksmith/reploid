@@ -245,12 +245,21 @@ async function checkAttempt(attempt, { policy, at, coordinatorKey }) {
   facts.status = row.status;
   if (!FINAL.has(row.status)) { fail(`the replay is not final: ${row.status} (${row.reason})`); return done(); }
 
-  // The agreed terms: the requester's terms for the replayed attempt. Their signature was checked by the replay.
+  // The agreed terms (docs/settlement-replay.md, step 2): the requester's terms for the replayed attempt that the
+  // replay did not list as late or foreign; when the requester signed several such sets, the one the row's
+  // non-blocking `terms-equivocation` entry settled on. Their signature was checked by the replay. A coordinator's
+  // statement must name exactly that set: another set of the same attempt, which no stage accepted, is not the agreement.
   const rejected = new Set(replay.rejected.map(item => item.index));
-  const { publicJwk: _key, signature: _signature, ...agreed } = records.find((item, index) => !rejected.has(index) && item?.schema === TERMS
-    && item.reservationId === attempt.reservationId && item.requesterId === attempt.requesterId && item.attemptId === row.attemptId
-    && (!coordinatorId || digestOf((({ publicJwk, signature, ...body }) => body)(item)) === stated.termsDigest)) ?? {};
-  if (!agreed.schema) { fail(coordinatorId ? 'the coordinator\'s statement names terms that are not the agreed ones' : 'the agreed terms are not among the records'); return done(); }
+  const bodyOfRecord = ({ publicJwk: _k, signature: _s, ...body }) => body;
+  const setAside = new Set([...(row.late ?? []), ...(row.foreign ?? [])].filter(item => item.kind === 'terms').map(item => item.digest));
+  const attemptTerms = records.filter((item, index) => !rejected.has(index) && item?.schema === TERMS && item.reservationId === attempt.reservationId
+    && item.requesterId === attempt.requesterId && item.attemptId === row.attemptId && !setAside.has(digestOf(bodyOfRecord(item))));
+  const digests = [...new Set(attemptTerms.map(item => digestOf(bodyOfRecord(item))))];
+  const settledOn = (row.conflicts ?? []).find(item => item.kind === 'terms-equivocation' && item.blocking === false)?.settledOn ?? null;
+  const agreedDigest = digests.length === 1 ? digests[0] : settledOn !== null && digests.includes(settledOn) ? settledOn : null;
+  const found = agreedDigest === null ? null : attemptTerms.find(item => digestOf(bodyOfRecord(item)) === agreedDigest);
+  const agreed = found && (!coordinatorId || agreedDigest === stated.termsDigest) ? bodyOfRecord(found) : {};
+  if (!agreed.schema) { fail(coordinatorId && found ? 'the coordinator\'s statement names terms that are not the agreed ones' : 'the agreed terms are not among the records'); return done(); }
   facts.unfinishedTerms = agreed.unfinishedTerms;
   facts.settlementRules = stated.settlementRules;
   facts.quote = { maxOutputTokens: agreed.maxOutputTokens, creditsPerOutputToken: agreed.creditsPerOutputToken, maximum: agreed.maximum };

@@ -113,14 +113,32 @@ export async function issueSettlementStatement({ credits, signer, id, records, n
   if (row.state !== 'settled') refuse('not-final', `This reservation is not final yet (${row.state}); its hold of ${trace.held} is still placed`);
   if (trace.held !== 0) refuse('hold-open', 'This reservation still holds credits');
   const policy = credits.policy, digest = await policyDigest(policy);
-  let terms = null, body = null;
+  // Every set of terms this reservation's requester signed for its attempt. The requester may have signed more than one;
+  // the statement binds the one the replay agreed on (docs/settlement-replay.md, step 2), never merely the first presented.
+  const candidates = [];
   for (const record of records) {
     if (record?.schema !== SETTLEMENT_TERMS_SCHEMA || record.reservationId !== id) continue;
     const checked = await verifySettlementTerms(record);
-    if (checked.ok && checked.body.requesterId === binding.consumer && checked.body.attemptId === binding.executionId) { terms = record; body = checked.body; break; }
+    if (!checked.ok || checked.body.requesterId !== binding.consumer || checked.body.attemptId !== binding.executionId) continue;
+    const termsOf = await termsDigest(checked.body);
+    if (!candidates.some(item => item.digest === termsOf)) candidates.push({ record, body: checked.body, digest: termsOf });
   }
-  if (!terms) refuse('terms-missing', 'The presented records hold no terms signed by this reservation\'s requester for its attempt');
+  if (!candidates.length) refuse('terms-missing', 'The presented records hold no terms signed by this reservation\'s requester for its attempt');
   const account = peer => credits.enrollment.byPeer.get(peer)?.ownerId ?? peer;
+  const replay = await replaySettlement({ records, policies: [policy], at: now(), accountOf: account });
+  if (replay.rejected.length) refuse('records-rejected', `${replay.rejected.length} presented record(s) failed their signature or shape checks`);
+  const replayed = replay.reservations.find(item => item.reservationId === id && item.requesterId === binding.consumer && item.attemptId === binding.executionId);
+  if (!replayed || !['settled', 'expired'].includes(replayed.status)) {
+    refuse('records-not-final', `The presented records do not decide this reservation yet: ${replayed?.status ?? 'no attempt'}${replayed?.reason ? ` (${replayed.reason})` : ''}`);
+  }
+  // The agreed terms: with several sets in time and on the route, the one the stages accepted (the requester's
+  // non-blocking `terms-equivocation`, `settledOn`); otherwise the one set the replay did not list as late or foreign.
+  const set = (replayed.conflicts ?? []).find(item => item.kind === 'terms-equivocation' && !item.blocking)?.settledOn;
+  const ignored = new Set([...(replayed.late ?? []), ...(replayed.foreign ?? [])].filter(item => item.kind === 'terms').map(item => item.digest));
+  const pool = candidates.filter(item => !ignored.has(item.digest));
+  const chosen = set ? pool.find(item => item.digest === set) : pool.length === 1 ? pool[0] : null;
+  if (!chosen) refuse('terms-differ', 'The presented records do not show which of the requester\'s terms for this attempt were agreed');
+  const { record: terms, body } = chosen;
   const sameShares = body.shares.length === binding.providers.length
     && body.shares.every((share, index) => share.participantId === binding.providers[index].participantId && share.weight === binding.providers[index].weight);
   if (body.policyDigest !== digest || body.maximum !== binding.maximum || body.maxOutputTokens !== binding.maxOutputTokens
@@ -133,12 +151,6 @@ export async function issueSettlementStatement({ credits, signer, id, records, n
   const settlementRules = binding.settlementRules ?? [...SETTLEMENT_RULE_SETS].reverse().find(rules => UNFINISHED_TERMS_OF_RULES[rules] === body.unfinishedTerms);
   if (!settlementRules || UNFINISHED_TERMS_OF_RULES[settlementRules] !== body.unfinishedTerms) {
     refuse('terms-differ', 'The signed terms name unfinished-answer terms this ledger does not settle under');
-  }
-  const replay = await replaySettlement({ records, policies: [policy], at: now(), accountOf: account });
-  if (replay.rejected.length) refuse('records-rejected', `${replay.rejected.length} presented record(s) failed their signature or shape checks`);
-  const replayed = replay.reservations.find(item => item.reservationId === id && item.requesterId === binding.consumer && item.attemptId === binding.executionId);
-  if (!replayed || !['settled', 'expired'].includes(replayed.status)) {
-    refuse('records-not-final', `The presented records do not decide this reservation yet: ${replayed?.status ?? 'no attempt'}${replayed?.reason ? ` (${replayed.reason})` : ''}`);
   }
   const perAccount = rows => {
     const sums = new Map();
