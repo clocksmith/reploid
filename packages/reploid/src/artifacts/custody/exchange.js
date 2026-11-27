@@ -1,4 +1,4 @@
-import { signDeliveryAttestation } from '../delivery-attestation.js';
+import { signDeliveryAttestation, verifyDeliveryAttestation } from '../delivery-attestation.js';
 import { untilAborted } from '../../cancellation.js';
 import { operationRoles, weightSupplyOfferFromInventory } from '../../contracts/computer-records.js';
 
@@ -8,6 +8,11 @@ const transferRoles = (operationId, consumer, provider) => {
   try { return operationRoles({ operation: 'weight-transfer', operationId, consumer, provider }); } catch { return null; }
 };
 const certified = certificate => ({ computerId: certificate?.participantId ?? null, participantId: certificate?.participantId ?? null });
+const named = participantId => ({ computerId: participantId ?? null, participantId: participantId ?? null });
+// Grants kept to match a requester's delivery confirmation, and demand announcements kept per peer.
+const MAX_ISSUED_GRANTS = 256;
+const plainFile = file => file && typeof file === 'object' && ['sha256', 'blake3'].includes(file.hashAlgorithm)
+  && typeof file.hash === 'string' && /^[a-f0-9]{64}$/.test(file.hash) && Number.isSafeInteger(file.sizeBytes) && file.sizeBytes > 0;
 
 /** Discovery composition for the existing signed custody store and bounded byte channel. */
 export function createCustodyExchange({ transport, identity, policy, ports }) {
@@ -23,7 +28,13 @@ export function createCustodyExchange({ transport, identity, policy, ports }) {
     return state;
   };
   const peers = new Map(), pending = new Map(), suppliers = new Map(), channels = new Map(), channelWaiters = new Map();
-  const offerWaiters = new Set(), outstandingBytes = new Map();
+  const offerWaiters = new Set(), outstandingBytes = new Map(), issued = new Map(), demand = new Map();
+  let ownDemand = [], servedBytes = 0, servedTransfers = 0;
+  // The other party's computer, only when the host verified the certificate bound to its grant key.
+  const verifiedParticipant = async certificate => {
+    if (!certificate || !ports.verifyPeerCertificate) return null;
+    try { return await ports.verifyPeerCertificate(certificate) ?? null; } catch (error) { ports.onError?.(error); return null; }
+  };
   // A supplier that delivered nothing (silent past a deadline or disconnected) may answer a later grant.
   const unavailable = message => Object.assign(new Error(message), { code: 'CUSTODY_SUPPLIER_UNAVAILABLE' });
   const lifetime = new AbortController();
@@ -140,8 +151,41 @@ export function createCustodyExchange({ transport, identity, policy, ports }) {
       || !message.artifacts.every(valid)) return;
     if (!connected().has(peer) || !peers.has(peer) && peers.size >= policy.maxPeers) return;
     const first = !peers.has(peer);
-    peers.set(peer, structuredClone(message.artifacts)); if (first) announce(peer); notify();
+    peers.set(peer, structuredClone(message.artifacts));
+    if (first) { announce(peer); if (ownDemand.length) transport.sendToPeer(peer, 'reploid:custody-demand', { files: ownDemand }); }
+    notify();
     for (const wake of offerWaiters) wake();
+  });
+  // A consumer's announcement of the pieces it is fetching: demand for weight supply. Bounded per peer; empty withdraws.
+  transport.onMessage('reploid:custody-demand', (peer, message) => {
+    if (closed || !Array.isArray(message?.files) || message.files.length > policy.maxInventoryFiles || !message.files.every(plainFile)) return;
+    if (!connected().has(peer) || !demand.has(peer) && demand.size >= policy.maxPeers) return;
+    if (message.files.length === 0) demand.delete(peer);
+    else demand.set(peer, { files: message.files.map(({ hashAlgorithm, hash, sizeBytes }) => ({ hashAlgorithm, hash, sizeBytes })), observedAt: now() });
+    notify();
+  });
+  // A requester's signed confirmation that a granted transfer completed and verified. Only this confirmation, checked
+  // against the grant this supplier issued, counts as served bytes; a grant or an offer never does.
+  transport.onMessage('reploid:custody-delivered', (peer, message) => {
+    const entry = issued.get(message?.transferId);
+    if (closed || !entry || entry.peer !== peer) return;
+    (async () => {
+      const { receipt, confirmation } = message;
+      const completed = receipt?.completed?.find?.(item => item?.artifactId === entry.artifact.path);
+      if (receipt?.transferId !== message.transferId || receipt.authorizationHash !== entry.authorizationHash
+        || completed?.hash !== entry.artifactHash || completed.sizeBytes !== entry.artifact.sizeBytes
+        || !Number.isSafeInteger(receipt.receivedBytes) || receipt.receivedBytes < 0
+        || !await verifyDeliveryAttestation({ attestation: confirmation, receipt, publicKey: entry.requesterKey, hash })) return;
+      if (issued.get(message.transferId) !== entry) return;
+      issued.delete(message.transferId);
+      const deliveredBytes = Math.min(receipt.receivedBytes, entry.artifact.sizeBytes);
+      servedBytes += deliveredBytes; servedTransfers++;
+      ports.observeServed?.({ transferId: message.transferId, peerId: peer, artifact: structuredClone(entry.artifact),
+        deliveredBytes, grantedAt: entry.grantedAt, completedAt: now(),
+        roles: transferRoles(message.transferId, { ...named(entry.requesterParticipant), connectionId: peer },
+          { ...certified(entry.supplierCertificate), connectionId: identity.peerId }) });
+      notify();
+    })().catch(error => ports.onError?.(error));
   });
   transport.onMessage('reploid:custody-response', (peer, message) => {
     const entry = pending.get(message?.id);
@@ -226,7 +270,12 @@ export function createCustodyExchange({ transport, identity, policy, ports }) {
           supplier: await ownCertificate() };
         if (closed || !supply || epoch !== supplyEpoch) { supplier.close(); throw new Error('File contribution stopped'); }
         const timer = setTimeout(() => { supplier.close(); suppliers.delete(authorization.transferId); }, Math.max(0, authorization.expiresAt - now()));
-        suppliers.set(authorization.transferId, { supplier, peer, timer });
+        suppliers.set(authorization.transferId, { supplier, peer, timer, key: key(descriptor) });
+        const requesterParticipant = await verifiedParticipant(certificates.requester);
+        issued.set(authorization.transferId, { peer, artifact: selected, artifactHash: artifact.hash, grantedAt: now(),
+          authorizationHash: await hash(authorization), requesterKey: authorization.requester.publicKey,
+          requesterParticipant, supplierCertificate: certificates.supplier });
+        if (issued.size > MAX_ISSUED_GRANTS) issued.delete(issued.keys().next().value);
         try {
           if (!transport.sendToPeer(peer, 'reploid:custody-response', { id: message.id, authorization, index, inventory: supplier.inventory,
             ...(certificates.supplier ? { supplierCertificate: certificates.supplier } : {}) })) {
@@ -240,7 +289,7 @@ export function createCustodyExchange({ transport, identity, policy, ports }) {
         }
         ports.observeDelivery?.({ role: 'supplier', transferId: authorization.transferId, peerId: peer,
           authorization: structuredClone(authorization), index: structuredClone(index), receipt: null, certificates, attestation: null,
-          roles: transferRoles(authorization.transferId, { connectionId: peer }, { ...certified(certificates.supplier), connectionId: identity.peerId }) });
+          roles: transferRoles(authorization.transferId, { ...named(requesterParticipant), connectionId: peer }, { ...certified(certificates.supplier), connectionId: identity.peerId }) });
       } finally { preparing--; notify(); }
     })().catch(error => {
       if (!closed) transport.sendToPeer(peer, 'reploid:custody-response', { id: message?.id, error: error.message });
@@ -271,7 +320,24 @@ export function createCustodyExchange({ transport, identity, policy, ports }) {
       requester: { peerId: identity.peerId, publicKey: identity.publicKey },
       ...(requesterCertificate ? { requesterCertificate } : {}) })) finish(unavailable('File peer disconnected'));
   });
+  // One transfer at a time per supplier: every transfer on a peer's channel shares that channel's pending-request
+  // limit, so a second concurrent transfer from the same supplier would have its chunk requests refused. It waits.
+  const peerSlots = new Map();
   const acquireFrom = async (peer, source, combined, range, reserveDownload) => {
+    const previous = peerSlots.get(peer) ?? Promise.resolve();
+    let release;
+    const done = new Promise(resolve => { release = resolve; });
+    const tail = previous.then(() => done);
+    peerSlots.set(peer, tail);
+    try {
+      await untilAborted(previous, combined);
+      return await transferFrom(peer, source, combined, range, reserveDownload);
+    } finally {
+      release();
+      tail.then(() => { if (peerSlots.get(peer) === tail) peerSlots.delete(peer); });
+    }
+  };
+  const transferFrom = async (peer, source, combined, range, reserveDownload) => {
       const artifact = rangeDescriptor(source, range);
       if (ports.authorizePeer && !await ports.authorizePeer(peer, combined)) throw new Error('Custody peer identity is not authorized');
       combined.throwIfAborted();
@@ -326,14 +392,20 @@ export function createCustodyExchange({ transport, identity, policy, ports }) {
           combined.throwIfAborted();
         }
         ports.observe?.(store.getReceipt());
+        const receipt = structuredClone(store.getReceipt());
+        const supplierCertificate = bound(result.supplierCertificate, grant.suppliers[0]) ? structuredClone(result.supplierCertificate) : null;
+        // Confirm the verified delivery to the supplier: its only evidence that these bytes were served.
+        try {
+          const confirmation = await signDeliveryAttestation({ receipt, attestedAt: new Date(now()).toISOString(), privateKey: identity.privateKey, hash });
+          transport.sendToPeer(peer, 'reploid:custody-delivered', { transferId: grant.transferId, receipt, confirmation });
+        } catch (error) { ports.onError?.(error); }
         if (ports.observeDelivery) {
-          const receipt = structuredClone(store.getReceipt());
+          const supplierParticipant = await verifiedParticipant(supplierCertificate);
           ports.observeDelivery({ role: 'requester', transferId: grant.transferId, peerId: peer,
             authorization: structuredClone(grant), index: structuredClone(result.index), receipt,
-            certificates: { requester: requesterCertificate,
-              supplier: bound(result.supplierCertificate, grant.suppliers[0]) ? structuredClone(result.supplierCertificate) : null },
+            certificates: { requester: requesterCertificate, supplier: supplierCertificate },
             attestation: await attest(receipt, requesterCertificate),
-            roles: transferRoles(grant.transferId, { ...certified(requesterCertificate), connectionId: identity.peerId }, { connectionId: peer }) });
+            roles: transferRoles(grant.transferId, { ...certified(requesterCertificate), connectionId: identity.peerId }, { ...named(supplierParticipant), connectionId: peer }) });
         }
         return bytes;
       } catch (error) {
@@ -363,23 +435,41 @@ export function createCustodyExchange({ transport, identity, policy, ports }) {
   });
   return Object.freeze({
     announce,
-    getState: () => { connected(); return { sharing: supply, suppliedBytes: Math.max(reserved, ports.supplyBudget?.getState()?.reservedBytes || 0), pending: acquiring, peers: [...peers.keys()],
+    getState: () => { const ids = connected(); return { sharing: supply, suppliedBytes: Math.max(reserved, ports.supplyBudget?.getState()?.reservedBytes || 0), pending: acquiring, peers: [...peers.keys()],
+      // Bytes this side served in transfers its requesters confirmed as completed and verified.
+      servedBytes, servedTransfers,
+      // Connected peers' latest demand announcements: the files each is fetching.
+      demand: [...demand].filter(([peer]) => ids.has(peer)).map(([peer, row]) => ({ connectionId: peer, files: structuredClone(row.files), observedAt: row.observedAt })),
       // Peers whose latest announced inventory is non-empty: an empty announcement withdraws the offer.
       offering: [...peers].filter(([, artifacts]) => artifacts.length > 0).map(([peer]) => peer),
       // The same announcements as weight-supply offer records, one per offering connection.
       offers: [...peers].map(([peer, artifacts]) => { try { return weightSupplyOfferFromInventory(artifacts, { connectionId: peer }); } catch { return null; } }).filter(Boolean) }; },
     has: artifact => candidates(artifact).length > 0,
-    offer(artifacts) {
+    offer(artifacts, { revoke = true } = {}) {
       if (!Array.isArray(artifacts) || artifacts.length > policy.maxInventoryFiles || !artifacts.every(valid)) throw new Error('Invalid file inventory');
       live();
       reserved = budgetState().reservedBytes;
       const replacement = structuredClone(artifacts);
+      // Changing the inventory while sharing keeps grants for files still offered: a piece verified mid-transfer
+      // must not interrupt another piece's delivery. Only grants for withdrawn files are closed.
+      if (!revoke && supply) {
+        const kept = new Set(replacement.map(key));
+        for (const [transferId, entry] of suppliers) if (!kept.has(entry.key)) { clearTimeout(entry.timer); entry.supplier.close(); suppliers.delete(transferId); }
+        offered = replacement; announce(); notify(); return;
+      }
       // Revoke old grants, but publish only the complete replacement. A transient
       // empty inventory can make peers reject acquisition of a still-offered file.
       // Inventory changes and stop/restart do not renew this owner's allowance.
       revokeSupply(); offered = replacement; supply = true; announce(); notify();
     },
     stopSupply,
+    /** Announce the files this participant is fetching (demand for weight supply); an empty list withdraws it. */
+    announceDemand(files) {
+      if (!Array.isArray(files) || files.length > policy.maxInventoryFiles || !files.every(plainFile)) throw new Error('Invalid file demand');
+      live();
+      ownDemand = files.map(({ hashAlgorithm, hash, sizeBytes }) => ({ hashAlgorithm, hash, sizeBytes }));
+      transport.broadcast('reploid:custody-demand', { files: ownDemand });
+    },
     async acquire(artifact, { signal, range = null, reserveDownload = ports.reserveDownload ?? null, onSupplier = null }) {
       live();
       if (reserveDownload !== null && typeof reserveDownload !== 'function') throw new Error('Invalid acquisition accounting port');
@@ -444,7 +534,7 @@ export function createCustodyExchange({ transport, identity, policy, ports }) {
       for (const entry of channelWaiters.values()) entry.finish(lifetime.signal.reason);
       offerWaiters.clear();
       for (const channel of channels.values()) channel.close();
-      peers.clear(); channels.clear();
+      peers.clear(); channels.clear(); issued.clear(); demand.clear();
       return Promise.allSettled([...operations]);
     }
   });

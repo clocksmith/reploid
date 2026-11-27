@@ -17,11 +17,14 @@ Outputs: bounded operations, state, failures and retained evidence.
 The exchange composition discovers bounded file inventories and binds per-file
 v2 grants to actual requesters and suppliers. Host ports pin expected file
 identity and verify final bytes; inventory possession grants no redistribution.
+Weight supply offers empty caches under-supplied pieces, held under a signed
+storage cap; served bytes only from confirmed transfers.
 
 ## Invariants
 - [Library invariants](../../../CATSCAN.md#invariants) apply.
 - Certificates travel beside grants, never inside; unbound ones are dropped; certified requesters attest exact receipts.
 - Storage shards do not establish computational partitions. Retention and redistribution remain bounded by participant grants; placement cannot infer execution permission from possession.
+- Pausing supply never stops consumption.
 - Advertisements do not acquire bytes. Explicit offers bound supply budgets and
   simultaneous transfers. Dedicated byte channels reuse signed chunk custody and
   checkpoint validation. Stop revokes outstanding supply; close settles owned work.
@@ -29,6 +32,7 @@ identity and verify final bytes; inventory possession grants no redistribution.
 ## Acceptance
 Evidence: [contract tests](../../../../../tests/unit/pool-peer-pack-custody.test.js).
 Exchange composition: [exchange tests](../../../../../tests/unit/custody-exchange.test.js).
+Weight supply: [acceptance](../../../../../tests/integration/weight-supply-acceptance.test.js).
 Run tests/unit/pool-peer-pack-custody.test.js, tests/e2e/peer-pack-custody.spec.js from the repository root.
 
 ## Non-goals

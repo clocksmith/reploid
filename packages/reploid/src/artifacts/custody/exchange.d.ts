@@ -39,6 +39,12 @@ export interface CustodyDeliveryRecord {
   /** Requester consumes, supplier provides; a party names a computer only from this side's own certificate. */
   roles: OperationRoles | null;
 }
+/** A granted transfer its requester confirmed, with a signature by the grant's requester key over the exact
+ * receipt, as completed and verified. The only source of served bytes. */
+export interface CustodyServedTransfer {
+  transferId: string; peerId: string; artifact: FileDescriptor; deliveredBytes: number; grantedAt: number; completedAt: number;
+  roles: OperationRoles | null;
+}
 export interface CustodyExchangePorts {
   /** Required for supply, not acquisition. Durable atomic reservations never refund uncertainty. */
   supplyBudget?: {
@@ -82,6 +88,10 @@ export interface CustodyExchangePorts {
   /** Evidence for each granted or completed transfer, with both parties' bound certificates
    * and, for a certified requester, its delivery attestation. */
   observeDelivery?(record: CustodyDeliveryRecord): void;
+  /** Each transfer this side served that its requester confirmed as completed and verified. */
+  observeServed?(transfer: CustodyServedTransfer): void;
+  /** The participant ID a peer's bound certificate verifiably names, or null. Without it, roles name only this side's computer. */
+  verifyPeerCertificate?(certificate: CustodyKeyCertificate): Promise<string | null>;
   onChange?(): void;
   onError?(error: Error): void;
 }
@@ -92,9 +102,16 @@ export function createCustodyExchange(options: {
 }): {
   announce(peerId?: string): void;
   /** `offering`: peers whose latest announced inventory is non-empty. */
-  getState(): { sharing: boolean; suppliedBytes: number; pending: number; peers: string[]; offering: string[]; offers: WeightSupplyOffer[] };
+  getState(): { sharing: boolean; suppliedBytes: number; pending: number; peers: string[]; offering: string[]; offers: WeightSupplyOffer[];
+    /** Bytes and transfers this side served that requesters confirmed as completed and verified. */
+    servedBytes: number; servedTransfers: number;
+    /** Connected peers' latest demand announcements. */
+    demand: { connectionId: string; files: { hashAlgorithm: 'sha256' | 'blake3'; hash: string; sizeBytes: number }[]; observedAt: number }[] };
   has(file: FileDescriptor): boolean;
-  offer(files: FileDescriptor[]): void;
+  /** With `revoke: false` while sharing, grants for files still offered stay open. */
+  offer(files: FileDescriptor[], options?: { revoke?: boolean }): void;
+  /** Announce the files this participant is fetching; an empty list withdraws the announcement. */
+  announceDemand(files: { hashAlgorithm: 'sha256' | 'blake3'; hash: string; sizeBytes: number }[]): void;
   stopSupply(): void;
   /** Uses at most `maxAcquisitionAttempts` fresh grants. A supplier that delivered nothing
    * (error code `CUSTODY_SUPPLIER_UNAVAILABLE`) may be asked again, after waiting at most one
