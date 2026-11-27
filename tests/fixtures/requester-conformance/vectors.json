@@ -10847,34 +10847,42 @@
   "pairing": {
     "description": "Owner pairing: a phone pairs with its owner's desktop and then asks only that desktop. Frames were captured from the real phone-side code (apps/poolday/host/owner-pairing.js over transport/owner-pairing.js and the requester) and the real desktop-side code (server/circles/owner-pairing.js and its admission rule), with fixed keys, clock, nonces and pairing code. The desktop owner's answer at the terminal is given by the capture. direction \"requester->provider\" is phone to desktop.",
     "link": {
-      "description": "parsed is procedures.pairingLinkParse(url): an object, or null when the text is not a pairing link. desktopLabels: the label a desktop puts in the name parameter for its host name; null = no name parameter.",
+      "description": "parsed is procedures.pairingLinkParse(url): an object, or null when the text is not a pairing link. A desktop writes no name parameter; one is read from older links.",
       "cases": [
         {
-          "name": "as the desktop prints it",
+          "name": "as the desktop prints it (no name: a desktop name is private to its owner)",
+          "url": "https://replo.id/#pair=QEFCQ0RFRkdISUpLTE1OT1BR&host=peer%3A6a8b857f196de4a859dd669d&room=reploid-swarm-contract-vectors",
+          "parsed": {
+            "code": "QEFCQ0RFRkdISUpLTE1OT1BR",
+            "hostParticipantId": "peer:6a8b857f196de4a859dd669d",
+            "roomId": "reploid-swarm-contract-vectors"
+          }
+        },
+        {
+          "name": "as the web client builds it",
+          "url": "https://replo.id/#pair=QEFCQ0RFRkdISUpLTE1OT1BR&host=peer%3A6a8b857f196de4a859dd669d&room=reploid-swarm-contract-vectors",
+          "parsed": {
+            "code": "QEFCQ0RFRkdISUpLTE1OT1BR",
+            "hostParticipantId": "peer:6a8b857f196de4a859dd669d",
+            "roomId": "reploid-swarm-contract-vectors"
+          }
+        },
+        {
+          "name": "without room",
+          "url": "https://replo.id/#pair=QEFCQ0RFRkdISUpLTE1OT1BR&host=peer%3A6a8b857f196de4a859dd669d",
+          "parsed": {
+            "code": "QEFCQ0RFRkdISUpLTE1OT1BR",
+            "hostParticipantId": "peer:6a8b857f196de4a859dd669d"
+          }
+        },
+        {
+          "name": "an older desktop's link with a name",
           "url": "https://replo.id/#pair=QEFCQ0RFRkdISUpLTE1OT1BR&host=peer%3A6a8b857f196de4a859dd669d&room=reploid-swarm-contract-vectors&name=Workbench",
           "parsed": {
             "code": "QEFCQ0RFRkdISUpLTE1OT1BR",
             "hostParticipantId": "peer:6a8b857f196de4a859dd669d",
             "hostLabel": "Workbench",
             "roomId": "reploid-swarm-contract-vectors"
-          }
-        },
-        {
-          "name": "as the web client builds it (name before room)",
-          "url": "https://replo.id/#pair=QEFCQ0RFRkdISUpLTE1OT1BR&host=peer%3A6a8b857f196de4a859dd669d&name=Workbench&room=reploid-swarm-contract-vectors",
-          "parsed": {
-            "code": "QEFCQ0RFRkdISUpLTE1OT1BR",
-            "hostParticipantId": "peer:6a8b857f196de4a859dd669d",
-            "hostLabel": "Workbench",
-            "roomId": "reploid-swarm-contract-vectors"
-          }
-        },
-        {
-          "name": "without room and name",
-          "url": "https://replo.id/#pair=QEFCQ0RFRkdISUpLTE1OT1BR&host=peer%3A6a8b857f196de4a859dd669d",
-          "parsed": {
-            "code": "QEFCQ0RFRkdISUpLTE1OT1BR",
-            "hostParticipantId": "peer:6a8b857f196de4a859dd669d"
           }
         },
         {
@@ -11052,40 +11060,6 @@
           "name": "empty room",
           "url": "https://replo.id/#pair=QEFCQ0RFRkdISUpLTE1OT1BR&host=peer:6a8b857f196de4a859dd669d&room=",
           "parsed": null
-        }
-      ],
-      "desktopLabels": [
-        {
-          "hostName": "workbench",
-          "label": "Workbench"
-        },
-        {
-          "hostName": "studio.example.com",
-          "label": "Studio"
-        },
-        {
-          "hostName": "Desk-2",
-          "label": "Desk-2"
-        },
-        {
-          "hostName": "ip-10-0-0-5",
-          "label": null
-        },
-        {
-          "hostName": "192.0.2.7",
-          "label": null
-        },
-        {
-          "hostName": "my_desk",
-          "label": null
-        },
-        {
-          "hostName": "12345",
-          "label": null
-        },
-        {
-          "hostName": "",
-          "label": null
         }
       ]
     },
@@ -11291,11 +11265,10 @@
         "hostParticipantId": "peer:6a8b857f196de4a859dd669d",
         "code": "QEFCQ0RFRkdISUpLTE1OT1BR",
         "expiresAt": 1767226200000,
-        "link": "https://replo.id/#pair=QEFCQ0RFRkdISUpLTE1OT1BR&host=peer%3A6a8b857f196de4a859dd669d&room=reploid-swarm-contract-vectors&name=Workbench",
+        "link": "https://replo.id/#pair=QEFCQ0RFRkdISUpLTE1OT1BR&host=peer%3A6a8b857f196de4a859dd669d&room=reploid-swarm-contract-vectors",
         "target": {
           "code": "QEFCQ0RFRkdISUpLTE1OT1BR",
           "hostParticipantId": "peer:6a8b857f196de4a859dd669d",
-          "hostLabel": "Workbench",
           "roomId": "reploid-swarm-contract-vectors"
         }
       },
@@ -12582,7 +12555,7 @@
         "storageKey": "reploid.owner-paired-desktop:v1",
         "storedRecord": {
           "hostParticipantId": "peer:6a8b857f196de4a859dd669d",
-          "hostLabel": "Workbench",
+          "hostLabel": "peer:6a8b857f196de4a859dd669d",
           "roomId": "reploid-swarm-contract-vectors",
           "pairedAt": 1767225600000
         },
@@ -12591,7 +12564,7 @@
           "paired": true,
           "canSend": true,
           "hostParticipantId": "peer:6a8b857f196de4a859dd669d",
-          "hostLabel": "Workbench",
+          "hostLabel": "peer:6a8b857f196de4a859dd669d",
           "roomId": "reploid-swarm-contract-vectors",
           "hostPeer": "c0ffee00-0000-4000-8000-000000000002",
           "readyModel": "qwen-3-5-2b-q4k-ef16-af32",
@@ -12642,11 +12615,10 @@
           "hostParticipantId": "peer:6a8b857f196de4a859dd669d",
           "code": "QEFCQ0RFRkdISUpLTE1OT1BR",
           "expiresAt": 1767226200000,
-          "link": "https://replo.id/#pair=QEFCQ0RFRkdISUpLTE1OT1BR&host=peer%3A6a8b857f196de4a859dd669d&room=reploid-swarm-contract-vectors&name=Workbench",
+          "link": "https://replo.id/#pair=QEFCQ0RFRkdISUpLTE1OT1BR&host=peer%3A6a8b857f196de4a859dd669d&room=reploid-swarm-contract-vectors",
           "target": {
             "code": "QEFCQ0RFRkdISUpLTE1OT1BR",
             "hostParticipantId": "peer:6a8b857f196de4a859dd669d",
-            "hostLabel": "Workbench",
             "roomId": "reploid-swarm-contract-vectors"
           }
         },
@@ -13074,7 +13046,7 @@
             "storageKey": "reploid.owner-paired-desktop:v1",
             "storedRecord": {
               "hostParticipantId": "peer:6a8b857f196de4a859dd669d",
-              "hostLabel": "Workbench",
+              "hostLabel": "peer:6a8b857f196de4a859dd669d",
               "roomId": "reploid-swarm-contract-vectors",
               "pairedAt": 1767225600000
             },
@@ -13083,7 +13055,7 @@
               "paired": true,
               "canSend": true,
               "hostParticipantId": "peer:6a8b857f196de4a859dd669d",
-              "hostLabel": "Workbench",
+              "hostLabel": "peer:6a8b857f196de4a859dd669d",
               "roomId": "reploid-swarm-contract-vectors",
               "hostPeer": "c0ffee00-0000-4000-8000-000000000002",
               "readyModel": "qwen-3-5-2b-q4k-ef16-af32",
@@ -13099,11 +13071,10 @@
           "hostParticipantId": "peer:6a8b857f196de4a859dd669d",
           "code": "QEFCQ0RFRkdISUpLTE1OT1BR",
           "expiresAt": 1767226200000,
-          "link": "https://replo.id/#pair=QEFCQ0RFRkdISUpLTE1OT1BR&host=peer%3A6a8b857f196de4a859dd669d&room=reploid-swarm-contract-vectors&name=Workbench",
+          "link": "https://replo.id/#pair=QEFCQ0RFRkdISUpLTE1OT1BR&host=peer%3A6a8b857f196de4a859dd669d&room=reploid-swarm-contract-vectors",
           "target": {
             "code": "QEFCQ0RFRkdISUpLTE1OT1BR",
             "hostParticipantId": "peer:6a8b857f196de4a859dd669d",
-            "hostLabel": "Workbench",
             "roomId": "reploid-swarm-contract-vectors"
           }
         },
@@ -13412,11 +13383,10 @@
           "hostParticipantId": "peer:6a8b857f196de4a859dd669d",
           "code": "QEFCQ0RFRkdISUpLTE1OT1BR",
           "expiresAt": 1767226200000,
-          "link": "https://replo.id/#pair=QEFCQ0RFRkdISUpLTE1OT1BR&host=peer%3A6a8b857f196de4a859dd669d&room=reploid-swarm-contract-vectors&name=Workbench",
+          "link": "https://replo.id/#pair=QEFCQ0RFRkdISUpLTE1OT1BR&host=peer%3A6a8b857f196de4a859dd669d&room=reploid-swarm-contract-vectors",
           "target": {
             "code": "QEFCQ0RFRkdISUpLTE1OT1BR",
             "hostParticipantId": "peer:6a8b857f196de4a859dd669d",
-            "hostLabel": "Workbench",
             "roomId": "reploid-swarm-contract-vectors"
           }
         },
@@ -13825,7 +13795,7 @@
             "storageKey": "reploid.owner-paired-desktop:v1",
             "storedRecord": {
               "hostParticipantId": "peer:6a8b857f196de4a859dd669d",
-              "hostLabel": "Workbench",
+              "hostLabel": "peer:6a8b857f196de4a859dd669d",
               "roomId": "reploid-swarm-contract-vectors",
               "pairedAt": 1767225600000
             },
@@ -13834,7 +13804,7 @@
               "paired": true,
               "canSend": true,
               "hostParticipantId": "peer:6a8b857f196de4a859dd669d",
-              "hostLabel": "Workbench",
+              "hostLabel": "peer:6a8b857f196de4a859dd669d",
               "roomId": "reploid-swarm-contract-vectors",
               "hostPeer": "c0ffee00-0000-4000-8000-000000000002",
               "readyModel": "qwen-3-5-2b-q4k-ef16-af32",
@@ -13849,7 +13819,7 @@
             "storageKey": "reploid.owner-paired-desktop:v1",
             "storedRecord": {
               "hostParticipantId": "peer:6a8b857f196de4a859dd669d",
-              "hostLabel": "Workbench",
+              "hostLabel": "peer:6a8b857f196de4a859dd669d",
               "roomId": "reploid-swarm-contract-vectors",
               "pairedAt": 1767225600000
             },
@@ -13858,7 +13828,7 @@
               "paired": true,
               "canSend": true,
               "hostParticipantId": "peer:6a8b857f196de4a859dd669d",
-              "hostLabel": "Workbench",
+              "hostLabel": "peer:6a8b857f196de4a859dd669d",
               "roomId": "reploid-swarm-contract-vectors",
               "hostPeer": "c0ffee00-0000-4000-8000-000000000002",
               "readyModel": "qwen-3-5-2b-q4k-ef16-af32",
@@ -13882,11 +13852,10 @@
           "hostParticipantId": "peer:6a8b857f196de4a859dd669d",
           "code": "QEFCQ0RFRkdISUpLTE1OT1BR",
           "expiresAt": 1767226200000,
-          "link": "https://replo.id/#pair=QEFCQ0RFRkdISUpLTE1OT1BR&host=peer%3A6a8b857f196de4a859dd669d&room=reploid-swarm-contract-vectors&name=Workbench",
+          "link": "https://replo.id/#pair=QEFCQ0RFRkdISUpLTE1OT1BR&host=peer%3A6a8b857f196de4a859dd669d&room=reploid-swarm-contract-vectors",
           "target": {
             "code": "QEFCQ0RFRkdISUpLTE1OT1BR",
             "hostParticipantId": "peer:6a8b857f196de4a859dd669d",
-            "hostLabel": "Workbench",
             "roomId": "reploid-swarm-contract-vectors"
           }
         },
@@ -14338,11 +14307,10 @@
           "hostParticipantId": "peer:6a8b857f196de4a859dd669d",
           "code": "QEFCQ0RFRkdISUpLTE1OT1BR",
           "expiresAt": 1767226200000,
-          "link": "https://replo.id/#pair=QEFCQ0RFRkdISUpLTE1OT1BR&host=peer%3A6a8b857f196de4a859dd669d&room=reploid-swarm-contract-vectors&name=Workbench",
+          "link": "https://replo.id/#pair=QEFCQ0RFRkdISUpLTE1OT1BR&host=peer%3A6a8b857f196de4a859dd669d&room=reploid-swarm-contract-vectors",
           "target": {
             "code": "QEFCQ0RFRkdISUpLTE1OT1BR",
             "hostParticipantId": "peer:6a8b857f196de4a859dd669d",
-            "hostLabel": "Workbench",
             "roomId": "reploid-swarm-contract-vectors"
           }
         },
@@ -15877,7 +15845,7 @@
         ],
         "storedRecord": {
           "hostParticipantId": "peer:6a8b857f196de4a859dd669d",
-          "hostLabel": "Workbench",
+          "hostLabel": "peer:6a8b857f196de4a859dd669d",
           "roomId": "reploid-swarm-contract-vectors",
           "pairedAt": 1767225600000
         },
@@ -15889,7 +15857,7 @@
             "paired": true,
             "canSend": true,
             "hostParticipantId": "peer:6a8b857f196de4a859dd669d",
-            "hostLabel": "Workbench",
+            "hostLabel": "peer:6a8b857f196de4a859dd669d",
             "roomId": "reploid-swarm-contract-vectors",
             "hostPeer": "c0ffee00-0000-4000-8000-000000000012",
             "readyModel": "qwen-3-5-2b-q4k-ef16-af32",

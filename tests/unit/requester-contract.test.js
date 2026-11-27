@@ -169,7 +169,9 @@ describe('stdio conformance provider', () => {
   it('acts as an owner desktop with --pairing: one pairing with the code, then only the paired phone is answered', async () => {
     await withProvider(['--pairing', '--chunk-delay-ms', '0'], async ({ ready, ask, sent, stack }) => {
       const target = parseOwnerPairingUrl(ready.pairing.link);
-      expect(target).toEqual({ code: ready.pairing.code, hostParticipantId: ready.provider.participantId, hostLabel: 'Workbench', roomId: ready.roomId });
+      expect(target).toEqual({ code: ready.pairing.code, hostParticipantId: ready.provider.participantId, roomId: ready.roomId });
+      // The link names no computer: a desktop's name is private to its owner.
+      expect(ready.pairing.link).not.toContain('name=');
       expect(validate(contract.objects.pairingLink, target, contract)).toEqual([]);
       const toDesktop = { recipients: { kind: 'named', ids: [target.hostParticipantId] } };
       // Unpaired: refused before the prompt.

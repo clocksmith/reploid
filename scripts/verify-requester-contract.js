@@ -247,7 +247,8 @@ export async function verifyRequesterContract({ contract, vectorsText } = {}) {
   expect(paired.issued.link.startsWith(`${pairingConstants.linkBase}#`) && createOwnerPairingUrl({ hostParticipantId: paired.issued.hostParticipantId, code: paired.issued.code }, pairingConstants.linkBase).startsWith(`${pairingConstants.linkBase}#`),
     'pairing links no longer start with constants.pairing.linkBase and a fragment');
   expect(same(Object.keys(pairingConstants.linkParameters), ['pair', 'host', 'room', 'name'])
-    && same([...new URLSearchParams(new URL(paired.issued.link).hash.slice(1)).keys()], ['pair', 'host', 'room', 'name']), 'the desktop no longer writes the link parameters pair, host, room, name');
+    // The parser reads name from older links; the desktop writes no name, since a desktop's name is private to its owner.
+    && same([...new URLSearchParams(new URL(paired.issued.link).hash.slice(1)).keys()], ['pair', 'host', 'room']), 'the desktop no longer writes exactly the link parameters pair, host, room (and never name)');
   expect(Buffer.from(paired.issued.code, 'base64url').length === pairingConstants.codeBytes, 'the pairing code is no longer codeBytes random bytes');
   const pairingExpectations = {
     'wrong-code': item => item.wrong.answered === false && item.right.approved === true,

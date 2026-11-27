@@ -144,7 +144,7 @@ export async function capturePairing({ scenario }) {
       };
       const issue = desktop => {
         const issued = desktop.pairing.issue();
-        const link = ownerPairingLink({ code: issued.code, hostParticipantId: issued.hostParticipantId, room: roomId, name: FIXED_PAIRING.desktopLabel });
+        const link = ownerPairingLink({ code: issued.code, hostParticipantId: issued.hostParticipantId, room: roomId });
         outcome.issued = { ...issued, link, target: parseOwnerPairingUrl(link) };
         return outcome.issued.target;
       };

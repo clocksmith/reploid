@@ -21,7 +21,7 @@ import { ownerPairingLink, ownerPairingPrompt } from '../../server/circles/owner
  *   forgetAfterRequests   after this many answered requests the pairing state is deleted, the only
  *                         way the current code drops a paired phone; later requests are refused
  */
-export async function openPairingDesktop({ identity, roomId, label, expired = false, decline = false, forgetAfterRequests = null, log = () => {} }) {
+export async function openPairingDesktop({ identity, roomId, expired = false, decline = false, forgetAfterRequests = null, log = () => {} }) {
   const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'reploid-conformance-pairing-'));
   const clock = { offset: 0 };
   let generation = 0, attached = null, forgotten = false, answered = 0, closed = false;
@@ -58,8 +58,9 @@ export async function openPairingDesktop({ identity, roomId, label, expired = fa
       clock.offset = expired ? -11 * 60 * 1000 : 0;
       const issued = current.issue();
       clock.offset = 0;
-      return { link: ownerPairingLink({ code: issued.code, hostParticipantId: issued.hostParticipantId, room: roomId, name: label }),
-        code: issued.code, hostParticipantId: issued.hostParticipantId, hostLabel: label, roomId, roomToken: ownerPairingRoomMarker(roomId),
+      // The link names no computer: a desktop's name is private to its owner (a caller's label is not used).
+      return { link: ownerPairingLink({ code: issued.code, hostParticipantId: issued.hostParticipantId, room: roomId }),
+        code: issued.code, hostParticipantId: issued.hostParticipantId, hostLabel: null, roomId, roomToken: ownerPairingRoomMarker(roomId),
         expiresAt: issued.expiresAt, expired, ownerAnswer: decline ? 'no' : 'yes', forgetAfterRequests };
     },
     /** Call when a request was answered; applies forgetAfterRequests. */

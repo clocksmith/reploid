@@ -31,7 +31,7 @@
  *                                roomId, roomToken, expiresAt) to the ready line; pair the phone that sends the code;
  *                                answer only requests from a paired phone. The room token is the pairing routing
  *                                marker, so --token is not allowed with it.
- *     --pairing-name <label>     the label in the link (default Workbench)
+ *     --pairing-name <label>     accepted for older callers; links carry no name
  *     --pairing-expired          the code in the link has already expired
  *     --pairing-decline          the desktop owner answers no
  *     --pairing-forget-after-requests <n>  after n answered requests the desktop's pairing state is deleted

@@ -34,7 +34,7 @@
  *     --pairing                          behave as an owner's desktop: issue one pairing code, put the pairing link in
  *                                        the ready line ("pairing"), pair the phone that sends the code, then answer
  *                                        only requests from a paired phone and refuse everyone else before the prompt
- *     --pairing-name <label>             the label in the link (default Workbench)
+ *     --pairing-name <label>             accepted for older callers; links carry no name
  *     --pairing-expired                  the code in the link has already expired
  *     --pairing-decline                  the desktop owner answers no
  *     --pairing-forget-after-requests <n>  after n answered requests the desktop's pairing state is deleted (the only

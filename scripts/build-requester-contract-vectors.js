@@ -41,7 +41,7 @@ import { captureExchange, probeInboundFrames, probeAdvertisement } from './reque
 import { capturePairing } from './requester-contract/pairing-capture.js';
 import { ownerPairingRoomMarker } from '../packages/reploid/src/transport/owner-pairing.js';
 import { createBrowserOwnerPairing, createOwnerPairingUrl, parseOwnerPairingUrl } from '../apps/poolday/host/owner-pairing.js';
-import { ownerPairingLink, ownerPairingDisplayName } from '../server/circles/owner-pairing-terminal.js';
+import { ownerPairingLink } from '../server/circles/owner-pairing-terminal.js';
 import { FIXED_PAIRING } from './requester-contract/fixed-inputs.js';
 
 import { attachmentInput, comparisonSources } from '../apps/poolday/host/document-comparison.js';
@@ -686,10 +686,11 @@ async function pairingSection() {
   const fragment = (pairs, base = 'https://replo.id/') => `${base}#${pairs.map(([key, value]) => `${key}=${value}`).join('&')}`;
   const accented = `B${String.fromCharCode(0xfc)}ro Mac`;
   const linkCases = [
-    ['as the desktop prints it', ownerPairingLink({ code, hostParticipantId: host, room, name: label })],
-    ['as the web client builds it (name before room)', createOwnerPairingUrl({ hostParticipantId: host, code, hostLabel: label, roomId: room }, 'https://replo.id/')],
-    ['without room and name', ownerPairingLink({ code, hostParticipantId: host })],
-    ['label with a space and a non-ASCII letter', ownerPairingLink({ code, hostParticipantId: host, room, name: accented })],
+    ['as the desktop prints it (no name: a desktop name is private to its owner)', ownerPairingLink({ code, hostParticipantId: host, room })],
+    ['as the web client builds it', createOwnerPairingUrl({ hostParticipantId: host, code, roomId: room }, 'https://replo.id/')],
+    ['without room', ownerPairingLink({ code, hostParticipantId: host })],
+    ['an older desktop\'s link with a name', `https://replo.id/#${new URLSearchParams({ pair: code, host, room, name: label })}`],
+    ['label with a space and a non-ASCII letter', `https://replo.id/#${new URLSearchParams({ pair: code, host, room, name: accented })}`],
     ['colon of the host not percent-encoded', fragment([['pair', code], ['host', host]])],
     ['label with surrounding spaces is trimmed', fragment([['pair', code], ['host', host], ['name', '+Workbench+']])],
     ['unknown parameter is ignored', fragment([['pair', code], ['host', host], ['utm', 'x']])],
@@ -721,8 +722,6 @@ async function pairingSection() {
     ['empty room', fragment([['pair', code], ['host', host], ['room', '']])]
   ].map(([name, url]) => ({ name, url, parsed: parseOwnerPairingUrl(url) }));
   assert(linkCases[0].parsed.code === code && linkCases.filter(item => item.parsed === null).length >= 15, 'pairing link cases');
-  const desktopLabels = ['workbench', 'studio.example.com', 'Desk-2', 'ip-10-0-0-5', '192.0.2.7', 'my_desk', '12345', '']
-    .map(hostName => ({ hostName, label: ownerPairingDisplayName(hostName) }));
   const roomTokens = [room, 'reploid-swarm-my-desk', bootstrap.publicRoomId, 'my-desk'].map(roomId => {
     try { return { roomId, token: ownerPairingRoomMarker(roomId) }; } catch (error) { return { roomId, token: null, error: error.message }; }
   });
@@ -756,7 +755,7 @@ async function pairingSection() {
   for (const scenario of ['pair-and-ask', 'wrong-code', 'expired-code', 'replayed-code', 'declined', 'wrong-desktop',
     'unpaired-request', 'new-connection-name', 'look-alike', 'desktop-forgot']) captures[scenario] = await capturePairing({ scenario });
   const main = captures['pair-and-ask'];
-  assert(main.pairing.approved && main.request.completed && main.pairing.storageKey === storageKey && canonicalize(main.pairing.storedRecord) === canonicalize(good),
+  assert(main.pairing.approved && main.request.completed && main.pairing.storageKey === storageKey && canonicalize(main.pairing.storedRecord) === canonicalize({ ...good, hostLabel: host }),
     'the pairing exchange pairs, stores the record and answers');
   assert(main.issued.code === code && main.issued.link === linkCases[0].url, 'the desktop issued the fixed code and link');
   const shape = (captured, extra) => ({ phases: captured.phases, uuidsInOrder: captured.uuidsInOrder, ...extra });
@@ -784,8 +783,8 @@ async function pairingSection() {
   };
   return {
     description: 'Owner pairing: a phone pairs with its owner\'s desktop and then asks only that desktop. Frames were captured from the real phone-side code (apps/poolday/host/owner-pairing.js over transport/owner-pairing.js and the requester) and the real desktop-side code (server/circles/owner-pairing.js and its admission rule), with fixed keys, clock, nonces and pairing code. The desktop owner\'s answer at the terminal is given by the capture. direction "requester->provider" is phone to desktop.',
-    link: { description: 'parsed is procedures.pairingLinkParse(url): an object, or null when the text is not a pairing link. desktopLabels: the label a desktop puts in the name parameter for its host name; null = no name parameter.',
-      cases: linkCases, desktopLabels },
+    link: { description: 'parsed is procedures.pairingLinkParse(url): an object, or null when the text is not a pairing link. A desktop writes no name parameter; one is read from older links.',
+      cases: linkCases },
     roomToken: { description: 'The signaling token for a pairing room (procedures.pairingRoom). token null = the marker is refused for that room.', cases: roomTokens },
     storedRecord: { description: 'stored is the text under storageKey; state is what the real phone-side code reports with no desktop connected (status "offline" = paired but not connected, "unpaired" = no usable record); afterForget is the state and stored text after forgetting (procedures.pairingForget).',
       storageKey, cases: recordCases },
