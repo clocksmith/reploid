@@ -1655,8 +1655,8 @@
     },
     {
       "path": "mesh/swarm-coordination.d.ts",
-      "bytes": 1929,
-      "sha256": "23fa25335162f036ba64c1f1418d15f3dce88b1412feaeb1a55e06ca894a94c5"
+      "bytes": 2004,
+      "sha256": "0f5299c339dc962d0974b9461c711f1ab2236802d9f6c5be8142b0f73283c337"
     },
     {
       "path": "mesh/swarm-coordination.js",

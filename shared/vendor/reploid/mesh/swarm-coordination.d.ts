@@ -4,7 +4,7 @@ export interface PeerAdvertisement {
   model?: string | null; modelContract?: Record<string, unknown> | null;
 }
 export const SWARM_ROLES: Readonly<Record<'SOLO'|'PROVIDER'|'CONSUMER'|'DEAD', string>>;
-export function deriveSwarmRole(options?: { hasInference?: boolean; swarmEnabled?: boolean }): string;
+export function deriveSwarmRole(options?: { hasInference?: boolean; swarmEnabled?: boolean; offers?: import('../contracts/computer-records.js').Offer[]; now?: number }): string;
 export function createPeerAdvertisement(options?: Record<string, unknown>): PeerAdvertisement;
 export function createGenerationRequest(options?: Record<string, unknown>): Record<string, unknown>;
 export function createGenerationResult(options?: Record<string, unknown>): Record<string, unknown>;
