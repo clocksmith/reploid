@@ -550,8 +550,8 @@
     },
     {
       "path": "artifacts/signatures.js",
-      "bytes": 2927,
-      "sha256": "8ef600bcc1c449c56189c59779b3dbd364068ddbe55fc496e077c22d88d1eac3"
+      "bytes": 2958,
+      "sha256": "382b3a317acb92ee45e7a8d72582afa6aca6c49755f4bfe34847efe4a6281288"
     },
     {
       "path": "artifacts/store.d.ts",
@@ -715,8 +715,8 @@
     },
     {
       "path": "config/index.js",
-      "bytes": 12269,
-      "sha256": "565aa3557f30d7f98f5a142754b535b029359bbe7a2b18a73d3445749a53b7e2"
+      "bytes": 12275,
+      "sha256": "3cef537450bb4e909961935775a670d8443c50ef910d2cf9d9739bd1d7686b18"
     },
     {
       "path": "config/profiles/local.json",
@@ -940,13 +940,13 @@
     },
     {
       "path": "hashing.d.ts",
-      "bytes": 333,
-      "sha256": "5a6fde8c01454190827d30808389db4a99ef6fc33b36c9f8ed23bc5074868c76"
+      "bytes": 440,
+      "sha256": "aeed9a5603981dbe6350e68494874ad78eeee4cd7c6be4d9d6b111cb8bde89f1"
     },
     {
       "path": "hashing.js",
-      "bytes": 1351,
-      "sha256": "0cf5fe45851242b29ea696e1b39799327f35287d758f04f301f1b7c4b737e8b4"
+      "bytes": 1453,
+      "sha256": "b7caeeb6af68e0d534d18087d14dae9652a52dbf8b1fe88666110e2c3a8e9ae3"
     },
     {
       "path": "improvement/code-evolution.d.ts",

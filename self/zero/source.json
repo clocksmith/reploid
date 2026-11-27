@@ -29,8 +29,8 @@
     },
     {
       "path": "config/tool-surfaces.js",
-      "bytes": 3313,
-      "sha256": "4b62da06ea1d9f19619395c281b0b461fb4980efc7d66a07dd59c8435c7a79e3"
+      "bytes": 3164,
+      "sha256": "7dc5a895441cd86af0e723e5e96f976cfa5856bebe86c614cdb5d26fa7d98812"
     },
     {
       "path": "config/vfs-policy.js",
@@ -169,8 +169,8 @@
     },
     {
       "path": "vendor/reploid/config/index.js",
-      "bytes": 12269,
-      "sha256": "565aa3557f30d7f98f5a142754b535b029359bbe7a2b18a73d3445749a53b7e2"
+      "bytes": 12275,
+      "sha256": "3cef537450bb4e909961935775a670d8443c50ef910d2cf9d9739bd1d7686b18"
     },
     {
       "path": "vendor/reploid/config/request-overrides.json",
@@ -189,8 +189,8 @@
     },
     {
       "path": "vendor/reploid/hashing.js",
-      "bytes": 1351,
-      "sha256": "0cf5fe45851242b29ea696e1b39799327f35287d758f04f301f1b7c4b737e8b4"
+      "bytes": 1453,
+      "sha256": "b7caeeb6af68e0d534d18087d14dae9652a52dbf8b1fe88666110e2c3a8e9ae3"
     },
     {
       "path": "vendor/reploid/rules/routing.rules.json",

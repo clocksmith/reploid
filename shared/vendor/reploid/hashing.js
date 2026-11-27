@@ -25,6 +25,9 @@ export async function sha256HexUnprefixed(value, cryptoApi = globalThis.crypto) 
 }
 
 /** `sha256:`-prefixed form of sha256HexUnprefixed. */
-export async function sha256Hex(value, cryptoApi = globalThis.crypto) {
+export async function sha256Digest(value, cryptoApi = globalThis.crypto) {
   return `sha256:${await sha256HexUnprefixed(value, cryptoApi)}`;
 }
+
+/** @deprecated Use sha256Digest for a prefixed digest. */
+export const sha256Hex = sha256Digest;
