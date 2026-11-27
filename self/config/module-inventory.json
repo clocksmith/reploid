@@ -2892,7 +2892,7 @@
     {
       "path": "self/host/chat-session.js",
       "owner": "self",
-      "sha256": "sha256:608e0f9233a5a9ebd6312e027e0c56eeb592ae3aaf673a26ab5458b4831cb0ad",
+      "sha256": "sha256:07a055df89114ce562ecebf3ac1fbfdc457d4a0993dbffb747407b1588155da3",
       "imports": [
         "../config/doppler-local-models.js",
         "../config/requester-weights.json",
@@ -3805,7 +3805,7 @@
     {
       "path": "self/host/weight-supply-host.js",
       "owner": "self",
-      "sha256": "sha256:0522b4dee8c2782a345f0ac68b0e6a453651e3fea2ccbac8bf1dd10487bdc261",
+      "sha256": "sha256:c6a4bb0797f28780d1393d5b737659129895799995442396d93d720df1aed81d",
       "imports": [
         "../vendor/reploid/artifacts/custody/weight-supply.js",
         "./computer-records.js"
