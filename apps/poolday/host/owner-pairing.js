@@ -12,7 +12,11 @@ const DEFAULT_PEER_WAIT_MS = 6000;
 const APPROVAL_WAIT_MS = 10 * 60 * 1000;
 const validLabel = value => typeof value === 'string' && value.trim().length > 0 && value.trim().length <= 128;
 
-export function createOwnerPairingUrl({ hostParticipantId, code, hostLabel, roomId }, baseUrl = globalThis.location?.href || 'https://replo.id/') {
+/**
+ * The pairing link a desktop shows. It names no computer: a desktop's name is private to its owner and stays in
+ * device management. A link from an older desktop may still carry `name`; parseOwnerPairingUrl reads it for that.
+ */
+export function createOwnerPairingUrl({ hostParticipantId, code, roomId }, baseUrl = globalThis.location?.href || 'https://replo.id/') {
   if (!ownerParticipantId(hostParticipantId) || !ownerPairingCode(code)) {
     throw new Error('Valid desktop identity and 24-character pairing code are required');
   }
@@ -21,7 +25,6 @@ export function createOwnerPairingUrl({ hostParticipantId, code, hostLabel, room
   }
   const url = new URL('/', baseUrl);
   const params = new URLSearchParams({ pair: code, host: hostParticipantId });
-  if (validLabel(hostLabel) && hostLabel.trim() !== hostParticipantId) params.set('name', hostLabel.trim());
   if (ownerPairingRoomId(roomId)) params.set('room', roomId.trim());
   url.hash = params.toString();
   return url.href;

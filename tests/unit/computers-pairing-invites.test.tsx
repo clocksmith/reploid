@@ -24,7 +24,10 @@ it('reads a fragment-only pairing link and states the desktop as it pairs, goes 
   const url = createOwnerPairingUrl({ hostParticipantId, code, hostLabel: "Alex's PC", roomId }, 'https://replo.id/');
   // Nothing the desktop needs leaves in the query string: the link carries it in the fragment.
   expect(new URL(url).search).toBe('');
-  expect(parseOwnerPairingUrl(url)).toEqual({ hostParticipantId, code, hostLabel: "Alex's PC", roomId });
+  // It names no computer: the desktop's name is private to its owner (an older link's name is still read).
+  expect(url).not.toContain('name=');
+  expect(parseOwnerPairingUrl(url)).toEqual({ hostParticipantId, code, roomId });
+  expect(parseOwnerPairingUrl(`${url}&name=Mars`)).toEqual({ hostParticipantId, code, hostLabel: 'Mars', roomId });
   expect(ownerPairingStatus({ status: 'pairing', hostLabel: "Alex's PC" })).toBe("Waiting for desktop confirmation on Alex's PC…");
   expect(ownerPairingStatus({ status: 'online', hostLabel: "Alex's PC", transportPath: 'relayed', readyModel: 'qwen-3-5-0-8b' }))
     .toBe("Paired with Alex's PC · Online · relayed · qwen-3-5-0-8b");
@@ -72,7 +75,8 @@ it('displays active, expired and revoked guest links with the named host and the
   await userEvent.click(within(query('[data-circle-invites]')).getAllByText(/./)[0] as HTMLElement);
   await userEvent.click(query('[data-circle-invite-submit]'));
   await waitFor(() => expect(query('[data-circle-invite-row="i-active"]')).not.toBeNull());
-  expect(parseCircleInviteUrl((query('[data-circle-invite-link]') as HTMLInputElement).value)).toEqual({ token, hostPeerId, hostLabel });
+  expect(parseCircleInviteUrl((query('[data-circle-invite-link]') as HTMLInputElement).value)).toEqual({ token, hostPeerId });
+  expect((query('[data-circle-invite-link]') as HTMLInputElement).value).not.toContain('name=');
   expect(query('[data-circle-invite-row="i-active"]').textContent).toContain("Alex's PC");
   expect(query('[data-circle-invite-row="i-active"]').textContent).toContain('1 running');
   expect(query('[data-circle-invite-row="i-expired"]').dataset.circleInviteState).toBe('expired');

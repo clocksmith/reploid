@@ -73,11 +73,9 @@ export async function openCircleInvites({ file, hostPeerId, hostLabel = hostPeer
       if (scope.host !== hostPeerId) {
         throw Error('Invite database belongs to another host identity');
       }
-      if (scope.host_label !== normalizedLabel && hostLabel !== hostPeerId) {
-        db.prepare('UPDATE circle_scope SET host_label=? WHERE id=1').run(normalizedLabel);
-      } else if (!scope.host_label) {
-        db.prepare('UPDATE circle_scope SET host_label=? WHERE id=1').run(normalizedLabel);
-      }
+      // The label is the opener's, every time: a host that stops naming itself (the native host no longer sends its
+      // machine name to guests) replaces a name an earlier run stored with its peer ID.
+      if (scope.host_label !== normalizedLabel) db.prepare('UPDATE circle_scope SET host_label=? WHERE id=1').run(normalizedLabel);
     });
   } catch (error) {
     db.close();

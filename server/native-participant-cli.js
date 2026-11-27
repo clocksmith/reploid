@@ -1,6 +1,5 @@
 import { participantOptions, participantHelp } from './native-participant-options.js';
 import { createNativeRtcConfigReader } from './native-rtc-config.js';
-import { hostname } from 'node:os';
 import { parseArgs } from 'node:util';
 import { createInterface } from 'node:readline';
 import path from 'node:path';
@@ -34,7 +33,7 @@ import { openNativeRuntimeSource, assertNativeRuntimeSourceMode } from './native
 import { openOwnerPairing } from './circles/owner-pairing.js';
 import { openCircleInvites } from './circles/invites.js';
 import { createGuestAccess } from './circles/guest-access.js';
-import { createOwnerPairingTerminal, ownerPairingDisplayName, ownerPairingPrompt } from './circles/owner-pairing-terminal.js';
+import { createOwnerPairingTerminal, ownerPairingPrompt } from './circles/owner-pairing-terminal.js';
 import { ownerPairingRoomId, ownerPairingRoomMarker } from '../shared/vendor/reploid/transport/index.js';
 
 /** `quiet` is for a one-shot caller that reports the outcome itself: transport warnings are dropped, errors still print. */
@@ -184,14 +183,14 @@ export async function main({ argv, runOnce, anyModel = false, quiet = false } = 
       .catch(async error => { owner?.close(); await shaderCache?.close(); await closeReadiness('startup-failed'); throw error; });
   else if (values['web-search']) webWorker = createPublicWebWorker();
   let ownerPairing, guestInvites, guestAccess;
-  const displayName = ownerPairingDisplayName(hostname());
   try {
     if (values['owner-pairing']) {
       ownerPairing = await openOwnerPairing({ file: path.join(path.dirname(identityFile), 'owner-pairing.sqlite'),
         hostParticipantId: identity.peerId, onRequest: request => console.error(ownerPairingPrompt(request)) });
       // A paired host can also invite guests; each invite admits one device within its limits.
       guestInvites = await openCircleInvites({ file: path.join(path.dirname(identityFile), 'circle-invites.sqlite'),
-        hostPeerId: identity.peerId, hostLabel: displayName || identity.peerId });
+        // Guests are strangers: the host is named by its peer ID, never by this machine's host name.
+        hostPeerId: identity.peerId });
       guestAccess = createGuestAccess({ invites: guestInvites, hostParticipantId: identity.peerId,
         onJoin: () => console.error('A guest opened your link.') });
     }
@@ -232,7 +231,7 @@ export async function main({ argv, runOnce, anyModel = false, quiet = false } = 
     .catch(async error => { ownerPairing?.close(); guestAccess?.close(); guestInvites?.close(); owner?.close(); await shaderCache?.close(); await closeReadiness('startup-failed'); await webWorker?.close?.(); throw error; });
   const pairingTerminal = ownerPairing && createInterface({ input: process.stdin, terminal: false });
   if (pairingTerminal) {
-    const commands = createOwnerPairingTerminal({ pairing: ownerPairing, invites: guestInvites, room: values.room, name: displayName });
+    const commands = createOwnerPairingTerminal({ pairing: ownerPairing, invites: guestInvites, room: values.room });
     console.error('Type pair to connect your phone, or invite to share this computer with one guest.');
     pairingTerminal.on('line', line => commands.handleLine(line));
   }

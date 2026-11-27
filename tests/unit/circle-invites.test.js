@@ -87,6 +87,18 @@ describe('single-host invites', () => {
     await expect(run('owner-channel', { op: 'circle-invites.revoke', inviteId: created.inviteId })).resolves.toMatchObject({ status: 'revoked' });
   });
 
+  it('drops a host name an earlier run stored once the host opens without one, so guests see only its peer ID', async () => {
+    invites.close();
+    invites = await openCircleInvites({ file, hostPeerId: HOST, hostLabel: 'Mars', now: () => time });
+    expect(issue().hostLabel).toBe('Mars');
+    invites.close();
+    invites = await open(HOST);
+    const created = issue();
+    expect(created.hostLabel).toBe(HOST);
+    expect(invites.hostLabel).toBe(HOST);
+    expect(invites.redeem({ token: created.token, guestPeerId: GUEST }).hostLabel).toBe(HOST);
+  });
+
   it('persists named computer scope and enforces single settlement when an in-flight stream finishes or stops after revocation', async () => {
     invites.close();
     invites = await openCircleInvites({ file, hostPeerId: HOST, hostLabel: "Alex's PC", now: () => time });
@@ -134,9 +146,9 @@ describe('single-host invites', () => {
       outcome: 'completed'
     })).toBeNull();
 
-    // Reopen database after restart: hostLabel, revoked status, and settlement survive intact.
+    // Reopen database after restart under the same label: hostLabel, revoked status, and settlement survive intact.
     invites.close();
-    invites = await open(HOST);
+    invites = await openCircleInvites({ file, hostPeerId: HOST, hostLabel: "Alex's PC", now: () => time });
     expect(invites.hostLabel).toBe("Alex's PC");
     expect(invites.list()[0]).toMatchObject({ inviteId: created.inviteId, status: 'revoked', hostLabel: "Alex's PC", usedRequests: 1 });
     expect(invites.getSettlement({ guestPeerId: GUEST, requestId: 'stream-1' })).toMatchObject({

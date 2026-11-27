@@ -1,28 +1,22 @@
 import { renderQrForTerminal } from '../terminal-qr.js';
 
 /**
- * The desktop label carried in the pairing link: the short host name only. Full domain names, IP addresses and
- * cloud names that spell out an address (ip-10-0-0-5) are left out, and the phone then shows the peer ID instead.
+ * Fragment-only link: the code never reaches a web server log. It carries no computer name: the host's name is
+ * private to its owner, and the phone names the computer generically ("your desktop").
  */
-export function ownerPairingDisplayName(host) {
-  const label = String(host ?? '').split('.')[0];
-  if (!/^[A-Za-z0-9-]{1,63}$/.test(label) || !/[A-Za-z]/.test(label) || /\d+-\d+-\d+-\d+/.test(label)) return null;
-  return label[0].toUpperCase() + label.slice(1);
-}
-
-/** Fragment-only link: the code never reaches a web server log. */
-export function ownerPairingLink({ code, hostParticipantId, room, name }) {
+export function ownerPairingLink({ code, hostParticipantId, room }) {
   const params = new URLSearchParams({ pair: code, host: hostParticipantId });
   if (room) params.set('room', room);
-  if (name) params.set('name', name);
   return `https://replo.id/#${params.toString()}`;
 }
 
-/** Fragment-only guest link: one device, bounded messages; the token never reaches a web server log. */
-export function guestInviteLink({ token, hostParticipantId, room, name }) {
+/**
+ * Fragment-only guest link: one device, bounded messages; the token never reaches a web server log. A guest is a
+ * stranger to this computer, so the link names it by its peer ID only, never by its host name.
+ */
+export function guestInviteLink({ token, hostParticipantId, room }) {
   const params = new URLSearchParams({ circle: token, host: hostParticipantId });
   if (room) params.set('room', room);
-  if (name) params.set('name', name);
   return `https://replo.id/#${params.toString()}`;
 }
 
@@ -33,14 +27,14 @@ const shortPeer = participantId => participantId.length > 16 ? `${participantId.
 export const ownerPairingPrompt = ({ participantId }) => `Pair phone ${shortPeer(participantId)}? [y/n]`;
 
 /** Shorthand decisions apply only to the single request waiting when the owner presses Enter. */
-export function createOwnerPairingTerminal({ pairing, invites = null, room, name, write = line => console.error(line), renderQr = renderQrForTerminal, now = Date.now }) {
+export function createOwnerPairingTerminal({ pairing, invites = null, room, write = line => console.error(line), renderQr = renderQrForTerminal, now = Date.now }) {
   const activeInvites = () => (invites?.list() || []).filter(invite => invite.status === 'active');
   const describeInvite = invite => `  ${invite.inviteId.slice(0, 8)}  ${invite.guestPeerId ? `used by ${shortPeer(invite.guestPeerId)}` : 'not opened yet'}`
     + `  ${invite.usedRequests}/${invite.maxRequests} messages  until ${new Date(invite.expiresAt).toLocaleString()}`;
   const issueInvite = () => {
     const { hours, maxRequests, maxOutputTokens } = GUEST_INVITE_DEFAULTS;
     const invite = invites.issue({ expiresAt: now() + hours * 3_600_000, maxRequests, maxOutputTokens });
-    const link = guestInviteLink({ token: invite.token, hostParticipantId: invite.hostPeerId, room, name });
+    const link = guestInviteLink({ token: invite.token, hostParticipantId: invite.hostPeerId, room });
     write(`Guest link (one device, ${maxRequests} messages, ${hours} hours): ${link}`);
     write(renderQr(link));
     write('Send it to one person. Their prompts run here and you can read them. Type revoke to cancel it.');
@@ -73,7 +67,7 @@ export function createOwnerPairingTerminal({ pairing, invites = null, room, name
       try {
         if (command === 'pair') {
           const { hostParticipantId, code } = pairing.issue();
-          const link = ownerPairingLink({ code, hostParticipantId, room, name });
+          const link = ownerPairingLink({ code, hostParticipantId, room });
           write(`Owner pairing code for ${hostParticipantId} (one use, 10 minutes): ${code}`);
           write(`Pairing link: ${link}`);
           write(renderQr(link));

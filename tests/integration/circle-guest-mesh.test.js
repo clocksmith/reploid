@@ -124,11 +124,11 @@ describe('guest invites over the mesh (#185)', () => {
 
       // The desktop terminal's guest link: fragment-only, routing room, no room credential.
       const issued = invites.issue({ expiresAt: Date.now() + 3_600_000, maxRequests: 3, maxOutputTokens: 256 });
-      const link = guestInviteLink({ token: issued.token, hostParticipantId: hostIdentity.peerId, room: ROOM, name: 'Desk' });
+      const link = guestInviteLink({ token: issued.token, hostParticipantId: hostIdentity.peerId, room: ROOM });
       expect(new URL(link).search).toBe('');
       expect(link).not.toContain(marker);
       const parsed = parseCircleInviteUrl(link);
-      expect(parsed).toEqual({ token: issued.token, hostPeerId: hostIdentity.peerId, hostLabel: 'Desk', roomId: ROOM });
+      expect(parsed).toEqual({ token: issued.token, hostPeerId: hostIdentity.peerId, roomId: ROOM });
 
       // Join from a fresh browser that starts in the public room.
       const guest = openGuestBrowser();

@@ -18,14 +18,12 @@ export function describeCircleHost(hostLabel, hostPeerId = '') {
   });
 }
 
-export function createCircleInviteUrl({ token, hostPeerId, hostLabel, roomId }, baseUrl = globalThis.location.href) {
+/** A guest link. A guest is a stranger to the host, so the link names the host by its peer ID only, never by name. */
+export function createCircleInviteUrl({ token, hostPeerId, roomId }, baseUrl = globalThis.location.href) {
   if (!tokenPattern.test(token) || !validHost(hostPeerId)) throw Error('Invalid host invitation');
   const url = new URL('/', baseUrl);
   const params = new URLSearchParams({ circle: token, host: hostPeerId });
   if (ownerPairingRoomId(roomId)) params.set('room', roomId);
-  if (validLabel(hostLabel) && hostLabel.trim() !== hostPeerId) {
-    params.set('name', hostLabel.trim());
-  }
   url.hash = params.toString();
   return url.href;
 }

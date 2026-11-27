@@ -1,7 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
   createOwnerPairingTerminal,
-  ownerPairingDisplayName,
   ownerPairingLink,
   ownerPairingPrompt
 } from '../../server/circles/owner-pairing-terminal.js';
@@ -20,39 +19,37 @@ function terminal({ pending = [], decision = true } = {}) {
     pendingRequests: vi.fn(() => pending),
     decide: vi.fn(() => decision)
   };
-  const commands = createOwnerPairingTerminal({ pairing, room: 'reploid-swarm-home', name: 'Studio',
+  const commands = createOwnerPairingTerminal({ pairing, room: 'reploid-swarm-home',
     write: line => lines.push(line), renderQr: link => `QR(${link})` });
   return { lines, pairing, commands };
 }
 
-describe('owner pairing link name', () => {
-  it('uses the short host name and never a domain or address', () => {
-    expect(ownerPairingDisplayName('studio.local')).toBe('Studio');
-    expect(ownerPairingDisplayName('alex-mbp.corp.example.com')).toBe('Alex-mbp');
-    expect(ownerPairingDisplayName('10.0.0.5')).toBeNull();
-    expect(ownerPairingDisplayName('fe80::1')).toBeNull();
-    expect(ownerPairingDisplayName('ip-10-0-0-5.ec2.internal')).toBeNull();
-    expect(ownerPairingDisplayName('')).toBeNull();
-  });
-
-  it('puts name, host, room and code in the fragment the browser parses', () => {
-    const link = ownerPairingLink({ code, hostParticipantId: host, room: 'reploid-swarm-home', name: 'Studio' });
+describe('owner pairing link', () => {
+  it('carries host, room and code in the fragment and never a computer name', () => {
+    const link = ownerPairingLink({ code, hostParticipantId: host, room: 'reploid-swarm-home', name: 'Mars' });
     expect(new URL(link).search).toBe('');
-    expect(parseOwnerPairingUrl(link)).toEqual({ code, hostParticipantId: host, hostLabel: 'Studio', roomId: 'reploid-swarm-home' });
-    expect(ownerPairingLink({ code, hostParticipantId: host, name: null })).not.toContain('name=');
+    expect(link).not.toContain('name=');
+    expect(link).not.toContain('Mars');
+    expect(parseOwnerPairingUrl(link)).toEqual({ code, hostParticipantId: host, roomId: 'reploid-swarm-home' });
   });
 
-  it('prints the code, the named link and its QR code on pair', () => {
+  it('prints the code, the link and its QR code on pair', () => {
     const { lines, pairing, commands } = terminal();
     commands.handleLine('pair');
     expect(pairing.issue).toHaveBeenCalledTimes(1);
-    const link = ownerPairingLink({ code, hostParticipantId: host, room: 'reploid-swarm-home', name: 'Studio' });
+    const link = ownerPairingLink({ code, hostParticipantId: host, room: 'reploid-swarm-home' });
     expect(lines).toEqual([
       `Owner pairing code for ${host} (one use, 10 minutes): ${code}`,
       `Pairing link: ${link}`,
       `QR(${link})`,
       'Scan the code with your phone camera, or open the link on your phone. You approve the request here.'
     ]);
+  });
+
+  it('the native host names itself to phones and guests by peer ID, never by its machine name', async () => {
+    const source = await import('node:fs/promises').then(fs => fs.readFile(`${process.cwd()}/server/native-participant-cli.js`, 'utf8'));
+    expect(source).not.toMatch(/\bhostname\(/);
+    expect(source).not.toMatch(/hostLabel:/);
   });
 });
 
@@ -117,19 +114,20 @@ describe('guest invites from the desktop terminal', () => {
     const lines = [];
     const invites = { issue: vi.fn(options => invite({ expiresAt: options.expiresAt })), list: vi.fn(() => list), revoke: vi.fn() };
     const pairing = { issue: vi.fn(), pendingRequests: vi.fn(() => []), decide: vi.fn() };
-    const commands = createOwnerPairingTerminal({ pairing, invites, room: 'reploid-swarm-home', name: 'Studio',
+    const commands = createOwnerPairingTerminal({ pairing, invites, room: 'reploid-swarm-home', name: 'Mars',
       write: line => lines.push(line), renderQr: link => `QR(${link})`, now: () => 0 });
     return { lines, invites, commands };
   }
 
-  it('issues one bounded invite and prints a fragment-only link with host, room, name and a QR code', () => {
+  it('issues one bounded invite and prints a fragment-only link with host and room, no computer name, and a QR code', () => {
     const t = guestTerminal();
     t.commands.handleLine('invite');
     expect(t.invites.issue).toHaveBeenCalledWith({ expiresAt: 24 * 3_600_000, maxRequests: 10, maxOutputTokens: 256 });
     const link = t.lines[0].match(/https:\/\/replo\.id\/#\S+/)[0];
     const fragment = new URLSearchParams(new URL(link).hash.slice(1));
     expect(new URL(link).search).toBe('');
-    expect(Object.fromEntries(fragment)).toEqual({ circle: 'T'.repeat(43), host, room: 'reploid-swarm-home', name: 'Studio' });
+    expect(Object.fromEntries(fragment)).toEqual({ circle: 'T'.repeat(43), host, room: 'reploid-swarm-home' });
+    expect(t.lines.join('\n')).not.toContain('Mars');
     expect(t.lines[1]).toBe(`QR(${link})`);
     expect(t.lines[2]).toMatch(/can read them/);
   });

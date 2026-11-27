@@ -238,7 +238,6 @@ describe('QR owner pairing into a nondefault room (#200)', () => {
       const qrLink = createOwnerPairingUrl({
         hostParticipantId: offer.hostParticipantId,
         code: offer.code,
-        hostLabel: "Alex's PC",
         roomId: ISOLATED_ROOM
       }, 'https://replo.id/');
       expect(new URL(qrLink).search).toBe('');
@@ -248,7 +247,6 @@ describe('QR owner pairing into a nondefault room (#200)', () => {
       expect(parsed).toEqual({
         hostParticipantId: desktopId.peerId,
         code: offer.code,
-        hostLabel: "Alex's PC",
         roomId: ISOLATED_ROOM
       });
 
@@ -270,7 +268,7 @@ describe('QR owner pairing into a nondefault room (#200)', () => {
       const paired = await pairPromise;
       expect(paired).toMatchObject({
         hostParticipantId: desktopId.peerId,
-        hostLabel: "Alex's PC",
+        hostLabel: desktopId.peerId,
         roomId: ISOLATED_ROOM
       });
       expect(browser.swarm.getNetworkId()).toBe(ISOLATED_ROOM);
