@@ -79,7 +79,6 @@ export function fileModeChoices(options?: { readonly storedModels?: number; read
 export function webSearchAvailability(options?: { readonly url?: string; readonly builtInAvailable?: boolean }): { readonly disabled: boolean; readonly reason: string; readonly fix: { readonly label: string; readonly action: string } | null };
 export function webSearchDisclosure(state: WebSearchState, search: SearchStatus | null | undefined): string;
 export function storedModelLabel(row: { readonly name: string; readonly sizeBytes: number }): string;
-export const STORAGE_TEXT: Readonly<{ checking: string; measured: string; empty: string }>;
 export function storageSummary(state: State): string;
 export function fileSharingStatus(network?: object): string;
 export function projectFileSharing(state: State, selection?: Partial<FileSharingSelection>): FileSharingView;

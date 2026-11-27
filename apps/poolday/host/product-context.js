@@ -40,10 +40,6 @@ export const getPeerRelayMode = () => {
   return configured === 'local' ? 'local' : 'server';
 };
 
-export const getPeerRelayLabel = () => (
-  getPeerRelayMode() === 'local' ? 'local tab' : 'server relay'
-);
-
 export const getPeerRoomBusFactory = () => createPeerRoomBusFactory({
   sdk: getPeerRelayMode() === 'local' ? null : createPoolSdk({ authTokenProvider: null }),
   relay: getPeerRelayMode()

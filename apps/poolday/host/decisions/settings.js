@@ -20,12 +20,6 @@ export function projectRoutePreference(state, session) {
 /** One stored download as the Storage list shows it. */
 export const storedModelLabel = row => `${row.name} · ${(row.sizeBytes / 1048576).toLocaleString(undefined, { maximumFractionDigits: 1 })} MiB`;
 
-export const STORAGE_TEXT = Object.freeze({
-  checking: 'Checking stored files…',
-  measured: 'Measured stored files, including partial downloads. Shared files may count toward more than one model.',
-  empty: 'No model downloads stored. Choose a model in Answer on to download one.'
-});
-
 /** The summary shown where this page has no storage port: the catalog's own downloaded models. */
 export function storageSummary(state) {
   const stored = (state.models || []).filter(model => model.localCached);

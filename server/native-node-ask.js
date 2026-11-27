@@ -30,9 +30,6 @@ export function smallestServed(eligible, catalog = chatModels) {
  */
 export const DEFAULT_ASK_EXECUTION = Object.freeze({ protection: 'plaintext', route: 'auto',
   participants: Object.freeze({ kind: 'open' }), allowMetadata: Object.freeze([...EXECUTION_BACKENDS['doppler-plaintext/v1'].metadata]) });
-/** `--route` values `ask` can run: it asks network providers only, and it cannot bind edge devices to the requester. */
-export const ASK_ROUTES = Object.freeze(['remote', 'split', 'auto']);
-
 /** The inference requirements `reploid ask` flags select. Unknown values are refused here, before discovery. */
 export function askExecution({ participants = [], protection = 'plaintext', route = 'auto', allowMetadata } = {}) {
   const metadata = allowMetadata === undefined ? [...DEFAULT_ASK_EXECUTION.allowMetadata]
