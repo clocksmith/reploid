@@ -23,7 +23,7 @@ export function shellCompletion(shell, { commands, models, splitModels, flags, a
     '--ordered-config', '--cache-directory', '--rtc-config-file', '--earning-config', '--readiness-log', '--shader-cache-root',
     '--browser-search-profile', '--runtime-source-config'];
   const valueFlags = [...new Set([...pathFlags, ...flags, ...askFlags, ...doctorFlags, ...peersFlags, '--stage'])]
-    .filter(flag => !['--help', '--contribute', '--share-files', '--connect-only', '--canonical', '--web-search', '--json'].includes(flag));
+    .filter(flag => !['--help', '--contribute', '--share-files', '--connect-only', '--canonical', '--web-search', '--no-browser-search', '--json'].includes(flag));
   // Count positional words already entered, skipping flag values so '--room lab' does
   // not consume the model slot. Values are never evaluated or sent anywhere.
   const root = words([...commands, ...models, '--help']);

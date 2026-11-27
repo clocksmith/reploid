@@ -1,14 +1,15 @@
 export const participantOptions = Object.fromEntries(['model', 'model-directory', 'identity-file', 'rtc-module',
     'ws-module', 'gpu-module', 'adapter', 'execution-mode', 'partition-index', 'ordered-config', 'model-config', 'signaling-url', 'room', 'room-token', 'room-token-file', 'origin', 'cache-directory', 'supply-limit-gib',
     'rtc-config-file', 'owner-policy', 'shader-cache-root', 'earning-config', 'readiness-log', 'browser-search-profile', 'runtime-source-config'].map(key => [key, { type: 'string' }]).concat([
-      ['supply-to', { type: 'string', multiple: true }], ['owner-pairing', { type: 'boolean', default: false }], ['web-search', { type: 'boolean', default: false }], ['help', { type: 'boolean', default: false }], ['canonical', { type: 'boolean', default: false }], ['share-files', { type: 'boolean', default: false }], ['contribute', { type: 'boolean', default: false }], ['connect-only', { type: 'boolean', default: false }]]));
+      ['supply-to', { type: 'string', multiple: true }], ['owner-pairing', { type: 'boolean', default: false }], ['web-search', { type: 'boolean', default: false }], ['no-browser-search', { type: 'boolean', default: false }], ['help', { type: 'boolean', default: false }], ['canonical', { type: 'boolean', default: false }], ['share-files', { type: 'boolean', default: false }], ['contribute', { type: 'boolean', default: false }], ['connect-only', { type: 'boolean', default: false }]]));
 
 export const participantHelp = `Reploid native participant (Node 22.13 or newer)
 Usage: reploid-participant --connect-only|--share-files|--contribute
   --model <catalog id> --model-directory <read-only weights directory>
   --identity-file <private state/identity.json>
-  --web-search (opt in to public Bing search and page extraction; no browser sign-ins)
-  --browser-search-profile <dedicated absolute directory> (Google in owned Chrome; human checks stay manual)
+  --web-search (use public Bing search and page extraction instead of browser Google search)
+  --no-browser-search (opt out of default contributor Chrome Google search)
+  --browser-search-profile <dedicated absolute directory> (override default profile beside --identity-file)
   --rtc-module @roamhq/wrtc --ws-module ws [--gpu-module webgpu]
   [--rtc-config-file <absolute private JSON path>] (expiring TURN credentials; reread on negotiation and heartbeat)
   [--cache-directory <verified piece cache>] [--signaling-url <ws(s) URL>]

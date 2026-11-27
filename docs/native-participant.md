@@ -666,10 +666,15 @@ unsupported features fail explicitly.
 
 ## Contributor browser search
 
-`--browser-search-profile /absolute/path/to/new-dedicated-profile` opts this
-participant into Google search through an owned, visible Chrome session. It can
-run with `--connect-only`: neither model preparation nor file sharing is needed.
-The host needs Chrome and Playwright (`npm install --no-save playwright` in a
+Long-running native participants enable Google search by default through an
+owned, visible Chrome session using a dedicated `browser-search-profile`
+directory beside `--identity-file`. Pass `--no-browser-search` to opt out, or
+`--browser-search-profile /absolute/path/to/new-dedicated-profile` to choose a
+different dedicated profile directory. It can run with `--connect-only`: neither
+model preparation nor file sharing is needed. When enabled by default on a host
+without Chrome or Playwright, the participant logs a warning and continues
+without browser search; passing `--browser-search-profile` explicitly fails if
+Chrome or Playwright is unavailable (`npm install --no-save playwright` in a
 native delivery; the source checkout already includes it for browser tests).
 Do not point this option at a personal Chrome profile or sign into this profile.
 Existing non-Reploid profiles are refused. Keep its local browser state private;

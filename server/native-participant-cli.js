@@ -45,6 +45,7 @@ export async function main({ argv, runOnce, anyModel = false, quiet = false } = 
   }
   requireValue(values.contribute || values['share-files'] || values['connect-only'], 'Choose --contribute, --share-files or --connect-only explicitly');
   requireValue(!values['web-search'] || !values['browser-search-profile'], 'Choose one search service');
+  requireValue(!values['no-browser-search'] || !values['browser-search-profile'], '--no-browser-search cannot be combined with --browser-search-profile');
   if (values.contribute) requireValue(values['gpu-module'], '--gpu-module is required for compute');
   requireValue(values['readiness-log'] === undefined || values.contribute && path.isAbsolute(values['readiness-log']),
     '--readiness-log requires --contribute and an absolute file path');
@@ -178,10 +179,21 @@ export async function main({ argv, runOnce, anyModel = false, quiet = false } = 
   // Status lines only when their content changes, plus a periodic heartbeat (policy.statusHeartbeatMs).
   const statusLog = createChangeOnlyLog({ heartbeatMs: policy.statusHeartbeatMs, write: line => { if (!runOnce) console.log(line); } });
   let webWorker = null;
-  if (values['browser-search-profile']) webWorker =
-    await import('./browser-web-worker.js').then(module => module.openBrowserWebWorker({ profileDirectory: values['browser-search-profile'] }))
+  if (values['web-search']) {
+    webWorker = createPublicWebWorker();
+  } else if (values['browser-search-profile']) {
+    webWorker = await import('./browser-web-worker.js')
+      .then(module => module.openBrowserWebWorker({ profileDirectory: values['browser-search-profile'] }))
       .catch(async error => { owner?.close(); await shaderCache?.close(); await closeReadiness('startup-failed'); throw error; });
-  else if (values['web-search']) webWorker = createPublicWebWorker();
+  } else if (!runOnce && !values['no-browser-search']) {
+    const defaultProfile = path.join(path.dirname(identityFile), 'browser-search-profile');
+    webWorker = await import('./browser-web-worker.js')
+      .then(module => module.openBrowserWebWorker({ profileDirectory: defaultProfile }))
+      .catch(error => {
+        if (!quiet) console.warn('Default browser search disabled:', error.message);
+        return null;
+      });
+  }
   let ownerPairing, guestInvites, guestAccess;
   try {
     if (values['owner-pairing']) {
