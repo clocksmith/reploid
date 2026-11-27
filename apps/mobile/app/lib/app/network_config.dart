@@ -16,6 +16,8 @@ import '../infrastructure/reploid_api/requester_network.dart';
 ///       REPLOID_SIGNALING_URL, REPLOID_ROOM and REPLOID_TOKEN, and optionally
 ///       REPLOID_ORIGIN, REPLOID_ICE (comma-separated URLs),
 ///       REPLOID_RTC_CONFIG_URL, and REPLOID_AUTH_TOKEN.
+///   --dart-define=REPLOID_ICE_POLICY=relay  connect only through TURN relay
+///   --dart-define=REPLOID_TRACE=true        print connection steps to the log
 ///
 /// Users can also switch between Demo, Public, and a Private room at runtime
 /// in Settings; the selection is persisted in the platform keystore.
@@ -32,6 +34,8 @@ abstract final class NetworkConfig {
   static const _rtcConfigUrl = String.fromEnvironment('REPLOID_RTC_CONFIG_URL');
   static const _authToken = String.fromEnvironment('REPLOID_AUTH_TOKEN');
   static const _trace = bool.fromEnvironment('REPLOID_TRACE');
+  static const _forceRelay =
+      String.fromEnvironment('REPLOID_ICE_POLICY') == 'relay';
 
   static bool get hasBuildTimeOverride => network != 'demo';
 
@@ -77,6 +81,7 @@ abstract final class NetworkConfig {
             ? preference.rtcConfigUrl.trim()
             : SignalingConfig.defaultPublicRtcConfigUrl,
         authToken: authToken,
+        forceRelay: _forceRelay,
       ),
       NetworkMode.room when preference.isValid => SignalingConfig(
         url: preference.signalingUrl.trim(),
@@ -88,6 +93,7 @@ abstract final class NetworkConfig {
             ? preference.rtcConfigUrl.trim()
             : null,
         authToken: authToken,
+        forceRelay: _forceRelay,
       ),
       NetworkMode.room => null,
     };
@@ -120,6 +126,7 @@ abstract final class NetworkConfig {
           iceServerUrls: config.iceServerUrls,
           rtcConfigUrl: config.rtcConfigUrl,
           authToken: config.authToken,
+          forceRelay: config.forceRelay,
         ),
       ),
     );

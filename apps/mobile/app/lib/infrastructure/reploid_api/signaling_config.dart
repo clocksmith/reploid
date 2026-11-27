@@ -10,6 +10,7 @@ final class SignalingConfig {
     this.iceServerUrls = Contract.rtcIceServerUrls,
     this.rtcConfigUrl = defaultPublicRtcConfigUrl,
     this.authToken,
+    this.forceRelay = false,
   });
 
   static const defaultPublicRtcConfigUrl =
@@ -29,6 +30,10 @@ final class SignalingConfig {
 
   /// Optional Firebase/bearer token sent to [rtcConfigUrl].
   final String? authToken;
+
+  /// Allow only TURN relay candidates (`iceTransportPolicy: relay`), whatever
+  /// the credential response says. Without TURN credentials nothing connects.
+  final bool forceRelay;
 
   bool get public => roomId == Contract.signalingPublicRoomId;
 

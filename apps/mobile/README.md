@@ -132,7 +132,9 @@ constants). What needs a new binary: any change to native code or plugins
 
 ## Not done
 
-- Any run on a physical phone. Android has never been built: this Mac has no
+- Any run on a physical phone. The checklist for that proof (installed build,
+  two networks, relay-only TURN, verified receipt) is
+  [docs/phone-proof.md](docs/phone-proof.md). Android has never been built: this Mac has no
   Android SDK, and its licences are the owner's to accept.
 - Firebase anonymous sign-in for public TURN relay tokens on mobile (the HTTPS
   `/rtc-config` client is implemented and falls back to direct STUN when

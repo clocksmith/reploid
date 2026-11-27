@@ -232,6 +232,16 @@ final class WebRtcMeshTransport implements MeshTransport {
             ],
             'iceTransportPolicy': 'all',
           };
+    if (config.forceRelay) rtcConfiguration['iceTransportPolicy'] = 'relay';
+    // Counts and policy only: never URLs, usernames or credentials.
+    trace?.call(
+      turnConfig == null
+          ? 'rtc-config: no TURN credentials, '
+                '${config.iceServerUrls.length} STUN servers'
+          : 'rtc-config: TURN credentials, '
+                '${turnConfig.iceServers.length} ICE servers',
+    );
+    trace?.call('ice policy ${rtcConfiguration['iceTransportPolicy']}');
     final connection = await createPeerConnection(rtcConfiguration);
     final peer = _peers[name] = _Peer(name, connection);
     connection.onIceCandidate = (candidate) {
@@ -249,6 +259,11 @@ final class WebRtcMeshTransport implements MeshTransport {
     };
     connection.onIceConnectionState = (state) {
       trace?.call('ice ${state.name}');
+      if (trace != null &&
+          (state == RTCIceConnectionState.RTCIceConnectionStateConnected ||
+              state == RTCIceConnectionState.RTCIceConnectionStateCompleted)) {
+        unawaited(_traceSelectedPair(connection));
+      }
       peer.unreachable = const {
         RTCIceConnectionState.RTCIceConnectionStateDisconnected,
         RTCIceConnectionState.RTCIceConnectionStateFailed,
@@ -263,6 +278,51 @@ final class WebRtcMeshTransport implements MeshTransport {
       if (peer.link == null) unawaited(_drop(peer));
     });
     return peer;
+  }
+
+  /// Logs the candidate types of the pair in use, `relay` when the traffic
+  /// goes through TURN. Types and protocol only, never addresses.
+  Future<void> _traceSelectedPair(RTCPeerConnection connection) async {
+    try {
+      final reports = await connection.getStats();
+      final byId = {for (final report in reports) report.id: report};
+      String? pairId;
+      for (final report in reports) {
+        if (report.type == 'transport') {
+          pairId = report.values['selectedCandidatePairId']?.toString();
+          if (pairId != null) break;
+        }
+      }
+      pairId ??= [
+        for (final report in reports)
+          if (report.type == 'candidate-pair' &&
+              report.values['state'] == 'succeeded' &&
+              (report.values['nominated'] == true ||
+                  report.values['selected'] == true))
+            report.id,
+      ].firstOrNull;
+      final pair = byId[pairId];
+      if (pair == null) {
+        trace?.call('selected pair: unknown');
+        return;
+      }
+      String describe(Object? id) {
+        final candidate = byId[id?.toString()];
+        if (candidate == null) return 'unknown';
+        final values = candidate.values;
+        final relayProtocol = values['relayProtocol'];
+        return '${values['candidateType'] ?? 'unknown'}/'
+            '${values['protocol'] ?? '?'}'
+            '${relayProtocol == null ? '' : ' via $relayProtocol'}';
+      }
+
+      trace?.call(
+        'selected pair: local ${describe(pair.values['localCandidateId'])}, '
+        'remote ${describe(pair.values['remoteCandidateId'])}',
+      );
+    } catch (error) {
+      trace?.call('selected pair: stats failed (${error.runtimeType})');
+    }
   }
 
   Future<void> _offerTo(String name) async {
