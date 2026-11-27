@@ -5,6 +5,7 @@
 import { SELF_BOOT_SPEC, toSourceWebPath } from '../boot-spec.js';
 import { getRuntimeSelfMirrorsByBootProfile } from '../lab/profiles.js';
 import { normalizeVfsPath } from '../lab/mirrors.js';
+import { VFS_BYPASS_HEADER } from '../config/vfs-policy.js';
 import {
   getCurrentReploidInstanceId,
   getCurrentReploidSessionStorage as getScopedSessionStorage,
@@ -203,7 +204,6 @@ const loadStartApp = async () => {
 const SW_CONTROL_RELOAD_KEY = 'REPLOID_SW_CONTROL_RELOAD';
 const NETWORK_VERSION_RELOAD_KEY = 'REPLOID_NETWORK_VERSION_RELOAD';
 const VFS_VERSION_KEY = 'REPLOID_VFS_VERSION';
-const VFS_BYPASS_HEADER = 'x-reploid-vfs-bypass';
 const SW_CONTROL_WAIT_MS = 1500;
 const SW_READY_WAIT_MS = 3000;
 const SW_REGISTER_WAIT_MS = 3000;

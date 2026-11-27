@@ -6,6 +6,14 @@ export const MAX_AGENT_ITERATIONS = 256;
 export const MANAGED_SERVER_PROXY_TYPE = 'firebase-function';
 export const MANAGED_SERVER_PROXY_MAX_ITERATIONS = 99;
 export const MANAGED_SERVER_PROXY_REJECT_STATUSES = new Set([400, 413]);
+/** A managed proxy model's iteration limit: a positive whole number, at most MANAGED_SERVER_PROXY_MAX_ITERATIONS. */
+export const normalizeManagedServerProxyMaxIterations = (value) => {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return MANAGED_SERVER_PROXY_MAX_ITERATIONS;
+  const limit = Math.floor(parsed);
+  if (limit < 1) return MANAGED_SERVER_PROXY_MAX_ITERATIONS;
+  return Math.min(limit, MANAGED_SERVER_PROXY_MAX_ITERATIONS);
+};
 export { TRANSIENT_PROVIDER_STATUSES, getProviderErrorStatus, getProviderRetryAfterMs } from '../../shared/vendor/reploid/agent/provider-recovery.js';
 
 export const DEFAULT_PROVIDER_THROTTLE = Object.freeze({
@@ -19,6 +27,17 @@ export const DEFAULT_PROVIDER_THROTTLE = Object.freeze({
 export const DEFAULT_AGENT_CYCLE_THROTTLE = Object.freeze({
   cycleIntervalMs: 7700
 });
+
+/** The boot screens' "seconds between cycles" setting: 0 to an hour, to a tenth of a second. */
+export const DEFAULT_CYCLE_INTERVAL_SECONDS = DEFAULT_AGENT_CYCLE_THROTTLE.cycleIntervalMs / 1000;
+export const MAX_CYCLE_INTERVAL_SECONDS = 3600;
+export const normalizeCycleIntervalSeconds = (value, fallback = DEFAULT_CYCLE_INTERVAL_SECONDS) => {
+  if (value === null || value === undefined || value === '') return fallback;
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return fallback;
+  const clamped = Math.min(MAX_CYCLE_INTERVAL_SECONDS, Math.max(0, parsed));
+  return Math.round(clamped * 10) / 10;
+};
 
 const MANAGED_SERVER_CONTEXT_ENVELOPE = Object.freeze({
   maxMessages: 64,

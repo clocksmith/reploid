@@ -2,6 +2,9 @@
  * @fileoverview Shared VFS write boundary policy.
  */
 
+/** Request header that tells the service worker to fetch from the network instead of the VFS. */
+export const VFS_BYPASS_HEADER = 'x-reploid-vfs-bypass';
+
 export const WRITABLE_VFS_ROOTS = Object.freeze(['/shadow', '/artifacts', '/cycles']);
 export const OPFS_ARTIFACT_ROOTS = Object.freeze(['/artifacts']);
 

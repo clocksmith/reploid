@@ -4,8 +4,7 @@
 
 import { getState, setNestedState } from './state.js';
 import { SELF_SOURCE_MIRRORS } from '../../manifest.js';
-
-const VFS_BYPASS_HEADER = 'x-reploid-vfs-bypass';
+import { VFS_BYPASS_HEADER } from '../../config/vfs-policy.js';
 
 const fetchPreviewSourceText = async (webPath) => {
   const response = await fetch(webPath, {

@@ -42,6 +42,7 @@ import {
   listVfsKeys
 } from '../../boot-helpers/vfs-bootstrap.js';
 import { getCurrentReploidStorage as getReploidStorage } from '../../../shared/instance.js';
+import { MAX_CYCLE_INTERVAL_SECONDS, normalizeCycleIntervalSeconds } from '../../core/agent-loop-policies.js';
 
 const VERIFY_STATE = Object.freeze({
   UNVERIFIED: 'unverified',
@@ -49,8 +50,6 @@ const VERIFY_STATE = Object.freeze({
   VERIFIED: 'verified',
   FAILED: 'failed'
 });
-const DEFAULT_CYCLE_INTERVAL_SECONDS = 7.7;
-const MAX_CYCLE_INTERVAL_SECONDS = 3600;
 const PROBE_TIMEOUT_MS = 3000;
 
 let container = null;
@@ -67,14 +66,6 @@ const escapeText = (value) => String(value ?? '')
   .replace(/>/g, '&gt;')
   .replace(/"/g, '&quot;')
   .replace(/'/g, '&#39;');
-
-const normalizeCycleIntervalSeconds = (value, fallback = DEFAULT_CYCLE_INTERVAL_SECONDS) => {
-  if (value === null || value === undefined || value === '') return fallback;
-  const parsed = Number(value);
-  if (!Number.isFinite(parsed)) return fallback;
-  const clamped = Math.min(MAX_CYCLE_INTERVAL_SECONDS, Math.max(0, parsed));
-  return Math.round(clamped * 10) / 10;
-};
 
 const getStoredGoal = () => {
   const storage = getReploidStorage();

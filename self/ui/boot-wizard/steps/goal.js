@@ -10,6 +10,7 @@ import {
 } from '../../../manifest.js';
 import { listReploidEnvironmentTemplates } from '../../../config/reploid-environments.js';
 import { getReploidLaunchState } from '../reploid-inference.js';
+import { normalizeCycleIntervalSeconds } from '../../../core/agent-loop-policies.js';
 
 const DEFAULT_SELF_PATH = '/self/self.json';
 const SELF_WRITABLE_ROOTS = Object.freeze([
@@ -28,11 +29,6 @@ const escapeText = (value) => String(value || '')
   .replace(/"/g, '&quot;');
 
 const escapeAttr = (value) => escapeText(value).replace(/'/g, '&#39;');
-const normalizeCycleIntervalSeconds = (value) => {
-  const parsed = Number(value);
-  if (!Number.isFinite(parsed)) return 0;
-  return Math.round(Math.min(3600, Math.max(0, parsed)) * 10) / 10;
-};
 const hasOwn = (value, key) => Object.prototype.hasOwnProperty.call(value || {}, key);
 const isEditableSeedPath = (path) => EDITABLE_SEED_PATH_PREFIXES
   .some((prefix) => String(path || '').startsWith(prefix));
@@ -424,7 +420,7 @@ export function renderGoalStep(state, options = {}) {
   const showReploidEnvironment = state.mode === 'reploid';
   const showCycleThrottle = options.showCycleThrottle === true
     || (options.showCycleThrottle !== false && (state.mode === 'zero' || state.mode === 'x'));
-  const cycleIntervalSeconds = normalizeCycleIntervalSeconds(state.cycleIntervalSeconds);
+  const cycleIntervalSeconds = normalizeCycleIntervalSeconds(state.cycleIntervalSeconds, 0);
   const bootPayload = state.bootPayload || {};
   const showExpandedReploidInternals = showReploidEnvironment && !hideBootInternals;
   const explorer = showExpandedReploidInternals ? buildSelfBrowserData(state) : null;

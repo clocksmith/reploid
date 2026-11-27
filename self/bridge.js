@@ -1,7 +1,8 @@
 import { createBridgeFileTools } from './host/bridge-files.js';
 import { getTextBytes as measureTextBytes } from './host/file-access.js';
 import { normalizeFilePath } from './host/file-access.js';
-import { FILE_TEXT_LIMIT_BYTES as TEXT_LIMIT_BYTES } from './config/vfs-policy.js';
+import { FILE_TEXT_LIMIT_BYTES as TEXT_LIMIT_BYTES, VFS_BYPASS_HEADER } from './config/vfs-policy.js';
+import { MANAGED_SERVER_PROXY_TYPE, normalizeManagedServerProxyMaxIterations } from './core/agent-loop-policies.js';
 /**
  * @fileoverview Bridge between the live self and the browser substrate.
  */
@@ -35,18 +36,8 @@ import { createLegacyNetworkOptions } from '../shared/capabilities/communication
 import { createSelfToolRunner } from './tool-runner.js';
 import { promoteShadowCandidate } from './tools/Promote.js';
 
-const VFS_BYPASS_HEADER = 'x-reploid-vfs-bypass';
-const MANAGED_SERVER_PROXY_TYPE = 'firebase-function';
-const MANAGED_SERVER_PROXY_MAX_ITERATIONS = 99;
 const RGR_ANCHOR_RECEIPT_ROOT = '/artifacts/rgr/anchor-receipts/';
 const PROTECTED_SYSTEM_PATHS = new Set(SELF_PROTECTED_PATHS);
-const normalizeManagedServerProxyMaxIterations = (value) => {
-  const parsed = Number(value);
-  if (!Number.isFinite(parsed)) return MANAGED_SERVER_PROXY_MAX_ITERATIONS;
-  const limit = Math.floor(parsed);
-  if (limit < 1) return MANAGED_SERVER_PROXY_MAX_ITERATIONS;
-  return Math.min(limit, MANAGED_SERVER_PROXY_MAX_ITERATIONS);
-};
 const normalizePath = (rawPath, backendOverride) => {
   const normalized = normalizeFilePath(rawPath, backendOverride);
   if (normalized.path.split('/').includes('..')) throw new Error('Path traversal is not allowed');

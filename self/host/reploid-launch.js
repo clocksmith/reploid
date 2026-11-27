@@ -10,7 +10,7 @@ export const withSourceQuery = (path, query = {}) => {
   });
   return url.toString();
 };
-const withVfsQuery = (path, query = {}) => {
+export const withVfsQuery = (path, query = {}) => {
   const url = new URL(path, window.location.origin);
   Object.entries(query).forEach(([key, value]) => {
     if (value !== undefined && value !== null) {

@@ -1,4 +1,5 @@
-import { createReploidLauncher } from './reploid-launch.js';
+import { createReploidLauncher, withSourceQuery as withQuery, withVfsQuery as withSelfQuery } from './reploid-launch.js';
+import { MANAGED_SERVER_PROXY_TYPE, normalizeManagedServerProxyMaxIterations } from '../core/agent-loop-policies.js';
 /**
  * @fileoverview Self-owned host launcher for Reploid and the legacy boot modes.
  */
@@ -13,8 +14,6 @@ import { getCurrentReploidInstanceLabel, getCurrentReploidPeerQuery, getCurrentR
 let sharedBootModulesPromise = null;
 
 
-const MANAGED_SERVER_PROXY_TYPE = 'firebase-function';
-const MANAGED_SERVER_PROXY_MAX_ITERATIONS = 99;
 const VFS_FILE_CHANGED_EVENTS = Object.freeze([
   'vfs:file_changed',
   'vfs:file-changed'
@@ -80,13 +79,6 @@ const stopBootBackgrounds = () => {
   document.body?.classList?.remove('particle-active');
 };
 
-const normalizeManagedServerProxyMaxIterations = (value) => {
-  const parsed = Number(value);
-  if (!Number.isFinite(parsed)) return MANAGED_SERVER_PROXY_MAX_ITERATIONS;
-  const limit = Math.floor(parsed);
-  if (limit < 1) return MANAGED_SERVER_PROXY_MAX_ITERATIONS;
-  return Math.min(limit, MANAGED_SERVER_PROXY_MAX_ITERATIONS);
-};
 
 
 /** The product route with this page's query, for a stored product mode on a substrate route. */
@@ -97,26 +89,6 @@ const productEntryUrl = () => {
   return url.href;
 };
 
-const withQuery = (path, query = {}) => {
-  const url = new URL(toSourceWebPath(path), window.location.origin);
-  Object.entries(query).forEach(([key, value]) => {
-    if (value !== undefined && value !== null) {
-      url.searchParams.set(key, String(value));
-    }
-  });
-  return url.toString();
-};
-
-
-const withSelfQuery = (path, query = {}) => {
-  const url = new URL(path, window.location.origin);
-  Object.entries(query).forEach(([key, value]) => {
-    if (value !== undefined && value !== null) {
-      url.searchParams.set(key, String(value));
-    }
-  });
-  return url.toString();
-};
 
 
 const postServiceWorkerMessage = (type, data = {}) => new Promise((resolve) => {

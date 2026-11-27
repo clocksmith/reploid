@@ -4,6 +4,7 @@
  */
 
 import { toSourceWebPath } from '../boot-spec.js';
+import { VFS_BYPASS_HEADER } from '../config/vfs-policy.js';
 import { getCurrentReploidInstanceId, getScopedReploidVfsDbName } from '../../shared/instance.js';
 import { resolveDopplerBrowserAssets } from '../../shared/config/doppler-local-models.js';
 
@@ -11,7 +12,6 @@ const DB_NAME = 'reploid-vfs-v0';
 const STORE_FILES = 'files';
 const OPEN_TIMEOUT_MS = 10000;
 const DEFAULT_FETCH_CONCURRENCY = 6;
-const VFS_BYPASS_HEADER = 'x-reploid-vfs-bypass';
 
 const dbPromises = new Map();
 

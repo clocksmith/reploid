@@ -24,6 +24,7 @@ import {
   ZERO_MANAGED_MAX_ITERATIONS
 } from '../../config/zero-inference.js';
 import { getSecurityState } from '../../core/security-config.js';
+import { DEFAULT_CYCLE_INTERVAL_SECONDS, MAX_CYCLE_INTERVAL_SECONDS, normalizeCycleIntervalSeconds } from '../../core/agent-loop-policies.js';
 import { getCurrentReploidStorage as getReploidStorage } from '../../../shared/instance.js';
 import { getReploidLaunchState } from './reploid-inference.js';
 
@@ -51,16 +52,7 @@ export const isExternalBrainAvailable = (mode, hostname = globalThis.location?.h
   mode === 'x' && ['localhost', '127.0.0.1', '[::1]'].includes(hostname)
 );
 
-export const DEFAULT_CYCLE_INTERVAL_SECONDS = 7.7;
-export const MAX_CYCLE_INTERVAL_SECONDS = 3600;
-
-export const normalizeCycleIntervalSeconds = (value, fallback = DEFAULT_CYCLE_INTERVAL_SECONDS) => {
-  if (value === null || value === undefined || value === '') return fallback;
-  const parsed = Number(value);
-  if (!Number.isFinite(parsed)) return fallback;
-  const clamped = Math.min(MAX_CYCLE_INTERVAL_SECONDS, Math.max(0, parsed));
-  return Math.round(clamped * 10) / 10;
-};
+export { DEFAULT_CYCLE_INTERVAL_SECONDS, MAX_CYCLE_INTERVAL_SECONDS, normalizeCycleIntervalSeconds };
 
 // Provider test endpoints
 export const PROVIDER_TEST_ENDPOINTS = {
