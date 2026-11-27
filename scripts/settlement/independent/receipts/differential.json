@@ -1,9 +1,9 @@
 {
   "schema": "reploid.settlement-replay-differential/v1",
-  "generatedAt": "2026-11-27T01:37:02.437Z",
-  "finishedAt": "2026-11-27T01:38:09.510Z",
+  "generatedAt": "2026-11-27T01:40:12.429Z",
+  "finishedAt": "2026-11-27T01:41:12.905Z",
   "command": "node scripts/settlement/independent/differential.js --out scripts/settlement/independent/receipts/differential.json",
-  "commit": "6faa5780ef440a7aa7dbfdb60ac97ae76564293d",
+  "commit": "4734c1fdedc03491f4a06474ce4c70380c658513",
   "uncommittedChangesInComparedCode": false,
   "node": "v22.20.0",
   "note": "All parties are simulated identities on one machine. The second verifier was written from docs/settlement-replay.md alone by a second session under the same operator, so this is not a third-party replay. Both verifiers ran in one process on the same record sets. Keys are fresh on each run; counts are deterministic. Every documented row member except the sentence in `reason` is compared; list entries are compared without regard to order, and `counts` without its zero entries. Classifications: a = a reading of a sentence the document leaves open, b = a defect in the service verifier, c = a defect in the second verifier, d = the document and the service verifier say different things.",
@@ -256,15 +256,15 @@
       "base": "complete answer",
       "mutation": "a stranger signs terms for the same reservation",
       "clock": "after",
-      "independent": "unknown (step 8: stage 0 has no in-time acceptance of the agreed terms) debit 0 credits [0,0]",
-      "service": "unknown (no in-time signed acceptance of these terms was presented for stage 0, 1) debit 0 credits [0,0]"
+      "independent": "settled (step 9: finished under the decided acknowledged-prefix terms, the acknowledged prefix is charged) debit 15 credits [3,12]",
+      "service": "settled (the answer was completed and acknowledged) debit 15 credits [3,12]"
     },
     {
       "base": "complete answer",
       "mutation": "a stranger signs terms for the same reservation",
       "clock": "after",
-      "independent": "settled (step 9: finished under the decided acknowledged-prefix terms, the acknowledged prefix is charged) debit 15 credits [3,12]",
-      "service": "settled (the answer was completed and acknowledged) debit 15 credits [3,12]"
+      "independent": "unknown (step 8: stage 0 has no in-time acceptance of the agreed terms) debit 0 credits [0,0]",
+      "service": "unknown (no in-time signed acceptance of these terms was presented for stage 0, 1) debit 0 credits [0,0]"
     },
     {
       "base": "complete answer",
@@ -319,15 +319,15 @@
       "base": "complete answer",
       "mutation": "a stranger signs its own terms, acceptance and charge binding under this reservation ID",
       "clock": "after",
-      "independent": "expired (step 6: not every stage closed, no delivered answer, and the release window passed) debit 0 credits [0,0]",
-      "service": "expired (the release window passed without every stage closing (a verified provider failure, or an attempt that never started); nobody is charged or paid) debit 0 credits [0,0]"
+      "independent": "settled (step 9: finished under the decided acknowledged-prefix terms, the acknowledged prefix is charged) debit 15 credits [3,12]",
+      "service": "settled (the answer was completed and acknowledged) debit 15 credits [3,12]"
     },
     {
       "base": "complete answer",
       "mutation": "a stranger signs its own terms, acceptance and charge binding under this reservation ID",
       "clock": "after",
-      "independent": "settled (step 9: finished under the decided acknowledged-prefix terms, the acknowledged prefix is charged) debit 15 credits [3,12]",
-      "service": "settled (the answer was completed and acknowledged) debit 15 credits [3,12]"
+      "independent": "expired (step 6: not every stage closed, no delivered answer, and the release window passed) debit 0 credits [0,0]",
+      "service": "expired (the release window passed without every stage closing (a verified provider failure, or an attempt that never started); nobody is charged or paid) debit 0 credits [0,0]"
     },
     {
       "base": "complete answer",

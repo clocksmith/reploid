@@ -45,7 +45,7 @@ does, and only from the document's text. A fix prompted by the service's code wo
 
 The document with the owner's decided unfinished-answer rule, the older terms shape, signed accounts, the
 failed-stage terms and the requester's own stages under them: a 1,055-line text, which the author read without a commit
-hash. The [receipt](receipts/differential.json) records commit 6faa5780e, after the whole-model closing window
+hash. The [receipt](receipts/differential.json) records commit 4734c1fde, after the whole-model closing window
 of 2026-11-26 (below). 22 base attempts (two added for the older provider-loss-free
 terms), 28 mutation families, a whole-model family of 17 record sets (59 judgments) around the instant the ledger releases the hold, Ed25519 and P-256 keys, seven clock values
 around the deadline, the release window and the instant an attempt is decided. The document reports one row per
