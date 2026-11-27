@@ -137,7 +137,9 @@ export default [
   { ignores: ['.cache/**', '.tmp/**', '.claude/worktrees/**', '.deployment-checkouts/**',
     'output/**', 'node_modules/**', 'artifacts/**', 'coverage/**', 'test-results/**', 'playwright-report/**',
     'shared/vendor/**', 'self/core/vendor/**', 'shared/core/vendor/**', '**/dist/**', 'packages/poolday-forecast/source/**', 'apps/poolday/ui/react/**',
-    'self/lib/**', 'doppler/**', '.firebase-hosting/**'] },
+    'self/lib/**', 'doppler/**', '.firebase-hosting/**',
+    // The Flutter app is Dart; its build output is generated JavaScript.
+    'apps/mobile/**'] },
   {
     files: ['**/*.js', '**/*.mjs'],
     languageOptions: { ecmaVersion: 'latest', sourceType: 'module' },

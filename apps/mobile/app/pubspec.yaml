@@ -1,0 +1,37 @@
+name: reploid_mobile
+description: Task journey consuming the core and ui public APIs.
+publish_to: none
+version: 0.1.0+1
+resolution: workspace
+environment:
+  sdk: '>=3.13.0 <4.0.0'
+  flutter: '>=3.47.0'
+dependencies:
+  core:
+    path: ../packages/core
+  ui:
+    path: ../packages/ui
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  flutter_riverpod: ^3.4.3
+  flutter_hooks: ^0.21.3+1
+  cupertino_icons: ^1.0.8
+  cryptography: ^2.9.0
+  pointycastle: ^4.0.0
+  flutter_webrtc: ^1.6.3
+  flutter_secure_storage: ^11.2.0
+  path_provider: ^2.1.6
+  file_picker: ^13.4.1
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  integration_test:
+    sdk: flutter
+flutter:
+  uses-material-design: true
+  fonts:
+    - family: Manrope
+      fonts:
+        - asset: assets/fonts/Manrope.ttf

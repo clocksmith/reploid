@@ -28,6 +28,8 @@
     "build:swarm-cloudflare": "wrangler deploy --config deploy/cloudflare/wrangler.jsonc --dry-run",
     "deploy:swarm-cloudflare": "wrangler deploy --config deploy/cloudflare/wrangler.jsonc",
     "smoke:swarm-bootstrap": "node scripts/verify-swarm-runtime.js",
+    "build:requester-vectors": "node scripts/build-requester-contract-vectors.js",
+    "verify:requester-contract": "node scripts/verify-requester-contract.js",
     "sync:library": "node scripts/sync-reploid-library.js",
     "verify:library": "node scripts/sync-reploid-library.js --check",
     "daily": "node scripts/reploid-daily.js",

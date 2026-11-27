@@ -1,6 +1,9 @@
 #!/usr/bin/env node
 /**
- * Reploid is JavaScript only: no Python or Go source, and no code that starts a Python or Go process.
+ * Reploid is JavaScript only: no Python or Go source, and no code that starts a Python or Go process. The one exception
+ * is the Flutter app in apps/mobile/: its Dart code and the Flutter project files listed in MOBILE_PROJECT_FILES. Any
+ * other non-JavaScript source language (Dart, Swift, Kotlin, Java, Objective-C, C and C++, Ruby, Rust and the rest of
+ * OTHER_LANGUAGE_FILE) fails anywhere else, and Python and Go fail everywhere, apps/mobile/ included.
  *
  *   node scripts/verify-js-only.js [ROOT]
  *
@@ -15,6 +18,19 @@ import { fileURLToPath } from 'node:url';
 
 const FORBIDDEN_FILE = /(\.(py|pyc|pyi|pyw|ipynb|go)$)|(^|\/)(go\.mod|go\.sum|go\.work|pyproject\.toml|Pipfile|Pipfile\.lock|setup\.cfg|requirements[^/]*\.txt)$/;
 const SOURCE_FILE = /\.(js|mjs|cjs|ts|tsx|mts|cts|jsx)$/;
+// Source and build files of languages other than JavaScript, Python and Go.
+const OTHER_LANGUAGE_FILE = /(\.(dart|swift|kt|kts|java|gradle|m|mm|h|hpp|c|cc|cpp|cxx|rb|rs|cs|php|lua|pl|scala|zig)$)|(^|\/)(pubspec\.(yaml|lock)|Podfile(\.lock)?|Gemfile(\.lock)?|Cargo\.(toml|lock))$/;
+// The Flutter app's own files: its Dart code and pub manifests, and the runner projects Flutter generates (Swift app
+// delegates, GeneratedPluginRegistrant.swift, the Objective-C bridging header, the Kotlin activity and Gradle scripts).
+const MOBILE_PROJECT_FILES = [
+  /^apps\/mobile\/.+\.dart$/,
+  /^apps\/mobile\/(.+\/)?pubspec\.(yaml|lock)$/,
+  /^apps\/mobile\/app\/(ios|macos)\/(Runner|RunnerTests|Flutter)\/[^/]+\.swift$/,
+  /^apps\/mobile\/app\/ios\/Runner\/Runner-Bridging-Header\.h$/,
+  /^apps\/mobile\/app\/android\/app\/src\/main\/kotlin\/.+\.kt$/,
+  /^apps\/mobile\/app\/android\/(app\/)?(build|settings)\.gradle\.kts$/
+];
+export const isMobileProjectFile = file => MOBILE_PROJECT_FILES.some(pattern => pattern.test(file));
 const FORBIDDEN_COMMAND = /^(python[\d.]*|pip[\d.]*|pytest|uv|go)$/;
 const PROCESS_CALL = /\b(spawn|spawnSync|exec|execSync|execFile|execFileSync|fork|execa|execaSync|execaCommand|run|runCommand|runProcess)\s*\(/g;
 // A shell command position: line start, a workflow `run:` or after a separator, optionally behind env assignments or sudo.
@@ -62,6 +78,9 @@ export function checkJsOnly({ root, files }) {
   const read = file => readFileSync(path.join(root, file), 'utf8');
   for (const file of files) {
     if (FORBIDDEN_FILE.test(file)) { violations.push({ file, problem: 'Python or Go file' }); continue; }
+    if (OTHER_LANGUAGE_FILE.test(file) && !isMobileProjectFile(file)) {
+      violations.push({ file, problem: 'non-JavaScript source outside the Flutter app files in apps/mobile/' }); continue;
+    }
     if (SOURCE_FILE.test(file)) {
       for (const hit of findSpawnViolations(read(file))) violations.push({ file, line: hit.line, problem: `${hit.call}() ${hit.reasons.join(', ')}` });
     } else if (path.posix.basename(file) === 'package.json') {
@@ -86,7 +105,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.a
   const files = listRepositoryFiles(root);
   const violations = checkJsOnly({ root, files });
   if (violations.length) {
-    console.error(`verify:js-only: ${violations.length} violation(s). Reploid is JavaScript only: no Python or Go files or processes.`);
+    console.error(`verify:js-only: ${violations.length} violation(s). Reploid is JavaScript only: no Python or Go files or processes, and other languages only as the Flutter app's files in apps/mobile/.`);
     for (const row of violations) console.error(`  ${row.file}${row.line ? `:${row.line}` : ''}: ${row.problem}`);
     process.exit(1);
   }

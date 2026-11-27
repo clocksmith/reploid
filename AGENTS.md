@@ -33,7 +33,7 @@ Where each surface keeps its owner docs (a lookup, not a reading list):
 - **Public copy & routes:** Trace route files, boot profile, VFS seed, and rendered state when changing the UI. Preserve the requested product direction and trust claims; make routine UI implementation choices within that scope.
 - **Zero / X operational discipline:** Diagnose Zero behavior from process parentage, provider status, VFS state, tool logs, and resume state. All agent-generated changes must pass the Verification Worker sandbox and preserve Genesis Kernel rollback. Governed self-improvement (L0–L4) follows [INTENT.md](INTENT.md) and [rsi-improvement-episodes.md](docs/rsi-improvement-episodes.md); model or Arena scoring never grants activation permission.
 - **Symbols:** Enforce [`docs/EMOJI.md`](docs/EMOJI.md); use only approved Unicode symbols, no emojis.
-- **JavaScript only:** No Python or Go files, and no code that starts a Python or Go process; port to Node instead. WGSL through Doppler is fine. `npm run verify:js-only` (part of `npm run lint` and CI) enforces it.
+- **JavaScript only:** No Python or Go files, and no code that starts a Python or Go process; port to Node instead. WGSL through Doppler is fine. The only other language allowed is the Flutter app in `apps/mobile/`: its Dart code, pub manifests and Flutter-generated Swift, Kotlin, Gradle and bridging-header runner files, nowhere else. `npm run verify:js-only` (part of `npm run lint` and CI) enforces it.
 
 ## Poolday design system
 
