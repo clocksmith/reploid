@@ -607,7 +607,15 @@ async function decide(reservationId, requesterId, attempt, { policyByDigest, rec
   const skew = policy.maxClockSkewMs;
   const opens = agreed.notBefore - skew;
   const inTime = (t) => opens <= t && t <= agreed.deadline + skew;
-  const closesInTime = (t) => opens <= t && t <= agreed.deadline + terms.releaseWindowMs + skew;
+  // "Release window": for whole-model terms with mode "whole-model" the window has passed at
+  // deadline + releaseWindowMs, the instant the ledger releases the hold. CHOICE, from "the release window has
+  // passed ... after the last instant at which closesInTime holds" and "until then a closing receipt signed in time
+  // can still be presented and change the outcome": the closing window of such terms ends where their release
+  // window passes, so it holds only before deadline + releaseWindowMs. A close signed later reached no ledger
+  // that still held the hold.
+  const closesInTime = terms.mode === 'whole-model'
+    ? (t) => opens <= t && t < agreed.deadline + terms.releaseWindowMs
+    : (t) => opens <= t && t <= agreed.deadline + terms.releaseWindowMs + skew;
   const keep = (records, belongs, listLate = (record) => list('late', record, lateEntry(record))) => {
     const kept = { all: [], counting: [] };
     for (const record of records) {

@@ -19,8 +19,8 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { replaySettlement as independentReplay } from './replay.js';
 import { replaySettlement as serviceReplay } from '../../../server/fleet/settlement-replay.js';
-import { policyDigest, termsDigest } from '../../../server/fleet/settlement-terms.js';
-import { createAttemptEvidenceSigner } from '../../../packages/reploid/src/mesh/partitions/partition-attempt-evidence.js';
+import { WHOLE_MODEL_TERMS_MODE, acceptSettlementTerms, policyDigest, signSettlementTermsFor, signStageFault, termsDigest } from '../../../server/fleet/settlement-terms.js';
+import { createAttemptEvidenceSigner, extendOutputChain, outputChainGenesis } from '../../../packages/reploid/src/mesh/partitions/partition-attempt-evidence.js';
 import { createSigningIdentity } from '../../../packages/reploid/src/artifacts/identity.js';
 import { POLICY, createParties, runAttempt } from '../scenario.js';
 import { UNFINISHED_ANSWER_TERMS, UNFINISHED_ANSWER_TERMS_V2, UNFINISHED_ANSWER_TERMS_V3 } from '../../../server/fleet/credit-shares.js';
@@ -714,6 +714,46 @@ const BASES = [
 ];
 const REDUCED = ['withheld records', 'records signed after the deadline', 'stop statements', 'terms signed before K', 'signed accounts', 'failed stages'];
 
+// ---------------------------------------------------------------------------------------------------------------
+// Whole-model attempts (docs/settlement-replay.md, "Whole-model operations" and "Release window"): one stage, terms
+// with mode "whole-model" signing the policy's whole-model window, and only a closing receipt or a fault from the
+// provider. The window passes at deadline + releaseWindowMs, when the ledger releases the hold, and a close or a
+// fault counts only when signed before it.
+// ---------------------------------------------------------------------------------------------------------------
+
+const WHOLE_MODEL_POLICY = Object.freeze({ ...POLICY, version: 'settlement-replay-whole-model', wholeModelUnclaimedReleaseMs: 20000 });
+async function wholeModelCases(requester, provider) {
+  const T = Date.parse('2026-11-24T13:00:00.000Z'), notBefore = T, deadline = T + 30000, closesAt = deadline + WHOLE_MODEL_POLICY.wholeModelUnclaimedReleaseMs;
+  const skew = WHOLE_MODEL_POLICY.maxClockSkewMs, outputs = 3;
+  const reservationId = 'reservation-whole-model', attemptId = 'request-whole-model', routeHash = `sha256:${'c'.repeat(64)}`;
+  const at = (identity, ms) => createAttemptEvidenceSigner({ identity, now: () => ms });
+  const terms = await signSettlementTermsFor({ signer: at(requester, notBefore), reservationId, attemptId, routeHash, requesterId: requester.peerId,
+    participants: [provider.peerId], weights: [1], policy: WHOLE_MODEL_POLICY, maxOutputTokens: 16, notBefore, deadline, mode: WHOLE_MODEL_TERMS_MODE });
+  const acceptance = await acceptSettlementTerms({ signer: at(provider, notBefore), terms, partitionIndex: 0 });
+  const genesis = await outputChainGenesis({ reservationId, routeHash });
+  let chain = genesis;
+  for (let step = 0; step < outputs; step++) chain = await extendOutputChain(chain, { step, delta: step === outputs - 1 ? 'digest' : '' });
+  const ack = (count, value, ms) => sign(requester, { schema: SCHEMAS.acknowledgment, reservationId, attemptId, routeHash, requesterId: requester.peerId,
+    count, chain: value, signedAt: iso(ms) });
+  const close = ms => sign(provider, { schema: SCHEMAS.receipt, reservationId, attemptId, routeHash, partitionIndex: 0, participantId: provider.peerId,
+    sequence: 1, status: 'settled', steps: outputs, tokens: { prompt: 5, processed: 5 + outputs },
+    timing: { reservedAt: iso(notBefore), firstStepAt: iso(notBefore + 1), lastStepAt: iso(notBefore + 2), closedAt: iso(ms) },
+    output: { count: outputs, chain, done: true, stopReason: 'eos' }, signedAt: iso(ms) });
+  const fault = ms => signStageFault({ signer: at(provider, ms), terms, partitionIndex: 0 });
+  const base = [terms, acceptance, await ack(0, genesis, notBefore)], acknowledged = await ack(outputs, chain, deadline - 1);
+  const ctx = { terms, deadline, closesAt };
+  const sweep = Object.keys(CLOCKS), around = ['window-end', 'decision-instant', 'after'];
+  const entries = [{ name: 'completed and acknowledged', records: [...base, await close(deadline - 2), acknowledged], clocks: sweep },
+    { name: 'silent: no close, no fault', records: base, clocks: sweep }];
+  for (const [offset, label] of [[-1, 'one millisecond before the release'], [0, 'exactly at the release'], [skew / 2, 'half the clock allowance after the release'],
+    [skew, 'the whole clock allowance after the release'], [skew + 1, 'past the clock allowance after the release']]) {
+    entries.push({ name: `close signed ${label}, nothing acknowledged`, records: [...base, await close(closesAt + offset)], clocks: around });
+    entries.push({ name: `close signed ${label}, the answer acknowledged in time`, records: [...base, await close(closesAt + offset), acknowledged], clocks: around });
+    entries.push({ name: `fault signed ${label}`, records: [...base, await fault(closesAt + offset)], clocks: around });
+  }
+  return { ctx, entries: entries.map(entry => ({ ...entry, policies: [WHOLE_MODEL_POLICY] })) };
+}
+
 // An attempt is decided once the deadline, the release window and the clock allowance have all passed.
 const decidedAt = ctx => ctx.closesAt + POLICY.maxClockSkewMs;
 const CLOCKS = {
@@ -849,6 +889,9 @@ async function main() {
   add(mixed, 'several reservations', { name: 'no records', records: [] }, contexts[0]);
   add(mixed, 'several reservations', { name: 'only records with broken signatures',
     records: contexts[0].records.map(record => ({ ...record, signature: record.signature.split('').reverse().join('') })) }, contexts[0]);
+
+  const whole = await wholeModelCases(two.requester, two.stages[0]);
+  for (const entry of whole.entries) add({ name: 'whole-model answer' }, 'whole-model release window', entry, whole.ctx);
 
   const families = new Map(), disagreements = [], all = [];
   const totals = { recordSets: cases.length, judgments: 0, outcomeAgreed: 0, amountsAgreed: 0, outcomeAndAmountsAgreed: 0,
