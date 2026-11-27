@@ -33,6 +33,7 @@ import { eligibleExecutionOffers } from '../packages/reploid/src/chat/execution-
 import { createReceiptDraft, getReceiptPayload, canonicalizeReceiptPayload, signReceiptDraft, countersignReceipt, verifyReceipt } from '../packages/reploid/src/artifacts/receipt.js';
 import { measureWholeModelReceipt, matchesWholeModelReceipt } from '../packages/reploid/src/artifacts/whole-model-receipt.js';
 import { verifyGenerationTerminal } from '../packages/reploid/src/artifacts/generation-terminal.js';
+import { offersOfPeer, offerAvailability } from '../packages/reploid/src/contracts/computer-records.js';
 import { allowsSwarmOrigin, discoveryNamespace, joinIdentityError, discoveryJoinError } from '../server/swarm-protocol.js';
 import { FIXED, FIXED_IDENTITIES, fixedIdentity, fixedModel } from './requester-contract/fixed-inputs.js';
 import { createScheduler, withDeterministicRuntime, sessionDescription } from './requester-contract/harness.js';
@@ -452,7 +453,10 @@ async function readyPeerSection(baseAdvertisement) {
     ['no identity protocol', without(base, 'identityProtocol'), null, 'unavailable', 'Not usable: the provider cannot prove an identity.'],
     ['serves another model id', { ...base, model: 'another-model' }, null, 'unavailable', 'Not compatible: model differs from the catalog row.'],
     ['serves another model identity', { ...base, modelIdentity: otherDigest, executionOffers: [{ ...base.executionOffers[0], modelIdentities: [otherDigest] }] }, null, 'unavailable', 'Not compatible: modelIdentity differs from the catalog row.'],
-    ['says ready without a model', { ...base, hasInference: false, role: 'consumer' }, null, 'unavailable', 'Not a provider: hasInference is false.'],
+    ['hasInference false and role consumer', { ...base, hasInference: false, role: 'consumer' }, null, 'ready', 'Ready: hasInference and role are ignored; the inference offer is read from readiness, model and modelIdentity.'],
+    ['free slots not reported', without(base, 'availableSlots'), null, 'busy', 'Busy: a missing count is unknown, and only a reported free slot is sent work.'],
+    ['no readiness, hasInference true', without(base, 'readiness'), null, 'unavailable', 'Not ready: the offer of an advertisement without readiness is ready, but the stored readiness is "unavailable".'],
+    ['no readiness and no model identity', without(without({ ...base, hasInference: false }, 'readiness'), 'modelIdentity'), null, 'unavailable', 'No offer at all: neither a readiness nor a model identity.'],
     ['no execution offers', { ...base, executionOffers: [] }, null, 'ready', 'Shown as ready by the catalog rule, but no offer is eligible, so the mesh never selects it for a request (eligibleOfferIds is empty).'],
     ['advertisement without updatedAt', without(base, 'updatedAt'), null, 'unavailable', 'Dropped: updatedAt is not a finite number, so nothing is stored.'],
     ['malformed adapter list', { ...base, adapterIdentities: ['not-a-digest'] }, null, 'unavailable', 'Dropped: adapterIdentities is malformed, so nothing is stored.'],
@@ -472,7 +476,11 @@ async function readyPeerSection(baseAdvertisement) {
         probed.storedPeer.executionOffers ?? [], [probed.storedPeer.peerId]).map(offer => offer.id);
       } catch { eligibleOfferIds = []; }
     }
-    out.push({ name, advertisement, connection: probed.connection, stored: probed.storedPeer !== null,
+    // The canonical inference offer the real module derives from the stored record (contracts/computer-records.js).
+    const [inferenceOffer = null] = probed.storedPeer ? offersOfPeer(probed.storedPeer).filter(offer => offer.kind === 'inference') : [];
+    const offer = inferenceOffer ? offerAvailability({ offers: [inferenceOffer] }, 'inference', FIXED.now) : null;
+    out.push({ name, advertisement, connection: probed.connection, stored: probed.storedPeer !== null, inferenceOffer,
+      offerAvailability: offer && { offered: offer.offered, available: offer.available, freeSlots: offer.freeSlots },
       result: { ready: probed.availability === 'ready', busy: probed.availability === 'busy', availability: probed.availability,
         providerIds: probed.providerIds, reachableProviderIds: probed.reachableProviderIds, eligibleOfferIds,
         selectableForRequest: probed.availability === 'ready' && eligibleOfferIds.length > 0 },
@@ -609,9 +617,10 @@ async function receiptSection(complete) {
 // ------------------------------------------------------------------ transcript
 function transcriptSection(complete) {
   const challenges = complete.frames.filter(frame => frame.envelope.type === 'reploid:identity-challenge');
-  const purpose = ['requester proves the provider in the background (after its advertisement)', 'provider proves the requester in the background (after its advertisement)',
-    'requester proves the provider immediately before the request', 'provider proves the requester again after the request (contextId and recoverable are present)'];
-  assert(challenges.length === 4 && complete.inputs.uuidsInOrder.length === 4, 'four identity challenges in the transcript');
+  // Each side proves the other once per connection; a proof made on the current connection is reused for the request.
+  const purpose = ['requester proves the provider in the background (after its advertisement); reused for the request',
+    'provider proves the requester in the background (after its advertisement); reused for the request'];
+  assert(challenges.length === 2 && complete.inputs.uuidsInOrder.length === 2, 'two identity challenges in the transcript');
   const result = complete.frames.find(frame => frame.envelope.type === 'reploid:generation-result').envelope.payload;
   const receipt = complete.frames.find(frame => frame.envelope.type === 'reploid:receipt').envelope.payload.receipt;
   return {

@@ -258,7 +258,9 @@ export async function verifyRequesterContract({ contract, vectorsText } = {}) {
       && !item.phases.flatMap(part => part.frames).some(frame => frame.envelope.type === 'reploid:owner-pairing-request'),
     'unpaired-request': item => /declined/.test(item.request.error?.message ?? '') && item.request.promptReachedDesktop === false,
     'new-connection-name': item => item.later.state.status === 'online' && item.later.state.hostPeer === item.later.desktopConnectionName && item.request.completed === true,
-    'look-alike': item => item.state.status === 'offline' && item.request.waitedWithoutSending === true && item.phases.find(part => part.name === 'request').frames.length === 0,
+    // Every serving computer is proven and none is the desktop: the request ends at once, without waiting or sending.
+    'look-alike': item => item.state.status === 'offline' && item.request.waitedWithoutSending === false && item.request.promptReachedDesktop === false
+      && /is not among the recipients its execution policy allows/.test(item.request.error?.message ?? '') && item.phases.find(part => part.name === 'request').frames.length === 0,
     'desktop-forgot': item => item.state.status === 'online' && /declined/.test(item.request.error?.message ?? '') && item.request.promptReachedDesktop === false
   };
   for (const [scenario, holds] of Object.entries(pairingExpectations)) expect(holds(pairings[scenario]), `the real pairing code no longer behaves as the contract says in the "${scenario}" case`);
