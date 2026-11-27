@@ -3,7 +3,9 @@
  * One contract, every surface: the same fixtures run through the parser each surface imports, so a surface that
  * restates a record, or a stale vendored copy, fails here. Surfaces: the published library, the browser host
  * (apps/poolday/host), the native hosts and CLI (server/computer-records.js) and the fleet HTTP service contract
- * (server/fleet/contract.js, which writes the ledger's computer directory).
+ * (server/fleet/contract.js, which writes the ledger's computer directory). The same fixtures also run through the
+ * surfaces' routing (provider choice, catalog admission, the CLI roster), the request outcome's operation roles and
+ * the device pane's reading of this device's offers.
  */
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
@@ -15,11 +17,14 @@ import { buildSwarmState, chooseProviderPeer } from '../../packages/reploid/src/
 import { rankProviderPeers } from '../../packages/reploid/src/mesh/contribution.js';
 import { projectChatCatalog, projectProviderEligibility } from '../../apps/poolday/host/chat-view.js';
 import { meshRoster } from '../../server/native-node-peers.js';
+import { buildFleetRequestOutcome } from '../../server/fleet/requester.js';
+import { projectComputers } from '../../apps/poolday/host/decisions/computers.js';
 
 const { records } = JSON.parse(readFileSync(new URL('../fixtures/contracts/records.json', import.meta.url), 'utf8'));
 const { cases } = JSON.parse(readFileSync(new URL('../fixtures/contracts/wire.json', import.meta.url), 'utf8'));
 const projections = JSON.parse(readFileSync(new URL('../fixtures/contracts/projections.json', import.meta.url), 'utf8')).cases;
 const routing = JSON.parse(readFileSync(new URL('../fixtures/contracts/routing.json', import.meta.url), 'utf8'));
+const operations = JSON.parse(readFileSync(new URL('../fixtures/contracts/operations.json', import.meta.url), 'utf8'));
 const surfaces = Object.entries({ library, browser, native, http: http.computerRecords });
 
 const outcome = (surface, run) => {
@@ -125,5 +130,25 @@ describe('computer, offer and operation-role records across surfaces', () => {
       expect(Object.fromEntries(roster.rows.map(row => [row.peerId, row.state]))).toMatchObject({ busy: 'busy', failed: 'not-serving', paused: 'not-usable', expired: 'not-usable' });
       expect(meshRoster({ peers: withoutReady, connections }, { catalog: [model], now }).summary.ready).toBe(0);
     });
+  });
+
+  it.each(operations.outcomes.map(row => [row.name, row]))('request outcome: %s', (name, row) => {
+    const outcome = buildFleetRequestOutcome(row.input);
+    expect(outcome.schema).toBe('reploid.request-outcome/v1');
+    expect(outcome.operationRoles).toEqual(row.expected);
+    // The roles sit beside the provider fields they restate, and parse as the same record on every surface.
+    if (row.expected) for (const [surfaceName, surface] of surfaces) expect(surface.parseOperationRoles(outcome.operationRoles), surfaceName).toEqual(row.expected);
+  });
+
+  it.each(operations.devices.map(row => [row.name, row]))('device state: %s', (name, row) => {
+    const device = projectComputers({ models: [], network: { consumer: { connectionState: 'connected', peers: [] }, ...row.network } }).device;
+    expect(device).toMatchObject(row.expected);
+    for (const [surfaceName, surface] of surfaces) {
+      for (const offer of row.network.localOffers) expect(surface.parseOffer(offer), surfaceName).toEqual(offer);
+      // A switch is on exactly while its offer stands unpaused, on every surface's reading of the record.
+      const stands = kind => surface.isOfferCurrent(row.network.localOffers.find(offer => offer.kind === kind) ?? null, 0);
+      expect([stands('inference'), stands('weight-supply')], surfaceName).toEqual([row.expected.computeOn, row.expected.filesOn]);
+      expect(surface.parseConnectionAssistance(row.network.connectionAssistance).enabled, surfaceName).toBe(row.expected.introductions);
+    }
   });
 });

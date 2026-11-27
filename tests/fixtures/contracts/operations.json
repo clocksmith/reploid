@@ -1,0 +1,313 @@
+{
+ "description": "Operation records and the device state, on every surface. `outcomes`: reploid.request-outcome/v1 inputs (server/fleet/requester.js buildFleetRequestOutcome) and the operation roles each carries beside its provider fields. `devices`: this device's offers and connection assistance as work-swarm.js reports them, and the device pane facts (host/decisions/computers.js) they decide; switch flags that disagree with the records lose.",
+ "outcomes": [
+  {
+   "name": "dispatched whole-model request with a ledger provider",
+   "input": {
+    "attemptId": "a1",
+    "threadId": "t1",
+    "mode": "whole-model",
+    "model": {
+     "id": "m",
+     "identity": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+    },
+    "inputDigest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+    "acknowledged": {
+     "deltaCount": 1,
+     "outputCharacters": 2,
+     "acknowledgedOutputTokens": 1
+    },
+    "recordedAt": 5,
+    "reservationId": "service:r1",
+    "executionId": "e1",
+    "providerId": "bee",
+    "providerIdentity": "peer:bbbbbbbbbbbbbbbbbbbbbbbb",
+    "consumerId": "peer:aaaaaaaaaaaaaaaaaaaaaaaa",
+    "phase": "in-flight",
+    "dispatched": true,
+    "settlement": {
+     "status": "completed",
+     "charge": 3,
+     "outputTokens": 1,
+     "settledAt": 6
+    },
+    "maximum": 8
+   },
+   "expected": {
+    "schema": "reploid.operation-roles/1",
+    "operation": "inference",
+    "operationId": "service:r1",
+    "consumer": {
+     "computerId": "peer:aaaaaaaaaaaaaaaaaaaaaaaa",
+     "participantId": "peer:aaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    "provider": {
+     "computerId": "bee",
+     "participantId": "peer:bbbbbbbbbbbbbbbbbbbbbbbb"
+    }
+   }
+  },
+  {
+   "name": "recovered request whose provider is known only by key",
+   "input": {
+    "attemptId": "a1",
+    "threadId": "t1",
+    "mode": "whole-model",
+    "model": {
+     "id": "m",
+     "identity": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+    },
+    "inputDigest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+    "acknowledged": {
+     "deltaCount": 1,
+     "outputCharacters": 2,
+     "acknowledgedOutputTokens": 1
+    },
+    "recordedAt": 5,
+    "reservationId": "service:r1",
+    "providerIdentity": "peer:bbbbbbbbbbbbbbbbbbbbbbbb",
+    "consumerId": "peer:aaaaaaaaaaaaaaaaaaaaaaaa",
+    "phase": "in-flight",
+    "dispatched": true,
+    "maximum": 8
+   },
+   "expected": {
+    "schema": "reploid.operation-roles/1",
+    "operation": "inference",
+    "operationId": "service:r1",
+    "consumer": {
+     "computerId": "peer:aaaaaaaaaaaaaaaaaaaaaaaa",
+     "participantId": "peer:aaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    "provider": {
+     "computerId": "peer:bbbbbbbbbbbbbbbbbbbbbbbb",
+     "participantId": "peer:bbbbbbbbbbbbbbbbbbbbbbbb"
+    }
+   }
+  },
+  {
+   "name": "request cancelled before dispatch: no provider, no roles",
+   "input": {
+    "attemptId": "a1",
+    "threadId": "t1",
+    "mode": "whole-model",
+    "model": {
+     "id": "m",
+     "identity": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+    },
+    "inputDigest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+    "acknowledged": {
+     "deltaCount": 1,
+     "outputCharacters": 2,
+     "acknowledgedOutputTokens": 1
+    },
+    "recordedAt": 5,
+    "consumerId": "peer:aaaaaaaaaaaaaaaaaaaaaaaa",
+    "phase": "queued",
+    "dispatched": false
+   },
+   "expected": null
+  },
+  {
+   "name": "split answer: several providers, no single provider role",
+   "input": {
+    "attemptId": "a1",
+    "threadId": "t1",
+    "mode": "partition",
+    "model": {
+     "id": "m",
+     "identity": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+    },
+    "inputDigest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+    "acknowledged": {
+     "deltaCount": 1,
+     "outputCharacters": 2,
+     "acknowledgedOutputTokens": 1
+    },
+    "recordedAt": 5,
+    "reservationId": "service:r1",
+    "providerId": "bee",
+    "providerIdentity": "peer:bbbbbbbbbbbbbbbbbbbbbbbb",
+    "consumerId": "peer:aaaaaaaaaaaaaaaaaaaaaaaa",
+    "phase": "in-flight",
+    "dispatched": true
+   },
+   "expected": null
+  }
+ ],
+ "devices": [
+  {
+   "name": "nothing chosen: no offers",
+   "network": {
+    "localOffers": [],
+    "connectionAssistance": {
+     "schema": "reploid.connection-assistance/1",
+     "enabled": true
+    }
+   },
+   "expected": {
+    "computeOn": false,
+    "filesOn": false,
+    "introductions": true,
+    "pauseAll": false,
+    "summary": "· Not sharing"
+   }
+  },
+  {
+   "name": "both offers standing",
+   "network": {
+    "localOffers": [
+     {
+      "schema": "reploid.offer/1",
+      "kind": "inference",
+      "connectionId": null,
+      "readiness": "unavailable",
+      "paused": false,
+      "expiresAt": null,
+      "scope": {
+       "modelId": null,
+       "modelIdentities": [],
+       "adapterIdentities": [],
+       "execution": "whole-model",
+       "stageIndex": null,
+       "availableSlots": null
+      }
+     },
+     {
+      "schema": "reploid.offer/1",
+      "kind": "weight-supply",
+      "connectionId": null,
+      "readiness": "unavailable",
+      "paused": false,
+      "expiresAt": null,
+      "scope": {
+       "modelIdentities": [],
+       "pieceIndexDigests": [],
+       "files": [],
+       "maxStorageBytes": null
+      }
+     }
+    ],
+    "connectionAssistance": {
+     "schema": "reploid.connection-assistance/1",
+     "enabled": true
+    },
+    "files": {
+     "enabled": true
+    }
+   },
+   "expected": {
+    "computeOn": true,
+    "filesOn": true,
+    "introductions": true,
+    "pauseAll": true,
+    "summary": "· Enabled · not serving"
+   }
+  },
+  {
+   "name": "compute paused, files standing: pausing one offer leaves the other",
+   "network": {
+    "localOffers": [
+     {
+      "schema": "reploid.offer/1",
+      "kind": "inference",
+      "connectionId": null,
+      "readiness": "unavailable",
+      "paused": true,
+      "expiresAt": null,
+      "scope": {
+       "modelId": null,
+       "modelIdentities": [],
+       "adapterIdentities": [],
+       "execution": "whole-model",
+       "stageIndex": null,
+       "availableSlots": null
+      }
+     },
+     {
+      "schema": "reploid.offer/1",
+      "kind": "weight-supply",
+      "connectionId": null,
+      "readiness": "unavailable",
+      "paused": false,
+      "expiresAt": null,
+      "scope": {
+       "modelIdentities": [],
+       "pieceIndexDigests": [],
+       "files": [],
+       "maxStorageBytes": null
+      }
+     }
+    ],
+    "connectionAssistance": {
+     "schema": "reploid.connection-assistance/1",
+     "enabled": false
+    },
+    "files": {
+     "enabled": true
+    }
+   },
+   "expected": {
+    "computeOn": false,
+    "filesOn": true,
+    "introductions": false,
+    "pauseAll": true,
+    "summary": "· Files on · not sharing"
+   }
+  },
+  {
+   "name": "both paused, with switch flags that disagree",
+   "network": {
+    "computeEnabled": true,
+    "filesEnabled": true,
+    "introductionAssistance": true,
+    "files": {
+     "enabled": true
+    },
+    "localOffers": [
+     {
+      "schema": "reploid.offer/1",
+      "kind": "inference",
+      "connectionId": null,
+      "readiness": "unavailable",
+      "paused": true,
+      "expiresAt": null,
+      "scope": {
+       "modelId": null,
+       "modelIdentities": [],
+       "adapterIdentities": [],
+       "execution": "whole-model",
+       "stageIndex": null,
+       "availableSlots": null
+      }
+     },
+     {
+      "schema": "reploid.offer/1",
+      "kind": "weight-supply",
+      "connectionId": null,
+      "readiness": "unavailable",
+      "paused": true,
+      "expiresAt": null,
+      "scope": {
+       "modelIdentities": [],
+       "pieceIndexDigests": [],
+       "files": [],
+       "maxStorageBytes": null
+      }
+     }
+    ],
+    "connectionAssistance": {
+     "schema": "reploid.connection-assistance/1",
+     "enabled": false
+    }
+   },
+   "expected": {
+    "computeOn": false,
+    "filesOn": false,
+    "introductions": false,
+    "pauseAll": false,
+    "summary": "· Paused"
+   }
+  }
+ ]
+}
