@@ -2,12 +2,16 @@
  * E2E Test: shared tool-calling contract.
  */
 import { test, expect } from '@playwright/test';
+import { getToolNamesForMode } from '../../shared/config/tool-surfaces.js';
+import { LAB_UPGRADE_TOOL_SURFACE_IDS } from '../../self/config/lab-upgrades.js';
 import {
   LAB_ROUTE_CASES,
   awakenWithoutGoal,
+  bootLegacyZeroInstance,
   bootRouteWithServiceWorker,
   executeToolResult,
-  sanitizeInstanceId
+  sanitizeInstanceId,
+  selectLabUpgradeBeforeBoot
 } from './reploid-lab-helpers.js';
 
 const toolCandidateCode = `
@@ -49,10 +53,14 @@ test.describe('tool calling smoke', () => {
       const copyPath = `${directoryPath}/copy.txt`;
       const movedPath = `${directoryPath}/moved.txt`;
 
-      await bootRouteWithServiceWorker(page, routeCase.route, instanceId);
+      if (routeCase.route === '/zero') {
+        await bootLegacyZeroInstance(page, instanceId);
+      } else {
+        await bootRouteWithServiceWorker(page, routeCase.route, instanceId);
+      }
       await awakenWithoutGoal(page);
 
-      if (routeCase.route === '/zero') {
+      if (routeCase.requiredTools.length === 1 && routeCase.requiredTools[0] === 'CreateTool') {
         const initialTools = await page.evaluate(() => window.REPLOID.toolRunner.list());
         expect(initialTools).toEqual(['CreateTool']);
         for (const toolName of routeCase.requiredTools) {
@@ -249,4 +257,79 @@ test.describe('tool calling smoke', () => {
       }
     });
   }
+
+  test('/x upgraded to reflection exposes file and promotion tools and stages CreateTool', async ({ page }, testInfo) => {
+    const instanceId = sanitizeInstanceId(`tool-contract-x-reflection-${testInfo.project.name}-${Date.now()}`);
+    const sourcePath = `/shadow/tool-contract-x-reflection.txt`;
+    const directoryPath = `/shadow/tool-contract-x-reflection`;
+    const copyPath = `${directoryPath}/copy.txt`;
+    const movedPath = `${directoryPath}/moved.txt`;
+    const expectedTools = getToolNamesForMode('x', {
+      surfaceIds: LAB_UPGRADE_TOOL_SURFACE_IDS.reflection,
+      hasToolWriter: true,
+      hasSubstrateLoader: true
+    });
+
+    await selectLabUpgradeBeforeBoot(page, instanceId, 'reflection');
+    await bootRouteWithServiceWorker(page, '/x', instanceId);
+    await awakenWithoutGoal(page);
+
+    const listed = await executeToolResult(page, 'ListTools');
+    expect(listed.ok).toBe(true);
+    for (const toolName of expectedTools) {
+      expect(listed.value, `/x reflection tool ${toolName}`).toContain(toolName);
+    }
+
+    const readSeed = await executeToolResult(page, 'ReadFile', { path: '/self/boot-spec.js' });
+    expect(readSeed.ok).toBe(true);
+    expect(readSeed.value.content).toContain('SELF_BOOT_SPEC');
+
+    const write = await executeToolResult(page, 'WriteFile', { path: sourcePath, content: 'alpha' });
+    expect(write.ok).toBe(true);
+
+    const editMiss = await executeToolResult(page, 'EditFile', {
+      path: sourcePath,
+      patch: [{ find: 'not-present', replace: 'beta' }]
+    });
+    expect(editMiss.ok).toBe(true);
+    expect(editMiss.value.changed).toBe(false);
+
+    const mkdir = await executeToolResult(page, 'MakeDirectory', { path: directoryPath });
+    expect(mkdir.ok).toBe(true);
+    const copy = await executeToolResult(page, 'CopyFile', { source: sourcePath, target: copyPath });
+    expect(copy.ok).toBe(true);
+    const move = await executeToolResult(page, 'MoveFile', { source: copyPath, target: movedPath });
+    expect(move.ok).toBe(true);
+    const movedRead = await executeToolResult(page, 'ReadFile', { path: movedPath });
+    expect(movedRead.value.content).toBe('alpha');
+
+    const createTool = await executeToolResult(page, 'CreateTool', {
+      name: 'ContractProbeTool',
+      code: toolCandidateCode
+    });
+    expect(createTool.ok).toBe(true);
+    expect(createTool.value).toMatchObject({
+      success: true,
+      name: 'ContractProbeTool',
+      path: '/shadow/tools/ContractProbeTool.js',
+      staged: true,
+      toolLoaded: false
+    });
+
+    const toolNamesAfterCreate = await executeToolResult(page, 'ListTools');
+    expect(toolNamesAfterCreate.value).not.toContain('ContractProbeTool');
+
+    const badLoad = await executeToolResult(page, 'LoadModule', { path: '/shadow/tools/ContractProbeTool.js' });
+    expect(badLoad.ok).toBe(false);
+    expect(badLoad.message).toContain('promoted /self paths');
+
+    const unpromotedLoad = await executeToolResult(page, 'LoadModule', { path: '/self/tools/MissingReceiptTool.js' });
+    expect(unpromotedLoad.ok).toBe(false);
+
+    const blockedSelfWrite = await executeToolResult(page, 'WriteFile', {
+      path: '/self/tools/ContractProbeTool.js',
+      content: toolCandidateCode
+    });
+    expect(blockedSelfWrite.ok).toBe(false);
+  });
 });

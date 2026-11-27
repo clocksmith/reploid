@@ -156,6 +156,13 @@ void main() {
       final ready = link.ready;
       final answer = ready['answer']! as Json;
       for (var round = 0; round < 3; round++) {
+        for (
+          var i = 0;
+          i < 200 && session.advertisement?.selectable(row) != true;
+          i++
+        ) {
+          await Future<void>.delayed(const Duration(milliseconds: 25));
+        }
         final events = await session
             .ask(model: row, messages: _prompt, contextId: 'thread-$round')
             .toList();

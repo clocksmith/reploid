@@ -5,12 +5,14 @@ import { test, expect } from '@playwright/test';
 import {
   awakenWithoutGoal,
   bootRouteWithServiceWorker,
-  sanitizeInstanceId
+  sanitizeInstanceId,
+  selectLabUpgradeBeforeBoot
 } from './reploid-lab-helpers.js';
 
 test('/x evaluates and promotes one safe candidate with an auditable decision event', async ({ page }, testInfo) => {
   const instanceId = sanitizeInstanceId(`x-one-safe-${testInfo.project.name}-${Date.now()}`);
 
+  await selectLabUpgradeBeforeBoot(page, instanceId, 'full');
   await bootRouteWithServiceWorker(page, '/x', instanceId);
   await awakenWithoutGoal(page);
 
@@ -69,11 +71,15 @@ export default async function() {
       targetPath,
       evidencePath
     });
+    const loaded = await toolRunner.loadPath(targetPath, 'XOneSafeProbe', { allow: true });
+    const probeOutput = await toolRunner.execute('XOneSafeProbe', {});
 
     return {
       arenaResult,
       sandboxRestored,
       promotion,
+      loaded,
+      probeOutput,
       acceptedEvents,
       targetExists: await vfs.exists(targetPath)
     };
@@ -85,6 +91,8 @@ export default async function() {
   });
   expect(result.sandboxRestored).toBe(true);
   expect(result.promotion).toMatchObject({ ok: true, promoted: true });
+  expect(result.loaded).toBe(true);
+  expect(result.probeOutput).toEqual({ ok: true });
   expect(result.targetExists).toBe(true);
   expect(result.acceptedEvents).toEqual(expect.arrayContaining([
     expect.objectContaining({ targetPath: '/self/tools/XOneSafeProbe.js' })

@@ -1,5 +1,7 @@
 import { expect } from '@playwright/test';
 import { getLabRouteCases } from '../../self/lab/profiles.js';
+import { LAB_UPGRADE_STORAGE_KEY } from '../../self/config/lab-upgrades.js';
+import { getScopedReploidStorageKey } from '../../shared/instance.js';
 
 export const DB_PREFIX = 'reploid-vfs-v0';
 
@@ -63,6 +65,13 @@ export async function bootLegacyZeroInstance(page, instanceId) {
   expect(files[savedPath]).toBe(savedText);
   expect(files['/zero/source.json']).toBeUndefined();
   await expect(page.locator('.zero-capsule')).toHaveCount(0);
+}
+
+export async function selectLabUpgradeBeforeBoot(page, instanceId, level) {
+  const storageKey = getScopedReploidStorageKey(LAB_UPGRADE_STORAGE_KEY, instanceId);
+  await page.addInitScript(({ key, value }) => {
+    localStorage.setItem(key, value);
+  }, { key: storageKey, value: level });
 }
 
 export async function bootRouteWithServiceWorker(page, route, instanceId) {
