@@ -1426,7 +1426,7 @@
     {
       "path": "config/module-inventory.json",
       "byteLength": 690632,
-      "sha256": "sha256:318f313fe6e3eb81a200967ba88b0db590cb9e94cc977ccd0aa7653bd34c5322"
+      "sha256": "sha256:b3ec202bd20f9e58703139cf857af745413671c2a084d9c9f7e5294220456830"
     },
     {
       "path": "config/module-registry.json",
@@ -3480,18 +3480,18 @@
     },
     {
       "path": "styles/poolday/primitives/base.css",
-      "byteLength": 10443,
-      "sha256": "sha256:44cc103ab2b01a9a96222d5b5260d0755c44ea5c8ae8b81a8ef6fcc18dc690b9"
+      "byteLength": 8692,
+      "sha256": "sha256:31f073153d4d18e8513cc08fa308c82050ccabb71e1266c01b71a0cb2e7c96d9"
     },
     {
       "path": "styles/poolday/primitives/choices.css",
-      "byteLength": 21549,
-      "sha256": "sha256:38f6ecca11fe58209e50e368e19e617d982d12521b32d06655555f83b8a69774"
+      "byteLength": 21052,
+      "sha256": "sha256:1723e66acd5e49505143181b1faaef492899b04399396800023d6d8a86b562fe"
     },
     {
       "path": "styles/poolday/primitives/controls.css",
-      "byteLength": 13514,
-      "sha256": "sha256:9aba4c4aed88c514f03e33fecf28cf5c62a26968e3610904eafa8ce55842f312"
+      "byteLength": 13224,
+      "sha256": "sha256:02cdc1407fadf35633cd4b4745e5017ff2354b4d5829f236d5c8da874c974a46"
     },
     {
       "path": "styles/poolday/primitives/layout.css",
@@ -3500,8 +3500,8 @@
     },
     {
       "path": "styles/poolday/primitives/messages.css",
-      "byteLength": 9189,
-      "sha256": "sha256:6d736f2d112567388e58d28ae115362b0333d26a3d12a9ad75ecd79ca27b116e"
+      "byteLength": 9172,
+      "sha256": "sha256:d0b510e469c318db37aa23f2a032a1c08ca6d227a90d6dff54653459e3793880"
     },
     {
       "path": "styles/poolday/primitives/optical.css",
@@ -3520,8 +3520,8 @@
     },
     {
       "path": "styles/poolday/primitives/surfaces.css",
-      "byteLength": 7798,
-      "sha256": "sha256:4cd7d11ff1970c7a3b233e75fc817e02574236018ddd95b23d5a1d92b0e3ff34"
+      "byteLength": 6912,
+      "sha256": "sha256:0cd59383ea45d1d57fba59e07188b316d2873a883b083df997685b5402e6abaa"
     },
     {
       "path": "styles/poolday/primitives/text.css",
@@ -4205,13 +4205,13 @@
     },
     {
       "path": "ui/react/app.js",
-      "byteLength": 3061853,
-      "sha256": "sha256:c2e741b6cc0a3fbee636e90a14217e38476438b1e9aa47599bada74efd2011f5"
+      "byteLength": 3061798,
+      "sha256": "sha256:04e205ca1c30538cb50d4b78fa81bf12cdbcd2f50705e2b6c9fd017e8d806fad"
     },
     {
       "path": "ui/react/design.js",
-      "byteLength": 2108685,
-      "sha256": "sha256:5e4542ddc4e9eb7578013e254e60ee04a67168ee6135c3f0ec32789a941a0f64"
+      "byteLength": 2108563,
+      "sha256": "sha256:c78cae5bde484086e10f07c58e66f98ddaa70e2dfe1be1896f4373aa29b5ef1b"
     },
     {
       "path": "ui/reploid-home/index.js",
@@ -12669,5 +12669,5 @@
       "sha256": "sha256:abb6c18f6167d6afc8ee1b3adfcbbb89c0e93fb4fc4e98d7a12250f78aab206a"
     }
   ],
-  "bundleHash": "sha256:3d32747dd116617b3595b33ac8dac019975e97c9c7eb22efdd60a3fa22f3b273"
+  "bundleHash": "sha256:6f6a2973e76b83b9468b858b1c30cdb3c0558b6586f44c83511cf77b6fbd5b88"
 }
