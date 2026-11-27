@@ -9,6 +9,9 @@ X starts from the Zero core: its **Optional upgrades** selector defaults to
 "None: Zero core" ([self-source contract](self-source.md)). The prebuilt file,
 promotion, optimization, cognition, worker, and swarm capabilities arrive only
 with an operator-selected upgrade level. X also has a denser operator UI.
+With no upgrade X has exactly Zero's tools, but it runs them on the legacy kernel
+rather than Zero's capsule; [zero-extension.json](zero-extension.json) lists each
+such difference (`npm run verify:x-extension`).
 
 ## Current journey status
 

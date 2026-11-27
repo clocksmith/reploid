@@ -28,7 +28,7 @@ Outputs:
 ## Invariants
 - A route must resolve to one declared surface and authority profile.
 - Recovery state and mutable state remain distinguishable.
-- Zero bootstraps from its minimal self-source; X adds only operator-selected upgrades. Existing instances retain their owned source and work.
+- Zero bootstraps from its minimal self-source; X extends Zero with operator-selected upgrades only, never by branching Zero's modules. Remaining runtime divergences, chiefly `/x` running the legacy kernel instead of Zero's capsule, are recorded in [zero-extension.json](../docs/x/zero-extension.json) and may only shrink (`npm run verify:x-extension`). Existing instances retain their owned source and work.
 - Browser-local claims remain bounded by verifiable records.
 
 ## Acceptance

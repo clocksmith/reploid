@@ -29,7 +29,7 @@ Outputs:
 - Shared discovery policy selects public rendezvous, not execution authority; private invitations require room-scoped capabilities.
 - Discovery may select authenticated RTC credentials, never reroute Poolday APIs or silently switch providers.
 - Doppler defaults are pinned origin-relative assets; Node synchronization never serializes file URLs.
-- Zero owns minimal complete self-source. X explicitly adds upgrades; neither auto-hydrates the repository or inherits legacy upgrade grants.
+- Zero owns minimal complete self-source. Only [lab-upgrades.js](lab-upgrades.js) selects X upgrades; neither auto-hydrates the repository or inherits legacy upgrade grants.
 - Poolday, Zero, and X profiles cannot silently inherit one another's authority.
 - Ordered route limits and requester-history bounds are versioned here and apply only to catalogs declaring an ordered plan. Stage assignment is per-instance operator storage, never a default, link or discovery result.
 
