@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState, type CSSProperties, type MouseEvent, type ReactNode } from 'react';
+import { useEffect, useId, useLayoutEffect, useRef, useState, type CSSProperties, type MouseEvent, type ReactNode, type RefObject } from 'react';
 import { IconButton } from './buttons.js';
 import { Icon, type IconName } from './icon.js';
 import { cx, dataProps, type DataAttributes } from './internal.js';
@@ -8,7 +8,9 @@ import { cx, dataProps, type DataAttributes } from './internal.js';
  * pinned along the top on wide screens and docks at the bottom on narrow ones. The drawers lie over
  * the page's side margins and reserve no column, so the main column never moves when one opens.
  * The frame tracks the visual viewport, so a phone keyboard shrinks it without resizing the page,
- * and marks itself compact while that height is short.
+ * and marks itself compact while that height is short. Where an open drawer covers the whole main
+ * column (a phone), the main column is inert until it closes, so Tab and Escape stay with the drawer
+ * and the bar instead of reaching controls hidden beneath it.
  */
 export function Workspace({
   bar,
@@ -34,9 +36,13 @@ export function Workspace({
   readonly data?: DataAttributes;
 }) {
   const height = useViewportHeight();
+  const frame = useRef<HTMLDivElement>(null);
+  const main = useRef<HTMLElement>(null);
+  const covered = useCoveredMain(frame, main);
   const style = { '--pool-param-workspace-height': height === null ? undefined : `${height}px` } as CSSProperties;
   return (
     <div
+      ref={frame}
       className="pool-workspace"
       data-compact={height !== null && height <= COMPACT_HEIGHT ? '' : undefined}
       data-start-open={startOpen ? '' : undefined}
@@ -47,9 +53,38 @@ export function Workspace({
       {bar}
       {start}
       {end}
-      <main className={cx('pool-workspace-main', scroll && 'pool-workspace-scroll')}>{children}</main>
+      <main ref={main} className={cx('pool-workspace-main', scroll && 'pool-workspace-scroll')} inert={covered} data-covered={covered ? '' : undefined}>
+        {children}
+      </main>
     </div>
   );
+}
+
+/**
+ * Whether an open drawer spans the main column's whole width, measured from the layout rather than
+ * restated breakpoints: after every render (a drawer opens or closes with its parent's render) and on resize.
+ */
+function useCoveredMain(frame: RefObject<HTMLDivElement | null>, main: RefObject<HTMLElement | null>): boolean {
+  const [covered, setCovered] = useState(false);
+  const measure = useRef(() => {});
+  measure.current = () => {
+    const root = frame.current;
+    const column = main.current;
+    if (!root || !column) return;
+    const area = column.getBoundingClientRect();
+    const next = [...root.querySelectorAll(':scope > .pool-drawer:not([hidden])')].some((drawer) => {
+      const box = drawer.getBoundingClientRect();
+      return box.width > 0 && box.left <= area.left + 1 && box.right >= area.right - 1;
+    });
+    setCovered((current) => (current === next ? current : next));
+  };
+  useLayoutEffect(() => measure.current());
+  useEffect(() => {
+    const onResize = () => measure.current();
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+  return covered;
 }
 
 // Below this visual-viewport height (a phone with its keyboard open) the frame is compact.
@@ -126,7 +161,8 @@ export function BarButton({
 /**
  * A side panel of the workspace: a heading with Close, then a scrolling body. Its content stays
  * mounted while it is closed, so drafts and scroll positions inside it survive. Opening it moves
- * focus to its heading; Escape inside it closes it.
+ * focus to its heading; Escape inside it closes it, and so does Escape anywhere outside a dialog while
+ * it covers the main column (a phone), where it is the page's overlay.
  */
 export function Drawer({
   id,
@@ -169,6 +205,27 @@ export function Drawer({
     }
     wasOpen.current = open;
   }, [open]);
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
+  useEffect(() => {
+    const section = panel.current;
+    const document = section?.ownerDocument;
+    if (!open || !section || !document) return undefined;
+    const keydown = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape' || event.defaultPrevented) return;
+      const target = event.target instanceof Element ? event.target : null;
+      if (target?.closest('dialog')) return;
+      const inside = !!target && section.contains(target);
+      const overlay = !!section.parentElement?.querySelector(':scope > .pool-workspace-main[data-covered]');
+      const inOtherDrawer = !inside && !!target?.closest('.pool-drawer');
+      if (inside || (overlay && !inOtherDrawer)) {
+        event.preventDefault();
+        onCloseRef.current();
+      }
+    };
+    document.addEventListener('keydown', keydown);
+    return () => document.removeEventListener('keydown', keydown);
+  }, [open]);
   return (
     <section
       ref={panel}
@@ -176,12 +233,6 @@ export function Drawer({
       className={cx('pool-drawer', side === 'start' ? 'pool-drawer-start' : 'pool-drawer-end', 'pool-surface')}
       hidden={!open}
       aria-labelledby={titleId}
-      onKeyDown={(event) => {
-        if (event.key === 'Escape' && !event.defaultPrevented && !(event.target as Element).closest?.('dialog')) {
-          event.preventDefault();
-          onClose();
-        }
-      }}
       {...dataProps(data)}
     >
       <header className="pool-drawer-header">

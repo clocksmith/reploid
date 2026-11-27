@@ -98,6 +98,19 @@ function InlineShell(props: ShellParts) {
   );
 }
 
+/**
+ * Scrolls the dialog's body, and only the body, so the control that took focus at opening is in
+ * view: a chosen row low in a long list (the model sheet on a phone) would otherwise sit below the fold.
+ */
+function revealInBody(dialog: HTMLDialogElement, control: HTMLElement) {
+  const body = dialog.querySelector('.pool-dialog-body');
+  if (!(body instanceof HTMLElement) || !body.contains(control)) return;
+  const area = body.getBoundingClientRect();
+  const box = control.getBoundingClientRect();
+  if (box.bottom > area.bottom) body.scrollTop += box.bottom - area.bottom;
+  else if (box.top < area.top) body.scrollTop -= area.top - box.top;
+}
+
 function ModalShell({ open, ...props }: ShellParts & { readonly open: boolean }) {
   const { onClose, data } = props;
   const ref = useRef<HTMLDialogElement>(null);
@@ -115,7 +128,10 @@ function ModalShell({ open, ...props }: ShellParts & { readonly open: boolean })
       else dialog.setAttribute('open', '');
       // A control marked `data-autofocus` (the one action a dialog offers) takes focus instead of Close.
       const initial = dialog.querySelector('[data-autofocus]');
-      if (initial instanceof HTMLElement) initial.focus({ preventScroll: true });
+      if (initial instanceof HTMLElement) {
+        initial.focus({ preventScroll: true });
+        revealInBody(dialog, initial);
+      }
     } else if (!open && dialog.open) {
       if (typeof dialog.close === 'function') dialog.close();
       else dialog.removeAttribute('open');

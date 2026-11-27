@@ -640,6 +640,41 @@ describe('workspace', () => {
     expect(document.activeElement).toBe(threads);
   });
 
+  it('makes the main column inert while an open drawer covers it, and closes that drawer on Escape from the bar', async () => {
+    // jsdom has no layout: lay the drawer over the whole main column, as a phone does.
+    const rect = vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (this: HTMLElement) {
+      const box = this.classList.contains('pool-drawer') ? { left: 8, right: 382 } : this.classList.contains('pool-workspace-main') ? { left: 8, right: 382 } : { left: 0, right: 0 };
+      return { ...box, top: 0, bottom: 10, width: box.right - box.left, height: 10, x: box.left, y: 0, toJSON: () => box } as DOMRect;
+    });
+    try {
+      const onClose = vi.fn();
+      render(<Frame onClose={onClose} />);
+      const threads = screen.getByRole('link', { name: 'Threads' });
+      const main = document.querySelector('.pool-workspace-main') as HTMLElement;
+      expect(main.hasAttribute('inert')).toBe(false);
+      await userEvent.click(threads);
+      expect(main.hasAttribute('inert')).toBe(true);
+      expect(main.hasAttribute('data-covered')).toBe(true);
+      threads.focus();
+      await userEvent.keyboard('{Escape}');
+      expect(onClose).toHaveBeenCalledOnce();
+      expect(main.hasAttribute('inert')).toBe(false);
+    } finally {
+      rect.mockRestore();
+    }
+  });
+
+  it('keeps a drawer that lies beside the main column open when Escape is pressed outside it', async () => {
+    const onClose = vi.fn();
+    render(<Frame onClose={onClose} />);
+    const threads = screen.getByRole('link', { name: 'Threads' });
+    await userEvent.click(threads);
+    expect((document.querySelector('.pool-workspace-main') as HTMLElement).hasAttribute('inert')).toBe(false);
+    threads.focus();
+    await userEvent.keyboard('{Escape}');
+    expect(onClose).not.toHaveBeenCalled();
+  });
+
   it('leaves a modified click to the browser, as a link does', () => {
     const onPress = vi.fn();
     render(<BarButton icon="peers" label="Computers" href="?view=computers" onPress={onPress} />);
@@ -722,6 +757,16 @@ describe('conversation', () => {
     expect(rename).toHaveBeenCalledOnce();
     expect(details.open).toBe(false);
     expect(document.activeElement).toBe(summary);
+  });
+
+  it('folds a menu away when focus leaves it, without pulling focus back', async () => {
+    const { container } = render(<><Menu label="Actions for Ocean tides" items={[{ label: 'Rename', onPress: () => undefined }]} /><Button label="Elsewhere" onPress={() => undefined} /></>);
+    const details = container.querySelector('details') as HTMLDetailsElement;
+    details.open = true;
+    screen.getByRole('button', { name: 'Rename' }).focus();
+    await userEvent.tab();
+    expect(details.open).toBe(false);
+    expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Elsewhere' }));
   });
 
   it('marks exactly the current thread, names it with its state, and keeps its menu beside it', async () => {

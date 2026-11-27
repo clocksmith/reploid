@@ -289,7 +289,7 @@ export function Readout({
 
 export type MenuItem = { readonly label: string; readonly onPress: () => void; readonly data?: DataAttributes };
 
-/** A small menu of actions behind one button; choosing one closes it and returns focus to the button. */
+/** A small menu of actions behind one button; choosing one or Escape closes it and returns focus to the button, and focus leaving it closes it. */
 export function Menu({ label, items, data }: { readonly label: string; readonly items: ReadonlyArray<MenuItem>; readonly data?: DataAttributes }) {
   const details = useRef<HTMLDetailsElement>(null);
   const id = useId();
@@ -309,6 +309,11 @@ export function Menu({ label, items, data }: { readonly label: string; readonly 
           event.stopPropagation();
           close();
         }
+      }}
+      // Focus leaving the menu (Tab past its last action, or a click elsewhere) folds it away without moving focus back.
+      onBlur={(event) => {
+        const node = details.current;
+        if (node?.open && !(event.relatedTarget instanceof Node && node.contains(event.relatedTarget))) node.open = false;
       }}
       {...dataProps(data)}
     >

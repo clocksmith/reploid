@@ -140,8 +140,9 @@
 .pool-home .pool-option:has(> .pool-option-fix:not([hidden])) .pool-option-mark { display: none; }
 
 /* Segmented control: equal segments, one selected; the selected segment is raised, focus is a ring. */
-.pool-home .pool-segmented[role='radiogroup'] { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(max-content, 1fr); }
-.pool-home label.pool-segment { white-space: nowrap; }
+/* Segments share the row equally; on a narrow screen a long label wraps inside its segment instead of pushing the row past the edge. */
+.pool-home .pool-segmented[role='radiogroup'] { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(min-content, 1fr); }
+.pool-home label.pool-segment { white-space: normal; text-align: center; }
 .pool-home label.pool-segment { position: relative; cursor: pointer; }
 .pool-home label.pool-segment > input {
   position: absolute;

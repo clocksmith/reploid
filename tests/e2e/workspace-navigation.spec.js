@@ -102,6 +102,8 @@ for (const [width, height] of [[1440, 900], [1280, 720], [390, 844], [320, 740]]
     const picker = page.locator('[data-model-picker]');
     for (const selector of ['[data-execution-choice="local"]', '[data-execution-choice="network"]', '[data-model-picker-close]', '[data-change-model]']) {
       const control = picker.locator(selector);
+      // The sheet opens scrolled to the chosen model, which takes focus; each control is reachable in it.
+      await control.scrollIntoViewIfNeeded();
       await expect(control).toBeInViewport({ ratio: 1 });
       const box = await control.boundingBox();
       expect(Math.round(box.height)).toBeGreaterThanOrEqual(44);
