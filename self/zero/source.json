@@ -34,8 +34,8 @@
     },
     {
       "path": "config/vfs-policy.js",
-      "bytes": 2774,
-      "sha256": "ee6b763d736c79ceeab5cccada8d8150f3f27c27f5bacad028798b6b7d1fe1e0"
+      "bytes": 4282,
+      "sha256": "77f3ccf5b00a61217b5925973f1682c8d8bfd523cd4a1863035b22c8222d1bf0"
     },
     {
       "path": "config/zero-inference.js",
@@ -44,8 +44,8 @@
     },
     {
       "path": "core/create-tool.js",
-      "bytes": 34424,
-      "sha256": "bd1290cf49197fff574c24f0ad230af49a1f12722e74ef91299b9bdd6bba4fcc"
+      "bytes": 36841,
+      "sha256": "5f13af58b121577f74e9144ca9c082202a02533c98c26b3a67af560ec06c992e"
     },
     {
       "path": "core/import-rewrite.js",
@@ -54,8 +54,8 @@
     },
     {
       "path": "core/promotion-policy.js",
-      "bytes": 9248,
-      "sha256": "d8030f5faef58b6e28791dfe3db116d469dd76626c2d80d6b63d30604fc05706"
+      "bytes": 11238,
+      "sha256": "6c2dc09b84540fe13c469d01f6d28812071f510bca0cf62da67c9b443d1a763d"
     },
     {
       "path": "core/runtime-mode.js",
@@ -74,8 +74,8 @@
     },
     {
       "path": "core/tool-capabilities.js",
-      "bytes": 2301,
-      "sha256": "603a075c079995f5b461f28cdafc45a092df3ef5bb4dd714ffb81536b359efb4"
+      "bytes": 4752,
+      "sha256": "70239289f439626933799003296d2cbdf64ed5f935e31324871dadb037d9c220"
     },
     {
       "path": "core/tool-writer.js",
@@ -204,8 +204,8 @@
     },
     {
       "path": "zero/boot.js",
-      "bytes": 4354,
-      "sha256": "1d4d22de642fad593bc79312372738e912ea48c78fa682ee6aa2b8034f4c4c7b"
+      "bytes": 4360,
+      "sha256": "506ecd64fb3f02aa82090479d8dce821861b41bb3236f91310054725548b381a"
     },
     {
       "path": "zero/config.json",
@@ -244,8 +244,8 @@
     },
     {
       "path": "zero/tools.js",
-      "bytes": 16334,
-      "sha256": "fc82cd09dafde8adf1cba20f379bbd090117f1451e7e8c77a968a0541a21936b"
+      "bytes": 14293,
+      "sha256": "bac08692c575e878a3611b81476c3d9f1e0ded0fb0788531b4b8f97aabf14bb5"
     },
     {
       "path": "zero/ui.js",
