@@ -1,8 +1,14 @@
 {
-  "schema": "reploid/x-critical-user-journeys/v1",
+  "schema": "reploid/x-critical-user-journeys/v2",
   "updated": "2026-07-27",
   "surface": "/x",
   "productName": "X",
+  "extends": "docs/status/zero-critical-user-journeys.json",
+  "inheritsJourneyIds": [
+    "grow-zero-tool-surface",
+    "apply-zero-self-modification",
+    "prove-actual-local-rsi-cycle"
+  ],
   "statusDefinitions": {
     "supported": "The outcome has an executable implementation and automated end-to-end contract coverage.",
     "conditional": "The outcome is executable only when named model, device, artifact, provider, peer, or evidence prerequisites are satisfied.",
@@ -32,8 +38,13 @@
   "journeys": [
     {
       "id": "configure-and-awaken-x",
+      "title": "Configure and awaken",
+      "overrides": [
+        "configure-and-awaken-zero"
+      ],
       "actor": "operator",
       "outcome": "Choose browser, direct, or proxy inference, set the first objective and cycle interval, and awaken the full X substrate with its governed tool surface.",
+      "honestOutcome": "Browser, direct, or proxy inference can awaken the full substrate when configuration and VFS loading succeed.",
       "routes": [
         "/x"
       ],
@@ -67,8 +78,14 @@
     },
     {
       "id": "run-steer-pause-and-resume-x",
+      "title": "Run, steer, stop, and resume",
+      "overrides": [
+        "run-and-observe-zero-cycle",
+        "steer-and-stop-zero"
+      ],
       "actor": "operator",
       "outcome": "Run an objective, inspect its timeline and tool results, inject a human message, stop the loop, resume it with the stored objective, and inspect status and telemetry.",
+      "honestOutcome": "Timeline, human input, stop/resume, status, and telemetry exist; the complete control loop is not yet one end-to-end test.",
       "routes": [
         "/x"
       ],
@@ -102,8 +119,13 @@
     },
     {
       "id": "inspect-edit-and-recover-x-workspace",
+      "title": "Inspect, edit, and recover workspace",
+      "overrides": [
+        "inspect-and-recover-zero-evidence"
+      ],
       "actor": "operator",
       "outcome": "Browse and search the VFS, inspect or edit writable files, preserve Shadow and artifact state across reload, and keep direct live-self writes behind the promotion boundary.",
+      "honestOutcome": "The operator can browse the VFS, use writable roots, preserve state across reload, and keep direct `/self` writes blocked.",
       "routes": [
         "/x"
       ],
@@ -135,8 +157,10 @@
     },
     {
       "id": "evaluate-and-promote-x-candidate",
+      "title": "Evaluate and promote a candidate",
       "actor": "agent_or_operator",
       "outcome": "Evaluate a Shadow candidate in the arena, require byte-bound replay evidence, preserve rollback material, and promote an allowlisted target into the live self.",
+      "honestOutcome": "Arena evaluation, byte-bound replay evidence, rollback preservation, allowlisting, quarantine, and promotion execute end to end.",
       "routes": [
         "/x"
       ],
@@ -171,8 +195,10 @@
     },
     {
       "id": "optimize-and-activate-doppler-profile",
+      "title": "Optimize Doppler",
       "actor": "operator",
       "outcome": "Edit a governed Doppler optimization contract, run candidate profiles, inspect receipts and scores, promote the selected profile, canary it, and activate the exact accepted profile.",
+      "honestOutcome": "The governed optimization UI and activation contracts work when current Doppler tooling and model artifacts satisfy them.",
       "routes": [
         "/x"
       ],
@@ -204,8 +230,10 @@
     },
     {
       "id": "delegate-and-monitor-x-workers",
+      "title": "Delegate to workers",
       "actor": "operator_or_agent",
       "outcome": "Spawn restricted worker tasks, inspect active and completed workers, await results, and clear completed cards.",
+      "honestOutcome": "Worker contracts and panels exist, but the browser journey currently proves empty UI states rather than useful completed work.",
       "routes": [
         "/x"
       ],
@@ -235,8 +263,10 @@
     },
     {
       "id": "inspect-x-memory-and-cognition",
+      "title": "Inspect memory and cognition",
       "actor": "operator",
       "outcome": "Inspect memory summaries, compactions, retrieval events, knowledge, and cognition state produced by the running agent.",
+      "honestOutcome": "The panels expose produced records, but no held-out evaluation proves that retrieval improves outcomes.",
       "routes": [
         "/x"
       ],
@@ -269,8 +299,10 @@
     },
     {
       "id": "export-and-replay-x-run",
+      "title": "Export and replay",
       "actor": "operator",
       "outcome": "Export state and VFS, import a run file into Replay, and play, pause, step, reset, and change replay speed while inspecting emitted events.",
+      "honestOutcome": "Export and event-replay components exist, but no browser test round-trips one exported X run through the importer.",
       "routes": [
         "/x"
       ],
@@ -300,8 +332,10 @@
     },
     {
       "id": "share-x-files-with-peers",
+      "title": "Share files with peers",
       "actor": "agent",
       "outcome": "Discover X swarm peers and share or request permitted files through the WebRTC swarm tool surface.",
+      "honestOutcome": "Swarm protocols and tools are tested as components, but there is no retained deployed remote-peer exchange.",
       "routes": [
         "/x"
       ],

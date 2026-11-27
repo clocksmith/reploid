@@ -6,20 +6,29 @@ import { pathToFileURL } from 'node:url';
 import {
   PROJECT_ROOT,
   getJourneyRegistryPath,
-  validateCriticalUserJourneyRegistry
+  validateCriticalUserJourneyRegistry,
+  validateJourneyExtension
 } from './critical-user-journey-contract.js';
 
 export { PROJECT_ROOT };
 export const JOURNEY_REGISTRY_PATH = getJourneyRegistryPath('x');
+export const BASE_REGISTRY = 'docs/status/zero-critical-user-journeys.json';
 
-export const validateXCriticalUserJourneys = (registry, { root = PROJECT_ROOT } = {}) => (
-  validateCriticalUserJourneyRegistry(registry, {
+// X's registry extends Zero's: it holds only X additions and journeys whose status differs.
+export const validateXCriticalUserJourneys = async (registry, { root = PROJECT_ROOT, base = null } = {}) => {
+  const errors = await validateCriticalUserJourneyRegistry(registry, {
     root,
-    expectedSchema: 'reploid/x-critical-user-journeys/v1',
+    expectedSchema: 'reploid/x-critical-user-journeys/v2',
     expectedSurface: '/x',
     requiredRoutes: ['/x']
-  })
-);
+  });
+  if (registry?.extends !== BASE_REGISTRY) {
+    errors.push(`extends must be ${BASE_REGISTRY}`);
+    return errors;
+  }
+  const zero = base || JSON.parse(await fs.readFile(path.resolve(root, BASE_REGISTRY), 'utf8'));
+  return [...errors, ...validateJourneyExtension(registry, zero)];
+};
 
 export async function verifyXCriticalUserJourneys(registryPath = JOURNEY_REGISTRY_PATH) {
   const registry = JSON.parse(await fs.readFile(registryPath, 'utf8'));

@@ -31,8 +31,10 @@
   "journeys": [
     {
       "id": "configure-and-awaken-zero",
+      "title": "Configure and awaken",
       "actor": "operator",
       "outcome": "Choose the managed Gemini proxy or a compatible local Doppler model, set the first objective and cycle interval, and awaken the CreateTool-only Zero runtime.",
+      "honestOutcome": "The operator can choose managed proxy or local Doppler inference, set an objective and cycle interval, and awaken when configuration is complete.",
       "routes": [
         "/zero"
       ],
@@ -65,8 +67,10 @@
     },
     {
       "id": "run-and-observe-zero-cycle",
+      "title": "Run and observe a cycle",
       "actor": "operator",
       "outcome": "Watch model input, model output, tool execution, runtime state, tokens, cycle count, and failures update while Zero pursues the objective.",
+      "honestOutcome": "The UI shows model input/output, tool runs, state, cycles, tokens, and failures while a compatible provider responds.",
       "routes": [
         "/zero"
       ],
@@ -99,8 +103,10 @@
     },
     {
       "id": "grow-zero-tool-surface",
+      "title": "Grow the tool surface",
       "actor": "agent",
       "outcome": "Start with only CreateTool, activate a fixture-tested tool, replay its activation in a fresh harness, load it into the live runner, and use it in a later action.",
+      "honestOutcome": "CreateTool can fixture-test, replay, install, load, and use a new tool when the model authors a valid contract.",
       "routes": [
         "/zero"
       ],
@@ -133,8 +139,10 @@
     },
     {
       "id": "apply-zero-self-modification",
+      "title": "Apply a self-modification",
       "actor": "agent",
       "outcome": "Create a capability-bearing self-write tool, preserve rollback evidence, patch a live Zero tool, UI module, or mirrored core module, and activate the result through tool load, UI reload, or document reload.",
+      "honestOutcome": "A created `self:write` tool can preserve rollback evidence and patch live tools, UI, or mirrored core code.",
       "routes": [
         "/zero"
       ],
@@ -168,8 +176,10 @@
     },
     {
       "id": "steer-and-stop-zero",
+      "title": "Steer and stop",
       "actor": "operator",
       "outcome": "Queue one context or correction note for the next cycle, stop an active run, cancel a pending provider retry, and manually reload the Zero UI.",
+      "honestOutcome": "The operator can queue a note and stop or cancel retry, but cannot resume from the Zero shell.",
       "routes": [
         "/zero"
       ],
@@ -197,8 +207,10 @@
     },
     {
       "id": "inspect-and-recover-zero-evidence",
+      "title": "Inspect and recover evidence",
       "actor": "operator",
       "outcome": "Retain writable VFS files and cycle artifacts across reload, then inspect them after rebuilding the reader capabilities needed by the minimal surface.",
+      "honestOutcome": "VFS files persist locally. The **Recordings** panel on the boot screen and **Inspect** in the running shell import, reopen and play a recorded run trace without running models or tools, and Inspect exports run JSON. Zero has no built-in VFS browser and no proof that created tools recover automatically.",
       "routes": [
         "/zero"
       ],
@@ -233,8 +245,10 @@
     },
     {
       "id": "prove-actual-local-rsi-cycle",
+      "title": "Prove actual local RSI",
       "actor": "release_reviewer",
       "outcome": "Run a bounded Zero mutation cycle with actual Doppler WebGPU cognition and bind model identity, tool calls, cycle audits, and the produced artifact.",
+      "honestOutcome": "An opt-in hardware lane executes real Doppler cognition, but it is skipped by default and uses a supplied target transcript.",
       "routes": [
         "/zero"
       ],

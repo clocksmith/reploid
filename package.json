@@ -74,6 +74,7 @@
     "deploy:pool-env": "node scripts/print-pool-env.js",
     "deploy:simulatte-hosting": "firebase deploy --config firebase.simulatte-hosting.json --project simulatte-world --only hosting:simulatte-world",
     "verify:journeys": "node scripts/verify-critical-user-journeys.js",
+    "build:journeys": "node scripts/verify-critical-user-journeys.js --write",
     "verify:pool": "node scripts/verify-pool-production.js",
     "verify:public-answer": "node scripts/verify-public-answer.js",
     "verify:zero:journeys": "node scripts/verify-zero-critical-user-journeys.js",

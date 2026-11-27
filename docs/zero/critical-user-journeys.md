@@ -7,6 +7,7 @@ worker, cognition, optimization, or swarm tools.
 
 ## Current journey status
 
+<!-- generated:journey-status (npm run build:journeys) -->
 | Journey | Status | Honest outcome |
 | --- | --- | --- |
 | Configure and awaken | Conditional | The operator can choose managed proxy or local Doppler inference, set an objective and cycle interval, and awaken when configuration is complete. |
@@ -16,6 +17,7 @@ worker, cognition, optimization, or swarm tools.
 | Steer and stop | Limited | The operator can queue a note and stop or cancel retry, but cannot resume from the Zero shell. |
 | Inspect and recover evidence | Limited | VFS files persist locally. The **Recordings** panel on the boot screen and **Inspect** in the running shell import, reopen and play a recorded run trace without running models or tools, and Inspect exports run JSON. Zero has no built-in VFS browser and no proof that created tools recover automatically. |
 | Prove actual local RSI | Conditional | An opt-in hardware lane executes real Doppler cognition, but it is skipped by default and uses a supplied target transcript. |
+<!-- /generated:journey-status -->
 
 ## Critical boundary
 

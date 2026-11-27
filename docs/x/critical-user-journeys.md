@@ -2,6 +2,9 @@
 
 X is the mature governed agent workspace at `/x`. Its canonical status registry
 is [`../status/x-critical-user-journeys.json`](../status/x-critical-user-journeys.json).
+It extends [Zero's registry](../status/zero-critical-user-journeys.json): each Zero
+journey is either inherited by reference or overridden by an X journey whose
+status or outcome differs, and X never restates one (`npm run verify:journeys`).
 X starts from the Zero core: its **Optional upgrades** selector defaults to
 "None: Zero core" ([self-source contract](self-source.md)). The prebuilt file,
 promotion, optimization, cognition, worker, and swarm capabilities arrive only
@@ -9,6 +12,7 @@ with an operator-selected upgrade level. X also has a denser operator UI.
 
 ## Current journey status
 
+<!-- generated:journey-status (npm run build:journeys) -->
 | Journey | Status | Honest outcome |
 | --- | --- | --- |
 | Configure and awaken | Conditional | Browser, direct, or proxy inference can awaken the full substrate when configuration and VFS loading succeed. |
@@ -20,6 +24,9 @@ with an operator-selected upgrade level. X also has a denser operator UI.
 | Inspect memory and cognition | Limited | The panels expose produced records, but no held-out evaluation proves that retrieval improves outcomes. |
 | Export and replay | Limited | Export and event-replay components exist, but no browser test round-trips one exported X run through the importer. |
 | Share files with peers | Limited | Swarm protocols and tools are tested as components, but there is no retained deployed remote-peer exchange. |
+
+X inherits these Zero journeys by reference; their status and evidence stay in the [Zero table](../zero/critical-user-journeys.md#current-journey-status), proved on `/zero`: Grow the tool surface; Apply a self-modification; Prove actual local RSI.
+<!-- /generated:journey-status -->
 
 ## Promotion boundary
 

@@ -85,7 +85,11 @@ export async function validateCriticalUserJourneyRegistry(registry, {
     else if (journeyIds.has(journey.id)) errors.push(`${label}.id duplicates ${journey.id}`);
     else journeyIds.add(journey.id);
     if (!isNonEmptyString(journey?.actor)) errors.push(`${label}.actor must be a non-empty string`);
+    if (!isNonEmptyString(journey?.title)) errors.push(`${label}.title must be a non-empty string`);
     if (!isNonEmptyString(journey?.outcome)) errors.push(`${label}.outcome must be a non-empty string`);
+    if (!isNonEmptyString(journey?.honestOutcome) || /[|\n]/.test(journey.honestOutcome)) {
+      errors.push(`${label}.honestOutcome must be one line without a table separator`);
+    }
     if (!ALLOWED_STATUSES.has(journey?.status)) {
       errors.push(`${label}.status must be supported, conditional, limited, or blocked`);
     }
@@ -165,5 +169,81 @@ export async function validateCriticalUserJourneyRegistry(registry, {
     errors.push('releaseEvidence without retainedArtifact must have status not-retained');
   }
 
+  return errors;
+}
+
+// Markdown status tables are projections of the registries, generated between these markers.
+export const JOURNEY_TABLE_START = '<!-- generated:journey-status (npm run build:journeys) -->';
+export const JOURNEY_TABLE_END = '<!-- /generated:journey-status -->';
+const capitalize = (value) => value.charAt(0).toUpperCase() + value.slice(1);
+
+export function renderJourneyStatusTable(registry, { base = null, baseDoc = null } = {}) {
+  const lines = ['| Journey | Status | Honest outcome |', '| --- | --- | --- |',
+    ...registry.journeys.map((journey) => `| ${journey.title} | ${capitalize(journey.status)} | ${journey.honestOutcome} |`)];
+  const inherited = (registry.inheritsJourneyIds || [])
+    .map((id) => base?.journeys?.find((journey) => journey.id === id)?.title || id);
+  if (inherited.length) {
+    lines.push('', `X inherits these ${base?.productName || 'base'} journeys by reference; their status and evidence`
+      + ` stay in the [${base?.productName || 'base'} table](${baseDoc}#current-journey-status), proved on`
+      + ` \`${base?.surface}\`: ${inherited.join('; ')}.`);
+  }
+  return `${JOURNEY_TABLE_START}\n${lines.join('\n')}\n${JOURNEY_TABLE_END}`;
+}
+
+/** Returns the document with its generated table replaced, or null when the markers are missing. */
+export function replaceJourneyStatusTable(markdown, table) {
+  const start = markdown.indexOf(JOURNEY_TABLE_START);
+  const end = markdown.indexOf(JOURNEY_TABLE_END, start);
+  if (start < 0 || end < 0) return null;
+  return markdown.slice(0, start) + table + markdown.slice(end + JOURNEY_TABLE_END.length);
+}
+
+// 'configure-and-awaken-zero' and 'configure-and-awaken-x' name the same journey.
+const journeyStem = (id) => String(id || '').split('-').filter((part) => part !== 'zero' && part !== 'x').join('-');
+const sameText = (left, right) => String(left || '').trim().toLowerCase() === String(right || '').trim().toLowerCase();
+
+/**
+ * X extends Zero's registry: every Zero journey is either inherited by reference or
+ * overridden by an X journey whose status or outcome differs. X never restates one.
+ */
+export function validateJourneyExtension(registry, base) {
+  const errors = [];
+  if (!Array.isArray(base?.journeys)) return ['extends must name a readable base registry'];
+  const baseById = new Map(base.journeys.map((journey) => [journey.id, journey]));
+  const accounted = new Map();
+  const account = (id, by) => {
+    if (!baseById.has(id)) errors.push(`${by} names unknown ${base.productName} journey ${id}`);
+    else if (accounted.has(id)) errors.push(`${base.productName} journey ${id} is claimed by both ${accounted.get(id)} and ${by}`);
+    else accounted.set(id, by);
+  };
+  if (!isStringArray(registry?.inheritsJourneyIds, { empty: true })) {
+    errors.push('inheritsJourneyIds must be a string array');
+  }
+  for (const id of registry?.inheritsJourneyIds || []) account(id, 'inheritsJourneyIds');
+  for (const journey of registry?.journeys || []) {
+    const overrides = journey?.overrides || [];
+    if (!Array.isArray(overrides) || !overrides.every(isNonEmptyString)) {
+      errors.push(`journey ${journey?.id} overrides must be a string array`);
+      continue;
+    }
+    for (const id of overrides) {
+      account(id, `journey ${journey.id}`);
+      const original = baseById.get(id);
+      if (original && original.status === journey.status && sameText(original.outcome, journey.outcome)
+        && sameText(original.honestOutcome, journey.honestOutcome)) {
+        errors.push(`journey ${journey.id} restates ${id} without a different status or outcome`);
+      }
+    }
+    for (const original of base.journeys) {
+      if (overrides.includes(original.id)) continue;
+      if (journeyStem(original.id) === journeyStem(journey.id) || sameText(original.title, journey.title)
+        || sameText(original.outcome, journey.outcome)) {
+        errors.push(`journey ${journey.id} restates ${base.productName} journey ${original.id}; inherit or override it`);
+      }
+    }
+  }
+  for (const id of baseById.keys()) {
+    if (!accounted.has(id)) errors.push(`${base.productName} journey ${id} is neither inherited nor overridden`);
+  }
   return errors;
 }
