@@ -19,7 +19,7 @@
   "counts": {
     "apps/poolday": 357,
     "self": 458,
-    "shared": 2531
+    "shared": 2536
   },
   "pendingMoves": 0,
   "violations": [],
@@ -16036,6 +16036,16 @@
       "owner": "shared"
     },
     {
+      "served": "vendor/reploid/artifacts/custody/weight-supply.d.ts",
+      "source": "shared/vendor/reploid/artifacts/custody/weight-supply.d.ts",
+      "owner": "shared"
+    },
+    {
+      "served": "vendor/reploid/artifacts/custody/weight-supply.js",
+      "source": "shared/vendor/reploid/artifacts/custody/weight-supply.js",
+      "owner": "shared"
+    },
+    {
       "served": "vendor/reploid/artifacts/delivery-attestation.js",
       "source": "shared/vendor/reploid/artifacts/delivery-attestation.js",
       "owner": "shared"
@@ -16488,6 +16498,21 @@
     {
       "served": "vendor/reploid/contracts/pool/peer-planning.d.ts",
       "source": "shared/vendor/reploid/contracts/pool/peer-planning.d.ts",
+      "owner": "shared"
+    },
+    {
+      "served": "vendor/reploid/contracts/weight-supply-policy.json",
+      "source": "shared/vendor/reploid/contracts/weight-supply-policy.json",
+      "owner": "shared"
+    },
+    {
+      "served": "vendor/reploid/contracts/weight-supply.d.ts",
+      "source": "shared/vendor/reploid/contracts/weight-supply.d.ts",
+      "owner": "shared"
+    },
+    {
+      "served": "vendor/reploid/contracts/weight-supply.js",
+      "source": "shared/vendor/reploid/contracts/weight-supply.js",
       "owner": "shared"
     },
     {

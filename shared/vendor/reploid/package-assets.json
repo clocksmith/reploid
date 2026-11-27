@@ -400,13 +400,13 @@
     },
     {
       "path": "artifacts/custody/exchange.d.ts",
-      "bytes": 7071,
-      "sha256": "36886d98ba7d4b88d10655801af86622387fb2675d8edcde594f0ffea6fa479d"
+      "bytes": 8504,
+      "sha256": "eb9d0706d70619d6b73ace4b0de3e9b0cdbbe3cfcad72643b6abc8d924398a59"
     },
     {
       "path": "artifacts/custody/exchange.js",
-      "bytes": 29516,
-      "sha256": "a10cb4a39e9fdde76f053a87a9fa3baeed44c051ae4f8266fd90154dcac5ac70"
+      "bytes": 36412,
+      "sha256": "435fe1950268a5a5454822ee48e64dcd4e21d046a21950a534f9854dbbdceb5f"
     },
     {
       "path": "artifacts/custody/piece-acquisition.d.ts",
@@ -444,14 +444,24 @@
       "sha256": "9b59ab5aacbf1f55e3188d0c7fdfdd24c752df92f7140e43e675eaecd0f62a64"
     },
     {
+      "path": "artifacts/custody/weight-supply.d.ts",
+      "bytes": 2738,
+      "sha256": "1289144276964213f7d1688d5a3de685801653f93d14a800994b2c764175454d"
+    },
+    {
+      "path": "artifacts/custody/weight-supply.js",
+      "bytes": 20165,
+      "sha256": "56856087b12a403cc46af904005ee350d6bcfb87b354b129c05eb2b9e562e257"
+    },
+    {
       "path": "artifacts/custody-certificate.js",
       "bytes": 6059,
       "sha256": "e8c2f8e1480f03cc33b4b0b3ac72b6a0f7bdda6a0db7de7a82e4ffd4f11d5945"
     },
     {
       "path": "artifacts/delivery-attestation.js",
-      "bytes": 2707,
-      "sha256": "842a01c08e31a147ec961e9902b851973359c6125eb4f7fd3c068b135e657aac"
+      "bytes": 3752,
+      "sha256": "e111b1ebd3937961dc394c9f6440b89f22454d58a1ea5412dad86beff7149298"
     },
     {
       "path": "artifacts/event-signature.d.ts",
@@ -902,6 +912,21 @@
       "path": "contracts/pool/peer-planning.d.ts",
       "bytes": 2909,
       "sha256": "548260af49f0508c6dc1cd0d57342bc9267393f57287bf59bb1b4b701e140c81"
+    },
+    {
+      "path": "contracts/weight-supply-policy.json",
+      "bytes": 401,
+      "sha256": "fe0bb0e3f18ff45ce5a7da000792c57618a45298f9a3f8bdc56380780bd086d7"
+    },
+    {
+      "path": "contracts/weight-supply.d.ts",
+      "bytes": 8681,
+      "sha256": "631ea28b23f9208951137e6e380bab204f0d7fa318a51b9724bdb355a9ba0777"
+    },
+    {
+      "path": "contracts/weight-supply.js",
+      "bytes": 28630,
+      "sha256": "5b95fff1d299de572ad1e63ded575f63033d8b615c17c59d19e11743cd4277c3"
     },
     {
       "path": "hashing.d.ts",

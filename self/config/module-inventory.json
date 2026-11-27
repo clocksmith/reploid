@@ -5157,7 +5157,7 @@
     {
       "path": "ui/react/app.js",
       "owner": "ui",
-      "sha256": "sha256:ea4deeaaf3f06601a7f39bd1818ceafc9fcb5d7a7ed2540ab43d3f859e9fe54b",
+      "sha256": "sha256:cf6b00a8254ec6afed88cf85e13bd13d5b2775f62d55fbd064eb80530908ac4e",
       "imports": []
     },
     {
@@ -18384,7 +18384,7 @@
     {
       "path": "vendor/reploid/artifacts/custody/exchange.js",
       "owner": "vendor",
-      "sha256": "sha256:a10cb4a39e9fdde76f053a87a9fa3baeed44c051ae4f8266fd90154dcac5ac70",
+      "sha256": "sha256:435fe1950268a5a5454822ee48e64dcd4e21d046a21950a534f9854dbbdceb5f",
       "imports": [
         "../../cancellation.js",
         "../../contracts/computer-records.js",
@@ -18422,9 +18422,19 @@
       "imports": []
     },
     {
+      "path": "vendor/reploid/artifacts/custody/weight-supply.js",
+      "owner": "vendor",
+      "sha256": "sha256:56856087b12a403cc46af904005ee350d6bcfb87b354b129c05eb2b9e562e257",
+      "imports": [
+        "../../contracts/computer-records.js",
+        "../../contracts/weight-supply.js",
+        "../participant-proofs.js"
+      ]
+    },
+    {
       "path": "vendor/reploid/artifacts/delivery-attestation.js",
       "owner": "vendor",
-      "sha256": "sha256:842a01c08e31a147ec961e9902b851973359c6125eb4f7fd3c068b135e657aac",
+      "sha256": "sha256:e111b1ebd3937961dc394c9f6440b89f22454d58a1ea5412dad86beff7149298",
       "imports": [
         "./signatures.js"
       ]
@@ -18731,6 +18741,16 @@
         "../artifacts/signatures.js",
         "../transport/partition-errors.json",
         "./error.js"
+      ]
+    },
+    {
+      "path": "vendor/reploid/contracts/weight-supply.js",
+      "owner": "vendor",
+      "sha256": "sha256:5b95fff1d299de572ad1e63ded575f63033d8b615c17c59d19e11743cd4277c3",
+      "imports": [
+        "./computer-records.js",
+        "./identifiers.js",
+        "./weight-supply-policy.json"
       ]
     },
     {

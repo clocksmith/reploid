@@ -1,0 +1,25 @@
+{
+  "schema": "reploid.weight-supply-policy/1",
+  "demand": {
+    "windowMs": 600000,
+    "minConsumers": 1
+  },
+  "supply": {
+    "targetCopies": 3
+  },
+  "offer": {
+    "maxPieces": 8,
+    "maxBytes": 67108864,
+    "ttlMs": 600000
+  },
+  "approval": {
+    "ttlMs": 2592000000
+  },
+  "acquisition": {
+    "maxConcurrent": 2
+  },
+  "report": {
+    "maxReplacements": 32,
+    "maxTransfers": 256
+  }
+}

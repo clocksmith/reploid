@@ -1415,8 +1415,8 @@
     },
     {
       "path": "config/module-inventory.json",
-      "byteLength": 687723,
-      "sha256": "sha256:d9b649483029b1e8e781f2601e82410f93752b3aba055f4fa3eaeac724988fd9"
+      "byteLength": 688386,
+      "sha256": "sha256:1a774a8f818b626a6c93343b16b7c3c8fdf12c81643fe6bf0b2935a2cdea599a"
     },
     {
       "path": "config/module-registry.json",
@@ -1510,8 +1510,8 @@
     },
     {
       "path": "config/vfs-manifest.json",
-      "byteLength": 148285,
-      "sha256": "sha256:e81a92af1e65c757dfcda6bd0308160460fc0ab60dcb9bc22adcb4543b8af64c"
+      "byteLength": 148449,
+      "sha256": "sha256:04134108f61fd941bb57493e2a84e792c907b5634b368c9cb1f700f7e4eccf68"
     },
     {
       "path": "config/vfs-policy.js",
@@ -4190,8 +4190,8 @@
     },
     {
       "path": "ui/react/app.js",
-      "byteLength": 3010314,
-      "sha256": "sha256:ea4deeaaf3f06601a7f39bd1818ceafc9fcb5d7a7ed2540ab43d3f859e9fe54b"
+      "byteLength": 3013861,
+      "sha256": "sha256:cf6b00a8254ec6afed88cf85e13bd13d5b2775f62d55fbd064eb80530908ac4e"
     },
     {
       "path": "ui/react/design.js",
@@ -11655,8 +11655,8 @@
     },
     {
       "path": "vendor/reploid/artifacts/custody/exchange.js",
-      "byteLength": 29516,
-      "sha256": "sha256:a10cb4a39e9fdde76f053a87a9fa3baeed44c051ae4f8266fd90154dcac5ac70"
+      "byteLength": 36412,
+      "sha256": "sha256:435fe1950268a5a5454822ee48e64dcd4e21d046a21950a534f9854dbbdceb5f"
     },
     {
       "path": "vendor/reploid/artifacts/custody/piece-acquisition.js",
@@ -11679,9 +11679,14 @@
       "sha256": "sha256:9b59ab5aacbf1f55e3188d0c7fdfdd24c752df92f7140e43e675eaecd0f62a64"
     },
     {
+      "path": "vendor/reploid/artifacts/custody/weight-supply.js",
+      "byteLength": 20165,
+      "sha256": "sha256:56856087b12a403cc46af904005ee350d6bcfb87b354b129c05eb2b9e562e257"
+    },
+    {
       "path": "vendor/reploid/artifacts/delivery-attestation.js",
-      "byteLength": 2707,
-      "sha256": "sha256:842a01c08e31a147ec961e9902b851973359c6125eb4f7fd3c068b135e657aac"
+      "byteLength": 3752,
+      "sha256": "sha256:e111b1ebd3937961dc394c9f6440b89f22454d58a1ea5412dad86beff7149298"
     },
     {
       "path": "vendor/reploid/artifacts/event-signature.js",
@@ -11897,6 +11902,16 @@
       "path": "vendor/reploid/contracts/partition.js",
       "byteLength": 13689,
       "sha256": "sha256:f336b3beb897caf3586ceda5ef8a1f67ad77dee1ca436817101243391cae007b"
+    },
+    {
+      "path": "vendor/reploid/contracts/weight-supply-policy.json",
+      "byteLength": 401,
+      "sha256": "sha256:fe0bb0e3f18ff45ce5a7da000792c57618a45298f9a3f8bdc56380780bd086d7"
+    },
+    {
+      "path": "vendor/reploid/contracts/weight-supply.js",
+      "byteLength": 28630,
+      "sha256": "sha256:5b95fff1d299de572ad1e63ded575f63033d8b615c17c59d19e11743cd4277c3"
     },
     {
       "path": "vendor/reploid/hashing.js",
@@ -12335,8 +12350,8 @@
     },
     {
       "path": "vendor/reploid/package-assets.json",
-      "byteLength": 64975,
-      "sha256": "sha256:1a26a97414b0aeb12dc2b8f15a3ecb1724eceef914bdd354811ed68928e3dd0f"
+      "byteLength": 65810,
+      "sha256": "sha256:fe993f8a0d5c33603e675044051422e6c050402b76cd4a084e559a2879c1cb2b"
     },
     {
       "path": "vendor/reploid/plugins/index.js",
@@ -12629,5 +12644,5 @@
       "sha256": "sha256:abb6c18f6167d6afc8ee1b3adfcbbb89c0e93fb4fc4e98d7a12250f78aab206a"
     }
   ],
-  "bundleHash": "sha256:f8995f3640913e6b1b8a70861d76e7a6f3dc8c08a6d148fb71e1209c1882c295"
+  "bundleHash": "sha256:5d00f085b44e4f56568e63844f7cf3dff3275805a3144e428dfd3d44058f1dcb"
 }

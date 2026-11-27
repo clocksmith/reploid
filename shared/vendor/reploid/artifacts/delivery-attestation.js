@@ -11,7 +11,7 @@
  * verifier share one function. WebCrypto only.
  */
 
-import { sha256Hex, signCanonical } from './signatures.js';
+import { sha256Hex, signCanonical, verifyCanonicalSignature } from './signatures.js';
 
 export const DELIVERY_ATTESTATION_SCHEMA = 'reploid.custody-delivery-attestation/v1';
 
@@ -31,6 +31,21 @@ export async function deliveryAttestationBody({ receipt, attestedAt, hash }) {
 export async function signDeliveryAttestation({ receipt, attestedAt, privateKey, hash }) {
   const body = await deliveryAttestationBody({ receipt, attestedAt, hash });
   return { ...body, signature: await signCanonical(body, privateKey, { domain: DELIVERY_ATTESTATION_SCHEMA }) };
+}
+
+/**
+ * Whether `attestation` is a signature by the custody key `publicKey` (base64 SPKI, the requester key a grant names)
+ * over exactly `receipt`. Malformed input fails closed.
+ */
+export async function verifyDeliveryAttestation({ attestation, receipt, publicKey, hash }) {
+  if (!attestation || typeof attestation !== 'object' || typeof attestation.signature !== 'string' || !receipt || typeof publicKey !== 'string') return false;
+  try {
+    const { signature, ...body } = attestation;
+    const expected = await deliveryAttestationBody({ receipt, attestedAt: body.attestedAt, hash });
+    if (typeof body.attestedAt !== 'string' || JSON.stringify(Object.keys(body).sort()) !== JSON.stringify(Object.keys(expected).sort())
+      || Object.keys(expected).some(key => JSON.stringify(body[key]) !== JSON.stringify(expected[key]))) return false;
+    return await verifyCanonicalSignature(body, publicKey, signature, { domain: DELIVERY_ATTESTATION_SCHEMA });
+  } catch { return false; }
 }
 
 /** One identifier per delivered artifact of one grant; the supplier derives it from its own grant. */
@@ -59,6 +74,7 @@ export default {
   DELIVERY_ATTESTATION_SCHEMA,
   deliveryAttestationBody,
   signDeliveryAttestation,
+  verifyDeliveryAttestation,
   deliveryEvidenceId,
   deliveryEvidenceFromRecord
 };
