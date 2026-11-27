@@ -13,14 +13,21 @@
  * qwen-3-5-0-8b-q4k-ef16-af32-vf16, from its pinned origin, verifies them against its pinned piece index and runs
  * the same scenarios (about 1-2 minutes, network bound). REPLOID_WEIGHT_SUPPLY_EVIDENCE=<file> writes the tables.
  * No GPU: piece transfer only.
+ *
+ * The new peer runs the browser host's wired path (apps/poolday/host/weight-supply-host.js over the shared-file
+ * inventory, as work-swarm.js composes it: recommend, approve with the UI's cap, saved state, served-transfer
+ * forwarding), and every peer talks over the production room transport (tests/fixtures/weight-supply-room.js), so
+ * an unregistered frame type fails these scenarios. The two-peer frame check is weight-supply-transport.test.js.
  */
 import { readFileSync, writeFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { pieceFile, pinnedModelPieces, parseWeightTransfer } from '../../packages/reploid/src/contracts/weight-supply.js';
-import { createWeightSupply, weightTransferFromDelivery } from '../../packages/reploid/src/artifacts/custody/weight-supply.js';
+import { weightTransferFromDelivery } from '../../packages/reploid/src/artifacts/custody/weight-supply.js';
+import { createSharedFileInventory } from '../../packages/reploid/src/artifacts/custody/shared-inventory.js';
+import { createHostWeightSupply, createMemoryWeightSupplyRecords } from '../../apps/poolday/host/weight-supply-host.js';
 import { createPieceAcquisition } from '../../packages/reploid/src/artifacts/custody/piece-acquisition.js';
 import { WEIGHT_SUPPLY_POLICY } from '../../packages/reploid/src/contracts/weight-supply.js';
-import { createRoom, sha256Hex, syntheticModel } from '../fixtures/weight-supply-room.js';
+import { ROOM_POLICY, createRoom, sha256Hex, syntheticModel } from '../fixtures/weight-supply-room.js';
 
 const REAL = process.env.REPLOID_WEIGHT_SUPPLY_REAL_MODEL === '1';
 const REAL_MODEL_ID = 'qwen-3-5-0-8b-q4k-ef16-af32-vf16';
@@ -100,25 +107,33 @@ async function load(consumer, peers) {
     elapsedMs, table, transfers };
 }
 
-/** The new empty-cache peer: recommendation, approval within `capBytes`, acquisition; returns its service and timing. */
+/**
+ * The new empty-cache peer on the browser host's wired path: recommendation, approval within `capBytes`, acquisition.
+ * `supply` reads the host's projection and served-transfer records (the same weight-supply records the service keeps).
+ */
 async function newSupplier(room, capBytes) {
-  let supply;
-  const peer = await room.join('new-peer', { observeServed: event => supply.recordServed(event) });
-  supply = createWeightSupply({ identity: peer.identity, connectionId: peer.id, exchange: peer.exchange, models: [pinned], store: peer.store,
-    ports: { hashBytes: sha256Hex } });
+  let host;
+  const peer = await room.join('new-peer', { observeServed: event => host.recordServed(event) });
+  const inventory = createSharedFileInventory({ exchange: peer.exchange, maxFiles: ROOM_POLICY.maxInventoryFiles });
+  host = createHostWeightSupply({ identity: peer.identity, connectionId: peer.id, exchange: peer.exchange, inventory, store: peer.store,
+    records: createMemoryWeightSupplyRecords(), loadModels: async () => [pinned], ports: { hashBytes: sha256Hex } });
+  // Joining opts nothing in: no saved state, no offer.
+  expect(await host.start()).toMatchObject({ approval: 'none' });
+  expect(host.localOffer({ chosen: false })).toBeNull();
+  const supply = { getWeightSupplyReport: () => host.getState(), getServedTransfers: () => host.getState().transfers };
   // What the mesh already has: the source's offer and the consumer's announced demand.
   await until(() => peer.exchange.getState().demand.length > 0 && peer.exchange.getState().offers.length > 0);
-  const recommendation = await supply.recommendWeightSupply({ storageCapBytes: capBytes, deviceLimits: { freeStorageBytes: 1 << 30 } });
+  const recommendation = await host.recommend({ storageCapBytes: capBytes, deviceLimits: { freeStorageBytes: 1 << 30 } });
   expect(recommendation.cached).toEqual([]);
   expect(recommendation.offer, 'an empty cache is offered under-supplied pieces').not.toBeNull();
   const started = performance.now();
-  await supply.approveWeightSupply({ offerId: recommendation.offer.offerId, storageCapBytes: capBytes });
-  await supply.whenIdle();
+  await host.approve({ offerId: recommendation.offer.offerId, storageCapBytes: capBytes });
+  await host.whenIdle();
   const report = supply.getWeightSupplyReport();
   expect(report.pieces.every(piece => piece.state === 'verified')).toBe(true);
   expect(report.verifiedBytes).toBe(recommendation.offer.totalDownloadBytes);
   expect(report.servedBytes, 'Ready is not served').toBe(0);
-  return { peer, supply, recommendation, acquisitionMs: Math.round(performance.now() - started) };
+  return { peer, supply, host, recommendation, acquisitionMs: Math.round(performance.now() - started) };
 }
 
 async function seedSource(room, { throttleMsPerChunk = 0, pieces = loadSet } = {}) {
