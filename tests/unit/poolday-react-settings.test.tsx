@@ -10,7 +10,7 @@ import { ConversationDetailsPanel } from '../../apps/poolday-react/src/features/
 import { createDetailsServices } from '../../apps/poolday-react/src/features/details/infrastructure/hostDetails';
 import { createSettingsServices } from '../../apps/poolday-react/src/features/settings/infrastructure/hostSettings';
 import {
-  fileSharingRequest, projectCreditAccount, projectFileSharing, projectRoutePreference, projectSignIn, projectWebSearch, remoteAnswersText,
+  changesAwaitingReview, fileSharingRequest, projectCreditAccount, projectFileSharing, projectRoutePreference, projectSignIn, projectWebSearch, remoteAnswersText,
 } from '../../apps/poolday/host/decisions/settings.js';
 import { projectConversationDetails } from '../../apps/poolday/host/decisions/conversation-details.js';
 
@@ -72,6 +72,11 @@ describe('Settings decisions keep the vanilla wording', () => {
     expect(fileSharingRequest({ network: {} }, { modelId: 'a', mode: 'bounded-acquisition', allowance: '64' }))
       .toMatchObject({ enable: true, cachedOnly: false, modelId: 'a', controls: { mode: 'bounded-acquisition', downloadBytes: 64 * 1048576 } });
     expect(fileSharingRequest({ network: { files: { enabled: true } } }, { modelId: 'a', mode: 'cached-only', allowance: null }).enable).toBe(false);
+  });
+
+  it('counts only the changes that wait for approval', () => {
+    expect(changesAwaitingReview([{ status: 'awaiting-approval' }, { status: 'adopted' }, { status: 'awaiting-approval' }, {}])).toBe(2);
+    expect(changesAwaitingReview(null)).toBe(0);
   });
 
   it('words credits, sign-in and web search as the vanilla panels do', () => {

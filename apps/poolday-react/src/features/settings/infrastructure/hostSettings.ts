@@ -170,7 +170,7 @@ function changesStore(opened: Opened, host: Host): Store<number> {
       void host.evolution?.list().then(
         (candidates) => {
           if (current !== revision) return;
-          count = candidates.filter((item) => item.status === 'awaiting-approval').length;
+          count = settings.changesAwaitingReview(candidates);
           changed();
         },
         (error: unknown) => console.warn('[Reploid] Could not read changes awaiting review', error),

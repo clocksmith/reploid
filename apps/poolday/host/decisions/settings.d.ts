@@ -85,6 +85,7 @@ export function fileSharingStatus(network?: object): string;
 export function projectFileSharing(state: State, selection?: Partial<FileSharingSelection>): FileSharingView;
 export function fileSharingRequest(state: State, selection: FileSharingSelection): FileSharingRequest;
 export function remoteAnswersText(state: State): string;
+export function changesAwaitingReview(candidates: ReadonlyArray<{ readonly status?: string }> | null | undefined): number;
 export function projectWebSearch(state: WebSearchState, search: SearchStatus | null | undefined): WebSearchView;
 export function projectCreditAccount(state: State): CreditAccountView;
 export function projectSignIn(state: State): SignInView;

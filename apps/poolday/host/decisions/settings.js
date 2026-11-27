@@ -93,6 +93,9 @@ export function fileSharingRequest(state, selection) {
     controls: { mode, ...(mode !== 'cached-only' ? { downloadBytes: Number(selection.allowance) * 1048576 } : {}) } };
 }
 
+/** How many self-improvement candidates wait for the person's approval (the Changes link's count). */
+export const changesAwaitingReview = candidates => (candidates || []).filter(item => item?.status === 'awaiting-approval').length;
+
 /** "Allow network answers": on or off and what it means. */
 export function remoteAnswersText(state) {
   return state.remoteAnswersEnabled === true
