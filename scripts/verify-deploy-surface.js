@@ -4,7 +4,8 @@
  * Fails when the deployed hosting surface differs from the local tree:
  * - served index.html build version must match local REPLOID_BUILD_VERSION;
  * - served Poolday route modules and styles must hash-match the local files;
- * - product routes must lay out clear of navigation in either layout orientation.
+ * - product routes must open the React shell's frame for that route, with its navigation bar and
+ *   main column clear of each other in either layout orientation.
  * Screenshots for each checked route are written to artifacts/deploy-surface.
  */
 import { createHash } from 'node:crypto';
@@ -13,8 +14,15 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
 import { rectanglesOverlap } from './deploy-surface-layout.js';
-import { consoleFailure, httpResponseFailure } from './deploy-surface-diagnostics.js';
+import {
+  consoleFailure,
+  httpResponseFailure,
+  isTurnCredentialRequest,
+  selfInflictedTurnRefusal,
+  turnBudgetWaitMs
+} from './deploy-surface-diagnostics.js';
 import { openBrowserTree, resolveServedFile } from '../server/browser-tree.js';
+import turnPolicy from '../server/cloudflare/policy.json' with { type: 'json' };
 
 const __filename = fileURLToPath(import.meta.url);
 const repoRoot = path.resolve(path.dirname(__filename), '..');
@@ -56,8 +64,18 @@ const POOLDAY_MODULE_FILES = [
   'pool/peer-room.js',
   'pool/retry-policy.js'
 ];
-const LAYOUT_ROUTES = ['/ask', '/compute', '/records', '/room-1'];
-const SCREENSHOT_ROUTES = ['/', ...LAYOUT_ROUTES];
+const LAYOUT_ROUTES = ['/', '/ask', '/compute', '/records', '/room-1'];
+const SCREENSHOT_ROUTES = LAYOUT_ROUTES;
+// The React shell (apps/poolday-react) frames every route in one @reploid/poolday-ui Workspace: the
+// conversation workspace at / and a page of its own, marked with its name, everywhere else. Its
+// navigation bar and main column are the frame's <nav> and <main> landmarks.
+const frameSelector = (route) => (route === '/'
+  ? '[data-react-shell] [data-chat-workspace]'
+  : `[data-react-shell] [data-route-page="${route.slice(1)}"]`);
+// Room for this many TURN credential requests per page load: the load's own and one renewal.
+const TURN_REQUESTS_PER_LOAD = 2;
+// Clock skew between this machine and the Worker's admission window.
+const TURN_WINDOW_MARGIN_MS = 1000;
 const VIEWPORTS = [
   { label: 'desktop', width: 1440, height: 900 },
   { label: 'mobile', width: 390, height: 844 }
@@ -127,6 +145,18 @@ const checkRouteLayout = async () => {
   // Route checks represent navigation by one visitor, not a burst of new
   // anonymous Firebase accounts for every viewport and retry.
   const context = await browser.newContext();
+  // Every page load asks the signaling Worker for TURN credentials; pace loads inside its per-visitor budget.
+  const turnRequests = [], turnAdmitted = [];
+  context.on('request', (request) => { if (isTurnCredentialRequest(request.url())) turnRequests.push(Date.now()); });
+  context.on('response', (response) => {
+    if (isTurnCredentialRequest(response.url()) && response.ok()) turnAdmitted.push(Date.now());
+  });
+  const paceTurnBudget = async (label) => {
+    const waitMs = turnBudgetWaitMs(turnRequests, Date.now(), turnPolicy, TURN_REQUESTS_PER_LOAD);
+    if (!waitMs) return;
+    console.log(`[deploy-surface] ${label}: waiting ${Math.ceil((waitMs + TURN_WINDOW_MARGIN_MS) / 1000)} s for the TURN credential budget (${turnPolicy.turnPerSubject} per ${turnPolicy.turnWindowMs / 1000} s per visitor)`);
+    await new Promise((resolve) => setTimeout(resolve, waitMs + TURN_WINDOW_MARGIN_MS));
+  };
   try {
     for (const { route, viewport } of SCREENSHOT_ROUTES.flatMap((route) =>
       VIEWPORTS.map((viewport) => ({ route, viewport })))) {
@@ -141,6 +171,15 @@ const checkRouteLayout = async () => {
         page.on('response', (response) => {
           if (response.status() < 400) return;
           // This check's own page loads share one visitor's rate budget; a refusal says when to retry.
+          if (response.status() === 429 && isTurnCredentialRequest(response.url())
+            && selfInflictedTurnRefusal(turnAdmitted, Date.now(), turnPolicy)) {
+            // Only reachable if pacing undercounts: this visitor alone spent its budget, so the refusal
+            // is this check's doing, not the deployment's. Wait it out and load the route again.
+            diagnostics.add(`TURN credentials refused after this check's own ${turnPolicy.turnPerSubject} admitted requests in ${turnPolicy.turnWindowMs / 1000} s`);
+            retryAfterMs = Math.max(retryAfterMs, turnPolicy.turnWindowMs);
+            browserIssues.push('self-inflicted TURN refusal; retrying after the window');
+            return;
+          }
           if (response.status() === 429) {
             const seconds = Number(response.headers()['retry-after']);
             retryAfterMs = Math.max(retryAfterMs, Math.min(60000, Number.isFinite(seconds) && seconds > 0 ? seconds * 1000 : 10000));
@@ -165,8 +204,9 @@ const checkRouteLayout = async () => {
           }
         });
         try {
+          await paceTurnBudget(`${route} (${viewport.label})`);
           await page.goto(`${baseUrl}${route}`, { waitUntil: 'domcontentloaded', timeout: 45000 });
-          await page.waitForSelector('.pool-home', { timeout: 20000 });
+          await page.waitForSelector(`${frameSelector(route)} > main`, { timeout: 20000 });
           await page.waitForTimeout(1500);
           for (const diagnostic of diagnostics) console.log(`[deploy-surface] ${route} (${viewport.label}) diagnostic: ${diagnostic}`);
           if (browserIssues.length) {
@@ -175,12 +215,12 @@ const checkRouteLayout = async () => {
           const name = `${route === '/' ? 'home' : route.slice(1)}${viewport.label === 'mobile' ? '-mobile' : ''}`;
           await page.screenshot({ path: path.join(screenshotDir, `${name}.png`) });
           if (LAYOUT_ROUTES.includes(route)) {
-            const probe = await page.evaluate(async () => {
-              const main = document.querySelector('.pool-home');
-              const rail = document.querySelector('.pool-nav-rail');
-              const shell = document.querySelector('.pool-route-shell');
-              if (!main || !rail || !shell) {
-                return { missing: [!main && '.pool-home', !rail && '.pool-nav-rail', !shell && '.pool-route-shell'].filter(Boolean) };
+            const probe = await page.evaluate(async (selector) => {
+              const frame = document.querySelector(selector);
+              const rail = frame?.querySelector(':scope > nav');
+              const shell = frame?.querySelector(':scope > main');
+              if (!frame || !rail || !shell) {
+                return { missing: [!frame && selector, !rail && `${selector} > nav`, !shell && `${selector} > main`].filter(Boolean) };
               }
               let railRect = rail.getBoundingClientRect();
               // The mobile dock intentionally overlays a scrolling document.
@@ -197,13 +237,13 @@ const checkRouteLayout = async () => {
                 navigation: { left: railRect.left, right: railRect.right, top: railRect.top, bottom: railRect.bottom },
                 content: { left: shellRect.left, right: shellRect.right, top: shellRect.top, bottom: shellRect.bottom }
               };
-            });
+            }, frameSelector(route));
             if (probe.missing.length) {
               throw new Error(`missing ${probe.missing.join(', ')}`);
             }
             if (rectanglesOverlap(probe.navigation, probe.content)) {
               throw new Error(
-                `route shell ${JSON.stringify(probe.content)} overlaps navigation ${JSON.stringify(probe.navigation)}`
+                `main column ${JSON.stringify(probe.content)} overlaps navigation ${JSON.stringify(probe.navigation)}`
               );
             }
           }
