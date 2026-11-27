@@ -1426,7 +1426,7 @@
     {
       "path": "config/module-inventory.json",
       "byteLength": 690632,
-      "sha256": "sha256:e72c3c7ae93dc85a4b5f7c30c38e83aa313346af9923cf9304191cdd8b2b00d0"
+      "sha256": "sha256:318f313fe6e3eb81a200967ba88b0db590cb9e94cc977ccd0aa7653bd34c5322"
     },
     {
       "path": "config/module-registry.json",
@@ -1510,8 +1510,8 @@
     },
     {
       "path": "config/swarm-bootstrap.json",
-      "byteLength": 1018,
-      "sha256": "sha256:11b4197f8dd8ca0aca5317296631fd345f0af8c5de91f844bb1a5bc0237112dc"
+      "byteLength": 1067,
+      "sha256": "sha256:40d35b2576a1c5a469bf5a8b43efcdb6313bd3e96556f738cb88302e97e31cdc"
     },
     {
       "path": "config/tool-surfaces.js",
@@ -4205,13 +4205,13 @@
     },
     {
       "path": "ui/react/app.js",
-      "byteLength": 3061805,
-      "sha256": "sha256:614d955498b65de0e42d7c43358fee7ed050f6e74b3a5f7b62a1a1a192143a6d"
+      "byteLength": 3061853,
+      "sha256": "sha256:c2e741b6cc0a3fbee636e90a14217e38476438b1e9aa47599bada74efd2011f5"
     },
     {
       "path": "ui/react/design.js",
-      "byteLength": 2108637,
-      "sha256": "sha256:66075deef16860cef03cd90b0f67289dd7cca9757f075f9768c083e3f4b33265"
+      "byteLength": 2108685,
+      "sha256": "sha256:5e4542ddc4e9eb7578013e254e60ee04a67168ee6135c3f0ec32789a941a0f64"
     },
     {
       "path": "ui/reploid-home/index.js",
@@ -12669,5 +12669,5 @@
       "sha256": "sha256:abb6c18f6167d6afc8ee1b3adfcbbb89c0e93fb4fc4e98d7a12250f78aab206a"
     }
   ],
-  "bundleHash": "sha256:def49942debb72d17e0a1e2a9222a2e3389f0fa93c8078d4e8e87eecb2a438f7"
+  "bundleHash": "sha256:3d32747dd116617b3595b33ac8dac019975e97c9c7eb22efdd60a3fa22f3b273"
 }
