@@ -1,6 +1,6 @@
 import { useId } from 'react';
 import {
-  Button, FilePicker, Grow, IconButton, InputGroup, Progress, Row, SelectorButton, Stack, StatusLine, Text, TextArea, Toolbar,
+  Button, FilePicker, IconButton, InputGroup, Notice, Progress, Row, SelectorButton, Stack, StatusLine, Text, TextArea, Toolbar,
 } from '@reploid/poolday-ui';
 import type { ComposerView, ConversationCommands, NextAction } from '../domain/conversation';
 import { conversation as t } from '../../../l10n/conversation';
@@ -53,6 +53,7 @@ export function ComposerBar({
   const statusText = composer.status.text || acquisition.text;
   const showProgress = !composer.status.text && acquisition.progress !== null;
   const showStatus = !!statusText || showProgress || composer.nextAction !== null;
+  const showDisclosure = composer.disclosure !== '' && chip.executionSource !== 'local';
   const compactPicker = chip.caption || chip.availability !== 'ready' || composer.route.status === 'queued';
   // Send says what one press does: send now, wait for a computer (up to 30 s), ask where to run, or nothing.
   const sendMode = composer.send.disabled ? 'none' : composer.send.mode;
@@ -60,26 +61,28 @@ export function ComposerBar({
   return (
     <Stack gap="sm">
       {showStatus && (
-        <Row gap="sm" wrap={false} data={{ 'data-composer-status-row': true }}>
-          {statusText && (
-            <Grow>
-              <StatusLine id={statusId} data={composer.status.text ? { 'data-model-status': true } : { 'data-acquisition-status': true }}>
-                {statusText}
-              </StatusLine>
-            </Grow>
+        <Stack gap="xs" data={{ 'data-composer-status-row': true }}>
+          {(statusText || composer.nextAction) && (
+            <Notice
+              tone={showProgress ? 'pending' : 'neutral'}
+              action={composer.nextAction ? <NextActionButton action={composer.nextAction} composer={composer} commands={commands} /> : undefined}
+            >
+              {statusText ? (
+                <Text as="span" variant="small" id={statusId} data={composer.status.text ? { 'data-model-status': true } : { 'data-acquisition-status': true }}>
+                  {statusText}
+                </Text>
+              ) : null}
+            </Notice>
           )}
           {showProgress && acquisition.progress && (
-            <Grow>
-              <Progress
-                label={t.modelDownload}
-                value={acquisition.progress.value ?? undefined}
-                max={acquisition.progress.max ?? undefined}
-                data={{ 'data-acquisition-progress': true }}
-              />
-            </Grow>
+            <Progress
+              label={t.modelDownload}
+              value={acquisition.progress.value ?? undefined}
+              max={acquisition.progress.max ?? undefined}
+              data={{ 'data-acquisition-progress': true }}
+            />
           )}
-          {composer.nextAction && <NextActionButton action={composer.nextAction} composer={composer} commands={commands} />}
-        </Row>
+        </Stack>
       )}
       {composer.executionSettingsReset && (
         <Text variant="small" muted data={{ 'data-execution-settings-reset': true }}>
@@ -91,7 +94,7 @@ export function ComposerBar({
           {composer.attachmentHelpText}
         </Text>
       )}
-      {composer.disclosure !== '' && (
+      {showDisclosure && (
         <StatusLine id={disclosureId} data={{ 'data-prompt-disclosure': true }}>
           {composer.disclosure}
         </StatusLine>
@@ -114,7 +117,7 @@ export function ComposerBar({
           onChange={commands.setDraft}
           onSubmit={commands.send}
           focusSignal={focusSignal}
-          describedBy={[composer.disclosure && disclosureId, statusText && statusId].filter(Boolean).join(' ') || undefined}
+          describedBy={[showDisclosure && disclosureId, statusText && statusId].filter(Boolean).join(' ') || undefined}
           data={{ 'data-composer-input': true }}
         />
         <Toolbar compact data={{ 'data-composer-toolbar': true }}>
@@ -176,7 +179,7 @@ export function ComposerBar({
               variant={sendMode === 'dispatch' ? 'primary' : 'quiet'}
               label={sendLabel}
               icon="send"
-              describedBy={[composer.disclosure && disclosureId, statusText && statusId].filter(Boolean).join(' ') || undefined}
+              describedBy={[showDisclosure && disclosureId, statusText && statusId].filter(Boolean).join(' ') || undefined}
               onPress={sendMode === 'none' ? undefined : commands.send}
               data={{ 'data-composer-send': true, 'data-send-mode': sendMode }}
             />

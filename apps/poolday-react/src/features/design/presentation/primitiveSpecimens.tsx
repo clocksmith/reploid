@@ -59,11 +59,7 @@ import {
   TokenSwatch,
   VisuallyHidden,
   Wordmark,
-  PanelHeader,
-  SummaryStrip,
-  ControlRow,
   DetailSheet,
-  InlineAlert,
   EmptyState,
   ICON_NAMES,
 } from '@reploid/poolday-ui';
@@ -609,26 +605,6 @@ const SPECIMENS: Record<string, () => ReactNode> = {
       {(open) => <Button icon="upload" label="Import data" onPress={open} />}
     </FilePicker>
   ),
-  PanelHeader: () => (
-    <PanelHeader
-      title="This computer"
-      summary="Share idle GPU time when this tab is open."
-      action={<Button variant="quiet" label="Refresh" onPress={() => undefined} />}
-    />
-  ),
-  SummaryStrip: () => (
-    <SummaryStrip
-      tone="ready"
-      status="Ready"
-      items={[['Offers', '2'], ['Supplied', '14.2k tok'], ['Consumed', '3.1k tok']]}
-    />
-  ),
-  ControlRow: () => (
-    <List>
-      <ControlRow title="Model files" status="Shared from local cache" icon="model" control={<Badge tone="ready">Active</Badge>} />
-      <ControlRow title="GPU diagnostic" status="Baseline saved" onPress={() => undefined} />
-    </List>
-  ),
   DetailSheet: () => (
     <List>
       <DetailSheet title="Manual pairing" status="Enter host ID and code" closeLabel="Close">
@@ -638,14 +614,6 @@ const SPECIMENS: Record<string, () => ReactNode> = {
         </Stack>
       </DetailSheet>
     </List>
-  ),
-  InlineAlert: () => (
-    <Stack gap="sm">
-      <InlineAlert tone="pending">Checking local weights…</InlineAlert>
-      <InlineAlert tone="error" action={<Button variant="quiet" label="Retry" onPress={() => undefined} />}>
-        Could not reach the desktop host.
-      </InlineAlert>
-    </Stack>
   ),
   EmptyState: () => (
     <EmptyState

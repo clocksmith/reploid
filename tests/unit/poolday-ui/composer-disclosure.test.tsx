@@ -9,27 +9,27 @@ import { ComposerBar } from '../../../apps/poolday-react/src/features/chat/prese
 afterEach(cleanup);
 
 const commands = new Proxy({}, { get: () => () => undefined }) as ConversationCommands;
-const contributors = { ...localComposer.chip, source: 'Contributors', name: 'Gemma 27B', label: 'Answer on Contributors · Gemma 27B, Ready' };
+const contributors = { ...localComposer.chip, source: 'Contributors', name: 'Gemma 27B', executionSource: 'network' as const, label: 'Answer on Contributors · Gemma 27B, Ready' };
 
-// Each route as the host's conversation controller words it (apps/poolday/host/decisions/conversation-controller.js).
-const routes: ReadonlyArray<readonly [route: string, view: ComposerView]> = [
+// Each remote route as the host's conversation controller words it (apps/poolday/host/decisions/conversation-controller.js).
+const remoteRoutes: ReadonlyArray<readonly [route: string, view: ComposerView]> = [
   ['public contributors', { ...localComposer, chip: contributors, status: { text: '' }, disclosure: 'The answering computer can read your prompt.' }],
   ['private computers', { ...localComposer, chip: { ...contributors, source: 'Your private computers' },
     status: { text: 'This answer costs at most 48 service credits.' }, disclosure: 'The answering computer can read your prompt.' }],
   ['a split route', { ...localComposer, chip: contributors, status: { text: '' }, disclosure: 'Computers on this route can read the input for their own stages.' }],
-  ['this device', { ...localComposer, disclosure: 'Nothing leaves this device.' }],
 ];
+const localRoute: ComposerView = { ...localComposer, disclosure: 'Nothing leaves this device.' };
 
 const mount = (view: ComposerView) => render(<ComposerBar composer={view} commands={commands} focusSignal={0} answerOnFocus={0} />);
-const disclosure = () => document.querySelector('[data-prompt-disclosure]') as HTMLElement;
+const disclosure = () => document.querySelector('[data-prompt-disclosure]') as HTMLElement | null;
 /** Shown to a sighted person: not screen-reader-only text, not hidden, and not removed from the accessibility tree. */
 const shown = (node: Element) => !node.closest('.pool-visually-hidden, [hidden], [aria-hidden="true"]');
 
 describe('ComposerBar prompt disclosure', () => {
-  for (const [route, view] of routes) {
+  for (const [route, view] of remoteRoutes) {
     it(`shows who can read the prompt before Send on ${route}`, () => {
       mount(view);
-      const line = disclosure();
+      const line = disclosure()!;
       expect(line.textContent).toBe(view.disclosure);
       expect(shown(line)).toBe(true);
       // The sentence is on the page once: the visible line is also the one assistive technology reads.
@@ -43,10 +43,16 @@ describe('ComposerBar prompt disclosure', () => {
     });
   }
 
+  it('omits the composer disclosure line when running locally on this device', () => {
+    mount({ ...localRoute, status: { text: '' } });
+    expect(disclosure()).toBeNull();
+    expect(screen.getByRole('textbox', { name: 'Message' }).getAttribute('aria-describedby')).toBeNull();
+  });
+
   it('gives a queued draft one status and one action without hiding the disclosure', () => {
     mount({
-      ...routes[0]![1],
-      route: { ...routes[0]![1].route, status: 'queued', send: 'none' },
+      ...remoteRoutes[0]![1],
+      route: { ...remoteRoutes[0]![1].route, status: 'queued', send: 'none' },
       status: { text: 'Waiting for a computer.' },
       acquisition: { text: 'Checking model files.', progress: { value: 1, max: 2 } },
       nextAction: 'cancel-queued',
@@ -60,15 +66,16 @@ describe('ComposerBar prompt disclosure', () => {
     expect(document.querySelector('[data-optional-download]')).toBeNull();
     expect(document.querySelector('[data-composer-model-source]')).toBeNull();
     expect(document.querySelector('[data-open-privacy]')?.textContent).not.toContain('Standard');
-    expect(shown(disclosure())).toBe(true);
+    expect(shown(disclosure()!)).toBe(true);
   });
 
-  it('follows the selection: the line changes with the route', () => {
-    const { rerender } = mount(routes[3]![1]);
-    expect(disclosure().textContent).toBe('Nothing leaves this device.');
-    rerender(<ComposerBar composer={routes[0]![1]} commands={commands} focusSignal={0} answerOnFocus={0} />);
-    expect(disclosure().textContent).toBe('The answering computer can read your prompt.');
-    expect(shown(disclosure())).toBe(true);
-    expect(screen.getByRole('textbox', { name: 'Message' }).getAttribute('aria-describedby')).toBe(disclosure().id);
+  it('follows the selection: shows the disclosure when switching from local to contributors', () => {
+    const { rerender } = mount(localRoute);
+    expect(disclosure()).toBeNull();
+    rerender(<ComposerBar composer={remoteRoutes[0]![1]} commands={commands} focusSignal={0} answerOnFocus={0} />);
+    const line = disclosure()!;
+    expect(line.textContent).toBe('The answering computer can read your prompt.');
+    expect(shown(line)).toBe(true);
+    expect(screen.getByRole('textbox', { name: 'Message' }).getAttribute('aria-describedby')).toBe(line.id);
   });
 });

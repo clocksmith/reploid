@@ -45,5 +45,5 @@ export type DesignIndex = {
 /** Token groups in reading order: scales, then the semantic values each theme maps. */
 export const TOKEN_GROUP_ORDER: ReadonlyArray<string> = [
   'size', 'space', 'radius', 'border', 'font', 'text', 'leading', 'weight', 'tracking', 'alpha', 'duration', 'ease', 'z',
-  'color', 'surface', 'shadow', 'other',
+  'color', 'surface', 'shadow', 'prism', 'other',
 ];

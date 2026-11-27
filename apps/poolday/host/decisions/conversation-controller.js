@@ -646,7 +646,7 @@ export function createConversationController(session, {
       else if (blocked) statusText = `${OWN_DESKTOP_TITLE} is offline. Open Reploid on ${OWN_DESKTOP}.`;
       else if (freshVisitor && phase === 'searching') statusText = 'Finding computers…';
       else if (location === 'local') statusText = state.localModel?.error || state.localDownloadIssue
-        || (publicCanAnswer ? 'Not on this device. A public computer can answer.' : 'Model unavailable here.');
+        || (publicCanAnswer ? 'Not on this device. A public computer can answer.' : 'Model not downloaded yet.');
       else if (phase === 'paused') statusText = 'Network paused.';
       else if (phase === 'interrupted') statusText = 'Connection interrupted.';
       else if (phase === 'searching') statusText = 'Finding computers…';
@@ -749,7 +749,7 @@ export function createConversationController(session, {
       nextLabels: {
         join: invite ? `Join ${describeCircleHost(invite.hostLabel, invite.hostPeerId).hostLabel}` : 'Join',
         reviewShared: shared ? `Review ${modelVariantLabel(shared)}` : '',
-        downloadLocal: ['failed', 'cancelled'].includes(acquisition?.phase) ? 'Retry download' : 'Review local download',
+        downloadLocal: ['failed', 'cancelled'].includes(acquisition?.phase) ? 'Retry download' : 'Download model',
         retry: phase === 'observed' ? 'Search again' : phase === 'paused' ? 'Reconnect' : 'Retry connection',
         retryPending: !!retryPending
       },

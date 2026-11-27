@@ -20,7 +20,7 @@ export const composer: ComposerView = {
   acquisition: { text: '', progress: null },
   nextAction: null,
   optionalAction: null,
-  nextLabels: { join: 'Join', reviewShared: '', downloadLocal: 'Review local download', retry: 'Retry connection', retryPending: false },
+  nextLabels: { join: 'Join', reviewShared: '', downloadLocal: 'Download model', retry: 'Retry connection', retryPending: false },
   disclosure: 'Nothing leaves this device.',
   routeAlternatives: [],
   executionSettingsReset: false,

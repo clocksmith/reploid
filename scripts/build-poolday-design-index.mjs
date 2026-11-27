@@ -29,7 +29,7 @@ export const PRIMITIVE_ORDER = [
   'Field', 'RangeField', 'FilePicker', 'TextArea', 'InputGroup', 'Toggle', 'SingleChoice', 'MultiChoice', 'ListItem', 'List', 'Section',
   'Disclosure', 'Notice', 'MessageText', 'MessageRow', 'Transcript', 'ConversationLayout', 'ThreadItem', 'Navigator', 'SidebarLayout',
   'BarButton', 'BrandLink', 'WorkspaceBar', 'Drawer', 'Workspace', 'Dialog', 'Sheet',
-  'PanelHeader', 'SummaryStrip', 'ControlRow', 'DetailSheet', 'InlineAlert', 'EmptyState', 'TokenSwatch',
+  'DetailSheet', 'EmptyState', 'TokenSwatch',
 ];
 /** Small pieces first, whole screens last. */
 export const COMPOSITION_ORDER = [
@@ -81,7 +81,7 @@ function tokenKind(name, value) {
   if (/shadow/.test(name)) return 'shadow';
   if (/^--pool-surface-backdrop$/.test(name)) return 'none';
   if (/gradient\(|url\(/.test(value) || /^--pool-surface-/.test(name)) return 'image';
-  if (/^--pool-color-/.test(name) && !/^--pool-color-.*-(x|y)$/.test(name)) return 'color';
+  if ((/^--pool-color-/.test(name) && !/^--pool-color-.*-(x|y)$/.test(name)) || /^(#|rgba?\(|hsla?\(|oklch\(|color-mix\()/i.test(value)) return 'color';
   if (/^-?[\d.]+px$/.test(value) || /^--pool-(size|space)-/.test(name)) return 'length';
   return 'none';
 }
@@ -89,7 +89,7 @@ function tokenKind(name, value) {
 const groupOf = (name) => {
   const rest = name.replace(/^--pool-/, '');
   const known = ['alpha', 'size', 'radius', 'border', 'text', 'leading', 'weight', 'tracking', 'font', 'duration', 'ease',
-    'z', 'color', 'surface', 'shadow', 'space'];
+    'z', 'color', 'surface', 'shadow', 'prism', 'space'];
   return known.find((prefix) => rest === prefix || rest.startsWith(`${prefix}-`)) ?? 'other';
 };
 

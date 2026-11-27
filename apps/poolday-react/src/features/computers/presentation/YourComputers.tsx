@@ -6,9 +6,9 @@ import {
   EmptyState,
   Facts,
   Field,
-  InlineAlert,
   List,
   ListItem,
+  Notice,
   Row,
   Section,
   Stack,
@@ -206,9 +206,9 @@ function PrivateComputers({ view, services }: { readonly view: Extract<PrivateCo
           <Button variant="quiet" label={t.private.disconnect} onPress={pending ? undefined : () => act(() => services.privateComputers.disconnect())} data={{ 'data-private-disconnect': true }} />
         </Row>
       )}
-      <InlineAlert tone="error" data={{ 'data-private-error': true }}>
+      <Notice tone="error" data={{ 'data-private-error': true }}>
         {error || view.error || null}
-      </InlineAlert>
+      </Notice>
     </>
   );
 }

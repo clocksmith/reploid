@@ -225,6 +225,19 @@ const session = createChatSession({
   },
 });
 
+const rawGetState = session.getState.bind(session);
+const withMockModels = (state) => ({
+  ...state,
+  models: (state.models || []).map((model, index) => ({
+    ...model,
+    localCached: index === 0,
+    networkAvailability: index < 2 ? 'ready' : 'busy',
+  })),
+});
+session.getState = () => withMockModels(rawGetState());
+const rawSubscribe = session.subscribe.bind(session);
+session.subscribe = (listener) => rawSubscribe((state) => listener(withMockModels(state)));
+
 const privacy = createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'open', ids: [] } });
 const root = document.getElementById('app');
 mountPoolday(root, {

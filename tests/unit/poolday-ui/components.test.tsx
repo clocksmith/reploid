@@ -65,11 +65,7 @@ import {
   TokenSwatch,
   VisuallyHidden,
   Wordmark,
-  PanelHeader,
-  SummaryStrip,
-  ControlRow,
   DetailSheet,
-  InlineAlert,
   EmptyState,
 } from '@reploid/poolday-ui';
 
@@ -868,30 +864,10 @@ describe('decorative prism', () => {
 });
 
 describe('canonical compositions', () => {
-  it('renders PanelHeader, SummaryStrip, ControlRow, InlineAlert, and EmptyState with accessible structure', async () => {
+  it('renders EmptyState with title, description, and action', async () => {
     const onAction = vi.fn();
-    const onPressRow = vi.fn();
     render(
       <PooldayRoot>
-        <PanelHeader
-          title="Computers"
-          summary="Manage local and paired devices."
-          action={<Button label="Refresh" onPress={onAction} />}
-          data={{ 'data-panel-header': true }}
-        />
-        <SummaryStrip
-          tone="ready"
-          status="Ready"
-          items={[['Offers', '2'], ['Supplied', '120']]}
-          data={{ 'data-summary-strip': true }}
-        />
-        <List>
-          <ControlRow title="Files" status="On" control={<Badge tone="ready">Active</Badge>} data={{ 'data-control-static': true }} />
-          <ControlRow title="Diagnostic" status="Run check" onPress={onPressRow} data={{ 'data-control-press': true }} />
-        </List>
-        <InlineAlert tone="error" data={{ 'data-inline-alert': true }}>
-          Connection failed
-        </InlineAlert>
         <EmptyState
           title="No invites"
           description="Create a guest link."
@@ -900,17 +876,10 @@ describe('canonical compositions', () => {
         />
       </PooldayRoot>,
     );
-    expect(screen.getByRole('heading', { level: 3, name: 'Computers' })).toBeTruthy();
-    expect(screen.getByText('Manage local and paired devices.')).toBeTruthy();
-    expect(screen.getByText('Ready')).toBeTruthy();
-    expect(screen.getByText('Offers')).toBeTruthy();
-    expect(screen.getByText('120')).toBeTruthy();
-    expect(screen.getByRole('alert').textContent).toContain('Connection failed');
     expect(screen.getByText('No invites')).toBeTruthy();
-    await userEvent.click(screen.getByRole('button', { name: 'Refresh' }));
-    await userEvent.click(screen.getByRole('button', { name: /Diagnostic/ }));
+    expect(screen.getByText('Create a guest link.')).toBeTruthy();
+    await userEvent.click(screen.getByRole('button', { name: 'Create' }));
     expect(onAction).toHaveBeenCalledTimes(1);
-    expect(onPressRow).toHaveBeenCalledTimes(1);
   });
 
   it('opens and closes DetailSheet in both uncontrolled and controlled modes', async () => {

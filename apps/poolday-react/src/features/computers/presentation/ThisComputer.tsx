@@ -7,10 +7,9 @@ import {
   Facts,
   FilePicker,
   Icon,
-  InlineAlert,
   List,
   ListItem,
-  PanelHeader,
+  Notice,
   Progress,
   Row,
   Section,
@@ -18,7 +17,6 @@ import {
   SingleChoice,
   Stack,
   StatusLine,
-  SummaryStrip,
   Text,
   Toggle,
 } from '@reploid/poolday-ui';
@@ -58,9 +56,9 @@ function Production({ view, services, onStartSharing }: { readonly view: Product
   };
   return (
     <Stack gap="md" data={{ 'data-production-surface': true }}>
-      <InlineAlert tone="error" data={{ 'data-production-error': true }}>
+      <Notice tone="error" data={{ 'data-production-error': true }}>
         {error || view.error || null}
-      </InlineAlert>
+      </Notice>
       {view.local.length > 0 && (
         <Row data={{ 'data-production-local': true }}>
           {view.local.map((line) => (
@@ -221,11 +219,15 @@ function WeightSupply({ view, services, open }: { readonly view: WeightSupplyVie
   return (
     <Stack gap="sm" data={{ 'data-weight-supply': true, 'data-weight-supply-state': state, 'data-weight-supply-paused': view.paused ? 'true' : 'false',
       'data-weight-supply-verified-bytes': String(view.verifiedBytes) }}>
-      <PanelHeader
-        title={w.title}
-        summary={w.help}
-        action={<Button variant="quiet" label={w.refresh} onPress={view.busy ? undefined : () => void services.weightSupply.refresh()} data={{ 'data-weight-supply-refresh': true }} />}
-      />
+      <Row justify="between" gap="sm">
+        <Stack gap="xs">
+          <Text variant="label">{w.title}</Text>
+          <Text variant="caption" muted>
+            {w.help}
+          </Text>
+        </Stack>
+        <Button variant="quiet" label={w.refresh} onPress={view.busy ? undefined : () => void services.weightSupply.refresh()} data={{ 'data-weight-supply-refresh': true }} />
+      </Row>
       {view.approval && (
         <Facts
           items={[
@@ -299,9 +301,9 @@ function WeightSupply({ view, services, open }: { readonly view: WeightSupplyVie
           {view.paused && <StatusLine>{w.paused}</StatusLine>}
         </Row>
       )}
-      <InlineAlert tone="error" data={{ 'data-weight-supply-error': true }}>
+      <Notice tone="error" data={{ 'data-weight-supply-error': true }}>
         {view.error || null}
-      </InlineAlert>
+      </Notice>
     </Stack>
   );
 }
@@ -408,19 +410,19 @@ export function ThisComputer({ view, services, onStartSharing }: { readonly view
       <List>
         <Disclosure quiet summary={t.device.contribute} open={open} onToggle={setOpen} data={{ 'data-production-device': true }}>
           <Stack gap="md" data={{ 'data-this-computer': true }}>
-            <Text variant="small">{`${t.device.thisComputer} ${device.summary}`}</Text>
-            <SummaryStrip
-              tone={device.computeOn ? 'ready' : 'neutral'}
-              status={device.localComputer}
-              items={[[t.device.offers, device.offers], [t.device.supplied, device.supplied], [t.device.consumed, device.consumed]]}
-              data={{ 'data-local-computer': true }}
-            />
+            <Stack gap="xs">
+              <Text variant="small">{`${t.device.thisComputer} ${device.summary}`}</Text>
+              <Text variant="caption" muted data={{ 'data-local-computer': true }}>
+                {device.localComputer}
+              </Text>
+            </Stack>
+            <Facts items={[[t.device.offers, device.offers], [t.device.supplied, device.supplied], [t.device.consumed, device.consumed]]} />
             <Text variant="caption" muted data={{ 'data-device-usage-scope': true }}>
               {device.usageScope}
             </Text>
-            <InlineAlert tone="error" data={{ 'data-device-usage-error': true }}>
+            <Notice tone="error" data={{ 'data-device-usage-error': true }}>
               {device.usageError || null}
-            </InlineAlert>
+            </Notice>
             <Stack gap="sm">
               {device.sharingSummary && (
                 <Text variant="small" data={{ 'data-tab-sharing-summary': true }}>

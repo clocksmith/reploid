@@ -106,52 +106,7 @@
 .pool-home .pool-prose-blocks table { border-collapse: collapse; }
 .pool-home .pool-prose-blocks :is(th, td) { padding: var(--pool-size-8); text-align: start; }
 
-/* Canonical mid-level composition patterns over tokens and primitives. */
-.pool-home .pool-panel-header {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--pool-size-8);
-  min-inline-size: 0;
-}
-.pool-home .pool-panel-header-action { flex: none; }
-.pool-home .pool-summary-strip {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--pool-size-8) var(--pool-size-16);
-  padding: var(--pool-size-8) var(--pool-size-16);
-}
-.pool-home .pool-summary-items {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: var(--pool-size-8) var(--pool-size-16);
-  margin: 0;
-}
-.pool-home .pool-summary-item {
-  display: inline-flex;
-  align-items: baseline;
-  gap: var(--pool-size-4);
-}
-.pool-home .pool-summary-item > dd { margin: 0; }
-.pool-home .pool-control-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--pool-size-16);
-  min-block-size: var(--pool-size-44);
-  padding: var(--pool-size-8) var(--pool-size-16);
-  min-inline-size: 0;
-}
-.pool-home .pool-control-slot {
-  display: inline-flex;
-  align-items: center;
-  flex: none;
-  gap: var(--pool-size-8);
-}
+/* Compact empty state surface. */
 .pool-home .pool-empty-state {
   display: flex;
   flex-direction: column;

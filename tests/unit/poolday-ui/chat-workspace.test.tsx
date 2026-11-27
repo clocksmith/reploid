@@ -55,7 +55,7 @@ describe('ChatWorkspace', () => {
   it('sends a draft on this device and shows the answer with its measurements', async () => {
     mount();
     await waitFor(() => expect(answerOn().getAttribute('aria-label')).toBe('Answer on This device · Qwen 3.5 2B, Ready'));
-    expect(document.querySelector('[data-prompt-disclosure]')?.textContent).toBe('Nothing leaves this device.');
+    expect(document.querySelector('[data-prompt-disclosure]')).toBeNull();
     await send('Explain ocean tides.');
     await waitFor(() => expect(within(transcript()).getByText('A synthetic answer to: Explain ocean tides.')).toBeTruthy());
     expect(within(transcript()).getByLabelText('Your message').textContent).toBe('Explain ocean tides.');

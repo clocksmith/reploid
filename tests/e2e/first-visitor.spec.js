@@ -47,7 +47,7 @@ test('fresh public route stays on contributors, reports interrupted discovery, a
   await chooseComputer(page, 'local');
   await expect(page.locator('[data-prompt-disclosure]')).toHaveText('Nothing leaves this device.');
   if (await page.evaluate(() => !!navigator.gpu && !!navigator.storage?.getDirectory && !!navigator.locks)) {
-    await expect(message).toContainText('Model unavailable here.');
+    await expect(message).toContainText('Model not downloaded yet.');
     await expect(download).toBeVisible();
     await download.click();
     // The catalog's local, verified manifest supplies size without weight downloads.
