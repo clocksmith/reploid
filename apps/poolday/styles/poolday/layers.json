@@ -22,5 +22,10 @@
     "compositions/conversation.css": 82,
     "compositions/interaction.css": 73,
     "compositions/mobile-navigation.css": 26
+  },
+  "externalCompositions": {
+    "server/daily/site/style.css": {
+      "tokenReferences": 15
+    }
   }
 }

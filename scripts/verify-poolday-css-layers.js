@@ -310,11 +310,8 @@ const main = () => {
   // A legacy composition may not grow its remaining visual declarations.
   const legacy = manifest.legacy ?? {};
   const legacyTokens = manifest.legacyTokenReferences ?? {};
-  for (const file of [...manifest.primitives, ...manifest.compositions]) {
-    const layer = readLayer(file);
-    const converted = manifest.compositions.includes(file) && !(file in legacy);
+  const checkStylesheet = (layer, { isComposition, converted, maxVisuals = null, maxTokenRefs = null, ratchetLabel = 'legacyTokenReferences' }) => {
     let visuals = 0, tokenRefs = 0;
-    const isComposition = manifest.compositions.includes(file);
     const seenKeyframes = new Set(), seenAliases = new Set();
     walkDeclarations(layer.clean, ({ property, value, line, context }) => {
       const keyframes = context.find((c) => /^@(-[a-z]+-)?keyframes/.test(c));
@@ -340,7 +337,7 @@ const main = () => {
         if (!JS_CONTRACT_VARS.has(ref) && !PARAMETER_VAR.test(ref) && !tokenNames.has(ref)) report(layer.file, line, `${ref} is not a token (${property})`);
         if (isComposition && tokenNames.has(ref)) {
           tokenRefs += 1;
-          if (!(file in legacyTokens)) report(layer.file, line, `composition reads token ${ref}; put a primitive class in the markup (${property})`);
+          if (maxTokenRefs === null) report(layer.file, line, `composition reads token ${ref}; put a primitive class in the markup (${property})`);
         }
       }
       if (!property.startsWith('--') || PARAMETER_VAR.test(property)) {
@@ -352,14 +349,41 @@ const main = () => {
         if (converted) report(layer.file, line, `composition sets ${property}; take it from a primitive class in the markup`);
       }
     });
-    if (file in legacy && visuals > legacy[file]) {
-      report(layer.file, 1, `${visuals} visual declarations exceed the ${legacy[file]} left to convert; move looks to primitives instead`);
+    if (maxVisuals !== null && visuals > maxVisuals) {
+      report(layer.file, 1, `${visuals} visual declarations exceed the ${maxVisuals} left to convert; move looks to primitives instead`);
     }
-    if (file in legacyTokens && tokenRefs > legacyTokens[file]) {
-      report(layer.file, 1, `${tokenRefs} token references exceed the ${legacyTokens[file]} left to convert; use primitive classes instead`);
+    if (maxTokenRefs !== null && tokenRefs > maxTokenRefs) {
+      report(layer.file, 1, `${tokenRefs} token references exceed the ${maxTokenRefs} left to convert; use primitive classes instead`);
     }
-    if (file in legacyTokens && tokenRefs < legacyTokens[file]) console.log(`[poolday-css-layers] ${file}: ${tokenRefs} token references left (lower "legacyTokenReferences" in layers.json to ${tokenRefs})`);
-    if (file in legacy && visuals < legacy[file]) console.log(`[poolday-css-layers] ${file}: ${visuals} visual declarations left (lower "legacy" in layers.json to ${visuals})`);
+    if (maxTokenRefs !== null && tokenRefs < maxTokenRefs) console.log(`[poolday-css-layers] ${layer.file}: ${tokenRefs} token references left (lower "${ratchetLabel}" in layers.json to ${tokenRefs})`);
+    if (maxVisuals !== null && visuals < maxVisuals) console.log(`[poolday-css-layers] ${layer.file}: ${visuals} visual declarations left (lower "legacy" in layers.json to ${visuals})`);
+  };
+
+  for (const file of [...manifest.primitives, ...manifest.compositions]) {
+    const layer = readLayer(file);
+    const isComposition = manifest.compositions.includes(file);
+    checkStylesheet(layer, {
+      isComposition,
+      converted: isComposition && !(file in legacy),
+      maxVisuals: file in legacy ? legacy[file] : null,
+      maxTokenRefs: file in legacyTokens ? legacyTokens[file] : null,
+    });
+  }
+
+  for (const [relPath, baseline] of Object.entries(manifest.externalCompositions ?? {})) {
+    const text = readFileSync(path.join(ROOT, relPath), 'utf8');
+    const maxTokenRefs = typeof baseline?.tokenReferences === 'number' ? baseline.tokenReferences : null;
+    const maxVisuals = typeof baseline?.visualDeclarations === 'number' ? baseline.visualDeclarations : null;
+    checkStylesheet(
+      { file: relPath, text, clean: stripComments(text) },
+      {
+        isComposition: true,
+        converted: maxVisuals === null,
+        maxVisuals,
+        maxTokenRefs,
+        ratchetLabel: `externalCompositions["${relPath}"].tokenReferences`,
+      },
+    );
   }
 
   if (violations.length === 0) {

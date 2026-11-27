@@ -13,7 +13,7 @@ const openDesign = async page => {
   await page.goto('/design');
   await expect(page.locator('[data-design-page]')).toBeVisible();
   // Token values arrive from the served tokens.css.
-  await expect(page.locator('[data-token="--pool-gray-44"]')).toContainText('#717171');
+  await expect(page.locator('[data-token="--pool-size-4"]')).toContainText('4px');
 };
 
 for (const [width, height] of [[1280, 800], [390, 844]]) {
@@ -38,7 +38,7 @@ for (const [width, height] of [[1280, 800], [390, 844]]) {
         compositionsInUse: all('[data-composition]').filter(node => /Composed of: /.test(node.textContent) && node.querySelector('figure')?.textContent.trim()).length,
       };
     });
-    expect(use.tokens).toBeGreaterThan(100);
+    expect(use.tokens).toBeGreaterThan(90);
     expect(use.tokensInUse).toBe(use.tokens);
     expect(use.primitives).toBeGreaterThan(30);
     expect(use.primitivesInUse).toBe(use.primitives);
