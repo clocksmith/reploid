@@ -1,8 +1,13 @@
 /**
  * A private room of in-process peers for weight-supply checks: each peer is a real custody exchange (signed grants,
- * the bounded byte channel, verified chunks) over an in-memory transport, with a persistent participant identity
- * whose certificate binds its custody key, so transfer roles name verified computers. No GPU and no browser.
+ * the bounded byte channel, verified chunks) over the production room transport (transport/room.js: envelope
+ * wrapping, receive-side validation and the frame registry in transport/message-types.js, over an in-process
+ * BroadcastChannel), with a persistent participant identity whose certificate binds its custody key, so transfer
+ * roles name verified computers. Only the byte data channel is in memory: the room transport has none without
+ * WebRTC. No GPU and no browser.
  */
+import { createSwarmTransport } from '../../packages/reploid/src/transport/room.js';
+import { resolveConfig } from '../../packages/reploid/src/config/index.js';
 import { createCustodyExchange } from '../../packages/reploid/src/artifacts/custody/exchange.js';
 import { CUSTODY_CERTIFICATE_LIFETIME_MS, checkCustodyKeyCertificate, createCustodyKeyCertifier } from '../../packages/reploid/src/artifacts/custody-certificate.js';
 import { createSigningIdentity } from '../../packages/reploid/src/artifacts/identity.js';
@@ -29,8 +34,25 @@ export const ROOM_POLICY = Object.freeze({ maxTransfers: 4, maxPeers: 16, maxAcq
   channel: { maxFrameBytes: 16384, maxControlBytes: 32768, maxChunkBytes: 262144, maxBufferedBytes: 1048576,
     maxPendingRequests: 2, maxTransferBytes: 1 << 30, timeoutMs: 15_000 } });
 
+const quiet = { info() {}, debug() {}, warn() {}, error() {} };
+
+/** BroadcastChannel between in-process instances of one name, with the browser's structured-clone delivery. */
+function broadcastChannels() {
+  const open = new Set();
+  return class Channel {
+    constructor(name) { this.name = name; open.add(this); }
+    postMessage(data) {
+      for (const channel of open) if (channel !== this && channel.name === this.name) queueMicrotask(() => channel.onmessage?.({ data: structuredClone(data) }));
+    }
+    close() { open.delete(this); }
+  };
+}
+
+let rooms = 0;
 export function createRoom() {
   const members = new Map(), directory = new Map();
+  const BroadcastChannel = broadcastChannels(), roomId = `weight-room-${++rooms}`;
+  const config = resolveConfig({ overrides: { mesh: { enabled: true, roomId }, webrtc: { broadcastRoomId: roomId, transportOrder: ['broadcast'] } } });
   const verifyPeerCertificate = async certificate => {
     const publicJwk = directory.get(certificate?.participantId);
     if (!publicJwk) return null;
@@ -48,24 +70,25 @@ export function createRoom() {
     directory.set(identity.peerId, identity.publicJwk);
     const keys = await createSigningKeyPair(), publicKey = await exportPublicKey(keys.publicKey);
     const certifier = createCustodyKeyCertifier({ identity });
-    const handlers = new Map(), checkpoints = new Map(), deliveries = [], receipts = [];
+    const checkpoints = new Map(), deliveries = [], receipts = [];
     let onChannel = null, reserved = 0;
-    const member = { handlers, open: (from, channel) => onChannel?.(from, channel) };
-    const transport = {
-      getConnectedPeers: () => [...members.keys()].filter(peer => peer !== id).map(peer => ({ id: peer })),
-      onMessage: (type, handler) => handlers.set(type, handler),
-      sendToPeer(peer, type, payload) {
-        const target = members.get(peer);
-        if (!target || !members.has(id)) return false;
-        const copy = structuredClone(payload);
-        queueMicrotask(() => target.handlers.get(type)?.(id, copy));
-        return true;
-      },
-      broadcast(type, payload) { for (const peer of this.getConnectedPeers()) this.sendToPeer(peer.id, type, payload); },
+    const room = createSwarmTransport({ config, peerId: id, BroadcastChannel, Utils: { generateId: () => id, logger: quiet }, EventBus: { emit() {} } });
+    await room.init();
+    const member = { room, open: (from, channel) => onChannel?.(from, channel) };
+    const transport = { ...room,
+      // Peers this one has discovered over the room and that are still in it.
+      getConnectedPeers: () => room.getConnectedPeers().filter(peer => members.has(peer.id)),
+      sendToPeer: (peer, type, payload) => members.has(peer) && members.has(id) && room.sendToPeer(peer, type, payload),
       onDataChannel: (_, callback) => { onChannel = callback; return () => {}; },
       openDataChannel(peer) { const [left, right] = channelPair(); members.get(peer)?.open(id, right); return left; }
     };
     members.set(id, member);
+    // Discovery over the room transport: this peer and every member already here see each other.
+    for (let i = 0; [...members].some(([other, row]) => other !== id && (!room.getConnectedPeers().some(peer => peer.id === other)
+      || !row.room.getConnectedPeers().some(peer => peer.id === id))); i++) {
+      if (i > 2000) throw new Error('Room discovery timed out');
+      await sleep(1);
+    }
     const exchange = createCustodyExchange({ transport, identity: { peerId: id, privateKey: keys.privateKey, publicKey }, policy: ROOM_POLICY,
       ports: {
         supplyBudget: { getState: () => ({ reservedBytes: reserved, maxBytes: ROOM_POLICY.maxSupplyBytes }),
@@ -90,7 +113,7 @@ export function createRoom() {
     const store = { get: async pieceId => pieces.get(pieceId)?.slice() ?? null, put: async (pieceId, bytes) => { pieces.set(pieceId, bytes.slice()); },
       delete: async pieceId => { pieces.delete(pieceId); }, list: async () => [...pieces.keys()] };
     return { id, computerId: identity.peerId, identity, exchange, store, pieces, checkpoints, deliveries, receipts,
-      async leave() { members.delete(id); await exchange.close(); } };
+      async leave() { members.delete(id); await exchange.close(); room.disconnect(); } };
   }
   return { join, members, directory };
 }
