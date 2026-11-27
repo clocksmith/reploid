@@ -4,7 +4,7 @@ import { act, cleanup, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { PooldayRoot } from '@reploid/poolday-ui';
-import { OPERATION_APPROVAL_REQUIRED, operationSelection, projectComputers } from '../../apps/poolday/host/decisions/computers.js';
+import { OPERATION_APPROVAL_REQUIRED, operationSelection, preparationCancel, projectComputers } from '../../apps/poolday/host/decisions/computers.js';
 import { parseComputer, weightSupplyOfferFromInventory } from '../../packages/reploid/src/contracts/computer-records.js';
 import { projectChatCatalog } from '../../apps/poolday/host/chat-view.js';
 import { localOffers } from '../fixtures/local-offers.js';
@@ -133,6 +133,11 @@ describe('Computers host decisions the pane only calls', () => {
     services.dispose();
   });
 
+  it('cancels a running download, and otherwise stops sharing', () => {
+    expect(preparationCancel({ acquisition: { phase: 'downloading' } })).toBe('cancel-download');
+    expect(preparationCancel({ acquisition: { phase: 'verifying' } })).toBe('stop-sharing');
+    expect(preparationCancel({})).toBe('stop-sharing');
+  });
 });
 
 describe('Computers pane', () => {

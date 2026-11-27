@@ -376,7 +376,7 @@ export function createComputersServices(product: { readonly host: object; readon
       }),
       retryStop: () => act(() => need(session.setComputeContribution, 'Compute contribution').call(session, false)),
       cancelPreparation: async () => {
-        if ((session.getState() as { acquisition?: { phase?: string } }).acquisition?.phase === 'downloading') return session.cancelModelDownload?.();
+        if (host$.preparationCancel(session.getState()) === 'cancel-download') return session.cancelModelDownload?.();
         return need(session.setSharing, 'Sharing').call(session, false, projectView().production.selection, false);
       },
     },

@@ -530,3 +530,6 @@ export async function operationSelection({ modelId = '', file = null, approved =
   const value = JSON.parse(await file.text());
   return { ...(value.schema === 'reploid.document-models/v1' ? { configuration: value } : { model: value }), approved };
 }
+
+/** What cancelling "Contribute this computer"'s preparation does: stop a running download, or stop sharing. */
+export const preparationCancel = state => state?.acquisition?.phase === 'downloading' ? 'cancel-download' : 'stop-sharing';

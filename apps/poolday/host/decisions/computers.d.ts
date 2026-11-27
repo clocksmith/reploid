@@ -193,3 +193,4 @@ export function operationLimitsText(): string;
 export function operationStatusText(state: { readonly phase: OperationPhase; readonly modelId?: string; readonly error?: string }): string;
 export const OPERATION_APPROVAL_REQUIRED: string;
 export function operationSelection(input?: { readonly modelId?: string; readonly file?: File | null; readonly approved?: boolean }): Promise<object & { readonly approved: true }>;
+export function preparationCancel(state: unknown): 'cancel-download' | 'stop-sharing';
