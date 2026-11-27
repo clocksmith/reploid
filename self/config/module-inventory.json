@@ -3012,7 +3012,7 @@
     {
       "path": "self/host/decisions/ask.js",
       "owner": "self",
-      "sha256": "sha256:4dabdc4beb33fa3fea0da38572f228d41b672437b826c42da8c1d5db7c5a4507",
+      "sha256": "sha256:47623daf82d0b40252acba7025c02ef31ddde968a66db1999aaedbc6f1a46970",
       "imports": [
         "../../pool/model-contract.js",
         "../../pool/participation-profile.js",
@@ -3131,7 +3131,7 @@
     {
       "path": "self/host/decisions/examples.js",
       "owner": "self",
-      "sha256": "sha256:3d3cfc2bcfff8f6b27e69db2d47492411b544ec1affc8d837ced68b3ad999f07",
+      "sha256": "sha256:741a4f9f9329c2edfcd56e913cd7a8605d14e43de13c3c48a01339dd9c2613ab",
       "imports": [
         "../../config/surface-intents.js",
         "../../pool/document-search-policy.json",
@@ -3151,7 +3151,8 @@
         "../../ui/pool-home/run-result-format.js",
         "../../ui/pool-home/view-markup.js",
         "../peer-run-session.js",
-        "../product-context.js"
+        "../product-context.js",
+        "./run-result.js"
       ]
     },
     {
@@ -3296,7 +3297,7 @@
     {
       "path": "self/host/decisions/run-result.js",
       "owner": "self",
-      "sha256": "sha256:82b6686beaf5fd703cc1c85e45de0a3ee5bd6a25e44cf27201dacf2a68c2291d",
+      "sha256": "sha256:e67bd2c38045f1763805a25e4f14a65324a99464398e61ac046e6b660ef3acb6",
       "imports": [
         "../../ui/pool-home/run-result-format.js",
         "../../ui/pool-home/view-markup.js"
@@ -5157,13 +5158,13 @@
     {
       "path": "ui/react/app.js",
       "owner": "ui",
-      "sha256": "sha256:d65e8ac91470c7465150a6d6cc72f21a08794ff16e6c8ef22eca3b1a1a52f4aa",
+      "sha256": "sha256:27332a4c36731d970e871a00b77b2fb61b0da18a66857fdb7ab25ec2f77ad072",
       "imports": []
     },
     {
       "path": "ui/react/design.js",
       "owner": "ui",
-      "sha256": "sha256:8a06c88153113fea837e0bdd2e4989b83051998d64dfaaffb13cdc32a9117a78",
+      "sha256": "sha256:ca485568ea0e631833700170deaefbd2cc49c1e15df41ad0cfcca245f425c240",
       "imports": []
     },
     {
