@@ -149,6 +149,34 @@ export type DiagnosticView =
       readonly result: string;
     };
 
+/** A storage cap the person may choose on Approve; `disabled` when it is smaller than the offer's download. */
+export type StorageCapOption = { readonly bytes: number; readonly label: string; readonly disabled: boolean };
+
+/**
+ * Weight supply (the host's network.weightSupply, apps/poolday/host/weight-supply-host.js getState), shown only
+ * behind the reploid.dev.weight-supply flag until the owner writes its copy. Null when the flag is off or before a
+ * connection.
+ */
+export type WeightSupplyView = {
+  /** The unapproved offer: what approving would download, or null. */
+  readonly offer: { readonly offerId: string; readonly downloadBytes: number; readonly download: string; readonly pieces: number; readonly expiresAt: number } | null;
+  /** The reason code when the last recommendation offered nothing, or null. */
+  readonly noOffer: string | null;
+  /** A recommendation was computed (an offer or a reason). */
+  readonly recommended: boolean;
+  readonly approval: { readonly storageCapBytes: number; readonly cap: string; readonly expiresAt: number } | null;
+  readonly paused: boolean;
+  readonly capOptions: ReadonlyArray<StorageCapOption>;
+  /** The largest cap option: the upper bound sent when asking for a recommendation. */
+  readonly queryCapBytes: number;
+  readonly verified: string;
+  readonly served: string;
+  readonly servedTransfers: number;
+  readonly acquisition: { readonly queuedPieces: number; readonly acquiringPieces: number; readonly failedPieces: number; readonly pending: string };
+  readonly busy: boolean;
+  readonly error: string;
+};
+
 export type ComputersView = {
   readonly connection: { readonly on: boolean; readonly label: string; readonly detail: string; readonly privateScope: boolean };
   readonly filterLabel: string;
@@ -166,6 +194,7 @@ export type ComputersView = {
   readonly production: ProductionView;
   readonly diagnostic: DiagnosticView;
   readonly specialized: boolean;
+  readonly weightSupply: WeightSupplyView | null;
 };
 
 export type CreditActivity = { readonly key: string; readonly text: string; readonly at: string | null };
@@ -258,6 +287,21 @@ export type ComputersServices = {
     readonly cancel: () => void;
     readonly saveBaseline: () => Promise<unknown>;
     readonly clearBaseline: () => Promise<unknown>;
+  };
+  /** Weight supply's five session commands. Opening never connects; every command needs a connection. */
+  readonly weightSupply: {
+    /**
+     * Asks for one recommendation (with the largest cap option as the upper bound) unless one is in flight, an
+     * approval exists or an unexpired offer is shown. Refresh passes `force` to ask again.
+     */
+    readonly recommend: (options?: { readonly force?: boolean }) => Promise<unknown>;
+    /** Approves the shown offer with the cap the person chose; the only place a cap is set. */
+    readonly approve: (offerId: string, storageCapBytes: number) => Promise<unknown>;
+    /** Under an approval: replace or add pieces within the cap. Without one: a new recommendation. */
+    readonly refresh: () => Promise<unknown>;
+    /** Pauses weight supply's serving and fetching; Answer requests is not touched. */
+    readonly pause: () => Promise<unknown>;
+    readonly resume: () => Promise<unknown>;
   };
   readonly operations: {
     readonly models: () => ReadonlyArray<OperationModel>;

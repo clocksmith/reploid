@@ -12,9 +12,32 @@ import type {
   GuestInvite,
   OperationView,
   PairingTarget,
+  WeightSupplyView,
 } from '../domain/services';
 
-type State = Record<string, unknown> & { readonly network?: { readonly computeEnabled?: boolean; readonly sharing?: boolean; readonly introductionAssistance?: boolean; readonly paused?: boolean } };
+/** weight-supply-host.js getState: the fields the Contribute view reads. */
+type WeightSupplyState = {
+  readonly recommendation: {
+    readonly offer: { readonly offerId: string; readonly totalDownloadBytes: number; readonly pieces: ReadonlyArray<unknown>; readonly expiresAt: number } | null;
+    readonly noOffer: string | null;
+  } | null;
+  readonly approval: { readonly storageCapBytes: number; readonly expiresAt: number } | null;
+  readonly paused: boolean;
+  readonly verifiedBytes: number;
+  readonly servedBytes: number;
+  readonly servedTransfers: number;
+  readonly acquisition: { readonly queuedPieces: number; readonly acquiringPieces: number; readonly failedPieces: number; readonly pendingBytes: number };
+  readonly error: string | null;
+};
+type State = Record<string, unknown> & {
+  readonly network?: {
+    readonly computeEnabled?: boolean;
+    readonly sharing?: boolean;
+    readonly introductionAssistance?: boolean;
+    readonly paused?: boolean;
+    readonly weightSupply?: WeightSupplyState | null;
+  };
+};
 type Statement = unknown;
 type FleetPort = {
   readonly state: () => unknown;
@@ -58,6 +81,11 @@ type Session = {
   readonly setComputeContribution?: (on: boolean) => Promise<unknown>;
   readonly setCachedFileContribution?: (on: boolean) => Promise<unknown>;
   readonly setSharing?: (on: boolean, selection: string | null, approved: boolean) => Promise<unknown>;
+  readonly recommendWeightSupply?: (options: { storageCapBytes: number }) => Promise<unknown>;
+  readonly approveWeightSupply?: (options: { offerId: string; storageCapBytes: number }) => Promise<unknown>;
+  readonly refreshWeightSupply?: () => Promise<unknown>;
+  readonly pauseWeightSupply?: () => Promise<unknown>;
+  readonly resumeWeightSupply?: () => Promise<unknown>;
   readonly cancelModelDownload?: () => unknown;
   readonly getModelDownload?: (id: string, options: { signal: AbortSignal }) => Promise<{ sizeBytes?: number }>;
   readonly fleetAccount?: FleetPort | null;
@@ -105,7 +133,49 @@ function saveJson(value: unknown, name: string) {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-const EMPTY_SESSION: Session = { getState: () => ({}), subscribe: () => () => undefined };
+/** Weight supply shows only behind this flag until the owner writes its copy: localStorage['reploid.dev.weight-supply'] = '1'. */
+export const WEIGHT_SUPPLY_FLAG = 'reploid.dev.weight-supply';
+const weightSupplyFlag = () => {
+  try {
+    return window.localStorage.getItem(WEIGHT_SUPPLY_FLAG) === '1';
+  } catch {
+    return false;
+  }
+};
+
+const MIB = 1024 * 1024;
+/** The caps the person may choose on Approve. The largest is only the upper bound sent when asking for an offer. */
+export const STORAGE_CAP_OPTIONS: ReadonlyArray<number> = [16 * MIB, 64 * MIB, 256 * MIB, 1024 * MIB];
+const QUERY_CAP_BYTES = Math.max(...STORAGE_CAP_OPTIONS);
+const bytesText = (value: number) => (value >= 1024 * MIB ? `${(value / (1024 * MIB)).toFixed(1)} GiB` : `${(value / MIB).toFixed(1)} MiB`);
+
+let weightSupplyCache: { key: string; view: WeightSupplyView } | null = null;
+function weightSupplyView(state: WeightSupplyState, busy: boolean, error: string): WeightSupplyView {
+  const key = JSON.stringify([state, busy, error]);
+  if (weightSupplyCache?.key === key) return weightSupplyCache.view;
+  const offer = state.recommendation?.offer ?? null;
+  const downloadBytes = offer?.totalDownloadBytes ?? 0;
+  const view: WeightSupplyView = {
+    offer: offer && { offerId: offer.offerId, downloadBytes, download: bytesText(downloadBytes), pieces: offer.pieces.length, expiresAt: offer.expiresAt },
+    noOffer: state.recommendation?.noOffer ?? null,
+    recommended: Boolean(state.recommendation),
+    approval: state.approval && { storageCapBytes: state.approval.storageCapBytes, cap: bytesText(state.approval.storageCapBytes), expiresAt: state.approval.expiresAt },
+    paused: state.paused,
+    capOptions: STORAGE_CAP_OPTIONS.map((bytes) => ({ bytes, label: bytesText(bytes), disabled: !offer || bytes < downloadBytes })),
+    queryCapBytes: QUERY_CAP_BYTES,
+    verified: bytesText(state.verifiedBytes),
+    served: bytesText(state.servedBytes),
+    servedTransfers: state.servedTransfers,
+    acquisition: { queuedPieces: state.acquisition.queuedPieces, acquiringPieces: state.acquisition.acquiringPieces,
+      failedPieces: state.acquisition.failedPieces, pending: bytesText(state.acquisition.pendingBytes) },
+    busy,
+    error: error || state.error || '',
+  };
+  weightSupplyCache = { key, view };
+  return view;
+}
+
+const EMPTY_SESSION: Session ={ getState: () => ({}), subscribe: () => () => undefined };
 
 export function createComputersServices(product: { readonly host: object; readonly earning: Promise<unknown> }): ComputersServices {
   const host = product.host as Host;
@@ -118,6 +188,9 @@ export function createComputersServices(product: { readonly host: object; readon
   let actionError = '';
   let notice = '';
   let fleetKey = '';
+  let weightBusy = false;
+  let weightError = '';
+  let recommending: Promise<unknown> | null = null;
   // Declared before the store reads them through attach and project.
   const changed = () => store.changed();
 
@@ -171,6 +244,7 @@ export function createComputersServices(product: { readonly host: object; readon
       diagnostic: host$.projectDiagnostic(prefs ?? null),
       // `in`, not a read: reading the getter starts the participation module.
       specialized: 'operationSharing' in host,
+      weightSupply: weightSupplyFlag() && state.network?.weightSupply ? weightSupplyView(state.network.weightSupply, weightBusy, weightError) : null,
     };
   };
 
@@ -224,6 +298,35 @@ export function createComputersServices(product: { readonly host: object; readon
     return value;
   };
 
+  /** A weight-supply command: busy until it settles; its error shows in the weight-supply block. */
+  const weightAct = async (work: () => Promise<unknown>) => {
+    weightBusy = true;
+    weightError = '';
+    changed();
+    try {
+      return await work();
+    } catch (cause) {
+      weightError = messageOf(cause);
+      return undefined;
+    } finally {
+      weightBusy = false;
+      changed();
+    }
+  };
+  const weightState = () => (session.getState() as State).network?.weightSupply ?? null;
+  /** One request at a time; without `force`, none under an approval or while an unexpired offer is shown. */
+  const recommend = (force: boolean) => {
+    if (recommending) return recommending;
+    const current = weightState();
+    if (!current) return Promise.resolve(undefined);
+    const offer = current.recommendation?.offer;
+    if (!force && (current.approval || (offer && offer.expiresAt > Date.now()))) return Promise.resolve(undefined);
+    recommending = weightAct(() => need(session.recommendWeightSupply, 'Weight supply').call(session, { storageCapBytes: QUERY_CAP_BYTES })).finally(() => {
+      recommending = null;
+    });
+    return recommending;
+  };
+
   return {
     dispose() {
       store.dispose();
@@ -271,6 +374,13 @@ export function createComputersServices(product: { readonly host: object; readon
         if ((session.getState() as { acquisition?: { phase?: string } }).acquisition?.phase === 'downloading') return session.cancelModelDownload?.();
         return need(session.setSharing, 'Sharing').call(session, false, projectView().production.selection, false);
       },
+    },
+    weightSupply: {
+      recommend: (options) => recommend(options?.force === true),
+      approve: (offerId, storageCapBytes) => weightAct(() => need(session.approveWeightSupply, 'Weight supply').call(session, { offerId, storageCapBytes })),
+      refresh: () => (weightState()?.approval ? weightAct(() => need(session.refreshWeightSupply, 'Weight supply').call(session)) : recommend(true)),
+      pause: () => weightAct(() => need(session.pauseWeightSupply, 'Weight supply').call(session)),
+      resume: () => weightAct(() => need(session.resumeWeightSupply, 'Weight supply').call(session)),
     },
     fleet: {
       signIn: (provider) => need(session.fleetAccount, 'The account').signIn(provider),

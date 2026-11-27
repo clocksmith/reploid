@@ -18,7 +18,7 @@ import {
   Text,
   Toggle,
 } from '@reploid/poolday-ui';
-import type { ComputersServices, ComputersView, DiagnosticView, ProductionView, ShareableModel } from '../domain/services';
+import type { ComputersServices, ComputersView, DiagnosticView, ProductionView, ShareableModel, WeightSupplyView } from '../domain/services';
 import { computers as t } from '../../../l10n/computers';
 
 const messageOf = (cause: unknown) => (cause instanceof Error ? cause.message : String(cause));
@@ -166,6 +166,117 @@ function Diagnostic({ view, services }: { readonly view: Extract<DiagnosticView,
         )}
       </Row>
     </Disclosure>
+  );
+}
+
+/**
+ * Weight supply: an offer of a bounded set of pieces to hold, approved with a cap the person chooses (no default).
+ * Opening the section asks for one recommendation unless an approval or an unexpired offer is shown; it asks again
+ * only on Refresh or when the offer expires while open. It never connects to the network itself.
+ */
+function WeightSupply({ view, services, open }: { readonly view: WeightSupplyView; readonly services: ComputersServices; readonly open: boolean }) {
+  const w = t.weightSupply;
+  const [cap, setCap] = useState<string | null>(null);
+  const [tick, setTick] = useState(0);
+  const asked = useRef<string | null>(null);
+  const expiresAt = view.offer?.expiresAt ?? null;
+  const offer = view.offer && view.offer.expiresAt > Date.now() ? view.offer : null;
+  // Re-render when the shown offer expires, so the section can ask again.
+  useEffect(() => {
+    if (!open || expiresAt === null) return undefined;
+    const timer = setTimeout(() => setTick((value) => value + 1), Math.max(0, expiresAt - Date.now()) + 50);
+    return () => clearTimeout(timer);
+  }, [open, expiresAt]);
+  // One request per opening (and per expired offer): the ref keeps React's development double run to one.
+  useEffect(() => {
+    if (!open) {
+      asked.current = null;
+      return;
+    }
+    if (view.approval || offer) return;
+    const key = String(expiresAt ?? 'none');
+    if (asked.current === key) return;
+    asked.current = key;
+    void services.weightSupply.recommend();
+  }, [open, view.approval, offer, expiresAt, services, tick]);
+  const chosen = view.capOptions.find((option) => String(option.bytes) === cap && !option.disabled) ?? null;
+  let state = 'asking';
+  if (view.approval) state = 'approved';
+  else if (offer) state = 'offer';
+  else if (view.noOffer) state = 'no-offer';
+  const when = (at: number) => new Date(at).toLocaleString();
+  return (
+    <Stack gap="sm" data={{ 'data-weight-supply': true, 'data-weight-supply-state': state, 'data-weight-supply-paused': view.paused ? 'true' : 'false' }}>
+      <Text variant="label">{w.title}</Text>
+      <Text variant="caption" muted>
+        {w.help}
+      </Text>
+      {view.approval && (
+        <Facts
+          items={[
+            [w.approvedCap, view.approval.cap],
+            [w.approvalExpires, when(view.approval.expiresAt)],
+            [w.verified, view.verified],
+            [w.served, view.served],
+            [w.transfers, String(view.servedTransfers)],
+            [w.queued, String(view.acquisition.queuedPieces)],
+            [w.acquiring, String(view.acquisition.acquiringPieces)],
+            [w.failed, String(view.acquisition.failedPieces)],
+            [w.pending, view.acquisition.pending],
+          ]}
+        />
+      )}
+      {!view.approval && offer && (
+        <Stack gap="sm" data={{ 'data-weight-supply-offer': offer.offerId }}>
+          <Facts items={[[w.download, offer.download], [w.pieces, String(offer.pieces)], [w.offerExpires, when(offer.expiresAt)]]} />
+          <SingleChoice
+            label={w.cap}
+            value={chosen ? cap : null}
+            onChange={setCap}
+            options={view.capOptions.map((option) => ({ value: String(option.bytes), title: option.label, disabled: option.disabled, status: option.disabled ? w.capTooSmall : '' }))}
+            data={{ 'data-weight-supply-cap': true }}
+          />
+          <Text variant="caption" muted>
+            {w.capHelp}
+          </Text>
+          <Row>
+            <Button
+              variant="primary"
+              label={w.approve}
+              onPress={chosen && !view.busy ? () => {
+                setCap(null);
+                void services.weightSupply.approve(offer.offerId, chosen.bytes);
+              } : undefined}
+              describedBy="weight-supply-approve-reason"
+              data={{ 'data-weight-supply-approve': true }}
+            />
+            <StatusLine id="weight-supply-approve-reason">{chosen ? '' : w.approveFirst}</StatusLine>
+          </Row>
+        </Stack>
+      )}
+      {state === 'no-offer' && (
+        <Text variant="small" muted data={{ 'data-weight-supply-no-offer': view.noOffer ?? '' }}>
+          {w.noOffer[view.noOffer ?? ''] ?? view.noOffer}
+        </Text>
+      )}
+      {state === 'asking' && <StatusLine>{w.asking}</StatusLine>}
+      <Row>
+        <Button variant="quiet" label={w.refresh} onPress={view.busy ? undefined : () => void services.weightSupply.refresh()} data={{ 'data-weight-supply-refresh': true }} />
+        {(view.approval || view.paused) && (
+          <Button
+            variant="quiet"
+            label={view.paused ? w.resume : w.pause}
+            pressed={view.paused}
+            onPress={view.busy ? undefined : () => void (view.paused ? services.weightSupply.resume() : services.weightSupply.pause())}
+            data={{ 'data-weight-supply-pause': true }}
+          />
+        )}
+        {view.paused && <StatusLine>{w.paused}</StatusLine>}
+      </Row>
+      <Notice tone="error" data={{ 'data-weight-supply-error': true }}>
+        {view.error || null}
+      </Notice>
+    </Stack>
   );
 }
 
@@ -332,6 +443,7 @@ export function ThisComputer({ view, services, onStartSharing }: { readonly view
                   <Button variant="quiet" label={t.device.pauseAll} onPress={() => void services.device.pauseAll()} data={{ 'data-device-pause-all': true }} />
                 </Row>
               )}
+              {view.weightSupply && <WeightSupply view={view.weightSupply} services={services} open={open} />}
               <Toggle
                 title={t.device.introductions}
                 status={t.device.introductionsStatus}
