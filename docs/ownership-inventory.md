@@ -18,10 +18,10 @@ Product entries: `index.html`, `pool-entry.html`, `design.html`, `document-study
 
 | Owner | Files |
 | --- | ---: |
-| apps/poolday | 410 |
+| apps/poolday | 412 |
 | self | 457 |
-| shared | 2528 |
-| total | 3395 |
+| shared | 2532 |
+| total | 3401 |
 
 Every file lives in its owner's root.
 
@@ -32,7 +32,7 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | Served tree | Files | Owner |
 | --- | ---: | --- |
 | `vendor/doppler/` | 2069 | shared |
-| `vendor/reploid/` | 374 | shared |
+| `vendor/reploid/` | 378 | shared |
 
 ## Files
 
@@ -419,6 +419,8 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `host/circle-invites.js` | `apps/poolday/host/circle-invites.js` | apps/poolday | Reached only from product entries. |
 | `host/coalesced-refresh.js` | `apps/poolday/host/coalesced-refresh.js` | apps/poolday | Reached only from product entries. |
 | `host/computer-preferences.js` | `apps/poolday/host/computer-preferences.js` | apps/poolday | Reached only from product entries. |
+| `host/computer-records.d.ts` | `apps/poolday/host/computer-records.d.ts` | apps/poolday | Describes host/computer-records.js. Reached only from product entries. |
+| `host/computer-records.js` | `apps/poolday/host/computer-records.js` | apps/poolday | Reached only from product entries. |
 | `host/contribution-history.js` | `apps/poolday/host/contribution-history.js` | apps/poolday | Reached only from product entries. |
 | `host/contribution-resume.js` | `apps/poolday/host/contribution-resume.js` | apps/poolday | Reached only from product entries. |
 | `host/contributor-identity.js` | `apps/poolday/host/contributor-identity.js` | apps/poolday | Reached only from product entries. |

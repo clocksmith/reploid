@@ -129,6 +129,7 @@
     "vendor/reploid/config/request-overrides.json",
     "vendor/reploid/config/schema.json",
     "vendor/reploid/config/validate-schema.js",
+    "vendor/reploid/contracts/identifiers.js",
     "vendor/reploid/hashing.js",
     "vendor/reploid/rules/routing.rules.json"
   ],
@@ -255,6 +256,7 @@
     "vendor/reploid/config/request-overrides.json",
     "vendor/reploid/config/schema.json",
     "vendor/reploid/config/validate-schema.js",
+    "vendor/reploid/contracts/identifiers.js",
     "vendor/reploid/hashing.js",
     "vendor/reploid/rules/routing.rules.json"
   ]

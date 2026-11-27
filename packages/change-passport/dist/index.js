@@ -60,6 +60,25 @@ async function sha256HexUnprefixed(value, cryptoApi = globalThis.crypto) {
 // shared/vendor/reploid/artifacts/signatures.js
 var textEncoder2 = new TextEncoder();
 
+// shared/vendor/reploid/contracts/identifiers.js
+var PARTICIPANT_ID_PATTERN = /^peer:[a-f0-9]{24}$/;
+var DIGEST_PATTERN = /^sha256:[a-f0-9]{64}$/;
+var HEX_DIGEST_PATTERN = /^[a-f0-9]{64}$/;
+var CONNECTION_ID_PATTERN = /^[a-z0-9][a-z0-9_-]{2,127}$/i;
+var MAX_RECORD_ID_LENGTH = 256;
+var isParticipantId = (value) => typeof value === "string" && PARTICIPANT_ID_PATTERN.test(value);
+var isDigest = (value) => typeof value === "string" && DIGEST_PATTERN.test(value);
+var isHexDigest = (value) => typeof value === "string" && HEX_DIGEST_PATTERN.test(value);
+var isConnectionId = (value) => typeof value === "string" && CONNECTION_ID_PATTERN.test(value);
+var isRecordId = (value) => typeof value === "string" && value.length > 0 && value.length <= MAX_RECORD_ID_LENGTH && !/[\u0000-\u001f\u007f]/.test(value);
+var isAccountId = isRecordId;
+var isEnrollmentId = isRecordId;
+function isComputerId(value, basis = null) {
+  if (basis === "signing-key") return isParticipantId(value);
+  if (basis === "ledger-enrollment") return isEnrollmentId(value);
+  return basis === null && (isParticipantId(value) || isEnrollmentId(value));
+}
+
 // shared/vendor/reploid/artifacts/identity.js
 var encoder = new TextEncoder();
 var getCryptoApi = (cryptoApi) => {
@@ -417,6 +436,151 @@ var GENERATION_SETTINGS_CAPABILITY = Object.freeze({
   thinking: false
 });
 
+// shared/vendor/reploid/contracts/computer-records.js
+var COMPUTER_SCHEMA = "reploid.computer/1";
+var OFFER_SCHEMA = "reploid.offer/1";
+var CONNECTION_ASSISTANCE_SCHEMA = "reploid.connection-assistance/1";
+var OPERATION_ROLES_SCHEMA = "reploid.operation-roles/1";
+var OFFER_KINDS = Object.freeze(["weight-supply", "inference"]);
+var OFFER_READINESS = Object.freeze(["preparing", "ready", "busy", "stopping", "failed", "unavailable"]);
+var INFERENCE_EXECUTIONS = Object.freeze(["whole-model", "model-stage"]);
+var IDENTITY_BASES = Object.freeze(["signing-key", "ledger-enrollment"]);
+var OPERATION_KINDS = Object.freeze(["inference", "weight-transfer"]);
+var FILE_HASH_ALGORITHMS = Object.freeze(["sha256", "blake3"]);
+var LIMITS = Object.freeze({ connections: 64, participantIds: 64, identities: 64, files: 4096 });
+var isObject = (value) => !!value && typeof value === "object" && !Array.isArray(value);
+var isCount = (value) => Number.isSafeInteger(value) && value >= 0;
+var isTime = (value) => value === null || isCount(value);
+var unique = (values) => new Set(values).size === values.length;
+var ContractError = class extends TypeError {
+  constructor(schema, problems) {
+    super(`Invalid ${schema}: ${problems.join("; ")}`);
+    this.code = "CONTRACT_INVALID";
+    this.schema = schema;
+    this.problems = problems;
+  }
+};
+var digestList = (value, path, problems, max = LIMITS.identities) => {
+  if (!Array.isArray(value) || value.length > max || !value.every(isDigest) || !unique(value)) problems.push(`${path} must be distinct sha256 digests`);
+};
+function inferenceScopeProblems(scope, problems) {
+  if (!isObject(scope)) {
+    problems.push("scope must be an object");
+    return;
+  }
+  if (!(scope.modelId === null || isRecordId(scope.modelId))) problems.push("scope.modelId must be a model ID or null");
+  digestList(scope.modelIdentities, "scope.modelIdentities", problems);
+  digestList(scope.adapterIdentities, "scope.adapterIdentities", problems);
+  if (!INFERENCE_EXECUTIONS.includes(scope.execution)) problems.push(`scope.execution must be one of ${INFERENCE_EXECUTIONS.join(", ")}`);
+  if (!(scope.stageIndex === null || scope.execution === "model-stage" && isCount(scope.stageIndex))) {
+    problems.push("scope.stageIndex is a model-stage index or null");
+  }
+  if (!(scope.availableSlots === null || isCount(scope.availableSlots))) problems.push("scope.availableSlots must be a count or null");
+}
+function weightScopeProblems(scope, problems) {
+  if (!isObject(scope)) {
+    problems.push("scope must be an object");
+    return;
+  }
+  digestList(scope.modelIdentities, "scope.modelIdentities", problems);
+  digestList(scope.pieceIndexDigests, "scope.pieceIndexDigests", problems, LIMITS.files);
+  if (!Array.isArray(scope.files) || scope.files.length > LIMITS.files || !scope.files.every((file) => isObject(file) && FILE_HASH_ALGORITHMS.includes(file.hashAlgorithm) && isHexDigest(file.hash) && Number.isSafeInteger(file.sizeBytes) && file.sizeBytes > 0)) {
+    problems.push("scope.files must be { hashAlgorithm, hash, sizeBytes } entries");
+  }
+  if (!(scope.maxStorageBytes === null || isCount(scope.maxStorageBytes))) problems.push("scope.maxStorageBytes must be a byte count or null");
+}
+function offerProblems(offer) {
+  const problems = [];
+  if (!isObject(offer)) return ["offer must be an object"];
+  if (offer.schema !== OFFER_SCHEMA) problems.push(`schema must be ${OFFER_SCHEMA}`);
+  if (!OFFER_KINDS.includes(offer.kind)) problems.push(`kind must be one of ${OFFER_KINDS.join(", ")}`);
+  if (!(offer.connectionId === null || isConnectionId(offer.connectionId))) problems.push("connectionId must be a transport session ID or null");
+  if (!OFFER_READINESS.includes(offer.readiness)) problems.push(`readiness must be one of ${OFFER_READINESS.join(", ")}`);
+  if (typeof offer.paused !== "boolean") problems.push("paused must be a boolean");
+  if (!isTime(offer.expiresAt)) problems.push("expiresAt must be epoch milliseconds or null");
+  if (offer.kind === "inference") inferenceScopeProblems(offer.scope, problems);
+  else if (offer.kind === "weight-supply") weightScopeProblems(offer.scope, problems);
+  return problems;
+}
+function assistanceProblems(value) {
+  if (!isObject(value)) return ["connection assistance must be an object"];
+  const problems = [];
+  if (value.schema !== CONNECTION_ASSISTANCE_SCHEMA) problems.push(`schema must be ${CONNECTION_ASSISTANCE_SCHEMA}`);
+  if (typeof value.enabled !== "boolean") problems.push("enabled must be a boolean");
+  return problems;
+}
+function computerProblems(computer) {
+  if (!isObject(computer)) return ["computer must be an object"];
+  const problems = [];
+  if (computer.schema !== COMPUTER_SCHEMA) problems.push(`schema must be ${COMPUTER_SCHEMA}`);
+  if (!IDENTITY_BASES.includes(computer.identityBasis)) problems.push(`identityBasis must be one of ${IDENTITY_BASES.join(", ")}`);
+  else if (!isComputerId(computer.computerId, computer.identityBasis)) problems.push(`computerId is not a ${computer.identityBasis} identity`);
+  const keys = computer.participantIds;
+  if (!Array.isArray(keys) || keys.length > LIMITS.participantIds || !keys.every(isParticipantId) || !unique(keys)) {
+    problems.push("participantIds must be distinct participant IDs");
+  } else if (computer.identityBasis === "signing-key" && !keys.includes(computer.computerId)) {
+    problems.push("participantIds must include a signing-key computerId");
+  }
+  if (!(computer.accountId === null || isAccountId(computer.accountId))) problems.push("accountId must be an account ID or null");
+  if (!Array.isArray(computer.connections) || computer.connections.length > LIMITS.connections) problems.push("connections must be an array");
+  else {
+    computer.connections.forEach((connection, index) => {
+      if (!isObject(connection) || !isConnectionId(connection.connectionId)) problems.push(`connections[${index}].connectionId must be a transport session ID`);
+      else if (!(connection.participantId === null || Array.isArray(keys) && keys.includes(connection.participantId))) {
+        problems.push(`connections[${index}].participantId must be null or one of participantIds`);
+      }
+    });
+    if (!unique(computer.connections.map((connection) => connection?.connectionId))) problems.push("connections must be distinct");
+  }
+  if (!Array.isArray(computer.offers)) problems.push("offers must be an array");
+  else {
+    computer.offers.forEach((offer, index) => problems.push(...offerProblems(offer).map((problem) => `offers[${index}].${problem}`)));
+    if (!unique(computer.offers.map((offer) => offer?.kind))) problems.push("offers holds at most one offer of each kind");
+  }
+  if (computer.connectionAssistance !== null) problems.push(...assistanceProblems(computer.connectionAssistance).map((problem) => `connectionAssistance.${problem}`));
+  return problems;
+}
+function partyProblems(party, path) {
+  if (!isObject(party)) return [`${path} must be an object`];
+  const problems = [];
+  if (!(party.computerId === null || isComputerId(party.computerId))) problems.push(`${path}.computerId must be a computer ID or null`);
+  if (!(party.participantId === null || isParticipantId(party.participantId))) problems.push(`${path}.participantId must be a participant ID or null`);
+  if (party.accountId !== void 0 && !isAccountId(party.accountId)) problems.push(`${path}.accountId must be an account ID when present`);
+  if (party.connectionId !== void 0 && !isConnectionId(party.connectionId)) problems.push(`${path}.connectionId must be a transport session ID when present`);
+  if (party.computerId === null && party.participantId === null && party.connectionId === void 0) problems.push(`${path} names no computer, key or connection`);
+  return problems;
+}
+function rolesProblems(roles) {
+  if (!isObject(roles)) return ["operation roles must be an object"];
+  const problems = [];
+  if (roles.schema !== OPERATION_ROLES_SCHEMA) problems.push(`schema must be ${OPERATION_ROLES_SCHEMA}`);
+  if (!OPERATION_KINDS.includes(roles.operation)) problems.push(`operation must be one of ${OPERATION_KINDS.join(", ")}`);
+  if (!isRecordId(roles.operationId)) problems.push("operationId must be a record ID");
+  problems.push(...partyProblems(roles.consumer, "consumer"), ...partyProblems(roles.provider, "provider"));
+  return problems;
+}
+var CHECKS = Object.freeze({
+  [COMPUTER_SCHEMA]: computerProblems,
+  [OFFER_SCHEMA]: offerProblems,
+  [CONNECTION_ASSISTANCE_SCHEMA]: assistanceProblems,
+  [OPERATION_ROLES_SCHEMA]: rolesProblems
+});
+function recordProblems(schema, value) {
+  const check = CHECKS[schema];
+  if (!check) return [`unknown record schema ${String(schema)}`];
+  return check(value);
+}
+var parser = (schema) => (value) => {
+  const problems = recordProblems(schema, value);
+  if (problems.length) throw new ContractError(schema, problems);
+  return structuredClone(value);
+};
+var parseComputer = parser(COMPUTER_SCHEMA);
+var parseOffer = parser(OFFER_SCHEMA);
+var parseConnectionAssistance = parser(CONNECTION_ASSISTANCE_SCHEMA);
+var parseOperationRoles = parser(OPERATION_ROLES_SCHEMA);
+var ADVERTISED_READINESS = Object.freeze({ loading: "preparing", ready: "ready", executing: "ready", stopping: "stopping", failed: "failed" });
+
 // shared/vendor/reploid/mesh/gpu-signature.policy.json
 var gpu_signature_policy_default = {
   schema: "reploid.gpu-order-signature/v1",
@@ -625,7 +789,7 @@ var CHANGE_PASSPORT_EVENT_TYPES = Object.freeze([
 var EVENT_TYPE_SET = new Set(CHANGE_PASSPORT_EVENT_TYPES);
 var HASH_PATTERN = /^sha256:[a-f0-9]{64}$/;
 var SAFE_ID_PATTERN = /^[a-zA-Z0-9._:@/+~-]+$/;
-var isObject = (value) => value !== null && typeof value === "object" && !Array.isArray(value);
+var isObject2 = (value) => value !== null && typeof value === "object" && !Array.isArray(value);
 var cloneJson = (value) => JSON.parse(JSON.stringify(value));
 var canonicalChangePassportJson = (value) => {
   if (value === null || typeof value === "boolean" || typeof value === "string") {
@@ -638,7 +802,7 @@ var canonicalChangePassportJson = (value) => {
   if (Array.isArray(value)) {
     return `[${value.map(canonicalChangePassportJson).join(",")}]`;
   }
-  if (isObject(value)) {
+  if (isObject2(value)) {
     return `{${Object.keys(value).sort().map((key) => `${JSON.stringify(key)}:${canonicalChangePassportJson(value[key])}`).join(",")}}`;
   }
   throw new Error(`Change Passport contains unsupported ${typeof value}`);
@@ -810,7 +974,7 @@ var normalizeTrigger = (payload = {}, observed = false) => ({
   observationKind: requiredId(payload.observationKind, "trigger.observationKind"),
   targetId: requiredId(payload.targetId, "trigger.targetId"),
   action: requiredId(payload.action, "trigger.action"),
-  condition: isObject(payload.condition) ? cloneJson(payload.condition) : !observed && isObject(payload.match) ? cloneJson(payload.match) : {},
+  condition: isObject2(payload.condition) ? cloneJson(payload.condition) : !observed && isObject2(payload.match) ? cloneJson(payload.match) : {},
   sensorAuthorityId: requiredId(payload.sensorAuthorityId, "trigger.sensorAuthorityId"),
   observationHash: observed ? requiredHash(payload.observationHash, "trigger.observationHash") : optionalHash(payload.observationHash, "trigger.observationHash"),
   observedAt: observed ? requiredTimestamp(payload.observedAt, "trigger.observedAt") : null,

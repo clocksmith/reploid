@@ -18,9 +18,9 @@
     "kernel/boot.js"
   ],
   "counts": {
-    "apps/poolday": 410,
+    "apps/poolday": 412,
     "self": 457,
-    "shared": 2528
+    "shared": 2532
   },
   "pendingMoves": 0,
   "violations": [],
@@ -2313,6 +2313,18 @@
     {
       "served": "host/computer-preferences.js",
       "source": "apps/poolday/host/computer-preferences.js",
+      "owner": "apps/poolday",
+      "basis": "Reached only from product entries."
+    },
+    {
+      "served": "host/computer-records.d.ts",
+      "source": "apps/poolday/host/computer-records.d.ts",
+      "owner": "apps/poolday",
+      "basis": "Describes host/computer-records.js. Reached only from product entries."
+    },
+    {
+      "served": "host/computer-records.js",
+      "source": "apps/poolday/host/computer-records.js",
       "owner": "apps/poolday",
       "basis": "Reached only from product entries."
     },
@@ -16640,6 +16652,16 @@
       "owner": "shared"
     },
     {
+      "served": "vendor/reploid/contracts/computer-records.d.ts",
+      "source": "shared/vendor/reploid/contracts/computer-records.d.ts",
+      "owner": "shared"
+    },
+    {
+      "served": "vendor/reploid/contracts/computer-records.js",
+      "source": "shared/vendor/reploid/contracts/computer-records.js",
+      "owner": "shared"
+    },
+    {
       "served": "vendor/reploid/contracts/config/doppler-execution-contracts.d.ts",
       "source": "shared/vendor/reploid/contracts/config/doppler-execution-contracts.d.ts",
       "owner": "shared"
@@ -16672,6 +16694,16 @@
     {
       "served": "vendor/reploid/contracts/host-ports.d.ts",
       "source": "shared/vendor/reploid/contracts/host-ports.d.ts",
+      "owner": "shared"
+    },
+    {
+      "served": "vendor/reploid/contracts/identifiers.d.ts",
+      "source": "shared/vendor/reploid/contracts/identifiers.d.ts",
+      "owner": "shared"
+    },
+    {
+      "served": "vendor/reploid/contracts/identifiers.js",
+      "source": "shared/vendor/reploid/contracts/identifiers.js",
       "owner": "shared"
     },
     {
