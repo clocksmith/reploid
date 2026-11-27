@@ -66,6 +66,7 @@
     "build:vfs-manifest": "node scripts/build-vfs-manifest.js",
     "build:zero-source": "node scripts/build-zero-source.js",
     "verify:zero-source": "node scripts/build-zero-source.js --check",
+    "verify:x-extension": "node scripts/verify-x-extends-zero.js",
     "build:browser-bundle": "node scripts/build-browser-bundle-manifest.js",
     "sync:runtime-config": "node scripts/sync-runtime-config.js --write",
     "sync:doppler": "node scripts/sync-doppler.js",
