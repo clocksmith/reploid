@@ -138,7 +138,8 @@ stated explicitly. Evidence is in the
     a contributor leaves.
   - Compare whole-machine and distributed execution against credible alternatives.
   - Keep peak capacity, sustained throughput and customer demand separate.
-  - Exchange and payment follow that proof.
+  - Exchange and payment on a split route follow that proof; a trade on the
+    whole-model route does not wait for it.
 - **Qualify the whole service.** That covers acquisition, preparation, streaming,
   follow-ups, cancellation, bounded queues, departure, retry and recovery.
   - Count preparation, idle residency, communication, failed work, owner
@@ -194,7 +195,7 @@ adoption; those remain application and operator controls.
 ## Current sequence
 
 The owner's private roadmap owns the capped validation sequence and exposure
-limits. Marketplaces, payouts, speculative blocks, broad model support and
+limits. Marketplaces, cash payouts, speculative blocks, broad model support and
 self-improving placement are paused. Nothing in the research track below
 authorizes concurrent work. User obligations and necessary correctness and security
 repairs are governed separately.

@@ -1,6 +1,6 @@
 # Reploid architecture
 
-Mechanisms and ownership live here. The [product contract](product-specification.md) owns the public product terms; the owner's private roadmap alone owns active work, status and acceptance. [GOALS.md](../GOALS.md) and [INTENT.md](../INTENT.md) remain governing boundaries. Dated design snapshots below are not current implementation status.
+Mechanisms and ownership live here. The [product contract](product-specification.md) owns the public product terms and, in its [route table](product-specification.md#5-contribution-and-execution), route qualification; the [journey catalogue](critical-user-journeys.md) owns journey acceptance and evidence status; the owner's private roadmap owns active work and its order. [GOALS.md](../GOALS.md) and [INTENT.md](../INTENT.md) remain governing boundaries. Dated design snapshots below are not current implementation status.
 
 ## Technical diagrams
 
@@ -11,8 +11,8 @@ The README illustrates a two-contributor example. The component diagram below
 shows the intended N-stage mesh: a route selected per attempt, a coordinator on
 the first contributor, final-stage sampling, and separate request state on shared
 residents. Five computers illustrate the route; they are not a fixed stage count
-or a claim of qualified capacity. The owner's private roadmap owns implementation and
-qualification status.
+or a claim of qualified capacity. Route qualification is stated only in the
+[route table](product-specification.md#5-contribution-and-execution).
 
 The sequences and source map below trace the ordinary two-partition implementation
 at `1c8860f4`. They describe ownership and message flow, not a qualification result.
@@ -147,7 +147,7 @@ See the [canonical product contract](product-specification.md) and the [network 
 ## 2. What exists and what is missing
 
 The dated gap table observed at the design baseline is [archived](archive/open-mesh-gap-table-2026-10-01.md);
-it is history, not current status. Current status is kept in the owner's private roadmap register.
+it is history, not current status. Journey status is in the [journey catalogue](critical-user-journeys.md) and route qualification in the [route table](product-specification.md#5-contribution-and-execution).
 
 The older [system architecture](system-architecture.md) primarily describes the
 agent/VFS substrate. It does not describe the complete open mesh chat path. That
@@ -606,8 +606,11 @@ resource or disclosure constraints and is introduced after this baseline works.
 
 ## 15. Evidence routing
 
-[Chat acceptance](chat-mvp.md), the [surface claim index](status/surface-claim-index.json),
-and the owner's private roadmap own current qualification and selected work. The
+The [journey catalogue](critical-user-journeys.md) owns journey acceptance and evidence
+status, the [route table](product-specification.md#5-contribution-and-execution) route
+qualification and the [surface claim index](status/surface-claim-index.json) surface
+claims; the owner's private roadmap selects work. The [chat contract](chat-mvp.md) records
+integration requirements. The
 [storage checkpoint](https://github.com/clocksmith/reploid/blob/e543183bed54dfdf2b6e6139dd4c31c8686f47bd/artifacts/open-mesh/20261001/README.md) retains the original
 loading repair and subsequent generation failure; its scope is historical.
 Architecture diagrams and specifications do not establish current deployment.
@@ -717,8 +720,10 @@ Consolidated from the former network product-intent document. These are scoped e
 
 ### Ordinary network journey
 
-Open Reploid, choose an available model, start an independent conversation,
-authorize the necessary disclosure and receive a complete answer. Public discovery
+Open Reploid, type, send and receive a complete answer in an independent
+conversation. Choosing a model is optional, and Send authorizes the disclosure the
+composer states; [FIRST-01 and FIRST-02](critical-user-journeys.md#the-public-page-bar)
+hold the acceptance. Public discovery
 uses the configured bootstrap without invitations, manual room setup or selecting
 computers. Which routes are qualified, and what each loads on the requester, is
 stated only in the [route table](product-specification.md#5-contribution-and-execution).
