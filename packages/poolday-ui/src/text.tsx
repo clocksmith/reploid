@@ -77,8 +77,8 @@ export function VisuallyHidden({ children, id, data }: { readonly children: Reac
 export function Facts({ items }: { readonly items: ReadonlyArray<readonly [term: string, value: ReactNode]> }) {
   return (
     <dl className="pool-facts pool-stack pool-gap-xs pool-small">
-      {items.map(([term, value]) => (
-        <div key={term}>
+      {items.map(([term, value], index) => (
+        <div key={`${term}:${index}`}>
           <dt>{term}</dt>
           <dd>{value}</dd>
         </div>

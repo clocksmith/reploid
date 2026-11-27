@@ -148,4 +148,4 @@
 /* In the composer's toolbar, labelled controls keep one line; the selector takes what is left and truncates. */
 .pool-home .pool-toolbar > .pool-button:not(.pool-selector) { flex: 0 1 auto; min-inline-size: var(--pool-size-44); white-space: nowrap; }
 .pool-home .pool-toolbar > .pool-button:not(.pool-selector) > span:last-child { min-inline-size: 0; overflow: hidden; text-overflow: ellipsis; }
-.pool-home .pool-toolbar > :is(.pool-icon, .pool-file) { flex: none; }
+.pool-home .pool-toolbar > .pool-icon { flex: none; }

@@ -113,12 +113,13 @@ export function IconButton({
   disabled = false,
   type = 'button',
   pressed,
+  current,
   expanded,
   hasPopup,
   controls,
   describedBy,
   data,
-}: CommonButtonProps & { readonly label: string; readonly icon: IconName }) {
+}: Omit<CommonButtonProps, 'accessibleLabel' | 'title'> & { readonly label: string; readonly icon: IconName }) {
   return (
     <button
       type={type}
@@ -128,6 +129,7 @@ export function IconButton({
       disabled={disabled || (type === 'button' && !onPress)}
       onClick={onPress}
       aria-pressed={pressed}
+      aria-current={current ? 'true' : undefined}
       aria-expanded={expanded}
       aria-haspopup={hasPopup}
       aria-controls={controls}

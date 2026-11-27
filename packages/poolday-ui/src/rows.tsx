@@ -2,6 +2,45 @@ import { useId, type ReactNode } from 'react';
 import { Icon, type IconName } from './icon.js';
 import { cx, dataProps, type DataAttributes } from './internal.js';
 
+/** Internal row text pair shared by ListItem, Disclosure, SingleChoice, MultiChoice and Toggle. */
+export function RowText({
+  title,
+  status,
+  htmlFor,
+  titleId,
+  statusId,
+  statusData,
+  alwaysStatus = false,
+}: {
+  readonly title: ReactNode;
+  readonly status?: ReactNode;
+  readonly htmlFor?: string;
+  readonly titleId?: string;
+  readonly statusId?: string;
+  readonly statusData?: DataAttributes;
+  readonly alwaysStatus?: boolean;
+}) {
+  const inner = (
+    <>
+      <span className="pool-row-title" id={titleId}>
+        {title}
+      </span>
+      {(alwaysStatus || status !== undefined) && (
+        <span className="pool-row-status" id={statusId} {...dataProps(statusData)}>
+          {status}
+        </span>
+      )}
+    </>
+  );
+  return htmlFor ? (
+    <label className="pool-row-text" htmlFor={htmlFor}>
+      {inner}
+    </label>
+  ) : (
+    <span className="pool-row-text">{inner}</span>
+  );
+}
+
 /**
  * A panel is a column of Sections. A Section is a small uppercase title over one List of rows on a
  * quiet film, with an optional note below. Never box a group twice.
@@ -68,12 +107,7 @@ export function ListItem({
   readonly label?: string;
   readonly data?: DataAttributes;
 }) {
-  const text = (
-    <span className="pool-row-text">
-      <span className="pool-row-title">{title}</span>
-      {status !== undefined && <span className="pool-row-status">{status}</span>}
-    </span>
-  );
+  const text = <RowText title={title} status={status} />;
   const leading = icon ? <Icon name={icon} /> : null;
   if (href !== undefined) {
     return (
@@ -150,10 +184,7 @@ export function Disclosure({
     >
       <summary>
         {quiet ? (
-          <span className="pool-row-text">
-            <span className="pool-row-title">{summary}</span>
-            {status !== undefined && <span className="pool-row-status" {...dataProps(statusData)}>{status}</span>}
-          </span>
+          <RowText title={summary} status={status} statusData={statusData} />
         ) : (
           <>
             {summary}

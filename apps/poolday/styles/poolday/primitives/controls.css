@@ -88,9 +88,6 @@
    the container shows focus with pool-focus-within. */
 .pool-home .pool-bare { border: 0; border-radius: 0; background: transparent; box-shadow: none; }
 .pool-home .pool-bare:focus-visible { outline: none; }
-/* A label that opens a file picker: the native input covers it invisibly. */
-.pool-home .pool-file { position: relative; overflow: hidden; cursor: pointer; }
-.pool-home .pool-file input[type='file'] { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
 
 .pool-home .pool-segmented {
   display: flex;

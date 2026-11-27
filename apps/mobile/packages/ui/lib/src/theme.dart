@@ -1,24 +1,43 @@
 import 'package:flutter/material.dart';
 
-/// Layout roles that can be replaced by each app's design system.
+/// Layout and shape roles replaced by each app's design system.
 @immutable
 final class UiSpacing extends ThemeExtension<UiSpacing> {
-  const UiSpacing({this.gap = 16, this.inset = 24, this.contentWidth = 760});
+  const UiSpacing({
+    this.gap = 16,
+    this.inset = 24,
+    this.contentWidth = 760,
+    this.controlRadius = 10,
+    this.panelRadius = 16,
+    this.pillRadius = 999,
+  });
 
   final double gap;
   final double inset;
   final double contentWidth;
+  final double controlRadius;
+  final double panelRadius;
+  final double pillRadius;
 
   static UiSpacing of(BuildContext context) =>
       Theme.of(context).extension<UiSpacing>() ?? const UiSpacing();
 
   @override
-  UiSpacing copyWith({double? gap, double? inset, double? contentWidth}) =>
-      UiSpacing(
-        gap: gap ?? this.gap,
-        inset: inset ?? this.inset,
-        contentWidth: contentWidth ?? this.contentWidth,
-      );
+  UiSpacing copyWith({
+    double? gap,
+    double? inset,
+    double? contentWidth,
+    double? controlRadius,
+    double? panelRadius,
+    double? pillRadius,
+  }) => UiSpacing(
+    gap: gap ?? this.gap,
+    inset: inset ?? this.inset,
+    contentWidth: contentWidth ?? this.contentWidth,
+    controlRadius: controlRadius ?? this.controlRadius,
+    panelRadius: panelRadius ?? this.panelRadius,
+    pillRadius: pillRadius ?? this.pillRadius,
+  );
 
   @override
   UiSpacing lerp(covariant UiSpacing? other, double t) => other == null
@@ -27,6 +46,10 @@ final class UiSpacing extends ThemeExtension<UiSpacing> {
           gap: gap + (other.gap - gap) * t,
           inset: inset + (other.inset - inset) * t,
           contentWidth: contentWidth + (other.contentWidth - contentWidth) * t,
+          controlRadius:
+              controlRadius + (other.controlRadius - controlRadius) * t,
+          panelRadius: panelRadius + (other.panelRadius - panelRadius) * t,
+          pillRadius: pillRadius + (other.pillRadius - pillRadius) * t,
         );
 }
 
@@ -40,8 +63,20 @@ ThemeData createUiTheme({
   UiSpacing spacing = const UiSpacing(),
   String? fontFamily,
   ColorScheme? colorScheme,
-  double controlRadius = 14,
-  double panelRadius = 20,
+  double controlRadius = 10,
+  double panelRadius = 16,
+  double pillRadius = 999,
+  double borderThin = 1,
+  double borderThick = 2,
+  double displaySize = 32,
+  double headingSize = 24,
+  double titleSize = 18,
+  double bodySize = 16,
+  double smallSize = 14,
+  double leadingTight = 1.2,
+  double leadingSnug = 1.4,
+  double leadingRead = 1.6,
+  int durationFastMs = 160,
 }) {
   final colors =
       colorScheme ??
@@ -52,11 +87,16 @@ ThemeData createUiTheme({
             ? const Color(0xfff8f8f5)
             : const Color(0xff151917),
       );
+  final resolvedSpacing = spacing.copyWith(
+    controlRadius: controlRadius,
+    panelRadius: panelRadius,
+    pillRadius: pillRadius,
+  );
   final base = ThemeData(
     useMaterial3: true,
     colorScheme: colors,
     fontFamily: fontFamily,
-    extensions: [spacing],
+    extensions: [resolvedSpacing],
   );
   final shape = RoundedRectangleBorder(
     borderRadius: BorderRadius.circular(controlRadius),
@@ -81,11 +121,11 @@ ThemeData createUiTheme({
       EdgeInsets.symmetric(horizontal: 22, vertical: 14),
     ),
     shape: WidgetStatePropertyAll(shape),
-    animationDuration: const Duration(milliseconds: 160),
+    animationDuration: Duration(milliseconds: durationFastMs),
     textStyle: WidgetStatePropertyAll(
       base.textTheme.labelLarge?.copyWith(
-        fontSize: 14,
-        fontWeight: FontWeight.w700,
+        fontSize: smallSize,
+        fontWeight: FontWeight.w600,
         letterSpacing: .1,
       ),
     ),
@@ -94,7 +134,7 @@ ThemeData createUiTheme({
         color: states.contains(WidgetState.focused)
             ? colors.primary
             : Colors.transparent,
-        width: 2,
+        width: borderThick,
       ),
     ),
   );
@@ -106,27 +146,30 @@ ThemeData createUiTheme({
     highlightColor: colors.primary.withValues(alpha: .04),
     textTheme: base.textTheme.copyWith(
       headlineLarge: base.textTheme.headlineLarge?.copyWith(
-        fontSize: 36,
-        height: 1.15,
-        fontWeight: FontWeight.w800,
-        letterSpacing: -1.3,
+        fontSize: displaySize,
+        height: leadingTight,
+        fontWeight: FontWeight.w700,
+        letterSpacing: -0.8,
       ),
       headlineSmall: base.textTheme.headlineSmall?.copyWith(
-        fontSize: 26,
-        height: 1.25,
-        fontWeight: FontWeight.w800,
-        letterSpacing: -.7,
+        fontSize: headingSize,
+        height: leadingTight,
+        fontWeight: FontWeight.w600,
+        letterSpacing: -0.4,
       ),
       titleMedium: base.textTheme.titleMedium?.copyWith(
-        fontSize: 16,
-        height: 1.4,
-        fontWeight: FontWeight.w700,
-        letterSpacing: -.2,
+        fontSize: titleSize,
+        height: leadingSnug,
+        fontWeight: FontWeight.w600,
+        letterSpacing: -0.2,
       ),
-      bodyLarge: base.textTheme.bodyLarge?.copyWith(fontSize: 16, height: 1.6),
+      bodyLarge: base.textTheme.bodyLarge?.copyWith(
+        fontSize: bodySize,
+        height: leadingRead,
+      ),
       bodyMedium: base.textTheme.bodyMedium?.copyWith(
-        fontSize: 14,
-        height: 1.6,
+        fontSize: smallSize,
+        height: leadingRead,
       ),
     ),
     appBarTheme: AppBarTheme(
@@ -139,8 +182,9 @@ ThemeData createUiTheme({
       titleSpacing: 24,
       centerTitle: false,
       titleTextStyle: base.textTheme.titleMedium?.copyWith(
-        fontWeight: FontWeight.w800,
-        letterSpacing: -.4,
+        fontSize: titleSize,
+        fontWeight: FontWeight.w700,
+        letterSpacing: -0.3,
       ),
     ),
     cardTheme: CardThemeData(
@@ -150,7 +194,10 @@ ThemeData createUiTheme({
       clipBehavior: Clip.antiAlias,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(panelRadius),
-        side: BorderSide(color: colors.outlineVariant.withValues(alpha: .6)),
+        side: BorderSide(
+          color: colors.outlineVariant.withValues(alpha: .6),
+          width: borderThin,
+        ),
       ),
     ),
     filledButtonTheme: FilledButtonThemeData(
@@ -161,7 +208,7 @@ ThemeData createUiTheme({
             color: states.contains(WidgetState.focused)
                 ? colors.onPrimary
                 : Colors.transparent,
-            width: 2,
+            width: borderThick,
           ),
         ),
       ),
@@ -174,7 +221,9 @@ ThemeData createUiTheme({
             color: states.contains(WidgetState.focused)
                 ? colors.primary
                 : colors.outlineVariant,
-            width: states.contains(WidgetState.focused) ? 2 : 1,
+            width: states.contains(WidgetState.focused)
+                ? borderThick
+                : borderThin,
           ),
         ),
       ),
@@ -204,18 +253,18 @@ ThemeData createUiTheme({
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(controlRadius),
-        borderSide: BorderSide(color: colors.outlineVariant),
+        borderSide: BorderSide(color: colors.outlineVariant, width: borderThin),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(controlRadius),
-        borderSide: BorderSide(color: colors.primary, width: 2),
+        borderSide: BorderSide(color: colors.primary, width: borderThick),
       ),
       alignLabelWithHint: true,
     ),
     dividerTheme: DividerThemeData(
       color: colors.outlineVariant.withValues(alpha: .6),
-      thickness: 1,
-      space: 1,
+      thickness: borderThin,
+      space: borderThin,
     ),
     snackBarTheme: SnackBarThemeData(
       behavior: SnackBarBehavior.floating,

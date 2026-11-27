@@ -147,58 +147,6 @@
   background: none;
   cursor: pointer;
 }
-/* An operation button carries its symbol in a leading cell and fills an underline on hover. */
-:where(.pool-home) .btn-op {
-  --pool-param-op-progress: 0;
-  position: relative;
-  isolation: isolate;
-  overflow: hidden;
-  min-height: var(--pool-size-40);
-  padding-left: calc(var(--pool-size-2) + var(--pool-size-8));
-  transition: background var(--pool-duration-fast), color var(--pool-duration-fast),
-    box-shadow var(--pool-duration-fast), transform var(--pool-duration-fast);
-}
-:where(.pool-home) .btn-op::before {
-  content: attr(data-op);
-  position: absolute;
-  inset-block: 0;
-  left: 0;
-  display: grid;
-  place-items: center;
-  width: var(--pool-size-2);
-  background: color-mix(in srgb, var(--pool-color-ink) var(--pool-alpha-12), transparent);
-  font-weight: var(--pool-weight-bold);
-  letter-spacing: 0;
-}
-:where(.pool-home) .btn-op::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: var(--pool-border-thin);
-  background: currentColor;
-  opacity: var(--pool-alpha-64);
-  transform: scaleX(var(--pool-param-op-progress));
-  transform-origin: left center;
-  transition: transform var(--pool-duration-base);
-}
-:where(.pool-home) .btn-op:hover { --pool-param-op-progress: 1; }
-
-/* Panels and status strips */
-:where(.pool-home) .boot-status-strip {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(var(--pool-size-128), 1fr));
-  gap: var(--pool-size-4);
-  padding: var(--pool-size-4) var(--pool-size-16) var(--pool-size-8);
-}
-:where(.pool-home) .rgr-status-label { font-size: var(--pool-text-micro); opacity: var(--pool-alpha-48); }
-:where(.pool-home) .rgr-status-value {
-  overflow: hidden;
-  font-size: var(--pool-text-micro);
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
 
 @media (prefers-reduced-motion: reduce) {
   :where(.pool-home),

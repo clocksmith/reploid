@@ -102,6 +102,7 @@ class MessageBubble extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
+    final spacing = UiSpacing.of(context);
     final muted = theme.textTheme.labelMedium?.copyWith(
       color: failed ? colors.error : colors.onSurfaceVariant,
     );
@@ -127,7 +128,7 @@ class MessageBubble extends StatelessWidget {
                   color: outgoing
                       ? colors.primaryContainer
                       : colors.surfaceContainerLowest,
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(spacing.panelRadius),
                   border: Border.all(
                     color: failed
                         ? colors.error
@@ -262,6 +263,7 @@ class Notice extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
+    final spacing = UiSpacing.of(context);
     final (background, foreground) = switch (tone) {
       NoticeTone.neutral => (colors.surfaceContainer, colors.onSurface),
       NoticeTone.warning => (
@@ -275,7 +277,7 @@ class Notice extends StatelessWidget {
       child: DecoratedBox(
         decoration: BoxDecoration(
           color: background,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(spacing.controlRadius),
         ),
         child: Padding(
           padding: const EdgeInsets.all(14),

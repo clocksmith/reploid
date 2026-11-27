@@ -63,9 +63,6 @@
   overflow-wrap: anywhere;
 }
 
-/* A status line of several facts: visible segments are separated by a middle dot. */
-.pool-home .pool-row-segments > :not([hidden]) ~ :not([hidden])::before { content: ' · '; }
-
 /* Every row: icon slot, text and trailing slot at fixed positions. */
 .pool-home :is(.pool-option, .pool-toggle-row, .pool-action-row) {
   position: relative;
@@ -200,12 +197,8 @@
   line-height: var(--pool-leading-snug);
   overflow-wrap: anywhere;
 }
-/* Surfaces hide [hidden] with !important; a reserved line and a reserved alternative keep their space. */
+/* Surfaces hide [hidden] with !important; a reserved status line keeps its space. */
 .pool-home .pool-status-line[hidden] { display: block !important; visibility: hidden; }
-/* Alternatives that share one cell: the tallest reserves the space, only the shown one is visible. */
-.pool-home .pool-reserve { display: grid; }
-.pool-home .pool-reserve > * { grid-area: 1 / 1; margin: 0; }
-.pool-home .pool-reserve > [hidden] { display: block !important; visibility: hidden; }
 
 /* Dialog shell. The header and footer never scroll; the body does. */
 .pool-home .pool-dialog {

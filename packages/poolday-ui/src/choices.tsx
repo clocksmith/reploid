@@ -1,6 +1,7 @@
 import { useId, useRef, type KeyboardEvent, type ReactNode } from 'react';
 import { Icon, IconGlyph, type IconName } from './icon.js';
 import { cx, dataProps, type DataAttributes } from './internal.js';
+import { RowText } from './rows.js';
 
 /**
  * Choice controls. Pick by the kind of decision, never by the look:
@@ -85,14 +86,15 @@ function OptionRow<T extends string>({
           if (checked && event.currentTarget.checked && !option.disabled) onReselect?.(option.value);
         }}
       />
-      <label className="pool-row-text" htmlFor={id}>
-        <span className="pool-row-title" id={`${id}-title`}>
-          {option.title}
-        </span>
-        <span className="pool-row-status" id={statusId} {...dataProps(option.statusData)}>
-          {option.status}
-        </span>
-      </label>
+      <RowText
+        htmlFor={id}
+        title={option.title}
+        titleId={`${id}-title`}
+        status={option.status}
+        statusId={statusId}
+        statusData={option.statusData}
+        alwaysStatus
+      />
       <span className="pool-option-mark" aria-hidden="true">
         <IconGlyph name="check" />
       </span>
@@ -294,14 +296,7 @@ export function Toggle({
   return (
     <div className="pool-toggle-row" {...dataProps(data)}>
       {icon && <Icon name={icon} />}
-      <span className="pool-row-text">
-        <span className="pool-row-title" id={`${id}-title`}>
-          {title}
-        </span>
-        <span className="pool-row-status" id={`${id}-status`}>
-          {status}
-        </span>
-      </span>
+      <RowText title={title} titleId={`${id}-title`} status={status} statusId={`${id}-status`} alwaysStatus />
       <button
         type="button"
         className="pool-switch"

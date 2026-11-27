@@ -62,6 +62,22 @@ function parsePx(value, name) {
   return Number(match[1]);
 }
 
+function parseMs(value, name) {
+  const match = /^(\d+(?:\.\d+)?)ms$/.exec(value.trim());
+  if (!match) {
+    throw new Error(`Expected ms value for ${name}, got: ${value}`);
+  }
+  return Math.round(Number(match[1]));
+}
+
+function parseNumber(value, name) {
+  const n = Number(value.trim());
+  if (!Number.isFinite(n)) {
+    throw new Error(`Expected numeric value for ${name}, got: ${value}`);
+  }
+  return n;
+}
+
 function parseColor(value, name) {
   const trimmed = value.trim();
   const hex = /^#([0-9a-fA-F]{6})$/.exec(trimmed);
@@ -114,98 +130,22 @@ export function generateDartTokens(cssText) {
     /:root\.pool-page\[data-reploid-theme='light'\],\s*\.pool-home\[data-pool-theme='light'\]\s*\{/,
   );
 
-  const spacingGap = parsePx(requireToken(dark, '--pool-size-16', 'dark'), '--pool-size-16');
-  const contentWidth = parsePx(requireToken(dark, '--pool-size-720', 'dark'), '--pool-size-720');
-  const controlRadius = parsePx(
-    requireToken(dark, '--pool-radius-control', 'dark'),
-    '--pool-radius-control',
-  );
-  const panelRadius = parsePx(
-    requireToken(dark, '--pool-radius-panel', 'dark'),
-    '--pool-radius-panel',
-  );
+  const px = (name) => parsePx(requireToken(dark, name, 'dark'), name);
+  const num = (name) => parseNumber(requireToken(dark, name, 'dark'), name);
+  const ms = (name) => parseMs(requireToken(dark, name, 'dark'), name);
+  const darkColor = (name) => parseColor(requireToken(dark, name, 'dark'), name);
+  const lightColor = (name) => parseColor(requireToken(light, name, 'light'), name);
 
-  const darkPage = parseColor(requireToken(dark, '--pool-color-page', 'dark'), '--pool-color-page');
-  const darkRaised = parseColor(
-    requireToken(dark, '--pool-color-raised', 'dark'),
-    '--pool-color-raised',
-  );
-  const darkInset = parseColor(
-    requireToken(dark, '--pool-color-inset', 'dark'),
-    '--pool-color-inset',
-  );
-  const darkLine = compositeOver(
-    parseColor(requireToken(dark, '--pool-color-line', 'dark'), '--pool-color-line'),
-    darkPage,
-  );
-  const darkInk = parseColor(requireToken(dark, '--pool-color-ink', 'dark'), '--pool-color-ink');
-  const darkMuted = parseColor(
-    requireToken(dark, '--pool-color-muted', 'dark'),
-    '--pool-color-muted',
-  );
-  const darkFocus = parseColor(
-    requireToken(dark, '--pool-color-focus', 'dark'),
-    '--pool-color-focus',
-  );
-  const darkOnPrimary = parseColor(
-    requireToken(dark, '--pool-color-on-primary', 'dark'),
-    '--pool-color-on-primary',
-  );
+  const darkPage = darkColor('--pool-color-page');
+  const darkLine = compositeOver(darkColor('--pool-color-line'), darkPage);
   const darkSecondary = extractGradientStop(
     requireToken(dark, '--pool-surface-primary', 'dark'),
     1,
     '--pool-surface-primary',
   );
-  const darkStatusReady = parseColor(
-    requireToken(dark, '--pool-color-status-ready', 'dark'),
-    '--pool-color-status-ready',
-  );
-  const darkStatusPending = parseColor(
-    requireToken(dark, '--pool-color-status-pending', 'dark'),
-    '--pool-color-status-pending',
-  );
-  const darkStatusError = parseColor(
-    requireToken(dark, '--pool-color-status-error', 'dark'),
-    '--pool-color-status-error',
-  );
 
-  const lightPage = parseColor(
-    requireToken(light, '--pool-color-page', 'light'),
-    '--pool-color-page',
-  );
-  const lightRaised = parseColor(
-    requireToken(light, '--pool-color-raised', 'light'),
-    '--pool-color-raised',
-  );
-  const lightInset = parseColor(
-    requireToken(light, '--pool-color-inset', 'light'),
-    '--pool-color-inset',
-  );
-  const lightLine = compositeOver(
-    parseColor(requireToken(light, '--pool-color-line', 'light'), '--pool-color-line'),
-    lightPage,
-  );
-  const lightInk = parseColor(requireToken(light, '--pool-color-ink', 'light'), '--pool-color-ink');
-  const lightMuted = parseColor(
-    requireToken(light, '--pool-color-muted', 'light'),
-    '--pool-color-muted',
-  );
-  const lightFocus = parseColor(
-    requireToken(light, '--pool-color-focus', 'light'),
-    '--pool-color-focus',
-  );
-  const lightStatusReady = parseColor(
-    requireToken(light, '--pool-color-status-ready', 'light'),
-    '--pool-color-status-ready',
-  );
-  const lightStatusPending = parseColor(
-    requireToken(light, '--pool-color-status-pending', 'light'),
-    '--pool-color-status-pending',
-  );
-  const lightStatusError = parseColor(
-    requireToken(light, '--pool-color-status-error', 'light'),
-    '--pool-color-status-error',
-  );
+  const lightPage = lightColor('--pool-color-page');
+  const lightLine = compositeOver(lightColor('--pool-color-line'), lightPage);
 
   return `// GENERATED CODE - DO NOT MODIFY BY HAND.
 // Source: apps/poolday/styles/poolday/tokens.css
@@ -214,39 +154,60 @@ export function generateDartTokens(cssText) {
 import 'package:flutter/material.dart' show Color;
 
 abstract final class PooldayTokens {
-  static const double spacingGap = ${spacingGap};
-  static const double spacingInset = ${spacingGap};
-  static const double contentWidth = ${contentWidth};
-  static const double controlRadius = ${controlRadius};
-  static const double panelRadius = ${panelRadius};
+  // Space and size
+  static const double spacingGap = ${px('--pool-size-16')};
+  static const double spacingInset = ${px('--pool-size-16')};
+  static const double contentWidth = ${px('--pool-size-720')};
+
+  // Shape and borders
+  static const double radiusXs = ${px('--pool-radius-xs')};
+  static const double controlRadius = ${px('--pool-radius-control')};
+  static const double panelRadius = ${px('--pool-radius-panel')};
+  static const double pillRadius = ${px('--pool-radius-pill')};
+  static const double borderThin = ${px('--pool-border-thin')};
+  static const double borderThick = ${px('--pool-border-thick')};
+
+  // Type scale and line heights
+  static const double textXs = ${px('--pool-text-xs')};
+  static const double textSm = ${px('--pool-text-sm')};
+  static const double textLg = ${px('--pool-text-lg')};
+  static const double textXl = ${px('--pool-text-xl')};
+  static const double textDisplay = ${px('--pool-text-display')};
+  static const double leadingTight = ${num('--pool-leading-tight')};
+  static const double leadingSnug = ${num('--pool-leading-snug')};
+  static const double leadingRead = ${num('--pool-leading-read')};
+
+  // Motion
+  static const int durationFastMs = ${ms('--pool-duration-fast')};
+  static const int durationBaseMs = ${ms('--pool-duration-base')};
 }
 
 abstract final class PooldayDarkTokens {
   static const page = ${toDartColor(darkPage)};
-  static const raised = ${toDartColor(darkRaised)};
-  static const inset = ${toDartColor(darkInset)};
+  static const raised = ${toDartColor(darkColor('--pool-color-raised'))};
+  static const inset = ${toDartColor(darkColor('--pool-color-inset'))};
   static const line = ${toDartColor(darkLine)};
-  static const ink = ${toDartColor(darkInk)};
-  static const muted = ${toDartColor(darkMuted)};
-  static const focus = ${toDartColor(darkFocus)};
-  static const onPrimary = ${toDartColor(darkOnPrimary)};
+  static const ink = ${toDartColor(darkColor('--pool-color-ink'))};
+  static const muted = ${toDartColor(darkColor('--pool-color-muted'))};
+  static const focus = ${toDartColor(darkColor('--pool-color-focus'))};
+  static const onPrimary = ${toDartColor(darkColor('--pool-color-on-primary'))};
   static const secondary = ${toDartColor(darkSecondary)};
-  static const statusReady = ${toDartColor(darkStatusReady)};
-  static const statusPending = ${toDartColor(darkStatusPending)};
-  static const statusError = ${toDartColor(darkStatusError)};
+  static const statusReady = ${toDartColor(darkColor('--pool-color-status-ready'))};
+  static const statusPending = ${toDartColor(darkColor('--pool-color-status-pending'))};
+  static const statusError = ${toDartColor(darkColor('--pool-color-status-error'))};
 }
 
 abstract final class PooldayLightTokens {
   static const page = ${toDartColor(lightPage)};
-  static const raised = ${toDartColor(lightRaised)};
-  static const inset = ${toDartColor(lightInset)};
+  static const raised = ${toDartColor(lightColor('--pool-color-raised'))};
+  static const inset = ${toDartColor(lightColor('--pool-color-inset'))};
   static const line = ${toDartColor(lightLine)};
-  static const ink = ${toDartColor(lightInk)};
-  static const muted = ${toDartColor(lightMuted)};
-  static const focus = ${toDartColor(lightFocus)};
-  static const statusReady = ${toDartColor(lightStatusReady)};
-  static const statusPending = ${toDartColor(lightStatusPending)};
-  static const statusError = ${toDartColor(lightStatusError)};
+  static const ink = ${toDartColor(lightColor('--pool-color-ink'))};
+  static const muted = ${toDartColor(lightColor('--pool-color-muted'))};
+  static const focus = ${toDartColor(lightColor('--pool-color-focus'))};
+  static const statusReady = ${toDartColor(lightColor('--pool-color-status-ready'))};
+  static const statusPending = ${toDartColor(lightColor('--pool-color-status-pending'))};
+  static const statusError = ${toDartColor(lightColor('--pool-color-status-error'))};
 }
 `;
 }

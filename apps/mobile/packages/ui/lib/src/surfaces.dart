@@ -191,6 +191,7 @@ class StatusBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
+    final spacing = UiSpacing.of(context);
     return Align(
       alignment: AlignmentDirectional.centerStart,
       child: Container(
@@ -199,7 +200,7 @@ class StatusBadge extends StatelessWidget {
           color: highlighted
               ? colors.secondaryContainer
               : colors.surfaceContainer,
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(spacing.pillRadius),
         ),
         child: Text(
           label,
@@ -236,8 +237,4 @@ class NoteInput extends StatelessWidget {
     minLines: 2,
     maxLines: 5,
   );
-}
-
-void showNotice(BuildContext context, String text) {
-  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
 }

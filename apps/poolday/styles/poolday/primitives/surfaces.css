@@ -3,13 +3,12 @@
    pool-card     raised panel with its own padding
    pool-well     inset area for grouped or quoted content
    pool-divider  hairline separator
-   pool-list     children separated by hairlines
    pool-prose    rendered markdown: headings, links, code blocks, tables
    pool-bar      proportional bar; each child span sets --pool-param-share
    pool-dot      leading status dot (pool-dot-open: hollow)
    pool-reveal   hidden until its pool-reveal-host is hovered or focused
  */
-.pool-home .pool-surface {
+.pool-home :is(.pool-surface, .pool-card) {
   border: var(--pool-border-hairline) solid var(--pool-color-line);
   border-radius: var(--pool-radius-panel);
   background: var(--pool-color-raised);
@@ -18,16 +17,7 @@
   -webkit-backdrop-filter: var(--pool-surface-backdrop);
   backdrop-filter: var(--pool-surface-backdrop);
 }
-.pool-home .pool-card {
-  padding: var(--pool-size-24);
-  border: var(--pool-border-hairline) solid var(--pool-color-line);
-  border-radius: var(--pool-radius-panel);
-  background: var(--pool-color-raised);
-  color: var(--pool-color-ink);
-  box-shadow: var(--pool-shadow-raised);
-  -webkit-backdrop-filter: var(--pool-surface-backdrop);
-  backdrop-filter: var(--pool-surface-backdrop);
-}
+.pool-home .pool-card { padding: var(--pool-size-24); }
 .pool-home .pool-well {
   padding: var(--pool-size-16);
   border-radius: var(--pool-radius-control);
@@ -36,7 +26,6 @@
   box-shadow: var(--pool-shadow-inset);
 }
 .pool-home .pool-divider { height: 0; margin: 0; border: 0; border-top: var(--pool-border-hairline) solid var(--pool-color-line); }
-.pool-home .pool-list > * + * { border-top: var(--pool-border-hairline) solid var(--pool-color-line); }
 .pool-home .pool-prose :is(h1, h2, h3, h4, h5, h6) { font-size: var(--pool-text-lg); font-weight: var(--pool-weight-medium); }
 .pool-home .pool-prose a { color: inherit; text-decoration: underline; border-bottom: 0; }
 .pool-home .pool-prose pre { border-radius: var(--pool-radius-control); background: var(--pool-color-inset); box-shadow: var(--pool-shadow-inset); }
@@ -81,13 +70,6 @@
 @keyframes pool-inspector-enter { from { opacity: 0; transform: translateX(var(--pool-size-16)); } to { opacity: 1; transform: translateX(0); } }
 @media (prefers-reduced-motion: reduce) {
   .pool-home .pool-dot.pool-dot-pulse::before { animation: none; }
-}
-
-/* Viewport-positioned help, shared by hover, focus and tapped measurements. */
-.pool-home .pool-tooltip {
-  position: fixed; inset: auto; left: var(--pool-param-help-left); top: var(--pool-param-help-top);
-  margin: 0; padding: var(--pool-size-12); width: max-content; max-width: min(var(--pool-size-320), calc(100vw - var(--pool-size-16)));
-  overflow-wrap: anywhere; white-space: pre-line; pointer-events: none;
 }
 
 /* Progress, spinner and token swatches.
