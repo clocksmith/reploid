@@ -199,8 +199,9 @@ instant where the same receipt without `closedAt` would count. The **release
 window has passed** at `at > deadline + releaseWindowMs + maxClockSkewMs`, after
 the last instant at which `closesInTime` holds: until then a closing receipt
 signed in time can still be presented and change the outcome. For whole-model terms with `mode: "whole-model"` it has
-passed at `at >= deadline + releaseWindowMs`, as the ledger releases that hold
-([Release window](#release-window)).
+passed at `at >= deadline + releaseWindowMs`, as the ledger releases that hold, and for those terms only
+`closesInTime(t)` means `notBefore - maxClockSkewMs <= t < deadline + releaseWindowMs`, so that the same rule holds:
+no close counts that was signed once the window had passed ([Release window](#release-window)).
 
 1. **Which terms.** Terms count unless another route contradicts them. Look at
    the records with the terms' `attemptId`. If any stage receipt from a
@@ -925,7 +926,15 @@ replay computes from the same records:
   requester's signed acknowledgment without the final-stage receipt it
   acknowledged, and the charge stops at the step cap (outputs past it are
   recorded as `beyondStageSteps`, never charged).
-- The ledger keeps one receipt per stage, and pays the outside stages what the
+- The ledger keeps one receipt per stage. A receipt of an outside stage (or, under
+  earlier rules, of any stage) that contradicts the one it holds, as step 5 defines
+  it, whichever of the two arrived first, is not dropped: the ledger keeps both as
+  that stage's contradiction, settles nothing on the request and releases its hold
+  uncharged at the release window, as the replay's `conflict` moves nothing
+  (reason `stage-contradicted-itself`). Until 2026-11-26 it dropped a receipt older
+  than the one it held, replaced a step receipt with a different one at its
+  sequence, and refused a second close, and then paid the stage.
+- For the requester's own stages the ledger pays the outside stages what the
   replay pays them after failing a requester's own stage that contradicted
   itself. Only the final stage's contradiction can change an amount, by changing
   whether an answer was delivered (step 5), so the ledger keeps that one as
@@ -997,6 +1006,7 @@ ledger's words for the cases above.
 | `unattributed-disconnect-acknowledged-prefix` | `v2`, `v3` | An unfinished answer whose stages all closed, with no requester stop: the acknowledged prefix is charged ([Unfinished answers](#unfinished-answers)) |
 | `failed-stage-forfeits-own-share` | `v3` | One or more stages forfeit their own share; the other stages are paid for the acknowledged outputs. The outcome lists `forfeitedStages`, each with its `cause` (`no-close`, `fault`, `fault-and-close` or `contradiction`); with a `fault` cause the outcome's status is `failed` ([Failed stages](#failed-stages)) |
 | `closed-at-last-signed-step-after-window` | all split rules | A delivered answer settles at the release window with the stages that never closed treated as closed at their last signed step; the outcome lists `closedAtLastStep` (step 6) |
+| `stage-contradicted-itself` | all split rules | A stage whose contradiction blocks (step 5: not the requester's own stage under `v3`) handed the ledger two receipts that repeat a sequence, have steps that go backwards, continue after its close or give two chains for one count, in whatever order they arrived: the replay's `conflict`. Nothing settles on its receipts; at the release window the hold is released with status `expired`, no charge and no credit, and the outcome lists `contradictions`, each `{ partitionIndex, participantId, receipts }` with the two signed receipts as evidence |
 | `stage-unclaimed-after-window` | all split rules | The release window passed with proof still incomplete: status `expired`, no charge and no credit. The outcome lists `unclaimedStages`, each with `cleanup: "unverified"` or `"never-admitted"` |
 | `unknown-delivered-answer-without-covering-receipt` | before `v3` | The same expiry, when the answer was delivered but a stage has no receipt covering it: the replay's `unknown` |
 | `interrupted-stage-owner` | before `v3` | A stage owner's signed interruption claim settled the request: status `failed`, with `interruptedStages`. Under `v3` such a claim is that stage's fault and forfeits it instead |
@@ -1048,7 +1058,9 @@ replay's result.
   `coordinatorId` equal to the participant ID of the carried key.
 - **Checks.** Beside a replay row that is `settled` or `expired`, a verifier
   requires: the signature holds; `reservationId`, `attemptId` and `requesterId`
-  are the row's; `termsDigest` is the digest of the agreed terms; the
+  are the row's; `termsDigest` is the digest of the agreed terms (when the
+  requester signed several sets for the attempt, the one the row's non-blocking
+  `terms-equivocation` entry settled on, not another set of that attempt); the
   `settlementRules` is one whose unfinished-answer terms are the agreed terms'
   `unfinishedTerms`; `status` is the row's; `debit` is the row's `debit`;
   `payouts` equal the row's credits summed per account (signed accounts,
@@ -1084,8 +1096,10 @@ signs only when all of this holds:
 
 - the reservation is final in the ledger and holds nothing (a reservation
   released before dispatch has no terms and gets no statement);
-- the presented terms are signed by the reservation's requester for its
-  attempt and name the policy, maximum, output limit, price, shares and debit
+- the agreed terms of the replay below (step 2: when the requester signed
+  several sets for the attempt, the one the stages accepted, never merely the
+  first presented) are signed by the reservation's requester for its attempt and
+  name the policy, maximum, output limit, price, shares and debit
   account the reservation was held under;
 - a replay of the presented records, run by the service at its own time, is
   `settled` or `expired`;
@@ -1219,8 +1233,14 @@ exactly one share. Such terms sign the policy's `wholeModelUnclaimedReleaseMs` a
 `releaseWindowMs`, the window the ledger uses to release a silent whole-model hold,
 and step 3 compares `releaseWindowMs` with that member of the policy. For these terms
 the release window has passed at `at >= deadline + releaseWindowMs`, with no clock
-allowance after it, which is when the ledger releases the hold. A closing receipt
-still counts when signed by `deadline + releaseWindowMs + maxClockSkewMs`.
+allowance after it, which is when the ledger releases the hold, and a closing receipt or
+a stage fault counts only when signed before that instant
+(`notBefore - maxClockSkewMs <= signedAt < deadline + releaseWindowMs`). A close signed in the
+clock allowance after it could reach the ledger only after the hold was released
+uncharged, yet would turn the replay's `expired` into `settled`, or charge an acknowledged
+answer the ledger never charged, once presented. Until 2026-11-26 the replays counted such a close until
+`deadline + releaseWindowMs + maxClockSkewMs`; the requester refuses a close or a fault
+outside the shorter window, so it holds none (`tests/unit/settlement-whole-model-window.test.js`).
 
 Terms without `mode` are split terms, or whole-model terms signed before it. They
 name `partitionUnclaimedReleaseMs` and are read exactly as before. Before the
