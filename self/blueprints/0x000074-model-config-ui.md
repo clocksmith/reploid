@@ -64,7 +64,7 @@ Each connection carries a `verifyState` from `VERIFY_STATE` (`state.js:43`): `un
 | Export (`detection.js`) | Behavior |
 | --- | --- |
 | `runDetection(options)` (:799) | Sets HTTPS and WebGPU state, then runs the Doppler, Ollama and proxy probes in parallel. `skipLocalScan` and `skipDoppler` skip them. |
-| `checkWebGPU()` (:533), `estimateGPUMemory()` (:544) | Browser capability checks |
+| `checkWebGPU()` (:533) | Browser WebGPU capability check |
 | `checkDoppler()` (:736) | Preflights the Doppler provider URL, then initializes `DopplerProvider` |
 | `probeOllama()` (:651) | `localhost:11434/api/tags` |
 | `probeProxy()` (:690) | Same origin, then `localhost:8000` or `8080`, at `/api/health` |
@@ -84,8 +84,7 @@ All keys go through the instance storage from `shared/instance.js`.
 | `hydrateSavedConfig(saved, apiKey)` (:441) | Restores the connection type and its config; restored connections start `unverified` |
 | `saveConfig()` (:506) | Writes `REPLOID_MODE`, `SELECTED_MODELS`, goal, environment and cycle interval. A direct API key is written to browser storage. |
 | `forgetDevice()` (:616) | Removes the saved models, keys, mode, genesis level, HITL and security settings, then resets the wizard |
-| `canAwaken()` (:662) | Requires a complete config for the chosen connection type; the route-locked Reploid mode uses `getReploidLaunchState` from `reploid-inference.js` |
-| `getCapabilityLevel()` (:700) | Summarizes model and Doppler access for the chosen connection |
+| `canAwaken()` (:623) | Requires a complete config for the chosen connection type; the route-locked Reploid mode uses `getReploidLaunchState` from `reploid-inference.js` |
 
 ## 6. Invariants
 

@@ -12,10 +12,9 @@
  * - compositions/*.css   screens arranged from primitives. A composition reads no token
  *                        and sets no visual property (color, background, border, shadow,
  *                        radius, type, opacity, filter): spacing and looks come from
- *                        primitive classes in the markup. Files under "legacyTokenReferences"
- *                        and "legacy" in layers.json may only lower those counts.
+ *                        primitive classes in the markup.
  * - Composition scripts (the React app outside its design page, and the vanilla UI) name
- *   no token either; under "legacyScriptTokenReferences" the vanilla count may only fall.
+ *   no token either.
  * - Keyframes are looks and live in primitives; compositions reference them by name only.
  * - A primitive does not style composition markup through :where() aliases: the markup
  *   carries the primitive class instead (only the .pool-home scope and the .btn alias remain).
@@ -232,16 +231,14 @@ const checkInlineStyles = () => {
 };
 
 /* Composition scripts name no token: the React app outside its design page (which documents the
-   tokens) and the vanilla UI outside its shared components. Vanilla files under
-   "legacyScriptTokenReferences" may only lower their count. */
+   tokens) and the vanilla UI outside its shared components. */
 const SCRIPT_SOURCES = [
   { dir: 'apps/poolday-react/src', skip: /\/features\/design\/|\.generated\./ },
   { dir: 'apps/poolday/ui', skip: /\/react\/|\/components\/|\.bundle\.js$/ },
 ];
 const listScripts = (dir) => readdirSync(path.join(ROOT, dir), { recursive: true })
   .filter((file) => /\.(js|mjs|ts|tsx)$/.test(file)).map((file) => path.join(dir, file));
-const checkScriptTokens = (manifest, tokenNames) => {
-  const legacy = manifest.legacyScriptTokenReferences ?? {};
+const checkScriptTokens = (tokenNames) => {
   for (const { dir, skip } of SCRIPT_SOURCES) {
     for (const file of listScripts(dir)) {
       if (skip.test(`/${file}`)) continue;
@@ -253,9 +250,7 @@ const checkScriptTokens = (manifest, tokenNames) => {
           first ||= index + 1;
         }
       });
-      const allowed = legacy[file] ?? 0;
-      if (count > allowed) report(file, first, `${count} token reference(s) in a composition script${allowed ? ` exceed the ${allowed} left to convert` : ''}; use a primitive or a --pool-param-*`);
-      if (count < allowed) console.log(`[poolday-css-layers] ${file}: ${count} token references left (lower "legacyScriptTokenReferences" in layers.json to ${count})`);
+      if (count > 0) report(file, first, `${count} token reference(s) in a composition script; use a primitive or a --pool-param-*`);
     }
   }
 };
@@ -303,14 +298,11 @@ const main = () => {
     for (const ref of varRefs(value)) if (!tokenNames.has(ref)) report(tokens.file, line, `token ${property} references ${ref}, which is not a token`);
   });
 
-  checkScriptTokens(manifest, tokenNames);
+  checkScriptTokens(tokenNames);
 
   // Primitives and compositions consume tokens, parameters and runtime inputs, with structural literals only.
-  // A converted composition only arranges: its look comes from primitive classes in the markup.
-  // A legacy composition may not grow its remaining visual declarations.
-  const legacy = manifest.legacy ?? {};
-  const legacyTokens = manifest.legacyTokenReferences ?? {};
-  const checkStylesheet = (layer, { isComposition, converted, maxVisuals = null, maxTokenRefs = null, ratchetLabel = 'legacyTokenReferences' }) => {
+  // A composition only arranges: its look comes from primitive classes in the markup.
+  const checkStylesheet = (layer, { isComposition, maxVisuals = null, maxTokenRefs = null, ratchetLabel = '' }) => {
     let visuals = 0, tokenRefs = 0;
     const seenKeyframes = new Set(), seenAliases = new Set();
     walkDeclarations(layer.clean, ({ property, value, line, context }) => {
@@ -346,7 +338,7 @@ const main = () => {
       }
       if (VISUAL_PROPERTY.test(property) && !inKeyframes(context)) {
         visuals += 1;
-        if (converted) report(layer.file, line, `composition sets ${property}; take it from a primitive class in the markup`);
+        if (isComposition && maxVisuals === null) report(layer.file, line, `composition sets ${property}; take it from a primitive class in the markup`);
       }
     });
     if (maxVisuals !== null && visuals > maxVisuals) {
@@ -356,18 +348,11 @@ const main = () => {
       report(layer.file, 1, `${tokenRefs} token references exceed the ${maxTokenRefs} left to convert; use primitive classes instead`);
     }
     if (maxTokenRefs !== null && tokenRefs < maxTokenRefs) console.log(`[poolday-css-layers] ${layer.file}: ${tokenRefs} token references left (lower "${ratchetLabel}" in layers.json to ${tokenRefs})`);
-    if (maxVisuals !== null && visuals < maxVisuals) console.log(`[poolday-css-layers] ${layer.file}: ${visuals} visual declarations left (lower "legacy" in layers.json to ${visuals})`);
   };
 
   for (const file of [...manifest.primitives, ...manifest.compositions]) {
     const layer = readLayer(file);
-    const isComposition = manifest.compositions.includes(file);
-    checkStylesheet(layer, {
-      isComposition,
-      converted: isComposition && !(file in legacy),
-      maxVisuals: file in legacy ? legacy[file] : null,
-      maxTokenRefs: file in legacyTokens ? legacyTokens[file] : null,
-    });
+    checkStylesheet(layer, { isComposition: manifest.compositions.includes(file) });
   }
 
   for (const [relPath, baseline] of Object.entries(manifest.externalCompositions ?? {})) {
@@ -378,7 +363,6 @@ const main = () => {
       { file: relPath, text, clean: stripComments(text) },
       {
         isComposition: true,
-        converted: maxVisuals === null,
         maxVisuals,
         maxTokenRefs,
         ratchetLabel: `externalCompositions["${relPath}"].tokenReferences`,

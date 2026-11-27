@@ -4,64 +4,11 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import UtilsModule from '../../shared/core/utils.js';
 
-// Backtick to JSON string converter (mirrors utils.js implementation)
-const convertBacktickStrings = (text) => {
-  let result = '';
-  let i = 0;
-  while (i < text.length) {
-    if (text[i] === '"') {
-      result += '"';
-      i++;
-      while (i < text.length) {
-        if (text[i] === '\\' && i + 1 < text.length) {
-          result += text[i] + text[i + 1];
-          i += 2;
-        } else if (text[i] === '"') {
-          result += '"';
-          i++;
-          break;
-        } else {
-          result += text[i];
-          i++;
-        }
-      }
-    } else if (text[i] === '`') {
-      result += '"';
-      i++;
-      while (i < text.length && text[i] !== '`') {
-        const char = text[i];
-        if (char === '\\' && i + 1 < text.length) {
-          result += text[i] + text[i + 1];
-          i += 2;
-        } else if (char === '"') {
-          result += '\\"';
-          i++;
-        } else if (char === '\n') {
-          result += '\\n';
-          i++;
-        } else if (char === '\r') {
-          result += '\\r';
-          i++;
-        } else if (char === '\t') {
-          result += '\\t';
-          i++;
-        } else {
-          result += char;
-          i++;
-        }
-      }
-      result += '"';
-      if (i < text.length) i++;
-    } else {
-      result += text[i];
-      i++;
-    }
-  }
-  return result;
-};
+const { sanitizeLlmJsonRespPure } = UtilsModule.factory();
 
-// Mock Utils dependency
+// Mock Utils dependency with the real JSON sanitizer
 const createMockUtils = () => ({
   logger: {
     debug: vi.fn(),
@@ -69,51 +16,7 @@ const createMockUtils = () => ({
     warn: vi.fn(),
     error: vi.fn()
   },
-  sanitizeLlmJsonRespPure: (text) => {
-    if (!text || typeof text !== 'string') return { json: "{}", method: "empty" };
-    try {
-      JSON.parse(text);
-      return { json: text, method: "direct" };
-    } catch (e) { /* continue */ }
-
-    // Try converting backtick strings to JSON strings
-    if (text.includes('`')) {
-      try {
-        const converted = convertBacktickStrings(text);
-        JSON.parse(converted);
-        return { json: converted, method: "backtick" };
-      } catch (e) { /* continue */ }
-    }
-
-    const codeBlock = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
-    if (codeBlock) {
-      try {
-        JSON.parse(codeBlock[1]);
-        return { json: codeBlock[1], method: "block" };
-      } catch (e) { /* continue */ }
-    }
-
-    const firstOpen = text.indexOf('{');
-    const lastClose = text.lastIndexOf('}');
-    if (firstOpen > -1 && lastClose > firstOpen) {
-      const candidate = text.substring(firstOpen, lastClose + 1);
-      try {
-        JSON.parse(candidate);
-        return { json: candidate, method: "heuristic" };
-      } catch (e) { /* continue */ }
-
-      // Try backtick conversion on the candidate
-      if (candidate.includes('`')) {
-        try {
-          const converted = convertBacktickStrings(candidate);
-          JSON.parse(converted);
-          return { json: converted, method: "heuristic+backtick" };
-        } catch (e) { /* continue */ }
-      }
-    }
-
-    return { json: "{}", method: "failed" };
-  }
+  sanitizeLlmJsonRespPure
 });
 
 // Import and create ResponseParser
@@ -667,14 +570,8 @@ ARGS: { invalid json here }`;
 
         expect(calls).toHaveLength(1);
         expect(calls[0].name).toBe('ReadFile');
-        // Depending on sanitizeLlmJsonRespPure behavior, either error is set or args is empty
-        if (calls[0].error) {
-          expect(calls[0].error).toContain('JSON Parse Error');
-          expect(calls[0].args).toEqual({});
-        } else {
-          // If no error, args should at least be empty (sanitizer may have recovered)
-          expect(typeof calls[0].args).toBe('object');
-        }
+        expect(calls[0].error).toContain('JSON Parse Error');
+        expect(calls[0].args).toEqual({});
       });
 
       it('should handle ARGS without opening brace', () => {
@@ -819,9 +716,8 @@ ARGS: { "path": "/also-valid.txt", "content": "ok" }`;
 
         expect(calls).toHaveLength(3);
         expect(calls[0].error).toBeUndefined();
-        // The "{ broken }" may parse differently depending on sanitizeLlmJsonRespPure
-        // It could either set error or empty args
-        expect(calls[1].error !== undefined || Object.keys(calls[1].args).length === 0).toBe(true);
+        expect(calls[1].error).toContain('JSON Parse Error');
+        expect(calls[1].args).toEqual({});
         expect(calls[2].error).toBeUndefined();
       });
 

@@ -54,32 +54,6 @@ export const isExternalBrainAvailable = (mode, hostname = globalThis.location?.h
 
 export { DEFAULT_CYCLE_INTERVAL_SECONDS, MAX_CYCLE_INTERVAL_SECONDS, normalizeCycleIntervalSeconds };
 
-// Provider test endpoints
-export const PROVIDER_TEST_ENDPOINTS = {
-  anthropic: {
-    url: 'https://api.anthropic.com/v1/messages',
-    method: 'POST',
-    note: 'Sends minimal request (~10 tokens)',
-    body: {
-      model: 'claude-3-haiku-20240307',
-      max_tokens: 1,
-      messages: [{ role: 'user', content: 'hi' }]
-    }
-  },
-  openai: {
-    url: 'https://api.openai.com/v1/models',
-    method: 'GET',
-    note: 'Free endpoint, returns model list'
-  },
-  gemini: {
-    // Key goes in query param
-    url: 'https://generativelanguage.googleapis.com/v1/models',
-    method: 'GET',
-    keyInQuery: true,
-    note: 'Free endpoint, returns model list'
-  }
-};
-
 const getStoredMode = () => {
   if (typeof window !== 'undefined' && typeof window.getReploidRouteMode === 'function') {
     const routeMode = normalizeBootMode(window.getReploidRouteMode(), '');
@@ -634,21 +608,6 @@ export function forgetDevice() {
 }
 
 /**
- * Get the primary connection's verify state
- */
-export function getPrimaryVerifyState() {
-  const { connectionType, directConfig, proxyConfig, dopplerConfig, externalConfig } = state;
-
-  switch (connectionType) {
-    case 'direct': return directConfig.verifyState;
-    case 'proxy': return proxyConfig.verifyState;
-    case 'browser': return dopplerConfig.verifyState;
-    case 'external': return externalConfig.verifyState;
-    default: return VERIFY_STATE.UNVERIFIED;
-  }
-}
-
-/**
  * Check if current config is ready to awaken
  */
 export function canAwaken() {
@@ -684,43 +643,4 @@ export function canAwaken() {
     default:
       return false;
   }
-}
-
-/**
- * Get capability level based on current config
- */
-export function getCapabilityLevel() {
-  const { connectionType, directConfig, proxyConfig, dopplerConfig } = state;
-
-  // Determine reasoning capability
-  let reasoning = 'low';
-  if (connectionType === 'direct') {
-    const provider = directConfig.provider;
-    if (['anthropic', 'openai', 'gemini'].includes(provider)) {
-      reasoning = 'high';
-    }
-  } else if (connectionType === 'proxy') {
-    // Proxy can be high if using cloud APIs, medium for local models
-    const provider = proxyConfig.provider;
-    if (['gemini', 'openai', 'anthropic'].includes(provider)) {
-      reasoning = 'high';
-    } else {
-      reasoning = 'medium';
-    }
-  }
-
-  const hasDopplerModel = !!getLocalDopplerModel(dopplerConfig?.model);
-  const hasModelAccess = connectionType === 'browser';
-  const hasDopplerAccess = hasDopplerModel && connectionType === 'browser';
-
-  return {
-    reasoning,
-    model: hasModelAccess,
-    doppler: hasDopplerAccess,
-    // Capability hints for UI gating
-    canDoModelRSI: hasModelAccess,
-    canDoDopplerEvolution: hasDopplerAccess,
-    canDoBehavioralRSI: reasoning === 'high' || reasoning === 'medium',
-    canDoComplexReasoning: reasoning === 'high'
-  };
 }

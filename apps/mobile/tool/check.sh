@@ -9,7 +9,7 @@ dart_bin="$(dirname "$flutter_path")/dart"
 "$flutter_bin" analyze --no-pub
 "$dart_bin" run tool/check_boundaries.dart
 "$dart_bin" run tool/generate_contract.dart --check
-node ../../scripts/sync-mobile-tokens.mjs --check
+# Mobile design-token parity is owned by `npm run verify:poolday-ui` (design-system job).
 "$dart_bin" test tool/test --reporter expanded
 (cd packages/core && "$dart_bin" test --reporter expanded)
 (cd packages/ui && "$flutter_path" test --no-pub --reporter expanded)

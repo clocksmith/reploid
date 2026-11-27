@@ -13,6 +13,7 @@ import {
   PARTICIPATION_CAPABILITIES,
   participationAllows
 } from '../../../shared/pool/participation-profile.js';
+import { intentWorkload } from './peer-planning.js';
 
 export const ARTIFACT_ROUTE_DECISION_SCHEMA = 'reploid.pool.artifact-route-decision/v1';
 export const ARTIFACT_LIFECYCLE = Object.freeze([
@@ -40,13 +41,6 @@ const requestedTokenCount = (intent = {}) => Math.max(0, finite(
   0
 ));
 
-const workloadForIntent = (intent = {}) => (
-  intent.body?.workload
-  || intent.body?.modelRequirements?.workload
-  || intent.body?.modelRequirements?.workloadType
-  || POOLDAY_MODEL_WORKLOADS.sequenceEmbedding
-);
-
 const exactModelReasons = (model = {}, requirement = {}, workload = POOLDAY_MODEL_WORKLOADS.sequenceEmbedding) => {
   const reasons = [];
   if (model.modelId !== requirement.modelId) reasons.push('model_id_mismatch');
@@ -65,7 +59,7 @@ const exactModelReasons = (model = {}, requirement = {}, workload = POOLDAY_MODE
 
 const matchingModel = (advert = {}, intent = {}) => {
   const requirement = intent.body?.modelRequirements || {};
-  const workload = workloadForIntent(intent);
+  const workload = intentWorkload(intent);
   let closest = null;
   let closestReasons = null;
   for (const model of advert.body?.models || []) {

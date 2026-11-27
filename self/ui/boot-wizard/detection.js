@@ -539,34 +539,6 @@ export function checkWebGPU() {
 }
 
 /**
- * Check WebGPU memory estimate
- */
-export async function estimateGPUMemory() {
-  if (!navigator.gpu) return null;
-
-  try {
-    const adapter = await navigator.gpu.requestAdapter();
-    if (!adapter) return null;
-
-    // Get limits - maxBufferSize gives a rough memory indication
-    const limits = adapter.limits;
-    const maxBuffer = limits.maxBufferSize || 0;
-
-    // Very rough estimate: maxBufferSize / 4 gives ~available VRAM in bytes
-    // This is a heuristic, not accurate
-    const estimatedMB = Math.round(maxBuffer / (1024 * 1024 * 4));
-
-    return {
-      estimatedMB,
-      isLowMemory: estimatedMB < 4000,
-      adapterInfo: adapter.info || {}
-    };
-  } catch (e) {
-    return null;
-  }
-}
-
-/**
  * Probe localhost for services
  * Returns: { detected, url, blocked, error }
  */
