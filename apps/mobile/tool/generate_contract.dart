@@ -107,6 +107,12 @@ String render(Map<String, Object?> contract, Object? catalog) {
     '  static const offersAdvertisedReadiness = {'
     '${advertised.entries.map((e) => '${_lit(e.key)}: ${_lit(e.value)}').join(', ')}};',
   );
+  final sendIntent = constants['sendIntent']! as Map<String, Object?>;
+  group('sendIntent', sendIntent, ['schema', 'ttlMs']);
+  out.writeln(
+    '  static const sendIntentRefusals = '
+    '[${(sendIntent['refusals']! as List<Object?>).map(_lit).join(', ')}];',
+  );
   final pairing = constants['pairing']! as Map<String, Object?>;
   group('pairing', pairing, [
     'codePattern',

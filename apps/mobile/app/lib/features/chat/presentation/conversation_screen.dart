@@ -72,8 +72,13 @@ class ConversationScreen extends ConsumerWidget {
       removeFile: (index) => ref
           .read(chatRepositoryProvider)
           ?.removeAttachment(conversationId, index),
-      send: (text, disclosed) => run(
-        (r) => r.send(conversationId, text, disclosedRecipient: disclosed),
+      send: (text, disclosed, holdWhenUnavailable) => run(
+        (r) => r.send(
+          conversationId,
+          text,
+          disclosedRecipient: disclosed,
+          holdWhenUnavailable: holdWhenUnavailable,
+        ),
       ),
       stop: () => run((r) => r.stop(conversationId)),
       retry: (disclosed) =>
@@ -115,7 +120,12 @@ class _Thread extends HookWidget {
   final ValueChanged<String> setDraft;
   final Future<void> Function() attach;
   final ValueChanged<int> removeFile;
-  final Future<void> Function(String text, String? disclosed) send;
+  final Future<void> Function(
+    String text,
+    String? disclosed,
+    bool holdWhenUnavailable,
+  )
+  send;
   final Future<void> Function() stop;
   final Future<void> Function(String? disclosed) retry;
   final Future<RecoverResult> Function() recover;
@@ -150,6 +160,16 @@ class _Thread extends HookWidget {
     }, [input]);
     final turns = conversation?.turns ?? const <Turn>[];
     final files = conversation?.draftFiles ?? const <AttachedFile>[];
+    useEffect(() {
+      if (conversation != null &&
+          conversation!.draft.isEmpty &&
+          conversation!.heldSend == null &&
+          turns.isNotEmpty &&
+          input.text.isNotEmpty) {
+        input.clear();
+      }
+      return null;
+    }, [turns.length]);
 
     final allowed = network?.networkAnswersAllowed ?? true;
     final models = network?.models ?? const <ModelOption>[];
@@ -234,16 +254,21 @@ class _Thread extends HookWidget {
           chosen: chosen,
           disclosed: disclosed,
           readyCount: readyPeers.length,
+          heldSend: conversation?.heldSend,
         ),
         onSend: input.text.trim().isEmpty || !allowed
             ? null
             : () {
                 final text = input.text;
-                input.clear();
+                final shouldHold =
+                    desktop == null &&
+                    disclosed == null &&
+                    (chosen == null || !chosen.available);
+                if (!shouldHold) input.clear();
                 unawaited(
                   guard(() async {
                     try {
-                      await send(text, disclosed);
+                      await send(text, disclosed, shouldHold);
                     } on AppFailure {
                       // Refused before any attempt: give the draft back.
                       if (input.text.isEmpty) input.text = text;
@@ -352,6 +377,11 @@ class _Thread extends HookWidget {
                 ? Strings.recoverEnded
                 : Strings.recoverNotYet,
           ),
+        if (conversation?.sendIntentRefusal case final reason?)
+          Notice(
+            text: Strings.sendIntentRefused(reason.wireName),
+            tone: NoticeTone.warning,
+          ),
         if (refusal.value case final kind?)
           Notice(
             // Here a conflict can only mean the named computer changed.
@@ -373,9 +403,16 @@ String _composerNote({
   required ModelOption? chosen,
   required String? disclosed,
   required int readyCount,
+  HeldSend? heldSend,
 }) {
   if (attachRefused) return Strings.attachLimits;
   if (!allowed) return Strings.discloseOff;
+  if (heldSend != null) {
+    return Strings.sendIntentHeld(
+      heldSend.ttlSeconds,
+      pinnedModel: heldSend.pinnedModelName,
+    );
+  }
   final String base;
   if (desktop != null) {
     base = desktop.status == DesktopStatus.online

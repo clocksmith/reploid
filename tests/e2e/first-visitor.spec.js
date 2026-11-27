@@ -158,11 +158,12 @@ test('reviews a reachable alternate model before changing the public destination
   await expect(page.locator('[data-prompt-disclosure]')).toHaveText('The answering computer can read your prompt.');
 });
 
-for (const [theme, width, height] of [['light', 1440, 1000], ['dark', 390, 844]]) {
+for (const [theme, width, height] of [['light', 1440, 1000], ['light', 390, 844], ['dark', 390, 844]]) {
   test(`${theme} ${width}px download, unknown total, cancellation and late peer controls`, async ({ page, baseURL }, info) => {
     await page.setViewportSize({ width, height }); await localOnly(page, baseURL); await installFixture(page, theme);
     // Automatic placement downloads to this device and still lets a late network peer answer.
     await allowOpenNetwork(page);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1)).toBe(true);
     const download = page.locator('[data-download-local]'), cancel = page.locator('[data-cancel-download]');
     await expect(download).toBeVisible(); await page.screenshot({ path: info.outputPath('empty.png') });
     await download.click(); await expect(page.locator('[data-download-confirm]')).toBeEnabled();

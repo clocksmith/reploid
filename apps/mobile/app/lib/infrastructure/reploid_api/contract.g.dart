@@ -35,6 +35,9 @@ abstract final class Contract {
   static const generationMaxRequestResends = 2;
   static const offersSchema = 'reploid.offer/1';
   static const offersAdvertisedReadiness = {'loading': 'preparing', 'ready': 'ready', 'executing': 'ready', 'stopping': 'stopping', 'failed': 'failed'};
+  static const sendIntentSchema = 'reploid.send-intent/1';
+  static const sendIntentTtlMs = 30000;
+  static const sendIntentRefusals = ['expired', 'selection-changed', 'artifact-mismatch', 'thread-changed'];
   static const pairingCodePattern = '^[A-Za-z0-9_-]{24}\$';
   static const pairingParticipantIdPattern = '^peer:[a-f0-9]{24}\$';
   static const pairingRoomTokenPrefix = 'reploid-pairing-route-not-a-secret-v1:';

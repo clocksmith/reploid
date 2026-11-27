@@ -275,4 +275,12 @@ abstract final class Strings {
     FailureKind.sessionExpired => 'Start again to continue.',
     FailureKind.unexpected => 'Something went wrong. Try again.',
   };
+
+  // PLACEHOLDER_COPY: owner review needed (Send-intent states).
+  static String sendIntentHeld(int seconds, {String? pinnedModel}) =>
+      pinnedModel == null
+      ? '[PLACEHOLDER: send-intent.held seconds=$seconds]'
+      : '[PLACEHOLDER: send-intent.held seconds=$seconds pinned=$pinnedModel]';
+  static String sendIntentRefused(String reason) =>
+      '[PLACEHOLDER: send-intent.refused reason=$reason]';
 }

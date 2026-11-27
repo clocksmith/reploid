@@ -11,6 +11,22 @@ import 'local_data.dart';
 import 'preferences_store.dart';
 import 'requester_api.dart';
 
+final class _HeldSend {
+  _HeldSend({
+    required this.intent,
+    required this.prompt,
+    required this.timer,
+    this.pinnedModelName,
+    this.pinnedIdentity,
+  });
+
+  final SendIntent intent;
+  final String prompt;
+  final Timer timer;
+  final String? pinnedModelName;
+  final String? pinnedIdentity;
+}
+
 final class _Thread {
   _Thread(this.id);
   final String id;
@@ -19,6 +35,8 @@ final class _Thread {
   String? modelId;
   String? modelName;
   String? modelIdentity;
+  bool modelPinned = false;
+  int selectionRevision = 0;
   AnswerTarget? target;
   List<AttachedFile> draftFiles = const [];
   final List<Turn> turns = [];
@@ -27,6 +45,8 @@ final class _Thread {
   Completer<void>? running;
   Future<RecoverResult>? recovering;
   bool stopping = false;
+  _HeldSend? heldSend;
+  SendIntentRefusal? sendIntentRefusal;
 }
 
 /// Conversations and network state for one session, kept in memory only.
@@ -45,6 +65,7 @@ final class SessionChatRepository implements ChatRepository {
     this.computerPreferences,
     this.participantId = '',
     DateTime Function()? now,
+    this.sendIntentTtlMs = Contract.sendIntentTtlMs,
     this.diagnostics = const Diagnostics(),
   }) : _now = now ?? DateTime.now {
     session.registerCleanup(close);
@@ -69,6 +90,7 @@ final class SessionChatRepository implements ChatRepository {
   /// This device's identity, written into exported data files.
   final String participantId;
   final DateTime Function() _now;
+  final int sendIntentTtlMs;
   final Diagnostics diagnostics;
   Future<void>? _restoring;
   bool _restored = false;
@@ -294,9 +316,77 @@ final class SessionChatRepository implements ChatRepository {
     _networkSubscription = api.watch().listen((snapshot) {
       if (!_active) return;
       _network = snapshot;
+      _tryReleaseHeldSends();
       _emit();
     });
     unawaited(reconnect());
+  }
+
+  void _cancelHeldSend(_Thread thread, {SendIntentRefusal? refusal}) {
+    final held = thread.heldSend;
+    if (held == null) return;
+    held.timer.cancel();
+    thread.heldSend = null;
+    if (refusal != null) thread.sendIntentRefusal = refusal;
+  }
+
+  void _tryReleaseHeldSends() {
+    if (!_active) return;
+    for (final thread in _threads.values) {
+      final held = thread.heldSend;
+      if (held == null) continue;
+      if (!_allowed || _target(thread) != AnswerTarget.contributors) {
+        _cancelHeldSend(thread);
+        continue;
+      }
+      final candidate = _findPermittedCandidate(thread, held.intent);
+      if (candidate == null) continue;
+      final (model, recipient) = candidate;
+      final artifact = SendIntentArtifact.isValidDigest(model.identity)
+          ? SendIntentArtifact(identity: model.identity)
+          : null;
+      final refusal = held.intent.refusal(
+        nowMs: _now().millisecondsSinceEpoch,
+        selectionRevision: thread.selectionRevision,
+        artifact: artifact,
+        threadId: thread.id,
+      );
+      _cancelHeldSend(thread, refusal: refusal);
+      if (refusal != null) continue;
+      thread
+        ..modelId = model.id
+        ..sendIntentRefusal = null;
+      unawaited(
+        _acceptPrompt(thread, held.prompt, recipient).catchError((Object _) {}),
+      );
+    }
+  }
+
+  (CatalogModel, String)? _findPermittedCandidate(
+    _Thread thread,
+    SendIntent intent,
+  ) {
+    switch (intent.selection) {
+      case PinnedSendSelection(artifact: final pinned):
+        for (final model in api.catalog) {
+          if (model.identity != pinned.identity) continue;
+          final recipient = api.nextRecipient(
+            modelId: model.id,
+            contextId: thread.id,
+          );
+          if (recipient != null) return (model, recipient);
+        }
+        return null;
+      case AutoSendSelection():
+        for (final model in api.catalog) {
+          final recipient = api.nextRecipient(
+            modelId: model.id,
+            contextId: thread.id,
+          );
+          if (recipient != null) return (model, recipient);
+        }
+        return null;
+    }
   }
 
   @override
@@ -325,6 +415,11 @@ final class SessionChatRepository implements ChatRepository {
     _checkActive();
     _allowedExplicitlySet = true;
     _allowed = allowed;
+    if (!allowed) {
+      for (final thread in _threads.values) {
+        _cancelHeldSend(thread);
+      }
+    }
     _emit();
     await preferences?.writeNetworkAnswersAllowed(allowed);
   }
@@ -387,23 +482,44 @@ final class SessionChatRepository implements ChatRepository {
         !(_network.desktop?.paired ?? false)) {
       throw const AppFailure(FailureKind.validation);
     }
-    thread.target = target;
+    thread
+      ..target = target
+      ..selectionRevision += 1;
+    _cancelHeldSend(thread, refusal: SendIntentRefusal.selectionChanged);
     _persist();
     _emit();
   }
 
   // Conversations -----------------------------------------------------------
 
-  Conversation _conversation(_Thread thread) => Conversation(
-    id: thread.id,
-    title: thread.title,
-    modelId: thread.modelId,
-    turns: thread.turns,
-    target: _target(thread),
-    draft: thread.draft,
-    nextRecipient: _nextRecipient(thread),
-    draftFiles: thread.draftFiles,
-  );
+  Conversation _conversation(_Thread thread) {
+    final pinnedCatalog = thread.modelPinned && thread.modelId != null
+        ? api.catalog.where((m) => m.id == thread.modelId).firstOrNull
+        : null;
+    final held = thread.heldSend;
+    return Conversation(
+      id: thread.id,
+      title: thread.title,
+      modelId: thread.modelId,
+      turns: thread.turns,
+      target: _target(thread),
+      draft: thread.draft,
+      nextRecipient: _nextRecipient(thread),
+      modelPinned: thread.modelPinned,
+      pinnedModelIdentity: pinnedCatalog?.identity,
+      heldSend: held == null
+          ? null
+          : HeldSend(
+              intentId: held.intent.intentId,
+              expiresAtMs: held.intent.expiresAtMs,
+              ttlSeconds: (held.intent.ttlMs / 1000).round(),
+              pinnedModelName: held.pinnedModelName,
+              pinnedIdentity: held.pinnedIdentity,
+            ),
+      sendIntentRefusal: thread.sendIntentRefusal,
+      draftFiles: thread.draftFiles,
+    );
+  }
 
   /// The conversation's model, or the default when an imported conversation
   /// names one this app does not offer. The screen shows the same choice.
@@ -464,6 +580,7 @@ final class SessionChatRepository implements ChatRepository {
     _checkActive();
     final thread = _threads.remove(id);
     if (thread == null) return;
+    _cancelHeldSend(thread);
     unawaited(_cancel(thread));
     _persist();
     _emit();
@@ -480,7 +597,10 @@ final class SessionChatRepository implements ChatRepository {
     thread
       ..modelId = modelId
       ..modelName = null
-      ..modelIdentity = null;
+      ..modelIdentity = null
+      ..modelPinned = true
+      ..selectionRevision += 1;
+    _cancelHeldSend(thread, refusal: SendIntentRefusal.selectionChanged);
     _persist();
     _emit();
   }
@@ -670,32 +790,101 @@ final class SessionChatRepository implements ChatRepository {
   }
 
   @override
-  Future<void> send(String id, String text, {String? disclosedRecipient}) {
+  Future<void> send(
+    String id,
+    String text, {
+    String? disclosedRecipient,
+    bool holdWhenUnavailable = false,
+  }) {
     _checkActive();
     final thread = _require(id);
     // A second tap joins the answer already under way; it never sends twice.
     if (thread.running case final running?) return running.future;
+    if (thread.heldSend != null) return Future.value();
     if (thread.recovering != null) {
       throw const AppFailure(FailureKind.unavailable);
     }
     final prompt = text.trim();
     if (prompt.isEmpty) throw const AppFailure(FailureKind.validation);
     if (!_allowed) throw const AppFailure(FailureKind.forbidden);
+    thread.sendIntentRefusal = null;
     if ((preferences != null || computerPreferences != null) &&
         !_prefsRestored) {
-      return _sendAfterRestore(thread, prompt, disclosedRecipient);
+      return _sendAfterRestore(
+        thread,
+        prompt,
+        disclosedRecipient,
+        holdWhenUnavailable: holdWhenUnavailable,
+      );
+    }
+    if (holdWhenUnavailable &&
+        _target(thread) == AnswerTarget.contributors &&
+        disclosedRecipient == null &&
+        _nextRecipient(thread) == null) {
+      _holdSendIntent(thread, prompt);
+      return Future.value();
     }
     return _acceptPrompt(thread, prompt, disclosedRecipient);
+  }
+
+  void _holdSendIntent(_Thread thread, String prompt) {
+    _requireReadableBlocks(thread);
+    _ensureOpen();
+    final pinnedCatalog = thread.modelPinned && thread.modelId != null
+        ? api.catalog.where((m) => m.id == thread.modelId).firstOrNull
+        : null;
+    final selection =
+        pinnedCatalog != null &&
+            SendIntentArtifact.isValidDigest(pinnedCatalog.identity)
+        ? PinnedSendSelection(
+            SendIntentArtifact(identity: pinnedCatalog.identity),
+          )
+        : const AutoSendSelection();
+    final intent = SendIntent(
+      schema: Contract.sendIntentSchema,
+      intentId: newId(),
+      threadId: thread.id,
+      selection: selection,
+      selectionRevision: thread.selectionRevision,
+      createdAtMs: _now().millisecondsSinceEpoch,
+      ttlMs: sendIntentTtlMs,
+    );
+    thread.draft = prompt;
+    final timer = Timer(Duration(milliseconds: sendIntentTtlMs), () {
+      if (!_active || thread.heldSend?.intent.intentId != intent.intentId) {
+        return;
+      }
+      thread
+        ..heldSend = null
+        ..sendIntentRefusal = SendIntentRefusal.expired;
+      _emit();
+    });
+    thread.heldSend = _HeldSend(
+      intent: intent,
+      prompt: prompt,
+      timer: timer,
+      pinnedModelName: pinnedCatalog?.name,
+      pinnedIdentity: pinnedCatalog?.identity,
+    );
+    _emit();
   }
 
   Future<void> _sendAfterRestore(
     _Thread thread,
     String prompt,
-    String? disclosed,
-  ) async {
+    String? disclosed, {
+    bool holdWhenUnavailable = false,
+  }) async {
     await _restoring;
     _checkActive();
     if (!_allowed) throw const AppFailure(FailureKind.forbidden);
+    if (holdWhenUnavailable &&
+        _target(thread) == AnswerTarget.contributors &&
+        disclosed == null &&
+        _nextRecipient(thread) == null) {
+      _holdSendIntent(thread, prompt);
+      return;
+    }
     return _acceptPrompt(thread, prompt, disclosed);
   }
 
@@ -912,7 +1101,13 @@ final class SessionChatRepository implements ChatRepository {
   @override
   Future<void> stop(String id) async {
     _checkActive();
-    await _cancel(_require(id));
+    final thread = _require(id);
+    if (thread.heldSend != null) {
+      _cancelHeldSend(thread);
+      _emit();
+      return;
+    }
+    await _cancel(thread);
   }
 
   FailureKind _kind(Object error) =>
@@ -931,6 +1126,7 @@ final class SessionChatRepository implements ChatRepository {
       await _write(last);
       _threads.clear();
       for (final thread in threads) {
+        _cancelHeldSend(thread);
         await thread.subscription?.cancel();
         await thread.answer?.cancel();
         if (thread.running case final running? when !running.isCompleted) {

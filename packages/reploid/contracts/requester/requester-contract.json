@@ -201,6 +201,16 @@
         "stopping": "stopping",
         "failed": "failed"
       }
+    },
+    "sendIntent": {
+      "schema": "reploid.send-intent/1",
+      "ttlMs": 30000,
+      "refusals": [
+        "expired",
+        "selection-changed",
+        "artifact-mismatch",
+        "thread-changed"
+      ]
     }
   },
   "sources": {
@@ -782,6 +792,21 @@
       "symbol": "ADVERTISED_READINESS",
       "check": "literal",
       "literal": "ADVERTISED_READINESS = Object.freeze({ loading: 'preparing', ready: 'ready', executing: 'ready', stopping: 'stopping', failed: 'failed' })"
+    },
+    "constants.sendIntent.schema": {
+      "file": "packages/reploid/src/chat/send-intent.js",
+      "symbol": "SEND_INTENT_SCHEMA",
+      "check": "export"
+    },
+    "constants.sendIntent.ttlMs": {
+      "file": "packages/reploid/src/chat/send-intent.js",
+      "symbol": "SEND_INTENT_TTL_MS",
+      "check": "export"
+    },
+    "constants.sendIntent.refusals": {
+      "file": "packages/reploid/src/chat/send-intent.js",
+      "symbol": "SEND_INTENT_REFUSALS",
+      "check": "export"
     }
   },
   "signalingMessages": {

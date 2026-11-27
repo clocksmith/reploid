@@ -320,7 +320,10 @@ export function buildDesignIndex() {
   const uiNames = new Set(components.map(([name]) => name));
   const screenModules = new Map();
   for (const feature of featureDirs) {
-    for (const [file, module] of loadModules(path.join(FEATURES, feature, 'presentation'))) screenModules.set(file, { ...module, feature });
+    const rootDir = path.join(FEATURES, feature, 'presentation');
+    for (const [file, module] of loadModules(rootDir, true)) {
+      screenModules.set(file, { ...module, feature, topLevel: path.dirname(file) === rootDir });
+    }
   }
   const usedPrimitives = (file, name, seen = new Set()) => {
     const key = `${file}#${name}`;
@@ -347,6 +350,7 @@ export function buildDesignIndex() {
   const exportedSet = new Set(uiNames);
   const renders = new Map(components.map(([name, file]) => [name, componentsOf(uiModules, file, name, exportedSet)]));
   for (const [file, module] of screenModules) {
+    if (!module.topLevel) continue;
     for (const name of module.exported) {
       if (!/^[A-Z]/.test(name)) continue;
       const used = new Set(usedPrimitives(file, name));

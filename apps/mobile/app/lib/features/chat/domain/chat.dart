@@ -2,6 +2,10 @@ import 'dart:typed_data';
 
 import 'package:core/core.dart';
 
+import 'send_intent.dart';
+
+export 'send_intent.dart';
+
 /// A model the network offers, with how many computers can answer now.
 final class ModelOption {
   const ModelOption({
@@ -390,6 +394,10 @@ final class Conversation {
     this.target = AnswerTarget.contributors,
     this.draft = '',
     this.nextRecipient,
+    this.modelPinned = false,
+    this.pinnedModelIdentity,
+    this.heldSend,
+    this.sendIntentRefusal,
     List<AttachedFile> draftFiles = const [],
   }) : turns = List.unmodifiable(turns),
        draftFiles = List.unmodifiable(draftFiles);
@@ -411,10 +419,23 @@ final class Conversation {
   /// answer. Null when none is ready or the best one is not yet proven.
   final String? nextRecipient;
 
+  /// True when the person explicitly picked this conversation's model.
+  final bool modelPinned;
+
+  /// Exact sha256 weights identity of the pinned model, if any.
+  final String? pinnedModelIdentity;
+
+  /// Active Send-intent waiting up to 30s for a permitted route.
+  final HeldSend? heldSend;
+
+  /// Why the most recent held Send-intent was refused without dispatching.
+  final SendIntentRefusal? sendIntentRefusal;
+
   /// Files waiting to go with the next prompt, for this session only.
   final List<AttachedFile> draftFiles;
 
-  bool get busy => turns.isNotEmpty && turns.last.inProgress;
+  bool get busy =>
+      heldSend != null || (turns.isNotEmpty && turns.last.inProgress);
 
   /// The last answer was lost in transit and its recipient can be asked.
   bool get canRecover {
@@ -506,7 +527,12 @@ abstract interface class ChatRepository {
   /// [disclosedRecipient] is the computer the screen named. If another
   /// would now be chosen this throws [FailureKind.conflict] and sends
   /// nothing, and the prompt can go only to the named computer.
-  Future<void> send(String id, String text, {String? disclosedRecipient});
+  Future<void> send(
+    String id,
+    String text, {
+    String? disclosedRecipient,
+    bool holdWhenUnavailable = false,
+  });
   Future<void> stop(String id);
   Future<void> retry(String id, {String? disclosedRecipient});
 
