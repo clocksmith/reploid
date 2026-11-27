@@ -48,7 +48,7 @@ const WORDING = Object.freeze({
     preset: 'Only this device runs the model. Nothing leaves this device, and no network participant sees its metadata.'
   },
   'own-devices': {
-    preset: ({ desktop }) => `This device and ${desktop} run the model and read your content in plaintext, so they can also see its access patterns; no other computer can read it. When ${desktop} answers, a relay that carries the connection can see its timing and message sizes. ${desktop} counts as yours because you approved its pairing code.`
+    preset: ({ desktop }) => `This device and ${desktop} run the model and read your content in plaintext, so they can also see its access patterns; no other computer can read it. When ${desktop} answers, a relay that carries the connection can see its timing and message sizes. ${desktop[0].toUpperCase()}${desktop.slice(1)} counts as yours because you approved its pairing code.`
   },
   operator: {
     composer: sendingTo, sheet: sendingTo,

@@ -1,3 +1,4 @@
+import { createExecutionPolicy } from '../../shared/vendor/reploid/chat/execution-policy.js';
 import { describe, it, expect, afterEach, vi } from 'vitest';
 import { creditCapText, createConversationController } from '../../apps/poolday/host/decisions/conversation-controller.js';
 import { createChatSession, CANONICAL_CHAT_MODELS } from '../../apps/poolday/host/chat-session.js';
@@ -46,14 +47,88 @@ describe('Paired desktop default', () => {
     expect(viewState.privacy.computation).toBe('plaintext');
     expect(viewState.chosenModel?.id).toBe(model.id);
     expect(composer().send.disabled).toBe(false);
-    expect(composer().disclosure).toContain(`Sending to ${host}.`);
+    expect(composer().disclosure).toContain('Sending to your desktop.');
   });
 
-  it('names an unreachable paired desktop and says how to bring it back, without promising to wake it', () => {
-    setup({ status: 'offline', paired: true, canSend: false, hostParticipantId: 'peer:91d1d9293ca2d973191156dc', hostLabel: 'Studio' },
-      { peers: [], state: { discoveryPhase: 'observed' } });
-    expect(composer().status.text).toBe('Studio is offline. Open Reploid on Studio.');
-    expect(JSON.stringify(controller.getSnapshot())).not.toMatch(/wake/i);
+  describe('a saved pairing whose desktop is offline', () => {
+    const host = 'peer:91d1d9293ca2d973191156dc';
+    const offline = () => ({ status: 'offline', paired: true, canSend: false, hostParticipantId: host, hostLabel: 'Mars' });
+    const served = model => [{ peerId: 'contributor-1', model: model.id, modelIdentity: model.identity, readiness: 'ready', role: 'provider',
+      hasInference: true, availableSlots: 1, identityProtocol: 1, admissionProtocol: 2 }];
+
+    it('leaves an unpinned automatic conversation on an eligible contributor, with no desktop banner and no private name', () => {
+      const [model] = CANONICAL_CHAT_MODELS;
+      setup(offline(), { peers: served(model), state: { discoveryPhase: 'observed', peerDiscoveryTimedOut: true } });
+      expect(composer().route).toMatchObject({ destination: 'contributors', status: 'ready', send: 'dispatch' });
+      expect(composer().chip.source).toBe('Contributors');
+      expect(composer().status.text).not.toMatch(/offline/i);
+      expect(composer().send.disabled).toBe(false);
+      expect(JSON.stringify(controller.getSnapshot())).not.toContain('Mars');
+    });
+
+    it('blocks a conversation restricted to your devices, names the desktop generically and never offers Send to a contributor', () => {
+      const [model] = CANONICAL_CHAT_MODELS;
+      const { viewState } = setup(offline(), { peers: served(model), state: { discoveryPhase: 'observed', peerDiscoveryTimedOut: true } });
+      viewState.privacyTouched = true;
+      viewState.privacy = createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'named', ids: [host] }, computation: 'plaintext' });
+      controller.setDraft('Only for my desktop');
+      expect(composer().route).toMatchObject({ destination: 'desktop', restricted: true, status: 'blocked', send: 'none' });
+      expect(composer().status.text).toBe('Your desktop is offline. Open Reploid on your desktop.');
+      expect(composer().chip.source).toBe('Your desktop');
+      expect(composer().chip.availability).toBe('unavailable');
+      expect(composer().placeholder).toBe('Message your desktop…');
+      expect(composer().nextAction).toBe('retry');
+      expect(composer().send.disabled).toBe(true);
+      expect(JSON.stringify(controller.getSnapshot())).not.toContain('Mars');
+      expect(JSON.stringify(controller.getSnapshot())).not.toMatch(/wake/i);
+      // Nothing is dispatched, and the restriction stands.
+      const send = vi.spyOn(session, 'send');
+      controller.send();
+      expect(send).not.toHaveBeenCalled();
+      expect(viewState.privacy.recipients).toEqual({ kind: 'named', ids: [host] });
+      expect(composer().draft).toBe('Only for my desktop');
+    });
+
+    it('keeps a thread restricted to your devices blocked while the desktop is offline, and never switches it', async () => {
+      const [model] = CANONICAL_CHAT_MODELS;
+      setup(offline(), { peers: served(model), state: { discoveryPhase: 'observed', peerDiscoveryTimedOut: true } });
+      const privacy = createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'named', ids: [host] }, computation: 'plaintext' });
+      const threadId = await session.createThread({ model, executionLocation: 'network', privacy });
+      await session.select(threadId);
+      await vi.waitFor(() => expect(controller.getSnapshot().selectedId).toBe(threadId));
+      controller.setDraft('Thread message');
+      expect(composer().route).toMatchObject({ destination: 'desktop', restricted: true, status: 'blocked', send: 'none' });
+      expect(composer().status.text).toBe('Your desktop is offline. Open Reploid on your desktop.');
+      const send = vi.spyOn(session, 'send');
+      controller.send();
+      expect(send).not.toHaveBeenCalled();
+      expect(session.getState().activeThread.privacy.recipients).toEqual({ kind: 'named', ids: [host] });
+      expect(JSON.stringify(controller.getSnapshot())).not.toContain('Mars');
+    });
+
+    it('returns a draft that followed the desktop only by default to automatic once the desktop goes offline', () => {
+      const pairing = { status: 'online', paired: true, canSend: true, hostParticipantId: host, hostLabel: 'Mars',
+        readyModel: CANONICAL_CHAT_MODELS[0].id, disclosure: { readableBy: 'x', notice: 'x' } };
+      const { viewState } = setup(pairing, { state: { discoveryPhase: 'observed', peerDiscoveryTimedOut: true } });
+      expect(viewState.privacy.recipients).toEqual({ kind: 'named', ids: [host] });
+      Object.assign(pairing, { status: 'offline', canSend: false, readyModel: null });
+      controller.setDraft('Any eligible computer');
+      expect(viewState.privacy).toBeUndefined();
+      expect(composer().route.destination).toBe('contributors');
+      expect(composer().status.text).not.toMatch(/offline/i);
+    });
+
+    it('keeps an explicit desktop pick on the desktop and blocked while it is offline', () => {
+      const pairing = { status: 'online', paired: true, canSend: true, hostParticipantId: host, hostLabel: 'Mars',
+        readyModel: CANONICAL_CHAT_MODELS[0].id, disclosure: { readableBy: 'x', notice: 'x' } };
+      const { viewState } = setup(pairing, { state: { discoveryPhase: 'observed', peerDiscoveryTimedOut: true } });
+      controller.openSheet(); controller.pickComputer('desktop'); controller.closeSheet();
+      Object.assign(pairing, { status: 'offline', canSend: false, readyModel: null });
+      controller.setDraft('Still for my desktop');
+      expect(viewState.privacy.recipients).toEqual({ kind: 'named', ids: [host] });
+      expect(composer().route.status).toBe('blocked');
+      expect(composer().send.disabled).toBe(true);
+    });
   });
 
   describe('a stale tap on the desktop row', () => {
@@ -71,12 +146,16 @@ describe('Paired desktop default', () => {
       expect(viewState.privacy.recipients).toEqual({ kind: 'named', ids: [host] });
     });
 
-    it('never opens the conversation to any contributor once the desktop is gone', () => {
+    it('changes nothing for a tap on a desktop that is gone', () => {
       const pairing = online();
       const { viewState } = setup(pairing);
       Object.assign(pairing, { status: 'unpaired', paired: false, canSend: false, hostParticipantId: null });
       tapDesktop();
-      expect(viewState.privacy.recipients).toEqual({ kind: 'named', ids: [host] });
+      // The tap is refused: it neither restricts nor opens the conversation. The draft had followed the desktop only by
+      // default, so it is automatic again.
+      expect(viewState.privacyTouched).toBeFalsy();
+      expect(viewState.privacy).toBeUndefined();
+      expect(composer().error).toBe('That desktop is no longer available. Nothing was changed.');
     });
   });
 

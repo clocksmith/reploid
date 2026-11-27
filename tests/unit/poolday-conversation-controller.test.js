@@ -1,6 +1,7 @@
 // The headless conversation workspace (apps/poolday/host/decisions/conversation-controller.js) on the host's real
 // chat session, with discovery and capacity supplied by a fixture, as the first-visitor journeys drive it.
 import { describe, it, expect } from 'vitest';
+import { createExecutionPolicy } from '../../shared/vendor/reploid/chat/execution-policy.js';
 import { createConversationController } from '../../apps/poolday/host/decisions/conversation-controller.js';
 import { createChatSession, CANONICAL_CHAT_MODELS } from '../../apps/poolday/host/chat-session.js';
 
@@ -33,15 +34,20 @@ const memoryStorage = () => { const map = new Map(); return { getItem: key => ma
 const tick = () => new Promise(resolve => setTimeout(resolve, 0));
 
 describe('conversation controller', () => {
-  it('starts a first visitor on this device and offers the reviewed download', () => {
+  it('starts a first visitor on contributors, says nothing can answer yet, and keeps the download optional', () => {
     const fixture = fixtureSession();
     const controller = createConversationController(fixture.api, { href: () => 'http://localhost/' });
     const { composer } = controller.getSnapshot();
-    expect(composer.disclosure).toBe('Nothing leaves this device.');
-    expect(composer.status.text).toBe('Model unavailable here.');
-    expect(composer.nextAction).toBe('download-local');
-    expect(composer.chip.source).toBe('This device');
-    expect(composer.privacy.caption).toBe('Standard · Your devices');
+    // One resolved route: every indicator names contributors, and none implies this device is ready.
+    expect(composer.route).toMatchObject({ destination: 'contributors', status: 'unavailable', send: 'none' });
+    expect(composer.status.text).toBe('No eligible computer found for this model.');
+    expect(composer.nextAction).toBe('retry');
+    expect(composer.optionalAction).toBe('download-local');
+    expect(composer.chip.source).toBe('Contributors');
+    expect(composer.chip.availability).toBe('unavailable');
+    expect(composer.placeholder).toBe('Message a contributor…');
+    expect(composer.privacy.caption).toBe('Standard');
+    expect(composer.send.disabled).toBe(true);
     controller.dispose();
   });
 
@@ -86,7 +92,7 @@ describe('conversation controller', () => {
 
   it('stages protection and route in "Who can read it?" and applies them only with Apply', async () => {
     const fixture = fixtureSession();
-    const controller = createConversationController(fixture.api, { href: () => 'http://localhost/' });
+    const controller = createConversationController(fixture.api, { href: () => 'http://localhost/', viewState: { privacy: createExecutionPolicy() } });
     controller.openPrivacy();
     let { privacy } = controller.getSnapshot();
     expect(privacy.open).toBe(true);

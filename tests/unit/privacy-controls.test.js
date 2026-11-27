@@ -47,7 +47,7 @@ it('lists four protections with their shared lines, the five routes, and keeps o
   expect(view().splitNote).toBe('');
   // Only your devices: a participants choice beside the route, needing the paired desktop.
   expect(view().ownDevicesOption.disabled).toBe(false);
-  expect(view().ownDevicesOption.status).toBe('This device and Studio process your request. No other computer can.');
+  expect(view().ownDevicesOption.status).toBe('This device and your desktop process your request. No other computer can.');
   // Only the checked choice's exposure statement is shown.
   expect(view().preset).toBe('standard');
   expect(view().note).toMatch(/^The computer that answers reads your content in plaintext and can see its access patterns.*model identity, timing and message sizes can also be visible/);

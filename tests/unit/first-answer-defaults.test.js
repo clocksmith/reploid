@@ -97,7 +97,7 @@ it('holds a Send pressed while computers are being found and sends it to the mod
   expect(f.sent[0].content).toBe('Typed before discovery settled');
 });
 
-it('keeps a first visitor on this device when nobody can answer, and never sends the held question elsewhere', async () => {
+it('keeps a first visitor on contributors when nobody can answer, says nothing was sent, and never sends the held question elsewhere', async () => {
   // The held Send outlives the discovery wait: it ends when its intent expires, 30 s after the press.
   vi.useFakeTimers({ now: 1_000_000 });
   const f = fixture();
@@ -109,12 +109,19 @@ it('keeps a first visitor on this device when nobody can answer, and never sends
   await vi.advanceTimersByTimeAsync(30_000);
   vi.useRealTimers();
   expect(f.created).toHaveLength(0);
-  expect(chip(f).source).toBe('This device');
-  expect(f.view.composer().disclosure).toBe('Nothing leaves this device.');
+  // The route stays the one the composer named; it does not turn into this device.
+  expect(chip(f).source).toBe('Contributors');
+  expect(f.view.composer().status.text).toBe('No computer answered in 30 seconds. Nothing was sent.');
+  expect(f.view.composer().route).toMatchObject({ destination: 'contributors', status: 'unavailable', send: 'none' });
   expect(f.view.composer().draft).toBe('Typed before discovery settled');
-  // The one remaining route is the reviewed download, which Send opens.
+  // A second press sends nothing and opens nothing.
+  expect(f.view.composer().send.disabled).toBe(true);
   f.c.send();
-  expect(f.view.sheet().title).toBe('Where should this run?');
+  expect(f.view.sheet().open).toBe(false);
+  expect(f.created).toHaveLength(0);
+  // Editing the kept text clears the notice.
+  f.c.setDraft('Typed before discovery settled, again');
+  expect(f.view.composer().status.text).toBe('No eligible computer found for this model.');
 });
 
 it('moves the automatic choice when its computer leaves, also under a typed draft, and back to none when all leave', () => {
@@ -128,8 +135,10 @@ it('moves the automatic choice when its computer leaves, also under a typed draf
   f.publish({ models: [served(SMALL), served(MEDIUM)] });
   expect(chip(f).selectionId).toBe(key(MEDIUM));
   f.publish({ models: [SMALL, MEDIUM] });
-  expect(chip(f).source).toBe('This device');
-  expect(f.view.composer().send.disabled).toBe(false);
+  // With no computer left the route is still contributors, and Send says nothing can answer.
+  expect(chip(f).source).toBe('Contributors');
+  expect(chip(f).availability).toBe('unavailable');
+  expect(f.view.composer().send.disabled).toBe(true);
 });
 
 it('does not settle on whichever computer advertised first: during the discovery wait a typed draft follows the preferred model', async () => {
@@ -318,7 +327,7 @@ it('holds a returning visitor\'s Send for whichever model turns up when their re
   await vi.advanceTimersByTimeAsync(30_000);
   vi.useRealTimers();
   expect(alone.created).toHaveLength(0);
-  expect(alone.view.composer().status.text).toBe('No eligible computer found for this model.');
+  expect(alone.view.composer().status.text).toBe('No computer answered in 30 seconds. Nothing was sent.');
   expect(alone.view.composer().nextAction).toBe('retry');
   expect(alone.view.composer().draft).toBe('Typed before discovery settled');
 });

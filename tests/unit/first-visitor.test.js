@@ -105,8 +105,10 @@ it('offers the download only once discovery has settled with no contributor for 
 it('moves a first visitor to a public computer when one appears instead of reporting a dead end', () => {
   const f = fixture({ fresh: true }), status = () => f.view.composer().status.text;
   f.publish(observedDiscovery);
-  expect(status()).toBe('Model unavailable here.');
-  expect(f.view.composer().chip.source).toBe('This device');
+  // Nobody answers yet: the composer says so on the contributor route, and does not offer this device as ready.
+  expect(status()).toBe('No eligible computer found for this model.');
+  expect(f.view.composer().chip.source).toBe('Contributors');
+  expect(f.view.composer().nextAction).toBe('retry');
   f.publish({ models: [{ ...f.state().models[0], availability: 'ready', networkAvailability: 'ready',
     providerIds: ['peer'], reachableProviderIds: ['peer'] }] });
   expect(status()).toBe('');
@@ -246,7 +248,7 @@ it('never turns Send into download or queues an automatic answer, even with an o
 it('cancels an explicitly confirmed download while preserving the unsent draft', async () => {
   const f = fixture({ automatic: true }), model = CANONICAL_CHAT_MODELS[0]; f.api.send = vi.fn();
   f.publish(observedDiscovery); f.c.setDraft('Hello');
-  expect(f.view.composer().nextAction).toBe('download-local');
+  expect(f.view.composer().optionalAction).toBe('download-local');
   f.c.downloadLocal(); await vi.waitFor(() => expect(f.view.snapshot().download?.ready).toBe(true));
   expect(f.api.downloadLocalModel).not.toHaveBeenCalled(); f.c.confirmDownload();
   await vi.waitFor(() => expect(f.api.downloadLocalModel).toHaveBeenCalledWith(model.id, true));
@@ -259,11 +261,14 @@ it('cancels an explicitly confirmed download while preserving the unsent draft',
   expect(f.api.downloadLocalModel).toHaveBeenCalledOnce(); expect(f.api.send).not.toHaveBeenCalled();
   expect(f.view.composer().nextLabels.downloadLocal).toBe('Retry download');
 });
-it('offers explicit local download after no usable peers and reuses the existing size-and-consent dialog', async () => {
+it('offers local download only as an optional recovery after no usable peers, through the size-and-consent dialog', async () => {
   const f = fixture(); expect(f.view.composer().nextAction).not.toBe('download-local');
+  expect(f.view.composer().optionalAction).toBeNull();
   f.publish(observedDiscovery);
-  // One next action: the download, not a connection retry.
-  expect(f.view.composer().nextAction).toBe('download-local');
+  // The contributor route's next action is searching again; the download is beside it, never in its place.
+  expect(f.view.composer().nextAction).toBe('retry');
+  expect(f.view.composer().optionalAction).toBe('download-local');
+  expect(f.api.downloadLocalModel).not.toHaveBeenCalled();
   f.c.downloadLocal();
   await vi.waitFor(() => expect(f.view.snapshot().download?.ready).toBe(true));
   expect(f.api.downloadLocalModel).not.toHaveBeenCalled();
@@ -275,7 +280,7 @@ it('offers explicit local download after no usable peers and reuses the existing
 });
 it('does not let a perpetually preparing unusable peer hide the local fallback', () => {
   const f = fixture(); f.publish({ ...observedDiscovery, models: [{ ...f.state().models[0], availability: 'loading' }] });
-  expect(f.view.composer().nextAction).toBe('download-local');
+  expect(f.view.composer().optionalAction).toBe('download-local');
   expect(f.view.composer().status.text).toBe('Model preparing…');
   expect(f.view.composer().send.disabled).toBe(true);
   expect(f.view.composer().acquisition.text).toBe('');

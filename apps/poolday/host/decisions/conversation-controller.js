@@ -43,6 +43,12 @@ import chatPrompts from '../../config/chat-prompts.json' with { type: 'json' };
 const busyAcquisition = state => state.acquisition?.phase === 'downloading';
 const modelIdentity = model => JSON.stringify([modelKey(model), model?.identity, (model?.adapters || []).map(adapter => adapter.identity)]);
 const selectable = model => selectableStatus(model.availability);
+/**
+ * How Ask names this device's paired desktop. The desktop's own name (its pairing `hostLabel`) is private to its owner
+ * and stays in device management (decisions/computers.js); Ask, its disclosures and its route offers say only this.
+ */
+export const OWN_DESKTOP = 'your desktop';
+const OWN_DESKTOP_TITLE = 'Your desktop';
 
 /** Up to `count` distinct prompts drawn at random from `prompts` (a partial Fisher-Yates shuffle over a copy). */
 export function pickStartingPrompts(prompts, random = Math.random, count = 3) {
@@ -118,7 +124,7 @@ export function createConversationController(session, {
   let files = [], composerRevision = 0, draftText = '', currentKey = '';
   let contextPrompt = viewState.contextPrompt || null;
   let executionLocation = viewState.executionLocation || 'auto';
-  let errorText = '', searchOn = false, retryPending = false, retryDeadline = null;
+  let errorText = '', searchOn = false, retryPending = false, retryDeadline = null, dismissedExpiry = null;
   /**
    * The held Send is the chat host's (host/send-intents.js, a reploid.send-intent/1 intent): it expires 30 s after
    * the press whatever discovery is doing, and the host checks its deadline, selection revision and pinned artifact
@@ -171,10 +177,10 @@ export function createConversationController(session, {
    * no model, network answers are on and no paired desktop or invite names the computer. The composer states the
    * computer, the model and who can read the prompt before Send. With nobody to answer, the draft stays on this device.
    */
+  // It holds after discovery too: with nobody to answer the composer says so on this route, and never implies this
+  // device is ready to run a model it does not store. This device and its reviewed download stay a choice.
   const automaticContributors = state => !state.activeThread && viewState.privacy === undefined && !viewState.privacyTouched
-    && state.remoteAnswersEnabled !== false && !lockedDestination(state) && !(state.models || []).some(storedHere)
-    // A Send held for this route keeps it until its intent ends: the hold is not bound by discovery.
-    && (state.discoveryPhase === 'searching' || !!held() || (state.models || []).some(publicAnswers));
+    && state.remoteAnswersEnabled !== false && !lockedDestination(state) && !(state.models || []).some(storedHere);
   const explicitPrivacy = state => (state.activeThread ? state.activeThread.privacy : viewState.privacy)
     ?? (automaticContributors(state) ? openDefault : localPolicy);
   /**
@@ -192,7 +198,7 @@ export function createConversationController(session, {
     const owner = state.ownerPairing, invite = viewState.guestInvite, guest = state.guestAccess;
     const modelId = model => typeof model === 'string' ? model : model?.id ?? null;
     if (owner?.status === 'online' && owner.hostParticipantId && !invite) {
-      return { id: owner.hostParticipantId, label: owner.hostLabel, readyModel: modelId(owner.readyModel), status: 'online', guest: false };
+      return { id: owner.hostParticipantId, label: OWN_DESKTOP, readyModel: modelId(owner.readyModel), status: 'online', guest: false };
     }
     if (invite || guest?.hostParticipantId) {
       const id = invite?.hostPeerId || guest.hostParticipantId, same = guest?.hostParticipantId === id;
@@ -208,13 +214,22 @@ export function createConversationController(session, {
         : locked && policy.recipients.ids.length === 1 && policy.recipients.ids[0] === locked.id ? 'desktop' : 'named';
   };
   const pairedDesktop = state => lockedDestination(state) ?? (state.ownerPairing?.hostParticipantId
-    ? { id: state.ownerPairing.hostParticipantId, label: state.ownerPairing.hostLabel || 'your desktop', status: state.ownerPairing.status } : null);
+    ? { id: state.ownerPairing.hostParticipantId, label: OWN_DESKTOP, status: state.ownerPairing.status } : null);
   // The paired desktop, the conversation's model and its execution location: what the dialog and the chip need to name
   // the route a request sends.
   const presetContext = state => ({ desktop: state.ownerPairing?.hostParticipantId
-    ? { id: state.ownerPairing.hostParticipantId, label: state.ownerPairing.hostLabel || 'your desktop' } : null,
+    ? { id: state.ownerPairing.hostParticipantId, label: OWN_DESKTOP } : null,
   model: state.activeThread?.model ?? choice.model ?? null,
   location: state.activeThread?.permissions?.executionLocation ?? executionLocation });
+  /**
+   * The request may go only to this device's paired desktop (a thread or draft restricted to your devices), and that
+   * desktop is not online: nothing can answer, and no other computer is ever used in its place.
+   */
+  const ownDesktopOffline = state => {
+    const id = state.ownerPairing?.hostParticipantId, recipients = explicitPrivacy(state).recipients;
+    return !!id && state.ownerPairing.status !== 'online' && recipients?.kind === 'named' && recipients.ids.length > 0
+      && recipients.ids.every(item => item === id);
+  };
   const currentRoute = state => {
     const key = destinationKey(state), ids = explicitPrivacy(state).recipients?.ids;
     return key === 'named' && ids?.length === 1 && ids[0] === state.ownerPairing?.hostParticipantId ? 'desktop' : key;
@@ -236,10 +251,17 @@ export function createConversationController(session, {
     privacy: explicitPrivacy(state), preset: viewState.privacyPreset });
   const applyPairedDesktopDefault = state => {
     const destination = lockedDestination(state);
+    // An unpinned conversation followed the paired desktop only because it was online. Once it is not, the
+    // conversation is automatic again and an eligible contributor answers; a choice the person made is kept.
+    if (!destination && viewState.privacyFromPairing && !viewState.privacyTouched && !state.activeThread) {
+      viewState.privacy = undefined; viewState.privacyFromPairing = false;
+      if (choice.automatic) setChosen(null);
+    }
     if (state.activeThread || !destination || (viewState.privacyTouched && !destination.guest)) return;
     const current = viewState.privacy;
     if (current?.recipients?.kind !== 'named' || current.recipients.ids.length !== 1 || current.recipients.ids[0] !== destination.id) {
       viewState.privacy = createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'named', ids: [destination.id] }, computation: 'plaintext' });
+      viewState.privacyFromPairing = !destination.guest;
       if (executionLocation === 'local') executionLocation = viewState.executionLocation = 'auto';
     }
     if (!choice.model && destination.readyModel) {
@@ -293,6 +315,7 @@ export function createConversationController(session, {
   /** The paired desktop or invited host the draft is named to alone: its operator can read the prompt. */
   const pairedOperator = state => {
     const destination = lockedDestination(state), privacy = explicitPrivacy(state);
+    if (ownDesktopOffline(state)) return OWN_DESKTOP;
     if (!destination || privacy.recipients?.kind !== 'named' || privacy.recipients.ids.length !== 1
       || privacy.recipients.ids[0] !== destination.id) return null;
     return destination.label;
@@ -421,7 +444,7 @@ export function createConversationController(session, {
     };
     const computers = [
       { choice: 'local', title: 'This device' },
-      ...(locked ? [{ choice: 'desktop', title: locked.label }] : []),
+      ...(locked ? [{ choice: 'desktop', title: locked.guest ? locked.label : OWN_DESKTOP_TITLE }] : []),
       ...(locked?.guest ? [] : [{ choice: 'network', title: 'Contributors' }])
     ].map(row => ({ ...row, status: computerState(row.choice), checked: row.choice === pressed, disabled: lockedComputers }));
     const outcome = describeAnswerChoice(selected || (pickerModel ? unavailableModelChoice(pickerModel) : null), side,
@@ -507,7 +530,9 @@ export function createConversationController(session, {
       && !((freshVisitor || waitsForAnyModel(state)) && finding && !execution.usable)
       && !choosingStill(state)) viewState.draftModel = selectedModel;
     const prepareHere = location === 'local' && selectedModel?.localCached === true;
-    const usable = explicitPrivacy(state).computation === 'plaintext' && (execution.usable || prepareHere);
+    // A route restricted to the paired desktop answers only there: contributors serving the model do not make it usable.
+    const blocked = ownDesktopOffline(state);
+    const usable = explicitPrivacy(state).computation === 'plaintext' && (execution.usable || prepareHere) && !blocked;
     const busy = runningIds.includes(thread?.id) || !!state.comparisonPhase;
     privacyChoice.follow(state, busy || !!thread?.closed);
     // The queued Send: it waits for a computer running this model until its intent expires (30 s from the press,
@@ -536,18 +561,21 @@ export function createConversationController(session, {
     const invite = viewState.guestInvite, guest = state.guestAccess;
     const inviteJoined = !!invite && guest?.joined && guest.hostParticipantId === invite.hostPeerId;
     const queueable = !busy && !usable && finding && canWaitForPublicModel(state, selectedModel, location);
-    const askFirst = !thread && !busy && !usable && !queueable && viewState.privacy === undefined && !viewState.privacyTouched && !lockedDestination(state);
+    // With nothing chosen and no contributor to answer, Send asks where to run only when contributors are not the route.
+    const askFirst = !thread && !busy && !usable && !queueable && viewState.privacy === undefined && !viewState.privacyTouched && !lockedDestination(state)
+      && !automaticContributors(state);
+    const sendMode = usable ? 'dispatch' : queueable ? 'queue' : askFirst ? 'choose' : 'none';
     sendDisabled = attachmentReader.pending || !(usable || queueable || askFirst) || !!thread?.closed || !!state.storageError || (!!invite && !inviteJoined);
     // What the composer reads of the sheet is its staging before the sheet follows this change.
     const frame = { state, finding, thread, catalogModels, runningIds, pinnedModel, models, location, freshVisitor, current, selectedModel,
-      execution, usable, busy, ready, invite, guest, inviteJoined, sheetModel: pickerModel, sheetChoice: pickerChoice };
+      execution, usable, blocked, sendMode, busy, ready, invite, guest, inviteJoined, sheetModel: pickerModel, sheetChoice: pickerChoice };
     if (sheet.open) advanceSheet(state);
     threadList.follow(state);
     return frame;
   }
 
   function project({ state, finding, thread, catalogModels, runningIds, pinnedModel, models, location, freshVisitor, current, selectedModel,
-    execution, usable, busy, ready, invite, guest, inviteJoined, sheetModel, sheetChoice }) {
+    execution, usable, blocked, sendMode, busy, ready, invite, guest, inviteJoined, sheetModel, sheetChoice }) {
     const localPreparing = state.localModel?.phase === 'loading';
     const requestedModel = selectedModel || pinnedModel || models.find(model => modelKey(model) === current)
       || catalogModels.find(model => modelKey(model) === current)
@@ -565,9 +593,12 @@ export function createConversationController(session, {
     const exhausted = phase === 'observed' || phase === 'interrupted' || phase === 'paused';
     const publicCanAnswer = freshVisitor && (modelExecutionState(selectedModel, 'network').usable
       || catalogModels.some(publicAnswers));
-    const canAcquire = !!session.downloadLocalModel && !state.localDownloadIssue && !usable && !localPreparing && !busyAcquisition(state)
-      && location !== 'network' && !requestedModel?.fleet && isDownloadableBaseModel(requestedModel)
-      && !publicCanAnswer && (phase === 'observed' || (location === 'local' && (!freshVisitor || exhausted)));
+    // The reviewed download of this model to this device: the next action only when the person chose this device; on
+    // any other route an optional recovery once nothing answered. It never starts by itself.
+    const localEligible = !!session.downloadLocalModel && !state.localDownloadIssue && !usable && !localPreparing && !busyAcquisition(state)
+      && !requestedModel?.fleet && isDownloadableBaseModel(requestedModel) && !publicCanAnswer && !blocked;
+    const canAcquire = localEligible && location === 'local' && (phase === 'observed' || !freshVisitor || exhausted);
+    const optionalDownload = localEligible && location !== 'local' && phase === 'observed' && !thread?.closed && !busy;
     const acquisition = state.acquisition;
     let acquisitionText = acquiring ? acquisition.progress?.message || 'Checking model files.'
       : ['failed', 'cancelled'].includes(acquisition?.phase) ? acquisition.error || '' : '';
@@ -586,10 +617,8 @@ export function createConversationController(session, {
         if (execution.source === 'network') statusText = execution.status === 'busy' ? 'Waiting for capacity.' : creditCapText(selectedModel);
         else if (execution.status === 'cached') statusText = 'Model downloaded.';
       } else if (preparing) statusText = state.localModel?.progress?.message || 'Model preparing…';
-      else if (state.ownerPairing?.status === 'offline' && state.ownerPairing.hostLabel && sheetChoice !== 'device'
-        && phase !== 'paused' && phase !== 'searching') {
-        statusText = `${state.ownerPairing.hostLabel} is offline. Open Reploid on ${state.ownerPairing.hostLabel}.`;
-      } else if (freshVisitor && phase === 'searching') statusText = 'Finding computers…';
+      else if (blocked) statusText = `${OWN_DESKTOP_TITLE} is offline. Open Reploid on ${OWN_DESKTOP}.`;
+      else if (freshVisitor && phase === 'searching') statusText = 'Finding computers…';
       else if (location === 'local') statusText = state.localModel?.error || state.localDownloadIssue
         || (publicCanAnswer ? 'Not on this device. A public computer can answer.' : 'Model unavailable here.');
       else if (phase === 'paused') statusText = 'Network paused.';
@@ -598,7 +627,7 @@ export function createConversationController(session, {
       else if (phase === 'observed') statusText = state.network?.connectionFailure?.peerId
         ? 'A peer connection failed. No eligible computer found for this model.' : 'No eligible computer found for this model.';
       else statusText = 'Model unavailable.';
-      if (!usable && location !== 'local' && state.localDownloadIssue && !shared && !canAcquire && exhausted) statusText += ' ' + state.localDownloadIssue;
+      if (!usable && !blocked && location !== 'local' && state.localDownloadIssue && !shared && !canAcquire && exhausted) statusText += ' ' + state.localDownloadIssue;
     }
     if (!busy && searching() && !thread?.closed && !state.storageError) {
       const personal = webSearch?.enabled() ? webSearch.state() : null;
@@ -606,10 +635,13 @@ export function createConversationController(session, {
       statusText = [statusText, recipient ? `Web search sends your question to ${recipient}.` : 'Web search recipient is not confirmed.'].filter(Boolean).join(' ');
     }
     const disclosure = promptDisclosure({ site: 'composer', computation: privacy.computation,
-      local: privacy.recipients.kind === 'none' && !usable || location === 'local' || execution.usable && execution.source === 'local',
+      local: privacy.recipients.kind === 'none' && !usable || location === 'local' || execution.usable && execution.source === 'local' && !blocked,
       operator: pairedOperator(state), named: privacy.recipients.kind === 'named', stages: !!selectedModel?.partition,
       usable, pool: !!selectedModel?.fleet });
     // While a Send is held, the composer names what it waits for: capacity on the model shown, or a computer for it.
+    const expired = intents.state().expired;
+    const expiredShown = !held() && !!expired && expired.intentId !== dismissedExpiry && !usable;
+    if (expiredShown) statusText = 'No computer answered in 30 seconds. Nothing was sent.';
     if (held()) statusText = usable && !ready ? 'Waiting for capacity.'
       : waitsForAnyModel(state) ? 'Finding computers…' : `Waiting for a computer running ${modelVariantLabel(selectedModel)}…`;
     const detailModel = sheet.open ? sheetModel : requestedModel;
@@ -621,18 +653,26 @@ export function createConversationController(session, {
       : Number.isSafeInteger(configuredAnswerTokens) ? `Answer limit: ${configuredAnswerTokens} tokens. Answers reaching the limit are incomplete.` : '';
     const activeModel = selectedModel || pinnedModel || models.find(model => modelKey(model) === current)
       || catalogModels.find(model => modelKey(model) === current) || requestedModel;
-    const lockedHost = lockedDestination(state), destination = destinationKey(state);
-    const runsHereNow = destination === 'device' || location === 'local' || execution.usable && execution.source === 'local';
+    // The one resolved route: where the request goes, whether it can go now, and what Send does. The placeholder,
+    // the chip, the disclosure, the status line and the next action all read it.
+    const lockedHost = lockedDestination(state), destination = currentRoute(state);
+    const runsHereNow = destination === 'device' || location === 'local' || execution.usable && execution.source === 'local' && !blocked;
     const findingFirst = (freshVisitor || waitsForAnyModel(state)) && !(thread?.model || choice.model) && phase === 'searching' && !execution.usable;
-    const computerName = runsHereNow ? 'This device' : destination === 'desktop' ? lockedHost?.label
+    const computerName = runsHereNow ? 'This device' : destination === 'desktop' ? (lockedHost?.guest ? lockedHost.label : OWN_DESKTOP_TITLE)
       : destination === 'named' ? 'Named computers' : selectedModel?.fleet ? execution.label : 'Contributors';
-    const availability = execution.usable ? 'ready' : preparing || phase === 'searching' ? 'waiting' : 'unavailable';
+    const availability = blocked ? 'unavailable' : execution.usable ? 'ready' : preparing || phase === 'searching' ? 'waiting' : 'unavailable';
+    const route = Object.freeze({
+      destination: runsHereNow ? 'device' : destination === 'desktop' ? (lockedHost?.guest ? 'invited' : 'desktop') : destination,
+      computer: computerName, restricted: destination === 'desktop' && !lockedHost?.guest,
+      status: held() ? 'queued' : blocked ? 'blocked' : usable ? 'ready' : availability === 'waiting' ? 'waiting' : 'unavailable',
+      send: busy || thread?.closed ? 'none' : sendDisabled ? 'none' : sendMode
+    });
     const availabilityText = { ready: 'Ready', waiting: preparing ? 'Loading' : 'Finding computers', unavailable: 'Unavailable' }[availability];
     const modelDigest = findingFirst ? '' : activeModel ? `${computerName} · ${modelVariantLabel(activeModel)}` : '';
     // An invite link offers one action: join that computer. Until it is joined, nothing can be sent anywhere.
     const joiningHost = !!invite && guest?.status === 'joining';
     let statusHidden = !statusText || !!acquisitionText;
-    if (held()) statusHidden = false;
+    if (held() || expiredShown) statusHidden = false;
     if (acquisitionText && !held()) statusHidden = true;
     if (invite && !inviteJoined) {
       statusHidden = false; acquisitionText = '';
@@ -646,16 +686,19 @@ export function createConversationController(session, {
       ['network-opt-in', !busy && !usable && !preparing && !acquiring && !thread?.closed
         && (publicCanAnswer || (!!thread && (privacy.placement === 'local-only' || privacy.recipients.kind === 'none')))],
       ['download-local', !busy && canAcquire && !thread?.closed],
-      ['retry', !busy && !usable && !preparing && location !== 'local' && exhausted && !thread?.closed]
+      ['retry', !busy && !usable && !preparing && location !== 'local' && (exhausted || blocked) && !thread?.closed]
     ];
     const nextAction = nextActions.find(([, eligible]) => eligible)?.[0] ?? null;
+    const optionalAction = optionalDownload && nextAction !== 'download-local' && nextAction !== 'cancel-download' ? 'download-local' : null;
     const startingHidden = !!(thread?.messages.length || thread?.closed || runningIds.includes(thread?.id) || state.comparisonPhase);
     const searchVisible = searchAvailable();
     const composer = {
       draft: draftText, files: files.map(file => ({ name: file.name, size: file.size ?? file.text?.length ?? 0 })), attachmentsPending: attachmentReader.pending,
       attachmentHelp: attachmentHelp || files.length > 0, attachmentHelpText: ATTACHMENT_HELP,
-      placeholder: !activeModel || findingFirst ? 'Message…' : computerName === 'Contributors' ? 'Message a contributor…' : `Message ${computerName}…`,
-      send: { visible: !busy, disabled: sendDisabled },
+      placeholder: !activeModel || findingFirst ? 'Message…' : computerName === 'Contributors' ? 'Message a contributor…'
+        : computerName === OWN_DESKTOP_TITLE ? `Message ${OWN_DESKTOP}…` : `Message ${computerName}…`,
+      send: { visible: !busy, disabled: sendDisabled, mode: route.send },
+      route,
       // Stop stays reachable when the reader scrolls away from the active answer; the transcript row has its own.
       stop: { visible: busy },
       // The host's held Send, as it reports it: held until `expiresAt`, or expired with nothing sent.
@@ -668,7 +711,7 @@ export function createConversationController(session, {
         source: findingFirst ? '' : activeModel ? computerName : '',
         name: findingFirst ? 'Finding computers…' : activeModel ? modelVariantLabel(activeModel) : '',
         availability, label: modelDigest ? `Answer on ${modelDigest}, ${availabilityText}` : findingFirst ? 'Answer on, Finding computers' : 'Answer on',
-        activity: execution.status === 'ready' ? 'ready' : 'idle', executionSource: execution.source
+        activity: execution.status === 'ready' && !blocked ? 'ready' : 'idle', executionSource: execution.source
       },
       // The chip beside "Answer on" always names the thread's protection (and "Your devices" when it runs only there).
       privacy: { label: `Who can read it: ${named.label}`, caption: named.label, disabled: privacyDisabled },
@@ -676,6 +719,7 @@ export function createConversationController(session, {
       status: { text: statusHidden ? '' : statusText },
       acquisition: { text: acquisitionText, progress },
       nextAction,
+      optionalAction,
       nextLabels: {
         join: invite ? `Join ${describeCircleHost(invite.hostLabel, invite.hostPeerId).hostLabel}` : 'Join',
         reviewShared: shared ? `Review ${modelVariantLabel(shared)}` : '',
@@ -978,6 +1022,8 @@ export function createConversationController(session, {
     /** The draft text as typed: it pins the model a new thread starts with and drops a queued Send. */
     setDraft(text) {
       draftText = text; composerRevision++;
+      // The expired held Send's notice stays until the person edits the text it kept.
+      dismissedExpiry = intents.state().expired?.intentId ?? dismissedExpiry;
       if (text.trim()) pinDraftModel(sessionState);
       dropHold();
       try { observe(saveDraft()); } catch (cause) { error(cause); }

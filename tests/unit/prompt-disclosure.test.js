@@ -68,9 +68,9 @@ it('states who can read the prompt in the composer and the "Answer on" sheet, ca
         "sheet": "Nothing leaves this device unless you choose Use contributors.",
       },
       "desktop": {
-        "composer": "Sending to Studio. Its operator can read your prompt.",
+        "composer": "Sending to your desktop. Its operator can read your prompt.",
         "outcome": "",
-        "sheet": "Sending to Studio. Its operator can read your prompt.",
+        "sheet": "Sending to your desktop. Its operator can read your prompt.",
       },
       "finding": {
         "composer": "A network provider could read your prompt.",

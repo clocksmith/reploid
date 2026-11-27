@@ -26,6 +26,21 @@ export type ComputerChoice = 'local' | 'desktop' | 'network';
 export type PrivacyRoute = RouteKind | 'auto';
 export type PrivacyPreset = 'standard' | 'own-devices';
 
+/** What Send does on one press: send now, hold for up to 30 s while computers are found, ask where to run, or nothing. */
+export type SendMode = 'dispatch' | 'queue' | 'choose' | 'none';
+/**
+ * The one resolved Ask route the composer's placeholder, chip, disclosure, status, next action and Send read: where the
+ * request goes (`desktop` is this device's paired desktop, `invited` a host invite's computer), the name shown for it,
+ * whether it is restricted to your own desktop, and whether it can go now.
+ */
+export type AskRoute = {
+  readonly destination: 'device' | 'desktop' | 'invited' | 'contributors' | 'named';
+  readonly computer: string;
+  readonly restricted: boolean;
+  readonly status: 'ready' | 'waiting' | 'queued' | 'blocked' | 'unavailable';
+  readonly send: SendMode;
+};
+
 export type ComposerView = {
   readonly draft: string;
   readonly files: ReadonlyArray<{ readonly name: string; readonly size: number }>;
@@ -33,7 +48,8 @@ export type ComposerView = {
   readonly attachmentHelp: boolean;
   readonly attachmentHelpText: string;
   readonly placeholder: string;
-  readonly send: { readonly visible: boolean; readonly disabled: boolean };
+  readonly send: { readonly visible: boolean; readonly disabled: boolean; readonly mode: SendMode };
+  readonly route: AskRoute;
   readonly stop: { readonly visible: boolean };
   /** The chat host's held Send (reploid.send-intent/1): held until expiresAt, or expired with nothing sent. No wording yet. */
   readonly sendIntent: { readonly status: 'held' | 'expired'; readonly expiresAt: number } | null;
@@ -54,6 +70,8 @@ export type ComposerView = {
   readonly status: { readonly text: string };
   readonly acquisition: { readonly text: string; readonly progress: { readonly value: number | null; readonly max: number | null } | null };
   readonly nextAction: NextAction | null;
+  /** A recovery offered beside the next action, never in its place: the reviewed download to this device. */
+  readonly optionalAction: 'download-local' | null;
   readonly nextLabels: { readonly join: string; readonly reviewShared: string; readonly downloadLocal: string; readonly retry: string; readonly retryPending: boolean };
   readonly disclosure: string;
   readonly routeAlternatives: ReadonlyArray<{ readonly key: RouteAlternativeKey; readonly title: string; readonly reads: string }>;

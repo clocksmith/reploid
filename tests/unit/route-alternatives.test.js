@@ -42,7 +42,7 @@ describe('taking an offer', () => {
   let view, session;
   afterEach(async () => { view?.dispose(); await session?.close(); });
 
-  it('a pinned conversation widens only when the person picks the offer, and nothing is sent', async () => {
+  it('a conversation the person put on the desktop widens only when they pick the offer, and nothing is sent', async () => {
     const host = 'peer:91d1d9293ca2d973191156dc', [catalog] = CANONICAL_CHAT_MODELS;
     const pairing = { status: 'online', paired: true, canSend: true, hostParticipantId: host, hostLabel: 'Studio', readyModel: catalog.id,
       disclosure: { readableBy: `Readable by: ${host}`, notice: `This runs on ${host}.` } };
@@ -59,6 +59,8 @@ describe('taking an offer', () => {
     real.setCachedModels([]);
     expect(viewState.privacy.recipients).toEqual({ kind: 'named', ids: [host] });
     expect(view.composer().routeAlternatives).toEqual([]);
+    // The person chooses the desktop: that restriction is theirs, and it stays when the desktop goes offline.
+    view.controller.openSheet(); view.controller.pickComputer('desktop'); view.controller.closeSheet();
 
     Object.assign(pairing, { status: 'offline', canSend: false });
     real.setCachedModels([]);
