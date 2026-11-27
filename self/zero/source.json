@@ -34,8 +34,8 @@
     },
     {
       "path": "config/vfs-policy.js",
-      "bytes": 2618,
-      "sha256": "56c02deed07ae8fea94f85100e3fda81c6088fce259b3bfd71d12abdd7307a67"
+      "bytes": 2774,
+      "sha256": "ee6b763d736c79ceeab5cccada8d8150f3f27c27f5bacad028798b6b7d1fe1e0"
     },
     {
       "path": "config/zero-inference.js",

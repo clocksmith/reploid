@@ -450,7 +450,7 @@
     {
       "path": "config/vfs-policy.js",
       "owner": "config",
-      "sha256": "sha256:56c02deed07ae8fea94f85100e3fda81c6088fce259b3bfd71d12abdd7307a67",
+      "sha256": "sha256:ee6b763d736c79ceeab5cccada8d8150f3f27c27f5bacad028798b6b7d1fe1e0",
       "imports": []
     },
     {
@@ -479,7 +479,7 @@
     {
       "path": "core/agent-loop-policies.js",
       "owner": "core",
-      "sha256": "sha256:70ae1712b2401a525a1914131c9fce1ef22962a23b4be59e3c6d17b9a564e717",
+      "sha256": "sha256:e3bc53727d9b0048bc880cdd063ddda3175f914623a75a2e7eb2eb3e70b595d6",
       "imports": [
         "../vendor/reploid/agent/provider-recovery.js"
       ]
@@ -2758,11 +2758,12 @@
     {
       "path": "self/bridge.js",
       "owner": "self",
-      "sha256": "sha256:97d8c9dc47f755899fa71c432292e78c0097bc811957d2101814a7de67814891",
+      "sha256": "sha256:5e4b606ebcd95f1ca99f34150abc0bb328376e8d564ee62f23115d61bc323015",
       "imports": [
         "./capabilities/communication/library-adapter.js",
         "./capabilities/communication/swarm-transport.js",
         "./config/vfs-policy.js",
+        "./core/agent-loop-policies.js",
         "./core/llm-client.js",
         "./core/provider-registry.js",
         "./core/utils.js",
@@ -3673,7 +3674,7 @@
     {
       "path": "self/host/reploid-launch.js",
       "owner": "self",
-      "sha256": "sha256:278747e59fc9538bb58e15068a6669e0755aa0efcf5944db15990fe99a75246d",
+      "sha256": "sha256:b7be8c30c883657d9072232baeaf4850eb6f221db647bd970fdb1a819d5d6e7a",
       "imports": [
         "../boot-spec.js",
         "../instance.js"
@@ -3701,10 +3702,11 @@
     {
       "path": "self/host/seed-vfs.js",
       "owner": "self",
-      "sha256": "sha256:6c128e8183d1ad1ce49419abfc4d99765dbfcf9334f05b7ec848a374738fe1be",
+      "sha256": "sha256:c3794f79fd2479d2559fc7250578760069178cb9ab21e1c052ef9c4f761b6e82",
       "imports": [
         "../boot-spec.js",
         "../config/boot-seed.js",
+        "../config/vfs-policy.js",
         "../instance.js",
         "../lab/mirrors.js",
         "../lab/profiles.js",
@@ -3731,11 +3733,12 @@
     {
       "path": "self/host/start-app.js",
       "owner": "self",
-      "sha256": "sha256:5aad1b14a6aafe5fb2a6577d73f22d18db7c0f0a41b02d81cb7b3eaa3b449f92",
+      "sha256": "sha256:6f457ba7856e4f9929648f4405242e6606977ade4822daa626013c9e34fb8c30",
       "imports": [
         "../boot-spec.js",
         "../config/doppler-local-models.js",
         "../config/zero-inference.js",
+        "../core/agent-loop-policies.js",
         "../core/utils.js",
         "../instance.js",
         "../lab/profiles.js",
@@ -3779,10 +3782,11 @@
     {
       "path": "self/host/vfs-bootstrap.js",
       "owner": "self",
-      "sha256": "sha256:bc0060189bb867ebc090fc47e93e45d46e1a8329cf8850e635cb8e322f901358",
+      "sha256": "sha256:ddfb12bec6c9ace5d09a0a29c9b30b783d661388b5e9cbc7fe5daae055df321c",
       "imports": [
         "../boot-spec.js",
         "../config/doppler-local-models.js",
+        "../config/vfs-policy.js",
         "../instance.js"
       ]
     },
@@ -4547,8 +4551,9 @@
     {
       "path": "ui/boot-wizard/self-preview.js",
       "owner": "ui",
-      "sha256": "sha256:c53d4f8416f6d59d13df80e3a40f172ef57354c37152f16e05e372585a129674",
+      "sha256": "sha256:71438d0d7febc73a696505b425d413105147d961ebd3d639e417641a324d2ec5",
       "imports": [
+        "../../config/vfs-policy.js",
         "../../manifest.js",
         "./state.js"
       ]
@@ -4556,13 +4561,14 @@
     {
       "path": "ui/boot-wizard/state.js",
       "owner": "ui",
-      "sha256": "sha256:751f1ede19e51737c804297ee09080c50e79aac2560a11d0ee1119854ab1f8c4",
+      "sha256": "sha256:769e9b956b4e608374a80a326a182cdfbbf4cef96de285d0d24aa7ae6db28e2f",
       "imports": [
         "../../config/boot-modes.js",
         "../../config/doppler-local-models.js",
         "../../config/module-resolution.js",
         "../../config/reploid-environments.js",
         "../../config/zero-inference.js",
+        "../../core/agent-loop-policies.js",
         "../../core/security-config.js",
         "../../instance.js",
         "./reploid-inference.js"
@@ -4605,9 +4611,10 @@
     {
       "path": "ui/boot-wizard/steps/goal.js",
       "owner": "ui",
-      "sha256": "sha256:c4757bf267166ad630fd69c0fa239be362ceb0daa992ed0179a61c430c81c8a2",
+      "sha256": "sha256:b8bef9ee785c0228ffcd0a56806b84c40cbde25653528226f0195650edebd982",
       "imports": [
         "../../../config/reploid-environments.js",
+        "../../../core/agent-loop-policies.js",
         "../../../manifest.js",
         "../goals.js",
         "../reploid-inference.js"
@@ -5207,7 +5214,7 @@
     {
       "path": "ui/zero-home/index.js",
       "owner": "ui",
-      "sha256": "sha256:bcc273866ee06eff1a010f0f4393c0bb9d1a946232ee098a93921759ba2f7888",
+      "sha256": "sha256:3b748797d27623430bee57d8561813d2d4757d2fbda3bf8422b5d3d252f8819b",
       "imports": [
         "../../boot-helpers/vfs-bootstrap.js",
         "../../config/boot-seed.js",
@@ -5215,6 +5222,7 @@
         "../../config/lab-upgrades.js",
         "../../config/zero-goals.js",
         "../../config/zero-inference.js",
+        "../../core/agent-loop-policies.js",
         "../../instance.js",
         "../components/vfs-progress.js",
         "../zero/replay-panel.js"
