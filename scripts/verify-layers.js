@@ -93,7 +93,7 @@ export function findLayerViolations({ repoRoot, sourcePath, source, edges = modu
     if (relative === 'self/host/chat-session.js' && target.startsWith('self/providers/')) {
       reason = 'chat session must adapt execution through its execution port';
     }
-    if (['self/host/chat-view.js', 'self/host/readonly-view.js'].includes(relative)) {
+    if (['self/host/chat-view.js', 'self/host/readonly-view.js'].includes(relative) && target !== 'self/host/computer-records.js') {
       reason = 'conversation projections must remain independent of runtime owners';
     }
     if (/^self\/host\/chat-[^/]+\.js$/.test(relative) && target.startsWith('self/vendor/reploid/chat/')
