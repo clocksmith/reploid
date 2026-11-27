@@ -1,9 +1,9 @@
 {
   "schema": "reploid.settlement-replay-differential/v1",
-  "generatedAt": "2026-11-25T21:55:19.235Z",
-  "finishedAt": "2026-11-25T21:56:04.832Z",
+  "generatedAt": "2026-11-27T01:37:02.437Z",
+  "finishedAt": "2026-11-27T01:38:09.510Z",
   "command": "node scripts/settlement/independent/differential.js --out scripts/settlement/independent/receipts/differential.json",
-  "commit": "6275e8df1261b4405f36fcb91a8d8c2e75d57bb6",
+  "commit": "6faa5780ef440a7aa7dbfdb60ac97ae76564293d",
   "uncommittedChangesInComparedCode": false,
   "node": "v22.20.0",
   "note": "All parties are simulated identities on one machine. The second verifier was written from docs/settlement-replay.md alone by a second session under the same operator, so this is not a third-party replay. Both verifiers ran in one process on the same record sets. Keys are fresh on each run; counts are deterministic. Every documented row member except the sentence in `reason` is compared; list entries are compared without regard to order, and `counts` without its zero entries. Classifications: a = a reading of a sentence the document leaves open, b = a defect in the service verifier, c = a defect in the second verifier, d = the document and the service verifier say different things.",
@@ -46,29 +46,29 @@
     "finished 40-output answer, last three acknowledgments withheld"
   ],
   "totals": {
-    "recordSets": 3050,
-    "judgments": 6007,
-    "outcomeAgreed": 6007,
-    "amountsAgreed": 6007,
-    "outcomeAndAmountsAgreed": 6007,
-    "lateListSizeAgreed": 6007,
-    "foreignListSizeAgreed": 6007,
-    "conflictListedAgreed": 6007,
-    "everyRowMemberAgreed": 6007,
-    "everyRowMemberAgreedInOrder": 5997,
-    "rejectedListSizeAgreed": 5925,
-    "sameRecordsRejected": 5925,
-    "countsAgreed": 5925,
-    "balancesAgreed": 5925,
-    "rejectedListsCompared": 5925
+    "recordSets": 3067,
+    "judgments": 6066,
+    "outcomeAgreed": 6066,
+    "amountsAgreed": 6066,
+    "outcomeAndAmountsAgreed": 6066,
+    "lateListSizeAgreed": 6066,
+    "foreignListSizeAgreed": 6066,
+    "conflictListedAgreed": 6066,
+    "everyRowMemberAgreed": 6066,
+    "everyRowMemberAgreedInOrder": 6056,
+    "rejectedListSizeAgreed": 5984,
+    "sameRecordsRejected": 5984,
+    "countsAgreed": 5984,
+    "balancesAgreed": 5984,
+    "rejectedListsCompared": 5984
   },
   "outcomePairs": {
     "conflict / conflict": 244,
-    "expired / expired": 430,
+    "expired / expired": 461,
     "invalid / invalid": 157,
     "none / none": 3,
-    "open / open": 1107,
-    "settled / settled": 3563,
+    "open / open": 1110,
+    "settled / settled": 3588,
     "unknown / unknown": 503
   },
   "families": {
@@ -211,6 +211,11 @@
       "judgments": 4,
       "outcomeAgreed": 4,
       "amountsAgreed": 4
+    },
+    "whole-model release window": {
+      "judgments": 59,
+      "outcomeAgreed": 59,
+      "amountsAgreed": 59
     }
   },
   "disagreements": {
@@ -251,15 +256,15 @@
       "base": "complete answer",
       "mutation": "a stranger signs terms for the same reservation",
       "clock": "after",
-      "independent": "settled (step 9: finished under the decided acknowledged-prefix terms, the acknowledged prefix is charged) debit 15 credits [3,12]",
-      "service": "settled (the answer was completed and acknowledged) debit 15 credits [3,12]"
+      "independent": "unknown (step 8: stage 0 has no in-time acceptance of the agreed terms) debit 0 credits [0,0]",
+      "service": "unknown (no in-time signed acceptance of these terms was presented for stage 0, 1) debit 0 credits [0,0]"
     },
     {
       "base": "complete answer",
       "mutation": "a stranger signs terms for the same reservation",
       "clock": "after",
-      "independent": "unknown (step 8: stage 0 has no in-time acceptance of the agreed terms) debit 0 credits [0,0]",
-      "service": "unknown (no in-time signed acceptance of these terms was presented for stage 0, 1) debit 0 credits [0,0]"
+      "independent": "settled (step 9: finished under the decided acknowledged-prefix terms, the acknowledged prefix is charged) debit 15 credits [3,12]",
+      "service": "settled (the answer was completed and acknowledged) debit 15 credits [3,12]"
     },
     {
       "base": "complete answer",
@@ -314,15 +319,15 @@
       "base": "complete answer",
       "mutation": "a stranger signs its own terms, acceptance and charge binding under this reservation ID",
       "clock": "after",
-      "independent": "settled (step 9: finished under the decided acknowledged-prefix terms, the acknowledged prefix is charged) debit 15 credits [3,12]",
-      "service": "settled (the answer was completed and acknowledged) debit 15 credits [3,12]"
+      "independent": "expired (step 6: not every stage closed, no delivered answer, and the release window passed) debit 0 credits [0,0]",
+      "service": "expired (the release window passed without every stage closing (a verified provider failure, or an attempt that never started); nobody is charged or paid) debit 0 credits [0,0]"
     },
     {
       "base": "complete answer",
       "mutation": "a stranger signs its own terms, acceptance and charge binding under this reservation ID",
       "clock": "after",
-      "independent": "expired (step 6: not every stage closed, no delivered answer, and the release window passed) debit 0 credits [0,0]",
-      "service": "expired (the release window passed without every stage closing (a verified provider failure, or an attempt that never started); nobody is charged or paid) debit 0 credits [0,0]"
+      "independent": "settled (step 9: finished under the decided acknowledged-prefix terms, the acknowledged prefix is charged) debit 15 credits [3,12]",
+      "service": "settled (the answer was completed and acknowledged) debit 15 credits [3,12]"
     },
     {
       "base": "complete answer",

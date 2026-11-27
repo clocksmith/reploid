@@ -45,19 +45,19 @@ does, and only from the document's text. A fix prompted by the service's code wo
 
 The document with the owner's decided unfinished-answer rule, the older terms shape, signed accounts, the
 failed-stage terms and the requester's own stages under them: a 1,055-line text, which the author read without a commit
-hash. The [receipt](receipts/differential.json) records commit 6275e8df1, when the document stood at bd52ef90a;
-later revisions of the document and of `replay.js` have not been run through this comparison. 22 base attempts (two added for the older provider-loss-free
-terms), 28 mutation families, Ed25519 and P-256 keys, seven clock values
+hash. The [receipt](receipts/differential.json) records commit 6faa5780e, after the whole-model closing window
+of 2026-11-26 (below). 22 base attempts (two added for the older provider-loss-free
+terms), 28 mutation families, a whole-model family of 17 record sets (59 judgments) around the instant the ledger releases the hold, Ed25519 and P-256 keys, seven clock values
 around the deadline, the release window and the instant an attempt is decided. The document reports one row per
 reservation and requester, and the comparison is keyed the same way.
 
 | | Count |
 | --- | --- |
-| Record sets | 3,050 |
-| Judgments (one row at one clock value) | 6,007 |
-| Same outcome, same debit, same credit for every stage | 6,007 |
-| Every documented member of the row the same | 6,007 |
-| Same records rejected, same `counts` and same balances per account | 5,925 of 5,925 runs |
+| Record sets | 3,067 |
+| Judgments (one row at one clock value) | 6,066 |
+| Same outcome, same debit, same credit for every stage | 6,066 |
+| Every documented member of the row the same | 6,066 |
+| Same records rejected, same `counts` and same balances per account | 5,984 of 5,984 runs |
 | Disagreements | 0 |
 
 Read this as: on these record sets, a verifier written from the document's text alone returns what the service's
@@ -120,6 +120,7 @@ ledger's interim rules of 2026-11-25 (the document's "Older rules") are a ledger
 | 1f79a07e6 | updated from the text with signed accounts, in two rounds; the second added the enrollment test its author's gap 89 called for | 2,527 of 2,527 with the added family, every row member included | nothing |
 | 8c2d13bb7 | updated from the text with the failed-stage terms, in two passes; the second changed nothing in the verifier | 4,833 of 4,833 with the added family, every row member included, at the first comparison | nothing |
 | v3 ledger change | updated from the text with the requester's own stages under the failed-stage terms (the earlier pass's changes had not reached the file) | 6,007 of 6,007, every row member included; 5,892 of 5,925 runs with the same balances | the balances of one family: the service's defect, fixed; then 5,925 of 5,925 |
+| whole-model closing window (2026-11-26) | updated from the revised "Release window" text after an outside review: both verifiers had counted a whole-model close signed in the clock allowance after the ledger released the hold, so their agreement agreed on the defect | 6,066 of 6,066 with the added whole-model family, every row member included | nothing |
 
 Between those rounds the comparison and [../baseline-matrix.js](../baseline-matrix.js) also showed properties both
 verifiers shared because the document said so, and the document and the service's verifier were changed on each: a
