@@ -55,8 +55,9 @@ function inferenceScopeProblems(scope, problems) {
   digestList(scope.modelIdentities, 'scope.modelIdentities', problems);
   digestList(scope.adapterIdentities, 'scope.adapterIdentities', problems);
   if (!INFERENCE_EXECUTIONS.includes(scope.execution)) problems.push(`scope.execution must be one of ${INFERENCE_EXECUTIONS.join(', ')}`);
-  if (scope.execution === 'model-stage' ? !isCount(scope.stageIndex) : scope.stageIndex !== null) {
-    problems.push('scope.stageIndex is a stage index for model-stage and null otherwise');
+  // A model stage names its index once assigned (null before); a whole model has none.
+  if (!(scope.stageIndex === null || scope.execution === 'model-stage' && isCount(scope.stageIndex))) {
+    problems.push('scope.stageIndex is a model-stage index or null');
   }
   if (!(scope.availableSlots === null || isCount(scope.availableSlots))) problems.push('scope.availableSlots must be a count or null');
 }
@@ -268,7 +269,7 @@ export function computerFromLedgerRow(row, { accountId = null, observationMaxAge
   if (resident && isDigest(resident.modelIdentity)) {
     const stage = resident.mode === 'partition';
     offer = inferenceOffer({ readiness: preparing ? 'preparing' : 'ready', paused, expiresAt, modelIdentities: [resident.modelIdentity],
-      execution: stage ? 'model-stage' : 'whole-model', stageIndex: stage ? resident.stageIndex ?? 0 : null });
+      execution: stage ? 'model-stage' : 'whole-model', stageIndex: stage && isCount(resident.stageIndex) ? resident.stageIndex : null });
   } else if (preparing) offer = inferenceOffer({ readiness: 'preparing', paused, expiresAt });
   return computerRecord({ computerId: row?.id, identityBasis: 'ledger-enrollment', participantIds: [...(row?.participantIds ?? [])],
     accountId, offers: [offer] });

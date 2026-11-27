@@ -740,8 +740,8 @@
     },
     {
       "path": "contracts/computer-records.js",
-      "bytes": 19056,
-      "sha256": "df19423f9a8281a088a78670ef73f44fe0f57a85443655da85aef0de5cefc0bf"
+      "bytes": 19154,
+      "sha256": "818df6d6ceb416c1030231071f85a6bafabdffebd600b50353fa75106648853e"
     },
     {
       "path": "contracts/config/doppler-execution-contracts.d.ts",
