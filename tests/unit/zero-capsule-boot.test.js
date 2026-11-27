@@ -175,10 +175,14 @@ describe('Zero capsule boot caller and error rendering', () => {
 
   it('routes an unknown saved namespace to legacy startup after closing the capsule handle', async () => {
     const { win } = browser(), original = { '/owned.js': 'existing source' }, store = memoryStore(original);
-    const read = vi.fn(), connect = vi.fn();
-    const load = vi.fn(async () => { expect(store.close).toHaveBeenCalledOnce(); });
-    await expect(bootZero({ win, openStore: async () => store, read, connect, load })).resolves.toEqual({ legacy: true });
-    expect(load).toHaveBeenCalledExactlyOnceWith('/kernel/boot.js?v=legacy-build');
+    const read = vi.fn(), connect = vi.fn(), load = vi.fn();
+    const onLegacy = vi.fn(async passedWin => {
+      expect(passedWin).toBe(win);
+      expect(store.close).toHaveBeenCalledOnce();
+    });
+    await expect(bootZero({ win, openStore: async () => store, read, connect, load, onLegacy })).resolves.toEqual({ legacy: true });
+    expect(onLegacy).toHaveBeenCalledExactlyOnceWith(win);
+    expect(load).not.toHaveBeenCalled();
     expect(connect).not.toHaveBeenCalled();
     expect(read).not.toHaveBeenCalled();
     expect(store.seed).not.toHaveBeenCalled();

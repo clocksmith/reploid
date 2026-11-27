@@ -8,19 +8,6 @@
   ],
   "divergences": [
     {
-      "kind": "zero-imports-outside-closure",
-      "rule": "b",
-      "reason": "A /zero instance whose database holds files but no saved Zero source boots the legacy kernel, so returning instances keep their owned source and work. Removing the handoff changes what a returning person sees.",
-      "evidence": [
-        "self/zero/boot.js:16",
-        "self/zero/boot.js:77-80",
-        "self/zero/CATSCAN.md"
-      ],
-      "keys": [
-        "zero/boot.js -> kernel/boot.js"
-      ]
-    },
-    {
       "kind": "zero-module-not-in-x",
       "rule": "c",
       "reason": "X with no upgrade does not load Zero's capsule. /x boots the legacy kernel and DI container, which use their own boot, tool runner, VFS, provider client and UI for the same concepts. X registers the same sw.js from the network; its self-source closure does not list it.",

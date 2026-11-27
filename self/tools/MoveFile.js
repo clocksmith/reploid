@@ -2,7 +2,12 @@
  * @fileoverview MoveFile - Move files within writable VFS roots.
  */
 
-import { assertWritableVfsPath, normalizeVfsPath } from '../config/vfs-policy.js';
+import {
+  assertNotExistingActivationReceipt,
+  assertNotProtectedReceiptContent,
+  assertWritableVfsPath,
+  normalizeVfsPath
+} from '../config/vfs-policy.js';
 
 const normalizePath = (rawPath, label) => {
   return normalizeVfsPath(rawPath, label);
@@ -17,6 +22,9 @@ async function call(args = {}, deps = {}) {
   assertWritableVfsPath(sourcePath, 'MoveFile');
   assertWritableVfsPath(targetPath, 'MoveFile');
 
+  await assertNotExistingActivationReceipt(VFS, sourcePath, 'MoveFile');
+  await assertNotExistingActivationReceipt(VFS, targetPath, 'MoveFile');
+
   const overwrite = args.overwrite !== false;
   const targetExists = await VFS.exists(targetPath).catch(() => false);
   if (targetExists && !overwrite) {
@@ -24,6 +32,7 @@ async function call(args = {}, deps = {}) {
   }
 
   const content = await VFS.read(sourcePath);
+  assertNotProtectedReceiptContent(targetPath, content, 'MoveFile');
   await VFS.write(targetPath, content);
   await VFS.delete(sourcePath);
 

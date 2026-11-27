@@ -8,7 +8,12 @@ import { FILE_TEXT_LIMIT_BYTES as TEXT_LIMIT_BYTES } from '../config/vfs-policy.
  * Emits audit:core_write events for L3 substrate changes (/core/, /infrastructure/)
  */
 
-import { assertNoPathTraversal, assertWritableVfsPath } from '../config/vfs-policy.js';
+import {
+  assertNoPathTraversal,
+  assertNotExistingActivationReceipt,
+  assertNotProtectedReceiptContent,
+  assertWritableVfsPath
+} from '../config/vfs-policy.js';
 
 const OPFS_ALLOWLIST_PREFIXES = ['/doppler-models/adapters/'];
 
@@ -41,6 +46,7 @@ async function call(args = {}, deps = {}) {
     assertOpfsAllowed(path);
   } else {
     assertWritableVfsPath(path, 'EditFile');
+    await assertNotExistingActivationReceipt(VFS, path, 'EditFile');
   }
 
   const operations = buildOperations(args);
@@ -131,6 +137,7 @@ async function call(args = {}, deps = {}) {
       await writable.write(content);
       await writable.close();
     } else {
+      assertNotProtectedReceiptContent(path, content, 'EditFile');
       await VFS.write(path, content);
     }
 

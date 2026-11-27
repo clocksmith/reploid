@@ -270,7 +270,7 @@
       "source": "self/zero/boot.js",
       "expression": "url",
       "owner": "self/zero/CATSCAN.md",
-      "contract": "Zero loads the hash-verified boot entry from its validated source descriptor, or the fixed legacy kernel entry for retained instances.",
+      "contract": "Zero loads the hash-verified boot entry from its validated source descriptor.",
       "removalCondition": "Remove when the loader is replaced or removed; changes to selected code authority require renewed review."
     },
     {

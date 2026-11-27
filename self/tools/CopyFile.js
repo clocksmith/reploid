@@ -2,7 +2,13 @@
  * @fileoverview CopyFile - Copy readable VFS content into a writable root.
  */
 
-import { assertNoPathTraversal, assertWritableVfsPath, normalizeVfsPath } from '../config/vfs-policy.js';
+import {
+  assertNoPathTraversal,
+  assertNotExistingActivationReceipt,
+  assertNotProtectedReceiptContent,
+  assertWritableVfsPath,
+  normalizeVfsPath
+} from '../config/vfs-policy.js';
 
 const normalizePath = (rawPath, label) => {
   return normalizeVfsPath(rawPath, label);
@@ -24,6 +30,8 @@ async function call(args = {}, deps = {}) {
   }
 
   const content = await VFS.read(sourcePath);
+  assertNotProtectedReceiptContent(targetPath, content, 'CopyFile');
+  await assertNotExistingActivationReceipt(VFS, targetPath, 'CopyFile');
   await VFS.write(targetPath, content);
 
   EventBus?.emit?.('artifact:created', { path: targetPath, sourcePath });

@@ -85,14 +85,32 @@ export function analyzeZeroModule(file, source, inZeroClosure) {
   const lines = source.split('\n');
   const where = node => `${file}:${node.loc.start.line}`;
   const snippet = node => lines[node.loc.start.line - 1].trim();
+  const urlBindings = new Map();
+  walk(ast, node => {
+    if (node.type === 'VariableDeclarator' && node.id?.type === 'Identifier') {
+      const candidate = leadingString(node.init);
+      if (candidate && MODULE_URL.test(candidate)) urlBindings.set(node.id.name, candidate);
+    } else if (node.type === 'AssignmentExpression' && node.left?.type === 'Identifier') {
+      const candidate = leadingString(node.right);
+      if (candidate && MODULE_URL.test(candidate)) urlBindings.set(node.left.name, candidate);
+    }
+  });
+  const resolveTargetUrl = target => {
+    const direct = leadingString(target) || (target?.type === 'Identifier' ? urlBindings.get(target.name) : null);
+    return MODULE_URL.exec(direct || '')?.[1] || null;
+  };
   walk(ast, (node, ancestors) => {
     // (b) A module URL handed to import() or a loader call must stay in Zero's closure.
-    let target = null;
-    if (node.type === 'ImportExpression') target = node.source;
-    else if (node.type === 'CallExpression' || node.type === 'NewExpression') target = node.arguments[0];
-    const url = MODULE_URL.exec(leadingString(target) || '')?.[1];
-    if (url && !inZeroClosure(url.slice(1))) {
-      found.push({ rule: 'b', kind: 'zero-imports-outside-closure', key: `${file} -> ${url.slice(1)}`, at: where(node) });
+    const targets = node.type === 'ImportExpression'
+      ? [node.source]
+      : (node.type === 'CallExpression' || node.type === 'NewExpression')
+        ? node.arguments
+        : [];
+    for (const target of targets) {
+      const url = resolveTargetUrl(target);
+      if (url && !inZeroClosure(url.slice(1))) {
+        found.push({ rule: 'b', kind: 'zero-imports-outside-closure', key: `${file} -> ${url.slice(1)}`, at: where(node) });
+      }
     }
     for (const value of strings(node)) {
       // (c) Zero's modules may name X only where they treat X and Zero alike.
@@ -110,6 +128,12 @@ export function analyzeZeroModule(file, source, inZeroClosure) {
 
 /** Zero's tool host registers its built-in schemas by literal name. */
 export const zeroHostToolNames = source => [...source.matchAll(/registerToolSchema\(\s*'([A-Za-z0-9]+)'/g)].map(match => match[1]);
+
+/** X's tool runner must enforce Zero's verifiedToolSource gate on /self/tools/. */
+export const xToolRunnerRequiresActivation = source => (
+  /import\s*\{[^}]*\bverifiedToolSource\b[^}]*\}\s*from\s*'\.\/create-tool\.js'/.test(source)
+  && /\bverifiedToolSource\s*\(\s*VFS\s*,/.test(source)
+);
 
 export async function findDivergences({ tree }) {
   const read = async served => (await tree.read(served)).toString('utf8');
@@ -133,6 +157,9 @@ export async function findDivergences({ tree }) {
   const xTools = getToolNamesForMode('x', { surfaceIds: LAB_UPGRADE_TOOL_SURFACE_IDS.spark });
   if (JSON.stringify([...zeroTools].sort()) !== JSON.stringify([...xTools].sort())) {
     found.push({ rule: 'd', kind: 'x-base-tools-differ', key: `zero ${zeroTools.join(',')} / x ${xTools.join(',')}` });
+  }
+  if (!xToolRunnerRequiresActivation(await read('core/tool-runner.js'))) {
+    found.push({ rule: 'd', kind: 'x-tool-runner-skips-activation-evidence', key: 'core/tool-runner.js' });
   }
   return found;
 }

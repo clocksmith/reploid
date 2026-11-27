@@ -6,7 +6,13 @@ import { normalizeFilePath as normalizePath, resolveMode, resolveMaxBytes, getOp
  * @fileoverview WriteFile - Write content to VFS or OPFS with guardrails
  */
 
-import { assertNoPathTraversal, assertOpfsArtifactPath, assertWritableVfsPath } from '../config/vfs-policy.js';
+import {
+  assertNoPathTraversal,
+  assertNotExistingActivationReceipt,
+  assertNotProtectedReceiptContent,
+  assertOpfsArtifactPath,
+  assertWritableVfsPath
+} from '../config/vfs-policy.js';
 
 
 const decodeBase64 = (data) => {
@@ -136,6 +142,7 @@ async function call(args = {}, deps = {}) {
         throw new Error('Missing content argument');
       }
       const content = normalizeTextContent(args.content);
+      assertNotProtectedReceiptContent(path, content, 'WriteFile');
       const bytes = getTextBytes(content);
       if (bytes > maxBytes) {
         throw new Error(`Content exceeds maxBytes (${maxBytes} bytes)`);
@@ -228,6 +235,8 @@ async function call(args = {}, deps = {}) {
   }
 
   const content = normalizeTextContent(args.content);
+  assertNotProtectedReceiptContent(path, content, 'WriteFile');
+  await assertNotExistingActivationReceipt(VFS, path, 'WriteFile');
 
   const bytesWritten = getTextBytes(content);
   if (bytesWritten > maxBytes) {

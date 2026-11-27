@@ -206,6 +206,7 @@
       } else {
         document.title = 'Reploid';
       }
+      const bootLegacyKernel = () => import(`/kernel/boot.js?v=${window.REPLOID_BUILD_VERSION}`);
       if (productRoute) {
         ensurePooldayStylesheet();
         const appRoot = document.getElementById('app');
@@ -215,10 +216,9 @@
         await bootProductRoute(appRoot);
       } else if (pathname === '/zero') {
         const { bootZero } = await import('/zero/boot.js');
-        await bootZero();
+        await bootZero({ onLegacy: bootLegacyKernel });
       } else {
-        const bootPath = `/kernel/boot.js?v=${window.REPLOID_BUILD_VERSION}`;
-        await import(bootPath);
+        await bootLegacyKernel();
       }
     </script>
   </body>

@@ -6,7 +6,25 @@
 export const VFS_BYPASS_HEADER = 'x-reploid-vfs-bypass';
 
 export const WRITABLE_VFS_ROOTS = Object.freeze(['/shadow', '/artifacts', '/cycles']);
+export const PROTECTED_VFS_ARTIFACT_ROOTS = Object.freeze(['/artifacts/promotions']);
 export const OPFS_ARTIFACT_ROOTS = Object.freeze(['/artifacts']);
+export const CREATE_TOOL_EVIDENCE_SCHEMA = 'reploid.zero.createToolEvidence.v3';
+
+const ACTIVATION_EVIDENCE_PATH_PATTERN = /^\/artifacts\/[^/]+-evidence\.json$/;
+
+export function isActivationEvidencePath(path) {
+  return ACTIVATION_EVIDENCE_PATH_PATTERN.test(String(path || ''));
+}
+
+export function isCreateToolActivationReceipt(content) {
+  if (typeof content !== 'string' || !content.includes(CREATE_TOOL_EVIDENCE_SCHEMA)) return false;
+  try {
+    const parsed = JSON.parse(content);
+    return parsed !== null && typeof parsed === 'object' && parsed.schema === CREATE_TOOL_EVIDENCE_SCHEMA;
+  } catch {
+    return false;
+  }
+}
 
 export function normalizeVfsPath(rawPath, label = 'path') {
   const value = String(rawPath || '').trim();
@@ -49,8 +67,25 @@ const getWritableError = (path, operation) => {
 
 export function assertWritableVfsPath(path, operation = 'tool') {
   assertNoPathTraversal(path);
+  if (PROTECTED_VFS_ARTIFACT_ROOTS.some((root) => isWithinRoot(path, root))) {
+    throw new Error(`Promotion receipts under /artifacts/promotions are protected: ${path}`);
+  }
   if (!WRITABLE_VFS_ROOTS.some((root) => isWithinRoot(path, root))) {
     throw new Error(getWritableError(path, operation));
+  }
+}
+
+export function assertNotProtectedReceiptContent(path, content, operation = 'tool') {
+  if (isCreateToolActivationReceipt(content)) {
+    throw new Error(`CreateTool activation evidence cannot be written by ${operation}: ${path}`);
+  }
+}
+
+export async function assertNotExistingActivationReceipt(VFS, path, operation = 'tool') {
+  if (!isActivationEvidencePath(path) || typeof VFS?.read !== 'function') return;
+  const existing = await VFS.read(path).catch(() => null);
+  if (isCreateToolActivationReceipt(existing)) {
+    throw new Error(`Tool activation evidence is protected from ${operation}: ${path}`);
   }
 }
 

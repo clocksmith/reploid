@@ -6,6 +6,8 @@ import { getLabToolSurfaceIds, isMinimalLabMode } from '../config/lab-upgrades.j
  */
 
 import { loadVfsModule } from './vfs-module-loader.js';
+import { verifiedToolSource } from './create-tool.js';
+import { isValidatorMutationTarget, sha256, verifiedPromotedToolSource } from './promotion-policy.js';
 import { isSecurityEnabled } from './security-config.js';
 import { getCurrentReploidStorage as getReploidStorage } from '../../shared/instance.js';
 import { getToolNamesForMode } from '../../shared/config/tool-surfaces.js';
@@ -54,8 +56,28 @@ const ToolRunner = {
     let disposed = false;
     const _tools = new Map();
     const _dynamicTools = new Set();
+    const _installedTools = new Map();
     const _toolCapabilities = new Map();
     const _runtimeAllowedTools = new Set();
+    const INTERNAL_INSTALL_AUTH = Symbol('ToolRunner.internalInstallAuth');
+
+    const requiresInstalledToolEvidence = () => {
+      const currentMode = getBootMode();
+      return currentMode === 'x' || currentMode === 'zero';
+    };
+
+    const verifyInstalledToolAuthority = async (cleanPath) => {
+      const currentMode = getBootMode();
+      const allowPromoted = currentMode === 'x' && !isMinimalLabMode(currentMode);
+      try {
+        return await verifiedToolSource(VFS, cleanPath);
+      } catch (activationError) {
+        if (allowPromoted) {
+          return verifiedPromotedToolSource(VFS, cleanPath);
+        }
+        throw activationError;
+      }
+    };
 
     // Schema cache for performance (#3)
     let _schemaCache = null;
@@ -89,6 +111,7 @@ const ToolRunner = {
       const existed = _tools.delete(cleanName);
       _toolCapabilities.delete(cleanName);
       _dynamicTools.delete(cleanName);
+      _installedTools.delete(cleanName);
       _runtimeAllowedTools.delete(cleanName);
       SchemaRegistry.unregisterToolSchema(cleanName);
       if (existed) invalidateSchemaCache();
@@ -104,6 +127,7 @@ const ToolRunner = {
       _tools.clear();
       _toolCapabilities.clear();
       _dynamicTools.clear();
+      _installedTools.clear();
       _runtimeAllowedTools.clear();
       _workerManager = null;
       invalidateSchemaCache();
@@ -187,9 +211,20 @@ const ToolRunner = {
         const capabilities = normalizeToolCapabilities(
           mod.tool?.zeroCapabilities || mod.tool?.capabilities || []
         );
+        const isInstalledTool = options.installed === true || path.startsWith('/self/tools/');
+        let sourceHash = options.expectedSha256 || null;
+        if (isInstalledTool && !sourceHash && typeof contents === 'string' && globalThis.crypto?.subtle) {
+          sourceHash = await sha256(contents);
+          assertActive();
+        }
         _tools.set(name, handler);
         _toolCapabilities.set(name, capabilities);
         _dynamicTools.add(name);
+        if (isInstalledTool) {
+          _installedTools.set(name, { path, hash: sourceHash });
+        } else {
+          _installedTools.delete(name);
+        }
         invalidateSchemaCache(); // Invalidate cache when tools change
 
         // Capture schema from dynamic tool if available
@@ -212,10 +247,21 @@ const ToolRunner = {
     };
 
     const loadToolPath = async (path, forcedName = null, options = {}) => {
+      assertConfiguredGates();
       const cleanPath = normalizeLoadPath(path);
       assertInstallToolPath(cleanPath);
       const name = forcedName || cleanPath.split('/').pop()?.replace('.js', '');
-      const loaded = await loadToolModule(cleanPath, forcedName, { throwOnError: true, expectedSha256: options.expectedSha256 });
+      let expectedSha256 = options.expectedSha256;
+      if (requiresInstalledToolEvidence() && options[INTERNAL_INSTALL_AUTH] !== true) {
+        const verified = await verifyInstalledToolAuthority(cleanPath);
+        assertActive();
+        expectedSha256 = verified.hash;
+      }
+      const loaded = await loadToolModule(cleanPath, forcedName, {
+        throwOnError: true,
+        expectedSha256,
+        installed: true
+      });
       if (loaded && options.allow && name) {
         allowTool(name);
       }
@@ -226,6 +272,7 @@ const ToolRunner = {
       for (const name of _dynamicTools) {
         _tools.delete(name);
         _toolCapabilities.delete(name);
+        _installedTools.delete(name);
         SchemaRegistry.unregisterToolSchema(name);
       }
       _dynamicTools.clear();
@@ -243,7 +290,9 @@ const ToolRunner = {
         let files = [];
         try {
           files = await VFS.list(root);
+          assertActive();
         } catch (err) {
+          if (disposed) throw err;
           if (root === '/tools/') {
             logger.warn('[ToolRunner] Failed to list /tools directory', err);
           }
@@ -258,10 +307,27 @@ const ToolRunner = {
           const toolName = file.split('/').pop().replace('.js', '');
           if (root === '/tools/' && allowlist && !allowlist.has(toolName)) continue;
           if (isMinimalLabMode(getBootMode()) && toolName === 'Promote') continue;
-          await loadToolModule(file);
           if (root === '/self/tools/') {
-            allowTool(toolName);
+            let expectedSha256;
+            if (requiresInstalledToolEvidence()) {
+              try {
+                const verified = await verifyInstalledToolAuthority(file);
+                assertActive();
+                expectedSha256 = verified.hash;
+              } catch (err) {
+                if (disposed) throw err;
+                logger.warn(`[ToolRunner] Rejected unverified installed tool ${file}: ${err.message}`);
+                EventBus?.emit?.('tool:restore_rejected', { path: file, error: err.message });
+                continue;
+              }
+            }
+            const loaded = await loadToolModule(file, null, { expectedSha256, installed: true });
+            if (loaded) {
+              allowTool(toolName);
+            }
+            continue;
           }
+          await loadToolModule(file);
         }
       }
       assertActive();
@@ -397,8 +463,45 @@ const ToolRunner = {
       const startTime = Date.now();
 
       try {
+        const installedRecord = _installedTools.get(name) || null;
+        if (installedRecord && requiresInstalledToolEvidence()) {
+          const currentCode = await VFS.read(installedRecord.path);
+          assertActive();
+          const currentHash = await sha256(currentCode);
+          assertActive();
+          if (!installedRecord.hash || currentHash !== installedRecord.hash) {
+            unloadTool(name);
+            throw new Errors.ToolError(`Installed tool source changed: ${name}`);
+          }
+        }
+
         // Get TransformersClient from global (pre-resolved in entry/start-app.js)
-        const TransformersClient = window.REPLOID?.transformersClient || null;
+        const TransformersClient = globalThis.window?.REPLOID?.transformersClient || null;
+
+        const capabilities = _toolCapabilities.get(name);
+        const scopedLoadPath = name === 'CreateTool'
+          ? (targetPath, forcedName = null, opts = {}) => loadToolPath(targetPath, forcedName, {
+              ...opts,
+              [INTERNAL_INSTALL_AUTH]: true
+            })
+          : installedRecord && normalizeToolCapabilities(capabilities).has('self:write')
+            ? async (targetPath, forcedName = null, opts = {}) => {
+                const cleanTarget = normalizeLoadPath(targetPath);
+                assertInstallToolPath(cleanTarget);
+                if (isValidatorMutationTarget(cleanTarget)) {
+                  throw new Errors.ToolError(`Validator target is protected: ${cleanTarget}`);
+                }
+                const code = await VFS.read(cleanTarget);
+                assertActive();
+                const expectedSha256 = await sha256(code);
+                assertActive();
+                return loadToolPath(cleanTarget, forcedName, {
+                  ...opts,
+                  expectedSha256,
+                  [INTERNAL_INSTALL_AUTH]: true
+                });
+              }
+            : (targetPath, forcedName = null, opts = {}) => loadToolPath(targetPath, forcedName, opts);
 
         // Inject comprehensive deps for full RSI capability
         // All available modules are passed - tools can check availability via !!deps.ModuleName
@@ -437,10 +540,10 @@ const ToolRunner = {
             refresh: loadDynamicTools,
             allow: allowTool,
             load: loadToolByName,
-            loadPath: loadToolPath,
+            loadPath: scopedLoadPath,
             unload: unloadTool
           }
-        }, getBootMode(), name, { capabilities: _toolCapabilities.get(name) });
+        }, getBootMode(), name, { capabilities, installed: !!installedRecord });
         assertActive();
         let result = await toolFn(args, toolDeps);
 

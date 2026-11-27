@@ -4,48 +4,18 @@ import { filterToolDepsForTool } from '../core/tool-capabilities.js';
 import ToolWriter from '../core/tool-writer.js';
 import VerificationManager from '../core/verification-manager.js';
 import SchemaRegistry from '../core/schema-registry.js';
-import CreateTool, { tool as createToolSchema } from '../core/create-tool.js';
+import CreateTool, { tool as createToolSchema, verifiedToolSource } from '../core/create-tool.js';
 import { loadVfsModule } from '../core/vfs-module-loader.js';
 import { sha256 } from '../core/promotion-policy.js';
 import { assertWritableVfsPath, assertNoPathTraversal, normalizeVfsPath } from '../config/vfs-policy.js';
 import { isSecurityEnabled } from '../core/security-config.js';
 import { getCurrentReploidStorage, getSurfaceIdFromUrl } from '../../shared/instance.js';
 
+export { verifiedToolSource };
+
 const installedName = path => /^\/self\/tools\/([A-Z][A-Za-z0-9]*)\.js$/.exec(path)?.[1];
 const evidencePath = name => `/artifacts/${name}-evidence.json`;
 const reserved = name => name === 'CreateTool' || name === 'Promote';
-
-// Saved receipts identify source, never grant a fresh runner execution authority.
-export async function verifiedToolSource(VFS, path) {
-  const name = installedName(path);
-  if (!name || reserved(name)) throw new Error(`Invalid installed tool path: ${path}`);
-  const code = await VFS.read(path);
-  const evidence = JSON.parse(await VFS.read(evidencePath(name)));
-  const hash = await sha256(code);
-  const checks = evidence?.checks;
-  if (typeof code !== 'string' || evidence?.schema !== 'reploid.zero.createToolEvidence.v3'
-      || evidence.toolName !== name || evidence.targetPath !== path
-      || evidence.evidencePath !== evidencePath(name) || evidence.action !== 'CreateTool.activate'
-      || evidence.candidateHash !== hash || evidence.targetHash !== hash
-      || evidence.activated !== true || evidence.validationPassed !== true
-      || evidence.activationChecksPassed !== true || evidence.replayPassed !== true
-      || checks?.verification?.kind !== 'static-worker' || checks.verification.passed !== true
-      || checks.verification.skipped !== false || checks.verification.hash !== hash
-      || checks?.validation?.passed !== true || checks.validation.activationContractValid !== true
-      || checks?.activation?.passed !== true || checks.activation.executed !== true
-      || checks.activation.declaredChecksPassed !== true || checks.activation.runtimeLoaded !== true
-      || checks.activation.installedBytesMatch !== true
-      || !Number.isInteger(checks.activation.checkCount) || checks.activation.checkCount < 1
-      || checks?.replay?.passed !== true || checks.replay.executed !== true
-      || checks.replay.checkCount !== checks.activation.checkCount
-      || !/^[a-f0-9]{64}$/.test(checks.activation.transcriptHash || '')
-      || !/^[a-f0-9]{64}$/.test(checks.replay.transcriptHash || '')
-      || checks?.replay?.matchesActivationTranscript !== true
-      || checks.activation.transcriptHash !== checks.replay.transcriptHash) {
-    throw new Error(`Installed tool has no matching activation evidence: ${path}`);
-  }
-  return { name, code, hash, evidence };
-}
 
 export async function createZeroTools({ VFS, source = null, emit = () => {}, logger = console }) {
   const Utils = { logger, Errors: { ValidationError: Error, ToolError: Error } };

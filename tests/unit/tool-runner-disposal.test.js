@@ -1,4 +1,5 @@
 /* @vitest-environment happy-dom */
+import { createHash } from 'node:crypto';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import ToolRunner from '../../self/core/tool-runner.js';
 import DIContainer from '../../self/infrastructure/di-container.js';
@@ -13,7 +14,47 @@ vi.mock('../../self/core/vfs-module-loader.js', () => ({
   }
 }));
 const logger = { info() {}, debug() {}, warn() {}, error() {} };
-const sources = new Map([['/tools/CreateTool.js', '// retained source'], ['/self/tools/Partial.js', '// installed source']]);
+const partialCode = '// installed source';
+const partialHash = createHash('sha256').update(partialCode).digest('hex');
+const transcriptHash = 'a'.repeat(64);
+const partialEvidence = JSON.stringify({
+  schema: 'reploid.zero.createToolEvidence.v3',
+  action: 'CreateTool.activate',
+  toolName: 'Partial',
+  targetPath: '/self/tools/Partial.js',
+  evidencePath: '/artifacts/Partial-evidence.json',
+  candidateHash: partialHash,
+  targetHash: partialHash,
+  activated: true,
+  validationPassed: true,
+  activationChecksPassed: true,
+  replayPassed: true,
+  checks: {
+    verification: { kind: 'static-worker', passed: true, skipped: false, hash: partialHash },
+    validation: { passed: true, activationContractValid: true },
+    activation: {
+      passed: true,
+      executed: true,
+      declaredChecksPassed: true,
+      runtimeLoaded: true,
+      installedBytesMatch: true,
+      checkCount: 1,
+      transcriptHash
+    },
+    replay: {
+      passed: true,
+      executed: true,
+      checkCount: 1,
+      transcriptHash,
+      matchesActivationTranscript: true
+    }
+  }
+});
+const sources = new Map([
+  ['/tools/CreateTool.js', '// retained source'],
+  ['/self/tools/Partial.js', partialCode],
+  ['/artifacts/Partial-evidence.json', partialEvidence]
+]);
 const createRunner = (extra = {}) => ToolRunner.factory({
   Utils: { logger, Errors: { ToolError: Error }, trunc: String },
   VFS: { read: async path => sources.get(path), exists: async path => sources.has(path),

@@ -2,7 +2,11 @@
  * @fileoverview DeleteFile - Delete file from VFS with audit logging
  */
 
-import { assertWritableVfsPath, normalizeVfsPath } from '../config/vfs-policy.js';
+import {
+  assertNotExistingActivationReceipt,
+  assertWritableVfsPath,
+  normalizeVfsPath
+} from '../config/vfs-policy.js';
 
 const normalizePath = (rawPath) => {
   return normalizeVfsPath(rawPath);
@@ -16,9 +20,14 @@ async function call(args = {}, deps = {}) {
   const targetPath = normalizePath(path || file);
   if (!targetPath || targetPath === '/') throw new Error('Missing path argument');
   assertWritableVfsPath(targetPath, 'DeleteFile');
+  await assertNotExistingActivationReceipt(VFS, targetPath, 'DeleteFile');
 
   if (recursive) {
     const files = await VFS.list(targetPath);
+    for (const filePath of files) {
+      assertWritableVfsPath(filePath, 'DeleteFile');
+      await assertNotExistingActivationReceipt(VFS, filePath, 'DeleteFile');
+    }
     let deletedCount = 0;
     for (const filePath of files) {
       await VFS.delete(filePath);

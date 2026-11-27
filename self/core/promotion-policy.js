@@ -285,3 +285,48 @@ export async function validateClockworkPromotionEvidence(
     reasons
   };
 }
+
+const getPromotedToolName = (path) => /^\/self\/tools\/([A-Z][A-Za-z0-9]*)\.js$/.exec(String(path || ''))?.[1];
+
+export async function verifiedPromotedToolSource(VFS, path) {
+  const name = getPromotedToolName(path);
+  if (!name || name === 'CreateTool' || name === 'Promote') {
+    throw new Error(`Invalid promoted tool path: ${path}`);
+  }
+  const code = await VFS.read(path);
+  if (typeof code !== 'string') {
+    throw new Error(`Promoted tool source missing: ${path}`);
+  }
+  const hash = await sha256(code);
+  const rollbackFiles = (await VFS.list('/artifacts/promotions/').catch(() => []))
+    .filter((entry) => typeof entry === 'string' && entry.endsWith('/rollback.json'))
+    .sort()
+    .reverse();
+
+  for (const rollbackPath of rollbackFiles) {
+    let rollback;
+    try {
+      rollback = JSON.parse(await VFS.read(rollbackPath));
+    } catch {
+      continue;
+    }
+    if (rollback?.schema !== 'reploid/promotion-rollback/v1') continue;
+    if (rollback.targetPath !== path || rollback.candidateHash !== hash) continue;
+    if (typeof rollback.evidencePath !== 'string' || !isWithinRoot(rollback.evidencePath, '/artifacts')) continue;
+    let evidence;
+    try {
+      evidence = parseEvidence(await VFS.read(rollback.evidencePath), rollback.evidencePath);
+    } catch {
+      continue;
+    }
+    if (getEvidenceBoolean(evidence, 'replayPassed') !== true) continue;
+    const expectedCandidateHash = getEvidenceHash(evidence, 'candidateHash') || getEvidenceHash(evidence, 'candidateSha256');
+    const expectedTargetHash = getEvidenceHash(evidence, 'targetHash') || getEvidenceHash(evidence, 'targetSha256');
+    if (!expectedCandidateHash && !expectedTargetHash) continue;
+    if (expectedCandidateHash && expectedCandidateHash !== hash) continue;
+    if (expectedTargetHash && expectedTargetHash !== hash) continue;
+    return { name, code, hash, rollback, evidence };
+  }
+
+  throw new Error(`Installed tool has no matching activation or promotion receipt: ${path}`);
+}

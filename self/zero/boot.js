@@ -66,7 +66,7 @@ export async function connectZeroWorker(instance, serviceWorker = navigator.serv
 
 /** The network nucleus selects saved code; it never upgrades or clears an instance. */
 export async function bootZero({ win = window, openStore = openZeroStore, read = readNetwork,
-  connect = connectZeroWorker, load = url => import(url) } = {}) {
+  connect = connectZeroWorker, load = url => import(url), onLegacy = null } = {}) {
   const mount = win.document.getElementById('app');
   let store;
   try {
@@ -76,7 +76,7 @@ export async function bootZero({ win = window, openStore = openZeroStore, read =
     const prepared = await prepareZero(store, read);
     if (prepared.legacy) {
       store.close();
-      await load(`/kernel/boot.js?v=${win.REPLOID_BUILD_VERSION || ''}`);
+      if (typeof onLegacy === 'function') await onLegacy(win);
       return { legacy: true };
     }
     win.getReploidMode = () => 'zero';
