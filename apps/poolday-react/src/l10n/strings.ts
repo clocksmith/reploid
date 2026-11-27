@@ -124,7 +124,7 @@ export const strings = {
       ConversationLayout: 'The conversation column: transcript, notices, then the composer at one reading width.',
       ThreadItem: 'One conversation in Threads: monogram and state, title over digest, time and actions.',
       BarButton: 'A destination in the workspace bar: icon and label, a link that opens in place.',
-      WorkspaceBar: 'The bar of destinations, along the top on wide screens and docked at the bottom on phones.',
+      WorkspaceBar: 'The navigation rail of destinations, pinned along the start edge on desktop and a floating button on phones.',
       Drawer: 'A side panel over the page margin: heading and Close, a scrolling body, focus returns to its opener.',
       Workspace: 'The application frame: one viewport tall, the bar, the main column and two drawers.',
     } as Record<string, string>,

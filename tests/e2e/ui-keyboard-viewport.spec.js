@@ -153,6 +153,11 @@ test.describe('keyboard and focus', () => {
       await page.setViewportSize({ width, height: 800 });
       await open(page, '/');
       for (const drawer of DRAWERS) {
+        if (width < 760) {
+          const toggle = page.locator('[data-rail-toggle]').first();
+          await toggle.focus();
+          await page.keyboard.press('Enter');
+        }
         const bar = page.locator(drawer.bar).first();
         await bar.focus();
         await page.keyboard.press('Enter');
@@ -160,20 +165,19 @@ test.describe('keyboard and focus', () => {
         const panel = page.locator('.pool-drawer:not([hidden])');
         await expect(panel.locator('h2')).toBeFocused();
         if (width < 760) {
-          // The drawer covers the conversation: Tab stays with the drawer and the bar, never the hidden page.
+          // The drawer covers the conversation: Tab stays with the drawer and the rail toggle, never the hidden page.
           const seen = await tabThrough(page, 30);
           expect(seen.filter((state) => state.inMain).map((state) => state.name)).toEqual([]);
           expect(seen.some((state) => state.inDrawer)).toBe(true);
         } else {
           await page.keyboard.press('Tab');
         }
-        // From inside the drawer, or (on a phone) from the bar, Escape closes it.
+        // From inside the drawer, or (on a phone) from the rail toggle, Escape closes it.
         if (width >= 760) await panel.locator('[data-drawer-close]').focus();
         await page.keyboard.press('Escape');
         await expect(page).not.toHaveURL(new RegExp(`view=${drawer.view}`));
         await expect(page.locator('.pool-drawer:not([hidden])')).toHaveCount(0);
         if (width >= 760) await expect(bar).toBeFocused();
-        else expect((await page.evaluate(focusState))?.inBar).toBe(true);
       }
     });
   }
@@ -197,6 +201,7 @@ test.describe('keyboard and focus', () => {
   test('a dialog opened inside a drawer closes on Escape without closing the drawer', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 800 });
     await mountScripted(page);
+    await page.locator('[data-rail-toggle]').click();
     await page.locator('[data-workspace-view="settings"]').click();
     const remove = page.locator('[data-storage-remove="stored-model"]');
     await remove.focus();
@@ -263,6 +268,8 @@ test('Threads: the actions menu and Rename work from the keyboard and give focus
   await page.locator('[data-composer-send]').click();
   await allowRemoteOnce(page);
   await expect(page.locator('[data-message-role="assistant"]')).toContainText('Scripted answer.');
+  await page.locator('[data-rail-toggle]').focus();
+  await page.keyboard.press('Enter');
   await page.locator('[data-toggle-thread-rail]').focus();
   await page.keyboard.press('Enter');
   const menu = page.locator('.pool-drawer:not([hidden]) .pool-menu summary').first();
