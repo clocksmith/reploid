@@ -141,17 +141,15 @@ it('moves the automatic choice when its computer leaves, also under a typed draf
   expect(f.view.composer().send.disabled).toBe(true);
 });
 
-it('does not settle on whichever computer advertised first: during the discovery wait a typed draft follows the preferred model', async () => {
+it('does not settle on whichever computer advertised first: during the discovery wait a typed draft follows the preferred model and settles as soon as the top model is ready', async () => {
   const f = fixture();
-  // The first advertisement settles discovery's phase, but the bounded wait for the others is still running.
+  // The first advertisement settles discovery's phase on a lower-ranked model while the bounded wait is still running.
   f.publish({ discoveryPhase: 'observed', peerDiscoveryTimedOut: false, models: [SMALL, served(MEDIUM)] });
-  expect(chip(f).selectionId).toBe(key(MEDIUM));
+  expect([chip(f).selectionId, chip(f).availability]).toEqual([key(MEDIUM), 'waiting']);
   f.c.setDraft('Typed in the first second');
   f.publish({ models: [served(SMALL), served(MEDIUM)] });
-  // Still inside the wait, the choice is provisional: not named as ready.
-  expect([chip(f).selectionId, chip(f).availability]).toEqual([key(SMALL), 'waiting']);
-  // Once the wait is over the draft keeps its model while a computer serves it.
-  f.publish({ peerDiscoveryTimedOut: true });
+  // Once the top-ranked preferred model is ready, no higher-ranked public model can displace it: it settles immediately.
+  expect([chip(f).selectionId, chip(f).availability]).toEqual([key(SMALL), 'ready']);
   f.publish({ models: [served(SMALL), served(MEDIUM)].reverse() });
   expect(chip(f).selectionId).toBe(key(SMALL));
   f.c.send();
@@ -161,9 +159,10 @@ it('does not settle on whichever computer advertised first: during the discovery
 
 // The deployed first-visit walk at b8c3432b: the chip named the 27B model, Ready, about 2 s after load, while the
 // bounded discovery wait was still open; a computer serving the preferred 0.8B model answered inside it, and the
-// question typed meanwhile went to the 0.8B model. The automatic choice is provisional until the wait is over: the
-// composer names no model as ready meanwhile, a Send pressed in it is held, and it goes to the settled choice.
-it('holds a Send pressed while the automatic choice is provisional and sends it to the choice discovery settles on', async () => {
+// question typed meanwhile went to the 0.8B model. While only a lower-ranked model is ready inside the wait, the
+// automatic choice is provisional (no model named Ready, Send held); as soon as the top-ranked model is ready (or the
+// wait ends), it settles and dispatches.
+it('holds a Send pressed while the automatic choice is provisional and sends it as soon as the top model is ready or the wait ends', async () => {
   const f = fixture();
   // The first computer advertises a less preferred model; the session's bounded wait (chat-session.js) is still open.
   f.publish({ discoveryPhase: 'observed', peerDiscoveryTimedOut: false, network: observed.network, models: [SMALL, served(MEDIUM)] });
@@ -177,17 +176,22 @@ it('holds a Send pressed while the automatic choice is provisional and sends it 
   expect(f.created).toHaveLength(0);
   expect(f.view.composer().nextAction).toBe('cancel-queued');
   expect(f.session.sendIntents.state().intent.selection).toEqual({ mode: 'auto' });
-  // A computer serving the preferred model answers inside the wait: still held.
+  // A computer serving the top-ranked preferred model answers inside the wait: settles and dispatches immediately without waiting 8 s.
   f.publish({ models: [served(SMALL), served(MEDIUM)] });
-  await new Promise(resolve => setTimeout(resolve, 0));
-  expect(f.created).toHaveLength(0);
-  // The wait ends: the composer names the settled choice as ready and that is the model the question goes to.
-  f.publish({ peerDiscoveryTimedOut: true });
   expect([chip(f).selectionId, chip(f).availability]).toEqual([key(SMALL), 'ready']);
   await vi.waitFor(() => expect(f.sent).toHaveLength(1));
   expect(f.created).toHaveLength(1);
   expect(key(f.created[0].model)).toBe(key(SMALL));
   expect(f.created[0]).toMatchObject({ executionLocation: 'network', privacy: { recipients: { kind: 'open' } } });
+
+  // When the top-ranked model advertises first inside the wait, it is Ready at once and Send dispatches with zero startup hold.
+  const immediate = fixture();
+  immediate.publish({ discoveryPhase: 'observed', peerDiscoveryTimedOut: false, network: observed.network, models: [served(SMALL), MEDIUM] });
+  expect([chip(immediate).selectionId, chip(immediate).availability]).toEqual([key(SMALL), 'ready']);
+  expect(immediate.view.composer().route).toMatchObject({ destination: 'contributors', status: 'ready', send: 'dispatch' });
+  immediate.view.send('Sent immediately on top preferred model');
+  await vi.waitFor(() => expect(immediate.sent).toHaveLength(1));
+  expect(key(immediate.created[0].model)).toBe(key(SMALL));
 
   // With no better computer, the wait's end sends the held question to the model the composer then names.
   const g = fixture();

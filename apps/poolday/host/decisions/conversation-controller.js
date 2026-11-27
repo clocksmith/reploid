@@ -272,19 +272,33 @@ export function createConversationController(session, {
   const choiceAvailable = (model, state) => {
     return selectableStatus(modelExecutionState(model, effectiveLocation(state)).status);
   };
+  const preferenceOrder = workProfile.chatModelPreference || [];
+  const preferenceRank = model => {
+    const index = preferenceOrder.indexOf(model?.id);
+    return index < 0 ? preferenceOrder.length : index;
+  };
+  const topPreferredReady = state => {
+    const candidates = (state.models || []).filter(model => !model.fleet && !model.partition && !model.adapters?.length);
+    if (!candidates.length) return false;
+    const bestRank = Math.min(...candidates.map(preferenceRank));
+    return candidates.some(model => preferenceRank(model) === bestRank
+      && model.networkAvailability === 'ready' && model.reachableProviderIds?.length > 0);
+  };
   const choiceWaitOver = state => state.peerDiscoveryTimedOut === true && state.discoveryPhase === 'observed';
+  const choiceSettled = state => choiceWaitOver(state) || (state.discoveryPhase === 'observed' && topPreferredReady(state));
   /** Whether the page is still choosing the model among the computers that answer: no draft is pinned to one meanwhile. */
-  const choosingStill = state => automaticContributors(state) ? !choiceWaitOver(state)
-    : waitsForAnyModel(state) && (state.discoveryPhase === 'searching' || state.discoveryPhase === 'observed' && !choiceWaitOver(state));
+  const choosingStill = state => automaticContributors(state) ? !choiceSettled(state)
+    : waitsForAnyModel(state) && (state.discoveryPhase === 'searching' || state.discoveryPhase === 'observed' && !choiceSettled(state));
   /**
    * The automatic choice is provisional while the session's bounded discovery wait is open (chat-session.js: 8 s from
-   * connecting, then peerDiscoveryTimedOut): a computer serving a model the preference order ranks higher may still
-   * answer in it, and the choice would move. Only a choice the page makes is provisional, never a pick, a thread's
-   * model or a paired desktop's. Meanwhile the composer names no model as ready, and a Send pressed is held and goes
-   * to the settled choice when the wait ends; the held intent's own 30 s still bounds it.
+   * connecting, then peerDiscoveryTimedOut) unless the highest-ranked public model in the preference order is already
+   * ready: while only a lower-ranked model is seen, a higher-ranked one may still answer and move the choice. Only a
+   * choice the page makes is provisional, never a pick, a thread's model or a paired desktop's. Meanwhile the composer
+   * names no model as ready, and a Send pressed is held and goes to the settled choice as soon as the top-ranked model
+   * answers or the wait ends; the held intent's own 30 s still bounds it.
    */
   const provisionalChoice = state => !state.activeThread && waitsForAnyModel(state)
-    && state.discoveryPhase === 'observed' && state.peerDiscoveryTimedOut === false;
+    && state.discoveryPhase === 'observed' && !choiceSettled(state);
   /**
    * A remembered pick whose model the catalog does not list yet (a private pool's model before the pool's state has
    * loaded, a split route that is down, a build that changed). It stands as the chosen model so the composer names
