@@ -1,40 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 
-test('new threads show one of 16 random hints without inserting or submitting a goal', async ({ page }) => {
-  await page.goto('/');
-  const choices = await page.evaluate(async () => {
-    const { pickGoalPlaceholder } = await import('/ui/pool-home/work-goal-composer.js');
-    const random = Math.random;
-    try {
-      return Array.from({ length: 16 }, (_, index) => {
-        Math.random = () => (index + 0.5) / 16;
-        return pickGoalPlaceholder();
-      });
-    } finally { Math.random = random; }
-  });
-  expect(new Set(choices).size).toBe(16);
-  const goal = page.locator('[data-work-goal]');
-  const first = await goal.getAttribute('placeholder');
-  expect(choices).toContain(first);
-  await goal.fill('My own objective');
-  await page.locator('[data-work-attachments] summary').click();
-  await expect(goal).toHaveValue('My own objective');
-  await expect(goal).toHaveAttribute('placeholder', first);
-  let previous = first;
-  for (let index = 0; index < 16; index++) {
-    await page.locator('[data-work-new]').click();
-    const current = await goal.getAttribute('placeholder');
-    expect(choices).toContain(current);
-    expect(current).not.toBe(previous);
-    await expect(goal).toBeVisible();
-    await expect(goal).toBeFocused();
-    await expect(goal).toHaveValue('');
-    previous = current;
-  }
-  await expect(page.locator('[data-work-select]')).toHaveCount(0);
-});
-
 test('Home connects agents and tasks with explicit disclosure', async ({ page }) => {
   await page.goto('/');
   await expect(page.getByRole('heading', { name: 'Threads', exact: true })).toBeVisible();
@@ -68,11 +34,12 @@ test('Network exposes sharing controls and still requires approval', async ({ pa
 });
 
 test('Improve gives new users a useful empty state', async ({ page }) => {
+  // A new visitor's Changes page: nothing to review, no result shown, and tool updates say none exist yet.
   await page.goto('/improve');
-  await expect(page.getByRole('heading', { name: 'No work to review yet.' })).toBeVisible();
-  await expect(page.locator('[data-work-output]')).toBeHidden();
-  await page.getByRole('link', { name: 'Start your first task' }).click();
-  await expect(page.locator('[data-work-goal]')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Changes', exact: true })).toBeVisible();
+  await expect(page.locator('[data-work-output]')).toHaveCount(0);
+  await expect(page.locator('[data-work-history]')).toHaveCount(0);
+  await expect(page.locator('[data-improvement-empty]')).toHaveText('No tool changes yet.');
 });
 
 test('mobile network and task controls fit the viewport', async ({ page }) => {
@@ -88,82 +55,4 @@ test('mobile network and task controls fit the viewport', async ({ page }) => {
   expect(geometry.width).toBeLessThanOrEqual(geometry.viewport);
   await page.locator('[data-work-start]').scrollIntoViewIfNeeded();
   await expect(page.locator('[data-work-start]')).toBeInViewport();
-});
-
-test('view state retains activity, cancellation, saved results and a clean new task', async ({ page }) => {
-  await page.goto('/');
-  // Injected view state exercises rendering only, not model execution.
-  await page.evaluate(async () => {
-    const { bindWorkSurface, renderWorkSurface } = await import('/ui/pool-home/work.js');
-    const { DEFAULT_WORK_MODELS } = await import('/host/work-session.js');
-    const root = document.createElement('main');
-    root.className = 'pool-home'; root.innerHTML = renderWorkSurface();
-    document.body.replaceChildren(root);
-    const record = { id: 'fixture', goal: 'Inspect notes', status: 'completed', output: 'A saved result.',
-      modelId: DEFAULT_WORK_MODELS[0].id, modelName: 'Fixture model', createdAt: Date.now(),
-      inputs: [], artifacts: [], events: [{ tool: 'ReadInput', status: 'completed' }] };
-    let state = { records: [record], selectedId: record.id, busy: false, available: true, models: DEFAULT_WORK_MODELS,
-      cycle: 1, maxCycles: 8, activity: 'Finished', peerModels: [] };
-    let listener;
-    const application = {
-      getDraft: () => null, getState: () => state,
-      subscribe(callback) { listener = callback; callback(state); return () => {}; },
-      select(id) { state = { ...state, selectedId: id }; listener?.(state); },
-      clearDraft() {},
-      prepareRevision(id) { return { parentId: id, goal: record.goal, criteria: 'Keep the main points',
-        modelId: record.modelId, inputs: [], feedback: '' }; },
-      cancel() { window.clarityCancelled = true; state = { ...state, busy: false, activity: 'Stopped' }; listener(state); }
-    };
-    window.clarityUpdate = changes => { state = { ...state, ...changes }; listener(state); };
-    const dispose = bindWorkSurface(root, application);
-    window.clarityResumeDraft = () => {
-      dispose(); root.innerHTML = renderWorkSurface();
-      application.getDraft = () => application.prepareRevision(record.id);
-      bindWorkSurface(root, application);
-    };
-  });
-  await expect(page.locator('[data-work-goal]')).toBeVisible();
-  await expect(page.locator('[data-work-output]')).toBeHidden();
-  await page.locator('[data-work-select]').click();
-  await expect(page.locator('[data-work-answer]')).toHaveText('A saved result.');
-  await expect(page.locator('[data-work-form]')).toBeHidden();
-  await expect(page.locator('[data-work-events]')).toContainText('ReadInput / completed');
-  await page.locator('[data-work-revise-selected]').click();
-  await expect(page.locator('[data-work-feedback]')).toBeVisible();
-  await expect(page.locator('[data-work-goal]')).toHaveValue('Inspect notes');
-  await page.locator('[data-work-select]').click();
-  await page.locator('[data-work-new]').click();
-  await expect(page.locator('[data-work-output]')).toBeHidden();
-  await expect(page.locator('[data-work-goal]')).toHaveValue('');
-  await page.locator('[data-work-select]').click();
-  await expect(page.locator('[data-work-answer]')).toBeVisible();
-  await page.evaluate(() => window.clarityUpdate({ busy: true, activeId: 'fixture', activity: 'Reading file', draft: 'Working...' }));
-  await expect(page.locator('[data-work-goal]')).toBeDisabled();
-  await expect(page.locator('[data-work-form]')).toBeHidden();
-  await expect(page.locator('[data-work-status]')).toHaveText('Reading file');
-  await expect(page.locator('[data-work-draft]')).toBeVisible();
-  await page.locator('[data-work-cancel]').first().click();
-  await expect.poll(() => page.evaluate(() => window.clarityCancelled)).toBe(true);
-  await expect(page.locator('[data-work-goal]')).toBeEnabled();
-  await page.evaluate(() => window.clarityResumeDraft());
-  await expect(page.locator('[data-work-feedback]')).toBeVisible();
-  await expect(page.locator('[data-work-output]')).toBeHidden();
-});
-
-test('Verification Worker accepts the changed UI modules', async ({ page }) => {
-  const names = ['index.js', 'view.js', 'work.js', 'work-goal-composer.js', 'work-task-header.js', 'work-result-view.js', 'work-task-history.js', 'work-approval-panel.js', 'work-layout.js', 'operation-sharing.js', 'theme.js', 'agent-network.js', 'work-capabilities.js'];
-  const snapshot = Object.fromEntries(await Promise.all(names.map(async name => [
-    `/ui/pool-home/${name}`, await readFile(`self/ui/pool-home/${name}`, 'utf8')
-  ])));
-  await page.goto('/');
-  const result = await page.evaluate(snapshot => new Promise((resolve, reject) => {
-    const worker = new Worker('/core/verification-worker.js');
-    const timer = setTimeout(() => { worker.terminate(); reject(new Error('Verification timed out')); }, 10000);
-    worker.onmessage = event => { clearTimeout(timer); worker.terminate(); resolve(event.data); };
-    worker.onerror = event => { clearTimeout(timer); worker.terminate(); reject(new Error(event.message)); };
-    worker.postMessage({ type: 'VERIFY', snapshot });
-  }), snapshot);
-  expect(result.errors).toEqual([]);
-  expect(result.passed).toBe(true);
-  expect(result.details.filesAnalyzed).toBe(names.length);
 });

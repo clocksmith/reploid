@@ -1,23 +1,9 @@
 import { describe, it, expect, vi } from 'vitest';
 import { openConversation } from '../fixtures/conversation-view.js';
 import { attachmentInput, comparisonSources } from '../../apps/poolday/host/document-comparison.js';
-import { renderPermissionSummary, updatePermissionSummary } from '../../apps/poolday/ui/components/permission-card.js';
 import { createWebSearch } from '../../apps/poolday/host/web-search.js';
 
 describe('Conversation Send authorization', () => {
-  it('renders attachment passages safely without hiding the exact approved payload', () => {
-    const root = document.createElement('div'); root.innerHTML = renderPermissionSummary();
-    const input = [{ role: 'user', content: attachmentInput('Compare quotes', [{ name: 'Quote.txt', text: '<img src=x onerror=alert(1)> $42' }]) }];
-    updatePermissionSummary(root, { input, technical: { input }, getSources: comparisonSources, recipient: 'Peer A', scope: 'Messages' });
-    expect(root.querySelector('[data-permission-content]').textContent).toContain('Quote.txt');
-    expect(root.querySelector('[data-permission-content]').textContent).not.toContain('reploid-document-sources');
-    expect(root.querySelector('img')).toBeNull();
-    expect(root.querySelector('[data-permission-review]').open).toBe(false);
-    expect(JSON.parse(root.querySelector('pre').textContent).input).toEqual(input);
-    root.querySelector('[data-permission-content] details').open = true;
-    updatePermissionSummary(root, { input, technical: { input }, getSources: comparisonSources });
-    expect(root.querySelector('[data-permission-content] details').open).toBe(true);
-  });
   it('Send never authorizes disclosure and rendering never approves a held request', async () => {
     const model = { id: 'model', name: 'Model', availability: 'ready', localReady: true };
     const thread = { id: 'thread', model, messages: [], attempts: [], grants: [] };

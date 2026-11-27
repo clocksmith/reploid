@@ -4,6 +4,7 @@ import { ProductApp } from './app/ProductApp';
 import type { AppServices } from './app/services';
 import { createAppearanceStore } from './features/shell/infrastructure/appearance';
 import { adoptHost, openPageHost } from './features/shell/infrastructure/productHost';
+import { routeForPath } from './features/shell/domain/routes';
 
 // One product per page: mounting again (a fixture replacing the page's host) closes the previous one first.
 let unmountCurrent: (() => void) | null = null;
@@ -34,7 +35,7 @@ function mount(root: HTMLElement, services: AppServices) {
  */
 export function initPoolHome(root: HTMLElement, { signal }: { readonly signal?: AbortSignal } = {}) {
   signal?.throwIfAborted();
-  return mount(root, { open: openPageHost, appearance: createAppearanceStore() });
+  return mount(root, { open: openPageHost, appearance: createAppearanceStore(), route: routeForPath(window.location.pathname) });
 }
 
 /**
@@ -47,7 +48,7 @@ export function mountPoolday(
   { host, earning = Promise.resolve(null), viewState }: { readonly host: object; readonly earning?: Promise<unknown>; readonly viewState?: object },
 ) {
   const opened = adoptHost(host as Parameters<typeof adoptHost>[0], earning);
-  return mount(root, { open: async () => opened, adopted: true, appearance: createAppearanceStore(), ...(viewState ? { viewState } : {}) });
+  return mount(root, { open: async () => opened, adopted: true, appearance: createAppearanceStore(), route: routeForPath(window.location.pathname), ...(viewState ? { viewState } : {}) });
 }
 
 export default { initPoolHome, mountPoolday };

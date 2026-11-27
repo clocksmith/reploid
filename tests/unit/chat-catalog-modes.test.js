@@ -1,20 +1,12 @@
 import { availablePartitionRoute } from '../../apps/poolday/host/partition-release.js';
 import { it, expect } from 'vitest';
 import { projectChatCatalog } from '../../apps/poolday/host/chat-view.js';
-import { updateModelSelect } from '../../apps/poolday/ui/components/model-select.js';
 const model = { id: 'large', name: 'Large model', identity: 'sha256:model', adapters: [],
   executionModes: ['whole-model', 'partition'], partitionPlanId: 'sha256:plan' };
 const route = { ...model, selectionId: 'large/partition/sha256:plan', partition: { planId: model.partitionPlanId,
   participantA: 'first', participantB: 'last' }, availability: 'ready' };
 const approval = { modelId: route.id, modelIdentity: route.identity, adapterIdentities: [], partition: route.partition,
   evidence: 'test-fixture://qualified-route' };
-it('does not turn catalog declarations or ready peer advertisements into public distributed support', () => {
-  const catalog = projectChatCatalog({ models: [model], peers: [], partitionModels: [route] });
-  expect(catalog).toHaveLength(1);
-  expect(catalog[0].availability).toBe('unavailable');
-  const select = document.createElement('select'); updateModelSelect(select, catalog, { showAvailability: true });
-  expect(select.textContent).not.toContain('Distributed');
-});
 it('does not report a computer as full when it reported no slot count', () => {
   const peer = availableSlots => ({ peerId: 'p', model: model.id, modelIdentity: model.identity, identityProtocol: 1, admissionProtocol: 2,
     readiness: 'ready', hasInference: true, availableSlots });

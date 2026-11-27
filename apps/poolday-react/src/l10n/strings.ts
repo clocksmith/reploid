@@ -18,6 +18,18 @@ export const strings = {
     computers: 'Computers',
     settings: 'Settings',
   },
+  routes: {
+    brand: 'REPLOID',
+    titles: {
+      ask: 'Run a model',
+      compute: 'Sequence provider',
+      improve: 'Improve',
+      examples: 'Examples',
+      records: 'Recent jobs',
+      'room-1': 'Research Room-1',
+      experiments: 'Experiments',
+    } as Record<string, string>,
+  },
   handover: {
     elsewhere: 'Active in another tab.',
     moved: 'Moved to another tab.',
@@ -60,6 +72,7 @@ export const strings = {
       PooldayRoot: 'The Poolday scope: tokens and every primitive rule attach under it. A nested root shows the other theme.',
       Text: 'One step of the type scale: title, heading, subheading, body, small, caption or label.',
       Prose: 'Model output from bounded Markdown: paragraphs, lists, code, tables and safe links.',
+      Prism: 'Decorative glass artwork beside a page title, hidden from assistive technology; an optional light effect holds still under reduced motion.',
       Wordmark: 'The brand mark and the REPLOID wordmark.',
       VisuallyHidden: 'Text for assistive technology only.',
       Facts: 'Terms over their values, for receipts and details.',

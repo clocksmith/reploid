@@ -1,10 +1,9 @@
-import { escapeHtml as escape } from '../components/attachments.js';
+
 import { modelFacts } from '../components/model-select.js';
 import { sameModelVariant } from './model-providers.js';
 
 /** How to prepare a compatible adapter or serve one; the public guide, not an in-product service. */
 export { ADAPTER_GUIDE_URL } from './model-providers.js';
-const shortIdentity = identity => typeof identity === 'string' ? identity.slice(0, 15) + '…' : '';
 const plural = (count, word) => `${count} ${word}${count === 1 ? '' : 's'}`;
 const adapterOf = model => model?.adapters?.length === 1 ? model.adapters[0] : null;
 const sameBase = (a, b) => a.id === b.id && a.identity === b.identity;
@@ -48,27 +47,4 @@ export function describeModelChoice(state) {
     facts: ['Adapter', adapter.manifest?.version ? `v${adapter.manifest.version}` : 'version not declared'].join(' · '),
     note: adapterEvidence(state, adapter).text };
   };
-}
-
-const link = (url, text) => url ? `<a href="${escape(url)}" target="_blank" rel="noopener noreferrer">${escape(text)}</a>` : escape(text);
-
-/** The highlighted adapter's purpose, identities, evaluation and availability.
- * Base models keep their adapter count in the choice list. */
-export function updateAdapterDetails(root, state, model) {
-  const node = root.querySelector('[data-model-adapter-details]');
-  if (!node) return;
-  const adapter = adapterOf(model);
-  let markup = '';
-  if (adapter) {
-    const purpose = adapter.purpose, evidence = adapterEvidence(state, adapter), availability = adapterAvailability(state, model);
-    const source = { publisher: 'Publisher’s description', owner: 'Owner’s description' }[purpose?.source] || 'Source not recorded';
-    const base = (state.models || []).find(item => !item.partition && !adapterOf(item) && sameBase(item, model));
-    markup = `<p class="pool-small"><strong>${escape(adapter.name || adapter.id)}</strong> · ${escape(adapter.manifest?.version ? `v${adapter.manifest.version}` : 'Version not declared')}</p>
-      <p class="pool-small" data-adapter-purpose>${purpose?.statement ? `Purpose: ${escape(purpose.statement)} <small class="pool-muted">${link(purpose.url, source)}</small>` : 'Purpose not declared'}</p>
-      <p class="pool-small" data-adapter-evidence data-evidence-status="${evidence.status}">Evaluation: ${link(evidence.url, evidence.text)}${evidence.detail ? ` <small class="pool-muted">${escape(evidence.detail)}</small>` : ''}</p>
-      <p class="pool-small" data-adapter-availability>${escape(availability.text)}</p>
-      <p class="pool-caption pool-muted">For ${escape(base?.name || model.id)} <code title="${escape(model.identity)}">${escape(shortIdentity(model.identity))}</code> · Adapter <code title="${escape(adapter.identity)}">${escape(shortIdentity(adapter.identity))}</code></p>`;
-  }
-  node.hidden = !markup;
-  if (node.dataset.projection !== markup) { node.innerHTML = markup; node.dataset.projection = markup; }
 }

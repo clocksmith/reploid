@@ -119,11 +119,3 @@ export function projectRoomRecordRows({
     .sort((left, right) => recordTimeMs(right.occurredAt) - recordTimeMs(left.occurredAt))
     .slice(0, limit);
 }
-
-export default {
-  projectRoomRecordRows,
-  recordTimeMs,
-  receiptOccurredAt,
-  formatContributionTokens,
-  formatContributionModel
-};

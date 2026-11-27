@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 /**
- * The legacy Poolday interface (vanilla template strings under apps/poolday/ui and host views) is
- * retired screen by screen as React screens built from packages/poolday-ui replace it. This
- * ratchet counts what remains outside the design system and fails when any count rises:
+ * Every Poolday screen is React built from packages/poolday-ui; the vanilla interface is deleted.
+ * This ratchet counts markup written outside the design system (it records zero for each) and
+ * fails when any count rises:
  *   rawControls        raw interactive elements written by hand (button, input, select, textarea,
  *                      details, summary, dialog, a) in markup strings or createElement calls
  *   classAttributes    hand-written class attributes and className assignments
- *   compositionClasses bespoke classes the legacy composition stylesheets define
- *   compositionRules   rules in the legacy composition stylesheets
+ *   compositionClasses bespoke classes a composition stylesheet defines (there are none)
+ *   compositionRules   rules in a composition stylesheet
  *
  * Usage: node scripts/verify-poolday-ui-ratchet.mjs [--write]
  *   --write lowers the recorded counts to the current ones; it never raises one.
@@ -20,7 +20,6 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 export const RATCHET_FILE = 'scripts/poolday-ui-ratchet.json';
 export const LEGACY_SCRIPT_DIRS = ['apps/poolday/ui/pool-home', 'apps/poolday/ui/components', 'apps/poolday/host'];
 export const LEGACY_STYLE_DIR = 'apps/poolday/styles/poolday/compositions';
-const GENERATED = new Set(['app.bundle.js']);
 
 const RAW_CONTROL = /<(?:button|input|select|textarea|details|summary|dialog|a)[\s>]|createElement\(\s*['"](?:button|input|select|textarea|details|summary|dialog|a)['"]/g;
 const CLASS_ATTRIBUTE = /\bclass=\\?["']|\.className\s*=(?!=)|classList\.(?:add|toggle)\(/g;
@@ -28,7 +27,7 @@ const CLASS_ATTRIBUTE = /\bclass=\\?["']|\.className\s*=(?!=)|classList\.(?:add|
 const filesIn = (root, dir, extension) => {
   const full = path.join(root, dir);
   if (!existsSync(full)) return [];
-  return readdirSync(full).filter((name) => name.endsWith(extension) && !GENERATED.has(name)).sort().map((name) => path.join(full, name));
+  return readdirSync(full).filter((name) => name.endsWith(extension)).sort().map((name) => path.join(full, name));
 };
 
 const stripCssComments = (css) => css.replace(/\/\*[\s\S]*?\*\//g, '');

@@ -20,6 +20,7 @@ export function Text({
   as = 'p',
   muted = false,
   mono = false,
+  wrapAnywhere = false,
   id,
   hidden,
   children,
@@ -31,6 +32,8 @@ export function Text({
   readonly as?: TextElement;
   readonly muted?: boolean;
   readonly mono?: boolean;
+  /** Long values without spaces (links, identifiers) wrap anywhere instead of widening the container. */
+  readonly wrapAnywhere?: boolean;
   readonly id?: string;
   readonly children: ReactNode;
   readonly data?: DataAttributes;
@@ -41,7 +44,7 @@ export function Text({
       id={id}
       hidden={hidden || undefined}
       // Mono text is identifiers and values, which have no spaces to wrap at.
-      className={cx(VARIANT_CLASS[variant], muted && 'pool-muted', mono && 'pool-mono', mono && 'pool-break')}
+      className={cx(VARIANT_CLASS[variant], muted && 'pool-muted', mono && 'pool-mono', (mono || wrapAnywhere) && 'pool-break')}
       {...dataProps(data)}
     >
       {children}

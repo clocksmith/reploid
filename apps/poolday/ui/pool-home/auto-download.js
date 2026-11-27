@@ -1,4 +1,5 @@
-/** Automatic local download when a sent message finds no computer that can answer. The
+/** Automatic local download when a sent message finds no computer that can answer. Not wired into
+ * the React workspace yet; its settings switch went with the vanilla shell. The
  * preference is per browser and defaults on; visiting or waiting never downloads. Cancel stops
  * automatic downloads until the page reloads or the setting is turned on again. The host's
  * acquisition owns transfer, verification and the storage limit. */
@@ -96,16 +97,4 @@ export function createAutoDownload(session, { storage = globalThis.localStorage,
     },
     dispose() { disposed = true; }
   };
-}
-
-export function renderAutoDownloadSetting() {
-  return `<section class="pool-stack pool-gap-xs" data-auto-download-settings aria-labelledby="auto-download-settings-title">
-    <div class="pool-row pool-row-between"><h3 class="pool-small" id="auto-download-settings-title">Download models automatically</h3>
-      <button class="pool-switch" type="button" role="switch" aria-checked="true" aria-labelledby="auto-download-settings-title" aria-describedby="auto-download-help" data-auto-download-toggle><span aria-hidden="true"></span></button></div>
-    <p class="pool-small pool-muted" id="auto-download-help">When no computer can answer a message you send, download the smallest suitable model to this device and send it there. Cancel stops it.</p>
-  </section>`;
-}
-
-export function updateAutoDownloadSetting(root, enabled) {
-  root?.querySelector?.('[data-auto-download-toggle]')?.setAttribute('aria-checked', String(enabled));
 }

@@ -67,11 +67,11 @@ export function PairingLinkDialog({ services, presentation = 'modal' }: { readon
       <Stack gap="sm">
         {step.kind === 'done' && step.message && <StatusLine muted={false} data={{ 'data-pairing-message': true }}>{step.message}</StatusLine>}
         <Disclosure quiet summary={t.pairingLink.details}>
-          <Text variant="caption" muted data={{ 'data-pairing-identity': true }}>
+          <Text variant="caption" muted wrapAnywhere data={{ 'data-pairing-identity': true }}>
             {t.pairingLink.desktopId(target.hostParticipantId)}
           </Text>
           {step.kind === 'done' && step.detail && (
-            <Text variant="caption" muted data={{ 'data-pairing-connection': true }}>
+            <Text variant="caption" muted wrapAnywhere data={{ 'data-pairing-connection': true }}>
               {step.detail}
             </Text>
           )}

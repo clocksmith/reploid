@@ -78,19 +78,21 @@ for (const theme of ['light', 'dark']) for (const width of [1440, 390, 320]) {
 
 test('Changes keeps old failures in cards and opens detail only on selection', async ({ page }, info) => {
   await page.goto('/improve?room=reploid-default');
-  await expect(page.locator('.changes-workspace')).toBeVisible();
+  await expect(page.locator('[data-route-page="improve"] [data-work-surface]')).toBeVisible();
+  // The Changes page over a fixture work session in place of the page's own.
   await page.evaluate(async () => {
-    const { renderImproveSurface, bindWorkSurface } = await import('/ui/pool-home/work.js');
-    const root = document.querySelector('.pool-route-content'); root.innerHTML = renderImproveSurface();
+    const { mountPoolday } = await import('/ui/react/app.js');
     const records = [{ id: 'a', goal: 'Review the formatter', modelName: 'Qwen 3.5 0.8B', status: 'failed', createdAt: Date.now(),
       error: 'The contributor disconnected.', events: [], artifacts: [], output: '' }];
     const listeners = new Set(), listener = state => listeners.forEach(fn => fn(state)); const state = { records, selectedId: 'a', runningIds: [], peerModels: [], models: [], available: true, activity: 'Idle' };
     const app = { getState: () => state, getDraft: () => null, subscribe(fn) { listeners.add(fn); fn(state); return () => listeners.delete(fn); }, select(id) { state.selectedId = id; listener(state); } };
-    bindWorkSurface(root, app, { evolution: { list: async () => [], describe: async () => [] } });
+    const root = document.createElement('div'); document.body.replaceChildren(root);
+    mountPoolday(root, { host: { work: app, evolution: { list: async () => [], describe: async () => [] }, close: async () => {} } });
   });
+  await expect(page.locator('[data-work-surface]')).toBeVisible();
   await expect(page.locator('[data-change-inspection]')).toBeHidden();
-  await expect(page.locator('.change-card')).toHaveCount(1);
-  await expect(page.locator('.change-card')).toContainText('The contributor disconnected.');
+  await expect(page.locator('[data-work-history] [data-change-card]')).toHaveCount(1);
+  await expect(page.locator('[data-work-history] [data-change-card]')).toContainText('The contributor disconnected.');
   await page.screenshot({ path: info.outputPath('changes.png'), fullPage: true });
   await page.locator('[data-work-select]').click();
   await expect(page.locator('[data-change-inspection]')).toBeVisible();

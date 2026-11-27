@@ -34,8 +34,6 @@ import {
   projectDiscoveryContractCheckpoint
 } from './room-context-projection.js';
 
-export { projectCompleteEvidenceArchive } from './room-evidence-archive.js';
-
 export function projectResearchRoom({
   roomId,
   routeId = 'home',
@@ -287,5 +285,3 @@ export const researchRoomAgreementLabels = Object.freeze({
   not_assessed: 'Not assessed',
   evidence_unavailable: 'Evidence unavailable'
 });
-
-export default { projectResearchRoom, researchRoomAgreementLabels };

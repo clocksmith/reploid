@@ -144,9 +144,8 @@ test('browser host preserves files and followups across reload with injected exe
 
 test('Verification Worker accepts repaired application modules', async ({ page }) => {
   const paths = [
-    ...['attachments', 'dialog', 'disclosure', 'model-select', 'permission-card'].map(name => `ui/components/${name}.js`),
-    ...['document-search', 'execution-ribbon', 'index', 'message-list',
-      'navigation', 'network-controls', 'shell-view', 'specialist-routes', 'theme', 'view', 'work', 'work-approval-panel']
+    ...['attachments', 'model-select'].map(name => `ui/components/${name}.js`),
+    ...['execution-ribbon', 'message-list', 'network-controls']
       .map(name => `ui/pool-home/${name}.js`),
     ...['chat-session', 'document-comparison', 'product-context', 'product-session', 'work-model-files', 'work-swarm', 'decisions/conversation-controller'].map(name => `host/${name}.js`)
   ];

@@ -184,12 +184,3 @@ export const resetContributionStateForTests = () => {
     // Test-only reset should not fail when storage is unavailable.
   }
 };
-
-export default {
-  POOL_CONTRIBUTION_HISTORY_STORAGE_KEY,
-  getContributionSnapshot,
-  updateContributionState,
-  recordContributionReceipt,
-  subscribeContributionState,
-  resetContributionStateForTests
-};

@@ -64,21 +64,13 @@ independently evaluated agent improvements.
 ## Executable fixture evidence
 
 `node tests/library-package-acceptance.js` packs and installs the browser library
-into a detached consumer. Its Work cases reuse the actual application host and
-UI, with library imports redirected to the installed bytes. The existing
-standalone consumer separately checks library independence from the application.
+into a detached consumer and checks its independence from the application.
+The installed Work-goal cases mounted the vanilla Work surface and were removed
+with it; the React Changes page (`/improve`) is covered by
+`tests/unit/poolday-react-improve.test.tsx`. An installed-library Work journey
+on the React page is not yet written.
 
-[Cases](../tests/fixtures/work-goal-cases.json) freeze expected timeout repairs
-outside the browser. [The browser fixture](../tests/fixtures/work-goal-journey.js)
-uses an explicitly deterministic model procedure and injected peer observations.
-Cases cover local completion and missing information, approved and denied
-disclosure, counterfactual and unsupported observations, actual file inspection
-and download, and restored accepted-history retrieval.
-
-Reports retain source hashes, inputs, generated directives, tool results,
-disclosure decisions, output artifacts, failures, and oracle decisions under
-`artifacts/library-acceptance/<run>/`. `work-lifecycle-report.json` records
-qualification exclusions instead of promoting fixture success.
+Reports are kept under `artifacts/library-acceptance/<run>/`.
 
 These cases prove only the exercised wiring and boundaries. The fixture policy
 is not learned; its unit-conversion cases do not establish cross-domain transfer.

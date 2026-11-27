@@ -14,6 +14,8 @@ type DialogProps = {
   /** The reason or status at the start of the footer, for example why the primary is disabled. */
   readonly footerStatus?: ReactNode;
   readonly wide?: boolean;
+  /** A sheet holding a long list takes the taller fixed height. */
+  readonly tall?: boolean;
   /** `inline` shows the same shell in the page flow, for a panel or a design-page specimen. */
   readonly presentation?: 'modal' | 'inline';
   /** Stable hooks on the heading and the Close button, for tests and routing. */
@@ -31,13 +33,14 @@ function DialogShell({
   footer,
   footerStatus,
   wide = false,
+  tall = false,
   presentation = 'modal',
   fixed,
   headingData,
   closeData,
   data,
 }: DialogProps & { readonly fixed: boolean }) {
-  const parts = { title, closeLabel, onClose, footer, footerStatus, fixed, wide, headingData, closeData, data };
+  const parts = { title, closeLabel, onClose, footer, footerStatus, fixed, wide, tall, headingData, closeData, data };
   if (presentation === 'inline') return <InlineShell {...parts}>{children}</InlineShell>;
   return (
     <ModalShell {...parts} open={open}>
@@ -55,6 +58,7 @@ type ShellParts = {
   readonly footerStatus: ReactNode | undefined;
   readonly fixed: boolean;
   readonly wide: boolean;
+  readonly tall: boolean;
   readonly headingData: DataAttributes | undefined;
   readonly closeData: DataAttributes | undefined;
   readonly data: DataAttributes | undefined;
@@ -82,20 +86,20 @@ function ShellContent({ titleId, title, closeLabel, onClose, children, footer, f
   );
 }
 
-const shellClass = (fixed: boolean, wide: boolean, inline: boolean) =>
-  cx('pool-dialog', 'pool-surface', 'pool-small', fixed && 'pool-dialog-fixed', wide && 'pool-dialog-wide', inline && 'pool-dialog-inline');
+const shellClass = ({ fixed, wide, tall }: Pick<ShellParts, 'fixed' | 'wide' | 'tall'>, inline: boolean) =>
+  cx('pool-dialog', 'pool-surface', 'pool-small', fixed && 'pool-dialog-fixed', fixed && tall && 'pool-dialog-tall', wide && 'pool-dialog-wide', inline && 'pool-dialog-inline');
 
 function InlineShell(props: ShellParts) {
   const titleId = useId();
   return (
-    <section className={shellClass(props.fixed, props.wide, true)} role="dialog" aria-modal="false" aria-labelledby={titleId} {...dataProps(props.data)}>
+    <section className={shellClass(props, true)} role="dialog" aria-modal="false" aria-labelledby={titleId} {...dataProps(props.data)}>
       <ShellContent {...props} titleId={titleId} />
     </section>
   );
 }
 
 function ModalShell({ open, ...props }: ShellParts & { readonly open: boolean }) {
-  const { onClose, fixed, wide, data } = props;
+  const { onClose, data } = props;
   const ref = useRef<HTMLDialogElement>(null);
   const opener = useRef<Element | null>(null);
   const titleId = useId();
@@ -139,7 +143,7 @@ function ModalShell({ open, ...props }: ShellParts & { readonly open: boolean })
   }, []);
 
   return (
-    <dialog ref={ref} className={shellClass(fixed, wide, false)} aria-labelledby={titleId} {...dataProps(data)}>
+    <dialog ref={ref} className={shellClass(props, false)} aria-labelledby={titleId} {...dataProps(data)}>
       {/* A closed dialog renders nothing inside, so its controls are not in the page while it is closed. */}
       {open ? (
         <ShellContent {...props} titleId={titleId}>

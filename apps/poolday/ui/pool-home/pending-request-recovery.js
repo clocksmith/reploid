@@ -4,7 +4,7 @@
  */
 import { FASTEST_RECEIPT_POLICY_ID } from '../../pool/policy-router.js';
 import { SEQUENCE_PUBLIC_SENSITIVITY } from '../../../../shared/pool/sequence-workload.js';
-import { getPeerRelayMode, getPeerRoomId } from './view.js';
+import { getPeerRelayMode, getPeerRoomId } from '../../host/product-context.js';
 import { pageIdentityNavigationType } from './page-identity.js';
 
 export const POOL_PENDING_REQUEST_STORAGE_KEY = 'reploid.pool.pending-request.v1';

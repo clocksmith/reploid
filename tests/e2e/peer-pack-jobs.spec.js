@@ -76,107 +76,6 @@ test('verified adapter bytes survive browser replacement with the supplier unava
   } finally { await context?.close(); await rm(profile, { recursive: true, force: true }); }
 });
 
-for (const schema of ['doppler.pack/v2', 'doppler.capsule/v2']) test(`reviewed public task uses room discovery and WebRTC while private retrieval stays local (${schema})`, async ({ browser }, testInfo) => {
-  const context = await browser.newContext();
-  const requester = await context.newPage(), provider = await context.newPage();
-  const pages = [provider, requester];
-  const pageErrors = [];
-  try {
-    for (const page of pages) page.on('pageerror', error => pageErrors.push(error.message));
-    await Promise.all(pages.map(page => page.goto(origin)));
-    for (const [index, page] of pages.entries()) await page.evaluate(async ({ role, roomId, schema }) => {
-      window.fixture = await import('/tests/fixtures/operation-room-browser.js');
-      await window.fixture.start({ role, roomId, schema });
-    }, { role: index === 0 ? 'provider' : 'requester', roomId: 'document-delegation-proof', schema });
-    const configuration = await provider.evaluate(() => window.fixture.configuration());
-    await provider.locator('[data-operation-model]').selectOption('');
-    await provider.locator('[data-operation-settings]').setInputFiles({ name: 'models.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(configuration)) });
-    await expect(provider.locator('[data-operation-toggle]')).toBeDisabled();
-    await expect(provider.locator('[data-operation-reason]')).toHaveText('Check the approval above to share this capability.');
-    await provider.locator('[data-operation-approve]').check();
-    await provider.locator('[data-operation-toggle]').click();
-    await expect(provider.locator('[data-operation-status]')).toHaveText(/Offering .*Jobs load the exact model when needed\./);
-    const task = 'PUBLIC-TASK-TRIPWIRE: Suggest a concise answer structure.';
-    await requester.locator('[data-document-share] > summary').click();
-    await expect(requester.locator('[data-document-share-task]')).toHaveValue('');
-    await requester.locator('[data-document-task-class]').selectOption('derived-remote');
-    await requester.locator('[data-document-share-task]').fill(task);
-    await requester.locator('[data-document-review-share]').click();
-    await expect(requester.locator('[data-document-share-preview]')).toBeVisible();
-    await expect(requester.locator('[data-document-share-preview] [data-permission-content]')).toHaveText(task);
-    await expect(requester.locator('[data-document-send-share]')).toBeDisabled();
-    expect((await provider.evaluate(() => window.fixture.state())).calls).toHaveLength(0);
-    await requester.locator('[data-document-share-consent]').check();
-    await requester.locator('[data-document-share-task]').fill(task + ' Edited.');
-    await expect(requester.locator('[data-document-share-preview]')).toBeHidden();
-    await expect(requester.locator('[data-document-send-share]')).toBeDisabled();
-    await requester.locator('[data-document-review-share]').click();
-    await expect(requester.locator('[data-document-share-preview]')).toBeVisible();
-    await requester.locator('[data-document-share-consent]').check();
-    await requester.locator('[data-document-send-share]').click();
-    await expect(requester.locator('[data-document-answer-output]')).toHaveText('Private apple evidence. [1]', { timeout: 20000 });
-    const local = await requester.evaluate(() => window.fixture.state());
-    const remote = await provider.evaluate(() => window.fixture.state());
-    expect(local.workflow.result.execution).toBe('local-and-approved-peer');
-    expect(local.workflow.result.remoteExecution.assessment.claim).toBe('execution-identity-only');
-    expect(local.calls.at(-1).input.prompt).toContain('PRIVATE-SOURCE-TRIPWIRE');
-    expect(local.calls.at(-1).input.prompt).toContain('A public drafting suggestion.');
-    expect(remote.calls).toHaveLength(1);
-    expect(local.workflow.result.remoteExecution.execution.receipt[schema === 'doppler.capsule/v2' ? 'capsule' : 'pack'].schema).toBe(schema);
-    expect(remote.calls[0].input).toEqual({ prompt: task + ' Edited.' });
-    expect(JSON.stringify(remote)).not.toMatch(/PRIVATE-(SOURCE|FILENAME|QUESTION)-TRIPWIRE/);
-    expect(JSON.stringify([...local.relay, ...remote.relay])).not.toContain('PUBLIC-TASK-TRIPWIRE');
-    expect([...local.errors, ...remote.errors, ...pageErrors]).toEqual([]);
-    await requester.evaluate(() => window.fixture.search('A second private question apple'));
-    const history = await requester.evaluate(() => window.fixture.state().workflow.history);
-    expect(history[1].result.remoteExecution.job.messageHash).toBe(local.workflow.result.remoteExecution.job.messageHash);
-    await provider.locator('[data-operation-toggle]').click();
-    await expect(provider.locator('[data-operation-status]')).toHaveText('Not sharing');
-    await testInfo.attach('selective-delegation', { body: JSON.stringify({ executionClass: 'synthetic-models-real-webrtc',
-      operatorCount: 1, result: local.workflow.result, remoteCalls: remote.calls }, null, 2), contentType: 'application/json' });
-  } finally {
-    await Promise.all(pages.map(page => page.evaluate(() => window.fixture?.close()).catch(() => {})));
-    await context.close();
-  }
-});
-
-test('sharing controls await cleanup and allow retry after a failed stop', async ({ page }) => {
-  await page.goto(origin);
-  await page.evaluate(async () => {
-    const { createOperationParticipation } = await import('/self/pool/operation-participation.js');
-    const { renderOperationSharing, bindOperationSharing, refreshOperationSharing } = await import('/self/ui/pool-home/operation-sharing.js');
-    const { createDocumentPackFixture } = await import('/tests/fixtures/document-packs.js');
-    const { configuration } = await createDocumentPackFixture();
-    // Controlled cleanup; real browser identity, controller and rendered controls.
-    const cleanup = new Promise(resolve => { window.finishParticipationCleanup = resolve; });
-    let fail = true;
-    window.participation = createOperationParticipation({ networkOptions: () => ({}),
-      executorFactory: () => ({ getState: () => ({}), close: async () => {} }),
-      createProvider: () => ({ start: async () => {}, getState: () => ({}), close: async () => {
-        await cleanup;
-        if (fail) { fail = false; throw new Error('fixture cleanup failure'); }
-      } }), onChange: state => refreshOperationSharing(document, state) });
-    document.body.innerHTML = renderOperationSharing();
-    window.unbindParticipation = bindOperationSharing(document, window.participation);
-    await window.participation.start({ model: configuration.embedding, approved: true });
-  });
-  try {
-    const button = page.locator('[data-operation-toggle]');
-    await button.click();
-    await expect(button).toBeDisabled();
-    await expect(page.locator('[data-operation-status]')).toHaveText('Stopping participation and releasing owned work');
-    await page.evaluate(() => window.finishParticipationCleanup());
-    await expect(page.locator('[data-operation-status]')).toHaveText('Sharing cleanup failed; stop again to retry');
-    await expect(button).toBeEnabled();
-    await expect(page.locator('[data-operation-model]')).toBeDisabled();
-    await button.click();
-    await expect(page.locator('[data-operation-status]')).toHaveText('Not sharing');
-    await expect(page.locator('[data-operation-model]')).toBeEnabled();
-  } finally {
-    await page.evaluate(async () => { window.finishParticipationCleanup(); window.unbindParticipation(); await window.participation.stop(); });
-  }
-});
-
 test('common operations cross real WebRTC between browser contexts, with bounded large-message framing', async ({ browser }, testInfo) => {
   const observations = [];
   for (const operation of ['generate', 'embed', 'rerank', 'encodeSequence']) {
@@ -230,7 +129,6 @@ test('Verification Worker accepts complete-job modules and modified execution bo
       snapshot[`/${file}`] = await (await fetch(`/self/${file}`)).text();
     }
     for (const file of ['infrastructure/doppler-runtime-service.js', 'config/doppler-execution-contracts.js']) snapshot[`/${file}`] = await (await fetch(`/self/${file}`)).text();
-    for (const file of ['document-search.js', 'index.js', 'view.js', 'operation-sharing.js']) snapshot[`/ui/pool-home/${file}`] = await (await fetch(`/self/ui/pool-home/${file}`)).text();
     for (const file of ['peer-pack-operation.js', 'peer-pack-job-browser.js', 'peer-pack-browser.js', 'peer-pack-remote-execution.js', 'peer-pack-journal-browser.js', 'doppler-installed-peer-browser.js']) snapshot[`/tests/fixtures/${file}`] = await (await fetch(`/tests/fixtures/${file}`)).text();
     for (const file of [
       'vendor/reploid/mesh/partitions/resident-partition.js',

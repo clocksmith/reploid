@@ -1,6 +1,3 @@
-export { escapeHtml };
-import { escapeHtml as escapeHtmlValue } from '../../../../shared/ui/components/html.js';
-const escapeHtml = value => escapeHtmlValue(value, '&#39;');
 
 
 export async function readTextAttachments(chosen, existing, { maxFiles, maxFileBytes, maxTotalBytes, extensions }) {

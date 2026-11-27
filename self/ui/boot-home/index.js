@@ -1,7 +1,7 @@
 const { setVfsProgress, attachVfsProgressListener } = createVfsProgressBinding(progress => setState({ vfsProgress: progress }));
 import { createConnectionTestHandlers } from '../boot-wizard/connection-tests.js';
 import { normalizeVfsProgress, getCurrentFullSeedProgress, createVfsProgressBinding } from '../components/vfs-progress.js';
-import { escapeHtml as escapeHtmlValue } from '../../../shared/ui/components/html.js';
+import { escapeHtml as escapeHtmlValue } from '../components/html.js';
 const escapeHtml = value => escapeHtmlValue(value || '', '&#39;');
 /**
  * @fileoverview Minimal route-locked boot UI for /, /0, and /x.

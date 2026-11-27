@@ -27,6 +27,8 @@ import {
   Stats,
   Field,
   FilePicker,
+  DataTable,
+  RangeField,
   Frame,
   Grow,
   Icon,
@@ -40,6 +42,7 @@ import {
   Notice,
   PooldayRoot,
   Progress,
+  Prism,
   Prose,
   Row,
   Section,
@@ -60,6 +63,12 @@ import {
 } from '@reploid/poolday-ui';
 
 // Specimens use synthetic labels; every state a primitive has is shown side by side.
+
+/** A confidence scale, as a study's judgment asks for it. */
+function RangeSpecimen() {
+  const [value, setValue] = useState(50);
+  return <RangeField label="Confidence" value={value} min={0} max={100} step={10} format={(current) => `${current}%`} onChange={setValue} />;
+}
 
 function ChoiceSpecimen() {
   const [one, setOne] = useState<'device' | 'desktop' | 'contributors'>('device');
@@ -363,6 +372,7 @@ const SPECIMENS: Record<string, () => ReactNode> = {
     />
   ),
   Wordmark: () => <Wordmark />,
+  Prism: () => <Prism />,
   VisuallyHidden: () => (
     <Text variant="small">
       Visible text<VisuallyHidden>, with words only a screen reader hears</VisuallyHidden>
@@ -577,6 +587,17 @@ const SPECIMENS: Record<string, () => ReactNode> = {
   Sheet: () => <DialogSpecimen sheet />,
   CodeBlock: () => <CodeBlock>{'{\n  "kind": "permission",\n  "recipient": "peer:a1b2"\n}'}</CodeBlock>,
   ShareBar: () => <ShareBar label="Recorded step time share: This device 62%, Desktop 38%" shares={[0.62, 0.38]} />,
+  DataTable: () => (
+    <DataTable
+      label="Study results"
+      columns={['Task', 'Condition', 'Your choice', 'Actual']}
+      rows={[
+        ['Arithmetic', 'imitation', 'A', 'A'],
+        ['Summary', 'same-model', 'same', 'same'],
+      ]}
+    />
+  ),
+  RangeField: () => <RangeSpecimen />,
   FilePicker: () => (
     <FilePicker label="Data export file" accept=".json" onFiles={() => undefined}>
       {(open) => <Button icon="upload" label="Import data" onPress={open} />}

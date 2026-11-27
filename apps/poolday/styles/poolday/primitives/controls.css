@@ -262,3 +262,5 @@
 
 /* An input group: one field made of several controls (the composer), laid out as a column. */
 .pool-home .pool-input-group { display: grid; gap: var(--pool-size-4); padding: var(--pool-size-8) var(--pool-size-8) var(--pool-size-8) var(--pool-size-12); border-radius: var(--pool-radius-panel); }
+/* A page's one main action stands at the action height. */
+.pool-home .pool-button.pool-button-action { min-block-size: var(--pool-size-48); }

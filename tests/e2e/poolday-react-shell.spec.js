@@ -1,6 +1,5 @@
-// The conversation workspace (/ and /network) is the React product: it opens the real host, renders only
-// @reploid/poolday-ui classes, and its Answer on sheet works by keyboard at both widths. The specialist routes
-// keep the vanilla shell, and neither loads the other's bundle.
+// Every route is the React product: the workspace opens the real host, renders only @reploid/poolday-ui
+// classes, and its Answer on sheet works by keyboard at both widths; a specialist route loads the same bundle.
 import { test, expect } from '@playwright/test';
 import { privateRoom } from '../fixtures/current-contribution.js';
 
@@ -8,7 +7,7 @@ const bundlesOf = page => {
   const requested = [];
   page.on('request', request => {
     const path = new URL(request.url()).pathname;
-    if (path === '/ui/react/app.js' || path === '/ui/pool-home/app.bundle.js') requested.push(path);
+    if (path.startsWith('/ui/')) requested.push(path);
   });
   return requested;
 };
@@ -42,10 +41,9 @@ for (const [width, height] of [[1280, 800], [390, 844]]) {
   });
 }
 
-test('a specialist route keeps the vanilla shell and never loads the React bundle', async ({ page }) => {
+test('a specialist route is the same React bundle and loads no other interface module', async ({ page }) => {
   const requested = bundlesOf(page);
-  await page.goto('/examples');
-  await expect(page.locator('.pool-route-content')).toBeVisible({ timeout: 30000 });
-  await expect(page.locator('[data-react-shell]')).toHaveCount(0);
-  expect(requested).toEqual(['/ui/pool-home/app.bundle.js']);
+  await page.goto('/examples' + privateRoom('react-shell-examples').slice(1));
+  await expect(page.locator('[data-react-shell] [data-route-page]')).toBeVisible({ timeout: 30000 });
+  expect(requested).toEqual(['/ui/react/app.js']);
 });

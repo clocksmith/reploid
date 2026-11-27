@@ -219,7 +219,10 @@
   overflow: hidden;
 }
 .pool-home .pool-dialog[open] { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; }
-.pool-home .pool-dialog.pool-dialog-fixed { block-size: min(var(--pool-size-640), calc(100dvh - var(--pool-space-page-gap) * 2)); }
+.pool-home .pool-dialog.pool-dialog-fixed { block-size: min(var(--pool-param-dialog-height, var(--pool-size-640)), calc(100dvh - var(--pool-space-page-gap) * 2)); }
+.pool-home .pool-dialog.pool-dialog-fixed[open] { animation-name: pool-dialog-fade; }
+@media (prefers-reduced-motion: reduce) { .pool-home .pool-dialog.pool-dialog-fixed[open] { animation: none; } }
+.pool-home .pool-dialog.pool-dialog-tall { --pool-param-dialog-height: var(--pool-size-720); }
 .pool-home .pool-dialog.pool-dialog-wide { inline-size: min(var(--pool-size-640), calc(100vw - var(--pool-space-page-gutter) * 2)); }
 .pool-home .pool-dialog-header {
   display: grid;
@@ -266,7 +269,7 @@
   .pool-home .pool-dialog.pool-dialog-wide { inline-size: 100%; }
   /* The footer's reason takes its own line above the actions, which stay together. */
   .pool-home .pool-dialog-footer > .pool-status-line { flex-basis: 100%; }
-  .pool-home .pool-dialog.pool-dialog-fixed { block-size: min(var(--pool-size-640), calc(100dvh - var(--pool-space-page-gap))); }
+  .pool-home .pool-dialog.pool-dialog-fixed { block-size: min(var(--pool-param-dialog-height, var(--pool-size-640)), calc(100dvh - var(--pool-space-page-gap))); }
 }
 @media (prefers-reduced-motion: reduce) { .pool-home .pool-option { transition: none; } }
 @media (forced-colors: active) {
@@ -289,6 +292,7 @@
 .pool-home .pool-section-note { margin: 0; padding-inline: var(--pool-size-16); color: var(--pool-color-muted); font-size: var(--pool-text-xs); line-height: var(--pool-leading-snug); }
 .pool-home .pool-group {
   display: grid;
+  gap: var(--pool-param-gap, 0);
   min-inline-size: 0;
   margin: 0;
   padding: 0 var(--pool-size-16);

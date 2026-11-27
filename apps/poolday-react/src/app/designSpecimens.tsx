@@ -1,7 +1,7 @@
 // Composes each shipped screen for the design page: the conversation screens run on the host's conversation
 // controller over an in-memory session, and the Computers, Settings and details panels on their own
 // infrastructure adapters over the same session, so every specimen is the shipped screen, not a copy.
-import { useState, type ReactNode } from 'react';
+import { useState, useSyncExternalStore, type ReactNode } from 'react';
 import type { ConversationCommands, ConversationPort, ConversationSnapshot } from '../features/chat/domain/conversation';
 import { createConversation } from '../features/chat/infrastructure/conversation';
 import { AnswerOnSheet } from '../features/chat/presentation/AnswerOnSheet';
@@ -25,8 +25,26 @@ import { ConversationDetailsPanel } from '../features/details/presentation/Conve
 import { createSettingsServices } from '../features/settings/infrastructure/hostSettings';
 import { SettingsPanel } from '../features/settings/presentation/SettingsPanel';
 import { createAppearanceStore } from '../features/shell/infrastructure/appearance';
+import { askSpecimenServices } from '../features/ask/infrastructure/hostAsk';
+import { AskPage } from '../features/ask/presentation/AskPage';
+import { computeSpecimenServices } from '../features/compute/infrastructure/hostCompute';
+import { ComputePage } from '../features/compute/presentation/ComputePage';
 import { createDemoChat, type DemoChat } from './demoChat';
 import * as fixtures from './designFixtures';
+import { createExperimentsHost, createImproveHost } from './pageFixtures';
+import { createExperimentsServices } from '../features/experiments/infrastructure/hostExperiments';
+import { ExperimentsPage } from '../features/experiments/presentation/ExperimentsPage';
+import { examplesSpecimenServices } from '../features/examples/infrastructure/hostExamples';
+import { ExamplesPage } from '../features/examples/presentation/ExamplesPage';
+import { createImproveServices } from '../features/improve/infrastructure/hostImprove';
+import { ImprovePage } from '../features/improve/presentation/ImprovePage';
+import { createRecordsServices } from '../features/records/infrastructure/hostRecords';
+import { RecordsPage } from '../features/records/presentation/RecordsPage';
+import { createRoomServices } from '../features/rooms/infrastructure/hostRooms';
+import { RoomPage } from '../features/rooms/presentation/RoomPage';
+import { ResearchWorkspace } from '../features/rooms/presentation/ResearchWorkspace';
+import { AdjudicationCanvas, RoomEvidence, RoomProposals, RoomTimeline } from '../features/rooms/presentation/RoomEvidence';
+import { memoryStorage, RECORDS_ROOM, recordsSeed, ROOM_ROOM } from './recordFixtures';
 
 type Setup = (port: ConversationPort, demo: DemoChat) => void;
 
@@ -80,6 +98,21 @@ function LivePairingLink() {
     return { ...base, owner: { ...base.owner, linkTarget: () => fixtures.pairingTarget, forgetLink: () => undefined } };
   });
   return <PairingLinkDialog services={services} presentation="inline" />;
+}
+
+/** The Changes page over an in-memory work session; `select` opens one attempt as a selection would. */
+function LiveImprove({ empty = false, select }: { readonly empty?: boolean; readonly select?: string }) {
+  const [services] = useState(() => {
+    const opened = createImproveServices({ host: createImproveHost({ empty }) });
+    if (select) opened.select(select);
+    return opened;
+  });
+  return <ImprovePage services={services} />;
+}
+
+function LiveExperiments() {
+  const [services] = useState(() => createExperimentsServices({ host: createExperimentsHost() }));
+  return <ExperimentsPage services={services} />;
 }
 
 export const compositionSpecimens: ReadonlyArray<CompositionSpecimen> = [
@@ -203,4 +236,80 @@ export const compositionSpecimens: ReadonlyArray<CompositionSpecimen> = [
     ],
   },
   { name: 'SettingsPanel', states: [{ id: 'default', label: 'This page', render: () => <LiveSettings /> }] },
+  {
+    name: 'ImprovePage',
+    states: [
+      { id: 'history', label: 'Past attempts and a tested tool', render: () => <LiveImprove /> },
+      { id: 'empty', label: 'Nothing yet', render: () => <LiveImprove empty /> },
+      { id: 'selected', label: 'A failed revision selected', render: () => <LiveImprove select="attempt-2" /> },
+    ],
+  },
+  { name: 'ExperimentsPage', states: [{ id: 'setup', label: 'Study set-up', render: () => <LiveExperiments /> }] },
+  {
+    name: 'ExamplesPage',
+    states: [
+      { id: 'ready', label: 'Ready', render: () => <ExamplesPage services={examplesSpecimenServices('ready')} /> },
+      { id: 'answered', label: 'Embedding verified', render: () => <ExamplesPage services={examplesSpecimenServices('answered')} /> },
+      { id: 'no-provider', label: 'No contributor ready', render: () => <ExamplesPage services={examplesSpecimenServices('no-provider')} /> },
+      { id: 'documents', label: 'Document search results', render: () => <ExamplesPage services={examplesSpecimenServices('documents')} /> },
+    ],
+  },
+  {
+    name: 'RecordsPage',
+    states: [
+      { id: 'empty', label: 'No records yet', render: () => <LiveRecords /> },
+      { id: 'records', label: 'A saved answer', render: () => <LiveRecords seeded /> },
+    ],
+  },
+  { name: 'RoomPage', states: [{ id: 'empty', label: 'No question yet', render: () => <LiveRoom /> }] },
+  { name: 'ResearchWorkspace', states: [{ id: 'empty', label: 'No signed evidence yet', render: () => <LiveRoomPart part="workspace" /> }] },
+  { name: 'RoomEvidence', states: [{ id: 'empty', label: 'No question yet', render: () => <LiveRoomPart part="evidence" /> }] },
+  { name: 'RoomProposals', states: [{ id: 'empty', label: 'No proposals yet', render: () => <LiveRoomPart part="proposals" /> }] },
+  { name: 'AdjudicationCanvas', states: [{ id: 'empty', label: 'A disputed question', render: () => <LiveRoomPart part="canvas" /> }] },
+  { name: 'RoomTimeline', states: [{ id: 'empty', label: 'Room created', render: () => <LiveRoomPart part="timeline" /> }] },
+  {
+    name: 'AskPage',
+    states: [
+      { id: 'ready', label: 'Ready', render: () => <AskPage services={askSpecimenServices('ready')} /> },
+      { id: 'answered', label: 'Answer verified', render: () => <AskPage services={askSpecimenServices('answered')} /> },
+      { id: 'no-provider', label: 'No contributor ready', render: () => <AskPage services={askSpecimenServices('no-provider')} /> },
+    ],
+  },
+  {
+    name: 'ComputePage',
+    states: [
+      { id: 'idle', label: 'Not sharing', render: () => <ComputePage services={computeSpecimenServices('idle')} /> },
+      { id: 'sharing', label: 'Sharing', render: () => <ComputePage services={computeSpecimenServices('sharing')} /> },
+      { id: 'failed', label: 'Could not start', render: () => <ComputePage services={computeSpecimenServices('failed')} /> },
+    ],
+  },
 ];
+
+function LiveRecords({ seeded = false }: { readonly seeded?: boolean }) {
+  const [services] = useState(() => createRecordsServices({ storage: memoryStorage(seeded ? recordsSeed : {}), getRoomId: () => (seeded ? RECORDS_ROOM : `${RECORDS_ROOM}-empty`), poll: false }));
+  return <RecordsPage services={services} />;
+}
+
+function LiveRoom() {
+  const [services] = useState(() => createRoomServices({ storage: memoryStorage(), getRoomId: () => ROOM_ROOM, hydrate: false }));
+  return <RoomPage services={services} />;
+}
+
+/** One part of Research Room-1 over the same staged, empty room. */
+function LiveRoomPart({ part }: { readonly part: 'workspace' | 'evidence' | 'proposals' | 'canvas' | 'timeline' }) {
+  const [services] = useState(() => createRoomServices({ storage: memoryStorage(), getRoomId: () => ROOM_ROOM, hydrate: false }));
+  const view = useSyncExternalStore(services.subscribe, services.getSnapshot);
+  if (part === 'workspace') return <ResearchWorkspace view={view} services={services} />;
+  if (part === 'evidence') return <RoomEvidence view={view} services={services} />;
+  if (part === 'proposals') return <RoomProposals view={view} />;
+  // The empty room has no canvas; this stages one disputed question over it.
+  if (part === 'canvas') {
+    const canvas = {
+      accepted: [{ title: 'Signal peptide annotation', detail: 'research prior evidence · sha256:4a1c...' }],
+      disputed: [{ title: 'Two results disagree', detail: 'Independent execution or review required.' }],
+      missing: [],
+    };
+    return <AdjudicationCanvas view={{ ...view, room: { ...view.room, canvas } }} />;
+  }
+  return <RoomTimeline view={view} />;
+}

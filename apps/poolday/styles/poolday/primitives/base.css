@@ -23,6 +23,26 @@
   color: var(--pool-color-ink);
   font-family: var(--pool-font-ui);
 }
+/* The Poolday root is a column at least one viewport tall inside the page gutters. Narrow screens
+   keep the safe-area insets and leave room under the content for the docked app bar. */
+.pool-home {
+  min-height: min(100vh, 100dvh);
+  position: relative;
+  padding: var(--pool-space-page-gap) var(--pool-space-page-gutter) 0;
+  overflow-x: clip;
+  display: flex;
+  flex-direction: column;
+  gap: var(--pool-space-page-gap);
+}
+@media (max-width: 760px) {
+  .pool-home {
+    --pool-param-app-bar-gap: var(--pool-size-8);
+    --pool-param-app-bar-inset: max(var(--pool-param-app-bar-gap), env(safe-area-inset-bottom));
+    padding-left: max(var(--pool-size-16), env(safe-area-inset-left));
+    padding-right: max(var(--pool-size-16), env(safe-area-inset-right));
+    padding-bottom: calc(var(--pool-size-64) + var(--pool-param-app-bar-inset) + var(--pool-param-app-bar-gap));
+  }
+}
 /* A theme scope inside a page: the tokens of its theme, without the page material. */
 .pool-home.pool-theme-inline { display: inline-grid; padding: var(--pool-size-4); border-radius: var(--pool-radius-control); background: var(--pool-color-page); }
 :where(.pool-home) {

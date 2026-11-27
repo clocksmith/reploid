@@ -77,7 +77,7 @@ describe('execution environment lint boundaries', () => {
     expect(await errors(file, source)).toEqual([expect.objectContaining({ ruleId: 'no-undef', message: `'${forbidden}' is not defined.` })]);
   });
 
-  it.each(['shared/ui/components/html.js', 'self/ui/example.js', 'server/example.js',
+  it.each(['self/ui/components/html.js', 'shared/core/example.js', 'server/example.js',
     'scripts/example.js', 'packages/reploid/src/agent/example.js', 'apps/poolday/host/example.js'])(
     'checks unused locals throughout authored code: %s', async file => {
       expect(await errors(file, 'export function encode() { const unused = 1; return ""; }'))

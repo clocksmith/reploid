@@ -1,59 +1,5 @@
 import { test, expect } from '@playwright/test';
 
-test('two real host threads keep their objectives, approvals and cancellation separate while switching views', async ({ page }) => {
-  await page.goto('/');
-  await page.evaluate(async () => {
-    const { createWorkSession } = await import('/host/work-session.js');
-    const { renderWorkSurface, bindWorkSurface } = await import('/ui/pool-home/work.js');
-    window.threadControls = [];
-    const swarm = { connect: async () => {}, hasProvider: () => true, getState: () => ({}),
-      async generate(messages, controls) {
-        window.threadControls.push(controls);
-        const preview = { id: crypto.randomUUID(), operation: 'generate', modelId: controls.modelId,
-          providerId: 'test-peer', modelIdentity: 'Injected test provider', input: messages,
-          options: {}, limits: {}, expiresAt: Date.now() + 30000 };
-        if (!await controls.approve(preview)) throw new Error('Declined');
-        controls.signal.throwIfAborted();
-        const content = messages.some(item => item.content?.includes('[TOOL RecordOutcome RESULT]'))
-          ? 'IDLE: Done' : 'TOOL: RecordOutcome\ntext: Independent result';
-        return { content, model: controls.modelId, provider: 'doppler', execution: 'peer-whole-request', peerId: 'test-peer' };
-      } };
-    window.threads = createWorkSession({ storage: localStorage, swarm, service: {
-      isSupported: () => false, open() { throw new Error('Local inference must not run'); }
-    } });
-    const root = document.querySelector('.pool-route-content');
-    root.innerHTML = renderWorkSurface(); bindWorkSurface(root, window.threads, { swarm });
-  });
-  await page.locator('[data-work-goal]').fill('Investigate first objective');
-  await page.locator('[data-work-start]').click();
-  await expect(page.locator('[data-work-approval]')).toBeVisible();
-  await page.locator('[data-work-new]').click();
-  await expect(page.locator('[data-work-approval]')).toBeHidden();
-  await page.locator('[data-work-goal]').fill('Investigate second objective');
-  await page.locator('[data-work-start]').click();
-  await expect(page.locator('[data-work-select]')).toHaveCount(2);
-  await expect(page.locator('[data-work-select]').filter({ hasText: 'Approval needed' })).toHaveCount(2);
-  await page.locator('[data-work-select]').filter({ hasText: 'first objective' }).click();
-  await expect(page.locator('[data-work-active-goal]')).toHaveText('Investigate first objective');
-  await page.locator('[data-work-task-header] [data-work-cancel]').click();
-  await expect(page.locator('[data-work-select]').filter({ hasText: 'first objective' })).toContainText('paused');
-  await expect(page.locator('[data-work-select]').filter({ hasText: 'second objective' })).toContainText('Approval needed');
-  expect(await page.evaluate(() => window.threadControls.map(control => control.signal.aborted))).toEqual([true, false]);
-  await page.locator('[data-work-select]').filter({ hasText: 'second objective' }).click();
-  await page.locator('[data-work-public]').check(); await page.locator('[data-work-send]').click();
-  await expect(page.locator('[data-work-approval-payload]')).toContainText('[TOOL RecordOutcome RESULT]');
-  await page.locator('[data-work-public]').check(); await page.locator('[data-work-send]').click();
-  await expect(page.locator('[data-work-answer]')).toHaveText('Independent result');
-  await expect(page.locator('[data-work-select]').filter({ hasText: 'second objective' })).toContainText('review');
-  await page.reload();
-  await expect(page.locator('[data-work-select]')).toHaveCount(2);
-  await expect(page.locator('[data-work-goal]')).toBeVisible();
-  await expect(page.locator('[data-work-goal]')).toHaveValue('');
-  await expect(page.locator('[data-work-output]')).toBeHidden();
-  await page.locator('[data-work-select]').filter({ hasText: 'second objective' }).click();
-  await expect(page.locator('[data-work-answer]')).toHaveText('Independent result');
-});
-
 test('concurrent primary inference is placed on two approved WebRTC participants without a local model', async ({ browser }) => {
   const { createStandaloneSignalingServer } = await import('../../server/reploid-signaling.js');
   const signaling = createStandaloneSignalingServer({ port: 0, env: {}, swarmInferencePeer: null });

@@ -1,8 +1,7 @@
 # Poolday UI architecture
 
-**Status:** canonical contract for the React Poolday interface and its design system. The legacy
-vanilla interface under `apps/poolday/ui/pool-home` is being retired screen by screen; until a
-screen moves, it stays as it is and the ratchet below keeps it from growing.
+**Status:** canonical contract for the React Poolday interface and its design system. Every route
+is the React product; the vanilla interface has been retired, and the ratchet below is at zero.
 
 ## Assessment: React on the react-starter layout, or a componentized vanilla system
 

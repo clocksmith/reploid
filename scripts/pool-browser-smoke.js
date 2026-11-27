@@ -18,12 +18,12 @@ const requiredSelectors = {
   '/work': '[data-composer-area]',
   '/network': '[data-network-workspace]',
   '/improve': '[data-work-history]',
-  '/examples': '#pool-home-ask-form',
-  '/ask': '#pool-run-prompt',
-  '/compute': '#pool-provider-worker-toggle',
-  '/records': '#pool-record-ledger',
-  '/room-1': '#pool-room-1-request',
-  '/history': '#pool-record-ledger'
+  '/examples': '[data-pool-home-ask-form]',
+  '/ask': '[data-pool-run-prompt]',
+  '/compute': '[data-pool-provider-worker-toggle]',
+  '/records': '[data-pool-record-ledger]',
+  '/room-1': '[data-pool-room-1-request]',
+  '/history': '[data-pool-record-ledger]'
 };
 
 const { chromium, expect } = await import('@playwright/test');
@@ -122,8 +122,9 @@ const appBarFrameFailures = async (routePage, route, width) => {
   const frame = await routePage.evaluate(async () => {
     await document.fonts.ready;
     await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
-    const header = document.querySelector('.pool-primary-nav').getBoundingClientRect();
-    const content = document.querySelector('.pool-route-content');
+    // A specialist page: the app bar above the page's main column (apps/poolday-react/src/app/RouteFrame.tsx).
+    const header = document.querySelector('[data-route-page] [data-app-bar]').getBoundingClientRect();
+    const content = document.querySelector('[data-route-page] .pool-workspace-main');
     const page = content.firstElementChild.getBoundingClientRect();
     const bounds = content.getBoundingClientRect();
     return { header: { x: header.x, width: header.width }, content: { x: bounds.x, width: bounds.width },

@@ -47,6 +47,7 @@ export function AnswerOnSheet({
       onClose={commands.closeSheet}
       closeLabel={t.close}
       presentation={presentation}
+      tall
       footerStatus={open?.outcome.issue ? <Text as="span" variant="small" muted data={{ 'data-next-model-status': true }}>{open.outcome.issue}</Text> : undefined}
       headingData={{ 'data-picker-title': true }}
       closeData={{ 'data-model-picker-close': true }}
@@ -91,7 +92,7 @@ export function AnswerOnSheet({
               onChange={(value, input) => commands.pickModel(value, input)}
               onCommit={(value) => (value === open.selectedKey ? commands.commitSheet() : commands.pickModel(value))}
               groups={groups}
-              autoFocusChecked
+              autoFocusChecked={presentation !== 'inline'}
               data={{ 'data-next-model': true }}
             />
           </Section>

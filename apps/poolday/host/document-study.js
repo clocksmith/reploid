@@ -18,7 +18,7 @@ form.addEventListener('submit', event => {
     startedAt, finishedAt, elapsedMs: startedAt ? Date.parse(finishedAt) - Date.parse(startedAt) : null,
     timingScope: 'self-directed task and questionnaire; not model latency', consent: true, answers };
   const url = URL.createObjectURL(new Blob([JSON.stringify(receipt, null, 2) + '\n'], { type: 'application/json' }));
-  const link = document.createElement('a'); link.href = url; link.download = `reploid-study-${answers.participant}.json`;
+  const link = document.querySelector('#download'); link.href = url; link.download = `reploid-study-${answers.participant}.json`;
   link.click(); setTimeout(() => URL.revokeObjectURL(url), 0);
   status.textContent = 'Feedback downloaded. Send this file to your study organizer. Nothing was uploaded.';
 });

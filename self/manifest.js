@@ -83,7 +83,6 @@ export const SELF_SOURCE_MIRRORS = Object.freeze([
   { webPath: '/capsule/index.js', vfsPath: '/self/capsule/index.js' },
   { webPath: '/host/start-app.js', vfsPath: '/self/host/start-app.js' },
   { webPath: '/host/start-reploid.js', vfsPath: '/self/host/start-reploid.js' },
-  { webPath: '/ui/pool-home/index.js', vfsPath: '/self/ui/pool-home/index.js' },
   { webPath: '/ui/zero/index.js', vfsPath: '/self/ui/zero/index.js' },
   { webPath: '/ui/zero/trace-view.js', vfsPath: '/self/ui/zero/trace-view.js' },
   { webPath: '/styles/zero.css', vfsPath: '/self/styles/zero.css' },

@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from 'react';
 import type { ResolvedTheme } from '../features/shell/domain/appearance';
+import type { ProductRoute } from '../features/shell/domain/routes';
 import type { AppearanceStore } from '../features/shell/infrastructure/appearance';
 import type { OpenedProduct } from '../features/shell/infrastructure/productHost';
 
@@ -13,6 +14,8 @@ export type AppServices = {
    * the next mount is given the same host.
    */
   readonly adopted?: boolean;
+  /** The route this page shows: the conversation workspace or one specialist page. */
+  readonly route: ProductRoute;
   /** A conversation already staged (a fixture's chosen model); a page starts from its stored choice. */
   readonly viewState?: object;
 };

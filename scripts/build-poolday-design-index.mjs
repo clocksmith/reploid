@@ -24,17 +24,18 @@ export const OUTPUT = path.join(ROOT, 'apps/poolday-react/src/app/designIndex.ge
 
 /** Simplest to most complex. Every component the package exports appears exactly once. */
 export const PRIMITIVE_ORDER = [
-  'PooldayRoot', 'Text', 'Prose', 'Wordmark', 'VisuallyHidden', 'Facts', 'Stats', 'CodeBlock', 'ShareBar', 'Icon', 'Badge', 'StatusDot', 'StatusLine', 'Spinner', 'Progress',
+  'PooldayRoot', 'Text', 'Prose', 'Wordmark', 'Prism', 'VisuallyHidden', 'Facts', 'Stats', 'CodeBlock', 'DataTable', 'ShareBar', 'Icon', 'Badge', 'StatusDot', 'StatusLine', 'Spinner', 'Progress',
   'Readout', 'Divider', 'Stack', 'Row', 'Columns', 'Grow', 'Toolbar', 'Log', 'Surface', 'Card', 'Frame', 'Button', 'IconButton', 'Chip', 'SelectorButton', 'Menu',
-  'Field', 'FilePicker', 'TextArea', 'InputGroup', 'Toggle', 'SingleChoice', 'MultiChoice', 'ListItem', 'List', 'Section',
+  'Field', 'RangeField', 'FilePicker', 'TextArea', 'InputGroup', 'Toggle', 'SingleChoice', 'MultiChoice', 'ListItem', 'List', 'Section',
   'Disclosure', 'Notice', 'MessageText', 'MessageRow', 'Transcript', 'ConversationLayout', 'ThreadItem', 'Navigator', 'SidebarLayout',
-  'BarButton', 'WorkspaceBar', 'Drawer', 'Workspace', 'Dialog', 'Sheet', 'TokenSwatch',
+  'BarButton', 'BrandLink', 'WorkspaceBar', 'Drawer', 'Workspace', 'Dialog', 'Sheet', 'TokenSwatch',
 ];
 /** Small pieces first, whole screens last. */
 export const COMPOSITION_ORDER = [
   'ComposerBar', 'AnswerOnSheet', 'PrivacyDialog', 'DownloadDialog', 'RenameDialog', 'RemotePermissionDialog', 'ThreadsPanel', 'ChatWorkspace',
   'ConversationProvider', 'ActivityList', 'FleetAccount', 'YourComputers', 'PublicNetwork', 'ThisComputer', 'PairingLinkDialog', 'ComputersPanel',
-  'ConversationDetailsPanel', 'SettingsPanel',
+  'ConversationDetailsPanel', 'SettingsPanel', 'ImprovePage', 'ExperimentsPage', 'ExamplesPage', 'RecordsPage', 'RoomPage', 'ResearchWorkspace', 'RoomEvidence', 'RoomProposals',
+  'AdjudicationCanvas', 'RoomTimeline', 'AskPage', 'ComputePage',
 ];
 
 const stripComments = (css) => css.replace(/\/\*[\s\S]*?\*\//g, '');
@@ -110,10 +111,6 @@ function readStyles() {
   for (const file of manifest.primitives) {
     const { rules, declarations } = parseCss(readFileSync(path.join(STYLES, file), 'utf8'));
     for (const rule of rules) primitiveRules.push({ ...rule, file });
-    count(declarations.flatMap(({ value }) => varRefs(value)));
-  }
-  for (const file of manifest.compositions) {
-    const { declarations } = parseCss(readFileSync(path.join(STYLES, file), 'utf8'));
     count(declarations.flatMap(({ value }) => varRefs(value)));
   }
   // A script that reads a token by name (getComputedStyle(node).getPropertyValue('--pool-…')) uses it as well: a

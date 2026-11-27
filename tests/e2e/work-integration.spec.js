@@ -7,82 +7,6 @@ import { readServedText } from '../helpers/served-browser-files.js';
 
 const candidateCode = '({text}) => { let s = text.replace(/^\\uFEFF/, "").trim(); if(s.startsWith("```json\\n") && s.endsWith("\\n```")) s=s.slice(8,-4); return JSON.stringify(JSON.parse(s),null,2); }';
 
-test('task uses a helper and approved peer, evaluates code, requires adoption, and restores the old version', async ({ page }) => {
-  await page.goto('/');
-  await page.evaluate(async candidateCode => {
-    const {createWorkSession, DEFAULT_WORK_MODELS} = await import('/host/work-session.js');
-    const {createWorkEvolution} = await import('/host/work-evolution.js');
-    const {renderWorkSurface,bindWorkSurface} = await import('/ui/pool-home/work.js');
-    const {renderToolExperiments} = await import('/ui/pool-home/work-capabilities.js');
-    let app;
-    const evolution=createWorkEvolution({storage:localStorage,isBusy:()=>app?.getState().anyBusy});
-    const tool=(name,args={})=>'REPLOID/0\nTOOL: '+name+'\n'+Object.entries(args).map(([key,value])=>key+' <<ARG\n'+(typeof value==='string'?value:JSON.stringify(value))+'\nARG').join('\n');
-    const result=(messages,name)=>{
-      const marker='[TOOL '+name+' RESULT]\n';const found=[...messages].reverse().find(m=>m.content?.includes(marker));
-      return found?JSON.parse(found.content.slice(found.content.indexOf(marker)+marker.length)):null;
-    };
-    window.peerDispatches=0;
-    const swarm={async execute({task},controls){
-      const preview={id:'peer-fixture',operation:'generate',modelId:'fixture-model',providerId:'fixture-peer',input:task,options:{},limits:{},expiresAt:Date.now()+30000};
-      await controls.record({stage:'proposed',preview});
-      if(!await controls.approve(preview)) throw new Error('Disclosure declined');
-      controls.signal.throwIfAborted();window.peerDispatches++;
-      await controls.record({stage:'completed',preview});return {output:'Preserve quoted fence strings.',claim:'legacy-compatibility-result'};
-    }};
-    app=createWorkSession({storage:localStorage,swarm,evolution,service:{isSupported:()=>true,close:async()=>{},
-      async open(){return {async *stream(messages){
-        if(result(messages,'ProposeImprovement')) window.improvementFeedback=result(messages,'ProposeImprovement');
-        let content;
-        if(messages.some(m=>m.content?.includes('You are a bounded helper.'))) {
-          content=result(messages,'ReportResult')?'REPLOID/0\nIDLE: Done.':tool('ReportResult',{text:'Strip only the outer fence and initial byte order mark; preserve values and reject invalid JSON.'});
-        } else if(result(messages,'RecordOutcome')) content='REPLOID/0\nIDLE: Done.';
-        else if(!result(messages,'ListTools')) content=tool('ListTools');
-        else if(!result(messages,'AskHelper')) content=tool('AskHelper',{goal:'Inspect handling of fenced JSON and byte order marks'});
-        else if(!result(messages,'AskPeer')) content=tool('AskPeer',{task:'Check public JSON formatter edge cases.'});
-        else if(!result(messages,'ProposeImprovement')) content=tool('ProposeImprovement',{targetId:'FormatJson',code:candidateCode,
-          reason:'Handle wrapped JSON without changing values',baselineGeneration:result(messages,'ListTools')[0].generationId});
-        else content=tool('RecordOutcome',{text:'The tool candidate passed its protected checks. Your approval is still required.'});
-        yield {type:'text-delta',text:content};
-      }};}}});
-    const root=document.createElement('main');root.className='pool-home';root.innerHTML=renderWorkSurface()+renderToolExperiments();document.body.replaceChildren(root);
-    window.integratedWork={app,evolution,model:DEFAULT_WORK_MODELS[0].id};
-    bindWorkSurface(root,app,{evolution});
-  },candidateCode);
-  await page.locator('[data-work-goal]').fill('Improve the JSON tool without changing its valid outputs');
-  await page.locator('[data-work-attachments] summary').click();
-  await page.locator('[data-work-model]').selectOption(await page.evaluate(()=>window.integratedWork.model));
-  await page.locator('[data-work-helpers]').check();
-  await page.locator('[data-work-improvement]').check();
-  await page.locator('[data-work-peers]').check();
-  await page.locator('[data-work-start]').click();
-  await expect(page.locator('[data-work-approval-payload]')).toContainText('Check public JSON formatter edge cases.');
-  expect(await page.evaluate(()=>window.peerDispatches)).toBe(0);
-  await expect(page.locator('[data-work-send]')).toBeDisabled();
-  await page.locator('[data-work-public]').check();await page.locator('[data-work-send]').click();
-  await expect(page.locator('[data-work-answer]')).toContainText('Your approval is still required');
-  expect(await page.evaluate(()=>window.peerDispatches)).toBe(1);
-  await expect(page.locator('[data-work-team]')).toContainText('completed');
-  await expect(page.locator('[data-work-candidates]')).toContainText('Current: 4/6 checks. Candidate: 6/6 checks.');
-  expect((await page.evaluate(()=>window.integratedWork.evolution.describe()))[0].generationId).toBe('FormatJson:genesis');
-  const feedback = await page.evaluate(() => window.improvementFeedback);
-  expect(feedback.evaluation.improvementKind).toBe('correctness');
-  expect(feedback.evaluation.latency.observations).toBeUndefined();
-  expect(await page.evaluate(async () => (await window.integratedWork.evolution.list())[0].evaluation.latency.observations.length)).toBe(12);
-  await page.screenshot({path:`${evidenceDir}/candidate-review.png`,fullPage:true});
-  await page.locator('[data-candidate-adopt]').click();
-  await expect(page.locator('[data-work-candidates]')).toContainText('Adopted on this device');
-  expect(await page.evaluate(()=>window.integratedWork.evolution.run('FormatJson',{text:'```json\n{"a":2}\n```'}))).toBe('{\n  "a": 2\n}');
-  await page.reload();
-  const restored=await page.evaluate(async()=>{
-    const {createWorkEvolution}=await import('/host/work-evolution.js');
-    window.restoredEvolution=createWorkEvolution({storage:localStorage,isBusy:()=>false});
-    return window.restoredEvolution.list();
-  });
-  expect(restored[0].status).toBe('adopted');
-  await page.evaluate(id=>window.restoredEvolution.rollback(id),restored[0].id);
-  expect((await page.evaluate(()=>window.restoredEvolution.describe()))[0].generationId).toBe('FormatJson:genesis');
-});
-
 test('candidate isolation blocks network and storage and terminates looping work', async ({page})=>{
   await page.goto('/');
   const result=await page.evaluate(async()=>{
@@ -98,10 +22,10 @@ test('candidate isolation blocks network and storage and terminates looping work
 
 test('new integration modules pass the Verification Worker',async({page})=>{
   const paths=['apps/poolday/host/work-model-files.js','apps/poolday/host/work-session.js','apps/poolday/host/work-helpers.js','apps/poolday/host/work-swarm.js','apps/poolday/host/work-evolution.js',
-    'apps/poolday/infrastructure/code-sandbox.js','apps/poolday/ui/pool-home/work-capabilities.js','apps/poolday/ui/pool-home/work.js','apps/poolday/ui/pool-home/index.js',
-    'apps/poolday/ui/pool-home/view.js','apps/poolday/host/work-view.js','packages/reploid/src/improvement/code-evolution.js',
-    'apps/poolday/providers/work-network-provider.js','apps/poolday/ui/pool-home/work-goal-composer.js',
-    'apps/poolday/ui/pool-home/work-task-header.js','apps/poolday/ui/pool-home/agent-network.js','packages/reploid/src/mesh/peer-generation.js'];
+    'apps/poolday/infrastructure/code-sandbox.js', 
+    'apps/poolday/host/work-view.js','packages/reploid/src/improvement/code-evolution.js',
+    'apps/poolday/providers/work-network-provider.js', 
+    'packages/reploid/src/mesh/peer-generation.js'];
   const snapshot=Object.fromEntries(await Promise.all(paths.map(async path=>servedPathOf(path)===null?[path,await readFile(path,'utf8')]:['/'+servedPathOf(path),await readServedText(servedPathOf(path))])));
   await page.goto('/');
   const result=await page.evaluate(snapshot=>new Promise((resolve,reject)=>{
@@ -195,7 +119,6 @@ test('two browsers exchange an approved text request over WebRTC and settle shar
     await providerContext.close();await requesterContext.close();await signaling.close();
   }
 });
-
 
 test('quote extractor and isolated evaluator preserve correct results, exceptions and mutation observations', async ({ page }) => {
   await page.goto('/');

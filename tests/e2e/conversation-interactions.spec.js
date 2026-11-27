@@ -54,9 +54,16 @@ test('optional and specialist routes still mount their existing views', async ({
   // /network is the conversation workspace (the React product); the rest keep their vanilla views.
   await page.goto('/network');
   await expect(page.locator('[data-chat-workspace]')).toBeVisible();
-  for (const route of ['/improve', '/examples', '/ask', '/compute', '/records', '/history', '/room-1']) {
+  // Recent jobs (also /history) and Research Room-1 are React pages: each mounts its page content beneath the app bar.
+  for (const [route, page_] of [['/records', 'records'], ['/history', 'records'], ['/room-1', 'room-1']]) {
     await page.goto(route);
-    const content = page.locator('.pool-route-content');
+    await expect(page.locator(`[data-route-page="${page_}"] [data-route-page-content="${page_}"]`)).toBeVisible();
+    await expect(page.locator('[data-route-page]')).not.toContainText('Could not open this view');
+  }
+  for (const route of ['/improve', '/examples', '/ask', '/compute']) {
+    await page.goto(route);
+    // A route the React product has moved shows its page beneath the app bar; the rest keep their vanilla view.
+    const content = page.locator('.pool-route-content, [data-route-page]');
     await expect(content).toBeVisible();
     await expect(content.locator('section').first()).toBeVisible();
     await expect(content).not.toContainText('Could not open this view');

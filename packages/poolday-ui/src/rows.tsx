@@ -29,10 +29,10 @@ export function Section({
   );
 }
 
-/** Rows that belong together, separated by hairlines. */
-export function List({ children, data }: { readonly children: ReactNode; readonly data?: DataAttributes }) {
+/** Rows that belong together, separated by hairlines; `gap` spaces rows that hold controls. */
+export function List({ children, gap, data }: { readonly children: ReactNode; readonly gap?: 'xs' | 'sm'; readonly data?: DataAttributes }) {
   return (
-    <div className="pool-group" {...dataProps(data)}>
+    <div className={cx('pool-group', gap && `pool-gap-${gap}`)} {...dataProps(data)}>
       {children}
     </div>
   );

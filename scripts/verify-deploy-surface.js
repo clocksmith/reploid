@@ -41,18 +41,15 @@ const STYLE_FILES = [
   'styles/poolday/tokens.css',
   'styles/poolday/primitives/base.css',
   'styles/poolday/primitives/controls.css',
-  'styles/poolday/compositions/screens.css',
+  'styles/poolday/primitives/workspace.css',
   'styles/rd.css'
 ];
 // These modules make up the requester, provider, relay, and visible result
 // path. A build label alone cannot prove that Hosting served the matching
 // browser bundle, especially after a partial static deployment.
-// The pool-home screens are split across many modules, so check them all.
+// The product shell is one React bundle that compiles in the host and pool code it uses.
 const POOLDAY_MODULE_FILES = [
-  ...fs.readdirSync(path.join(repoRoot, 'apps/poolday/ui/pool-home'))
-    .filter((name) => name.endsWith('.js') && name !== 'app.bundle.js')
-    .sort()
-    .map((name) => `ui/pool-home/${name}`),
+  'ui/react/app.js',
   'pool/sdk.js',
   'pool/peer-rendezvous.js',
   'pool/p2p-transport.js',

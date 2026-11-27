@@ -202,7 +202,7 @@ const VISUAL_PROPERTY = /^(color|background(-color|-image)?|border(-(top|bottom|
 /* Product UI scripts, and the shared components they import, may write only custom
    properties inline; component rules decide how those values render. */
 const checkInlineStyles = () => {
-  const uiDir = path.dirname(resolveServedFile('ui/pool-home/index.js'));
+  const uiDir = path.dirname(resolveServedFile('ui/pool-home/constants.js'));
   const files = readdirSync(uiDir).filter((file) => file.endsWith('.js')).map((file) => path.join(uiDir, file));
   const shared = new Set();
   for (const file of files) {

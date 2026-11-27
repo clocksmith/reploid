@@ -111,7 +111,7 @@ function LastAnswer({ services, view, act }: { readonly services: DetailsService
   return (
     <Section title={t.lastAnswer} data={{ 'data-last-answer': true }}>
       {view.route && (
-        <List data={{ 'data-inspector-route': true }}>
+        <List gap="xs" data={{ 'data-inspector-route': true }}>
           {view.route.requester && <ListItem icon="device" title={view.route.requester.label} status={view.route.requester.caption} />}
           {view.route.executors.map((node, index) => (
             <ListItem
@@ -253,7 +253,7 @@ function ContextSection({
         {view.contextDetail}
       </Text>
       {context && (
-        <List data={{ 'data-context-controls': true }}>
+        <List gap="sm" data={{ 'data-context-controls': true }}>
           <Toggle
             title={t.includeContext}
             status={t.includeContextStatus}
@@ -281,7 +281,7 @@ function ContextSection({
             <Text variant="caption" muted data={{ 'data-context-count': true }}>
               {t.contextCount(context.wordCount, context.maxWords)}
             </Text>
-            <Text variant="caption" muted data={{ 'data-context-preview': true }}>
+            <Text variant="caption" muted wrapAnywhere data={{ 'data-context-preview': true }}>
               {context.content || t.contextOff}
             </Text>
           </Stack>

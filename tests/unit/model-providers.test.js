@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import { hardwareLabel, projectModelProviders, renderModelProviders, updateModelProviders } from '../../apps/poolday/ui/pool-home/model-providers.js';
+import { hardwareLabel, projectModelProviders } from '../../apps/poolday/ui/pool-home/model-providers.js';
 import { withComputerLabels } from '../../apps/poolday/ui/pool-home/computer-labels.js';
 
 const model = { id: 'qwen', name: 'Qwen', identity: 'sha256:model', providerIds: ['a', 'b'], networkAvailability: 'ready' };
@@ -51,48 +51,9 @@ it('separates downloaded local files from ready capacity and keeps unknown GPU d
     participants: [{ hardware: 'GPU not reported' }] }]);
 });
 
-it('keeps a route disclosure open across updates and leaves reported hardware in Computers', () => {
-  const root = document.createElement('div'); root.innerHTML = renderModelProviders();
-  const disclosure = root.querySelector('details'); disclosure.open = true;
-  const snapshot = state([model], [{ ...peer('a'), hardware: { description: '<img src=x onerror=alert(1)>' } }]);
-  updateModelProviders(root, snapshot, model);
-  expect(disclosure.open).toBe(true);
-  expect(root.querySelector('img')).toBeNull();
-  expect(root.textContent).not.toContain('<img src=x onerror=alert(1)>');
-  updateModelProviders(root, state([], []), model);
-  expect(root.textContent).toContain('No routes available');
-  expect(disclosure.open).toBe(true);
-});
-
-it('renders one block per route of the variant, with route radios only when there is a choice', () => {
-  const route = { ...model, selectionId: 'qwen/route', networkAvailability: 'unavailable', partition: { route: { schema: 'reploid.partition-route/v1',
-    stages: [{ participantId: 'c' }, { participantId: 'd' }] } } };
-  const root = document.createElement('div'); root.innerHTML = renderModelProviders();
-  updateModelProviders(root, state([model]), model);
-  expect(root.querySelectorAll('[data-model-route]')).toHaveLength(1);
-  expect(root.querySelector('[data-model-route-choice]')).toBeNull();
-  expect(root.textContent).not.toContain('AMD');
-  updateModelProviders(root, state([model, route]), model, { selectedId: 'qwen/route' });
-  expect([...root.querySelectorAll('[data-model-route]')].map(node => node.dataset.modelRoute)).toEqual(['qwen', 'qwen/route']);
-  expect([...root.querySelectorAll('[data-model-route-choice]')].map(input => [input.value, input.checked])).toEqual([['qwen', false], ['qwen/route', true]]);
-  expect(root.querySelector('[data-model-route="qwen/route"]').textContent).toContain('Distributed · 2 computers');
-  expect(root.querySelector('[data-model-route="qwen/route"]').textContent).toContain('Unavailable');
-});
-
 it('labels a GPU by its reported identity, not its driver, and drops placeholder values', () => {
   expect(hardwareLabel({ vendor: 'amd', architecture: 'rdna-3', device: 'radeon-8060s-graphics', description: 'radv: Mesa 26.0.3' }))
     .toBe('amd · rdna-3 · radeon-8060s-graphics');
   expect(hardwareLabel({ vendor: 'unknown', architecture: 'unknown', device: 'unknown', description: 'Reported adapter' })).toBe('Reported adapter');
   expect(hardwareLabel({ vendor: 'unknown', architecture: 'unknown', device: 'unknown', description: '' })).toBe('GPU not reported');
-});
-
-it('lets a person explicitly switch from a withdrawn split to the sole whole-model route', () => {
-  const root = document.createElement('div'); root.innerHTML = renderModelProviders();
-  updateModelProviders(root, state([model]), model, { selectedId: 'qwen/withdrawn-split' });
-  const choice = root.querySelector('[data-model-route-choice]');
-  expect(choice.value).toBe('qwen');
-  expect(choice.checked).toBe(false);
-  expect(choice.disabled).toBe(false);
-  // Removing the old route must not silently select the surviving provider.
-  expect(root.textContent).not.toContain('Distributed');
 });

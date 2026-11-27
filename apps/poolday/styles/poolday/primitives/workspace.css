@@ -119,9 +119,15 @@
 @media (prefers-reduced-motion: reduce) {
   .pool-home :is(.pool-bar-button, .pool-drawer) { transition: none !important; animation: none !important; }
 }
+/* A page's main column scrolls (pool-workspace-scroll); pool-bar-brand is the product mark linking home. */
+.pool-home .pool-workspace-scroll { display: block; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; }
+.pool-home .pool-workspace-scroll > * { inline-size: min(100%, var(--pool-size-1120)); margin-inline: auto; }
+.pool-home .pool-bar-brand { gap: var(--pool-size-8); }
 /* Drawers open from their own side, mirrored (the 7 to the 7 transition), as a reveal that never moves their box;
    reduced motion turns it off above. */
 .pool-home .pool-drawer-start:not([hidden]) { animation: pool-drawer-in-start var(--pool-duration-slow) var(--pool-ease-emphasis); }
 .pool-home .pool-drawer-end:not([hidden]) { animation: pool-drawer-in-end var(--pool-duration-slow) var(--pool-ease-emphasis); }
 @keyframes pool-drawer-in-start { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0); } }
 @keyframes pool-drawer-in-end { from { clip-path: inset(0 0 0 100%); } to { clip-path: inset(0); } }
+/* Docked on a phone, the brand is its mark alone, so four destinations fit at 320 px. */
+@media (max-width: 760px) { .pool-home .pool-bar-brand .pool-wordmark { display: none; } }

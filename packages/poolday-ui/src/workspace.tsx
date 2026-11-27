@@ -17,8 +17,11 @@ export function Workspace({
   children,
   startOpen = false,
   endOpen = false,
+  scroll = false,
   data,
 }: {
+  /** A page that scrolls in its main column (the specialist routes), instead of a fixed conversation. */
+  readonly scroll?: boolean;
   /** Which drawers are open: where one lies over the main column, the composer gives up the strip it covers. */
   readonly startOpen?: boolean;
   readonly endOpen?: boolean;
@@ -44,7 +47,7 @@ export function Workspace({
       {bar}
       {start}
       {end}
-      <main className="pool-workspace-main">{children}</main>
+      <main className={cx('pool-workspace-main', scroll && 'pool-workspace-scroll')}>{children}</main>
     </div>
   );
 }
@@ -189,5 +192,17 @@ export function Drawer({
       </header>
       <div className="pool-drawer-body">{children}</div>
     </section>
+  );
+}
+
+/** The product mark linking home, at the start of the bar. */
+export function BrandLink({ href, label, data }: { readonly href: string; readonly label: string; readonly data?: DataAttributes }) {
+  return (
+    <a className="pool-button btn-ghost pool-plain pool-bar-button pool-bar-brand" href={href} aria-label={label} {...dataProps(data)}>
+      <span className="pool-mark" aria-hidden="true">
+        7<sup>7</sup>
+      </span>
+      <span className="pool-wordmark pool-bar-label">{label}</span>
+    </a>
   );
 }

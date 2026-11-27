@@ -23,6 +23,7 @@ import {
   WorkspaceBar,
   Card,
   CodeBlock,
+  Prism,
   Chip,
   Columns,
   Dialog,
@@ -32,6 +33,8 @@ import {
   Stats,
   Field,
   FilePicker,
+  DataTable,
+  RangeField,
   Frame,
   Grow,
   Icon,
@@ -88,6 +91,25 @@ describe('scope, text and layout', () => {
     // Mono text also wraps anywhere: an identifier has no spaces to break at.
     expect(screen.getByText('id').className).toBe('pool-body pool-muted pool-mono pool-break');
     expect(screen.getByText('Hidden name').className).toBe('pool-visually-hidden');
+  });
+
+  it('wraps a long value anywhere on request and spaces a list of controls by a token gap', () => {
+    render(
+      <PooldayRoot>
+        <Text variant="caption" wrapAnywhere>
+          https://example.test/a-very-long-link
+        </Text>
+        <List data={{ 'data-plain': true }}>
+          <Text>One</Text>
+        </List>
+        <List gap="sm" data={{ 'data-spaced': true }}>
+          <Text>Two</Text>
+        </List>
+      </PooldayRoot>,
+    );
+    expect(screen.getByText('https://example.test/a-very-long-link').className).toBe('pool-caption pool-break');
+    expect(document.querySelector('[data-plain]')?.className).toBe('pool-group');
+    expect(document.querySelector('[data-spaced]')?.className).toBe('pool-group pool-gap-sm');
   });
 
   it('lays out with token gaps only', () => {
@@ -463,6 +485,21 @@ describe('dialog and sheet', () => {
     );
   }
 
+  it('a tall sheet takes the taller fixed height; a dialog ignores it', () => {
+    const { container } = render(
+      <PooldayRoot>
+        <Sheet title="Long" open={false} tall onClose={() => {}} closeLabel="Close" presentation="inline" data={{ 'data-tall-sheet': true }}>
+          <Text>Rows</Text>
+        </Sheet>
+        <Dialog title="Short" open={false} tall onClose={() => {}} closeLabel="Close" presentation="inline" data={{ 'data-tall-dialog': true }}>
+          <Text>Body</Text>
+        </Dialog>
+      </PooldayRoot>,
+    );
+    expect(container.querySelector('[data-tall-sheet]')?.className).toContain('pool-dialog-fixed pool-dialog-tall');
+    expect(container.querySelector('[data-tall-dialog]')?.className).not.toContain('pool-dialog-tall');
+  });
+
   it('opens modally, names itself by its title and closes on Escape and Close', async () => {
     const { container } = render(<Host sheet />);
     const dialog = container.querySelector('dialog') as HTMLDialogElement;
@@ -533,6 +570,27 @@ describe('records', () => {
     await userEvent.upload(input, file);
     expect(onFiles).toHaveBeenCalledWith([file]);
     expect(input.value).toBe('');
+  });
+
+  it('labels a data table with column headers and, when asked, row headers', () => {
+    render(<DataTable label="Study results" columns={['Task', 'Actual']} rows={[['Arithmetic', 'A']]} rowHeaders data={{ 'data-results': true }} />);
+    const table = screen.getByRole('table', { name: 'Study results' });
+    expect(table.parentElement?.className).toBe('pool-table');
+    expect(table.parentElement?.hasAttribute('data-results')).toBe(true);
+    expect(screen.getAllByRole('columnheader').map((cell) => cell.textContent)).toEqual(['Task', 'Actual']);
+    expect(screen.getByRole('rowheader').textContent).toBe('Arithmetic');
+    expect(screen.getByRole('cell').textContent).toBe('A');
+  });
+
+  it('reports a range value as a number and writes it in the caller\'s words', () => {
+    const onChange = vi.fn();
+    render(<RangeField label="Confidence" value={50} step={10} format={(value) => `${value}%`} onChange={onChange} data={{ 'data-confidence': true }} />);
+    const slider = screen.getByRole('slider', { name: 'Confidence' }) as HTMLInputElement;
+    expect(slider.getAttribute('aria-valuetext')).toBe('50%');
+    expect(slider.hasAttribute('data-confidence')).toBe(true);
+    expect(screen.getByText('50%').tagName).toBe('OUTPUT');
+    fireEvent.change(slider, { target: { value: '70' } });
+    expect(onChange).toHaveBeenCalledWith(70);
   });
 });
 
@@ -729,5 +787,31 @@ describe('grouped choices', () => {
     expect(onCommit).toHaveBeenLastCalledWith('a');
     await userEvent.click(screen.getByRole('button', { name: 'View 2 computers serving Model B' }));
     expect(inspect).toHaveBeenCalledOnce();
+  });
+});
+
+describe('decorative prism', () => {
+  it('stays out of the accessibility tree, runs its enhancer on the shell and cleans it up', () => {
+    const cleanupEnhancer = vi.fn();
+    const enhance = vi.fn((shell: HTMLElement) => {
+      shell.dataset.prismState = 'ready';
+      return cleanupEnhancer;
+    });
+    const { container, unmount } = render(<Prism enhance={enhance} />);
+    const shell = container.querySelector('.pool-prism-art') as HTMLElement;
+    expect(shell.getAttribute('aria-hidden')).toBe('true');
+    expect(shell.querySelector('[data-pool-prism-canvas]')).toBeTruthy();
+    expect(shell.querySelector('svg.pool-prism-still')).toBeTruthy();
+    expect(enhance).toHaveBeenCalledWith(shell);
+    expect(shell.dataset.prismState).toBe('ready');
+    unmount();
+    expect(cleanupEnhancer).toHaveBeenCalledTimes(1);
+  });
+
+  it('renders the still artwork alone without an enhancer, with distinct gradient ids per prism', () => {
+    const { container } = render(<><Prism /><Prism /></>);
+    const ids = [...container.querySelectorAll('linearGradient')].map((node) => node.id);
+    expect(new Set(ids).size).toBe(ids.length);
+    expect(container.querySelectorAll('.pool-prism-art')).toHaveLength(2);
   });
 });

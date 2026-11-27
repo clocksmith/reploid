@@ -6,11 +6,11 @@ Owner: apps/poolday (see [apps/poolday/CATSCAN.md](../../apps/poolday/CATSCAN.md
 
 **Implementation Status:** Implemented
 
-**Verified Artifacts:** `/self/ui/pool-home/network-projection.js`
+**Verified Artifacts:** None
 
 **Planned Artifacts:** None
 
-**Owned Source Files:** `ui/pool-home/network-projection.js`
+**Owned Source Files:** None
 
 **Former Blueprint Paths:** `self/blueprints/0x0000A4-ui-pool-home-network-projection.md`
 **Objective:** Convert room relay summaries into a pure, render-independent network visual model.

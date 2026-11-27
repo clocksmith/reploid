@@ -187,11 +187,11 @@ export function verifyRepositoryLayers(repoRoot, { checkDelivery: verifyDelivery
   violations.push(...validateArchitectureExceptions(exceptions, repoRoot));
   for (const sourceRoot of ['packages/reploid/src', ...BROWSER_ROOTS, 'packages/functions', 'server']) for (const file of filesUnder(path.join(repoRoot, sourceRoot))) {
     const relative = toLayerPath(path.relative(repoRoot, file));
-    // Inspect canonical inputs, not minified copies of their loader expressions.
-    // The CLI separately rebuilds this exact output in memory and checks its bytes.
-    // The React entries (ui/react/*.js) are built the same way from apps/poolday-react, whose
-    // sources scripts/check-poolday-ui-boundaries.mjs checks, and from host modules inspected here.
-    if (relative === 'self/ui/pool-home/app.bundle.js' || relative.startsWith('self/ui/react/')) continue;
+    // Inspect canonical inputs, not minified copies of their loader expressions. The React
+    // entries (ui/react/*.js) are built from apps/poolday-react, whose sources
+    // scripts/check-poolday-ui-boundaries.mjs checks, and from host modules inspected here;
+    // the CLI separately rebuilds them in memory and checks their bytes.
+    if (relative.startsWith('self/ui/react/')) continue;
     const source = fs.readFileSync(file, 'utf8');
     let edges;
     try {
@@ -256,7 +256,7 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
       await buildProductEntry({ checkOnly: true });
     }
   }
-  catch (error) { violations.push({ source: 'self/ui/pool-home/app.bundle.js', reason: error.message }); }
+  catch (error) { violations.push({ source: 'self/ui/react/app.js', reason: error.message }); }
   const { findBoundaryViolations } = await import('./verify-browser-boundaries.js');
   violations.push(...await findBoundaryViolations({ repoRoot: root }));
   const registry = JSON.parse(fs.readFileSync(resolveServedFile('config/module-registry.json'), 'utf8'));

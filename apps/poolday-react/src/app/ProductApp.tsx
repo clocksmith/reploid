@@ -4,6 +4,7 @@ import type { OpenedProduct } from '../features/shell/infrastructure/productHost
 import { strings } from '../l10n/strings';
 import { HandedOver } from './HandedOver';
 import { ProductWorkspace } from './ProductWorkspace';
+import { RoutePage } from './RoutePage';
 import { useAppearance, type AppServices } from './services';
 
 type Opening = { readonly status: 'opening' } | { readonly status: 'failed'; readonly message: string } | { readonly status: 'open'; readonly product: OpenedProduct };
@@ -66,7 +67,11 @@ export function ProductApp({ services }: { readonly services: AppServices }) {
       {handedOver && opening.status === 'open' ? (
         <HandedOver handover={opening.product.handover} />
       ) : opening.status === 'open' ? (
-        <ProductWorkspace product={opening.product} services={services} />
+        services.route === 'workspace' ? (
+          <ProductWorkspace product={opening.product} services={services} />
+        ) : (
+          <RoutePage route={services.route} product={opening.product} services={services} />
+        )
       ) : (
         <Stack gap="lg" data={{ 'data-app-opening': opening.status }}>
           {opening.status === 'opening' && <Spinner label={strings.app.opening} />}

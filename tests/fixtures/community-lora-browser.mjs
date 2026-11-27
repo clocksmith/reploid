@@ -12,15 +12,12 @@ const files = [
   "shared/config/doppler-local-models.js",
   "apps/poolday/host/product-session.js",
   "apps/poolday/host/work-swarm.js",
-  "apps/poolday/ui/pool-home/index.js",
-  "apps/poolday/ui/pool-home/work.js",
   "packages/reploid/src/training/index.js",
   "packages/reploid/src/training/network.js",
   "packages/reploid/src/training/session.js",
   "apps/poolday/host/lora-training-executor.js",
   "apps/poolday/host/lora-training-worker.js",
-  "apps/poolday/host/lora-training.js",
-  "apps/poolday/ui/pool-home/lora-training.js"
+  "apps/poolday/host/lora-training.js"
 ];
 const sources=await Promise.all(files.map(async name=>[name,await fs.readFile(path.join(root,name),'utf8')]));
 const server=http.createServer(async(req,res)=>{

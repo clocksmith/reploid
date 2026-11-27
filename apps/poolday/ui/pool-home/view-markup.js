@@ -1,13 +1,4 @@
-/**
- * @fileoverview The pool-home views' single markup sink and the value formatting they share:
- * compact hash and ledger values, and cycle-safe JSON for raw records.
- */
 
-// Single sink for the route views' markup writes: every caller builds attribute
-// and text values through escapeHtml before reaching this assignment.
-export const setPoolHtml = (element, markup) => {
-  element.innerHTML = String(markup ?? '');
-};
 
 export const formatLedgerValue = (value, fallback = '—') => {
   if (value === undefined || value === null || value === '') return fallback;

@@ -21,7 +21,7 @@ describe('deployment route diagnostics', () => {
     expect(httpResponseFailure({ url: 'https://other.test/v1/fleet/client', status: 404 }, base)).toContain('HTTP 404');
   });
   it('fails required modules and signaling/authentication responses without logging query secrets', () => {
-    for (const [path, status] of [['/ui/pool-home/app.bundle.js', 404], ['/pool/signals?token=secret', 400], ['/rtc-config', 401]]) {
+    for (const [path, status] of [['/ui/react/app.js', 404], ['/pool/signals?token=secret', 400], ['/rtc-config', 401]]) {
       const failure = check(path, status);
       expect(failure).toContain(`HTTP ${status}`);
       expect(failure).not.toContain('secret');

@@ -29,9 +29,9 @@ describe('self-first boot shell', () => {
     expect(selfKernelHtml).toContain('href="/"');
     expect(selfKernelHtml).toMatch(/src="\/kernel\/boot\.js\?v=\d+"/);
     expect(sourceIndexHtml).toContain('href="/"');
-    // The workspace routes load the React product; the specialist routes keep the vanilla bundle.
+    // Every product route loads the React product.
     for (const html of [sourceIndexHtml, poolEntryHtml]) {
-      expect(html).toContain("'/ui/pool-home/app.bundle.js'");
+      expect(html).not.toContain('/ui/pool-home/');
       expect(html).toContain("'/ui/react/app.js'");
       expect(html).toContain('import(productBundle)');
     }
@@ -83,8 +83,7 @@ describe('self-first boot shell', () => {
     it('retries a failed product bundle once with the build-bound retry marker', async () => {
       const page = bootPage({ importFails: true });
       await page.run;
-      // The conversation workspace (/ and /network) is the React product; other paths keep the vanilla bundle.
-      expect(page.imports).toEqual([['/', '/network'].includes(new URL(pageUrl).pathname) ? '/ui/react/app.js' : '/ui/pool-home/app.bundle.js']);
+      expect(page.imports).toEqual(['/ui/react/app.js']);
       expect(page.location.replace).toHaveBeenCalledTimes(1);
       expect(retryUrlOf(page).searchParams.get('reploidBootRetry')).toBe(page.buildVersion);
       expect(page.appRoot.querySelector('[role="alert"]')).toBeNull();

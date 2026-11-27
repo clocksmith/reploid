@@ -1,6 +1,6 @@
 import { unavailableModelChoice, modelSelectionLabel } from '../../apps/poolday/ui/components/model-select.js';
 import { beforeEach, expect, it } from 'vitest';
-import { bindModelChoices, updateModelSelect, modelExecutionState } from '../../apps/poolday/ui/components/model-select.js';
+import { modelExecutionState } from '../../apps/poolday/ui/components/model-select.js';
 
 const models = [
   { id: 'local', name: 'Local', localCached: true, availability: 'cached' },
@@ -10,85 +10,9 @@ const models = [
 ];
 beforeEach(() => { document.body.innerHTML = '<select></select>'; });
 
-it('reports a deliberate click on the checked default and reports a different choice only once', () => {
-  const select = document.querySelector('select'), choices = bindModelChoices(select);
-  updateModelSelect(select, models, { value: 'ready' }); choices.update(models);
-  const selected = [];
-  select.addEventListener('change', () => selected.push(select.value));
-  document.querySelector('input[value="ready"]').click();
-  expect(selected).toEqual(['ready']);
-  document.querySelector('input[value="busy"]').click();
-  expect(selected).toEqual(['ready', 'busy']);
-  choices.dispose();
-});
-
-it('presents ready shared models before busy peers, local files and downloads in both picker representations', () => {
-  const select = document.querySelector('select'), choices = bindModelChoices(select);
-  updateModelSelect(select, models, { grouped: true }); choices.update(models, { grouped: true });
-  expect([...select.options].map(option => option.value)).toEqual(['ready', 'busy', 'local', 'download']);
-  expect([...document.querySelectorAll('input')].map(input => input.value)).toEqual(['ready', 'busy', 'local', 'download']);
-  expect([...document.querySelectorAll('[data-choice-group]')].map(group => group.getAttribute('aria-label')))
-    .toEqual(['Public network', 'On this device', 'Download to this device']);
-  expect(select.value).toBe('ready');
-  // Declared facts sit beside the choice; a model without them shows no facts line.
-  const facts = document.querySelector('input[value="ready"]').closest('label').querySelector('[data-choice-facts]');
-  expect(facts.hidden).toBe(false); expect(facts.textContent).toBe(`Q4K · ${(4096).toLocaleString()} tokens maximum`);
-  expect(document.querySelector('input[value="local"]').closest('label').querySelector('[data-choice-facts]').hidden).toBe(true);
-  choices.dispose();
-});
-
-it('moves an existing choice when discovery changes without losing its selection or keyboard focus', () => {
-  const select = document.querySelector('select'), choices = bindModelChoices(select);
-  updateModelSelect(select, models, { grouped: true, value: 'download' }); choices.update(models, { grouped: true });
-  const input = document.querySelector('input[value="download"]'); input.focus();
-  const discovered = models.map(model => model.id === 'download' ? { ...model, networkAvailability: 'ready', availability: 'ready' } : model);
-  updateModelSelect(select, discovered, { grouped: true }); choices.update(discovered, { grouped: true });
-  expect([...document.querySelectorAll('input')].map(input => input.value)).toEqual(['download', 'ready', 'busy', 'local']);
-  expect(document.querySelector('input[value="download"]')).toBe(input);
-  expect(document.activeElement).toBe(input); expect(input.checked).toBe(true); expect(select.value).toBe('download'); choices.dispose();
-});
-
-it('keeps on-device choices first when the caller has an explicit local execution preference', () => {
-  const select = document.querySelector('select'), choices = bindModelChoices(select);
-  updateModelSelect(select, models, { grouped: true }); choices.update(models, { grouped: true });
-  updateModelSelect(select, models, { grouped: true, preferNetwork: false }); choices.update(models, { grouped: true, preferNetwork: false });
-  expect([...select.options].map(option => option.value)).toEqual(['local', 'ready', 'busy', 'download']);
-  expect([...document.querySelectorAll('input')].map(input => input.value)).toEqual(['local', 'ready', 'busy', 'download']); choices.dispose();
-});
-
-it('places a model family in its most usable member’s group, with each adapter beneath its base', () => {
-  const select = document.querySelector('select'), choices = bindModelChoices(select);
-  const identity = 'sha256:' + 'a'.repeat(64);
-  const family = [
-    { id: 'base', name: 'Base', identity, source: { baseUrl: 'https://models.example/base/' }, availability: 'unavailable', adapters: [] },
-    { id: 'base', selectionId: 'base/adapter', name: 'Base adapter', identity, adapters: [{ identity: 'sha256:' + 'b'.repeat(64) }],
-      networkAvailability: 'ready', availability: 'ready' }
-  ];
-  choices.update([...models, ...family], { grouped: true, variants: true });
-  expect([...document.querySelectorAll('input')].map(input => input.value)).toEqual(['ready', 'base', 'base/adapter', 'busy', 'local', 'download']);
-  const adapter = document.querySelector('input[value="base/adapter"]').closest('label');
-  expect(adapter.hasAttribute('data-choice-adapter')).toBe(true);
-  expect(adapter.closest('[data-choice-group]').dataset.choiceGroup).toBe('shared');
-  expect(adapter.querySelector('[data-choice-status]').textContent).toBe('Ready');
-  // The base keeps its own status inside its family's group.
-  expect(document.querySelector('input[value="base"]').closest('label').querySelector('[data-choice-status]').textContent).toBe('Download required');
-  choices.dispose();
-});
-
-
 it('keeps cached local weights separate from shared capacity', () => {
   expect(modelExecutionState(models[0], 'network')).toMatchObject({ source: 'network', usable: false });
   expect(modelExecutionState(models[0], 'auto')).toMatchObject({ source: 'local', status: 'cached', usable: true });
-});
-
-it('does not use a different route readiness to label a pinned unavailable choice Ready', () => {
-  const select = document.querySelector('select'), choices = bindModelChoices(select);
-  const whole = { id: 'base', identity: 'same', name: 'Base', availability: 'unavailable', networkAvailability: 'unavailable' };
-  const route = { ...whole, selectionId: 'distributed', partition: {}, availability: 'ready', networkAvailability: 'ready' };
-  updateModelSelect(select, [whole, route], { value: 'base' }); choices.update([whole, route], { grouped: true, variants: true });
-  expect(document.querySelector('input:checked').value).toBe('base');
-  expect(document.querySelector('[data-choice-status]').textContent).toBe('Unavailable');
-  choices.dispose();
 });
 
 it('clears saved capacity when a selected route disappears without losing its identity', () => {
@@ -101,70 +25,4 @@ it('clears saved capacity when a selected route disappears without losing its id
   expect(modelSelectionLabel(missing)).toBe('Base · Unavailable route');
   expect(modelExecutionState(missing).label).not.toContain('Distributed');
   expect(saved.networkAvailability).toBe('ready');
-});
-
-it('keeps compact rows ready-first even when a ready adapter has an unavailable base', () => {
-  const base = { id: 'base', name: 'Base', identity: 'sha256:' + 'a'.repeat(64), availability: 'unavailable', networkAvailability: 'unavailable' };
-  const adapted = { ...base, selectionId: 'adapter', name: 'Adapted', adapters: [{ identity: 'sha256:' + 'b'.repeat(64) }], availability: 'ready', networkAvailability: 'ready' };
-  const select = document.querySelector('select'), choices = bindModelChoices(select);
-  updateModelSelect(select, [base, adapted], { value: base.id });
-  choices.update([base, adapted], { grouped: true, variants: true, compact: true, describe: () => ({ facts: 'Technical facts', note: 'Evidence note' }) });
-  expect([...document.querySelectorAll('input')].map(input => input.value)).toEqual(['adapter', 'base']);
-  expect(document.querySelector('input:checked').value).toBe(base.id);
-  expect([...document.querySelectorAll('[data-choice-facts],[data-choice-note]')].every(node => node.hidden)).toBe(true);
-  choices.dispose();
-});
-
-it('keeps identical public and private model choices distinct and labels absent capacity unavailable', () => {
-  const publicModel = { ...models[3], identity: 'sha256:' + 'a'.repeat(64) };
-  const privateModel = { ...publicModel, selectionId: 'private:ready', fleet: { requester: { participantId: 'peer:private' } } };
-  const select = document.querySelector('select'), choices = bindModelChoices(select);
-  updateModelSelect(select, [publicModel, privateModel], { value: privateModel.selectionId, grouped: true });
-  choices.update([publicModel, privateModel], { grouped: true, variants: true });
-  expect([...document.querySelectorAll('input')].map(input => input.value)).toEqual(['ready', 'private:ready']);
-  expect(document.querySelector('[data-choice-group="private"]').textContent).toContain('Your private computers');
-  expect(modelExecutionState({ availability: 'unavailable' }).label).toBe('Unavailable');
-  choices.dispose();
-});
-
-it('states how many computers serve a shared whole model, and nothing for a distributed route or an unknown count', () => {
-  const select = document.querySelector('select'), choices = bindModelChoices(select);
-  const served = [
-    { id: 'two', name: 'Two', networkAvailability: 'ready', providerIds: ['a', 'b', 'a'] },
-    { id: 'one', name: 'One', networkAvailability: 'busy', providerIds: ['a'] },
-    { id: 'split', name: 'Split', networkAvailability: 'ready', partition: { id: 'p' }, providerIds: ['a', 'b'] },
-    { id: 'unknown', name: 'Unknown', networkAvailability: 'ready' }
-  ];
-  updateModelSelect(select, served, { grouped: true, showAvailability: true }); choices.update(served, { grouped: true, showAvailability: true });
-  const text = id => [...select.options].find(option => option.value === id).textContent;
-  expect(text('two')).toContain('Ready · 2 computers');
-  expect(text('one')).toContain('Busy · waits for capacity · 1 computer');
-  expect(text('split')).not.toContain('computer');
-  expect(text('unknown')).not.toContain('computer');
-  expect(document.querySelector('input[value="two"]').closest('label').querySelector('[data-choice-status]').textContent).toContain('2 computers');
-  choices.dispose();
-});
-
-it('folds models nobody can run under their count, but never the current choice or the whole list', () => {
-  const gone = [{ id: 'gone-a', name: 'Gone A', availability: 'unavailable' }, { id: 'gone-b', name: 'Gone B', availability: 'unavailable' }];
-  const select = document.querySelector('select'), choices = bindModelChoices(select);
-  const show = (list, value) => { updateModelSelect(select, list, { grouped: true, value }); choices.update(list, { grouped: true }); };
-  show([...models, ...gone], 'ready');
-  const folded = document.querySelector('[data-choice-group="unavailable"]');
-  expect(folded.tagName).toBe('DETAILS');
-  expect(folded.open).toBe(false);
-  expect(folded.querySelector('summary').textContent).toBe('Unavailable · 2');
-  // Usable groups are plain sections, always shown.
-  expect(document.querySelector('[data-choice-group="shared"]').tagName).toBe('DIV');
-  // The chosen model is never hidden, and the count follows the list.
-  show([...models, ...gone, { id: 'gone-c', name: 'Gone C', availability: 'unavailable' }], 'gone-b');
-  expect(folded.open).toBe(true);
-  expect(folded.querySelector('summary').textContent).toBe('Unavailable · 3');
-  choices.dispose();
-  // With nothing else to show, the unavailable models are the list.
-  document.body.innerHTML = '<select></select>';
-  const only = document.querySelector('select'), bare = bindModelChoices(only);
-  updateModelSelect(only, gone, { grouped: true }); bare.update(gone, { grouped: true });
-  expect(document.querySelector('[data-choice-group="unavailable"]').open).toBe(true);
-  bare.dispose();
 });

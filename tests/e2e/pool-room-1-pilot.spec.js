@@ -30,6 +30,13 @@ test.describe('Reploid Room-1 Pilot E2E Journey', () => {
     }
   });
 
+  test('shows the canonical dispute disabled with why it cannot load here', async ({ page }) => {
+    // The full P0DTC2 sequence exceeds the public input limit; sending a prefix would change the scientific input.
+    await page.goto('/room-1?room=pilot-canonical-empty');
+    await expect(page.locator('[data-pool-load-sample-dispute]')).toBeDisabled();
+    await expect(page.locator('[data-pool-load-sample-dispute-reason]')).toHaveText("The full sequence is longer than the 1,024-residue public limit, so this dispute can't be loaded here.");
+  });
+
   test('validates blinded export package integrity across all 24 cases', async () => {
     const blindedPackage = {
       schema: 'poolday.adjudication_blinded_export/v1',

@@ -1,4 +1,4 @@
-import { escapeHtml as escapeHtmlValue } from '../../../shared/ui/components/html.js';
+import { escapeHtml as escapeHtmlValue } from '../components/html.js';
 const escapeHtml = value => escapeHtmlValue(value || '');
 /**
  * @fileoverview Minimal home surface for the primary Reploid route.

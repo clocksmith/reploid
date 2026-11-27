@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { createFleetAccount } from '../../apps/poolday/host/fleet-account.js';
-import { bindFleetAccount, fleetAccountText, fleetStarterText, renderFleetAccount } from '../../apps/poolday/ui/pool-home/fleet-account-view.js';
+import { fleetAccountText, fleetStarterText } from '../../apps/poolday/ui/pool-home/fleet-account-view.js';
 
 const view = (balance, held, debtLimit) => ({ schema: 'reploid.fleet-self-serve/v1', account: { id: 'acct-1', label: 'Reploid account 1', verified: debtLimit > 0 },
   credits: { unit: 'noncash-service-credit', balance, held, available: balance - held, debtLimit, spendable: balance - held + debtLimit }, computers: [], pairings: [] });
@@ -51,15 +51,6 @@ describe('self-serve account in the browser', () => {
     await port.useThisComputer();
     expect(privateComputers.connect).toHaveBeenCalledWith('http://127.0.0.1:18800', expect.stringMatching(/^bridge-secret-/));
     expect(port.state().pairing).toBeNull();
-  });
-
-  it('stays hidden when the page’s server publishes no account service', async () => {
-    document.body.innerHTML = renderFleetAccount();
-    const port = createFleetAccount({ fetchImpl: async () => ({ ok: false, status: 404, json: async () => ({}) }) });
-    await port.load();
-    const bound = bindFleetAccount(document.body, { fleetAccount: port });
-    expect(document.querySelector('[data-fleet-account]').hidden).toBe(true);
-    bound.dispose();
   });
 
   it('renders the balance, held credits, what can be spent, and the starter credit', () => {

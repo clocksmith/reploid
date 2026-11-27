@@ -1,10 +1,6 @@
-import { computerLabel, withComputerLabels } from './computer-labels.js';
+import { computerLabel } from './computer-labels.js';
 import { publicProviderHardware } from '../../../../shared/vendor/reploid/mesh/provider-hardware.js';
-import { serviceCreditOutcomeText } from './service-credit-text.js';
-/** Selected-attempt presentation only. Discovery never establishes an execution path. */
-const escape = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const measured = value => Number.isFinite(value) && value >= 0;
-const ms = value => measured(value) ? `${Math.round(value)} ms` : 'Not reported';
 const sum = (steps, key) => steps?.length && steps.every(step => measured(step[key])) ? steps.reduce((n, step) => n + step[key], 0) : null;
 const terminal = new Set(['completed', 'failed', 'cancelled', 'interrupted']);
 /** Self-reported GPU text, or null when nothing usable was reported. Never an attestation.
@@ -101,75 +97,4 @@ export function projectExecutionRibbon(state) {
     model: executors.length ? answeredModel(state, thread, attempt).name : null, adapter: recordedAdapterText(attempt, thread?.model), status, statusLabel: labels[status] || status,
     response, active: !!active, totalMs: measured(attempt?.finishedAt) && measured(attempt?.createdAt) ? attempt.finishedAt - attempt.createdAt : null,
     transferMs: sum(execution?.steps, 'transferMs'), activationBytes: measured(execution?.activationBytes) ? execution.activationBytes : null };
-}
-
-export function renderExecutionRibbon() {
-  return `<div class="execution-ribbon pool-activity-edge" data-execution-ribbon data-activity="idle">
-    <button class="execution-ribbon-trigger pool-button btn-ghost" type="button" aria-label="Inspect execution" aria-haspopup="dialog" data-ribbon-trigger>
-      <span class="execution-ribbon-status pool-caption pool-muted pool-dot" data-ribbon-status role="status"></span>
-    </button>
-  </div>`;
-}
-
-export function routeMarkup(view) {
-  const nodeMarkup = (label, caption = '', pending = false) => `<span class="execution-ribbon-node${pending ? ' is-unassigned' : ''}"><span class="execution-ribbon-participant pool-dot${pending ? ' pool-dot-open' : ''}">${escape(label)}</span><small class="pool-caption pool-muted">${escape(caption)}</small></span>`;
-  const requester = nodeMarkup('You', 'Request / output');
-  if (!view.executors.length) return ''; // No invented route before admission.
-  const nodes = view.executors.map(node => nodeMarkup(node.label, node.id === view.requester ? 'Request / output' : '')).join('<span class="execution-ribbon-wire pool-divider" aria-hidden="true"></span>');
-  const group = `<span class="execution-ribbon-executors"><small class="execution-ribbon-model pool-caption pool-muted">${escape(view.model)}</small><span class="execution-ribbon-machines">${nodes}</span></span>`;
-  // In a split, output returns B → A → requester through the same participants.
-  return view.requesterExecutes ? group
-    : `${requester}<span class="execution-ribbon-wire pool-divider" aria-hidden="true"></span>${group}`;
-}
-
-export function detailMarkup(view) {
-  const { attempt, executors } = view;
-  return `${attempt?.error ? `<p role="alert">${escape(attempt.error)}</p>` : ''}
-    <dl><dt>Requester / output recipient</dt><dd>${escape(view.requester)}</dd>
-    <dt>Model</dt><dd>${escape(view.model || 'No executor assigned')}</dd>${view.adapter ? `<dt>Recorded adapter</dt><dd>${escape(view.adapter)}</dd>` : ''}
-    <dt>Attempt duration</dt><dd>${ms(view.totalMs)}${view.totalMs === null && view.active ? ' · in progress' : ''}</dd>
-    <dt>Activation transfer</dt><dd>${view.activationBytes === null ? 'Not reported' : `${view.activationBytes.toLocaleString()} bytes`} · ${ms(view.transferMs)}</dd></dl>
-    ${executors.length ? `<ul>${executors.map(node => `<li><strong>${escape(node.label)}</strong><code>${escape(node.id)}</code><dl>
-      <dt>Assigned layers</dt><dd>${escape(node.layers)}</dd><dt>Contribution</dt><dd>${escape(node.contribution)}</dd>${node.recordedGpu
-        ? `<dt>GPU</dt><dd title="${escape(RECORDED_GPU_TITLE)}">${escape(node.recordedGpu)}</dd>` : ''}
-      <dt>${view.split ? 'Recorded step time' : 'Compute time'}</dt><dd>${ms(node.duration)}</dd></dl></li>`).join('')}</ul>` : '<p>No executing participant has been assigned to this attempt.</p>'}
-    ${view.split ? '<p>Output returns through the first executor. Step times include runtime and transport overhead; they are not GPU-only measurements.</p>' : ''}
-    ${!view.requesterExecutes && executors.length ? '<p>Receiving the answer does not require model weights on this device.</p>' : ''}
-    ${view.execution?.serviceCredit ? `<p>Service credits: ${escape(serviceCreditOutcomeText(view.execution.serviceCredit))}</p>` : ''}
-    ${view.planId ? `<p>Plan <code>${escape(view.planId)}</code></p>` : ''}`;
-}
-
-export function bindExecutionRibbon(root, { onInspect = () => {}, labelSession = root } = {}) {
-  const ribbon = root.querySelector('[data-execution-ribbon]');
-  const find = selector => ribbon.querySelector(selector);
-  const trigger = find('[data-ribbon-trigger]');
-  const controller = new AbortController(), options = { signal: controller.signal };
-  let key = null, lastResponse = '', pulse = null, timer = null;
-  trigger.addEventListener('click', () => onInspect('conversation', trigger), options);
-  const stopPulse = () => { pulse?.cancel(); pulse = null; clearTimeout(timer); timer = null; ribbon.removeAttribute('data-output-observed'); ribbon.dataset.activity = 'idle'; };
-  const drawPulse = () => {
-    stopPulse(); ribbon.dataset.outputObserved = 'true'; ribbon.dataset.activity = 'ready';
-    const path = find('[data-ribbon-status]');
-    if (!globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches && typeof path.animate === 'function') {
-      // One restrained acknowledgement of observed output, never an idle loop.
-      pulse = path.animate([{ opacity: 0.7 }, { opacity: 1 }], { duration: 480, easing: 'ease-out' });
-    }
-    timer = setTimeout(stopPulse, 500);
-  };
-  return {
-    update(state) {
-      const view = projectExecutionRibbon(withComputerLabels(state, labelSession)), changed = view.key !== key;
-      if (changed) { key = view.key; lastResponse = view.response; stopPulse(); }
-      find('[data-ribbon-status]').textContent = view.execution?.privateDelegation && view.executors.length ? `${view.model} · ${view.split ? 'split across ' : view.status === 'executing' ? 'running on ' : ''}${view.executors.map(node => node.label).join(' + ')}` : view.statusLabel;
-      trigger.setAttribute('aria-label', `${view.statusLabel}. ${view.model ? view.model + ' on ' + view.executors.map(node => node.label).join(' and ') : 'No executor assigned'}. Execution details`);
-      ribbon.dataset.state = view.status;
-      if (!changed && view.active && view.response.length > lastResponse.length && view.response.startsWith(lastResponse)) {
-        drawPulse();
-      }
-      if (!view.active || ['disconnected', 'recovering'].includes(view.status)) stopPulse();
-      lastResponse = view.response;
-
-    },
-    dispose() { stopPulse(); controller.abort(); }
-  };
 }

@@ -19,6 +19,7 @@ import { parse } from 'acorn';
 import { browserModuleReferences } from '../server/browser-module-references.js';
 import { openBrowserTree, servedPathOf, rootOf, BROWSER_ROOTS } from '../server/browser-tree.js';
 import { SELF_ENTRY_POINTS } from './verify-browser-boundaries.js';
+import { reactEntryInputs } from './build-product-entry.js';
 
 export { SELF_ENTRY_POINTS };
 
@@ -27,10 +28,9 @@ const JSON_OUTPUT = 'docs/ownership-inventory.json';
 const MARKDOWN_OUTPUT = 'docs/ownership-inventory.md';
 const posix = path.posix;
 
-/** Poolday entry points: its HTML entries and the source of the product bundle. */
+/** Poolday entry points: its HTML entries. The React bundles they load are built from apps/poolday-react. */
 export const PRODUCT_ENTRIES = Object.freeze([
-  'index.html', 'pool-entry.html', 'design.html', 'document-study.html', 'repair-smoke.html',
-  'ui/pool-home/index.js'
+  'index.html', 'pool-entry.html', 'design.html', 'document-study.html', 'repair-smoke.html'
 ]);
 
 /** Substrate entry points beyond the module registry and Genesis file lists. */
@@ -45,8 +45,6 @@ const SUBSTRATE_TREES = Object.freeze([
   'core/', 'tools/', 'kernel/', 'zero/', 'capsule/', 'boot-helpers/', 'lab/', 'testing/', 'personas/', 'prompts/',
   'experimental/', 'image/', 'ui/zero/', 'ui/proto/', 'ui/panels/', 'ui/change-passport/', 'shared/change-passport/', 'styles/proto/'
 ]);
-/** The generated product bundle is built from this source entry. */
-const GENERATED_FROM = Object.freeze({ 'ui/pool-home/app.bundle.js': ['ui/pool-home/index.js'] });
 /**
  * Seed, copy and surface declaration lists name served paths as data for loaders
  * (VFS seeding, service-worker routing, surface resources). Their strings are not
@@ -121,10 +119,14 @@ export async function buildOwnershipInventory({ repoRoot = ROOT, why = false } =
     return null;
   };
   const edges = new Map(files.map(name => [name, new Set()]));
+  const compiledFrom = Object.fromEntries(Object.entries(await reactEntryInputs()).map(([served, inputs]) => [served,
+    inputs.filter(input => BROWSER_ROOTS.some(rootName => input.startsWith(rootName + '/'))).map(input => servedPathOf(input)).filter(Boolean)]));
   const add = (from, to) => { if (to && to !== from && has(to)) edges.get(from).add(to); };
   for (const served of files) {
-    if (TREE_DESCRIPTORS.has(served) || served.startsWith('vendor/doppler/') || GENERATED_FROM[served]) {
-      for (const target of GENERATED_FROM[served] || []) add(served, target);
+    if (TREE_DESCRIPTORS.has(served) || served.startsWith('vendor/doppler/')) continue;
+    // A React bundle is generated: it references the served modules it was compiled from.
+    if (compiledFrom[served]) {
+      for (const target of compiledFrom[served]) add(served, target);
       continue;
     }
     const sourcePath = tree.source(served);

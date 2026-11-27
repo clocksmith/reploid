@@ -507,17 +507,3 @@ export function resetResearchStore() {
   crossRoomEvidenceStates.clear();
   campaignQueueStates.clear();
 }
-
-export default {
-  loadResearchRecords,
-  loadQuarantinedResearchRecords,
-  appendResearchRecord,
-  publishResearchRecord,
-  hydrateResearchRecords,
-  hydrateCrossRoomSequenceEvidence,
-  hydrateProteinUncertaintyCampaignQueue,
-  getResearchSyncState,
-  getCrossRoomSequenceEvidence,
-  getProteinUncertaintyCampaignQueue,
-  resetResearchStore
-};

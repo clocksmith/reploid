@@ -1,0 +1,27 @@
+/* The decorative prism (pool-prism-art): glass artwork beside a page title. Artwork only: it never signals
+   execution. The still takes the prism tokens; an optional light effect draws on pool-prism-canvas once the prism is
+   data-prism-state="ready" (under reduced motion it stays still; never under forced colours). */
+.pool-home .pool-prism-art { display: inline-grid; position: relative; flex: none; inline-size: var(--pool-size-128); aspect-ratio: 8 / 7; }
+.pool-home .pool-prism-art > :is(.pool-prism-still, .pool-prism-canvas) { position: absolute; inset: 0; inline-size: 100%; block-size: 100%; pointer-events: none; }
+.pool-home .pool-prism-art .pool-prism-canvas { visibility: hidden; }
+.pool-home .pool-prism-art[data-prism-state='ready'] .pool-prism-canvas { visibility: visible; }
+.pool-home .pool-prism-art[data-prism-state='ready'] .pool-prism-still { visibility: hidden; }
+.pool-home .pool-prism-stop-light { stop-color: var(--pool-prism-glass-light); }
+.pool-home .pool-prism-stop-mid { stop-color: var(--pool-prism-glass-mid); }
+.pool-home .pool-prism-stop-cool { stop-color: var(--pool-prism-glass-cool); }
+.pool-home .pool-prism-stop-warm { stop-color: var(--pool-prism-glass-warm); }
+.pool-home .pool-prism-stop-green { stop-color: var(--pool-prism-edge-green); }
+.pool-home .pool-prism-stop-cyan { stop-color: var(--pool-prism-edge-cyan); }
+.pool-home .pool-prism-stop-violet { stop-color: var(--pool-prism-edge-violet); }
+.pool-home .pool-prism-shadow { fill: var(--pool-prism-shadow); }
+.pool-home .pool-prism-facets { stroke-width: var(--pool-border-thick); stroke-linejoin: round; }
+.pool-home .pool-prism-facet-light { fill: var(--pool-prism-glass-light); fill-opacity: var(--pool-alpha-64); }
+.pool-home .pool-prism-facet-mid { fill: var(--pool-prism-glass-mid); fill-opacity: var(--pool-alpha-48); }
+.pool-home .pool-prism-facet-cool { fill: var(--pool-prism-glass-cool); fill-opacity: var(--pool-alpha-48); }
+.pool-home .pool-prism-facet-warm { fill: var(--pool-prism-glass-warm); fill-opacity: var(--pool-alpha-48); }
+@media (max-width: 760px) { .pool-home .pool-prism-art { inline-size: var(--pool-size-80); } }
+@media (forced-colors: active) {
+  .pool-home .pool-prism-art .pool-prism-canvas { display: none; }
+  .pool-home .pool-prism-art .pool-prism-still { visibility: visible; }
+  .pool-home .pool-prism-art path { fill: Canvas; stroke: CanvasText; }
+}

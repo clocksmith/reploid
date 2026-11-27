@@ -6,11 +6,11 @@ Owner: apps/poolday (see [apps/poolday/CATSCAN.md](../../apps/poolday/CATSCAN.md
 
 **Implementation Status:** Implemented
 
-**Verified Artifacts:** `/self/ui/pool-home/controls.js`, `/self/ui/pool-home/index.js`, `/self/ui/pool-home/view.js`
+**Verified Artifacts:** None
 
 **Planned Artifacts:** None
 
-**Owned Source Files:** `ui/pool-home/controls.js`, `ui/pool-home/index.js`
+**Owned Source Files:** None
 
 **Former Blueprint Paths:** `self/blueprints/0x000088-ui-pool-home-controls.md`
 **Objective:** Bind the Poolday Home controls so each one changes the signed job, profile or advert it represents.

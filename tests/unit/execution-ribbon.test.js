@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { projectExecutionRibbon, renderExecutionRibbon, bindExecutionRibbon } from '../../apps/poolday/ui/pool-home/execution-ribbon.js';
+import { projectExecutionRibbon } from '../../apps/poolday/ui/pool-home/execution-ribbon.js';
 import { participantLabel } from '../../apps/poolday/ui/pool-home/computer-labels.js';
 
 function snapshot(execution = null, status = 'executing', response = '') {
@@ -66,43 +66,5 @@ describe('Execution ribbon evidence projection', () => {
     state.network.consumer.connectionState = 'connected'; state.activeThread.attempts[0].retryOf = 'old';
     expect(projectExecutionRibbon(state).status).toBe('recovering');
     state.activeThread.attempts[0].status = 'completed'; expect(projectExecutionRibbon(state).status).toBe('completed');
-  });
-});
-
-describe('Execution ribbon interactions', () => {
-  let root, binding;
-  afterEach(() => { binding?.dispose(); root?.remove(); vi.useRealTimers(); });
-  function mount(onInspect = () => {}) {
-    root = document.createElement('div'); root.innerHTML = renderExecutionRibbon(); document.body.append(root);
-    binding = bindExecutionRibbon(root, { onInspect });
-  }
-  it('keeps one quiet status and opens assigned execution details only on activation', () => {
-    const inspect = vi.fn(); mount(inspect); binding.update(snapshot(split));
-    const trigger = root.querySelector('[data-ribbon-trigger]');
-    expect(root.querySelector('[data-ribbon-status]').textContent).toBe('Executing');
-    expect(trigger.getAttribute('aria-label')).toContain(`Test model on ${participantLabel('executor-A')} and ${participantLabel('executor-B')}`);
-    expect(root.querySelectorAll('.execution-ribbon-node')).toHaveLength(0);
-    trigger.focus(); expect(inspect).not.toHaveBeenCalled();
-    trigger.click(); expect(inspect).toHaveBeenCalledWith('conversation', trigger);
-    binding.update(snapshot(null, 'queued'));
-    expect(root.querySelector('[data-ribbon-status]').textContent).toBe('Queued');
-  });
-  it('pulses only for new observed output, not execution state, history selection, or unrelated updates', () => {
-    vi.useFakeTimers(); mount(); const state = snapshot(split);
-    binding.update(state); expect(root.querySelector('[data-output-observed]')).toBeNull();
-    binding.update(state); expect(root.querySelector('[data-output-observed]')).toBeNull();
-    state.activeThread.messages[0].content = 'First'; binding.update(state);
-    expect(root.querySelector('[data-output-observed]')).not.toBeNull();
-    vi.advanceTimersByTime(501); expect(root.querySelector('[data-output-observed]')).toBeNull();
-    binding.update(state); expect(root.querySelector('[data-output-observed]')).toBeNull();
-    state.activeThread.id = 'another'; state.activeThread.messages[0].content = 'Already saved text'; binding.update(state);
-    expect(root.querySelector('[data-output-observed]')).toBeNull();
-    state.activeThread.messages[0].content += ' new'; binding.update(state);
-    expect(root.querySelector('[data-output-observed]')).not.toBeNull();
-    binding.dispose(); expect(root.querySelector('[data-output-observed]')).toBeNull();
-  });
-  it('escapes participant and model labels', () => {
-    mount(); const state = snapshot({ ...split, participantA: '<img src=x>' }); state.activeThread.model.name = '<script>bad()</script>';
-    binding.update(state); expect(root.querySelector('img,script')).toBeNull();
   });
 });

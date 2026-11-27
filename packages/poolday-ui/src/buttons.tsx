@@ -40,6 +40,7 @@ export function Button({
   icon,
   href,
   external = false,
+  size,
   pending = false,
   pendingLabel,
   variant = 'secondary',
@@ -61,10 +62,12 @@ export function Button({
   readonly href?: string;
   /** A destination on another site: it opens in a new tab and shares nothing with this page. */
   readonly external?: boolean;
+  /** `action`: a page's one main action (Run), at the larger action height. */
+  readonly size?: 'action';
   readonly pending?: boolean;
   readonly pendingLabel?: string;
 }) {
-  const className = cx('pool-button', VARIANT_CLASS[variant]);
+  const className = cx('pool-button', VARIANT_CLASS[variant], size === 'action' && 'pool-button-action');
   const content = (
     <>
       {icon && <Icon name={icon} />}

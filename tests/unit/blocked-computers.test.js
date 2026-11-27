@@ -5,9 +5,7 @@ import { resolveConfig } from '../../packages/reploid/src/config/index.js';
 import { createSigningIdentity } from '../../packages/reploid/src/artifacts/identity.js';
 import { createComputerPreferences } from '../../apps/poolday/host/computer-preferences.js';
 import { projectChatCatalog } from '../../apps/poolday/host/chat-view.js';
-import { bindNetworkControls, projectNetworkPeers, renderConnectionControl,
-  renderSharingControls } from '../../apps/poolday/ui/pool-home/network-controls.js';
-import { renderComputerDiagnostic } from '../../apps/poolday/ui/pool-home/computer-preferences-view.js';
+import { projectNetworkPeers } from '../../apps/poolday/ui/pool-home/network-controls.js';
 import policy from '../../apps/poolday/config/computer-preferences.json' with { type: 'json' };
 
 const key = 'peer:' + 'a'.repeat(24);
@@ -159,45 +157,5 @@ describe('blocked computers in local preferences', () => {
     const preferences = createComputerPreferences({ storage: null });
     await expect(preferences.block('wire-a')).rejects.toThrow('not saved');
     expect(preferences.getBlocked()).toEqual([]);
-  });
-});
-
-describe('Computers panel block control', () => {
-  it('blocks and unblocks from the row, shows Blocked, and stops counting the computer as ready', async () => {
-    const state = { models: [], network: { connections: [{ id: 'wire', attemptId: '1', phase: 'connected' }],
-      consumer: { peers: [{ peerId: 'wire', attemptId: '1', participantId: key, identityVerified: true, model: 'Qwen', readiness: 'ready' }] } } };
-    const session = { getState: () => state, subscribe(listener) { listener(state); return () => {}; } };
-    const store = storage(), preferences = createComputerPreferences({ storage: store, verifyPeer: async () => key });
-    const root = document.createElement('div');
-    root.innerHTML = renderConnectionControl() + renderSharingControls() + renderComputerDiagnostic()
-      + '<div><p data-peer-readiness></p><ul data-insp-device-list></ul></div><span data-network-message></span><button data-mesh-invite></button>';
-    const dispose = bindNetworkControls(root, session, { computers: preferences });
-    const settle = () => new Promise(resolve => setTimeout(resolve, 0));
-    try {
-      const row = root.querySelector('[data-computer-id="wire"]'), button = row.querySelector('details [data-computer-block-toggle]');
-      expect(button.textContent).toBe('Block'); expect(row.querySelector('[data-computer-block]').hidden).toBe(false);
-      expect(root.querySelector('[data-peer-readiness]').textContent).toContain('1 computer ready');
-      button.click(); await settle();
-      expect(preferences.getBlocked()).toEqual([key]);
-      expect(row.querySelector('[data-computer-status]').textContent).toBe('Blocked');
-      expect(row.dataset.blocked).toBe('true'); expect(button.textContent).toBe('Unblock');
-      expect(row.querySelector('[data-computer-block-note]').textContent).toContain('can still see the network');
-      expect(root.querySelector('[data-peer-readiness]').textContent).toContain('0 computers ready');
-      button.click(); await settle();
-      expect(preferences.getBlocked()).toEqual([]);
-      expect(row.querySelector('[data-computer-status]').textContent).toBe('Ready'); expect(button.textContent).toBe('Block');
-    } finally { dispose(); await preferences.close(); }
-  });
-
-  it('marks a row the mesh reports as blocked, and offers no control without a preferences store', () => {
-    const state = { models: [], network: { consumer: { peers: [{ peerId: 'wire', model: 'Qwen', readiness: 'ready', blocked: true }] } } };
-    expect(projectNetworkPeers(state)[0]).toMatchObject({ blocked: true, phase: 'blocked', status: 'Blocked' });
-    expect(projectNetworkPeers({ ...state, blockedComputers: new Set(['other']) })[0].blocked).toBe(true);
-    const session = { getState: () => state, subscribe(listener) { listener(state); return () => {}; } };
-    const root = document.createElement('div');
-    root.innerHTML = renderConnectionControl() + renderSharingControls()
-      + '<ul data-insp-device-list></ul><span data-network-message></span><button data-mesh-invite></button>';
-    const dispose = bindNetworkControls(root, session);
-    try { expect(root.querySelector('[data-computer-block]').hidden).toBe(true); } finally { dispose(); }
   });
 });

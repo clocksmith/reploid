@@ -46,13 +46,13 @@ for (const [width, height] of [[1280, 800], [390, 844]]) {
     expect(use.compositionsInUse).toBe(use.compositions);
 
     const nav = page.getByRole('navigation', { name: 'Design system sections' });
-    for (const anchor of ['primitive-Sheet', 'composition-ModelSheet']) {
+    for (const anchor of ['primitive-Sheet', 'composition-AnswerOnSheet']) {
       await page.evaluate(id => document.getElementById(id).scrollIntoView({ block: 'start' }), anchor);
       await expect.poll(() => nav.locator('[aria-current]').count()).toBe(1);
     }
     // At the end of the page the last section is the current one.
     await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
-    await expect(nav.locator(width > 760 ? '[aria-current]' : '[data-contains-current]')).toHaveText(width > 760 ? 'ChatWorkspace' : 'Compositions');
+    await expect(nav.locator(width > 760 ? '[aria-current]' : '[data-contains-current]')).toHaveText(width > 760 ? 'ComputePage' : 'Compositions');
     await expect(nav.locator('[aria-current]')).toHaveCount(1);
 
     // Built only from the system: its classes, its stylesheets, and no style beyond component parameters.
@@ -126,16 +126,16 @@ for (const [width, height] of [[1280, 800], [390, 844]]) {
       await expect(open).toBeFocused();
     }
 
-    // Compositions are live: the composer sends on Enter, and a state is chosen with arrows.
-    const composer = page.locator('[data-composition="Composer"]');
-    await composer.getByRole('textbox', { name: 'Message' }).focus();
+    // Compositions are live: the workspace sends on Enter, and a state is chosen with arrows.
+    const workspace = page.locator('[data-composition="ChatWorkspace"]');
+    await workspace.getByRole('textbox', { name: 'Message' }).focus();
     await page.keyboard.type('Hello');
     await page.keyboard.press('Enter');
-    await expect(composer.getByRole('button', { name: 'Stop' })).toBeVisible();
-    const states = page.locator('[data-composition="MessageList"]').getByRole('radiogroup', { name: 'MessageList State' });
-    await states.getByRole('radio', { name: 'Answered' }).focus();
+    await expect(workspace.locator('[data-composer-stop]')).toBeVisible();
+    const states = page.locator('[data-composition="ComposerBar"]').getByRole('radiogroup', { name: 'ComposerBar State' });
+    await states.getByRole('radio', { name: 'Ready on this device' }).focus();
     await page.keyboard.press('ArrowDown');
-    await expect(states.getByRole('radio', { name: 'Generating' })).toBeChecked();
+    await expect(states.getByRole('radio', { name: 'Finding computers' })).toBeChecked();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1)).toBe(true);
   });
 }
@@ -169,7 +169,7 @@ test('design page switches theme and frame width from the keyboard', async ({ pa
   await themes.getByRole('radio', { name: 'Light' }).check();
   await page.reload();
   await expect(page.locator('[data-design-page]')).toHaveAttribute('data-pool-theme', 'light');
-  const frame = page.locator('[data-composition="Receipt"] figure');
+  const frame = page.locator('[data-composition="ConversationDetailsPanel"] figure');
   const wide = (await frame.boundingBox()).width;
   await page.locator('[data-design-width]').getByRole('radio', { name: 'Wide' }).focus();
   await page.keyboard.press('ArrowRight');

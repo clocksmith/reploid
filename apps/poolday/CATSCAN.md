@@ -21,11 +21,11 @@ Inputs:
 - Surface selection from [surface intents](../../shared/config/surface-intents.js) and [shared browser code](../../shared/CATSCAN.md).
 
 Outputs:
-- replo.id routes through [index.html](index.html): `/`, `/network` and `/work` load the [conversation workspace](../poolday-react/CATSCAN.md) ([bundle](ui/react/app.js)); specialist routes load the [vanilla bundle](ui/pool-home/app.bundle.js).
+- replo.id routes through [index.html](index.html) and the React product bundle ([bundle](ui/react/app.js)), built from [apps/poolday-react](../poolday-react/CATSCAN.md).
 - `/design` through [design.html](design.html): the design system page, built from `@reploid/poolday-ui` ([contract](../../docs/poolday-ui-architecture.md)).
 
 ## Invariants
-- New and migrated screens compose `@reploid/poolday-ui` only; the legacy vanilla UI may only shrink.
+- Every screen composes `@reploid/poolday-ui` only; no markup is written outside it (the ratchet is at zero).
 - A route resolves to one declared surface and authority profile.
 - Recovery state and mutable state remain distinguishable.
 - Browser-local claims and UI labels cannot imply stronger evidence than the underlying record.

@@ -1,4 +1,4 @@
-/** Bundle the product UI; Doppler remains a separately pinned, lazily loaded runtime. */
+/** Bundle the React product UI and the /design page; Doppler remains a separately pinned, lazily loaded runtime. */
 import { build } from 'esbuild';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
@@ -12,10 +12,10 @@ const root = fileURLToPath(new URL('../', import.meta.url));
 /** React entries built from apps/poolday-react into the served tree, and the package they compose. */
 export const REACT_ENTRIES = Object.freeze([
   { source: 'apps/poolday-react/src/main-design.tsx', served: 'ui/react/design.js' },
-  // The React shell, opted into with ?ui=react until it reaches parity with the vanilla shell.
+  // The product shell for every route.
   { source: 'apps/poolday-react/src/main-app.tsx', served: 'ui/react/app.js' }
 ]);
-const REACT_ALIASES = { '@reploid/poolday-ui': path.join(root, 'packages/poolday-ui/src/index.ts') };
+export const REACT_ALIASES = { '@reploid/poolday-ui': path.join(root, 'packages/poolday-ui/src/index.ts') };
 
 async function emit(output, checkOnly, label) {
   if (checkOnly) {
@@ -29,17 +29,23 @@ async function emit(output, checkOnly, label) {
   }
 }
 
+/** The served modules each React entry compiles in (apps/poolday, self and shared files), from esbuild's metafile. */
+export async function reactEntryInputs() {
+  const inputs = {};
+  for (const entry of REACT_ENTRIES) {
+    const result = await build({
+      absWorkingDir: root, entryPoints: [path.join(root, entry.source)], bundle: true, write: false, metafile: true,
+      format: 'esm', platform: 'browser', target: 'es2022', jsx: 'automatic', alias: REACT_ALIASES,
+      external: ['https://*', 'http://*'], logLevel: 'silent'
+    });
+    inputs[entry.served] = Object.keys(result.metafile.inputs);
+  }
+  return inputs;
+}
+
 export async function buildProductEntry({ checkOnly = false, tree } = {}) {
-  const source = await resolveBrowserTree({ tree });
-  const result = await build({
-    absWorkingDir: root,
-    entryPoints: [source.source('ui/pool-home/index.js')],
-    outfile: source.source('ui/pool-home/app.bundle.js'),
-    bundle: true, format: 'esm', platform: 'browser', target: 'es2022',
-    minify: true, legalComments: 'eof', write: false,
-    external: ['https://*', 'http://*']
-  });
-  await emit(result.outputFiles[0], checkOnly, 'Product entry bundle');
+  // Resolving the tree checks that every served path has one source before anything is bundled.
+  await resolveBrowserTree({ tree });
 
   // The design index is generated from the design system's sources; a stale one fails the check.
   const index = renderDesignIndex(buildDesignIndex());

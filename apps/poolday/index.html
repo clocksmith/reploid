@@ -75,7 +75,7 @@
       ]);
       const productRoute = productPaths.has(pathname);
       // Keep this synchronous boot list aligned with styles/poolday/layers.json.
-      const pooldayStylesheets = ["tokens.css", "primitives/base.css", "primitives/surfaces.css", "primitives/controls.css", "primitives/choices.css", "primitives/layout.css", "primitives/text.css", "primitives/optical.css", "primitives/workspace.css", "primitives/messages.css", "compositions/screens.css", "compositions/conversation.css", "compositions/interaction.css", "compositions/mobile-navigation.css"];
+      const pooldayStylesheets = ["tokens.css", "primitives/base.css", "primitives/surfaces.css", "primitives/controls.css", "primitives/choices.css", "primitives/layout.css", "primitives/text.css", "primitives/optical.css", "primitives/workspace.css", "primitives/messages.css", "primitives/range.css", "primitives/prism.css"];
       const ensurePooldayStylesheet = () => {
         const version = encodeURIComponent(window.REPLOID_BUILD_VERSION || '');
         // Layer order is load order: tokens -> primitives -> components.
@@ -128,9 +128,8 @@
         currentUrl.searchParams.delete('reploidBootRetry');
         window.history.replaceState(window.history.state, '', `${currentUrl.pathname}${currentUrl.search}${currentUrl.hash}`);
       };
-      // The conversation workspace (/, /network and its /work alias) is the React product (apps/poolday-react); the specialist routes keep the vanilla shell.
-      const productBundle = ['/', '/network', '/work'].includes((window.location.pathname || '/').replace(/\/+$/, '') || '/')
-        ? '/ui/react/app.js' : '/ui/pool-home/app.bundle.js';
+      // Every product route is the React product (apps/poolday-react).
+      const productBundle = '/ui/react/app.js';
       const loadProductRoute = async (appRoot) => {
         let timeoutId;
         const controller = new AbortController();

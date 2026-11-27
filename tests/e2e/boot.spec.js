@@ -10,8 +10,8 @@ import { bootLegacyZeroInstance, bootRouteWithServiceWorker, readInstanceVfs, sa
 const APP_PATH = '/index.html';
 const HOME_PATH = '/index.html?profile=reploid-home';
 const PRODUCT_HOME_PATH = '/';
-// The workspace routes load the React product; the specialist routes and pool-entry.html keep the vanilla bundle.
-const PRODUCT_BUNDLES = '**/ui/{pool-home/app.bundle,react/app}.js';
+// Every product route, and pool-entry.html, loads the React product.
+const PRODUCT_BUNDLES = '**/ui/react/app.js';
 const DEFAULT_HOME_GOAL_SNIPPET = 'Start from the blueprint index';
 
 async function openBoot(page) {
@@ -317,53 +317,12 @@ test.describe('Route Entry Points', () => {
     expect(layout.dockBlockedByNav).toBe(false);
   });
 
-  test('contribution status labels and values are vertically centered in their metric chips', async ({ page }) => {
-    await page.goto('/');
-    await page.waitForSelector('.pool-home', { timeout: 20000 });
-    await page.evaluate(() => {
-      document.getElementById('pool-contribution-status')?.remove();
-      const status = document.createElement('aside');
-      status.id = 'pool-contribution-status';
-      status.className = 'pool-contribution-status';
-      status.dataset.contributionState = 'idle';
-      status.innerHTML = `
-        <span class="pool-contribution-state">Available</span>
-        <span class="pool-contribution-metric"><b>24h</b> 52</span>
-        <span class="pool-contribution-metric"><b>1h</b> 52/hr</span>
-        <span class="pool-contribution-metric pool-contribution-last"><b>Last</b> 18 sha256:f585e9a32...c94efefd</span>
-      `;
-      document.body.append(status);
-    });
-
-    const metrics = await page.locator('.pool-contribution-metric').evaluateAll((chips) => chips.map((chip) => {
-      const chipBox = chip.getBoundingClientRect();
-      const labelBox = chip.querySelector('b')?.getBoundingClientRect();
-      const valueNode = [...chip.childNodes].find((node) => node.nodeType === Node.TEXT_NODE && node.textContent.trim());
-      const range = document.createRange();
-      range.selectNode(valueNode);
-      const valueBox = range.getBoundingClientRect();
-      const centerOf = (box) => box.top + (box.height / 2);
-      return {
-        alignItems: getComputedStyle(chip).alignItems,
-        labelOffset: Math.abs(centerOf(labelBox) - centerOf(chipBox)),
-        valueOffset: Math.abs(centerOf(valueBox) - centerOf(chipBox))
-      };
-    }));
-
-    expect(metrics).toHaveLength(3);
-    for (const metric of metrics) {
-      expect(metric.alignItems).toBe('center');
-      expect(metric.labelOffset).toBeLessThanOrEqual(1);
-      expect(metric.valueOffset).toBeLessThanOrEqual(1);
-    }
-  });
-
   test('product routes fit a narrow mobile viewport without horizontal clipping', async ({ page }) => {
     await page.setViewportSize({ width: 320, height: 844 });
 
     for (const route of ['/', '/ask', '/compute', '/records', '/room-1', '/history', '/network']) {
       await page.goto(route);
-      await page.waitForSelector('.pool-home', { timeout: 20000 });
+      await page.waitForSelector('.pool-home, [data-route-page], [data-chat-workspace]', { timeout: 20000 });
 
       const layout = await page.evaluate(() => {
         const root = document.documentElement;
@@ -379,9 +338,9 @@ test.describe('Route Entry Points', () => {
             width: rect.width
           };
         }).filter((item) => item.width > 1 && (item.left < -1 || item.right > window.innerWidth + 1));
-        const nav = document.querySelector('nav.pool-nav-rail')?.getBoundingClientRect();
-        const routeHeading = document.querySelector('.pool-page-heading, [aria-label="Network"] h2')?.getBoundingClientRect() || null;
-        const ask = document.querySelector('[data-work-start], .pool-home-run-button, #pool-run-submit')?.getBoundingClientRect() || null;
+        const nav = document.querySelector('nav.pool-nav-rail, [data-app-bar]')?.getBoundingClientRect();
+        const routeHeading = document.querySelector('.pool-page-heading, [aria-label="Network"] h2, [data-route-page] h1')?.getBoundingClientRect() || null;
+        const ask = document.querySelector('[data-pool-run-submit], [data-composer-send]')?.getBoundingClientRect() || null;
         return {
           ask: ask ? { height: ask.height, width: ask.width } : null,
           nav: nav ? { height: nav.height, left: nav.left, width: nav.width } : null,
@@ -396,8 +355,10 @@ test.describe('Route Entry Points', () => {
       expect(layout.nav?.width, route).toBeGreaterThanOrEqual(320 * 0.85);
       expect(layout.nav?.height, route).toBeGreaterThanOrEqual(48);
       if (route === '/' || route === '/ask' || route === '/room-1') {
-        expect(layout.ask?.width).toBeGreaterThanOrEqual(48);
-        expect(layout.ask?.height).toBeGreaterThanOrEqual(48);
+        // A page's main action is at the action height; the composer's Send keeps the 44 px touch target.
+        const minimum = route === '/' ? 44 : 48;
+        expect(layout.ask?.width).toBeGreaterThanOrEqual(minimum);
+        expect(layout.ask?.height).toBeGreaterThanOrEqual(minimum);
       } else {
         expect(layout.routeHeadingLeft, route).toBeGreaterThanOrEqual(0);
       }
@@ -407,9 +368,9 @@ test.describe('Route Entry Points', () => {
   test('product routes hide raw payloads and hosted controls by default', async ({ page }) => {
     for (const route of ['/ask', '/compute', '/records', '/room-1', '/history', '/network']) {
       await page.goto(route);
-      await page.waitForSelector('.pool-home', { timeout: 20000 });
+      await page.waitForSelector('.pool-home, [data-route-page], [data-chat-workspace]', { timeout: 20000 });
 
-      await expect(page.locator('details.pool-raw-details[open]')).toHaveCount(0);
+      await expect(page.locator('details.pool-raw-details[open], [data-pool-raw-details][open]')).toHaveCount(0);
       await expect(page.locator('body')).not.toContainText('Firestore');
       await expect(page.locator('body')).not.toContainText('firestore');
       await expect(page.getByRole('button', { name: 'Register', exact: true })).toHaveCount(0);
@@ -423,39 +384,41 @@ test.describe('Route Entry Points', () => {
 
   test('compatibility routes resolve into the three Reploid product flows', async ({ page }) => {
     await page.goto('/ask');
-    await page.waitForSelector('.pool-home', { timeout: 20000 });
-    await expect(page.locator('.pool-home')).toHaveAttribute('data-pool-route-id', 'ask');
+    await page.waitForSelector('[data-route-page]', { timeout: 20000 });
+    await expect(page.locator('[data-route-page]')).toHaveAttribute('data-route-page', 'ask');
     await expect(page.getByRole('heading', { name: 'Run a model', exact: true })).toBeVisible();
-    await expect(page.locator('#pool-run-submit')).toHaveText('Run');
+    await expect(page.locator('[data-pool-run-submit]')).toHaveText('Run');
 
     await page.goto('/compute');
-    await page.waitForSelector('.pool-home', { timeout: 20000 });
-    await expect(page.locator('.pool-home')).toHaveAttribute('data-pool-route-id', 'compute');
-    await expect(page.getByRole('link', { name: 'Overview', exact: true })).toBeVisible();
+    await page.waitForSelector('[data-route-page]', { timeout: 20000 });
+    await expect(page.locator('[data-route-page]')).toHaveAttribute('data-route-page', 'compute');
+    // The app bar's brand is the way home from a specialist page.
+    await expect(page.locator('[data-app-bar] [data-pool-route-link="/"]')).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Sequence provider', exact: true })).toBeVisible();
     await expect(page.locator('.pool-page-heading .pool-eyebrow')).toHaveCount(0);
     await expect(page.locator('[data-pool-simulation]')).toHaveCount(0);
     await expect(page.locator('[data-pool-provider-status]')).toHaveText('Idle');
-    await expect(page.locator('#pool-provider-worker-toggle')).toBeVisible();
-    await expect(page.locator('#pool-provider-worker-toggle')).toHaveText('Start sharing');
-    await expect(page.locator('#pool-provider-worker-toggle')).toHaveAttribute('data-contribution-action', 'start');
+    await expect(page.locator('[data-pool-provider-worker-toggle]')).toBeVisible();
+    await expect(page.locator('[data-pool-provider-worker-toggle]')).toHaveText('Start sharing');
+    await expect(page.locator('[data-pool-provider-worker-toggle]')).toHaveAttribute('data-contribution-action', 'start');
     await expect(page.locator('#pool-provider-load')).toHaveCount(0);
     await expect(page.locator('#pool-provider-profile')).toHaveCount(0);
     await expect(page.locator('#pool-agent-submit')).toHaveCount(0);
     await expect(page.locator('[data-pool-node-grid]')).toHaveCount(0);
 
     await page.goto('/room-1');
-    await page.waitForSelector('.pool-home', { timeout: 20000 });
-    await expect(page.locator('.pool-home')).toHaveAttribute('data-pool-route-id', 'room-1');
+    await page.waitForSelector('[data-route-page]', { timeout: 20000 });
+    await expect(page.locator('[data-route-page]')).toHaveAttribute('data-route-page', 'room-1');
     await expect(page.getByRole('heading', { name: 'Research Room-1', exact: true })).toBeVisible();
-    await expect(page.locator('#pool-room-1-request')).toBeVisible();
+    await expect(page.locator('[data-pool-room-1-request]')).toBeVisible();
 
     await page.goto('/history');
-    await page.waitForSelector('.pool-home', { timeout: 20000 });
+    await page.waitForSelector('[data-route-page]', { timeout: 20000 });
+    await expect(page.locator('[data-route-page]')).toHaveAttribute('data-route-page', 'records');
     await expect(page.getByRole('heading', { name: 'Recent jobs', exact: true })).toBeVisible();
     await expect(page.locator('.pool-page-heading .pool-eyebrow')).toHaveCount(0);
-    await expect(page.locator('#pool-record-ledger')).toBeVisible();
-    await expect(page.locator('#pool-peer-ledger')).toBeHidden();
+    await expect(page.locator('[data-pool-record-ledger]')).toBeVisible();
+    await expect(page.locator('[data-pool-peer-ledger]')).toBeHidden();
     await expect(page.locator('[data-pool-research-room]')).toHaveCount(0);
 
     await page.goto('/network');

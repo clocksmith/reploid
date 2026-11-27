@@ -2,8 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { classifyConnectionPath, observeConnectionPath } from '../../packages/reploid/src/transport/connection-path.js';
 import { createWebRTCSwarm } from '../../packages/reploid/src/transport/swarm.js';
 import { resolveConfig } from '../../packages/reploid/src/config/index.js';
-import { bindNetworkControls, projectNetworkPeers, renderConnectionControl,
-  renderSharingControls } from '../../apps/poolday/ui/pool-home/network-controls.js';
+import { projectNetworkPeers } from '../../apps/poolday/ui/pool-home/network-controls.js';
 
 const report = (local, remote, { transport = true, selected = false, extra = [] } = {}) => new Map([
   ...(transport ? [['T', { id: 'T', type: 'transport', selectedCandidatePairId: 'P' }]] : []),
@@ -108,35 +107,5 @@ describe('swarm peer state', () => {
     const f = swarmFixture({ current: report('relay', 'relay', { transport: false }) });
     try { await f.open(); await settle(); expect(pathOf(f.swarm)).toBeNull(); }
     finally { f.swarm.disconnect(); }
-  });
-});
-
-describe('Computers panel', () => {
-  const mount = state => {
-    const session = { getState: () => state, subscribe(listener) { session.update = listener; listener(state); return () => {}; } };
-    const root = document.createElement('div');
-    root.innerHTML = renderConnectionControl() + renderSharingControls()
-      + '<ul data-insp-device-list></ul><span data-network-message></span><button data-mesh-invite></button>';
-    return { root, session, dispose: bindNetworkControls(root, session) };
-  };
-
-  it('labels a relayed or direct connection in Details and leaves an unknown one unlabelled', () => {
-    const state = { models: [], network: { connections: [
-      { id: 'a', attemptId: '1', phase: 'connected', path: 'relayed' },
-      { id: 'b', attemptId: '2', phase: 'connected', path: 'direct' },
-      { id: 'c', attemptId: '3', phase: 'connected', path: null },
-      { id: 'd', attemptId: '4', phase: 'negotiating', path: 'relayed' },
-      { id: 'e', attemptId: '5', phase: 'connected', path: 'something-else' }
-    ], consumer: { peers: [{ peerId: 'a', attemptId: '1', model: 'Qwen', readiness: 'ready' }] } } };
-    expect(projectNetworkPeers(state).map(peer => peer.connectionPath)).toEqual(['relayed', 'direct', null, null, null]);
-    const view = mount(state);
-    try {
-      const label = id => view.root.querySelector(`[data-computer-id="${id}"] details [data-computer-path]`);
-      expect(label('a').textContent).toBe('Relayed'); expect(label('a').hidden).toBe(false);
-      expect(label('b').textContent).toBe('Direct');
-      for (const id of ['c', 'd', 'e']) { expect(label(id).textContent).toBe('Not observed'); expect(label(id).hidden).toBe(false); }
-      state.network.connections[0] = { id: 'a', attemptId: '1', phase: 'connected', path: null }; view.session.update(state);
-      expect(label('a').textContent).toBe('Not observed'); expect(label('a').hidden).toBe(false);
-    } finally { view.dispose(); }
   });
 });

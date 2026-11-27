@@ -144,11 +144,11 @@ three layers, and each layer uses only the one below it.
   segmented controls, chips, badges, disclosures, stacks, rows, columns, gaps, text styles,
   prose, bars and the brand mark. Layout is a primitive too: spacing comes from
   `pool-stack`, `pool-row`, `pool-columns` and the `pool-gap-*` steps.
-- **Compositions** (`compositions/*.css`, and the React screens in `apps/poolday-react`) are
-  screens made of primitives. A composition reads no token and sets no look; it arranges
-  (grid, flex, position) and every look and spacing comes from primitive classes in the
-  markup. `npm run verify:pool:css` enforces this; the vanilla stylesheets that still read
-  tokens carry a count in `layers.json` (`legacyTokenReferences`) that may only fall.
+- **Compositions** are the React screens in `apps/poolday-react`, made only of
+  `@reploid/poolday-ui` components. They have no stylesheet: a screen that needs a new look
+  gets a primitive or a primitive variant. External compositions (such as Daily's
+  `server/daily/site/style.css`) carry their own ratchet baseline in `layers.json`
+  (`externalCompositions`) enforced by `npm run verify:pool:css`.
 
 `apps/poolday/pool-entry.html` loads only these layers, in the order `layers.json` lists, and
 its root carries `class="pool-page"` so the page shell uses the same tokens.
@@ -299,15 +299,10 @@ primitive or variant only when several screens need the same new look. Scripts w
 only custom properties to inline styles; a measured height or a share becomes a
 `--pool-param-*` that a rule consumes.
 
-The conversation screen (`compositions/conversation.css` and `interaction.css`) is
-converted, as is `compositions/screens.css`. The layer manifest and CSS checker
-own conversion status. Compositions arrange primitives; new visual declarations
-belong in those primitives.
-
-`npm run verify:pool:css` checks the layer manifest and both entry paths. It also
-checks token references, structural-only literals, converted compositions, the
-legacy count and product inline styles. `tests/e2e/chat-rail-layout.spec.js` covers
-the conversation screen in both themes and at narrow widths.
+`npm run verify:pool:css` checks the layer manifest, external compositions (such as Daily), and
+both entry paths. It also checks token references, structural-only literals and product inline
+styles. `tests/e2e/chat-rail-layout.spec.js` covers the conversation screen in both themes and
+at narrow widths.
 
 The live catalog is `/design`; what it shows is described in
 [poolday-ui-architecture.md](poolday-ui-architecture.md#the-design-page).

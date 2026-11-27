@@ -1,0 +1,5 @@
+/* Range primitive (RangeField).
+   pool-range: a native slider on the control colour, at the touch-target height; pool-range-field lays out its
+   label, track and written value on one line. */
+.pool-home .pool-range { flex: 1 1 var(--pool-size-160); min-inline-size: 0; block-size: var(--pool-size-44); accent-color: var(--pool-color-ink); }
+.pool-home .pool-range-field { flex-wrap: nowrap; }

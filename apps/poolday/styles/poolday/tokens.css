@@ -130,6 +130,15 @@
   --pool-shadow-primary-pressed: inset 0 2px 4px rgb(0 0 0 / 25%), inset 0 -1px 0 rgb(255 255 255 / 16%);
   --pool-shadow-button-pressed: 0 0 0 transparent, 0 0 0 transparent, 0 0 0 transparent, var(--pool-shadow-inset);
   --pool-shadow-switch-thumb: 0 2px 4px color-mix(in srgb, var(--pool-color-ink) var(--pool-alpha-12), transparent), inset 0 1px 0 var(--pool-color-page);
+  /* The decorative prism: pale glass with prism-tinted edges; the same artwork in both themes. */
+  --pool-prism-glass-light: #ffffff;
+  --pool-prism-glass-mid: #e6ecf5;
+  --pool-prism-glass-cool: color-mix(in srgb, #c084fc var(--pool-alpha-12), #f7f9fd);
+  --pool-prism-glass-warm: color-mix(in srgb, #fbbf24 var(--pool-alpha-12), #f7f9fd);
+  --pool-prism-edge-green: color-mix(in srgb, #34d399 var(--pool-alpha-32), #ffffff);
+  --pool-prism-edge-cyan: color-mix(in srgb, #38bdf8 var(--pool-alpha-48), #ffffff);
+  --pool-prism-edge-violet: color-mix(in srgb, #c084fc var(--pool-alpha-48), #ffffff);
+  --pool-prism-shadow: color-mix(in srgb, #818cf8 var(--pool-alpha-32), transparent);
 }
 
 :root.pool-page[data-reploid-theme='light'],

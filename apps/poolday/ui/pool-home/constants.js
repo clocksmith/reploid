@@ -166,8 +166,6 @@ export const choosePooldayAskPlaceholderForLane = (lane = 'sequence', random = M
 };
 
 export const POOLDAY_RECEIPT_LEDGER_LIMIT = 10;
-export const POOLDAY_STREAM_CHUNK_SIZE = 18;
-export const POOLDAY_STREAM_TICK_MS = 14;
 
 export const POOLDAY_RUNNER_NODE_IDS = Object.freeze(['runner0', 'runner1', 'runner2', 'runner3']);
 export const POOLDAY_VERIFIER_NODE_IDS = Object.freeze(['verifier0', 'verifier1']);

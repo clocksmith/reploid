@@ -21,10 +21,8 @@
     <link rel="stylesheet" href="/styles/poolday/primitives/optical.css" />
     <link rel="stylesheet" href="/styles/poolday/primitives/workspace.css" />
     <link rel="stylesheet" href="/styles/poolday/primitives/messages.css" />
-    <link rel="stylesheet" href="/styles/poolday/compositions/screens.css" />
-    <link rel="stylesheet" href="/styles/poolday/compositions/conversation.css" />
-    <link rel="stylesheet" href="/styles/poolday/compositions/interaction.css" />
-    <link rel="stylesheet" href="/styles/poolday/compositions/mobile-navigation.css" />
+    <link rel="stylesheet" href="/styles/poolday/primitives/range.css" />
+    <link rel="stylesheet" href="/styles/poolday/primitives/prism.css" />
   </head>
   <body>
     <div id="app"></div>
@@ -85,9 +83,8 @@
         currentUrl.searchParams.delete('reploidBootRetry');
         window.history.replaceState(window.history.state, '', `${currentUrl.pathname}${currentUrl.search}${currentUrl.hash}`);
       };
-      // The conversation workspace (/, /network and its /work alias) is the React product (apps/poolday-react); the specialist routes keep the vanilla shell.
-      const productBundle = ['/', '/network', '/work'].includes((window.location.pathname || '/').replace(/\/+$/, '') || '/')
-        ? '/ui/react/app.js' : '/ui/pool-home/app.bundle.js';
+      // Every product route is the React product (apps/poolday-react).
+      const productBundle = '/ui/react/app.js';
       let timeoutId;
       const controller = new AbortController();
       try {

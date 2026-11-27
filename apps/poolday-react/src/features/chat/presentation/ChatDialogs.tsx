@@ -148,7 +148,7 @@ export function RenameDialog({ rename, commands, presentation = 'modal' }: { rea
         </>
       }
     >
-      <Field label={t.rename.name} value={rename.value} onChange={commands.setRenameValue} required maxLength={256} autoFocus data={{ 'data-thread-name': true }} />
+      <Field label={t.rename.name} value={rename.value} onChange={commands.setRenameValue} required maxLength={256} autoFocus={presentation !== 'inline'} data={{ 'data-thread-name': true }} />
     </Dialog>
   );
 }

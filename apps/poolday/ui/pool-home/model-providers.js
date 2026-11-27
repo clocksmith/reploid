@@ -1,5 +1,4 @@
-import { interfaceIcon } from '../components/interface-icons.js';
-import { escapeHtml as escape } from '../components/attachments.js';
+
 import { computerLabel } from './computer-labels.js';
 import { projectNetworkPeers } from './network-controls.js';
 import { hardwareText } from './execution-ribbon.js';
@@ -71,26 +70,3 @@ export function projectModelRoutes(state, selected) {
 }
 
 export const ADAPTER_GUIDE_URL = 'https://github.com/clocksmith/reploid/blob/main/docs/adapters.md';
-
-export const renderModelProviders = () => `<details class="pool-disclosure chat-model-providers" data-model-providers hidden><summary>Execution routes</summary><div class="pool-stack pool-gap-sm" data-provider-list></div><p class="pool-caption"><a href="${ADAPTER_GUIDE_URL}" target="_blank" rel="noopener noreferrer">Prepare or serve an adapter</a></p></details>`;
-
-let routeGroup = 0;
-/** Update only the disclosure contents, keeping its open state and the surrounding controls.
- * With several routes, each route is a radio carrying its selectionId; the caller owns the value. */
-export function updateModelProviders(root, state, model, { selectedId = model ? modelKey(model) : null, disabled = false } = {}) {
-  const routes = projectModelRoutes(state, model);
-  for (const disclosure of root.querySelectorAll('[data-model-providers]')) {
-    disclosure.hidden = !model;
-    disclosure.dataset.routeName ||= `model-route-${++routeGroup}`;
-    const list = disclosure.querySelector('[data-provider-list]');
-    const choose = routes.length > 1 || routes.length === 1 && routes[0].selectionId !== selectedId;
-    const markup = routes.map(route => `<div class="chat-model-route pool-stack pool-gap-xs" data-model-route="${escape(route.selectionId)}">${choose
-      ? `<label class="chat-model-choice pool-choice pool-button btn-ghost"><input type="radio" name="${disclosure.dataset.routeName}" value="${escape(route.selectionId)}" data-model-route-choice><span><strong>${escape(route.type)}</strong><small class="pool-muted">${escape(route.status)}</small></span><span class="pool-choice-mark">${interfaceIcon('check')}</span></label>`
-      : `<div class="chat-model-route-heading"><strong>${escape(route.type)}</strong><span class="pool-muted">${escape(route.status)}</span></div>`}</div>`).join('')
-      || '<p class="pool-small pool-muted">No routes available.</p>';
-    if (list.dataset.projection !== markup) { list.innerHTML = markup; list.dataset.projection = markup; }
-    for (const input of list.querySelectorAll('[data-model-route-choice]')) {
-      input.checked = input.value === selectedId; input.disabled = disabled;
-    }
-  }
-}

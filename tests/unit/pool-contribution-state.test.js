@@ -6,7 +6,6 @@ import {
   resetContributionStateForTests,
   updateContributionState
 } from '../../apps/poolday/ui/pool-home/contribution-state.js';
-import { renderContributionStatusBar } from '../../apps/poolday/ui/pool-home/view.js';
 
 const createMemoryStorage = () => {
   const store = new Map();
@@ -82,25 +81,5 @@ describe('Poolday contribution state', () => {
     expect(snapshot.recent[0].receiptHash).toBe('sha256:recent-b');
     expect(snapshot.recent[1].receiptHash).toBe('sha256:recent-a');
     expect(snapshot.recent[2].receiptHash).toBe('sha256:old');
-  });
-
-  it('renders contribution metrics from the stored snapshot', () => {
-    updateContributionState({
-      state: 'idle',
-      optedIn: true
-    });
-    recordContributionReceipt({
-      receiptHash: 'sha256:recent-render',
-      receipt: {
-        tokenCounts: { input: 1000, output: 600 },
-        timing: { completedAt: '2026-07-04T11:59:00.000Z' }
-      }
-    });
-
-    const html = renderContributionStatusBar(getContributionSnapshot());
-
-    expect(html).toContain('<b>24h</b> 1.6k');
-    expect(html).toContain('<b>1h</b> 1.6k/hr');
-    expect(html).toContain('sha256:recent-render');
   });
 });
