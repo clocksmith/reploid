@@ -5,7 +5,7 @@ import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { randomUUID } from 'node:crypto';
 import { signAsParticipant, verifyParticipantSignature } from '../../shared/vendor/reploid/artifacts/participant-proofs.js';
-import { assert, same, text, FLEET_SERVICE_REQUEST_SCHEMA as DOMAIN, SERVICE_CREDIT_REFUSAL_STATUS } from './contract.js';
+import { assert, same, text, FLEET_SERVICE_REQUEST_SCHEMA as DOMAIN, SERVICE_CREDIT_REFUSAL_STATUS, computerRecords } from './contract.js';
 import { planFleetPlacement } from './placement.js';
 import { createNativeEarningStorage } from '../native-earning.js';
 import { openFleetCredits } from './credits.js';
@@ -148,12 +148,16 @@ export function createFleetServiceHandler({ credits, models, placementPolicy, no
         const online = observed || present;
         // A self-serve directory lists the caller's own account and accounts serving now, never the whole enrollment.
         if (directory === 'own' && computer.id !== owner.computerId && !online) return null;
-        return { id: computer.id, name: computer.name, participantIds: computer.providers
+        const row = { id: computer.id, name: computer.name, participantIds: computer.providers
           .filter(provider => directory === 'full' || provider.revokedAt === undefined).map(provider => provider.participantId),
           online, observedAt: observed ? observation.observedAt : present ? presence.get(computer.id) : observation?.observedAt ?? null,
           ...(observed ? { activeRequests: observation.activeRequests, preparing: observation.preparing === true, resident: observation.resident,
             preferences: observation.preferences, freeGpuBytes: observation.freeGpuBytes, freeHostBytes: observation.freeHostBytes,
             maxStorageBufferBindingSize: observation.maxStorageBufferBindingSize } : {}) };
+        // The same computer as the canonical record (contracts/computer-records.js), beside the fields older clients read.
+        // Its account is stated to the full directory and to the account's own computer only.
+        const accountId = directory === 'full' || computer.id === owner.computerId ? computer.ownerId : null;
+        return { ...row, computer: computerRecords.computerFromLedgerRow(row, { accountId, observationMaxAgeMs: placementPolicy.maxObservationAgeMs }) };
       }).filter(Boolean) };
       case 'terms': {
         const model = models.find(row => row.id === payload.id && row.identity === payload.identity);

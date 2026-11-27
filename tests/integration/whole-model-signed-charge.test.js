@@ -189,6 +189,10 @@ it('a requester with no weights spends credits it earned by serving, and both ve
   const receipt = await spending.exported(records.reservationId);
   expect(receipt).toMatchObject({ label: 'signed-records', ledgerRecord: 'included',
     requester: { participantId: keys[0].peerId, accountId: 'account-0' }, hosts: [{ participantId: keys[1].peerId, accountId: 'account-1' }] });
+  // The same parties as operation roles beside the signed records: the requester consumed, the host provided.
+  expect(receipt.roles).toMatchObject({ schema: 'reploid.operation-roles/1', operation: 'inference', operationId: records.reservationId,
+    consumer: { participantId: keys[0].peerId, accountId: 'account-0' }, provider: { participantId: keys[1].peerId, accountId: 'account-1' } });
+  expect(receipt.roles.consumer.computerId).toBeTypeOf('string');
   const verdict = await verifyTrade({ receipt, at: Date.now() });
   expect(verdict.attempts[0].problems).toEqual([]);
   expect(verdict).toMatchObject({ ok: true, attempts: [{ name: 'answer', facts: { status: 'settled', debit: 3 * PRICE,

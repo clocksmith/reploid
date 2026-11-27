@@ -9,6 +9,8 @@
  * (docs/verify-a-trade.md). Nothing here decides an amount: a receipt whose records are incomplete says so in
  * `label` and does not verify.
  */
+import { operationRoles } from '../computer-records.js';
+
 export const TRADE_RECEIPT_SCHEMA = 'reploid.whole-model-trade-receipt/v1';
 /** What a host returns instead of a records-only export when it cannot build one. It is not a trade and verifies as nothing. */
 export const INCOMPLETE_EXPORT_SCHEMA = 'reploid.settlement-records-incomplete/v1';
@@ -61,14 +63,23 @@ export function buildTradeExport({ id, records, trace = null, statement = null, 
   return buildRecordsExport({ id, label: `${held}; ${hold}`.slice(0, 256), records, trace, statement });
 }
 
+const tradeRoles = (operationId, consumer, provider) => {
+  const party = row => ({ computerId: row.computerId ?? null, participantId: row.participantId, accountId: row.accountId });
+  try { return operationRoles({ operation: 'inference', operationId, consumer: party(consumer), provider: party(provider) }); } catch { return null; }
+};
+
 export function buildTradeReceipt({ records, trace = null }) {
   if (!records || typeof records.reservationId !== 'string') throw Error('The signed records of one request are required');
   if (trace && trace.reservationId !== records.reservationId) throw Error('The ledger record names another reservation');
   const party = id => trace?.participants?.find(row => row.participantId === id) ?? null;
   const named = id => (id ? { participantId: id, ...(party(id) ? { accountId: party(id).accountId, computerId: party(id).computerId } : {}) } : null);
+  const requester = named(records.requesterId ?? trace?.participants?.[0]?.participantId), host = named(records.providerId ?? trace?.participants?.[1]?.participantId);
   return { schema: TRADE_RECEIPT_SCHEMA, reservationId: records.reservationId, label: records.label, missing: [...(records.missing ?? [])],
     ...(records.reason ? { reason: records.reason } : {}), ledgerRecord: trace ? 'included' : 'not-available',
-    requester: named(records.requesterId ?? trace?.participants?.[0]?.participantId), hosts: [named(records.providerId ?? trace?.participants?.[1]?.participantId)].filter(Boolean),
+    requester, hosts: [host].filter(Boolean),
+    // The same parties as reploid.operation-roles/1: the requester consumed, the host provided. Unsigned and derived;
+    // the signed records below are unchanged and remain what verify-trade.js checks.
+    ...(requester && host ? { roles: tradeRoles(records.reservationId, requester, host) } : {}),
     // The one attempt verify-trade.js checks: it reads every member that carries `settlementReplay`.
     ...(records.records?.length ? { answer: {
       settlement: trace ? { reservationId: trace.reservationId, state: trace.state, status: trace.status, reason: trace.reason, charge: trace.charge,

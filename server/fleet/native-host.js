@@ -29,6 +29,7 @@ import { openStageOwner } from './stage-owner.js';
 import { createFleetExecutionAdmission } from './execution-admission.js';
 import { openStageTokenWitness } from './stage-token-witness.js';
 import { createFairLaneScheduler } from './fair-lane-scheduler.js';
+import { computerFromLedgerRow, isComputer } from '../computer-records.js';
 export { createFairLaneScheduler } from './fair-lane-scheduler.js';
 import { assert, fleetCreditQuote, text, same } from './contract.js';
 import { openComputerIdentity, readOwnFile } from './computer-identity.js';
@@ -79,6 +80,17 @@ export function fleetHardwareSnapshot() {
     maxBufferSize: device?.limits.maxBufferSize ?? null,
     gpuBuffers: memory && { scope: memory.scope, liveBytes: memory.liveBytes, peakBytes: memory.peakBytes,
       maxBytes: memory.maxBytes, categories: memory.categories } };
+}
+
+/**
+ * Each directory row with its canonical computer record (contracts/computer-records.js): the ledger's own when it
+ * states a valid one, else read from the row's older fields, as a ledger that predates the record writes them.
+ */
+export function withComputerRecords(computers) {
+  return computers.map(row => {
+    if (isComputer(row?.computer)) return row;
+    try { return { ...row, computer: computerFromLedgerRow(row) }; } catch { return { ...row, computer: null }; }
+  });
 }
 
 /** A direct reply proves this requester process is online, not that it contributes GPU capacity. */
@@ -652,7 +664,7 @@ export async function openFleetNativeHost({ configuration, loadRtc = () => impor
           }) };
       });
       return { schema: 'reploid.fleet-browser/v1', privacyProtocol: 'reploid.paired-route/v3', poolIdentity, requester: { id: config.computerId, name: config.name, participantId: identity.peerId },
-        models, computers: includeRequesterPresence(network.computers, state(), network.at), at: network.at };
+        models, computers: includeRequesterPresence(withComputerRecords(network.computers), state(), network.at), at: network.at };
     },
     async receipt(id) { assert(credits, 'Service credits are not configured'); return credits.call('request', { id }); },
     /**

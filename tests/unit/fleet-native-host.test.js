@@ -1,12 +1,13 @@
 // @vitest-environment node
 import { afterEach, expect, it } from 'vitest';
+import { computerFromLedgerRow } from '../../packages/reploid/src/contracts/computer-records.js';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import os from 'node:os';
 import { PassThrough } from 'node:stream';
 import { EventEmitter } from 'node:events';
 import { setTimeout as delay } from 'node:timers/promises';
-import { runFleetNativeCommands, includeRequesterPresence, activeProviderRequests, openComputerIdentity, openFleetNativeHost, createFairLaneScheduler, startFleetPresence } from '../../server/fleet/native-host.js';
+import { runFleetNativeCommands, includeRequesterPresence, withComputerRecords, activeProviderRequests, openComputerIdentity, openFleetNativeHost, createFairLaneScheduler, startFleetPresence } from '../../server/fleet/native-host.js';
 import { openFleetCredits } from '../../server/fleet/credits.js';
 import { startFleetService, createFleetClient } from '../../server/fleet/service.js';
 const roots = [];
@@ -62,6 +63,16 @@ it('reports a live requester without inventing local GPU capacity or another com
     { computerId: 'mac', activeRequests: 1, preparing: false, hardware: { freeHostBytes: 123 } }, 456);
   expect(rows[0]).toMatchObject({ online: true, requester: true, resident: null, activeRequests: 1, observedAt: 456 });
   expect(rows[0].freeGpuBytes).toBeUndefined(); expect(rows[1].online).toBe(false);
+});
+
+it('reads each directory row\'s computer record, deriving it for a ledger that predates the record', () => {
+  const stated = computerFromLedgerRow({ id: 'bee', participantIds: [], online: false }, { accountId: 'owner-2' });
+  const rows = withComputerRecords([{ id: 'mac', participantIds: [`peer:${'a'.repeat(24)}`], online: false },
+    { id: 'bee', participantIds: [], online: false, computer: stated }, { id: 'bad', participantIds: [], computer: { schema: 'reploid.computer/1' } }]);
+  expect(rows[0].computer).toEqual(computerFromLedgerRow(rows[0]));
+  expect(rows[1].computer).toEqual(stated);
+  // An invalid stated record is not trusted: the row's own fields are read instead.
+  expect(rows[2].computer).toMatchObject({ computerId: 'bad', identityBasis: 'ledger-enrollment', offers: [] });
 });
 
 it('drains a daemon after stdin reaches EOF during asynchronous startup', async () => {

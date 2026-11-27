@@ -22,6 +22,7 @@ import { createFleetExecutionAdmission } from '../../server/fleet/execution-admi
 import { acceptFleetOutputLimitPolicy } from '../../server/fleet/terminal-policy.js';
 import { createExecutionPolicy } from '../../packages/reploid/src/chat/execution-policy.js';
 import { hashJson } from '../../packages/reploid/src/artifacts/signatures.js';
+import { computerFromLedgerRow, parseComputer } from '../../packages/reploid/src/contracts/computer-records.js';
 
 const model = { id: 'test-model', identity: 'sha256:' + 'a'.repeat(64) };
 let root, credits, service, keys, client;
@@ -218,6 +219,18 @@ it('accepts bounded clock skew but rejects stale and reordered capacity observat
   expect(await client.call('observe', observation)).toEqual({ accepted: true });
   await expect(client.call('observe', { ...observation, observedAt: observation.observedAt - 1 })).rejects.toThrow('Older observation');
   await expect(client.call('observe', { ...observation, observedAt: Date.now() - 60000 })).rejects.toThrow('clock-skew');
+});
+
+it('states each enrolled computer as a reploid.computer/1 record beside the directory row', async () => {
+  await client.call('observe', { id: 'machine-0', participantId: keys[0].peerId, observedAt: Date.now(),
+    activeRequests: 0, preferences: { enabled: false, models: [] }, measurements: [] });
+  const { computers } = await client.call('computers', {});
+  for (const row of computers) expect(parseComputer(row.computer)).toEqual(computerFromLedgerRow(row, { accountId: row.computer.accountId, observationMaxAgeMs: 10000 }));
+  const [own, other] = computers;
+  expect(own.computer).toMatchObject({ computerId: 'machine-0', identityBasis: 'ledger-enrollment', participantIds: [keys[0].peerId], accountId: 'machine-0' });
+  // Online with nothing resident, or offline: no inference offer, whatever the account or its enrollment.
+  expect(own.computer.offers).toEqual([]);
+  expect(other).toMatchObject({ online: false, computer: { computerId: 'machine-1', offers: [] } });
 });
 
 it('refuses execution without held credit, changed inputs, or another consumer’s authorization', async () => {
