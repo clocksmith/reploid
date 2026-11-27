@@ -1224,6 +1224,16 @@ every step above applies unchanged. Source:
   acceptance, settles at zero with its stop; the provider then closes claiming
   nothing. These calls are neither resent nor recovered after a lost connection:
   their holds are fenced and the release window decides them.
+- **A host on a release before the envelope scores nothing across it.** Such a
+  provider advertises no `supportedOperations`, so a current requester reads its
+  offer as generation only and refuses a score for it synchronously: no hold, no
+  frame. Such a requester asks with the receipt-bound `reploid:target-score-request`
+  (its payload in the first frame, no admission, hold or terms); a current
+  provider answers it with a refusal before reading or running anything. Either
+  way Daily's turn completes without a score, so scores need the requester and its
+  provider on matching releases. `tests/unit/scoring-rollout-old-peers.test.js`
+  replays a recorded old-release transcript; `npm run verify:scoring-rollout --
+  --old-root DIR` runs both releases side by side as separate processes.
 
 ### Release window
 

@@ -12,7 +12,8 @@ import profile from '../shared/config/reploid-library.json' with { type: 'json' 
 import { createSwarmTransport, createRoomIntroductionAdmission } from '../shared/vendor/reploid/transport/index.js';
 import { openNativeGenerationJournal } from './native-generation-journal.js';
 import { createModelAdapterResolver } from '../shared/vendor/reploid/adapters/model-adapter.js';
-import { attachTargetScoring, createAutomaticPartitions, createPeerGenerationMesh, createPartitionNetwork, requestTargetScore } from '../shared/vendor/reploid/mesh/index.js';
+import { TARGET_SCORE_REQUEST, TARGET_SCORE_RESULT, createAutomaticPartitions, createPeerGenerationMesh, createPartitionNetwork, requestTargetScore }
+  from '../shared/vendor/reploid/mesh/index.js';
 import { attachMeshOperations, dispatchMeshOperation, requestMeshOperation } from '../shared/vendor/reploid/mesh/operation-envelope.js';
 import { createWholeModelRequester } from './whole-model-requester.js';
 import { signGenerationTerminal } from '../shared/vendor/reploid/artifacts/generation-terminal.js';
@@ -260,9 +261,16 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
     await mesh.connect();
     ownerPairing?.attach({ transport, verifyPeer: mesh.verifyPeerIdentity, currentPeer: mesh.getVerifiedPeerIdentity });
     guestAccess?.attach({ transport, verifyPeer: mesh.verifyPeerIdentity, currentPeer: mesh.getVerifiedPeerIdentity });
-    // Only the consumer of an answer this host produced can ask it to score a target against that answer.
-    if (whole) attachTargetScoring({ transport, identity, verifyPeer: mesh.verifyPeerIdentity, currentPeer: mesh.getVerifiedPeerIdentity,
-      score: request => whole.scoreTarget(request) });
+    // A score is served only as an admitted, accounted mesh operation (below). A requester on a release before the
+    // envelope asks with the receipt-bound score request (mesh/target-scoring.js), its payload in the first frame and no
+    // admission, hold or signed terms: it is answered with a refusal at once, before anything is read or run, so its
+    // Daily turn goes on without a score instead of waiting out its timeout.
+    if (whole) transport.onMessage(TARGET_SCORE_REQUEST, (peer, input) => {
+      const requestId = input?.requestId;
+      if (typeof requestId !== 'string' || !/^[0-9a-f-]{36}$/.test(requestId) || !transport.getPeerBinding(peer)) return;
+      try { transport.sendToPeer(peer, TARGET_SCORE_RESULT, { requestId, error: 'This provider scores only as an admitted mesh operation; nothing was run' }); }
+      catch { /* The requester's timeout ends its wait. */ }
+    });
     // Mesh operations besides generation (mesh/operation-envelope.js) on the resident whole model: authorized against
     // this provider's own offer and by the same host rules as generation (readiness, owner pairing and guests),
     // credit-admitted, accepted under the requester's signed terms before the payload is sent, one at a time like
