@@ -42,9 +42,8 @@ export type DesignIndex = {
   readonly compositions: ReadonlyArray<DesignComposition>;
 };
 
-/** Token groups in reading order: palette, then scales, then purposes. */
+/** Token groups in reading order: scales, then the semantic values each theme maps. */
 export const TOKEN_GROUP_ORDER: ReadonlyArray<string> = [
-  'gray', 'charcoal', 'void', 'silica', 'spectrum', 'alpha', 'size', 'radius', 'border', 'text', 'leading',
-  'weight', 'tracking', 'font', 'angle', 'scale', 'depth', 'motion', 'transition', 'z', 'percent',
-  'color', 'surface', 'shadow', 'space', 'icon', 'row', 'line', 'dialog', 'metric', 'layout', 'diamond', 'other',
+  'size', 'space', 'radius', 'border', 'font', 'text', 'leading', 'weight', 'tracking', 'alpha', 'duration', 'ease', 'z',
+  'color', 'surface', 'shadow', 'other',
 ];

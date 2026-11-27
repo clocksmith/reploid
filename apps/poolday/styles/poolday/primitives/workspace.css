@@ -23,7 +23,7 @@
   position: fixed;
   inset-block-start: var(--pool-param-workspace-gutter);
   inset-inline: var(--pool-param-workspace-gutter);
-  z-index: var(--pool-z-8);
+  z-index: 8;
   display: flex;
   align-items: center;
   gap: var(--pool-size-8);
@@ -59,8 +59,8 @@
   padding: var(--pool-size-16);
   overflow: hidden;
 }
-.pool-home .pool-drawer-start { inset-inline-start: var(--pool-param-workspace-gutter); inline-size: min(var(--pool-layout-threads), calc(100vw - var(--pool-size-32))); }
-.pool-home .pool-drawer-end { inset-inline-end: var(--pool-param-workspace-gutter); inline-size: min(var(--pool-layout-inspector), calc(100vw - var(--pool-size-32))); }
+.pool-home .pool-drawer-start { inset-inline-start: var(--pool-param-workspace-gutter); inline-size: min(var(--pool-size-320), calc(100vw - var(--pool-size-32))); }
+.pool-home .pool-drawer-end { inset-inline-end: var(--pool-param-workspace-gutter); inline-size: min(var(--pool-size-360), calc(100vw - var(--pool-size-32))); }
 .pool-home .pool-drawer-header { display: flex; flex: none; align-items: center; justify-content: space-between; gap: var(--pool-size-8); }
 .pool-home .pool-drawer-header > h2 { margin: 0; }
 .pool-home .pool-drawer-body {
@@ -81,7 +81,7 @@
     --pool-param-dock-inset: max(var(--pool-size-8), env(safe-area-inset-bottom));
     padding-block-start: var(--pool-size-8);
     padding-inline: max(var(--pool-size-8), env(safe-area-inset-left)) max(var(--pool-size-8), env(safe-area-inset-right));
-    padding-block-end: calc(var(--pool-metric-app-bar) + var(--pool-param-dock-inset) + var(--pool-size-8));
+    padding-block-end: calc(var(--pool-size-64) + var(--pool-param-dock-inset) + var(--pool-size-8));
   }
   .pool-home .pool-workspace-bar {
     inset-block-start: auto;
@@ -91,7 +91,7 @@
     justify-content: space-between;
     align-items: stretch;
     gap: var(--pool-size-4);
-    min-block-size: var(--pool-metric-app-bar);
+    min-block-size: var(--pool-size-64);
     padding: var(--pool-size-4) var(--pool-size-8);
   }
   .pool-home .pool-workspace-bar-lead, .pool-home .pool-workspace-bar-end { display: contents; }
@@ -107,7 +107,7 @@
   .pool-home .pool-drawer {
     inset-block-start: var(--pool-size-8);
     inset-inline: max(var(--pool-param-workspace-gutter), env(safe-area-inset-left)) max(var(--pool-param-workspace-gutter), env(safe-area-inset-right));
-    inset-block-end: calc(max(0px, 100dvh - var(--pool-param-workspace-height, 100dvh)) + var(--pool-metric-app-bar) + var(--pool-param-dock-inset) + var(--pool-size-8));
+    inset-block-end: calc(max(0px, 100dvh - var(--pool-param-workspace-height, 100dvh)) + var(--pool-size-64) + var(--pool-param-dock-inset) + var(--pool-size-8));
     inline-size: auto;
   }
 }
@@ -121,7 +121,7 @@
 }
 /* Drawers open from their own side, mirrored (the 7 to the 7 transition), as a reveal that never moves their box;
    reduced motion turns it off above. */
-.pool-home .pool-drawer-start:not([hidden]) { animation: pool-drawer-in-start var(--pool-motion-drawer-duration) var(--pool-motion-nav-easing); }
-.pool-home .pool-drawer-end:not([hidden]) { animation: pool-drawer-in-end var(--pool-motion-drawer-duration) var(--pool-motion-nav-easing); }
+.pool-home .pool-drawer-start:not([hidden]) { animation: pool-drawer-in-start var(--pool-duration-slow) var(--pool-ease-emphasis); }
+.pool-home .pool-drawer-end:not([hidden]) { animation: pool-drawer-in-end var(--pool-duration-slow) var(--pool-ease-emphasis); }
 @keyframes pool-drawer-in-start { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0); } }
 @keyframes pool-drawer-in-end { from { clip-path: inset(0 0 0 100%); } to { clip-path: inset(0); } }

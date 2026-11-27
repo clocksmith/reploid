@@ -1,6 +1,6 @@
 /* Daily arranges Poolday primitives. Colors, materials and type come from Poolday. */
 body.pool-home { min-height:100svh; }
-.daily-header { max-width:var(--pool-metric-nav-width); margin-inline:auto; padding:var(--pool-size-16) var(--pool-space-page-gutter); }
+.daily-header { max-width:var(--pool-size-1280); margin-inline:auto; padding:var(--pool-size-16) var(--pool-space-page-gutter); }
 .daily-header .brand { flex-wrap:nowrap; }
 .daily-main { width:min(calc(100% - var(--pool-size-32)),var(--pool-size-640)); margin:clamp(var(--pool-size-24),10vh,var(--pool-size-96)) auto var(--pool-size-32); }
 .daily-main form > button, #dare button, .attempt button { align-self:flex-start; }

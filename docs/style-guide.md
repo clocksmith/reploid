@@ -133,19 +133,22 @@ The component library, its import layers and its rules are in
 covers the CSS beneath the components and how to choose and lay out controls. The CSS is built in
 three layers, and each layer uses only the one below it.
 
-- **Tokens** (`apps/poolday/styles/poolday/tokens.css`) are every value: one neutral gray
-  ramp named by lightness (`--pool-gray-44` is `#717171`), the prism palette (obsidian
-  void for dark, silica for light, one spectrum), alpha steps, and scales for
-  size, radius, border, text, line height, weight and tracking. Semantic tokens
-  (`--pool-color-page`, `--pool-color-muted`, `--pool-shadow-raised`) map them per
-  theme. Every Poolday custom property is a token.
+- **Tokens** (`apps/poolday/styles/poolday/tokens.css`) are values: a few small scales
+  (size, page spacing, radius, border, type, alpha, motion durations and easings) and the
+  semantic values each theme maps (`--pool-color-page`, `--pool-color-muted`,
+  `--pool-shadow-raised`). A value used once inside one primitive (a stacking order, an
+  angle, a scale step, a dash length) is written in that primitive, not made a token.
+  Only primitives read tokens.
 - **Primitives** (`primitives/*.css`) are the building blocks, written as classes
   that consume tokens: surfaces, cards, wells, dividers, buttons, fields, switches,
-  segmented controls, chips, badges, disclosures, stacks, rows, columns, text styles,
-  prose, bars and the brand mark.
-- **Compositions** (`compositions/*.css`) are screens made of primitives. A converted
-  composition only arranges (grid, flex, position, size, gaps); every look comes from
-  primitive classes in the markup.
+  segmented controls, chips, badges, disclosures, stacks, rows, columns, gaps, text styles,
+  prose, bars and the brand mark. Layout is a primitive too: spacing comes from
+  `pool-stack`, `pool-row`, `pool-columns` and the `pool-gap-*` steps.
+- **Compositions** (`compositions/*.css`, and the React screens in `apps/poolday-react`) are
+  screens made of primitives. A composition reads no token and sets no look; it arranges
+  (grid, flex, position) and every look and spacing comes from primitive classes in the
+  markup. `npm run verify:pool:css` enforces this; the vanilla stylesheets that still read
+  tokens carry a count in `layers.json` (`legacyTokenReferences`) that may only fall.
 
 `apps/poolday/pool-entry.html` loads only these layers, in the order `layers.json` lists, and
 its root carries `class="pool-page"` so the page shell uses the same tokens.
@@ -188,10 +191,10 @@ puts its reason or status first, then Cancel, then the primary at the end.
 ### Rows and the alignment grid
 
 Every list row uses one grid: an icon slot (`pool-icon-box`, a centred
-`--pool-icon-box` square holding a `--pool-icon-md` icon), the text, and a
+24px square holding a 20px icon), the text, and a
 trailing slot for the check, switch, fix or chevron. The text is a title
 (`pool-row-title`) over one status line (`pool-row-status`). Rows are at least
-`--pool-row-double` tall, and the status line keeps its height when it is empty,
+56px (`--pool-size-56`) tall, and the status line keeps its height when it is empty,
 so rows in one list line up whatever their state. Icons are always centred in
 their box, never placed on a text baseline. Longer explanations go in a
 `pool-caption` after the row or in a disclosure, not in the row.

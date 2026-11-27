@@ -3,18 +3,19 @@
  * Verifies the Poolday design-system layering contract:
  *   tokens -> primitives -> compositions
  *
- * - tokens.css          every Poolday custom property: raw palette and scales, and
- *                        semantic tokens mapped per theme. Tokens reference only tokens.
+ * - tokens.css          every Poolday custom property: small scales and semantic values
+ *                        mapped per theme. Tokens reference only tokens.
  * - primitives/*.css     classes that are the building blocks (surface, card, button,
- *                        input, stack, row, columns, text styles...). They consume
- *                        tokens, parameters (--pool-param-*) and runtime inputs only.
- * - compositions/*.css   screens arranged from primitives. A converted composition
- *                        sets no visual property (color, background, border, shadow,
- *                        radius, type, opacity, filter): the look comes from primitive
- *                        classes in the markup. Compositions listed under "legacy" in
- *                        layers.json may only lower their remaining visual count.
- * - Raw palette tokens (gray, charcoal, silica, void, spectrum ramps) stay inside tokens.css;
- *   primitives and compositions consume semantic tokens, so a theme change reaches them.
+ *                        input, stack, row, columns, text styles...). Only primitives
+ *                        read tokens; they also read parameters (--pool-param-*) and
+ *                        runtime inputs.
+ * - compositions/*.css   screens arranged from primitives. A composition reads no token
+ *                        and sets no visual property (color, background, border, shadow,
+ *                        radius, type, opacity, filter): spacing and looks come from
+ *                        primitive classes in the markup. Files under "legacyTokenReferences"
+ *                        and "legacy" in layers.json may only lower those counts.
+ * - Composition scripts (the React app outside its design page, and the vanilla UI) name
+ *   no token either; under "legacyScriptTokenReferences" the vanilla count may only fall.
  * - Keyframes are looks and live in primitives; compositions reference them by name only.
  * - A primitive does not style composition markup through :where() aliases: the markup
  *   carries the primitive class instead (only the .pool-home scope and the .btn alias remain).
@@ -70,11 +71,11 @@ const namedColors = (value, context) => {
     .filter((word) => NAMED_COLORS.has(word) || (SYSTEM_COLORS.has(word) && !forced));
 };
 const POOL_EXCLUSION = ':where(:not(.pool-home, .pool-home *))';
-const RAW_PALETTE = /^--pool-(gray|charcoal|silica|void|spectrum)-/;
 const PRIMITIVE_ALIASES = new Set(['pool-home', 'btn']);
 
-/* Literal policy for component values. Everything a designer tunes is a primitive;
-   what remains is structure. */
+/* Literal policy. Lengths, durations, colours and type values come from tokens. A value that
+   belongs to one primitive is written there: unitless numbers (stacking order, scale, counts,
+   dash lengths), angles, and percentages outside opacity and colour mixing. */
 const TYPE_PROPERTIES = new Set(['font-size', 'font-weight', 'line-height', 'letter-spacing', 'font', 'word-spacing']);
 const STRUCTURAL_PROPERTIES = new Set(['grid-column', 'grid-row', 'grid-area', 'grid-column-start', 'grid-column-end',
   'grid-row-start', 'grid-row-end', 'order', 'flex', 'flex-grow', 'flex-shrink', 'aspect-ratio', 'grid-template-columns',
@@ -97,14 +98,17 @@ const opaqueValue = (value) => {
   do { previous = bare; bare = bare.replace(/var\(\s*--[\w-]+\s*(?:,[^()]*)?\)/g, ' '); } while (bare !== previous);
   return bare.replace(/url\([^)]*\)/g, ' ').replace(/(["'])(?:\\.|(?!\1).)*\1/g, ' ');
 };
-const allowedLiteral = (property, number, unit, multiplier) => {
+const ANGLE_UNITS = new Set(['deg', 'turn', 'rad', 'grad']);
+const allowedLiteral = (property, number, unit, multiplier, value) => {
   if (number === 0) return true;
   if (unit === '') {
     if (multiplier || STRUCTURAL_PROPERTIES.has(property)) return true;
-    return number === 1 && !TYPE_PROPERTIES.has(property) && property !== 'z-index';
+    return !TYPE_PROPERTIES.has(property) && (property !== 'opacity' || number === 1);
   }
   if (unit === 'fr') return /^grid-(template|auto)-/.test(property);
-  if (unit === '%' || VIEWPORT_UNITS.has(unit)) return GEOMETRY_PROPERTIES.has(property) || PARAMETER_VAR.test(property);
+  if (ANGLE_UNITS.has(unit)) return true;
+  if (unit === '%') return property !== 'opacity' && !/color-mix\(/.test(value);
+  if (VIEWPORT_UNITS.has(unit)) return GEOMETRY_PROPERTIES.has(property) || PARAMETER_VAR.test(property);
   return false;
 };
 const literalViolations = (property, value) => {
@@ -113,7 +117,7 @@ const literalViolations = (property, value) => {
     const before = bare.slice(0, match.index).trimEnd().slice(-1);
     const after = bare.slice(match.index + match[0].length).trimStart()[0];
     const multiplier = before === '*' || before === '/' || after === '*';
-    return !allowedLiteral(property, Number(match[1]), (match[2] || '').toLowerCase(), multiplier);
+    return !allowedLiteral(property, Number(match[1]), (match[2] || '').toLowerCase(), multiplier, value);
   }).map((match) => match[0]);
 };
 
@@ -227,6 +231,35 @@ const checkInlineStyles = () => {
   }
 };
 
+/* Composition scripts name no token: the React app outside its design page (which documents the
+   tokens) and the vanilla UI outside its shared components. Vanilla files under
+   "legacyScriptTokenReferences" may only lower their count. */
+const SCRIPT_SOURCES = [
+  { dir: 'apps/poolday-react/src', skip: /\/features\/design\/|\.generated\./ },
+  { dir: 'apps/poolday/ui', skip: /\/react\/|\/components\/|\.bundle\.js$/ },
+];
+const listScripts = (dir) => readdirSync(path.join(ROOT, dir), { recursive: true })
+  .filter((file) => /\.(js|mjs|ts|tsx)$/.test(file)).map((file) => path.join(dir, file));
+const checkScriptTokens = (manifest, tokenNames) => {
+  const legacy = manifest.legacyScriptTokenReferences ?? {};
+  for (const { dir, skip } of SCRIPT_SOURCES) {
+    for (const file of listScripts(dir)) {
+      if (skip.test(`/${file}`)) continue;
+      let count = 0, first = 0;
+      readFileSync(path.join(ROOT, file), 'utf8').split('\n').forEach((text, index) => {
+        for (const [name] of text.matchAll(/--pool-[a-z0-9-]+/g)) {
+          if (!tokenNames.has(name)) continue;
+          count += 1;
+          first ||= index + 1;
+        }
+      });
+      const allowed = legacy[file] ?? 0;
+      if (count > allowed) report(file, first, `${count} token reference(s) in a composition script${allowed ? ` exceed the ${allowed} left to convert` : ''}; use a primitive or a --pool-param-*`);
+      if (count < allowed) console.log(`[poolday-css-layers] ${file}: ${count} token references left (lower "legacyScriptTokenReferences" in layers.json to ${count})`);
+    }
+  }
+};
+
 const violations = [];
 const report = (layer, line, message) => violations.push(`${layer}:${line} ${message}`);
 
@@ -270,14 +303,17 @@ const main = () => {
     for (const ref of varRefs(value)) if (!tokenNames.has(ref)) report(tokens.file, line, `token ${property} references ${ref}, which is not a token`);
   });
 
+  checkScriptTokens(manifest, tokenNames);
+
   // Primitives and compositions consume tokens, parameters and runtime inputs, with structural literals only.
   // A converted composition only arranges: its look comes from primitive classes in the markup.
   // A legacy composition may not grow its remaining visual declarations.
   const legacy = manifest.legacy ?? {};
+  const legacyTokens = manifest.legacyTokenReferences ?? {};
   for (const file of [...manifest.primitives, ...manifest.compositions]) {
     const layer = readLayer(file);
     const converted = manifest.compositions.includes(file) && !(file in legacy);
-    let visuals = 0;
+    let visuals = 0, tokenRefs = 0;
     const isComposition = manifest.compositions.includes(file);
     const seenKeyframes = new Set(), seenAliases = new Set();
     walkDeclarations(layer.clean, ({ property, value, line, context }) => {
@@ -302,7 +338,10 @@ const main = () => {
       if (COLOR_LITERAL.test(value) || namedColors(value, context).length) report(layer.file, line, `color literal (${property}): ${value}`);
       for (const ref of varRefs(value)) {
         if (!JS_CONTRACT_VARS.has(ref) && !PARAMETER_VAR.test(ref) && !tokenNames.has(ref)) report(layer.file, line, `${ref} is not a token (${property})`);
-        if (RAW_PALETTE.test(ref)) report(layer.file, line, `raw palette token ${ref} outside tokens.css; use a semantic token (${property})`);
+        if (isComposition && tokenNames.has(ref)) {
+          tokenRefs += 1;
+          if (!(file in legacyTokens)) report(layer.file, line, `composition reads token ${ref}; put a primitive class in the markup (${property})`);
+        }
       }
       if (!property.startsWith('--') || PARAMETER_VAR.test(property)) {
         const literals = literalViolations(property, value);
@@ -316,6 +355,10 @@ const main = () => {
     if (file in legacy && visuals > legacy[file]) {
       report(layer.file, 1, `${visuals} visual declarations exceed the ${legacy[file]} left to convert; move looks to primitives instead`);
     }
+    if (file in legacyTokens && tokenRefs > legacyTokens[file]) {
+      report(layer.file, 1, `${tokenRefs} token references exceed the ${legacyTokens[file]} left to convert; use primitive classes instead`);
+    }
+    if (file in legacyTokens && tokenRefs < legacyTokens[file]) console.log(`[poolday-css-layers] ${file}: ${tokenRefs} token references left (lower "legacyTokenReferences" in layers.json to ${tokenRefs})`);
     if (file in legacy && visuals < legacy[file]) console.log(`[poolday-css-layers] ${file}: ${visuals} visual declarations left (lower "legacy" in layers.json to ${visuals})`);
   }
 

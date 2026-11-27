@@ -25,7 +25,7 @@
 .chat-model-choices [data-choice-row] { display: grid; grid-template-columns: minmax(0, 1fr); }
 .chat-model-choices [data-choice-row] > :is(.chat-model-choice, [data-inspect-model-providers]) { grid-area: 1 / 1; }
 .chat-model-choices [data-choice-row]:has(> [data-inspect-model-providers]:not([hidden])) > .chat-model-choice { padding-inline-end: calc(var(--pool-size-44) + var(--pool-size-8)); }
-.chat-model-choices [data-inspect-model-providers] { position: relative; z-index: var(--pool-z-2); justify-self: end; align-self: start; margin-block-start: calc((var(--pool-row-double) - var(--pool-size-44)) / 2); }
+.chat-model-choices [data-inspect-model-providers] { position: relative; z-index: 2; justify-self: end; align-self: start; margin-block-start: calc((var(--pool-size-56) - var(--pool-size-44)) / 2); }
 .chat-history-handover { width: min(100%, var(--pool-size-720)); align-self: center; margin-inline: auto; }
 .chat-message-row { min-width: 0; width: 100%; display: grid; gap: var(--pool-size-8); }
 .chat-message-row.is-user { width: fit-content; max-width: 85%; align-self: flex-end; }
@@ -49,7 +49,7 @@
 /* Below the text: attach, Answer on (fills and truncates), then Send at the right edge. */
 .pool-home :is(.chat-search-toggle, .chat-composer-toolbar > [data-open-privacy]) { display: inline-flex; align-items: center; justify-content: center; gap: var(--pool-size-4); padding-inline: var(--pool-size-8); flex: none; min-width: var(--pool-size-44); }
 
-.chat-visually-hidden { position: absolute; width: var(--pool-size-1); height: var(--pool-size-1); padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.chat-visually-hidden { position: absolute; width: var(--pool-border-thin); height: var(--pool-border-thin); padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .network-inspector :is(.pool-stack, section) > .pool-button:not(.pool-choice) { align-self: flex-start; justify-self: start; }
 @media (max-width: 760px) {
   .chat-message-row { max-width: 100%; }
@@ -61,13 +61,13 @@
 .chat-message-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--pool-size-8); }
 .chat-message-actions p, .chat-message-actions details { flex-basis: 100%; }
 .chat-message-actions pre { white-space: pre-wrap; overflow-wrap: anywhere; }
-.chat-message-actions [data-copy-message] { display: grid; place-items: center; width: var(--pool-size-44); min-height: var(--pool-size-44); padding: 0; transition: opacity var(--pool-motion-nav), transform var(--pool-motion-nav), color var(--pool-motion-nav); }
+.chat-message-actions [data-copy-message] { display: grid; place-items: center; width: var(--pool-size-44); min-height: var(--pool-size-44); padding: 0; transition: opacity var(--pool-duration-slow) var(--pool-ease-emphasis), transform var(--pool-duration-slow) var(--pool-ease-emphasis), color var(--pool-duration-slow) var(--pool-ease-emphasis); }
 .chat-message-actions:empty { display: none; }
 .chat-message-actions [data-retry-attempt] { display: inline-flex; align-items: center; gap: var(--pool-size-8); }
 
 /* Bound the workspace, not its growing transcript. Dialogs occupy the top layer. */
 .pool-home:is([data-pool-route-id='home'], [data-pool-route-id='network']) { --pool-param-workspace-height: 100dvh; box-sizing: border-box; height: var(--pool-param-workspace-height); min-height: 0; display: flex; flex-direction: column; overflow: hidden; }
-.pool-home:is([data-pool-route-id='home'], [data-pool-route-id='network']) > .pool-route-content { flex: 1; min-height: 0; transition: width var(--pool-motion-nav), margin-right var(--pool-motion-nav); }
+.pool-home:is([data-pool-route-id='home'], [data-pool-route-id='network']) > .pool-route-content { flex: 1; min-height: 0; transition: width var(--pool-duration-slow) var(--pool-ease-emphasis), margin-right var(--pool-duration-slow) var(--pool-ease-emphasis); }
 .reploid-chat-workspace { height: 100%; min-height: 0; }
 .chat-message-content :is(h1, h2, h3, h4, h5, h6) { margin-block: var(--pool-size-8); }
 .chat-message-content :is(ul, ol, table) { white-space: normal; }
@@ -102,7 +102,7 @@
    Threads, Computers and Settings open workspace destinations. */
 .pool-home:is([data-pool-route-id='home'], [data-pool-route-id='network']) {
   --pool-param-chat-gutter: var(--pool-size-16);
-  --pool-param-bar-height: calc(var(--pool-size-44) + var(--pool-size-4) * 2 + var(--pool-size-1) * 2);
+  --pool-param-bar-height: calc(var(--pool-size-44) + var(--pool-size-4) * 2 + var(--pool-border-thin) * 2);
   padding: var(--pool-param-chat-gutter);
   padding-top: calc(var(--pool-param-bar-height) + var(--pool-param-chat-gutter) * 2);
   gap: 0;
@@ -132,7 +132,7 @@
 .pool-home .pool-power-tower sup.pool-seven-small { order: 0; transform: translateY(calc(-1 * var(--pool-size-8))); }
 .pool-home .pool-power-tower[data-inverse] .pool-seven-main { order: 0; }
 .pool-home .pool-power-tower[data-inverse] .pool-seven-small { order: 1; }
-.pool-home :is(.pool-primary-brand, [data-pool-settings] > summary) { transition: background-color var(--pool-motion-button), box-shadow var(--pool-motion-button), border-color var(--pool-motion-button); }
+.pool-home :is(.pool-primary-brand, [data-pool-settings] > summary) { transition: background-color var(--pool-duration-base) var(--pool-ease-standard), box-shadow var(--pool-duration-base) var(--pool-ease-standard), border-color var(--pool-duration-base) var(--pool-ease-standard); }
 @media (prefers-reduced-motion: reduce) {
   .reploid-chat-workspace,
 .pool-home :is(.pool-primary-brand, [data-pool-settings] > summary, .chat-rail-toolbar .pool-button),

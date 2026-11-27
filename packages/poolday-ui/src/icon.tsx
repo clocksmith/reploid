@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import { cx } from './internal.js';
 
 // Line icons on a 24-unit grid, the same set as apps/poolday/ui/components/interface-icons.js.
-// Size and colour come from the icon box primitive (`--pool-icon-md`, `currentColor`).
+// Size and colour come from the icon box primitive (20px, `currentColor`).
 const PATHS = {
   privacy: <path d="m12 3 8 3v5c0 5-3.5 8-8 10-4.5-2-8-5-8-10V6l8-3Z" />,
   help: (

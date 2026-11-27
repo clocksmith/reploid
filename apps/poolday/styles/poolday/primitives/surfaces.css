@@ -46,7 +46,7 @@
 .pool-home .pool-bar > span { flex: var(--pool-param-share) 1 0; background: var(--pool-color-ink); }
 .pool-home .pool-bar > span:nth-child(even) { background: var(--pool-color-muted); }
 .pool-home .pool-dot { display: inline-flex; align-items: center; gap: var(--pool-size-4); }
-.pool-home .pool-dot::before { content: ''; flex: none; width: var(--pool-size-8); height: var(--pool-size-8); border-radius: var(--pool-radius-round); background: currentColor; }
+.pool-home .pool-dot::before { content: ''; flex: none; width: var(--pool-size-8); height: var(--pool-size-8); border-radius: 50%; background: currentColor; }
 .pool-home .pool-dot.pool-dot-open::before { background: transparent; border: var(--pool-border-hairline) solid currentColor; }
 .pool-home .pool-meter { width: var(--pool-size-16); height: var(--pool-size-16); pointer-events: none; }
 .pool-home .pool-meter-track { stroke: var(--pool-color-line); }
@@ -59,7 +59,7 @@
 .pool-home .pool-edge-bottom { border-bottom: var(--pool-border-hairline) solid var(--pool-color-line); }
 
 /* Pulse only for observed active work; waiting and attention remain static. */
-.pool-home .pool-dot.pool-dot-pulse::before { animation: pool-dot-pulse var(--pool-motion-time-1500) ease-in-out infinite; }
+.pool-home .pool-dot.pool-dot-pulse::before { animation: pool-dot-pulse var(--pool-duration-loop) ease-in-out infinite; }
 @keyframes pool-dot-pulse { 0%, 100% { opacity: 1; } 50% { opacity: var(--pool-alpha-32); } }
 /* Motion looks used by compositions; compositions reference them by name only. */
 @keyframes pool-pulse-gold {
@@ -69,7 +69,7 @@
   }
   50% {
     opacity: var(--pool-alpha-32);
-    transform: scale(var(--pool-scale-0-85));
+    transform: scale(0.85);
   }
   100% {
     opacity: 1;
@@ -78,7 +78,7 @@
 }
 @keyframes pool-spin {
   from { transform: rotate(0deg); }
-  to { transform: rotate(var(--pool-angle-360)); }
+  to { transform: rotate(360deg); }
 }
 @keyframes pool-power-rise {
   0%, 100% { transform: translateY(-35%); opacity: var(--pool-alpha-48); }
@@ -104,15 +104,15 @@
 .pool-home .pool-spinner-host { display: inline-flex; align-items: center; }
 .pool-home .pool-spinner {
   display: inline-block;
-  inline-size: var(--pool-icon-sm);
-  block-size: var(--pool-icon-sm);
+  inline-size: var(--pool-size-16);
+  block-size: var(--pool-size-16);
   border: var(--pool-border-thick) solid var(--pool-color-line);
   border-block-start-color: var(--pool-color-ink);
-  border-radius: var(--pool-radius-round);
-  animation: pool-spin var(--pool-motion-time-1100) linear infinite;
+  border-radius: 50%;
+  animation: pool-spin var(--pool-duration-loop) linear infinite;
 }
 @media (prefers-reduced-motion: reduce) { .pool-home .pool-spinner { animation: none; } }
-.pool-home .pool-swatch { display: inline-grid; place-items: center; flex: none; inline-size: var(--pool-size-40); block-size: var(--pool-size-40); border-radius: var(--pool-radius-sm); color: var(--pool-color-ink); }
+.pool-home .pool-swatch { display: inline-grid; place-items: center; flex: none; inline-size: var(--pool-size-40); block-size: var(--pool-size-40); border-radius: var(--pool-radius-control); color: var(--pool-color-ink); }
 .pool-home :is(.pool-swatch-color, .pool-swatch-image) { background: var(--pool-param-swatch); box-shadow: inset 0 0 0 var(--pool-border-thin) var(--pool-color-line); }
 .pool-home .pool-swatch-shadow { background: var(--pool-color-raised); box-shadow: var(--pool-param-swatch); }
 .pool-home .pool-swatch-length { justify-items: start; inline-size: var(--pool-size-128); }

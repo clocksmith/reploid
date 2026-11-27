@@ -18,7 +18,7 @@
   font-size: var(--pool-text-sm);
   font-weight: var(--pool-weight-medium);
   cursor: pointer;
-  transition: background-color var(--pool-motion-button), box-shadow var(--pool-motion-button), border-color var(--pool-motion-button);
+  transition: background-color var(--pool-duration-base) var(--pool-ease-standard), box-shadow var(--pool-duration-base) var(--pool-ease-standard), border-color var(--pool-duration-base) var(--pool-ease-standard);
 }
 .pool-home :is(.pool-button, :where(.btn)).btn-primary {
   background: var(--pool-surface-primary);
@@ -27,19 +27,19 @@
   font-weight: var(--pool-weight-semibold);
 }
 .pool-home :is(.pool-button, :where(.btn))::before {
-  content: ''; position: absolute; inset: 0; z-index: var(--pool-z-background);
+  content: ''; position: absolute; inset: 0; z-index: -1;
   border-radius: inherit; pointer-events: none;
-  background: radial-gradient(circle at var(--pool-param-pointer-x, var(--pool-percent-center)) var(--pool-param-pointer-y, var(--pool-percent-center)), var(--pool-color-button-fill), var(--pool-color-button-fill-edge));
+  background: radial-gradient(circle at var(--pool-param-pointer-x, 50%) var(--pool-param-pointer-y, 50%), var(--pool-color-button-fill), color-mix(in srgb, var(--pool-color-focus) var(--pool-alpha-4), transparent));
   opacity: 0;
-  transition: opacity var(--pool-motion-button-hover-duration) var(--pool-motion-button-easing);
+  transition: opacity var(--pool-duration-base) var(--pool-ease-standard);
 }
 .pool-home :is(.pool-button, :where(.btn)):hover:not(:disabled)::before { opacity: 1; }
 .pool-home .pool-button-ripple {
-  position: absolute; pointer-events: none; z-index: var(--pool-z-background);
+  position: absolute; pointer-events: none; z-index: -1;
   width: var(--pool-param-ripple-size); height: var(--pool-param-ripple-size);
   left: var(--pool-param-ripple-x); top: var(--pool-param-ripple-y);
   margin-left: calc(-1 * var(--pool-param-ripple-size) / 2); margin-top: calc(-1 * var(--pool-param-ripple-size) / 2);
-  border-radius: var(--pool-radius-round); background: var(--pool-surface-button-ripple);
+  border-radius: 50%; background: var(--pool-surface-button-ripple);
 }
 /* Hover feedback fills the surface without moving the control. */
 .pool-home :is(.pool-button, :where(.btn)):is(:active, [aria-pressed='true'], [aria-current='true'], [aria-expanded='true']):not(:disabled) { box-shadow: var(--pool-shadow-button-pressed); }
@@ -143,7 +143,7 @@
   font-weight: var(--pool-weight-semibold);
   text-align: center;
   text-decoration: none;
-  transition: background var(--pool-transition-fast), color var(--pool-transition-fast), box-shadow var(--pool-transition-fast);
+  transition: background var(--pool-duration-fast), color var(--pool-duration-fast), box-shadow var(--pool-duration-fast);
 }
 
 .pool-home .pool-segment:hover:not(:disabled) {
@@ -180,7 +180,7 @@
   min-height: var(--pool-size-44); padding: var(--pool-size-8) var(--pool-size-16);
   border: var(--pool-border-hairline) solid var(--pool-color-line); box-shadow: none;
   font: inherit; font-size: var(--pool-text-sm); cursor: pointer;
-  transition: background-color var(--pool-motion-button), border-color var(--pool-motion-button);
+  transition: background-color var(--pool-duration-base) var(--pool-ease-standard), border-color var(--pool-duration-base) var(--pool-ease-standard);
 }
 .pool-home button.pool-chip:hover { background: var(--pool-color-raised); border-color: var(--pool-color-muted); }
 .pool-home button.pool-chip:active { background: var(--pool-color-page); }
@@ -213,11 +213,11 @@
   margin-left: auto;
   border-right: var(--pool-border-thick) solid var(--pool-color-muted);
   border-bottom: var(--pool-border-thick) solid var(--pool-color-muted);
-  transform: translateY(calc(-1 * var(--pool-size-2))) rotate(var(--pool-angle-45));
-  transition: transform var(--pool-transition-fast);
+  transform: translateY(calc(-1 * var(--pool-size-2))) rotate(45deg);
+  transition: transform var(--pool-duration-fast);
 }
 .pool-home .pool-disclosure[open] > summary::after {
-  transform: translateY(var(--pool-size-2)) rotate(var(--pool-angle-225));
+  transform: translateY(var(--pool-size-2)) rotate(225deg);
 }
 @media (prefers-reduced-motion: reduce) {
   .pool-home .pool-disclosure > summary::after { transition: none; }
@@ -238,16 +238,16 @@
   border: var(--pool-border-hairline) solid var(--pool-color-line);
   border-radius: var(--pool-radius-pill); background: var(--pool-color-inset);
   box-shadow: none; pointer-events: none;
-  transition: background var(--pool-transition-fast);
+  transition: background var(--pool-duration-fast);
 }
 .pool-home .pool-switch > span {
   position: absolute; top: 50%; left: var(--pool-size-4);
   width: var(--pool-size-20); height: var(--pool-size-20); transform: translateY(-50%);
-  border: 0; border-radius: var(--pool-radius-round); background: var(--pool-color-muted);
+  border: 0; border-radius: 50%; background: var(--pool-color-muted);
   box-shadow: var(--pool-shadow-switch-thumb); pointer-events: none;
-  transition: left var(--pool-motion-time-240) ease-in-out, background var(--pool-transition-fast);
+  transition: left var(--pool-duration-base) ease-in-out, background var(--pool-duration-fast);
 }
-.pool-home .pool-switch[aria-checked='true']::before { background: var(--pool-color-switch-on); }
+.pool-home .pool-switch[aria-checked='true']::before { background: color-mix(in srgb, var(--pool-color-focus) var(--pool-alpha-64), transparent); }
 .pool-home .pool-switch[aria-checked='true'] > span {
   left: calc(100% - var(--pool-size-4) - var(--pool-size-20)); background: var(--pool-color-page);
 }

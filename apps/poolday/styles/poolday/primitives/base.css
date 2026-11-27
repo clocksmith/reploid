@@ -6,7 +6,7 @@
 /* The Poolday page root owns the rem base, page material and color scheme, so the Poolday
    entry loads no stylesheet outside these layers. */
 :root.pool-page {
-  font-size: var(--pool-text-base);
+  font-size: var(--pool-text-sm);
   background: var(--pool-color-page);
   color: var(--pool-color-ink);
   color-scheme: dark;
@@ -24,7 +24,7 @@
   font-family: var(--pool-font-ui);
 }
 /* A theme scope inside a page: the tokens of its theme, without the page material. */
-.pool-home.pool-theme-inline { display: inline-grid; padding: var(--pool-size-4); border-radius: var(--pool-radius-sm); background: var(--pool-color-page); }
+.pool-home.pool-theme-inline { display: inline-grid; padding: var(--pool-size-4); border-radius: var(--pool-radius-control); background: var(--pool-color-page); }
 :where(.pool-home) {
   box-sizing: border-box;
   margin: 0;
@@ -67,7 +67,7 @@
 :where(.pool-home) small { font-size: var(--pool-text-xs); }
 :where(.pool-home) :is(pre, code) {
   font-family: var(--pool-font-mono);
-  font-size: var(--pool-text-base);
+  font-size: var(--pool-text-sm);
   letter-spacing: var(--pool-tracking-tight);
 }
 :where(.pool-home) pre { padding: var(--pool-size-16); overflow-x: auto; white-space: pre; }
@@ -85,11 +85,11 @@
   color: var(--pool-color-ink);
   box-shadow: var(--pool-shadow-inset);
   font-size: var(--pool-text-lg);
-  letter-spacing: var(--pool-tracking-none);
+  letter-spacing: 0;
 }
 :where(.pool-home) :is(input, textarea, select):-webkit-autofill {
   -webkit-text-fill-color: var(--pool-color-ink);
-  box-shadow: 0 0 0 var(--pool-size-960) var(--pool-color-inset) inset;
+  box-shadow: 0 0 0 var(--pool-size-1120) var(--pool-color-inset) inset;
 }
 :where(.pool-home) :is(input, textarea, select):disabled {
   opacity: var(--pool-alpha-48);
@@ -100,7 +100,7 @@
 :where(.pool-home) dialog { border: 0; color: var(--pool-color-ink); }
 :where(.pool-home) dialog::backdrop { background: var(--pool-color-scrim); }
 .pool-home dialog:not([open]) { display: none; }
-.pool-home dialog[open] { animation: pool-dialog-enter var(--pool-motion-time-180) ease-out; }
+.pool-home dialog[open] { animation: pool-dialog-enter var(--pool-duration-fast) ease-out; }
 @keyframes pool-dialog-enter { from { opacity: 0; transform: translateY(var(--pool-size-4)); } to { opacity: 1; transform: translateY(0); } }
 /* For a dialog whose box must stay put from its first frame: it fades in without travel. */
 @keyframes pool-dialog-fade { from { opacity: 0; } to { opacity: 1; } }
@@ -134,9 +134,9 @@
   isolation: isolate;
   overflow: hidden;
   min-height: var(--pool-size-40);
-  padding-left: calc(var(--pool-metric-op-cell) + var(--pool-size-8));
-  transition: background var(--pool-transition-fast), color var(--pool-transition-fast),
-    box-shadow var(--pool-transition-fast), transform var(--pool-transition-fast);
+  padding-left: calc(var(--pool-size-2) + var(--pool-size-8));
+  transition: background var(--pool-duration-fast), color var(--pool-duration-fast),
+    box-shadow var(--pool-duration-fast), transform var(--pool-duration-fast);
 }
 :where(.pool-home) .btn-op::before {
   content: attr(data-op);
@@ -145,8 +145,8 @@
   left: 0;
   display: grid;
   place-items: center;
-  width: var(--pool-metric-op-cell);
-  background: var(--pool-color-ink-12);
+  width: var(--pool-size-2);
+  background: color-mix(in srgb, var(--pool-color-ink) var(--pool-alpha-12), transparent);
   font-weight: var(--pool-weight-bold);
   letter-spacing: 0;
 }
@@ -156,12 +156,12 @@
   left: 0;
   right: 0;
   bottom: 0;
-  height: var(--pool-size-1);
+  height: var(--pool-border-thin);
   background: currentColor;
   opacity: var(--pool-alpha-64);
   transform: scaleX(var(--pool-param-op-progress));
   transform-origin: left center;
-  transition: transform var(--pool-transition-normal);
+  transition: transform var(--pool-duration-base);
 }
 :where(.pool-home) .btn-op:hover { --pool-param-op-progress: 1; }
 
@@ -185,9 +185,9 @@
   :where(.pool-home) *,
   :where(.pool-home) *::before,
   :where(.pool-home) *::after {
-    animation-duration: var(--pool-motion-time-instant) !important;
+    animation-duration: var(--pool-duration-instant) !important;
     animation-iteration-count: 1 !important;
-    transition-duration: var(--pool-motion-time-instant) !important;
+    transition-duration: var(--pool-duration-instant) !important;
     scroll-behavior: auto !important;
   }
 }
@@ -212,7 +212,7 @@
   border-radius: var(--pool-radius-control);
   background: var(--pool-color-inset);
   color: var(--pool-color-ink);
-  font-size: var(--pool-text-base);
+  font-size: var(--pool-text-sm);
   font-weight: var(--pool-weight-regular);
   box-shadow: var(--pool-shadow-inset);
 }
@@ -220,7 +220,7 @@
 .pool-home input:focus,
 .pool-home select:focus,
 .pool-home textarea:focus {
-  outline: var(--pool-border-thick) solid var(--pool-color-field-focus);
+  outline: var(--pool-border-thick) solid color-mix(in srgb, var(--pool-color-muted) var(--pool-alpha-32), transparent);
   outline-offset: var(--pool-border-thick);
 }
 

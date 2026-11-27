@@ -52,7 +52,7 @@
 .permission-summary details > summary { cursor: pointer; padding-block: var(--pool-size-8); }
 .permission-message p { margin-block: var(--pool-size-8); }
 .network-inspector { width: calc(var(--pool-size-480) * 0.75); height: calc(100dvh - var(--pool-size-64) - var(--pool-param-chat-gutter, var(--pool-size-16)) * 2); top: calc(var(--pool-size-64) + var(--pool-param-chat-gutter, var(--pool-size-16))); left: auto; right: var(--pool-param-chat-gutter, var(--pool-size-16)); bottom: var(--pool-param-chat-gutter, var(--pool-size-16)); padding: var(--pool-size-16); }
-.pool-home .network-inspector[open] { animation: pool-inspector-enter var(--pool-motion-time-180); }
+.pool-home .network-inspector[open] { animation: pool-inspector-enter var(--pool-duration-fast); }
 .pool-home:has([data-production-surface]):not(:has([data-chat-workspace])) .network-inspector:modal {
   position: fixed; inset: 0 0 0 auto; width: min(var(--pool-size-480), 100vw);
   height: 100dvh; max-height: 100dvh; margin: 0;
@@ -66,7 +66,7 @@
 /* The panel header stays put; only the body scrolls. */
 .pool-home .network-inspector [data-close-inspector] { flex: none; }
 /* Built-in activities reuse surface/control primitives; rules live in plugins. */
-.pool-home > .pool-route-content > .pool-plugin-shell { max-width: var(--pool-size-960); margin: var(--pool-size-32) auto; display: grid; gap: var(--pool-size-24); }
+.pool-home > .pool-route-content > .pool-plugin-shell { max-width: var(--pool-size-1120); margin: var(--pool-size-32) auto; display: grid; gap: var(--pool-size-24); }
 /* Outside the conversation, the top bar's status and app menu open Computers and Settings. */
 .pool-home:not([data-pool-route-id='home']):not([data-pool-route-id='network']) [data-inspector-navigation] { display: none; }
 .pool-plugin-shell > .pool-button { justify-self: start; }
@@ -96,7 +96,7 @@
 [data-inspector-route] .execution-ribbon-participant { white-space: normal; overflow-wrap: anywhere; }
 [data-inspector-route] .execution-ribbon-wire { flex: none; width: var(--pool-size-16); height: var(--pool-size-16); align-self: start; }
 [data-inspector-route] .execution-ribbon-wire::before { display: none; }
-[data-inspector-route] .execution-ribbon-wire::after { transform: rotate(calc(var(--pool-angle-45) * 2)); }
+[data-inspector-route] .execution-ribbon-wire::after { transform: rotate(calc(45deg * 2)); }
 
 /* Computers list: computers that are connecting, waiting or offering no model are folded away until asked for;
    a line with nothing to say takes no space. */

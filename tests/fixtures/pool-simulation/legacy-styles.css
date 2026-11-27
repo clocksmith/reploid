@@ -7,7 +7,7 @@
   height: 100%;
   min-height: 0;
   overflow: hidden;
-  transition: opacity var(--pool-motion-time-180) ease, visibility var(--pool-motion-time-180) ease;
+  transition: opacity var(--pool-duration-fast) ease, visibility var(--pool-duration-fast) ease;
 }
  .pool-simulation-shell {
   visibility: hidden;
@@ -28,13 +28,13 @@
 .pool-home-stage[data-run-state="inspecting"]
 
 .pool-home-toolbar {
-  --pool-param-toolbar-side-padding: calc(var(--pool-metric-nav-rail) + clamp(var(--pool-size-12), 2vw, var(--pool-size-24)));
+  --pool-param-toolbar-side-padding: calc(var(--pool-size-64) + clamp(var(--pool-size-12), 2vw, var(--pool-size-24)));
   position: relative;
-  z-index: var(--pool-z-5);
+  z-index: 5;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   align-items: center;
   column-gap: clamp(var(--pool-size-12), 2vw, var(--pool-size-24));
-  min-height: calc(var(--pool-metric-menu-square) + var(--pool-size-16) * 2);
+  min-height: calc(var(--pool-size-48) + var(--pool-size-16) * 2);
   padding: var(--pool-size-16) var(--pool-param-toolbar-side-padding) var(--pool-size-8);
 }

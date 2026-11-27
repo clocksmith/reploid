@@ -38,8 +38,8 @@ describe('design index', () => {
 
   it('reads declared values per theme from tokens.css', () => {
     const values = parseTokenValues(tokensCss);
-    expect(values.get('--pool-gray-44')).toEqual({ dark: '#717171', light: null });
-    expect(values.get('--pool-color-ink')).toEqual({ dark: 'var(--pool-void-ink)', light: 'var(--pool-silica-ink)' });
+    expect(values.get('--pool-size-8')).toEqual({ dark: '8px', light: null });
+    expect(values.get('--pool-color-ink')).toEqual({ dark: '#f8fafc', light: '#0f172a' });
   });
 });
 

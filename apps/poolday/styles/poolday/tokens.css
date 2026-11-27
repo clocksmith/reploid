@@ -2,46 +2,18 @@
    Poolday Design System - Tokens
    tokens -> primitives -> compositions
 
-   Every Poolday custom property is a token. Raw values live in the
-   palette and scales; semantic tokens name what a value is for and map
-   per theme. Primitives (classes) consume tokens; compositions arrange
-   primitives. Tokens reference only other tokens.
+   Tokens are values: a few small scales and the semantic values each theme
+   maps. Only primitives read tokens. Compositions arrange primitive classes
+   and read no token. Tokens reference only other tokens.
+
+   What is not a token: a value used once inside one primitive (a stacking
+   order, an angle, a scale step, a dash length) is written in that
+   primitive. A token exists only for a value people tune across the system.
    ============================================ */
 
 :root.pool-page,
 .pool-home {
-  /* Palette: one neutral ramp, named by lightness, and the alpha steps. */
-  --pool-gray-0: #000000;
-  --pool-charcoal-page: #141619;
-  --pool-charcoal-inset: #101215;
-  --pool-charcoal-raised: rgb(28 30 34 / 82%);
-  --pool-gray-44: #717171;
-  --pool-gray-100: #ffffff;
-  /* Prism palette: obsidian void and silica for the page; one spectrum per theme. */
-  --pool-void-ink: #f8fafc;
-  --pool-void-muted: #94a3b8;
-  --pool-silica-95: #eef2f9;
-  --pool-silica-98: #f7f9fd;
-  --pool-silica-ink: #0f172a;
-  --pool-silica-muted: #475569;
-  --pool-spectrum-cyan: #38bdf8;
-  --pool-spectrum-violet: #c084fc;
-  --pool-spectrum-rose: #fb7185;
-  --pool-spectrum-green: #34d399;
-  --pool-spectrum-indigo: #4f46e5;
-  --pool-spectrum-on-light: #030712;
-  --pool-spectrum-amber: #fbbf24;
-  --pool-spectrum-amber-deep: #b45309;
-  --pool-spectrum-rose-deep: #be123c;
-  --pool-spectrum-green-deep: #047857;
-  --pool-alpha-4: 4%;
-  --pool-alpha-12: 12%;
-  --pool-alpha-32: 32%;
-  --pool-alpha-48: 48%;
-  --pool-alpha-64: 64%;
-
-  /* Scales */
-  --pool-size-1: 1px;
+  /* Space and size: one ramp in px. */
   --pool-size-2: 2px;
   --pool-size-4: 4px;
   --pool-size-8: 8px;
@@ -65,25 +37,30 @@
   --pool-size-480: 480px;
   --pool-size-640: 640px;
   --pool-size-720: 720px;
-  --pool-size-960: 960px;
   --pool-size-1120: 1120px;
   --pool-size-1280: 1280px;
+  /* Page rhythm: the one spacing that changes with the viewport. */
+  --pool-space-page-gap: var(--pool-size-24);
+  --pool-space-page-gutter: var(--pool-size-32);
+
+  /* Shape */
   --pool-radius-xs: 4px;
-  --pool-radius-sm: 8px;
   --pool-radius-control: 10px;
   --pool-radius-panel: 16px;
   --pool-radius-pill: 999px;
-  --pool-radius-round: 50%;
   --pool-border-hairline: 0.5px;
   --pool-border-thin: 1px;
   --pool-border-thick: 2px;
+
+  /* Type */
+  --pool-font-ui: Inter, 'Avenir Next', 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  --pool-font-display: 'Avenir Next', Inter, 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --pool-font-mono: 'SF Mono', Menlo, Consolas, 'DejaVu Sans Mono', monospace;
   --pool-text-micro: 10px;
   --pool-text-xs: 12px;
   --pool-text-sm: 14px;
-  --pool-text-base: 15px;
   --pool-text-lg: 18px;
-  --pool-text-xl: 22px;
-  --pool-text-2xl: 26px;
+  --pool-text-xl: 24px;
   --pool-text-display: 32px;
   --pool-leading-solid: 1;
   --pool-leading-tight: 1.2;
@@ -94,153 +71,91 @@
   --pool-weight-semibold: 600;
   --pool-weight-bold: 700;
   --pool-tracking-tight: -0.025em;
-  --pool-tracking-none: 0;
   --pool-tracking-wide: 0.05em;
   --pool-tracking-label: 0.1em;
 
-  /* Dark theme: charcoal, prism edges, and restrained raised/inset surfaces. */
-  --pool-color-page: var(--pool-charcoal-page);
-  --pool-color-raised: var(--pool-charcoal-raised);
-  --pool-color-inset: var(--pool-charcoal-inset);
-  --pool-color-line: rgb(255 255 255 / 9%);
-  --pool-color-muted: var(--pool-void-muted);
-  --pool-color-ink: var(--pool-void-ink);
-  --pool-color-focus: var(--pool-spectrum-cyan);
-  --pool-color-scrim: color-mix(in srgb, var(--pool-gray-0) var(--pool-alpha-48), transparent);
-  --pool-color-field-focus: color-mix(in srgb, var(--pool-gray-44) var(--pool-alpha-32), transparent);
-  --pool-color-ink-12: color-mix(in srgb, var(--pool-color-ink) var(--pool-alpha-12), transparent);
-  --pool-color-switch-on: color-mix(in srgb, var(--pool-spectrum-cyan) var(--pool-alpha-64), transparent);
-  /* Status tones, used sparingly: a dot or badge for ready, pending and unavailable, never a whole surface. */
-  --pool-color-status-ready: var(--pool-spectrum-green);
-  --pool-color-status-pending: var(--pool-spectrum-amber);
-  --pool-color-status-unavailable: var(--pool-color-muted);
-  --pool-color-status-error: var(--pool-spectrum-rose);
-  --pool-color-group: color-mix(in srgb, var(--pool-color-ink) var(--pool-alpha-4), transparent);
-  --pool-color-on-primary: var(--pool-spectrum-on-light);
-  --pool-surface-primary: linear-gradient(135deg, var(--pool-spectrum-cyan), var(--pool-spectrum-violet));
-  --pool-shadow-primary: 0 3px 10px rgb(0 0 0 / 24%), inset 0 1px 0 rgb(255 255 255 / 24%), inset 0 -1px 0 rgb(0 0 0 / 12%);
-  --pool-shadow-primary-hover: 0 5px 14px rgb(0 0 0 / 28%), inset 0 1px 0 rgb(255 255 255 / 40%), inset 0 -1px 0 rgb(0 0 0 / 12%);
-  --pool-shadow-primary-pressed: inset 0 2px 4px rgb(0 0 0 / 25%), inset 0 -1px 0 rgb(255 255 255 / 16%);
-  --pool-color-button-fill: rgb(255 255 255 / 12%);
-  --pool-color-button-fill-edge: rgb(56 189 248 / 5%);
-  --pool-percent-center: 50%;
-  --pool-surface-button-ripple: radial-gradient(circle, transparent 38%, rgb(255 255 255 / 25%) 42%, rgb(192 132 252 / 20%) 45%, transparent 49%), radial-gradient(circle at 35% 32%, rgb(255 255 255 / 65%) 0.7%, transparent 1.8%), radial-gradient(circle at 67% 38%, rgb(56 189 248 / 65%) 0.6%, transparent 1.5%), radial-gradient(circle at 56% 69%, rgb(192 132 252 / 60%) 0.8%, transparent 1.8%);
-  --pool-surface-backdrop: blur(20px) saturate(180%);
+  /* Alpha steps, for opacity and color-mix. */
+  --pool-alpha-4: 4%;
+  --pool-alpha-12: 12%;
+  --pool-alpha-32: 32%;
+  --pool-alpha-48: 48%;
+  --pool-alpha-64: 64%;
 
-  /* Semantic surfaces, shadows, motion and layout. */
-  --pool-angle-45: 45deg;
-  --pool-angle-225: 225deg;
-  --pool-angle-360: 360deg;
-  --pool-angle-n3: -3deg;
-  --pool-font-display: 'Avenir Next', Inter, 'Segoe UI', system-ui, -apple-system, sans-serif;
-  --pool-font-mono: 'SF Mono', Menlo, Consolas, 'DejaVu Sans Mono', monospace;
-  --pool-font-ui: Inter, 'Avenir Next', 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-  --pool-shadow-switch-thumb: 0 2px 4px var(--pool-color-ink-12), inset 0 1px 0 var(--pool-color-page);
-  --pool-metric-action: var(--pool-size-48);
-  --pool-metric-hero-width: var(--pool-size-1120);
-  --pool-metric-menu-square: var(--pool-size-48);
-  --pool-metric-nav-item: var(--pool-size-56);
-  --pool-metric-nav-panel: var(--pool-size-320);
-  --pool-metric-nav-rail: var(--pool-size-64);
-  --pool-metric-app-bar: var(--pool-size-64);
-  --pool-metric-nav-width: var(--pool-size-1280);
-  --pool-metric-op-cell: var(--pool-size-2);
-  --pool-metric-work-shell: var(--pool-size-1120);
-  --pool-motion-nav: 320ms cubic-bezier(0.22, 1, 0.36, 1);
-  --pool-motion-nav-duration: 320ms;
-  --pool-motion-nav-easing: cubic-bezier(0.22, 1, 0.36, 1);
-  --pool-layout-inspector: 380px;
-  --pool-layout-threads: 300px;
-  --pool-motion-drawer-duration: 420ms;
+  /* Motion: three durations for transitions, two for loops, two easings. */
+  --pool-duration-instant: 0.01ms;
+  --pool-duration-fast: 160ms;
+  --pool-duration-base: 240ms;
+  --pool-duration-slow: 400ms;
+  --pool-duration-loop: 1.2s;
+  --pool-duration-ambient: 2400ms;
+  --pool-ease-standard: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --pool-ease-emphasis: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* Layering above the page: menus, drawers and dialogs. Order inside a primitive is a literal. */
   --pool-z-overlay: 100;
-  --pool-motion-button-duration: 220ms;
-  --pool-motion-button-hover-duration: 230ms;
-  --pool-motion-button-press-duration: 460ms;
-  --pool-motion-button-easing: cubic-bezier(0.22, 0.61, 0.36, 1);
-  --pool-motion-button: var(--pool-motion-button-duration) var(--pool-motion-button-easing);
-  --pool-shadow-button-pressed: 0 0 0 transparent, 0 0 0 transparent, 0 0 0 transparent, var(--pool-shadow-inset);
-  --pool-diamond-path-length: 100;
-  --pool-diamond-trace-length: 25;
-  --pool-motion-optical-active: 2400ms;
-  --pool-motion-optical-ready: 900ms;
-  --pool-motion-steps-easing: steps(2, end);
-  --pool-motion-time-160: 160ms;
-  --pool-motion-time-180: 180ms;
-  --pool-motion-time-240: 240ms;
-  --pool-motion-time-320: 320ms;
-  --pool-motion-time-1100: 1.1s;
-  --pool-motion-time-1200: 1.2s;
-  --pool-motion-time-1500: 1.5s;
-  --pool-motion-time-instant: 0.01ms;
-  --pool-scale-0-85: 0.85;
-  --pool-scale-1-06: 1.06;
-  /* Depth is optical: a long soft drop, a 1px chromatic split (cyan up-left, rose down-right)
-     and a glint on the top edge. Insets are a thin cut into the crystal. */
-  --pool-shadow-inset: inset 0 1px 2px rgb(0 0 0 / 60%), inset 0 0 0 1px rgb(255 255 255 / 6%);
-  --pool-shadow-raised: 0 20px 50px -12px rgb(0 0 0 / 85%), -1px -1px 0 rgb(56 189 248 / 35%), 1px 1px 0 rgb(251 113 133 / 35%), inset 0 1px 1px rgb(255 255 255 / 14%);
-  --pool-space-page-gap: var(--pool-size-24);
-  --pool-space-page-gutter: var(--pool-size-32);
-  /* Alignment grid: icons sit in a centred box, rows keep fixed heights, one status line is reserved. */
-  --pool-icon-sm: var(--pool-size-16);
-  --pool-icon-md: var(--pool-size-20);
-  --pool-icon-box: var(--pool-size-24);
-  --pool-row-single: var(--pool-size-48);
-  --pool-row-double: var(--pool-size-56);
-  --pool-line-xs: calc(var(--pool-text-xs) * var(--pool-leading-snug));
-  --pool-line-sm: calc(var(--pool-text-sm) * var(--pool-leading-snug));
-  --pool-dialog-width: var(--pool-size-480);
-  --pool-dialog-width-wide: var(--pool-size-640);
-  --pool-dialog-height: var(--pool-size-640);
+
+  /* Dark theme (charcoal and prism). */
+  --pool-color-page: #141619;
+  --pool-color-raised: rgb(28 30 34 / 82%);
+  --pool-color-inset: #101215;
+  --pool-color-line: rgb(255 255 255 / 9%);
+  --pool-color-ink: #f8fafc;
+  --pool-color-muted: #94a3b8;
+  --pool-color-focus: #38bdf8;
+  --pool-color-on-primary: #030712;
+  --pool-color-scrim: rgb(0 0 0 / 48%);
+  --pool-color-group: color-mix(in srgb, var(--pool-color-ink) var(--pool-alpha-4), transparent);
+  --pool-color-button-fill: rgb(255 255 255 / 12%);
+  /* Status tones, used sparingly: a dot or badge, never a whole surface. Unavailable is muted. */
+  --pool-color-status-ready: #34d399;
+  --pool-color-status-pending: #fbbf24;
+  --pool-color-status-error: #fb7185;
+
+  --pool-surface-primary: linear-gradient(135deg, #38bdf8, #c084fc);
+  --pool-surface-backdrop: blur(20px) saturate(180%);
+  --pool-surface-button-ripple: radial-gradient(circle, transparent 38%, rgb(255 255 255 / 25%) 42%, rgb(192 132 252 / 20%) 45%, transparent 49%), radial-gradient(circle at 35% 32%, rgb(255 255 255 / 65%) 0.7%, transparent 1.8%), radial-gradient(circle at 67% 38%, rgb(56 189 248 / 65%) 0.6%, transparent 1.5%), radial-gradient(circle at 56% 69%, rgb(192 132 252 / 60%) 0.8%, transparent 1.8%);
   --pool-surface-ambient-mesh: radial-gradient(ellipse at 12% 8%, rgb(56 189 248 / 7%), transparent 48%), radial-gradient(ellipse at 90% 84%, rgb(168 85 247 / 8%), transparent 52%);
+  /* Fine grid and sparse hexagons recede into charcoal; prism light stays peripheral. */
+  --pool-surface-page: radial-gradient(ellipse at 50% 32%, transparent 12%, color-mix(in srgb, var(--pool-color-page) 75%, transparent) 100%) fixed, url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='216' height='216' viewBox='0 0 216 216'%3E%3Cpath d='M108 81 131.4 94.5V121.5L108 135 84.6 121.5V94.5Z' fill='none' stroke='%2395abc2' stroke-opacity='.09' stroke-width='.7'/%3E%3C/svg%3E") 0 0 / 216px 216px repeat fixed, radial-gradient(rgb(177 196 215 / 15%) 0.65px, transparent 1px) 0 0 / 18px 18px repeat fixed, var(--pool-surface-ambient-mesh), var(--pool-color-page);
   --pool-surface-optical-edge: linear-gradient(135deg, rgb(56 189 248 / 34%), rgb(192 132 252 / 29%) 45%, rgb(251 113 133 / 32%) 75%, rgb(52 211 153 / 27%));
   --pool-surface-optical-focus: linear-gradient(135deg, rgb(56 189 248 / 75%), rgb(192 132 252 / 65%) 45%, rgb(251 113 133 / 70%) 75%, rgb(52 211 153 / 60%));
   --pool-surface-optical-signal: linear-gradient(90deg, transparent, rgb(56 189 248 / 80%), rgb(192 132 252 / 75%), rgb(251 113 133 / 70%), transparent);
-  --pool-surface-pattern: radial-gradient(rgb(177 196 215 / 15%) 0.65px, transparent 1px);
-  --pool-surface-pattern-size: 18px 18px;
-  --pool-surface-hex: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='216' height='216' viewBox='0 0 216 216'%3E%3Cpath d='M108 81 131.4 94.5V121.5L108 135 84.6 121.5V94.5Z' fill='none' stroke='%2395abc2' stroke-opacity='.09' stroke-width='.7'/%3E%3C/svg%3E");
-  /* Fine grid and sparse hexagons recede into charcoal; prism light stays peripheral. */
-  --pool-surface-page: radial-gradient(ellipse at 50% 32%, transparent 12%, color-mix(in srgb, var(--pool-color-page) 75%, transparent) 100%) fixed, var(--pool-surface-hex) 0 0 / 216px 216px repeat fixed, var(--pool-surface-pattern) 0 0 / var(--pool-surface-pattern-size) repeat fixed, var(--pool-surface-ambient-mesh), var(--pool-color-page);
-  --pool-text-p62: 62%;
-  --pool-transition-fast: 0.15s;
-  --pool-transition-normal: 0.3s;
-  --pool-z-2: 2;
-  --pool-z-background: -1;
-  --pool-z-3: 3;
-  --pool-z-4: 4;
-  --pool-z-5: 5;
-  --pool-z-6: 6;
-  --pool-z-7: 7;
-  --pool-z-8: 8;
-  --pool-z-9: 9;
-  --pool-z-10: 10;
-  --pool-z-dropdown: 100;
+
+  /* Depth is optical: a long soft drop, a 1px chromatic split (cyan up-left, rose down-right)
+     and a glint on the top edge. Insets are a thin cut into the crystal. */
+  --pool-shadow-raised: 0 20px 50px -12px rgb(0 0 0 / 85%), -1px -1px 0 rgb(56 189 248 / 35%), 1px 1px 0 rgb(251 113 133 / 35%), inset 0 1px 1px rgb(255 255 255 / 14%);
+  --pool-shadow-inset: inset 0 1px 2px rgb(0 0 0 / 60%), inset 0 0 0 1px rgb(255 255 255 / 6%);
+  --pool-shadow-primary: 0 3px 10px rgb(0 0 0 / 24%), inset 0 1px 0 rgb(255 255 255 / 24%), inset 0 -1px 0 rgb(0 0 0 / 12%);
+  --pool-shadow-primary-hover: 0 5px 14px rgb(0 0 0 / 28%), inset 0 1px 0 rgb(255 255 255 / 40%), inset 0 -1px 0 rgb(0 0 0 / 12%);
+  --pool-shadow-primary-pressed: inset 0 2px 4px rgb(0 0 0 / 25%), inset 0 -1px 0 rgb(255 255 255 / 16%);
+  --pool-shadow-button-pressed: 0 0 0 transparent, 0 0 0 transparent, 0 0 0 transparent, var(--pool-shadow-inset);
+  --pool-shadow-switch-thumb: 0 2px 4px color-mix(in srgb, var(--pool-color-ink) var(--pool-alpha-12), transparent), inset 0 1px 0 var(--pool-color-page);
 }
 
 :root.pool-page[data-reploid-theme='light'],
 .pool-home[data-pool-theme='light'] {
-  /* Light theme (Dichroic-Silica): frosted lab quartz with iridescent foil edges. */
-  --pool-color-page: var(--pool-silica-95);
+  /* Light theme (dichroic silica): frosted lab quartz with iridescent foil edges. The bright
+     prism primary and its dark label keep their contrast in both themes. */
+  --pool-color-page: #eef2f9;
   --pool-color-raised: rgb(255 255 255 / 72%);
-  --pool-color-inset: var(--pool-silica-98);
+  --pool-color-inset: #f7f9fd;
   --pool-color-line: rgb(15 23 42 / 9%);
-  --pool-color-muted: var(--pool-silica-muted);
-  --pool-color-ink: var(--pool-silica-ink);
-  --pool-color-focus: var(--pool-spectrum-indigo);
-  --pool-color-switch-on: color-mix(in srgb, var(--pool-spectrum-indigo) var(--pool-alpha-64), transparent);
-  --pool-color-status-ready: var(--pool-spectrum-green-deep);
-  --pool-color-status-pending: var(--pool-spectrum-amber-deep);
-  --pool-color-status-error: var(--pool-spectrum-rose-deep);
-  --pool-color-group: color-mix(in srgb, var(--pool-gray-100) var(--pool-alpha-48), transparent);
-  /* The bright prism primary and dark label retain their contrast in both themes. */
+  --pool-color-ink: #0f172a;
+  --pool-color-muted: #475569;
+  --pool-color-focus: #4f46e5;
+  --pool-color-group: color-mix(in srgb, #ffffff var(--pool-alpha-48), transparent);
+  --pool-color-status-ready: #047857;
+  --pool-color-status-pending: #b45309;
+  --pool-color-status-error: #be123c;
+
   --pool-surface-backdrop: blur(24px) saturate(180%);
-  --pool-shadow-inset: inset 0 1px 3px rgb(15 23 42 / 10%), inset 0 0 0 1px rgb(15 23 42 / 6%);
-  --pool-shadow-raised: 0 18px 40px -15px rgb(30 41 59 / 16%), -1.5px -1.5px 0 rgb(56 189 248 / 55%), 1.5px 1.5px 0 rgb(244 114 182 / 55%), inset 0 1px 2px rgb(255 255 255 / 95%);
   --pool-surface-ambient-mesh: radial-gradient(circle at 15% 15%, rgb(99 102 241 / 14%), transparent 45%), radial-gradient(circle at 85% 25%, rgb(6 182 212 / 16%), transparent 45%), radial-gradient(circle at 60% 85%, rgb(236 72 153 / 11%), transparent 50%);
+  --pool-surface-page: radial-gradient(ellipse at 50% 32%, transparent 12%, color-mix(in srgb, var(--pool-color-page) 75%, transparent) 100%) fixed, url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='216' height='216' viewBox='0 0 216 216'%3E%3Cpath d='M108 81 131.4 94.5V121.5L108 135 84.6 121.5V94.5Z' fill='none' stroke='%2395abc2' stroke-opacity='.09' stroke-width='.7'/%3E%3C/svg%3E") 0 0 / 216px 216px repeat fixed, radial-gradient(rgb(51 65 85 / 16%) 0.65px, transparent 1px) 0 0 / 18px 18px repeat fixed, var(--pool-surface-ambient-mesh), var(--pool-color-page);
   --pool-surface-optical-edge: linear-gradient(125deg, rgb(56 189 248 / 55%), rgb(129 140 248 / 50%) 32%, rgb(244 114 182 / 50%) 66%, rgb(45 212 191 / 50%));
-  --pool-surface-optical-focus: linear-gradient(125deg, var(--pool-spectrum-cyan), rgb(129 140 248) 32%, rgb(244 114 182) 66%, rgb(45 212 191));
+  --pool-surface-optical-focus: linear-gradient(125deg, #38bdf8, rgb(129 140 248) 32%, rgb(244 114 182) 66%, rgb(45 212 191));
   --pool-surface-optical-signal: linear-gradient(90deg, transparent, rgb(79 70 229 / 70%), rgb(8 145 178 / 65%), rgb(219 39 119 / 55%), transparent);
-  --pool-surface-pattern: radial-gradient(rgb(51 65 85 / 16%) 0.65px, transparent 1px);
-  --pool-surface-pattern-size: 18px 18px;
+  --pool-shadow-raised: 0 18px 40px -15px rgb(30 41 59 / 16%), -1.5px -1.5px 0 rgb(56 189 248 / 55%), 1.5px 1.5px 0 rgb(244 114 182 / 55%), inset 0 1px 2px rgb(255 255 255 / 95%);
+  --pool-shadow-inset: inset 0 1px 3px rgb(15 23 42 / 10%), inset 0 0 0 1px rgb(15 23 42 / 6%);
 }
 
 @media (max-width: 760px) {

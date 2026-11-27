@@ -6,7 +6,7 @@
     --pool-param-app-bar-inset: max(var(--pool-param-app-bar-gap), env(safe-area-inset-bottom));
     padding-left: max(var(--pool-size-16), env(safe-area-inset-left));
     padding-right: max(var(--pool-size-16), env(safe-area-inset-right));
-    padding-bottom: calc(var(--pool-metric-app-bar) + var(--pool-param-app-bar-inset) + var(--pool-param-app-bar-gap));
+    padding-bottom: calc(var(--pool-size-64) + var(--pool-param-app-bar-inset) + var(--pool-param-app-bar-gap));
   }
 
   .pool-home .pool-primary-nav.pool-mobile-app-bar,
@@ -19,7 +19,7 @@
     right: max(var(--pool-param-chat-gutter, var(--pool-size-16)), env(safe-area-inset-right));
     width: auto;
     height: auto;
-    min-height: var(--pool-metric-app-bar);
+    min-height: var(--pool-size-64);
     max-width: none;
     max-height: calc(var(--pool-param-workspace-height, 100dvh) - var(--pool-param-app-bar-inset) - var(--pool-size-16));
     margin: 0;
@@ -47,7 +47,7 @@
     height: min(100dvh, var(--pool-param-workspace-height));
     padding-left: max(var(--pool-size-8), env(safe-area-inset-left));
     padding-right: max(var(--pool-size-8), env(safe-area-inset-right));
-    padding-bottom: calc(var(--pool-metric-app-bar) + var(--pool-param-app-bar-inset) + var(--pool-param-app-bar-gap));
+    padding-bottom: calc(var(--pool-size-64) + var(--pool-param-app-bar-inset) + var(--pool-param-app-bar-gap));
   }
   .pool-home .pool-mobile-app-bar :is(.chat-rail-primary, .chat-rail-heading, .chat-rail-footer, [data-network-trigger-slot], [data-inspector-navigation], .chat-thread-brand) { display: contents; }
   .pool-home .pool-mobile-app-bar :is([data-toggle-thread-rail], [data-inspector-section]) {

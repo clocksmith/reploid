@@ -16,5 +16,11 @@
     "compositions/conversation.css",
     "compositions/interaction.css",
     "compositions/mobile-navigation.css"
-  ]
+  ],
+  "legacyTokenReferences": {
+    "compositions/screens.css": 650,
+    "compositions/conversation.css": 82,
+    "compositions/interaction.css": 73,
+    "compositions/mobile-navigation.css": 26
+  }
 }

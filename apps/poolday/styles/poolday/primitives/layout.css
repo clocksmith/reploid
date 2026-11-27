@@ -26,9 +26,9 @@
    pool-frame           a specimen frame on page material; pool-frame-narrow holds it at phone width */
 .pool-home .pool-sidebar-layout {
   display: grid;
-  grid-template-columns: var(--pool-layout-threads) minmax(0, 1fr);
+  grid-template-columns: var(--pool-size-320) minmax(0, 1fr);
   gap: var(--pool-space-page-gap);
-  max-inline-size: var(--pool-metric-nav-width);
+  max-inline-size: var(--pool-size-1280);
   min-block-size: 100dvh;
   margin-inline: auto;
   padding: var(--pool-space-page-gutter);
@@ -62,10 +62,10 @@
 @media (max-width: 760px) {
   .pool-home .pool-sidebar-layout { grid-template-columns: minmax(0, 1fr); padding-block-start: 0; }
   /* The navigator is pinned as a bar here: a section it jumps to stops below the bar, not under it. */
-  .pool-home .pool-sidebar-main [id] { scroll-margin-block-start: var(--pool-metric-app-bar); }
+  .pool-home .pool-sidebar-main [id] { scroll-margin-block-start: var(--pool-size-64); }
   .pool-home .pool-sidebar-nav {
     top: 0;
-    z-index: var(--pool-z-10);
+    z-index: 10;
     max-block-size: none;
     margin-inline: calc(-1 * var(--pool-space-page-gutter));
     padding: var(--pool-size-8) var(--pool-space-page-gutter);

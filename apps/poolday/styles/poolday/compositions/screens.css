@@ -25,7 +25,7 @@
 .pool-home > .pool-route-content {
   box-sizing: border-box;
   width: 100%;
-  max-width: var(--pool-metric-nav-width);
+  max-width: var(--pool-size-1280);
   margin-inline: auto;
 }
 .pool-home > .pool-route-content {
@@ -43,7 +43,7 @@
 }
 .pool-work-shell {
   width: 100%;
-  max-width: var(--pool-metric-work-shell);
+  max-width: var(--pool-size-1120);
   margin: 0 auto;
   padding: 0;
   display: grid;
@@ -201,7 +201,7 @@
 }
 
 .pool-home {
-  --pool-param-ask-dock-height: var(--pool-metric-action);
+  --pool-param-ask-dock-height: var(--pool-size-48);
   min-height: min(100vh, 100dvh);
   position: relative;
   padding: var(--pool-space-page-gap) var(--pool-space-page-gutter) 0;
@@ -247,7 +247,7 @@ body[data-pool-route-id='home'] #app {
 
 .pool-contribution-status {
   position: fixed;
-  z-index: var(--pool-z-9);
+  z-index: 9;
   top: var(--pool-size-16);
   right: var(--pool-size-16);
   display: flex;
@@ -282,7 +282,7 @@ body[data-pool-route-id='home'] #app {
 
 .pool-nav-rail {
   position: fixed;
-  z-index: var(--pool-z-10);
+  z-index: 10;
   top: 0;
   bottom: 0;
   left: 0;
@@ -291,7 +291,7 @@ body[data-pool-route-id='home'] #app {
   height: 100dvh;
   flex-direction: column;
   justify-content: space-between;
-  width: var(--pool-metric-nav-rail);
+  width: var(--pool-size-64);
   max-width: calc(100vw - var(--pool-size-16));
   padding: var(--pool-size-8) var(--pool-size-4);
   overflow: visible;
@@ -300,15 +300,15 @@ body[data-pool-route-id='home'] #app {
 
 .pool-nav-rail:not(.pool-primary-nav) {
   transition:
-    width var(--pool-motion-nav-duration) var(--pool-motion-nav-easing),
-    padding var(--pool-motion-nav-duration) var(--pool-motion-nav-easing),
-    border-color var(--pool-motion-time-240) ease,
-    background var(--pool-motion-time-240) ease,
-    box-shadow var(--pool-motion-time-240) ease;
+    width var(--pool-duration-slow) var(--pool-ease-emphasis),
+    padding var(--pool-duration-slow) var(--pool-ease-emphasis),
+    border-color var(--pool-duration-base) ease,
+    background var(--pool-duration-base) ease,
+    box-shadow var(--pool-duration-base) ease;
 }
 
 .pool-nav-rail.is-open {
-  width: var(--pool-metric-nav-panel);
+  width: var(--pool-size-320);
   padding: var(--pool-size-8);
   overflow-x: hidden;
   overflow-y: auto;
@@ -328,10 +328,10 @@ body[data-pool-route-id='home'] #app {
   list-style: none;
   overflow: visible;
   transition:
-    width var(--pool-motion-nav-duration) var(--pool-motion-nav-easing),
-    height var(--pool-motion-nav-duration) var(--pool-motion-nav-easing),
-    background var(--pool-motion-time-240) ease,
-    box-shadow var(--pool-motion-time-240) ease;
+    width var(--pool-duration-slow) var(--pool-ease-emphasis),
+    height var(--pool-duration-slow) var(--pool-ease-emphasis),
+    background var(--pool-duration-base) ease,
+    box-shadow var(--pool-duration-base) ease;
   user-select: none;
 }
 
@@ -345,11 +345,11 @@ body[data-pool-route-id='home'] #app {
   right: var(--pool-size-8);
   width: var(--pool-size-8);
   height: var(--pool-size-8);
-  transform: rotate(var(--pool-angle-45));
+  transform: rotate(45deg);
   transition:
-    right var(--pool-motion-nav-duration) var(--pool-motion-nav-easing),
-    opacity var(--pool-motion-time-180) ease,
-    transform var(--pool-motion-nav-duration) var(--pool-motion-nav-easing);
+    right var(--pool-duration-slow) var(--pool-ease-emphasis),
+    opacity var(--pool-duration-fast) ease,
+    transform var(--pool-duration-slow) var(--pool-ease-emphasis);
 }
 
 .pool-nav-rail.is-open .pool-nav-toggle {
@@ -359,7 +359,7 @@ body[data-pool-route-id='home'] #app {
 
 .pool-nav-rail.is-open .pool-nav-toggle::after {
   right: var(--pool-size-12);
-  transform: rotate(var(--pool-angle-225));
+  transform: rotate(225deg);
 }
 
 /*
@@ -409,16 +409,16 @@ body[data-pool-route-id='home'] #app {
 .pool-nav-link {
   display: block;
   position: relative;
-  min-height: var(--pool-metric-nav-item);
+  min-height: var(--pool-size-56);
   width: 100%;
   padding: 0;
   overflow: visible;
   transition:
-    width var(--pool-motion-time-320) var(--pool-motion-nav-easing),
-    min-height var(--pool-motion-time-320) var(--pool-motion-nav-easing),
-    padding var(--pool-motion-time-320) var(--pool-motion-nav-easing),
-    background var(--pool-motion-time-180) ease,
-    box-shadow var(--pool-motion-time-180) ease;
+    width var(--pool-duration-slow) var(--pool-ease-emphasis),
+    min-height var(--pool-duration-slow) var(--pool-ease-emphasis),
+    padding var(--pool-duration-slow) var(--pool-ease-emphasis),
+    background var(--pool-duration-fast) ease,
+    box-shadow var(--pool-duration-fast) ease;
 }
 
 .pool-nav-rail.is-open .pool-nav-link {
@@ -431,7 +431,7 @@ body[data-pool-route-id='home'] #app {
 .pool-nav-link[data-pool-nav-tooltip]::before {
   content: attr(data-pool-nav-tooltip);
   position: absolute;
-  z-index: var(--pool-z-4);
+  z-index: 4;
   top: 50%;
   left: calc(100% + var(--pool-size-12));
   max-width: var(--pool-size-240);
@@ -440,8 +440,8 @@ body[data-pool-route-id='home'] #app {
   pointer-events: none;
   transform: translate(calc(-1 * var(--pool-size-4)), -50%);
   transition:
-    opacity var(--pool-motion-time-160) ease,
-    transform var(--pool-motion-time-180) ease;
+    opacity var(--pool-duration-fast) ease,
+    transform var(--pool-duration-fast) ease;
 }
 
 .pool-nav-rail:not(.is-open) .pool-nav-toggle:hover::before,
@@ -479,7 +479,7 @@ body[data-pool-route-id='home'] #app {
 
 .pool-nav-more-summary {
   position: relative;
-  min-height: var(--pool-metric-nav-item);
+  min-height: var(--pool-size-56);
   cursor: pointer;
   list-style: none;
 }
@@ -906,7 +906,7 @@ body[data-pool-route-id='home'] #app {
 }
 
 .pool-stream-cursor.is-active {
-  animation: pool-cursor-blink var(--pool-motion-time-1100) var(--pool-motion-steps-easing) infinite;
+  animation: pool-cursor-blink var(--pool-duration-loop) steps(2, end) infinite;
 }
 
 .pool-provider-status {
@@ -934,15 +934,15 @@ body[data-pool-route-id='home'] #app {
 .pool-health-loading-text::before {
   content: '☍';
   display: inline-block;
-  animation: pool-spin var(--pool-motion-time-1500) infinite linear;
+  animation: pool-spin var(--pool-duration-loop) infinite linear;
 }
 
 .pool-provider-status[data-provider-state='starting']::before {
-  animation: pool-pulse-gold var(--pool-motion-time-1200) infinite ease-in-out;
+  animation: pool-pulse-gold var(--pool-duration-loop) infinite ease-in-out;
 }
 
 .pool-provider-status[data-provider-state='degraded']::before {
-  animation: pool-pulse-gold var(--pool-motion-time-1500) infinite ease-in-out;
+  animation: pool-pulse-gold var(--pool-duration-loop) infinite ease-in-out;
 }
 
 .pool-ledger-shell {
@@ -1000,7 +1000,7 @@ body[data-pool-route-id='home'] #app {
 
 .pool-home-overlay {
   position: relative;
-  z-index: var(--pool-z-3);
+  z-index: 3;
   display: flex;
   min-width: 0;
   align-items: center;
@@ -1016,7 +1016,7 @@ body[data-pool-route-id='home'] #app {
 .pool-home-title-lockup {
   display: flex;
   flex: 0 0 auto;
-  min-height: var(--pool-metric-menu-square);
+  min-height: var(--pool-size-48);
   flex-direction: column;
   justify-content: center;
   gap: var(--pool-size-4);
@@ -1051,7 +1051,7 @@ body[data-pool-route-id='home'] #app {
 
 .pool-home-ask-dock {
   position: absolute;
-  z-index: var(--pool-z-7);
+  z-index: 7;
   bottom: var(--pool-param-ask-inset);
   left: 50%;
   display: flex;
@@ -1120,17 +1120,17 @@ body[data-pool-route-id='home'] #app {
 
 .pool-home-run-status {
   position: absolute;
-  z-index: var(--pool-z-5);
-  top: calc(var(--pool-metric-menu-square) + var(--pool-size-24) + var(--pool-size-12));
+  z-index: 5;
+  top: calc(var(--pool-size-48) + var(--pool-size-24) + var(--pool-size-12));
   left: 50%;
   margin: 0;
   transform: translateX(-50%);
-  transition: opacity var(--pool-motion-time-180) ease;
+  transition: opacity var(--pool-duration-fast) ease;
 }
 
 .pool-home-result-panel {
   position: absolute;
-  z-index: var(--pool-z-6);
+  z-index: 6;
   left: 50%;
   bottom: calc(
     var(--pool-param-ask-inset)
@@ -1145,7 +1145,7 @@ body[data-pool-route-id='home'] #app {
   overflow: auto;
   visibility: hidden;
   transform: translate(-50%, var(--pool-size-12));
-  transition: opacity var(--pool-motion-time-180) ease, transform var(--pool-motion-time-180) ease, visibility var(--pool-motion-time-180) ease;
+  transition: opacity var(--pool-duration-fast) ease, transform var(--pool-duration-fast) ease, visibility var(--pool-duration-fast) ease;
 }
 
 .pool-home-stage[data-run-state="complete"] .pool-home-result-panel,
@@ -1171,7 +1171,7 @@ body[data-pool-route-id='home'] #app {
   .pool-contribution-status {
     top: var(--pool-size-8);
     right: var(--pool-size-8);
-    left: calc(var(--pool-size-16) + var(--pool-metric-menu-square));
+    left: calc(var(--pool-size-16) + var(--pool-size-48));
     max-width: none;
     min-height: var(--pool-size-48);
     flex-wrap: wrap;
@@ -1213,7 +1213,7 @@ body[data-pool-route-id='home'] #app {
   }
 
   .pool-nav-link {
-    min-height: var(--pool-metric-nav-item);
+    min-height: var(--pool-size-56);
     width: 100%;
     padding: 0;
   }
@@ -1244,8 +1244,8 @@ body[data-pool-route-id='home'] #app {
     grid-template-columns: minmax(0, 1fr);
     align-items: center;
     gap: var(--pool-size-8);
-    min-height: calc(var(--pool-metric-menu-square) + var(--pool-size-20));
-    padding: var(--pool-size-12) var(--pool-size-8) var(--pool-size-8) calc(var(--pool-metric-nav-rail) + var(--pool-size-12));
+    min-height: calc(var(--pool-size-48) + var(--pool-size-20));
+    padding: var(--pool-size-12) var(--pool-size-8) var(--pool-size-8) calc(var(--pool-size-64) + var(--pool-size-12));
   }
 
   .pool-home-overlay {
@@ -1258,7 +1258,7 @@ body[data-pool-route-id='home'] #app {
   }
 
   .pool-home-title-lockup {
-    min-height: var(--pool-metric-menu-square);
+    min-height: var(--pool-size-48);
   }
 
   .pool-home-overlay .pool-home-brand-word {
@@ -1273,7 +1273,7 @@ body[data-pool-route-id='home'] #app {
     left: 50%;
     width: min(
       var(--pool-size-480),
-      calc(100% - (var(--pool-metric-nav-rail) * 2) - (var(--pool-size-8) * 2))
+      calc(100% - (var(--pool-size-64) * 2) - (var(--pool-size-8) * 2))
     );
   }
 
@@ -1382,7 +1382,7 @@ body[data-pool-route-id='home'] #app {
   .pool-nav-toggle::after,
   .pool-nav-menu,
   .pool-nav-link {
-    transition-duration: var(--pool-motion-time-instant);
+    transition-duration: var(--pool-duration-instant);
   }
 }
 
@@ -1522,7 +1522,7 @@ body[data-pool-route-id='home'] #app {
 
 /* Poolday dashboard shell */
 .pool-home[data-pool-route-id='home'] .pool-home-toolbar {
-  padding-right: calc(var(--pool-metric-nav-rail) + var(--pool-size-24));
+  padding-right: calc(var(--pool-size-64) + var(--pool-size-24));
 }
 
 .pool-home[data-pool-route-id='home'] .pool-home-toolbar-leading {
@@ -1544,7 +1544,7 @@ body[data-pool-route-id='home'] #app {
   left: 50%;
   width: min(
     var(--pool-size-720),
-    calc(100% - (var(--pool-metric-nav-rail) * 2) - (var(--pool-size-8) * 2))
+    calc(100% - (var(--pool-size-64) * 2) - (var(--pool-size-8) * 2))
   );
 }
 
@@ -1552,14 +1552,14 @@ body[data-pool-route-id='home'] #app {
    active Poolday surface. The stage then centers within the visible region. */
 @media (min-width: 721px) {
   .pool-home[data-pool-route-id='home']:has(.pool-nav-rail.is-open) .pool-home-toolbar {
-    margin-left: var(--pool-metric-nav-panel);
+    margin-left: var(--pool-size-320);
     padding-left: clamp(var(--pool-size-12), 2vw, var(--pool-size-24));
     padding-right: clamp(var(--pool-size-12), 2vw, var(--pool-size-24));
   }
 
   .pool-home[data-pool-route-id='home']:has(.pool-nav-rail.is-open) .pool-home-stage {
     width: auto;
-    margin-left: var(--pool-metric-nav-panel);
+    margin-left: var(--pool-size-320);
   }
 }
 
@@ -1599,7 +1599,7 @@ body[data-pool-route-id='home'] #app {
 @media (max-width: 820px) {
   .pool-home[data-pool-route-id='home'] .pool-home-toolbar {
     grid-template-columns: 1fr;
-    padding: var(--pool-size-12) calc(var(--pool-metric-nav-rail) + var(--pool-size-12)) var(--pool-size-8) calc(var(--pool-metric-nav-rail) + var(--pool-size-12));
+    padding: var(--pool-size-12) calc(var(--pool-size-64) + var(--pool-size-12)) var(--pool-size-8) calc(var(--pool-size-64) + var(--pool-size-12));
   }
 
   .pool-home-toolbar > .pool-participation {
@@ -1869,7 +1869,7 @@ body[data-pool-route-id='home'] #app {
   width: min(var(--pool-size-1120), calc(100% - var(--pool-size-32)));
   margin: 0 auto;
   padding-right: var(--pool-size-16);
-  padding-left: calc(var(--pool-metric-nav-rail) + var(--pool-size-16));
+  padding-left: calc(var(--pool-size-64) + var(--pool-size-16));
 }
 
 .pool-home-stage--focused .pool-home-toolbar-leading {
@@ -1884,7 +1884,7 @@ body[data-pool-route-id='home'] #app {
 .pool-home-task {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  width: min(var(--pool-size-640), calc(100% - var(--pool-metric-nav-rail) - var(--pool-size-32)));
+  width: min(var(--pool-size-640), calc(100% - var(--pool-size-64) - var(--pool-size-32)));
   min-width: 0;
   gap: var(--pool-size-24);
   margin: auto;
@@ -1989,11 +1989,11 @@ body[data-pool-route-id='home'] #app {
   .pool-home-stage--focused .pool-home-toolbar {
     width: 100%;
     padding-right: var(--pool-size-8);
-    padding-left: calc(var(--pool-metric-nav-rail) + var(--pool-size-8));
+    padding-left: calc(var(--pool-size-64) + var(--pool-size-8));
   }
 
   .pool-home-task {
-    width: calc(100% - var(--pool-metric-nav-rail) - var(--pool-size-24));
+    width: calc(100% - var(--pool-size-64) - var(--pool-size-24));
     margin-right: var(--pool-size-8);
     padding: var(--pool-size-16) 0 var(--pool-size-32);
   }
@@ -2011,7 +2011,7 @@ body[data-pool-route-id='home'] #app {
 
 .pool-home .pool-nav-rail.pool-primary-nav {
   position: sticky;
-  z-index: var(--pool-z-dropdown);
+  z-index: var(--pool-z-overlay);
   top: var(--pool-size-24);
   bottom: auto;
   left: auto;
@@ -2043,7 +2043,7 @@ body[data-pool-route-id='home'] #app {
 .pool-power-tower sup {
   position: static;
   transform: translateY(-35%);
-  transition: transform var(--pool-motion-time-240) ease;
+  transition: transform var(--pool-duration-base) ease;
 }
 
 
@@ -2054,9 +2054,9 @@ body[data-pool-route-id='home'] #app {
     transform: translate(15%, -65%);
   }
   .pool-home-stage:is([data-run-state='running'], [data-run-state='submitting']) .pool-power-tower sup {
-    animation: pool-power-rise var(--pool-motion-time-1200) ease-in-out infinite;
+    animation: pool-power-rise var(--pool-duration-loop) ease-in-out infinite;
   }
-  .pool-home-stage:has(.pool-home-task:focus-within) .pool-prism { transform: scale(var(--pool-scale-1-06)) rotate(var(--pool-angle-n3)); }
+  .pool-home-stage:has(.pool-home-task:focus-within) .pool-prism { transform: scale(1.06) rotate(-3deg); }
 }
 
 .pool-primary-nav .pool-nav-link::before,
@@ -2075,7 +2075,7 @@ body[data-pool-route-id='home'] #app {
   align-items: center;
   gap: var(--pool-size-24);
   width: calc(100% - var(--pool-size-96));
-  max-width: var(--pool-metric-hero-width);
+  max-width: var(--pool-size-1120);
   min-height: 0;
   margin: 0 auto;
   padding: var(--pool-size-24) 0 var(--pool-size-48);
@@ -2127,7 +2127,7 @@ body[data-pool-route-id='home'] #app {
   margin-top: var(--pool-size-8);
   contain: layout paint;
   isolation: isolate;
-  transition: transform var(--pool-motion-time-240) ease, filter var(--pool-motion-time-240) ease;
+  transition: transform var(--pool-duration-base) ease, filter var(--pool-duration-base) ease;
 }
 
 .pool-prism-canvas,
@@ -2798,8 +2798,8 @@ body[data-pool-route-id='home'] #app {
 
 @media (max-width: 760px) {
   .pool-home:not([data-pool-route-id='home']) .pool-research-room {
-    width: calc(100vw - var(--pool-metric-nav-rail) - var(--pool-size-16) - var(--pool-size-8) - var(--pool-size-24) - var(--pool-size-24));
-    max-width: calc(100vw - var(--pool-metric-nav-rail) - var(--pool-size-16) - var(--pool-size-8) - var(--pool-size-24) - var(--pool-size-24));
+    width: calc(100vw - var(--pool-size-64) - var(--pool-size-16) - var(--pool-size-8) - var(--pool-size-24) - var(--pool-size-24));
+    max-width: calc(100vw - var(--pool-size-64) - var(--pool-size-16) - var(--pool-size-8) - var(--pool-size-24) - var(--pool-size-24));
     margin-right: var(--pool-size-24);
     margin-left: 0;
   }
@@ -2862,7 +2862,7 @@ body[data-pool-route-id='home'] #app {
 .pool-settings > summary { position: relative; display: grid; place-items: center; min-width: var(--pool-size-48); list-style: none; }
 .pool-settings > summary::-webkit-details-marker { display: none; }
 .pool-settings-panel {
-  position: absolute; z-index: var(--pool-z-dropdown); right: 0;
+  position: absolute; z-index: var(--pool-z-overlay); right: 0;
   top: calc(100% + var(--pool-size-8)); width: var(--pool-size-320);
   max-width: calc(100vw - var(--pool-space-page-gutter) * 2);
   padding: var(--pool-size-16); display: grid; gap: var(--pool-size-16);
@@ -2920,7 +2920,7 @@ body[data-pool-route-id='home'] #app {
 .network-card h2 { margin: 0; }
 .network-card label { display: grid; gap: var(--pool-size-8); }
 .network-card select { width: 100%; min-width: 0; padding: var(--pool-size-8); }
-.changes-workspace { max-width: var(--pool-metric-work-shell); }
+.changes-workspace { max-width: var(--pool-size-1120); }
 .changes-workspace [data-work-history], .changes-workspace [data-work-candidates] { display: grid; gap: var(--pool-size-16); }
 .changes-workspace .change-card { display: grid; gap: var(--pool-size-8); padding: var(--pool-size-24); min-width: 0; }
 .changes-workspace .change-card > .network-status { justify-self: start; grid-row: 1; }

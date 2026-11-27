@@ -77,18 +77,17 @@ function tokenKind(name, value) {
   if (/^--pool-radius-/.test(name)) return 'radius';
   if (/^--pool-border-/.test(name)) return 'border';
   if (/shadow/.test(name)) return 'shadow';
-  if (/^--pool-surface-(backdrop|pattern-size)$/.test(name)) return 'none';
+  if (/^--pool-surface-backdrop$/.test(name)) return 'none';
   if (/gradient\(|url\(/.test(value) || /^--pool-surface-/.test(name)) return 'image';
-  if (/^--pool-(gray|charcoal|void|silica|spectrum|color)-/.test(name) && !/^--pool-color-.*-(x|y)$/.test(name)) return 'color';
-  if (/^-?[\d.]+px$/.test(value) || /^--pool-(size|space|icon|row|metric|layout|dialog|line)-/.test(name)) return 'length';
+  if (/^--pool-color-/.test(name) && !/^--pool-color-.*-(x|y)$/.test(name)) return 'color';
+  if (/^-?[\d.]+px$/.test(value) || /^--pool-(size|space)-/.test(name)) return 'length';
   return 'none';
 }
 
 const groupOf = (name) => {
   const rest = name.replace(/^--pool-/, '');
-  const known = ['gray', 'charcoal', 'void', 'silica', 'spectrum', 'alpha', 'size', 'radius', 'border', 'text', 'leading',
-    'weight', 'tracking', 'font', 'angle', 'scale', 'depth', 'motion', 'transition', 'z', 'percent', 'color', 'surface',
-    'shadow', 'space', 'icon', 'row', 'line', 'dialog', 'metric', 'layout', 'diamond'];
+  const known = ['alpha', 'size', 'radius', 'border', 'text', 'leading', 'weight', 'tracking', 'font', 'duration', 'ease',
+    'z', 'color', 'surface', 'shadow', 'space'];
   return known.find((prefix) => rest === prefix || rest.startsWith(`${prefix}-`)) ?? 'other';
 };
 

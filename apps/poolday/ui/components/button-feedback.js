@@ -25,14 +25,14 @@ export function bindButtonFeedback(root) {
     const x = keyboard ? box.width / 2 : event.clientX - box.left, y = keyboard ? box.height / 2 : event.clientY - box.top;
     if (reduced.matches || button.tagName === 'INPUT') return;
     const style = getComputedStyle(button);
-    const duration = parseFloat(style.getPropertyValue('--pool-motion-button-press-duration'));
+    const duration = parseFloat(style.getPropertyValue('--pool-duration-slow'));
     if (!Number.isFinite(duration)) return;
     const ripple = document.createElement('span'); ripple.className = 'pool-button-ripple'; ripple.setAttribute('aria-hidden', 'true');
     ripple.style.setProperty('--pool-param-ripple-size', `${Math.hypot(box.width, box.height) * 2.2}px`);
     ripple.style.setProperty('--pool-param-ripple-x', `${x}px`); ripple.style.setProperty('--pool-param-ripple-y', `${y}px`);
     button.append(ripple); ripples.add(ripple);
     const animation = ripple.animate([{ transform: 'scale(.05)', opacity: .9 }, { transform: 'scale(1)', opacity: 0 }],
-      { duration, easing: style.getPropertyValue('--pool-motion-button-easing').trim() });
+      { duration, easing: style.getPropertyValue('--pool-ease-standard').trim() });
     const remove = () => { ripple.remove(); ripples.delete(ripple); };
     animation.onfinish = animation.oncancel = remove;
   };

@@ -1,6 +1,6 @@
 /* Optical accents stay on model choice and the composer. */
 .pool-home.pool-math-surface { isolation: isolate; background: var(--pool-surface-ambient-mesh), var(--pool-color-page); }
-.pool-math-surface > .pool-math-background { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: var(--pool-z-background); }
+.pool-math-surface > .pool-math-background { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: -1; }
 .pool-home .pool-glass,
 .pool-home .pool-glass-focus:focus {
   border: var(--pool-border-hairline) solid transparent;
@@ -25,11 +25,11 @@
   pointer-events: none;
 }
 .pool-activity-edge[data-activity='ready']::after {
-  animation: pool-optical-ready var(--pool-motion-optical-ready) ease-out;
+  animation: pool-optical-ready var(--pool-duration-loop) ease-out;
 }
 .pool-activity-edge[data-activity='executing']::after {
   opacity: 1;
-  animation: pool-optical-flow var(--pool-motion-optical-active) ease-in-out infinite alternate;
+  animation: pool-optical-flow var(--pool-duration-ambient) ease-in-out infinite alternate;
 }
 @keyframes pool-optical-ready {
   0% { opacity: 0; background-position: 100% 0; }
@@ -59,13 +59,13 @@
 .pool-diamond[data-diamond-state='loading'] .pool-diamond-progress,
 .pool-diamond[data-diamond-state='progress'] .pool-diamond-progress,
 .pool-diamond[data-diamond-state='complete'] .pool-diamond-progress { display: block; }
-.pool-diamond[data-diamond-state='loading'] .pool-diamond-visual { animation: pool-diamond-breathe var(--pool-motion-optical-active) ease-in-out infinite alternate; }
-.pool-diamond[data-diamond-state='loading'] [data-diamond-progress] { stroke-dasharray: var(--pool-diamond-trace-length) calc(var(--pool-diamond-path-length) - var(--pool-diamond-trace-length)); animation: pool-diamond-trace var(--pool-motion-optical-active) linear infinite; }
+.pool-diamond[data-diamond-state='loading'] .pool-diamond-visual { animation: pool-diamond-breathe var(--pool-duration-ambient) ease-in-out infinite alternate; }
+.pool-diamond[data-diamond-state='loading'] [data-diamond-progress] { stroke-dasharray: 25 calc(100 - 25); animation: pool-diamond-trace var(--pool-duration-ambient) linear infinite; }
 .pool-diamond[data-prism-state='ready'] .pool-prism-canvas { visibility: visible; }
 .pool-diamond[data-prism-state='ready'] .pool-prism-still { visibility: hidden; }
 .pool-diamond [hidden] { display: none; }
 @keyframes pool-diamond-breathe { from { transform: translateY(0); } to { transform: translateY(calc(-1 * var(--pool-size-4))); } }
-@keyframes pool-diamond-trace { from { stroke-dashoffset: var(--pool-diamond-path-length); } to { stroke-dashoffset: 0; } }
+@keyframes pool-diamond-trace { from { stroke-dashoffset: 100; } to { stroke-dashoffset: 0; } }
 @media (prefers-reduced-motion: reduce) { .pool-diamond *, .pool-diamond *::after { animation: none !important; transition: none !important; } }
 @media (forced-colors: active) {
   .pool-diamond .pool-prism-canvas { display: none; }

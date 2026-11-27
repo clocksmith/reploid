@@ -53,8 +53,9 @@ Features never import each other; the composition layer joins them.
   set, no page CSS.
 - **Outside `packages/poolday-ui`:** no HTML elements (so no raw `button`, `input`, `select`,
   `textarea` or `a`), no `className`, `style` or `dangerouslySetInnerHTML`, no literal
-  colours, sizes or durations. **Inside it:** values come from tokens, and `style` may set only
-  `--pool-param-*`.
+  colours, sizes or durations, and no token names (only the design page, which documents the
+  tokens, names them). **Inside it:** values come from tokens, and `style` may set only
+  `--pool-param-*`. Tokens are read only by primitives; screens are composed of primitives.
 - **Choice controls by decision** ([style guide](style-guide.md#choosing-the-right-control)):
   exactly one is `SingleChoice`, several is `MultiChoice`, on/off is `Toggle`.
 - **The API bridge stays pure.** `packages/reploid/src` has no React, JSX, DOM rendering or

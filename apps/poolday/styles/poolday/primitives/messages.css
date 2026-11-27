@@ -62,7 +62,7 @@
 .pool-home .pool-selector-part > span:last-child { min-inline-size: 0; overflow: hidden; text-overflow: ellipsis; white-space: pre; }
 .pool-home .pool-selector-part:first-of-type { flex: none; }
 .pool-home .pool-selector-chevron { display: grid; flex: none; margin-inline-start: auto; }
-.pool-home .pool-selector-chevron > svg { inline-size: var(--pool-icon-sm); block-size: var(--pool-icon-sm); }
+.pool-home .pool-selector-chevron > svg { inline-size: var(--pool-size-16); block-size: var(--pool-size-16); }
 .pool-home .pool-selector .pool-dot { flex: none; }
 
 .pool-home .pool-readouts { flex-wrap: wrap; }
@@ -72,8 +72,8 @@
 .pool-home .pool-menu { position: relative; flex: none; }
 .pool-home .pool-menu > summary { display: grid; place-items: center; inline-size: var(--pool-size-32); min-inline-size: 0; block-size: var(--pool-size-44); padding: 0; list-style: none; }
 .pool-home .pool-menu > summary::-webkit-details-marker { display: none; }
-.pool-home .pool-menu > summary > svg { inline-size: var(--pool-icon-md); block-size: var(--pool-icon-md); }
-.pool-home .pool-menu-panel { position: absolute; inset-inline-end: 0; z-index: var(--pool-z-2); min-inline-size: var(--pool-size-128); padding: var(--pool-size-4); }
+.pool-home .pool-menu > summary > svg { inline-size: var(--pool-size-20); block-size: var(--pool-size-20); }
+.pool-home .pool-menu-panel { position: absolute; inset-inline-end: 0; z-index: 2; min-inline-size: var(--pool-size-128); padding: var(--pool-size-4); }
 .pool-home .pool-menu-panel > .pool-button { justify-content: flex-start; }
 
 .pool-home .pool-thread { position: relative; display: block; inline-size: 100%; min-inline-size: 0; }
@@ -102,7 +102,7 @@
   inline-size: var(--pool-size-32);
   block-size: var(--pool-size-32);
   border: var(--pool-border-hairline) solid var(--pool-color-line);
-  border-radius: var(--pool-radius-round);
+  border-radius: 50%;
 }
 .pool-home .pool-thread-mark { position: absolute; inset-inline-start: 50%; inset-block-end: calc(-1 * var(--pool-size-4)); transform: translateX(-50%); pointer-events: none; }
 
@@ -112,7 +112,7 @@
   inline-size: 100%;
   min-block-size: var(--pool-size-44);
   max-block-size: 22dvh;
-  padding: calc((var(--pool-size-44) - var(--pool-text-base) * var(--pool-leading-read)) / 2) var(--pool-size-8);
+  padding: calc((var(--pool-size-44) - var(--pool-text-sm) * var(--pool-leading-read)) / 2) var(--pool-size-8);
   resize: none;
   overflow-y: auto;
 }
@@ -134,10 +134,10 @@
    composer gives up exactly that strip, so none of its controls sits under it; the transcript stays where it was. */
 @media (min-width: 761px) {
   .pool-home .pool-workspace[data-end-open] .pool-conversation-composer {
-    padding-inline-end: max(0px, calc(var(--pool-layout-inspector) + var(--pool-param-workspace-gutter) + var(--pool-size-16) - (100vw - var(--pool-size-720)) / 2));
+    padding-inline-end: max(0px, calc(var(--pool-size-360) + var(--pool-param-workspace-gutter) + var(--pool-size-16) - (100vw - var(--pool-size-720)) / 2));
   }
   .pool-home .pool-workspace[data-start-open] .pool-conversation-composer {
-    padding-inline-start: max(0px, calc(var(--pool-layout-threads) + var(--pool-param-workspace-gutter) + var(--pool-size-16) - (100vw - var(--pool-size-720)) / 2));
+    padding-inline-start: max(0px, calc(var(--pool-size-320) + var(--pool-param-workspace-gutter) + var(--pool-size-16) - (100vw - var(--pool-size-720)) / 2));
   }
 }
 
