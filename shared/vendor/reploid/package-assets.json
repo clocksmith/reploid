@@ -1930,8 +1930,8 @@
     },
     {
       "path": "transport/message-types.js",
-      "bytes": 2703,
-      "sha256": "53ea597be3337f3905412252fb687a791bf34eae947c646d9848692cc68fe1c3"
+      "bytes": 2883,
+      "sha256": "a1131fdda993bd63d6b9cae4e5944852eb38b3f292bccb81ab69ed135ebe522a"
     },
     {
       "path": "transport/owner-pairing.d.ts",

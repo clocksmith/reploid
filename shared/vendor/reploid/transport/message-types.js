@@ -29,6 +29,8 @@ export const APPLICATION_MESSAGE_TYPES = Object.freeze([
   'reploid:web-offer', 'reploid:web-request', 'reploid:web-response', 'reploid:web-cancel',
   'reploid:tool-offer', 'reploid:tool-offer-ack',
   'reploid:custody-request', 'reploid:custody-response', 'reploid:custody-offer',
+  // Weight supply (artifacts/custody/exchange.js): a consumer's demand announcement and its signed delivery confirmation.
+  'reploid:custody-demand', 'reploid:custody-delivered',
   'ping', 'pong',
   'raft:request-vote', 'raft:request-vote-response',
   'raft:append-entries', 'raft:append-entries-response',

@@ -271,6 +271,9 @@ var APPLICATION_MESSAGE_TYPES = Object.freeze([
   "reploid:custody-request",
   "reploid:custody-response",
   "reploid:custody-offer",
+  // Weight supply (artifacts/custody/exchange.js): a consumer's demand announcement and its signed delivery confirmation.
+  "reploid:custody-demand",
+  "reploid:custody-delivered",
   "ping",
   "pong",
   "raft:request-vote",

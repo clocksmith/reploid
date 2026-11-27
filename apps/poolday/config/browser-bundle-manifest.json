@@ -1416,7 +1416,7 @@
     {
       "path": "config/module-inventory.json",
       "byteLength": 688386,
-      "sha256": "sha256:2d473c0b42f6708da06230666d6b42e4d75280c7d139befeb5b1d5d50c81dddf"
+      "sha256": "sha256:b220848a2ab6719a364409ca74dfb29368a648a7d574214fe30b414a498cdddc"
     },
     {
       "path": "config/module-registry.json",
@@ -4190,13 +4190,13 @@
     },
     {
       "path": "ui/react/app.js",
-      "byteLength": 3014420,
-      "sha256": "sha256:4cfffe548901d59f70a5bce0994244889bd9522228833185b92f4d4a836f6739"
+      "byteLength": 3014473,
+      "sha256": "sha256:d65e8ac91470c7465150a6d6cc72f21a08794ff16e6c8ef22eca3b1a1a52f4aa"
     },
     {
       "path": "ui/react/design.js",
-      "byteLength": 2106291,
-      "sha256": "sha256:480e9412bc70436e78bc2931b77ebb9ec520016ef01377c85cfb5b759d9189b4"
+      "byteLength": 2106344,
+      "sha256": "sha256:8a06c88153113fea837e0bdd2e4989b83051998d64dfaaffb13cdc32a9117a78"
     },
     {
       "path": "ui/reploid-home/index.js",
@@ -12351,7 +12351,7 @@
     {
       "path": "vendor/reploid/package-assets.json",
       "byteLength": 65811,
-      "sha256": "sha256:7a582d68d6c981d5e8e1577633bf81142629c90802a69d09ae24853788de0737"
+      "sha256": "sha256:348218dea19297a96deff6f63d625881a8ed753c20fa67e4320c02ff85a47a66"
     },
     {
       "path": "vendor/reploid/plugins/index.js",
@@ -12530,8 +12530,8 @@
     },
     {
       "path": "vendor/reploid/transport/message-types.js",
-      "byteLength": 2703,
-      "sha256": "sha256:53ea597be3337f3905412252fb687a791bf34eae947c646d9848692cc68fe1c3"
+      "byteLength": 2883,
+      "sha256": "sha256:a1131fdda993bd63d6b9cae4e5944852eb38b3f292bccb81ab69ed135ebe522a"
     },
     {
       "path": "vendor/reploid/transport/owner-pairing.js",
@@ -12644,5 +12644,5 @@
       "sha256": "sha256:abb6c18f6167d6afc8ee1b3adfcbbb89c0e93fb4fc4e98d7a12250f78aab206a"
     }
   ],
-  "bundleHash": "sha256:42035c8ffb332745ca91e000371ae35eba7ea9dfcb76cae0aab91e393d7092b1"
+  "bundleHash": "sha256:2392ceb6b682c0bb05f8adefa013ef21e14bf4d8f309b136a15f3f6849e45102"
 }

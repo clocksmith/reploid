@@ -5157,13 +5157,13 @@
     {
       "path": "ui/react/app.js",
       "owner": "ui",
-      "sha256": "sha256:4cfffe548901d59f70a5bce0994244889bd9522228833185b92f4d4a836f6739",
+      "sha256": "sha256:d65e8ac91470c7465150a6d6cc72f21a08794ff16e6c8ef22eca3b1a1a52f4aa",
       "imports": []
     },
     {
       "path": "ui/react/design.js",
       "owner": "ui",
-      "sha256": "sha256:480e9412bc70436e78bc2931b77ebb9ec520016ef01377c85cfb5b759d9189b4",
+      "sha256": "sha256:8a06c88153113fea837e0bdd2e4989b83051998d64dfaaffb13cdc32a9117a78",
       "imports": []
     },
     {
@@ -19841,7 +19841,7 @@
     {
       "path": "vendor/reploid/transport/message-types.js",
       "owner": "vendor",
-      "sha256": "sha256:53ea597be3337f3905412252fb687a791bf34eae947c646d9848692cc68fe1c3",
+      "sha256": "sha256:a1131fdda993bd63d6b9cae4e5944852eb38b3f292bccb81ab69ed135ebe522a",
       "imports": [
         "./circle-join.js",
         "./introductions.js",
