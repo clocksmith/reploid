@@ -20,6 +20,9 @@ import {
 } from '../../contracts/weight-supply.js';
 import { participantIdFor, signAsParticipant, verifyParticipantSignature } from '../participant-proofs.js';
 
+/** The host's saved weight supply (exportWeightSupplyState): canonical records plus the held-piece rows. */
+export const WEIGHT_SUPPLY_STATE_SCHEMA = 'reploid.weight-supply-state/1';
+
 /** Whether `approval` is signed by the computer it names (its key's participant ID). */
 export async function verifyWeightSupplyApproval(approval) {
   try {
@@ -137,7 +140,7 @@ export function createWeightSupply({ identity, connectionId, exchange, models, s
   };
 
   async function cachedModels(allowed) {
-    const pieceIds = new Set(await store.list());
+    const pieceIds = new Set([...await store.list(), ...(await ports.cachedPieceIds?.() ?? [])]);
     const rows = [];
     for (const model of models) {
       if (allowed && !allowed.has(model.modelIdentity)) continue;
@@ -300,6 +303,85 @@ export function createWeightSupply({ identity, connectionId, exchange, models, s
     /** The latest served transfers (reploid.weight-transfer/1), oldest first. */
     getServedTransfers: () => structuredClone(transfers),
     getApproval: () => (approval ? structuredClone(approval) : null),
+
+    /**
+     * What a reload needs, built from the canonical records (reploid.weight-supply-state/1): the signed approval, the
+     * held pieces (verified, or still to fetch), the replacement and served-transfer records, the served totals and
+     * whether supply is paused. Failed pieces are not kept.
+     */
+    exportWeightSupplyState: () => structuredClone({ schema: WEIGHT_SUPPLY_STATE_SCHEMA, computerId, paused, approval,
+      pieces: [...held.values()].filter(row => row.state !== 'failed').map(row => ({ pieceId: row.pieceId, modelIdentity: row.modelIdentity,
+        pieceIndexDigest: row.pieceIndexDigest, path: row.path, offset: row.offset, sizeBytes: row.sizeBytes,
+        state: row.state === 'verified' ? 'verified' : 'queued', verifiedAt: row.verifiedAt, servedBytes: row.servedBytes, servedTransfers: row.servedTransfers })),
+      replacements, transfers, servedBytes, servedTransfers }),
+
+    /**
+     * Into a fresh service, the state `exportWeightSupplyState` returned before a reload. The approval must be this
+     * computer's, validly signed, unexpired and scoped to the pinned piece indexes in `models`; otherwise every piece is
+     * dropped. Each held piece must be in its pinned piece index at the same path, offset and size, and a verified one
+     * must still hash to its piece ID in the store; anything else is dropped and its bytes deleted. Pieces still to
+     * fetch are queued again. Served-transfer records are kept in every case: they are completed transfers.
+     */
+    async restoreWeightSupply(snapshot) {
+      if (approval || held.size) throw new Error('Weight supply restores only into a fresh service');
+      const result = { approval: 'none', restoredPieces: 0, requeuedPieces: 0, dropped: [] };
+      if (!snapshot || snapshot.schema !== WEIGHT_SUPPLY_STATE_SCHEMA) return result;
+      for (const row of Array.isArray(snapshot.transfers) ? snapshot.transfers.slice(-policy.report.maxTransfers) : []) {
+        try { transfers.push(parseWeightTransfer(row)); } catch { /* a malformed record is not restored */ }
+      }
+      if (Number.isSafeInteger(snapshot.servedBytes) && snapshot.servedBytes >= 0) servedBytes = snapshot.servedBytes;
+      if (Number.isSafeInteger(snapshot.servedTransfers) && snapshot.servedTransfers >= 0) servedTransfers = snapshot.servedTransfers;
+      const rows = Array.isArray(snapshot.pieces) ? snapshot.pieces : [];
+      let restored = null;
+      if (snapshot.approval) {
+        let parsed = null;
+        try { parsed = parseWeightSupplyApproval(snapshot.approval); } catch { /* invalid below */ }
+        const scoped = parsed && parsed.modelIdentities.every(identity => models.some(model => model.modelIdentity === identity
+          && parsed.pieceIndexDigests.includes(model.pieceIndexDigest)));
+        if (!parsed || !await verifyWeightSupplyApproval(parsed)) result.approval = 'invalid';
+        else if (parsed.computerId !== computerId) result.approval = 'other-computer';
+        else if (parsed.expiresAt <= now()) result.approval = 'expired';
+        else if (!scoped) result.approval = 'index-changed';
+        else { result.approval = 'restored'; restored = parsed; }
+      }
+      // Pieces another computer approved are not this computer's to delete.
+      const owned = result.approval !== 'other-computer';
+      const drop = async (row, reason) => {
+        result.dropped.push({ pieceId: row?.pieceId ?? null, reason });
+        if (owned && typeof row?.pieceId === 'string') await store.delete(row.pieceId);
+      };
+      if (!restored) {
+        for (const row of rows) await drop(row, result.approval === 'none' ? 'no-approval' : `approval-${result.approval}`);
+        changed();
+        return result;
+      }
+      approval = restored;
+      for (const row of rows) {
+        const entry = catalog.get(row?.pieceId);
+        if (!entry || !restored.modelIdentities.includes(entry.model.modelIdentity) || entry.model.pieceIndexDigest !== row.pieceIndexDigest
+          || entry.piece.path !== row.path || entry.piece.offset !== row.offset || entry.piece.sizeBytes !== row.sizeBytes || held.has(row.pieceId)) {
+          await drop(row, 'not-in-pinned-index'); continue;
+        }
+        if (row.state !== 'verified') { hold(entry); result.requeuedPieces++; continue; }
+        const bytes = await store.get(row.pieceId);
+        if (!bytes) { await drop(row, 'missing'); continue; }
+        if (bytes.byteLength !== row.sizeBytes || await ports.hashBytes(bytes) !== row.pieceId) { await drop(row, 'verification-failed'); continue; }
+        hold(entry);
+        const restoredRow = held.get(row.pieceId);
+        queue.splice(queue.indexOf(row.pieceId), 1);
+        Object.assign(restoredRow, { state: 'verified', verifiedAt: Number.isSafeInteger(row.verifiedAt) ? row.verifiedAt : now(),
+          servedBytes: Number.isSafeInteger(row.servedBytes) ? row.servedBytes : 0, servedTransfers: Number.isSafeInteger(row.servedTransfers) ? row.servedTransfers : 0 });
+        result.restoredPieces++;
+      }
+      for (const row of Array.isArray(snapshot.replacements) ? snapshot.replacements.slice(-policy.report.maxReplacements) : []) {
+        try { const parsed = parseWeightSupplyReplacement(row); if (parsed.approvalId === approval.approvalId) replacements.push(parsed); } catch { /* not restored */ }
+      }
+      servedBytes = Math.max(servedBytes, [...held.values()].reduce((total, row) => total + row.servedBytes, 0));
+      paused = snapshot.paused === true;
+      if (!paused) { share(); pump(); }
+      changed();
+      return result;
+    },
     /** Resolves when nothing is being fetched (or supply is paused). */
     whenIdle: () => new Promise(resolve => {
       if (active === 0 && (paused || queue.length === 0 || !approvalActive())) { resolve(); return; }

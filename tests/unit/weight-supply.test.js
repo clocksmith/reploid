@@ -203,3 +203,102 @@ describe('approveWeightSupply and reporting', () => {
     } finally { await f.close(); }
   });
 });
+
+describe('exportWeightSupplyState and restoreWeightSupply', () => {
+  /** A second service on the same computer, store and models: what a reload builds. */
+  const reopen = (f, extra = {}) => createWeightSupply({ identity: f.peer.identity, connectionId: f.peer.id, exchange: f.peer.exchange,
+    models: [f.pinned], store: f.peer.store, ports: { hashBytes: sha256Hex, ...extra } });
+  async function approved(f, cap = 1 << 20) {
+    const { offer } = await f.supply.recommendWeightSupply({ storageCapBytes: cap });
+    const approval = await f.supply.approveWeightSupply({ offerId: offer.offerId, storageCapBytes: cap });
+    await f.supply.whenIdle();
+    return approval;
+  }
+
+  it('restores the signed approval, re-verified pieces, replacements and served transfers, and shares the pieces again', async () => {
+    const f = await setup({ count: 3 });
+    try {
+      const approval = await approved(f);
+      const state = JSON.parse(JSON.stringify(f.supply.exportWeightSupplyState()));
+      expect(state).toMatchObject({ schema: 'reploid.weight-supply-state/1', computerId: f.peer.computerId, paused: false, approval });
+      expect(state.pieces.map(piece => piece.state)).toEqual(['verified', 'verified', 'verified']);
+      f.peer.exchange.stopSupply();
+      const restored = reopen(f);
+      const result = await restored.restoreWeightSupply(state);
+      expect(result).toMatchObject({ approval: 'restored', restoredPieces: 3, requeuedPieces: 0, dropped: [] });
+      expect(restored.getApproval()).toEqual(approval);
+      expect(restored.getWeightSupplyReport()).toMatchObject({ verifiedBytes: 3 * PIECE, paused: false, servedBytes: 0 });
+      expect(f.peer.exchange.getState().sharing).toBe(true);
+    } finally { await f.close(); }
+  });
+
+  it('drops a piece that fails verification against the pinned index or is missing, and deletes its bytes', async () => {
+    const f = await setup({ count: 3 });
+    try {
+      await approved(f);
+      const state = f.supply.exportWeightSupplyState();
+      const [tampered, missing] = state.pieces;
+      f.peer.pieces.set(tampered.pieceId, new Uint8Array(PIECE));
+      f.peer.pieces.delete(missing.pieceId);
+      // A row the pinned index does not hold at that offset is dropped without reading it.
+      const moved = { ...state.pieces[2], offset: state.pieces[2].offset + 1 };
+      const result = await reopen(f).restoreWeightSupply({ ...state, pieces: [tampered, missing, moved] });
+      expect(result.dropped).toEqual([{ pieceId: tampered.pieceId, reason: 'verification-failed' },
+        { pieceId: missing.pieceId, reason: 'missing' }, { pieceId: moved.pieceId, reason: 'not-in-pinned-index' }]);
+      expect(result.restoredPieces).toBe(0);
+      expect(f.peer.pieces.has(tampered.pieceId)).toBe(false);
+    } finally { await f.close(); }
+  });
+
+  it('drops everything under an expired, forged or other computer\'s approval; a fresh service restores nothing', async () => {
+    let offset = 0;
+    const f = await setup({ count: 2, clock: () => Date.now() + offset });
+    try {
+      const approval = await approved(f);
+      const state = f.supply.exportWeightSupplyState();
+      const other = await f.room.join('other-computer');
+      const foreign = createWeightSupply({ identity: other.identity, connectionId: other.id, exchange: other.exchange, models: [f.pinned],
+        store: f.peer.store, ports: { hashBytes: sha256Hex } });
+      // Another computer's approval: not restored, and its pieces are not this computer's to delete.
+      expect((await foreign.restoreWeightSupply(state)).approval).toBe('other-computer');
+      expect(f.peer.pieces.size).toBe(2);
+      const forged = { ...state, approval: { ...approval, storageCapBytes: approval.storageCapBytes * 2 } };
+      const invalid = await reopen(f).restoreWeightSupply({ ...forged, pieces: [state.pieces[0]] });
+      expect(invalid).toMatchObject({ approval: 'invalid', restoredPieces: 0, dropped: [{ pieceId: state.pieces[0].pieceId, reason: 'approval-invalid' }] });
+      expect(f.peer.pieces.size).toBe(1);
+      offset += WEIGHT_SUPPLY_POLICY.approval.ttlMs + 1;
+      const expired = await reopen(f, { now: () => Date.now() + offset }).restoreWeightSupply(state);
+      expect(expired).toMatchObject({ approval: 'expired', restoredPieces: 0 });
+      expect(expired.dropped.map(row => row.reason)).toEqual(['approval-expired', 'approval-expired']);
+      expect(f.peer.pieces.size).toBe(0);
+      expect(await reopen(f).restoreWeightSupply(null)).toMatchObject({ approval: 'none', restoredPieces: 0, dropped: [] });
+      await other.leave();
+    } finally { await f.close(); }
+  });
+
+  it('keeps a paused supply paused across a reload', async () => {
+    const f = await setup({ count: 2 });
+    try {
+      await approved(f);
+      f.supply.pauseWeightSupply();
+      const state = f.supply.exportWeightSupplyState();
+      expect(state.paused).toBe(true);
+      const restored = reopen(f);
+      expect(await restored.restoreWeightSupply(state)).toMatchObject({ approval: 'restored', restoredPieces: 2 });
+      expect(restored.getWeightSupplyReport().paused).toBe(true);
+      expect(f.peer.exchange.getState().sharing).toBe(false);
+    } finally { await f.close(); }
+  });
+});
+
+describe('cachedPieceIds', () => {
+  it('counts a full cached model held elsewhere as cached, so an empty piece store is not offered a download', async () => {
+    const f = await setup({ count: 2 });
+    try {
+      const supply = createWeightSupply({ identity: f.peer.identity, connectionId: f.peer.id, exchange: f.peer.exchange, models: [f.pinned],
+        store: f.peer.store, ports: { hashBytes: sha256Hex, cachedPieceIds: async () => f.pinned.pieces.map(piece => piece.pieceId) } });
+      const recommendation = await supply.recommendWeightSupply({ storageCapBytes: 1 << 20 });
+      expect(recommendation).toMatchObject({ offer: null, noOffer: 'cached-models', cached: [{ complete: true, heldPieces: 2 }] });
+    } finally { await f.close(); }
+  });
+});
