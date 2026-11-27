@@ -1,5 +1,6 @@
 import policy from './computer-identity.policy.json' with { type: 'json' };
 import { publicProviderHardware } from './provider-hardware.js';
+import { isParticipantId } from '../contracts/identifiers.js';
 
 /** Stable display names identify a key, never a unique physical computer. */
 export function participantLabel(id) {
@@ -28,7 +29,7 @@ export async function identifyComputer(connectionId, { verifyPeer, storage, owne
   signal?.throwIfAborted();
   const participantId = await verifyPeer(connectionId, signal);
   signal?.throwIfAborted();
-  if (typeof participantId !== 'string' || !/^peer:[a-f0-9]{24}$/.test(participantId)) {
+  if (!isParticipantId(participantId)) {
     throw new Error('Computer identity could not be verified');
   }
   const key = policy.storagePrefix + participantId;

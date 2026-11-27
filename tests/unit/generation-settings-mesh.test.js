@@ -63,6 +63,10 @@ it('signs the effective-request digest into a version 3 receipt and hands the se
   expect(sent(f, 'reploid:generation-request')[0].settings).toEqual(settings);
   expect(result.executionReceipt).toMatchObject({ version: 3, settingsDigest: digest, outputTokens: 3 });
   expect(await verifyReceipt(result.executionReceipt)).toEqual({ valid: true, providerValid: true, consumerValid: true });
+  // The roles beside the signed receipt (unsigned): the requester consumed, the provider key provided.
+  expect(result.operationRoles).toMatchObject({ schema: 'reploid.operation-roles/1', operation: 'inference', operationId: result.executionReceipt.jobHash,
+    consumer: { computerId: result.executionReceipt.consumer, participantId: result.executionReceipt.consumer },
+    provider: { computerId: result.executionReceipt.provider, participantId: result.executionReceipt.provider } });
   expect(f.errors).toEqual([]);
 });
 

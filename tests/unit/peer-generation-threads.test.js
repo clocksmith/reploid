@@ -1,4 +1,5 @@
 import { createExecutionPolicy, bindExecutionRoute, plaintextExecutionRoute } from '../../packages/reploid/src/chat/execution-policy.js';
+import { inferenceOffer } from '../../packages/reploid/src/contracts/computer-records.js';
 import { it, expect, vi } from 'vitest';
 import { REQUESTER_CANCELLED, REQUESTER_DISCONNECTED, createPeerGenerationMesh } from '../../packages/reploid/src/mesh/peer-generation.js';
 import { resolveConfig } from '../../packages/reploid/src/config/index.js';
@@ -122,6 +123,17 @@ it('does not trust identity fields injected into peer advertisements', async () 
   try {
     f.advertise('wire', 'qwen', { participantId: 'forged-key', identityVerified: true });
     expect(f.mesh.getSwarmSnapshot().peers[0]).toMatchObject({ peerId: 'wire', participantId: null, identityVerified: false });
+  } finally { await f.mesh.close(); }
+});
+
+it('reports each connection\'s inference offer as the canonical record and ignores an advertised offers field', async () => {
+  const f = fixture(); await f.mesh.connect();
+  try {
+    f.advertise('wire', 'qwen', { availableSlots: 0, offers: [{ kind: 'weight-supply', forged: true }], role: 'provider' });
+    const [peer] = f.mesh.getSwarmSnapshot().peers;
+    expect(peer.offers).toEqual([inferenceOffer({ connectionId: 'wire', readiness: 'busy', modelId: 'qwen', modelIdentities: [artifactA], availableSlots: 0 })]);
+    f.advertise('wire', null, { readiness: 'idle', modelIdentity: null, updatedAt: Date.now() + 1 });
+    expect(f.mesh.getSwarmSnapshot().peers[0].offers).toEqual([]);
   } finally { await f.mesh.close(); }
 });
 

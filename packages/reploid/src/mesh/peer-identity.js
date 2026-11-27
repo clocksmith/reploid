@@ -3,6 +3,7 @@ import { createPeerIdFromPublicJwk, importSigningKey, importVerificationKey,
   getIdentitySignAlgorithm, encodeBytes, fromBase64Url, toBase64Url } from '../artifacts/identity.js';
 import { createRemoteGenerationRequests } from './remote-generation-requests.js';
 import policy from './computer-identity.policy.json' with { type: 'json' };
+import { isParticipantId } from '../contracts/identifiers.js';
 
 const challengeType = 'reploid:identity-challenge', proofType = 'reploid:identity-proof';
 const sameBinding = (a, b) => !!a && !!b && a.local === b.local && a.remote === b.remote;
@@ -15,7 +16,6 @@ const signedBytes = (challenge, participantId) => encodeBytes(JSON.stringify([
 // requester key signs a statement naming the contributor key, and the contributor carries it. A statement
 // groups the two only on a connection already proven (above) to hold the contributor key it names, so a third
 // peer cannot use it: it names someone else's key, and no one but the requester key's holder can sign another.
-const PARTICIPANT = /^peer:[a-f0-9]{24}$/;
 const linkBytes = (roomId, computerId, participantId) => encodeBytes(JSON.stringify(['reploid.same-computer/v1', roomId, computerId, participantId]));
 
 /** The statement `identity` (this computer's requester key) signs that `participantId` is the same computer. */
@@ -27,7 +27,7 @@ export async function signComputerLink({ identity, participantId, roomId }) {
 
 /** { computerId, participantId } when `link` is a valid statement for this room, else null. */
 export async function verifyComputerLink(link, roomId) {
-  if (!link || typeof link !== 'object' || !PARTICIPANT.test(link.computerId) || !PARTICIPANT.test(link.participantId)
+  if (!link || typeof link !== 'object' || !isParticipantId(link.computerId) || !isParticipantId(link.participantId)
     || link.computerId === link.participantId || typeof link.signature !== 'string' || link.signature.length > 2048
     || !link.publicJwk || typeof link.publicJwk !== 'object') return null;
   try {

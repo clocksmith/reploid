@@ -1035,8 +1035,8 @@
     },
     {
       "path": "mesh/computer-identity.js",
-      "bytes": 2569,
-      "sha256": "a0d98afd91e230a182a3b3a3b1eb1f010268852e61f24d989bf3682998a40309"
+      "bytes": 2584,
+      "sha256": "50b18f007954969fc3f955145b15c5d138d8599d55981f0913954ed12906b52c"
     },
     {
       "path": "mesh/computer-identity.policy.json",
@@ -1570,13 +1570,13 @@
     },
     {
       "path": "mesh/peer-generation.js",
-      "bytes": 109897,
-      "sha256": "ca75f2bc23ec6b1155d6605e9837fb0901eecb78fd36aa0a62543cfb01a3712b"
+      "bytes": 111418,
+      "sha256": "452e147c021654e6ddd0f6651e228d050fcb6fc48d2dac2b4afec3e85c9c20f3"
     },
     {
       "path": "mesh/peer-identity.js",
-      "bytes": 7825,
-      "sha256": "6882bedefa417038bc3c65d869538b2eb8bcc8b21d9feae571809e7173c4af77"
+      "bytes": 7843,
+      "sha256": "234bed97ce2240745638bb3808eebc5930d23edf48ddc4fc40b8d39ddaa579bb"
     },
     {
       "path": "mesh/placement-beliefs.d.ts",

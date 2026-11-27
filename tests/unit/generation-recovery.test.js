@@ -35,6 +35,7 @@ it('recovers a lost completion after provider restart, verifies it, and never ex
   await f.restartProvider();
   const recovered = await f.recover();
   expect(recovered).toMatchObject({ status: 'completed', response: { content: 'actual answer', executionReceipt: { version: 2, inputTokens: 7, outputTokens: 3 } } });
+  expect(recovered.response.operationRoles).toMatchObject({ operation: 'inference', provider: { participantId: recovered.response.executionReceipt.provider } });
   await f.replay(); expect(f.executions).toBe(1); expect(f.errors).toEqual([]);
   await f.replay({ recoverable: false }); expect(f.executions).toBe(1);
   f.tamper(); await expect(f.recover()).rejects.toThrow('Unverified recovered completion');

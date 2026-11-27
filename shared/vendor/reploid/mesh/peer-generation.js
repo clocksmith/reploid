@@ -21,9 +21,11 @@ import { signGenerationTerminal, verifyGenerationTerminal } from '../artifacts/g
 import { createGenerationRecovery, createMemoryGenerationJournal } from './generation-recovery.js';
 import { assertSettingsSupported, effectiveRequestDigest, isCanonicalGenerationSettings, normalizeGenerationSettings,
   normalizeGenerationSettingsCapability } from './generation-settings.js';
+import { DIGEST_PATTERN, isDigest, isParticipantId } from '../contracts/identifiers.js';
+import { inferenceOfferFromAdvertisement, isOfferActive, operationRolesFromReceipt } from '../contracts/computer-records.js';
 
 const adapterSet = value => {
-  if (!Array.isArray(value) || value.length > 1 || value.some(id => !/^sha256:[a-f0-9]{64}$/.test(id))) {
+  if (!Array.isArray(value) || value.length > 1 || value.some(id => !isDigest(id))) {
     throw new Error('Invalid adapter selection');
   }
   return [...value];
@@ -34,9 +36,9 @@ const matchesRequestedModel = (actual, requested) => (!requested.model || actual
   && (!requested.modelIdentity || actual.modelIdentity === requested.modelIdentity);
 const sameModelBinding = (actual, expected) => actual.model === expected.model
   && actual.modelIdentity === expected.modelIdentity;
-const digestValue = value => typeof value === 'string' && /^sha256:[a-f0-9]{64}$/.test(value);
+const digestValue = isDigest;
 
-const PROMPT_COMMITMENT = /^sha256:[a-f0-9]{64}$/;
+const PROMPT_COMMITMENT = DIGEST_PATTERN;
 const ADMISSION_SALT = /^[a-f0-9]{64}$/;
 // A salted commitment to what the caller wrote: the messages, and the settings (tool definitions and an
 // output schema are the caller's text too). The provider that admits a request holds only this until they
@@ -425,6 +427,16 @@ export function createPeerGenerationMesh({ config, ports }) {
     }, () => {});
   };
 
+  // The roles of a countersigned whole-model receipt (contracts/computer-records.js), beside it and unsigned: this
+  // computer consumed, the provider key's computer (a verified link, else the key itself) provided. Null if unreadable.
+  const receiptRoles = (receipt, providerPeerId) => {
+    try {
+      const linked = computerLinks.get(providerPeerId)?.verified, own = ports.computerIdentity?.()?.peerId;
+      return operationRolesFromReceipt(receipt, { providerComputerId: linked?.participantId === receipt.provider ? linked.computerId : null,
+        consumerComputerId: receipt.consumer === identityBundle?.peerId && isParticipantId(own) ? own : null, providerConnectionId: providerPeerId });
+    } catch { return null; }
+  };
+
   // A contributor connection links its key to the requester key of the same browser, when the host supplies it.
   const linkComputer = async () => {
     const computer = ports.computerIdentity?.() || null;
@@ -475,6 +487,9 @@ export function createPeerGenerationMesh({ config, ports }) {
       const generationSettings = normalizeGenerationSettingsCapability(payload.generationSettings);
       if (generationSettings) next.generationSettings = generationSettings;
       else delete next.generationSettings;
+      // This connection's offers as the canonical records (contracts/computer-records.js), derived from the fields
+      // normalized above; a remote advertisement's own `offers` field is never read.
+      next.offers = [inferenceOfferFromAdvertisement(next, { connectionId: remotePeerId })].filter(Boolean);
     }
     if (next) {
       const connection = swarmTransport?.getPeerStates?.().find(peer => peer.id === remotePeerId);
@@ -488,7 +503,8 @@ export function createPeerGenerationMesh({ config, ports }) {
           observationSession: payload.observationSession ?? null, observationSequence: payload.observationSequence ?? null });
       }
     }
-    if (next?.role === 'provider') {
+    // Availability comes from an active inference offer, never from the advertised role.
+    if (next?.offers.some(offer => offer.kind === 'inference' && isOfferActive(offer, Date.now()))) {
       bridgeEvents.emit('provider-ready', next);
     }
     if (next) checkComputerLink(remotePeerId, link);
@@ -583,6 +599,7 @@ export function createPeerGenerationMesh({ config, ports }) {
             model: payload.model || null, provider: payload.provider || null, timestamp: payload.timestamp || Date.now() };
       // Only this verifier may attach execution evidence or this requester's delivery record to the returned result.
       delete response.executionReceipt;
+      delete response.operationRoles;
       delete response.delivery;
       if (!matchesRequestedModel(response, modelBinding(pending.modelId, pending.modelIdentity))) {
         throw new Error('Remote response substituted the requested model');
@@ -658,6 +675,7 @@ export function createPeerGenerationMesh({ config, ports }) {
           swarmTransport.sendToPeer(remotePeerId, 'reploid:receipt', { receipt: countersigned, ...(acknowledgment ? { settlementAcknowledgment: acknowledgment } : {}) },
             pending.paths?.path ? { path: pending.paths.path } : undefined);
           response.executionReceipt = countersigned;
+          response.operationRoles = receiptRoles(countersigned, remotePeerId);
           remoteRequests.settle(pending, { response });
           return true;
         };
@@ -1673,6 +1691,7 @@ export function createPeerGenerationMesh({ config, ports }) {
     signal?.throwIfAborted();
     if (closed) throw Error('Mesh closed during recovery');
     response.executionReceipt = countersigned;
+    response.operationRoles = receiptRoles(countersigned, reference.providerId);
     return { status: 'completed', response };
   };
 
