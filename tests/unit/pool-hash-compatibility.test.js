@@ -1,17 +1,25 @@
 // @vitest-environment node
 import { expect, it } from 'vitest';
 import { sha256Hex, sha256Digest, hashCanonical, canonicalJson } from '../../server/hashing.js';
-import { sha256Digest as poolDigest, sha256Hex as legacyPoolDigest, hashJson as poolHash } from '../../server/pool/hash.js';
+import { sha256TextDigest, sha256Digest as legacyPoolDigest, sha256Hex as legacyPoolHex, hashJson as poolHash } from '../../server/pool/hash.js';
 import { canonicalize, canonicalizeWith } from '../../packages/reploid/src/artifacts/canonical-json.js';
-import { sha256Hex as browserDigest, hashJson as browserHash } from '../../packages/reploid/src/artifacts/signatures.js';
+import { sha256Digest as browserDigest, sha256Hex as legacyBrowserDigest, hashJson as browserHash } from '../../packages/reploid/src/artifacts/signatures.js';
 
 it('keeps browser-produced pool identities compatible with the server wire contract', async () => {
   const hex = 'ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad';
   expect(sha256Hex('abc')).toBe(hex);
   expect(sha256Digest('abc')).toBe(`sha256:${hex}`);
-  expect(poolDigest('abc')).toBe(`sha256:${hex}`);
+  expect(sha256TextDigest('abc')).toBe(`sha256:${hex}`);
   expect(legacyPoolDigest('abc')).toBe(`sha256:${hex}`);
+  expect(legacyPoolHex('abc')).toBe(`sha256:${hex}`);
   expect(await browserDigest('abc')).toBe(`sha256:${hex}`);
+  expect(await legacyBrowserDigest('abc')).toBe(`sha256:${hex}`);
+});
+
+it('keeps raw byte digests distinct from Pool text digests', async () => {
+  const bytes = Uint8Array.of(97, 98, 99);
+  expect(await browserDigest(bytes)).toBe(sha256Digest(bytes));
+  expect(sha256TextDigest(bytes)).toBe('sha256:830bfde037ad04e792f869d42c5ae6c0260548e99302f95382dc24dd63d2f47f');
 });
 
 it('agrees across canonical JSON implementations for signed JSON data', async () => {

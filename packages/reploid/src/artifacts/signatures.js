@@ -1,13 +1,13 @@
 import { bytesToBase64, base64ToBytes } from './binary.js';
 import { canonicalize } from './canonical-json.js';
-import { sha256Bytes, sha256HexUnprefixed, sha256Hex } from '../hashing.js';
+import { sha256Bytes, sha256HexUnprefixed, sha256Digest, sha256Hex } from '../hashing.js';
 
-export { sha256Bytes, sha256HexUnprefixed, sha256Hex };
+export { sha256Bytes, sha256HexUnprefixed, sha256Digest, sha256Hex };
 
 const textEncoder = new TextEncoder();
 
 export async function hashJson(value, cryptoApi = globalThis.crypto) {
-  return sha256Hex(canonicalize(value), cryptoApi);
+  return sha256Digest(canonicalize(value), cryptoApi);
 }
 
 export async function createSigningKeyPair() {

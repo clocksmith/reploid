@@ -60,14 +60,6 @@ export const REPLOID_TOOL_SURFACE_IDS = Object.freeze([
   'extendedFile',
   'promotion'
 ]);
-export const UPGRADED_TOOL_SURFACE_IDS = Object.freeze([
-  ...REPLOID_TOOL_SURFACE_IDS,
-  'optimization',
-  'cognition',
-  'workers',
-  'swarm'
-]);
-
 export const X_TOOL_SURFACE_IDS = ZERO_TOOL_SURFACE_IDS;
 
 export const TOOL_SURFACE_IDS_BY_MODE = Object.freeze({

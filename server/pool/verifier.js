@@ -4,7 +4,7 @@
 
 import { webcrypto } from 'crypto';
 import { ACCEPTANCE_V2, ACCEPTANCE_V2_DOMAIN, canonicalAcceptanceAgreement, compactAgreementForAcceptance } from '../../shared/vendor/reploid/artifacts/acceptance.js';
-import { canonicalize, hashJson, sha256Digest } from './hash.js';
+import { canonicalize, hashJson, sha256TextDigest } from './hash.js';
 import { PROVIDER_RECEIPT_TRUST_TIER, RECEIPT_VERSION } from './receipt-contract.js';
 import { getRingPhaseProtocol } from './config.js';
 import { revealMatchesCommitment } from './commit-reveal.js';
@@ -147,7 +147,7 @@ export async function verifyReceipt({
   if (receipt?.signatureDomain !== SIGNATURE_DOMAINS.providerReceipt) reasons.push('receipt signature domain mismatch');
   if (receipt?.trustTier !== PROVIDER_RECEIPT_TRUST_TIER) reasons.push('trust tier mismatch');
   if (assignment?.expiresAt && Date.parse(assignment.expiresAt) < Date.now()) reasons.push('assignment expired');
-  if (assignment?.prompt && assignment.inputHash !== sha256Digest(assignment.prompt)) {
+  if (assignment?.prompt && assignment.inputHash !== sha256TextDigest(assignment.prompt)) {
     reasons.push('assignment inputHash does not match stored prompt');
   }
   if (assignment?.generationConfig && assignment.generationConfigHash !== hashJson(assignment.generationConfig)) {
@@ -217,7 +217,7 @@ export async function verifyReceipt({
   compareRuntime(assignment, receipt, reasons);
   compareAdapter(assignment, receipt, reasons);
 
-  if (receipt?.outputHash && receipt.outputHash !== sha256Digest(outputText)) {
+  if (receipt?.outputHash && receipt.outputHash !== sha256TextDigest(outputText)) {
     reasons.push('output hash does not match submitted outputText');
   }
   if (receipt?.tokenIdsHash && Array.isArray(tokenIds) && receipt.tokenIdsHash !== hashJson(tokenIds)) {

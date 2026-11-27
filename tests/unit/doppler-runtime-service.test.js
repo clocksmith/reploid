@@ -26,20 +26,12 @@ const makeModule = () => {
 };
 
 describe('Reploid DopplerRuntimeService', () => {
-  it('prefers the explicit scoped API over a legacy loader even under Vitest', async () => {
+  it('uses the explicit scoped API when the module also exposes a legacy loader', async () => {
     const fixture = makeModule(); fixture.module.load = vi.fn(() => { throw Error('Legacy API must not run'); });
     const service = createReploidDopplerRuntimeService({ expectedVersion: '0.5.1', loadModule: async () => fixture.module });
     const result = await service.open({ source: 'model' });
     expect(result).toBe(fixture.sessions[0]); expect(fixture.module.dr.open).toHaveBeenCalledOnce();
     expect(fixture.module.load).not.toHaveBeenCalled(); await service.closeAll();
-  });
-  it('retains exactly the emitted text in an explicitly legacy test stream completion', async () => {
-    const load = vi.fn(async () => ({ async *generate() { yield 'legacy '; yield 'text'; }, unload: vi.fn() }));
-    const service = createReploidDopplerRuntimeService({ loadModule: async () => ({ load }) });
-    const session = await service.open({ source: 'legacy-fixture' }), events = [];
-    for await (const event of session.stream('fixture')) events.push(event);
-    expect(events.at(-1).outputText).toBe(events.filter(event => event.type === 'text-delta').map(event => event.text).join(''));
-    expect(events.at(-1).outputText).toBe('legacy text'); await service.closeAll();
   });
   it('retains failed cleanup ownership and blocks reuse or replacement until release succeeds', async () => {
     const fixture = makeModule();
@@ -146,7 +138,7 @@ describe('Reploid DopplerRuntimeService', () => {
     expect(service.get('pool:protein').source).toBe('esm-model');
   });
 
-  it('fails closed on a mixed runtime version or legacy-only API', async () => {
+  it('fails closed on a mismatched or unidentified runtime version', async () => {
     const wrong = createReploidDopplerRuntimeService({
       loadModule: async () => ({
         DOPPLER_VERSION: '0.4.16',
@@ -155,13 +147,19 @@ describe('Reploid DopplerRuntimeService', () => {
     });
     await expect(wrong.open({ source: 'model' })).rejects.toThrow(`requires Doppler ${pin.version}`);
 
-    const legacy = createReploidDopplerRuntimeService({ expectedVersion: '0.5.1',
-      loadModule: async () => ({
-        DOPPLER_VERSION: '0.5.1',
-        dr: { load: vi.fn() }
-      })
+    const open = vi.fn();
+    const unidentified = createReploidDopplerRuntimeService({ loadModule: async () => ({ dr: { open } }) });
+    await expect(unidentified.open({ source: 'model' })).rejects.toThrow('loaded unidentified');
+    expect(open).not.toHaveBeenCalled();
+  });
+
+  it('fails closed when the version matches but the scoped API is absent', async () => {
+    const load = vi.fn();
+    const legacy = createReploidDopplerRuntimeService({
+      loadModule: async () => ({ DOPPLER_VERSION: pin.version, load })
     });
     await expect(legacy.open({ source: 'model' })).rejects.toThrow('does not expose the scoped dr.open API');
+    expect(load).not.toHaveBeenCalled();
   });
 
   it('closes a session even when shutdown races an in-flight open', async () => {

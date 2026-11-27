@@ -11,9 +11,9 @@ import { setTimeout as delay } from 'node:timers/promises';
 import { constants } from 'node:fs';
 import path from 'node:path';
 import { setTimeout as pause } from 'node:timers/promises';
-import { sha256Hex as digest } from './hashing.js';
+import { sha256Hex } from './hashing.js';
 import { createCustodyExchange, createCustodyContracts, createPieceAcquisition } from '../shared/vendor/reploid/artifacts/custody/runtime.js';
-import { createSigningKeyPair, exportPublicKey, sha256Hex, signCanonical, verifyCanonicalSignature } from '../shared/vendor/reploid/artifacts/signatures.js';
+import { createSigningKeyPair, exportPublicKey, sha256Digest, signCanonical, verifyCanonicalSignature } from '../shared/vendor/reploid/artifacts/signatures.js';
 import { createPeerPackDataChannel } from '../apps/poolday/pool/peer-pack-data-channel.js';
 import { hashDopplerEvidence, validateExecutablePack, executablePacksMatch } from '../shared/pool/executable-pack.js';
 import policy from '../apps/poolday/config/chat-files.json' with { type: 'json' };
@@ -30,7 +30,7 @@ const key = file => { assert(file.hashAlgorithm === 'sha256' && /^[a-f0-9]{64}$/
 const verify = async (file, bytes) => {
   assert(bytes instanceof Uint8Array && bytes.byteLength === file.sizeBytes && bytes.byteLength <= policy.maxArtifactBytes,
     'Native artifact size mismatch');
-  assert(digest(bytes) === file.hash, 'Native artifact integrity mismatch');
+  assert(sha256Hex(bytes) === file.hash, 'Native artifact integrity mismatch');
 };
 const pieceFile = piece => ({ path: `piece-${piece.identity.slice(7)}.bin`, role: 'model-weights',
   hashAlgorithm: 'sha256', hash: piece.identity.slice(7), sizeBytes: piece.size });
@@ -47,7 +47,7 @@ export async function createNativeArtifactCache({ directory, maxBytes = policy.m
       const stat = await handle.stat(); assert(stat.isFile(), 'Native cache entry must be a regular file');
       if (stat.size !== file.sizeBytes || stat.size > policy.maxArtifactBytes) throw Object.assign(new Error('Native cache size mismatch'), { code: 'NATIVE_CACHE_CORRUPT' });
       const bytes = new Uint8Array(await handle.readFile());
-      if (digest(bytes) !== file.hash) throw Object.assign(new Error('Native cache integrity mismatch'), { code: 'NATIVE_CACHE_CORRUPT' });
+      if (sha256Hex(bytes) !== file.hash) throw Object.assign(new Error('Native cache integrity mismatch'), { code: 'NATIVE_CACHE_CORRUPT' });
       return bytes;
     } catch (error) {
       if (error.code === 'ENOENT') return null;
@@ -140,7 +140,7 @@ export async function createNativeModelFiles({ transport, modelDirectory, cacheD
   const observe = receipt => { receipts.push(receipt); if (receipts.length > policy.maxReceipts) receipts.shift(); onChange(); };
   // Transfer evidence with both parties' certificates, for whoever claims the delivery.
   const deliveries = [], observeDelivery = record => { deliveries.push(record); if (deliveries.length > policy.maxReceipts) deliveries.shift(); };
-  const contracts = createCustodyContracts({ hashDopplerEvidence, validateExecutablePack, executablePacksMatch, sha256Hex, signCanonical, verifyCanonicalSignature });
+  const contracts = createCustodyContracts({ hashDopplerEvidence, validateExecutablePack, executablePacksMatch, sha256Hex: sha256Digest, signCanonical, verifyCanonicalSignature });
   const payloadSlots = createNativeCustodySlots(policy.channel.maxPendingRequests);
   const createChannel = owner ? owner.paceChannel(createPeerPackDataChannel) : createPeerPackDataChannel;
   const exchange = createCustodyExchange({ transport, identity: custodyKey, policy: { ...policy, maxSupplyBytes }, ports: { supplyBudget, authorizeRequester, authorizePeer, authorizeSupplier, reserveDownload,
@@ -150,7 +150,7 @@ export async function createNativeModelFiles({ transport, modelDirectory, cacheD
       return { ...channel, requestChunk: (message, controls) =>
         payloadSlots.run(controls.signal, () => channel.requestChunk(message, controls)) };
     },
-    ...(owner ? { admitSupply: request => owner.admitSupply(request) } : {}), hash: hashDopplerEvidence, hashBytes: sha256Hex,
+    ...(owner ? { admitSupply: request => owner.admitSupply(request) } : {}), hash: hashDopplerEvidence, hashBytes: sha256Digest,
     readArtifact: async file => {
       const local = localPieces.get(key(file));
       const bytes = await cache.get(file) || (local && await readLocal(local.path, { ...local, signal: lifetime.signal }));
@@ -173,7 +173,7 @@ export async function createNativeModelFiles({ transport, modelDirectory, cacheD
       // A folder kept across a model rename still holds the earlier name's metadata under the same file names.
       // Only bytes that are this pinned file count as available; anything else falls through to the pinned copy.
       const local = await readLocal(file.path, { signal });
-      if (local && local.byteLength === file.sizeBytes && digest(local) === file.hash) bytes = local;
+      if (local && local.byteLength === file.sizeBytes && sha256Hex(local) === file.hash) bytes = local;
     }
     if (!bytes && /^\/config\/model-(manifests|pieces|artifacts)\/[a-zA-Z0-9_.-]+$/.test(file.url || '')) {
       bytes = new Uint8Array(await fs.readFile(resolveServedFile(file.url)));
@@ -261,7 +261,7 @@ export async function createNativeModelFiles({ transport, modelDirectory, cacheD
             }
           } },
         authorize: async () => !signal.aborted, foregroundIdle: async current => current.throwIfAborted(),
-        verify: async (piece, bytes) => bytes.byteLength === piece.size && 'sha256:' + digest(bytes) === piece.identity,
+        verify: async (piece, bytes) => bytes.byteLength === piece.size && 'sha256:' + sha256Hex(bytes) === piece.identity,
         sources: piece => [
           { id: 'approved-local-directory', read: async (_, controls) => {
             const bytes = await readLocal(piece.path, { ...piece, signal: controls.signal }); assert(bytes, 'Assigned piece absent locally'); return bytes;

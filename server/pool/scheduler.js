@@ -2,7 +2,7 @@
  * @fileoverview Policy-aware pool scheduler.
  */
 
-import { hashJson, sha256Digest } from './hash.js';
+import { hashJson, sha256TextDigest } from './hash.js';
 import { quorumForRingSize as configuredQuorumForRingSize } from './config.js';
 import {
   exactModelContractKey,
@@ -161,8 +161,8 @@ const deriveRingSeed = ({ job, policy, inputHash, generationConfigHash, provider
 });
 
 const orderRingCandidates = ({ candidates, ringSeed }) => [...candidates].sort((left, right) => {
-  const leftKey = sha256Digest(`${ringSeed}:${left.provider.providerId}`);
-  const rightKey = sha256Digest(`${ringSeed}:${right.provider.providerId}`);
+  const leftKey = sha256TextDigest(`${ringSeed}:${left.provider.providerId}`);
+  const rightKey = sha256TextDigest(`${ringSeed}:${right.provider.providerId}`);
   return leftKey.localeCompare(rightKey);
 });
 
@@ -355,7 +355,7 @@ export async function assignJob({ store, job, policy }) {
       eligibleProviders: providers.length
     };
   }
-  const inputHash = sequenceWorkload ? job.inputHash : sha256Digest(job.prompt);
+  const inputHash = sequenceWorkload ? job.inputHash : sha256TextDigest(job.prompt);
   const sequenceRequestHash = sequenceWorkload
     ? job.sequenceRequestHash || hashJson(job.sequenceRequest)
     : null;

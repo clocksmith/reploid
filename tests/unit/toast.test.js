@@ -1,6 +1,6 @@
 /**
  * @fileoverview Unit tests for Toast Notification System
- * Tests toast creation, dismissal, actions, error history, and modal
+ * Tests toast creation, dismissal, and actions
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
@@ -10,7 +10,6 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 describe('Toast', () => {
   let Toast;
-  let mockContainer;
 
   beforeEach(async () => {
     // Clear any existing Toast state
@@ -28,7 +27,6 @@ describe('Toast', () => {
     Toast._container = null;
     Toast._toasts = new Map();
     Toast._idCounter = 0;
-    Toast._errorHistory = [];
   });
 
   afterEach(() => {
@@ -239,36 +237,6 @@ describe('Toast', () => {
       expect(toast.classList.contains('toast-success')).toBe(true);
     });
 
-    // NOTE: warning() and error() no longer show popup toasts
-    // Error history functionality moved to ErrorStore (see plan)
-    it.skip('should log warning to history (no popup toast)', () => {
-      Toast.clearErrorHistory();
-      const id = Toast.warning('Warning Title', 'Warning Message');
-
-      // warning() returns null (no popup toast)
-      expect(id).toBeNull();
-
-      // Should be logged to error history
-      const history = Toast.getErrorHistory();
-      expect(history.length).toBe(1);
-      expect(history[0].title).toBe('Warning Title');
-      expect(history[0].type).toBe('warning');
-    });
-
-    it.skip('should log error to history (no popup toast)', () => {
-      Toast.clearErrorHistory();
-      const id = Toast.error('Error Title', 'Error Message');
-
-      // error() returns null (no popup toast)
-      expect(id).toBeNull();
-
-      // Should be logged to error history
-      const history = Toast.getErrorHistory();
-      expect(history.length).toBe(1);
-      expect(history[0].title).toBe('Error Title');
-      expect(history[0].message).toBe('Error Message');
-    });
-
     it('should merge additional options', () => {
       const onClick = vi.fn();
       const id = Toast.info('Title', 'Message', {
@@ -277,166 +245,6 @@ describe('Toast', () => {
 
       const toast = document.getElementById(id);
       expect(toast.querySelector('.toast-btn')).not.toBeNull();
-    });
-  });
-
-  // Note: error history functionality moved to ErrorStore (see plan)
-  describe.skip('error history', () => {
-    it('should log errors to history', () => {
-      Toast.logError({ title: 'Error 1', message: 'Details 1' });
-      Toast.logError({ title: 'Error 2', message: 'Details 2' });
-
-      const history = Toast.getErrorHistory();
-
-      expect(history.length).toBe(2);
-      expect(history[0].title).toBe('Error 2'); // Most recent first
-      expect(history[1].title).toBe('Error 1');
-    });
-
-    it('should add timestamp to logged errors', () => {
-      const before = Date.now();
-      Toast.logError({ title: 'Test' });
-      const after = Date.now();
-
-      const history = Toast.getErrorHistory();
-      expect(history[0].timestamp).toBeGreaterThanOrEqual(before);
-      expect(history[0].timestamp).toBeLessThanOrEqual(after);
-    });
-
-    it('should limit history to MAX_ERROR_HISTORY', () => {
-      for (let i = 0; i < 25; i++) {
-        Toast.logError({ title: `Error ${i}` });
-      }
-
-      const history = Toast.getErrorHistory();
-      expect(history.length).toBe(Toast.MAX_ERROR_HISTORY);
-    });
-
-    it('should return copy of history array', () => {
-      Toast.logError({ title: 'Test' });
-
-      const history1 = Toast.getErrorHistory();
-      const history2 = Toast.getErrorHistory();
-
-      expect(history1).not.toBe(history2);
-      expect(history1).toEqual(history2);
-    });
-
-    it('should clear error history', () => {
-      Toast.logError({ title: 'Error 1' });
-      Toast.logError({ title: 'Error 2' });
-
-      expect(Toast.getErrorHistory().length).toBe(2);
-
-      Toast.clearErrorHistory();
-
-      expect(Toast.getErrorHistory().length).toBe(0);
-    });
-  });
-
-  // Note: showErrorModal tests are skipped because the source code has a bug
-  // at line 209 where it queries for '.error-modal-overlay' inside the modal,
-  // but the modal element itself has that class (it should query 'this' or use
-  // event delegation). These tests document expected behavior.
-  describe.skip('showErrorModal', () => {
-    it('should create error modal in DOM', () => {
-      Toast.showErrorModal('Test Error', 'Full error details here');
-
-      const modal = document.getElementById('error-modal');
-      expect(modal).not.toBeNull();
-      expect(modal.classList.contains('error-modal-overlay')).toBe(true);
-    });
-
-    it('should display title and error message', () => {
-      Toast.showErrorModal('My Error Title', 'Error message content');
-
-      const modal = document.getElementById('error-modal');
-      expect(modal.querySelector('.error-modal-title').textContent).toBe('My Error Title');
-      expect(modal.querySelector('.error-modal-content pre').textContent).toBe('Error message content');
-    });
-
-    it('should display context information', () => {
-      Toast.showErrorModal('Error', 'Details', { tool: 'ReadFile', cycle: 5 });
-
-      const modal = document.getElementById('error-modal');
-      const context = modal.querySelector('.error-modal-context');
-
-      expect(context.textContent).toContain('tool: ReadFile');
-      expect(context.textContent).toContain('cycle: 5');
-    });
-
-    it('should filter out undefined/null context values', () => {
-      Toast.showErrorModal('Error', 'Details', { tool: 'test', empty: null, missing: undefined });
-
-      const modal = document.getElementById('error-modal');
-      const context = modal.querySelector('.error-modal-context');
-
-      expect(context.textContent).toContain('tool: test');
-      expect(context.textContent).not.toContain('empty');
-      expect(context.textContent).not.toContain('missing');
-    });
-
-    it('should log error to history when showing modal', () => {
-      Toast.showErrorModal('Modal Error', 'Details', { source: 'test' });
-
-      const history = Toast.getErrorHistory();
-      expect(history[0].title).toBe('Modal Error');
-      expect(history[0].source).toBe('test');
-    });
-
-    it('should remove existing modal when showing new one', () => {
-      Toast.showErrorModal('First Error', 'First details');
-      Toast.showErrorModal('Second Error', 'Second details');
-
-      const modals = document.querySelectorAll('#error-modal');
-      expect(modals.length).toBe(1);
-      expect(modals[0].querySelector('.error-modal-title').textContent).toBe('Second Error');
-    });
-
-    it('should close modal on close button click', () => {
-      Toast.showErrorModal('Test', 'Details');
-
-      const closeBtn = document.querySelector('.error-modal-close');
-      closeBtn.click();
-
-      expect(document.getElementById('error-modal')).toBeNull();
-    });
-
-    it('should close modal on primary close button click', () => {
-      Toast.showErrorModal('Test', 'Details');
-
-      const closeBtn = document.getElementById('error-close-btn');
-      closeBtn.click();
-
-      expect(document.getElementById('error-modal')).toBeNull();
-    });
-
-    it('should close modal on overlay click', () => {
-      Toast.showErrorModal('Test', 'Details');
-
-      const overlay = document.getElementById('error-modal');
-      overlay.click();
-
-      expect(document.getElementById('error-modal')).toBeNull();
-    });
-
-    it('should close modal on Escape key', () => {
-      Toast.showErrorModal('Test', 'Details');
-
-      const event = new KeyboardEvent('keydown', { key: 'Escape' });
-      document.dispatchEvent(event);
-
-      expect(document.getElementById('error-modal')).toBeNull();
-    });
-
-    it('should escape HTML in error message', () => {
-      Toast.showErrorModal('Test', '<script>alert("xss")</script>');
-
-      const modal = document.getElementById('error-modal');
-      const content = modal.querySelector('.error-modal-content pre').innerHTML;
-
-      expect(content).not.toContain('<script>');
-      expect(content).toContain('&lt;script&gt;');
     });
   });
 

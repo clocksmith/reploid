@@ -989,8 +989,7 @@ const Proto = {
           }
         } catch (e) {
           logger.error('[Proto] Export failed:', e);
-          Toast.error('Export Failed', e.message);
-          EventBus.emit('agent:error', { message: 'Export Failed', error: e.message });
+          EventBus.emit('agent:error', { message: 'Export Failed', error: e?.message ?? String(e) });
         }
       };
 

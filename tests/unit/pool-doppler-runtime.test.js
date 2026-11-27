@@ -34,6 +34,19 @@ const launchHandle = () => ({
   encodeSequence: testSequenceEncoding
 });
 
+const scopedDopplerModule = (openSession) => ({
+  DOPPLER_VERSION: DOPPLER_BROWSER_RUNTIME_VERSION,
+  dr: {
+    async open(source, options) {
+      return {
+        schema: 'doppler.scoped-session/v1',
+        loaded: true,
+        ...openSession(source, options)
+      };
+    }
+  }
+});
+
 describe('Doppler browser runtime adapter', () => {
   afterEach(() => {
     delete globalThis.REPLOID_DOPPLER_MODULE;
@@ -84,18 +97,15 @@ describe('Doppler browser runtime adapter', () => {
 
   it('prepares the Doppler module without loading model weights', async () => {
     let loadCount = 0;
-    globalThis.REPLOID_DOPPLER_MODULE = {
-      DOPPLER_VERSION: 'test-runtime',
-      load() {
-        loadCount += 1;
-        return { handle: launchHandle() };
-      }
-    };
+    globalThis.REPLOID_DOPPLER_MODULE = scopedDopplerModule(() => {
+      loadCount += 1;
+      return launchHandle();
+    });
     const runtime = createDopplerRuntime();
 
     await expect(runtime.prepare()).resolves.toEqual({
       ok: true,
-      version: 'test-runtime'
+      version: DOPPLER_BROWSER_RUNTIME_VERSION
     });
     expect(loadCount).toBe(0);
 
@@ -114,22 +124,18 @@ describe('Doppler browser runtime adapter', () => {
       globalThis.document = {};
       globalThis.process = { env: { EXISTING_ENV: 'present' } };
       globalThis.REPLOID_DOPPLER_LOAD_OPTIONS = { cache: 'opfs' };
-      globalThis.__POOL_DOPPLER_RUNTIME_TEST = {
-        load(_input, options) {
-          loadOptions = options;
-          return {
-            handle: {
-              ...launchHandle(),
-              persistentCache: {
-                backend: 'opfs',
-                fromCache: true,
-                manifestHash: LAUNCH_MODEL.manifestHash
-              }
-            }
-          };
-        }
-      };
-      globalThis.REPLOID_DOPPLER_MODULE_URL = 'data:text/javascript,export const load = (...args) => globalThis.__POOL_DOPPLER_RUNTIME_TEST.load(...args);';
+      globalThis.__POOL_DOPPLER_MODULE_FIXTURE = scopedDopplerModule((_source, options) => {
+        loadOptions = options;
+        return {
+          ...launchHandle(),
+          persistentCache: {
+            backend: 'opfs',
+            fromCache: true,
+            manifestHash: LAUNCH_MODEL.manifestHash
+          }
+        };
+      });
+      globalThis.REPLOID_DOPPLER_MODULE_URL = 'data:text/javascript,export const { DOPPLER_VERSION, dr } = globalThis.__POOL_DOPPLER_MODULE_FIXTURE;';
 
       const runtime = createDopplerRuntime();
       const loaded = await runtime.loadModel(LAUNCH_MODEL);
@@ -146,7 +152,7 @@ describe('Doppler browser runtime adapter', () => {
         DOPPLER_QUICKSTART_CACHE: 'false'
       });
     } finally {
-      delete globalThis.__POOL_DOPPLER_RUNTIME_TEST;
+      delete globalThis.__POOL_DOPPLER_MODULE_FIXTURE;
       if (previousWindow === undefined) delete globalThis.window;
       else globalThis.window = previousWindow;
       if (previousDocument === undefined) delete globalThis.document;
@@ -160,13 +166,11 @@ describe('Doppler browser runtime adapter', () => {
     let loadInput = null;
     let loadOptions = null;
     globalThis.REPLOID_DOPPLER_LOAD_OPTIONS = { modelBaseUrl: '/models', cache: 'opfs' };
-    globalThis.REPLOID_DOPPLER_MODULE = {
-      load(input, options) {
-        loadInput = input;
-        loadOptions = options;
-        return { handle: launchHandle() };
-      }
-    };
+    globalThis.REPLOID_DOPPLER_MODULE = scopedDopplerModule((source, options) => {
+      loadInput = source;
+      loadOptions = options;
+      return launchHandle();
+    });
 
     const runtime = createDopplerRuntime();
     const loaded = await runtime.loadModel({
@@ -335,16 +339,12 @@ describe('Doppler browser runtime adapter', () => {
 
   it('keeps an explicit immutable artifact source even when Doppler promotes the model alias', async () => {
     let loadInput = null;
-    const load = (input) => {
-      loadInput = input;
-      return { handle: launchHandle() };
-    };
     globalThis.REPLOID_DOPPLER_MODULE = {
-      load,
-      doppler: Object.assign(() => {}, {
-        load,
-        listModels: async () => [LAUNCH_MODEL.modelId]
-      })
+      ...scopedDopplerModule((source) => {
+        loadInput = source;
+        return launchHandle();
+      }),
+      doppler: { listModels: async () => [LAUNCH_MODEL.modelId] }
     };
 
     const runtime = createDopplerRuntime();
@@ -357,22 +357,10 @@ describe('Doppler browser runtime adapter', () => {
   it('uses the explicit hosted ESM-2 load input when the model is not in Doppler quickstart', async () => {
     const model = LAUNCH_MODEL;
     let loadInput = null;
-    globalThis.REPLOID_DOPPLER_MODULE = {
-      load(input) {
-        loadInput = input;
-        return {
-          handle: {
-            modelId: model.modelId,
-            modelHash: model.modelHash,
-            manifestHash: model.manifestHash,
-            artifactIdentity: model.artifactIdentity,
-            encodeSequence() {
-              return {};
-            }
-          }
-        };
-      }
-    };
+    globalThis.REPLOID_DOPPLER_MODULE = scopedDopplerModule((source) => {
+      loadInput = source;
+      return { ...launchHandle(), encodeSequence: () => ({}) };
+    });
 
     const runtime = createDopplerRuntime();
     const loaded = await runtime.loadModel(model);
@@ -384,11 +372,7 @@ describe('Doppler browser runtime adapter', () => {
 
   it('honors the hosted Doppler kernel base override before loading the module', async () => {
     globalThis.REPLOID_DOPPLER_KERNEL_BASE_URL = 'https://cdn.example.test/doppler/kernels///';
-    globalThis.REPLOID_DOPPLER_MODULE = {
-      load() {
-        return { handle: launchHandle() };
-      }
-    };
+    globalThis.REPLOID_DOPPLER_MODULE = scopedDopplerModule(launchHandle);
 
     const runtime = createDopplerRuntime();
     const loaded = await runtime.loadModel(LAUNCH_MODEL);
@@ -398,15 +382,9 @@ describe('Doppler browser runtime adapter', () => {
   });
 
   it('rejects descriptor-only identity when a loaded handle lacks model evidence', async () => {
-    globalThis.REPLOID_DOPPLER_MODULE = {
-      load() {
-        return {
-          handle: {
-            encodeSequence: testSequenceEncoding
-          }
-        };
-      }
-    };
+    globalThis.REPLOID_DOPPLER_MODULE = scopedDopplerModule(() => ({
+      encodeSequence: testSequenceEncoding
+    }));
 
     const runtime = createDopplerRuntime();
     const loaded = await runtime.loadModel(LAUNCH_MODEL);
@@ -439,18 +417,14 @@ describe('Doppler browser runtime adapter', () => {
       backend: 'browser-webgpu',
       artifactIdentity
     };
-    globalThis.REPLOID_DOPPLER_MODULE = {
-      load() {
-        return {
-          modelId: manifest.modelId,
-          manifest,
-          encodeSequence: testSequenceEncoding,
-          generate() {
-            return { outputText: 'manifest evidence', tokenIds: [303] };
-          }
-        };
+    globalThis.REPLOID_DOPPLER_MODULE = scopedDopplerModule(() => ({
+      modelId: manifest.modelId,
+      manifest,
+      encodeSequence: testSequenceEncoding,
+      generate() {
+        return { outputText: 'manifest evidence', tokenIds: [303] };
       }
-    };
+    }));
 
     const runtime = createDopplerRuntime();
     const loaded = await runtime.loadModel(descriptor);
@@ -486,20 +460,16 @@ describe('Doppler browser runtime adapter', () => {
     const rawManifestHash = await sha256Hex(JSON.stringify(manifest, null, 2));
     expect(rawManifestHash).not.toBe(canonicalManifestHash);
 
-    globalThis.REPLOID_DOPPLER_MODULE = {
-      load() {
-        return {
-          modelId: manifest.modelId,
-          modelHash: artifactIdentity.weightPackHash,
-          manifestHash: rawManifestHash,
-          manifest,
-          encodeSequence: testSequenceEncoding,
-          generate() {
-            return { outputText: 'manifest hash representations agree', tokenIds: [505] };
-          }
-        };
+    globalThis.REPLOID_DOPPLER_MODULE = scopedDopplerModule(() => ({
+      modelId: manifest.modelId,
+      modelHash: artifactIdentity.weightPackHash,
+      manifestHash: rawManifestHash,
+      manifest,
+      encodeSequence: testSequenceEncoding,
+      generate() {
+        return { outputText: 'manifest hash representations agree', tokenIds: [505] };
       }
-    };
+    }));
 
     const runtime = createDopplerRuntime();
     const loaded = await runtime.loadModel({
@@ -538,21 +508,17 @@ describe('Doppler browser runtime adapter', () => {
     const canonicalManifestHash = await hashJson(sourceManifest);
     const manifestByteHash = await sha256Hex(JSON.stringify(sourceManifest, null, 2));
 
-    globalThis.REPLOID_DOPPLER_MODULE = {
-      load() {
-        return {
-          modelId: sourceManifest.modelId,
-          modelHash: artifactIdentity.weightPackHash,
-          manifestHash: manifestByteHash,
-          manifest: runtimeManifest,
-          artifactIdentity,
-          encodeSequence: testSequenceEncoding,
-          generate() {
-            return { outputText: 'verified byte identity', tokenIds: [606] };
-          }
-        };
+    globalThis.REPLOID_DOPPLER_MODULE = scopedDopplerModule(() => ({
+      modelId: sourceManifest.modelId,
+      modelHash: artifactIdentity.weightPackHash,
+      manifestHash: manifestByteHash,
+      manifest: runtimeManifest,
+      artifactIdentity,
+      encodeSequence: testSequenceEncoding,
+      generate() {
+        return { outputText: 'verified byte identity', tokenIds: [606] };
       }
-    };
+    }));
 
     const runtime = createDopplerRuntime();
     const loaded = await runtime.loadModel({
@@ -572,14 +538,10 @@ describe('Doppler browser runtime adapter', () => {
       ...LAUNCH_MODEL,
       manifestByteHash: 'sha256:expected_manifest_bytes'
     };
-    globalThis.REPLOID_DOPPLER_MODULE = {
-      load() {
-        return {
-          ...launchHandle(),
-          manifestHash: 'sha256:different_manifest_bytes'
-        };
-      }
-    };
+    globalThis.REPLOID_DOPPLER_MODULE = scopedDopplerModule(() => ({
+      ...launchHandle(),
+      manifestHash: 'sha256:different_manifest_bytes'
+    }));
 
     const runtime = createDopplerRuntime();
     const loaded = await runtime.loadModel(descriptor);
@@ -610,19 +572,15 @@ describe('Doppler browser runtime adapter', () => {
       backend: 'browser-webgpu',
       artifactIdentity
     };
-    globalThis.REPLOID_DOPPLER_MODULE = {
-      load() {
-        return {
-          modelId: 'https://cdn.example.test/models/qwen-3-5-0-8b-q4k-ef16-af32-vf16',
-          modelHash: 'loader-cache-id',
-          manifest,
-          encodeSequence: testSequenceEncoding,
-          generate() {
-            return { outputText: 'manifest wins', tokenIds: [404] };
-          }
-        };
+    globalThis.REPLOID_DOPPLER_MODULE = scopedDopplerModule(() => ({
+      modelId: 'https://cdn.example.test/models/qwen-3-5-0-8b-q4k-ef16-af32-vf16',
+      modelHash: 'loader-cache-id',
+      manifest,
+      encodeSequence: testSequenceEncoding,
+      generate() {
+        return { outputText: 'manifest wins', tokenIds: [404] };
       }
-    };
+    }));
 
     const runtime = createDopplerRuntime();
     const loaded = await runtime.loadModel(descriptor);
@@ -648,17 +606,13 @@ describe('Doppler browser runtime adapter', () => {
       artifactIdentity,
       shards: [{ filename: 'shard_00000.bin', size: 16, hash: 'abc123' }]
     };
-    globalThis.REPLOID_DOPPLER_MODULE = {
-      load() {
-        return {
-          manifest,
-          encodeSequence: testSequenceEncoding,
-          generate() {
-            return { outputText: 'wrong manifest hash' };
-          }
-        };
+    globalThis.REPLOID_DOPPLER_MODULE = scopedDopplerModule(() => ({
+      manifest,
+      encodeSequence: testSequenceEncoding,
+      generate() {
+        return { outputText: 'wrong manifest hash' };
       }
-    };
+    }));
 
     const runtime = createDopplerRuntime();
     const loaded = await runtime.loadModel({

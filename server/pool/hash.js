@@ -7,14 +7,16 @@ import { canonicalize } from '../../shared/pool/canonical-json.js';
 
 export { canonicalize };
 
-/** Pool wire identities retain their `sha256:` prefix. */
-export function sha256Digest(value) {
+/** Pool text digests hash the UTF-8 bytes of String(value) and retain the wire prefix. */
+export function sha256TextDigest(value) {
   return digest(String(value));
 }
 
-/** Historical pool API; unlike server/hashing.js sha256Hex, this is prefixed. */
-export const sha256Hex = sha256Digest;
+/** @deprecated Use sha256TextDigest for the Pool text contract. */
+export const sha256Digest = sha256TextDigest;
+/** @deprecated Use sha256TextDigest for the Pool text contract. */
+export const sha256Hex = sha256TextDigest;
 
 export function hashJson(value) {
-  return sha256Digest(canonicalize(value));
+  return sha256TextDigest(canonicalize(value));
 }

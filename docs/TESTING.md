@@ -93,7 +93,7 @@ Isolated tests for individual modules with mocked dependencies.
 
 Representative test areas include:
 - Infrastructure: `di-container.test.js`, `event-bus.test.js`, `context-manager.test.js`
-- Core modules: `state-manager.test.js`, `utils.test.js`, `utils-core.test.js`, `vfs-module-loader.test.js`
+- Core modules: `state-manager.test.js`, `utils-core.test.js`, `vfs-module-loader.test.js`
 - Tools: `tools/read-file.test.js`, `tools/write-file.test.js`, `tools/edit-file.test.js`, `tools/list-files.test.js`, `tools/grep.test.js`, `tools/find.test.js`
 - Execution: `tool-runner.test.js`, `response-parser.test.js`, `schema-validator.test.js`
 - UI/UX: `toast.test.js`, `doppler-optimization-ui.test.js`
@@ -114,7 +114,7 @@ Multi-module workflow tests with realistic state management.
 
 Representative integration areas:
 - Core cognitive loop: `agent-loop.test.js`, `fsm.test.js`, `rsi-loop.test.js`
-- LLM & inference: `llm-client.test.js`, `neural-compiler-lora.test.js`, `gepa-optimizer.test.js`
+- LLM & inference: `llm-client.test.js`, `gepa-optimizer.test.js`
 - Memory & state: `prompt-memory.test.js`, `reflection-system.test.js`, `replay-engine.test.js`, `vfs.test.js`
 - Persistence: `long-session.test.js`, `genesis-snapshot.test.js`
 - Tool execution: `tool-runner.test.js`
@@ -245,13 +245,12 @@ describe('AgentLoop Integration', () => {
 
 ## CI
 
-The automatic checks are in [`.github/workflows/test.yml`](../.github/workflows/test.yml)
-(workflow `Smoke`, jobs `smoke` and `design-system`), summarized in
-[AGENTS.md "Run and verify"](../AGENTS.md#run-and-verify). CI does not deploy and runs no
-browser or GPU. Before a deployment, `npm run prepare:hosting` runs
-`verify:browser-bundle:local` and `package:hosting`. A successful packaging check is not
-browser execution, model/GPU qualification, physical peer acceptance, or production deployment
-evidence.
+The [Smoke workflow](../.github/workflows/test.yml) defines the automatic checks.
+[AGENTS.md "Run and verify"](../AGENTS.md#run-and-verify) summarizes their scope.
+Before a deployment, `npm run prepare:hosting` runs `verify:browser-bundle:local`
+and `package:hosting`. These commands verify the hosting payload. Browser
+execution, model and GPU qualification, physical peer acceptance, and production
+deployment each require their own evidence.
 
 ---
 

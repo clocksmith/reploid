@@ -619,5 +619,3 @@ export function PrimitiveSpecimen({ name }: { readonly name: string }) {
   const render = SPECIMENS[name];
   return render ? <>{render()}</> : null;
 }
-
-export const SPECIMEN_NAMES = Object.keys(SPECIMENS);

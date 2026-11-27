@@ -41,63 +41,6 @@ const normalizedVersion = (module) => (
   || null
 );
 
-const isVitestRuntime = () => (
-  globalThis.process?.env?.VITEST === 'true'
-  || Boolean(globalThis.__POOL_DOPPLER_RUNTIME_TEST)
-);
-
-const legacyTestSession = (handle) => ({
-  ...handle,
-  schema: 'doppler.scoped-session/v1',
-  async generate(input, options = {}) {
-    if (typeof handle.generate === 'function') return handle.generate(input, options);
-    if (typeof handle.chatText === 'function') return handle.chatText(input, options);
-    throw new Error('Legacy Doppler test handle does not expose generation');
-  },
-  async *stream(input, options = {}) {
-    const iterable = typeof handle.chat === 'function'
-      ? handle.chat(input, options)
-      : handle.generate(input, options);
-    let outputText = '';
-    for await (const chunk of iterable) {
-      if (typeof chunk !== 'string') {
-        throw new Error('Doppler chat stream emitted a non-text chunk');
-      }
-      outputText += chunk;
-      yield {
-        schema: 'doppler.generation-event/v1',
-        type: 'text-delta',
-        text: chunk,
-        observationPolicyId: 'demo/always-on'
-      };
-    }
-    yield {
-      schema: 'doppler.generation-event/v1',
-      type: 'complete',
-      outputText,
-      observationPolicyId: 'demo/always-on'
-    };
-  },
-  async close() {
-    await handle.close?.();
-    await handle.unload?.();
-  }
-});
-
-const resolveLegacyTestRuntime = (module) => {
-  if (!isVitestRuntime() || typeof resolveDopplerRuntime(module)?.open === 'function') return null;
-  const load = module?.load || module?.doppler?.load;
-  if (typeof load !== 'function') return null;
-  return {
-    async open(source, options) {
-      const loaded = await load(source, options);
-      return legacyTestSession(
-        loaded?.handle || loaded?.model || loaded?.session || loaded?.pipeline || loaded
-      );
-    }
-  };
-};
-
 const defaultLoadModule = async () => {
   const kernelBase = globalThis.REPLOID_DOPPLER_KERNEL_BASE_URL
     || DOPPLER_KERNEL_BASE_URL;
@@ -125,10 +68,6 @@ export function createReploidDopplerRuntimeService({
 
   const assertModule = (module) => {
     const version = normalizedVersion(module);
-    const legacyTestRuntime = resolveLegacyTestRuntime(module);
-    if (legacyTestRuntime) {
-      return { runtime: legacyTestRuntime, version };
-    }
     if (expectedVersion && version !== expectedVersion) {
       throw new Error(
         `Reploid requires Doppler ${expectedVersion}; loaded ${version || 'unidentified'}`

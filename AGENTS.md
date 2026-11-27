@@ -39,16 +39,16 @@ Where each surface keeps its owner docs (a lookup, not a reading list):
 
 Poolday UI code composes `@reploid/poolday-ui` components only. The layers, import rules and the
 steps for adding a primitive are in [docs/poolday-ui-architecture.md](docs/poolday-ui-architecture.md).
-Before pushing a Poolday UI change, run:
+The required `npm run lint` includes `verify:poolday-ui` (boundary and legacy UI guards,
+artifacts and types). Poolday UI changes also require the checks below.
 
-- `npm run verify:poolday-ui`: boundaries, the legacy ratchet (`scripts/poolday-ui-ratchet.json`,
-  which may only go down), the design index and types. `npm run lint` includes it.
 - `npm run verify:pool:css`: the CSS layer manifest and token references.
 - `npm run test:poolday-ui`: component and check tests.
 - `npm run test:e2e:ui`: keyboard, focus and 320/390 px checks in headless Chromium with the GPU
   disabled (`tests/e2e/ui-keyboard-viewport.spec.js`, a scripted executor, no model).
 
-The CI `design-system` job runs the first three; the `ui-keyboard` job runs the browser checks.
+The CI `design-system` job runs `verify:poolday-ui`, the CSS checks and the component tests.
+The `ui-keyboard` job runs the browser checks.
 
 ## Run and verify
 
@@ -62,15 +62,15 @@ The CI `design-system` job runs the first three; the `ui-keyboard` job runs the 
   checkout's install. An install older than the lockfile is what makes `npm run lint` fail
   with React/JSX type errors and `verify:doppler-generation` fail on the wrong Doppler.
 
-Match the check to the risk. Times are from one laptop; CI runs the same commands on Linux.
+Match the check to the risk. Times are from one laptop.
 
 | When | Run | Time |
 | --- | --- | --- |
 | Editing, once the behavior is ready to verify | The test file for the module you changed: `npx vitest run --config tests/vitest.config.js <test-file>` | 1-3 s a file |
-| Before every push | `npm run lint`: ESLint, the new-module rules applied to your work against `origin/main` (uncommitted and untracked files included), JavaScript-only, and the design-system boundaries and types. It is the lint CI runs | 15 s |
-| Before a push that changes served source (`packages/reploid/src`, `apps/poolday`, `shared`, `self`) | `npm run build`, and commit what it writes as its own commit. Rebuild after rebasing onto `main`: the bundles and inventories embed every source change, so a rebase makes them stale | 5-13 s |
+| Before every push | `npm run lint`: ESLint, the new-module rules applied to your work against `origin/main` (uncommitted and untracked files included), JavaScript-only, and the design-system checks | 15 s |
+| Before a push that changes served source or build inputs (including `apps/poolday-react` and `packages/poolday-ui`) | `npm run build`, and commit what it writes as its own commit. Recheck the bundles and inventories after rebasing onto `main` and regenerate them if a build input changed | 5-13 s |
 | Before pushing to `main` | The contract checks for each behavior you changed (next table) and, for a page change, the journey for that surface under `tests/e2e/` | 1-5 s a row |
-| Every push to `main` | CI `Smoke` ([test.yml](.github/workflows/test.yml)), four jobs. `smoke`: named contract tests, `npm run lint`, generated-file checks (`verify:browser-bundle:local` and the rest), the bundle and the hosting package. `design-system`: `verify:poolday-ui`, `verify:pool:css`, `test:poolday-ui`. `mobile`: `apps/mobile/tool/check.sh` with the pinned Flutter. `ui-keyboard`: `test:e2e:ui` in headless Chromium with the GPU disabled. No GPU and no platform build | 2 min |
+| Every push to `main` | The [Smoke workflow](.github/workflows/test.yml) runs `smoke`, `design-system`, `mobile`, and `ui-keyboard`. The Chromium job disables the GPU. The Flutter job runs checks without a platform build | 2 min |
 | Release, hardware work, or a change that justifies it | `npm test`, `npm run test:heavy`, `npm run test:e2e`, and the physical controllers (`tests/fixtures/*-physical.js`, `tests/contracts/`) | not in CI |
 
 These checks stay when their behavior changes; replace one only with a stronger test at the same boundary.

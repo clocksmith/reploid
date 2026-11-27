@@ -105,35 +105,25 @@ describe('Utils Core Module', () => {
     it('should log debug messages', () => {
       utils.logger.debug('Debug message', { data: 'test' });
 
-      expect(consoleSpy.debug).toHaveBeenCalled();
-      const args = consoleSpy.debug.mock.calls[0];
-      expect(args[0]).toContain('[DEBUG]');
-      expect(args[1]).toBe('Debug message');
+      expect(consoleSpy.debug).toHaveBeenCalledWith('[DEBUG]', 'Debug message', { data: 'test' });
     });
 
     it('should log info messages', () => {
       utils.logger.info('Info message');
 
-      expect(consoleSpy.info).toHaveBeenCalled();
-      const args = consoleSpy.info.mock.calls[0];
-      expect(args[0]).toContain('[INFO]');
-      expect(args[1]).toBe('Info message');
+      expect(consoleSpy.info).toHaveBeenCalledWith('[INFO]', 'Info message');
     });
 
     it('should log warning messages', () => {
       utils.logger.warn('Warning message');
 
-      expect(consoleSpy.warn).toHaveBeenCalled();
-      const args = consoleSpy.warn.mock.calls[0];
-      expect(args[0]).toContain('[WARN]');
+      expect(consoleSpy.warn).toHaveBeenCalledWith('[WARN]', 'Warning message');
     });
 
     it('should log error messages', () => {
       utils.logger.error('Error message', { error: 'details' });
 
-      expect(consoleSpy.error).toHaveBeenCalled();
-      const args = consoleSpy.error.mock.calls[0];
-      expect(args[0]).toContain('[ERROR]');
+      expect(consoleSpy.error).toHaveBeenCalledWith('[ERROR]', 'Error message', { error: 'details' });
     });
 
     it('should track log statistics', () => {
@@ -299,8 +289,10 @@ describe('Utils Core Module', () => {
       expect(result.method).toBe('block');
     });
 
-    it('should use heuristic for JSON embedded in text', () => {
-      const input = 'Here is the response: {"key": "value"} Done.';
+    it.each([
+      'Here is the response: {"key": "value"} Done.',
+      'Here is the response:\n{"key": "value"}\nEnd of response'
+    ])('should use heuristic for JSON embedded in text', (input) => {
       const result = utils.sanitizeLlmJsonRespPure(input);
 
       expect(result.json).toBe('{"key": "value"}');

@@ -1,7 +1,7 @@
 # Poolday UI architecture
 
-**Status:** canonical contract for the React Poolday interface and its design system. Every route
-is the React product; the vanilla interface has been retired, and the ratchet below is at zero.
+**Status:** canonical contract for the React Poolday interface and its design system. React serves
+every product route.
 
 ## Assessment: React on the react-starter layout, or a componentized vanilla system
 
@@ -89,10 +89,9 @@ The checks a contributor runs are listed in [AGENTS.md](../AGENTS.md#poolday-des
   (`innerHTML` and the like), DOM globals, and public entries without types; only
   infrastructure may import the bridge, and only its public entries.
 
-`scripts/verify-poolday-ui-ratchet.mjs` counts the legacy interface (hand-written controls,
-class attributes, composition classes and rules) against `scripts/poolday-ui-ratchet.json`
-and fails if a count rises. `tests/unit/poolday-ui-checks.test.js` holds one failing fixture
-per rule.
+`scripts/verify-poolday-ui-ratchet.mjs` fails on hand-written controls, class attributes,
+and composition styles in the former vanilla UI directories.
+`tests/unit/poolday-ui-checks.test.js` exercises the guard with fixtures.
 
 Keyboard, focus and narrow screens are checked in a browser by `npm run test:e2e:ui`
 (`tests/e2e/ui-keyboard-viewport.spec.js`, headless Chromium with the GPU disabled): no sideways
@@ -135,7 +134,3 @@ only framework-free projections and wording those decisions read. The conversati
 the reviewed download, threads and the transcript. The transcript keeps each message's record
 until that message or its attempt changes, so an update costs the same with 2 threads or 30
 (`tests/unit/poolday-conversation-controller.test.js`).
-
-`scripts/poolday-ui-ratchet.json` records zero for every count (raw controls, class
-attributes, composition classes and rules). The ratchet may only go down, so any markup written
-outside `@reploid/poolday-ui` fails `npm run verify:poolday-ui`.

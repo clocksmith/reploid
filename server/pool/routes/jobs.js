@@ -8,7 +8,7 @@
 import { validateJobRequest } from '../policy-router.js';
 import { assignJob } from '../scheduler.js';
 import { POOL_CONFIG_HASH, POOL_CONFIG_VERSION } from '../config.js';
-import { sha256Digest } from '../hash.js';
+import { sha256TextDigest } from '../hash.js';
 import {
   adapterRequirementFromPublication,
   publishedAdapterRequirementsEqual,
@@ -59,7 +59,7 @@ export function registerJobRoutes(router, {
       return res.status(400).json({ error: 'invalid requester participation identity', reasons: requesterIdentity.reasons });
     }
     const sequenceInput = req.body.inputKind === 'sequence';
-    const inputHash = sequenceInput ? req.body.inputHash : sha256Digest(req.body.prompt);
+    const inputHash = sequenceInput ? req.body.inputHash : sha256TextDigest(req.body.prompt);
     const adapterRequirement = req.body.modelRequirements?.adapter || null;
     if (adapterRequirement) {
       const requirementValidation = validatePublishedAdapterRequirement(adapterRequirement);

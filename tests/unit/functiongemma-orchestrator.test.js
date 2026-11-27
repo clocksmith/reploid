@@ -35,8 +35,12 @@ describe('FunctionGemma public session integration', () => {
     const handle = { loaded: true, modelId: 'selected', unload: close,
       generateWithEvidence: async () => ({ outputText: 'public result', tokenIds: [],
         resolution: { logicalModelId: 'selected', resolvedArtifactVariantId: 'artifact', resolvedExecutionId: 'execution' } }) };
-    const service = createReploidDopplerRuntimeService({ expectedVersion: null,
-      loadModule: async () => ({ dr: { open: async () => createScopedModelSession(handle) } }) });
+    const service = createReploidDopplerRuntimeService({
+      loadModule: async () => ({
+        DOPPLER_VERSION: dopplerPin.version,
+        dr: { open: async () => createScopedModelSession(handle) }
+      })
+    });
     const network = await createFunctionGemmaNetwork('selected', {}, service);
     network.registerExpert({ id: 'base' });
     expect(await network.executeExpert('base', 'prompt')).toBe('public result');

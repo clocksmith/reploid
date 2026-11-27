@@ -2,12 +2,12 @@
 // Negative fixtures for the design-system checks: each case breaks one rule in a minimal tree and
 // asserts that exactly that rule fires. Adapted from clocksmith/react-starter
 // tool/test/check_boundaries.test.mjs (commit cd07713).
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
 import { checkArchitecture, inspectSource, loadPolicy } from '../../scripts/check-poolday-ui-boundaries.mjs';
-import { compareRatchet, measureLegacy } from '../../scripts/verify-poolday-ui-ratchet.mjs';
+import { legacyUiViolations } from '../../scripts/verify-poolday-ui-ratchet.mjs';
 
 const repo = resolve(import.meta.dirname, '..', '..');
 const policy = loadPolicy(repo);
@@ -134,30 +134,25 @@ describe('poolday-ui boundaries', () => {
   });
 });
 
-describe('legacy ratchet', () => {
-  const legacyTree = (extra = '') => {
-    const root = mkdtempSync(join(tmpdir(), 'poolday-ratchet-'));
-    roots.push(root);
-    mkdirSync(join(root, 'apps/poolday/ui/pool-home'), { recursive: true });
-    mkdirSync(join(root, 'apps/poolday/styles/poolday/compositions'), { recursive: true });
-    writeFileSync(join(root, 'apps/poolday/ui/pool-home/view.js'), `export const v = () => '<button class="pool-button">Go</button>${extra}';\n`);
-    writeFileSync(join(root, 'apps/poolday/styles/poolday/compositions/screens.css'), '.pool-home .chat-row { display: grid; }\n');
-    return root;
-  };
-
-  it('counts what is still outside the design system', () => {
-    expect(measureLegacy(legacyTree())).toEqual({ rawControls: 1, classAttributes: 1, compositionClasses: 2, compositionRules: 1 });
+describe('legacy UI guard', () => {
+  it('accepts framework-free code', () => {
+    const root = tree({
+      'apps/poolday/host/projection.js': 'export const view = ({ id }) => ({ id });\n',
+      'apps/poolday/styles/poolday/compositions/empty.css': '/* No composition styles. */\n',
+    });
+    expect(legacyUiViolations(root)).toEqual([]);
   });
 
-  it('fails when a count rises and passes when it falls', () => {
-    const recorded = measureLegacy(legacyTree());
-    const grown = measureLegacy(legacyTree('<input class="x">'));
-    expect(compareRatchet(grown, recorded).violations).toHaveLength(2);
-    expect(compareRatchet(recorded, grown)).toMatchObject({ violations: [], lowered: expect.arrayContaining([expect.stringContaining('rawControls')]) });
-  });
-
-  it('holds for the repository against its recorded counts', () => {
-    const recorded = JSON.parse(readFileSync(join(repo, 'scripts/poolday-ui-ratchet.json'), 'utf8'));
-    expect(compareRatchet(measureLegacy(repo), recorded).violations).toEqual([]);
+  it('rejects hand-written controls, class attributes and composition styles in the former vanilla UI', () => {
+    const root = tree({
+      'apps/poolday/ui/pool-home/view.js': "export const view = '<button class=\"pool-button\">Go</button>';\n",
+      'apps/poolday/styles/poolday/compositions/screens.css': '.pool-home .chat-row { display: grid; }\n',
+    });
+    expect(legacyUiViolations(root)).toEqual([
+      expect.stringContaining('rawControls: 1'),
+      expect.stringContaining('classAttributes: 1'),
+      expect.stringContaining('compositionClasses: 2'),
+      expect.stringContaining('compositionRules: 1'),
+    ]);
   });
 });

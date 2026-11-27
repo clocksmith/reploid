@@ -3,7 +3,7 @@ import { validateSchema } from './validate-schema.js';
 import defaults from './defaults.json' with { type: 'json' };
 import requestPolicy from './request-overrides.json' with { type: 'json' };
 import routing from '../rules/routing.rules.json' with { type: 'json' };
-import { sha256Hex } from '../hashing.js';
+import { sha256Digest } from '../hashing.js';
 
 const resolvedConfigurations = new WeakSet();
 const forbiddenKeys = new Set(['__proto__', 'prototype', 'constructor']);
@@ -219,5 +219,5 @@ export function requireResolvedConfig(config) {
 
 export async function hashConfiguration(config, cryptoApi = globalThis.crypto) {
   requireResolvedConfig(config);
-  return sha256Hex(config.identity, cryptoApi);
+  return sha256Digest(config.identity, cryptoApi);
 }

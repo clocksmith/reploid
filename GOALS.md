@@ -201,16 +201,8 @@ repairs are governed separately.
 
 ## Strategic constraints
 
-- Compare network outcomes against the strongest feasible local alternative and,
-  separately, against centralized coordination on equivalent resources.
-- Count communication, verification, failed attempts and human intervention.
-- Report inconclusive results.
-- Custody, execution, intermediate disclosure and adoption require distinct grants.
-- Permissions and application-controlled allocation budgets are hard eligibility
-  constraints.
-- Cancellation requires explicit settlement; it does not promise immediate GPU
-  termination.
-- Authorized runtime operation does not depend on CI.
+Evaluate network outcomes under the [invariants](INTENT.md#invariants) and
+[evidence requirements](INTENT.md#evidence). Report inconclusive results.
 
 ## Separate research track: Zero and X
 
@@ -231,14 +223,9 @@ paused under the current validation boundary.
   Uncertainty and provenance are kept, and duplicated evidence does not count as
   independent experience.
 - **Self-improvement.** Improve prompts, tools, planning, placement, caching and the
-  algorithms behind them.
-  - Improvements must be independently evaluated and transfer to unfamiliar
-    tasks.
-  - Causal recursion is shown separately: B improves on A, and B's changed machinery
-    helps produce C.
-  - Candidates are compared with an identified baseline under protected evaluation,
-    then adopted or rejected within explicit, reversible operator grants.
-  - Model-weight changes need their own execution and evaluation contracts.
+  algorithms behind them. Compare candidates with an identified baseline under
+  protected evaluation. Follow the [adoption invariants](INTENT.md#invariants) and
+  [transfer and causal evidence requirements](INTENT.md#evidence).
 
 The research question is whether participating agents accomplish more, or better,
 after accounting for communication, failures, evaluation and resource limits.

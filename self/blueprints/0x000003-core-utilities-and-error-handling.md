@@ -4,7 +4,7 @@
 
 **Implementation Status:** Implemented
 
-**Verified Artifacts:** `/shared/core/utils.js`, `/tests/unit/utils.test.js`, `/tests/unit/utils-core.test.js`
+**Verified Artifacts:** `/shared/core/utils.js`, `/tests/unit/utils-core.test.js`
 
 **Planned Artifacts:** None
 
@@ -50,4 +50,4 @@ Each `factory()` call creates its own logger state, so two `Utils` instances do 
 
 ### 4. Verification
 
-`tests/unit/utils.test.js` and `tests/unit/utils-core.test.js` cover the errors, logger, helpers, JSON extraction and bundle parsers.
+`tests/unit/utils-core.test.js` covers the errors, logger, helpers, JSON extraction and bundle parsers.
