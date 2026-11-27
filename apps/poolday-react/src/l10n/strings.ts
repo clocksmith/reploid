@@ -14,7 +14,7 @@ export const strings = {
   workspace: {
     destinations: 'Workspace destinations',
     threads: 'Threads',
-    conversation: 'Conversation details',
+    conversation: 'Details',
     computers: 'Computers',
     settings: 'Settings',
   },

@@ -228,7 +228,7 @@ function WorkspaceSpecimen() {
     <Workspace
       bar={
         <WorkspaceBar label="Workspace destinations" lead={<BarButton icon="threads" label="Threads" href="#threads" current={threads} onPress={() => setThreads(!threads)} />}>
-          <BarButton icon="activity" label="Conversation details" href="#details" onPress={() => undefined} />
+          <BarButton icon="activity" label="Details" href="#details" onPress={() => undefined} />
           <BarButton icon="peers" label="Computers" href="#computers" onPress={() => undefined} />
           <BarButton icon="settings" label="Settings" href="#settings" onPress={() => undefined} />
         </WorkspaceBar>
@@ -331,7 +331,7 @@ const SPECIMENS: Record<string, () => ReactNode> = {
   ),
   WorkspaceBar: () => (
     <WorkspaceBar label="Workspace destinations" lead={<BarButton icon="threads" label="Threads" href="#threads" onPress={() => undefined} />}>
-      <BarButton icon="activity" label="Conversation details" href="#details" onPress={() => undefined} />
+      <BarButton icon="activity" label="Details" href="#details" onPress={() => undefined} />
       <BarButton icon="settings" label="Settings" href="#settings" onPress={() => undefined} />
     </WorkspaceBar>
   ),

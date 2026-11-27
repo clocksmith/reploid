@@ -44,7 +44,7 @@ for (const [width, height] of [[1440, 900], [1280, 720], [390, 844], [320, 740]]
 
     // Navigate all right-hand inspector panes (Conversation details, Computers, Settings) and verify shared header, padding, Close and Escape.
     for (const [view, name, pane, title] of [
-      ['conversation', 'Conversation details', 'conversation', 'Conversation details'],
+      ['conversation', 'Details', 'conversation', 'Details'],
       ['computers', 'Computers', 'participants', 'Computers'],
       ['settings', 'Settings', 'settings', 'Settings']
     ]) {
