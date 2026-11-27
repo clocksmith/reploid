@@ -18,8 +18,8 @@
     "kernel/boot.js"
   ],
   "counts": {
-    "apps/poolday": 357,
-    "self": 460,
+    "apps/poolday": 352,
+    "self": 457,
     "shared": 2541
   },
   "pendingMoves": 0,
@@ -889,12 +889,6 @@
       "basis": "Substrate design records and their index."
     },
     {
-      "served": "blueprints/0x00008D-pool-adapter-pack-publisher.md",
-      "source": "self/blueprints/0x00008D-pool-adapter-pack-publisher.md",
-      "owner": "self",
-      "basis": "Substrate design records and their index."
-    },
-    {
       "served": "blueprints/0x00008E-pool-adapter-pack.md",
       "source": "self/blueprints/0x00008E-pool-adapter-pack.md",
       "owner": "self",
@@ -907,20 +901,8 @@
       "basis": "Substrate design records and their index."
     },
     {
-      "served": "blueprints/0x000090-pool-adapter-publisher-client.md",
-      "source": "self/blueprints/0x000090-pool-adapter-publisher-client.md",
-      "owner": "self",
-      "basis": "Substrate design records and their index."
-    },
-    {
       "served": "blueprints/0x000091-pool-adapter-registry.md",
       "source": "self/blueprints/0x000091-pool-adapter-registry.md",
-      "owner": "self",
-      "basis": "Substrate design records and their index."
-    },
-    {
-      "served": "blueprints/0x000092-pool-p2p-artifact-transfer.md",
-      "source": "self/blueprints/0x000092-pool-p2p-artifact-transfer.md",
       "owner": "self",
       "basis": "Substrate design records and their index."
     },
@@ -3349,12 +3331,6 @@
       "basis": "Reached only from product entries."
     },
     {
-      "served": "pool/adapter-pack-publisher.js",
-      "source": "apps/poolday/pool/adapter-pack-publisher.js",
-      "owner": "apps/poolday",
-      "basis": "Poolday runtime, interface and earning code used by hosted services, scripts and tests."
-    },
-    {
       "served": "pool/adapter-pack.js",
       "source": "shared/pool/adapter-pack.js",
       "owner": "shared",
@@ -3365,12 +3341,6 @@
       "source": "apps/poolday/pool/adapter-publication.js",
       "owner": "apps/poolday",
       "basis": "Reached only from product entries."
-    },
-    {
-      "served": "pool/adapter-publisher-client.js",
-      "source": "apps/poolday/pool/adapter-publisher-client.js",
-      "owner": "apps/poolday",
-      "basis": "Poolday runtime, interface and earning code used by hosted services, scripts and tests."
     },
     {
       "served": "pool/adapter-registry.js",
@@ -3895,12 +3865,6 @@
       "basis": "Reached only from product entries."
     },
     {
-      "served": "pool/p2p-artifact-transfer.js",
-      "source": "apps/poolday/pool/p2p-artifact-transfer.js",
-      "owner": "apps/poolday",
-      "basis": "Poolday runtime, interface and earning code used by hosted services, scripts and tests."
-    },
-    {
       "served": "pool/p2p-payload.js",
       "source": "apps/poolday/pool/p2p-payload.js",
       "owner": "apps/poolday",
@@ -4217,12 +4181,6 @@
       "source": "shared/pool/pool-config.json",
       "owner": "shared",
       "basis": "Reached from native hosts and browser entries."
-    },
-    {
-      "served": "pool/protein-investigation.js",
-      "source": "apps/poolday/pool/protein-investigation.js",
-      "owner": "apps/poolday",
-      "basis": "Poolday runtime, interface and earning code used by hosted services, scripts and tests."
     },
     {
       "served": "pool/protein-uncertainty-campaign.js",
@@ -4979,12 +4937,6 @@
       "source": "apps/poolday/ui/pool-home/answer-choice.js",
       "owner": "apps/poolday",
       "basis": "Reached only from product entries."
-    },
-    {
-      "served": "ui/pool-home/auto-download.js",
-      "source": "apps/poolday/ui/pool-home/auto-download.js",
-      "owner": "apps/poolday",
-      "basis": "Poolday runtime, interface and earning code used by hosted services, scripts and tests."
     },
     {
       "served": "ui/pool-home/choice-availability.js",

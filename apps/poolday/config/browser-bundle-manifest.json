@@ -724,11 +724,6 @@
       "sha256": "sha256:156303048e27ea7383ba1b9cb6f3f9a8f12bb44d699ff8a7d6725faa5e440874"
     },
     {
-      "path": "blueprints/0x00008D-pool-adapter-pack-publisher.md",
-      "byteLength": 1554,
-      "sha256": "sha256:b2ed7c33335cf99b5fe3ed19910b09df80fb310e23086dc9b1e68ae347cf3e13"
-    },
-    {
       "path": "blueprints/0x00008E-pool-adapter-pack.md",
       "byteLength": 2116,
       "sha256": "sha256:cad6af50e149f43e29e844b19fa848dc1d1293f3ecb863a818de293a5d5f65ca"
@@ -739,19 +734,9 @@
       "sha256": "sha256:2b0a04d9aefedf108dd9edc1c80d47ac33a2023b4463db72df740a03ded8a76c"
     },
     {
-      "path": "blueprints/0x000090-pool-adapter-publisher-client.md",
-      "byteLength": 1600,
-      "sha256": "sha256:fe02419faa5b2c862a8aacf396f44e936cef28c85d2d5af1f7e352ea7e6ee1ba"
-    },
-    {
       "path": "blueprints/0x000091-pool-adapter-registry.md",
       "byteLength": 2513,
       "sha256": "sha256:032a1bbb80f2c03cb4941cdc35f1a7bfd946cf2a0bf7b42132cf97f3a57c47d0"
-    },
-    {
-      "path": "blueprints/0x000092-pool-p2p-artifact-transfer.md",
-      "byteLength": 1687,
-      "sha256": "sha256:7ec8e080e090dbf5ad274fe84ebeeecf528cfd2babcf900d5760f5c8290c04a9"
     },
     {
       "path": "blueprints/0x000093-pool-sequence-workload.md",
@@ -895,8 +880,8 @@
     },
     {
       "path": "blueprints/0x0000AF-reploid-rooms-distributed-cognition.md",
-      "byteLength": 18187,
-      "sha256": "sha256:cb1be96c430725d77cae2a7a498867f9beb65d7c4bd79048e6a22ecab845012a"
+      "byteLength": 18204,
+      "sha256": "sha256:c72dd98c3e7eeafc375b3f393afb620c72174de64ef9169ba143f136ddb9da37"
     },
     {
       "path": "blueprints/blueprint-index-contract.md",
@@ -905,13 +890,13 @@
     },
     {
       "path": "blueprints/canonical-inventory.md",
-      "byteLength": 18868,
-      "sha256": "sha256:73bcbab27465810da5620e0c7d04cfe444103a7d68cdf98a8f8ef7ae4ae358ab"
+      "byteLength": 18524,
+      "sha256": "sha256:31ac5ac2d3e664bd6f7962b8aa1901574563c06fbad54aeea97de972d9d89f2e"
     },
     {
       "path": "blueprints/deduplication-audit.md",
-      "byteLength": 36277,
-      "sha256": "sha256:afde5247ac6b52674b6fc880c78b73fd0d24f18b2f27532d61bd93608f651f40"
+      "byteLength": 36307,
+      "sha256": "sha256:bae53171d327598acaa1020ba6e01d6a54092f80bdfd66894bd415e66641a56c"
     },
     {
       "path": "blueprints/implementation-status.md",
@@ -1215,8 +1200,8 @@
     },
     {
       "path": "config/blueprint-registry.json",
-      "byteLength": 33288,
-      "sha256": "sha256:8d2b2e9015005cd107511c357e7ffc79d20b0429fdd5ce34daddbad6b5b03196"
+      "byteLength": 32313,
+      "sha256": "sha256:c84904f61f237b13a7a4a7b470737541acc6c1c1a7876993aabb918b84599dfa"
     },
     {
       "path": "config/boot-modes.js",
@@ -1430,8 +1415,8 @@
     },
     {
       "path": "config/module-inventory.json",
-      "byteLength": 691278,
-      "sha256": "sha256:d0c0bbf06458f3d30b35fe39ad9b9c7d386fd2f7c44c342f89e20b34a87cb52c"
+      "byteLength": 689798,
+      "sha256": "sha256:fc6673cdf4d37082af11674e52c3765641cf4f973c1605f0f5404f7757131a3f"
     },
     {
       "path": "config/module-registry.json",
@@ -1515,8 +1500,8 @@
     },
     {
       "path": "config/swarm-bootstrap.json",
-      "byteLength": 1067,
-      "sha256": "sha256:40d35b2576a1c5a469bf5a8b43efcdb6313bd3e96556f738cb88302e97e31cdc"
+      "byteLength": 968,
+      "sha256": "sha256:a188ef5ad3428cf04f3d52bf3eee669ef7163f37f53e44b8239110cea34a086a"
     },
     {
       "path": "config/tool-surfaces.js",
@@ -1525,8 +1510,8 @@
     },
     {
       "path": "config/vfs-manifest.json",
-      "byteLength": 148688,
-      "sha256": "sha256:0ee8299b38d31883c7ce51e0dc9c2466b9af80a6c50253259bcb2a717f805e92"
+      "byteLength": 148324,
+      "sha256": "sha256:d4e38c6d0db9d7e1289613624f1d605c3546bdaeb91753aa84c16de37e6e26d6"
     },
     {
       "path": "config/vfs-policy.js",
@@ -2679,11 +2664,6 @@
       "sha256": "sha256:7d65b7b38f798be5ffd3816843aa7e3bc9d2a0dddbb655684765aa71a106eed4"
     },
     {
-      "path": "pool/adapter-pack-publisher.js",
-      "byteLength": 4166,
-      "sha256": "sha256:94a7d20b0098b7d70b25d948487d3550b1684fddb9cc5afc3da14da2b0053570"
-    },
-    {
       "path": "pool/adapter-pack.js",
       "byteLength": 14221,
       "sha256": "sha256:5a1006daa2cb3e65d12cfe05f08eef15881c45460bb51cce3d24796799668b74"
@@ -2692,11 +2672,6 @@
       "path": "pool/adapter-publication.js",
       "byteLength": 13830,
       "sha256": "sha256:8855494e2ccbdcccdb7f1db2f6d910f124c74ada77c4ed8209f1bee977fc24c7"
-    },
-    {
-      "path": "pool/adapter-publisher-client.js",
-      "byteLength": 2766,
-      "sha256": "sha256:981b8d66a7ad4189540ea3a40ae00afcaaf46d805b2f39139b9478ba4e4188a5"
     },
     {
       "path": "pool/adapter-registry.js",
@@ -3094,11 +3069,6 @@
       "sha256": "sha256:3f44d142dd279652711e0f33dfefa584cafc84ef88c2127fd58cb3a26163ee34"
     },
     {
-      "path": "pool/p2p-artifact-transfer.js",
-      "byteLength": 7124,
-      "sha256": "sha256:22db438853dc4562553035115ad7e953b2f6cf9908f669649b103d88c1d6a6bb"
-    },
-    {
       "path": "pool/p2p-payload.js",
       "byteLength": 10296,
       "sha256": "sha256:55ca9c2d9ccc44da8de6c2b33b35351f757a7d0e25aafd6f6989beb2ef63b6af"
@@ -3292,11 +3262,6 @@
       "path": "pool/pool-config.json",
       "byteLength": 79983,
       "sha256": "sha256:d56da36726c81d8c8399e746ab4336679ac815fba2e0d28dbd59c6fe51d62bb0"
-    },
-    {
-      "path": "pool/protein-investigation.js",
-      "byteLength": 13964,
-      "sha256": "sha256:2358242a5d31d0df80eb755905896f5b8540dd577e5ee6c689a0f5b9cb32afc1"
     },
     {
       "path": "pool/protein-uncertainty-campaign.js",
@@ -3929,11 +3894,6 @@
       "sha256": "sha256:4aabd57a8a2130664602abe8488fd662eda41189d52860d590de748a42feef27"
     },
     {
-      "path": "ui/pool-home/auto-download.js",
-      "byteLength": 5268,
-      "sha256": "sha256:4301b372ac14935a7e3c2a85d1c3652e24ae1b00b5453e2c355af1b7338a7d62"
-    },
-    {
       "path": "ui/pool-home/choice-availability.js",
       "byteLength": 8174,
       "sha256": "sha256:115528aae24d3495eee147bc9e7b637305d99bfecf0a64225214abac9ef9b84c"
@@ -4210,13 +4170,13 @@
     },
     {
       "path": "ui/react/app.js",
-      "byteLength": 3065644,
-      "sha256": "sha256:3b744abe452560258eef737c262e4c4d93b94bedfefdfc4da472d15eee04e8bf"
+      "byteLength": 3065548,
+      "sha256": "sha256:bdd572c8f7f59bf5d3cdcf8b9e7c79bb32472c65c8f8f940672bc97a82b842c3"
     },
     {
       "path": "ui/react/design.js",
-      "byteLength": 2117963,
-      "sha256": "sha256:533d3ba41b0310c5967f7d6f07b1028a47eee036743371be10c0ed30884a6a0f"
+      "byteLength": 2117867,
+      "sha256": "sha256:cccd1afb8befa1dbf2748c1a20a59d4a77d6863c003855ede985c5242ce15c85"
     },
     {
       "path": "ui/reploid-home/index.js",
@@ -12674,5 +12634,5 @@
       "sha256": "sha256:f17c57d2f5d32a7d9f5517b9ad4937c51e3923fac2e2a03528fdb5f5be6b582b"
     }
   ],
-  "bundleHash": "sha256:2959c09eb80e7b8296ab0cf8cf149889b4004d4866ba2b1a6c0678e2a5d79e85"
+  "bundleHash": "sha256:9f038609353ff2e838c3342ab4616e66897a81d49d55569eae9ed040e2870563"
 }

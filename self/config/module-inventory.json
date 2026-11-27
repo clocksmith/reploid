@@ -1203,15 +1203,6 @@
       ]
     },
     {
-      "path": "pool/adapter-pack-publisher.js",
-      "owner": "pool",
-      "sha256": "sha256:94a7d20b0098b7d70b25d948487d3550b1684fddb9cc5afc3da14da2b0053570",
-      "imports": [
-        "./adapter-pack.js",
-        "./inference-receipt.js"
-      ]
-    },
-    {
       "path": "pool/adapter-pack.js",
       "owner": "pool",
       "sha256": "sha256:5a1006daa2cb3e65d12cfe05f08eef15881c45460bb51cce3d24796799668b74",
@@ -1227,17 +1218,6 @@
       "imports": [
         "./adapter-pack.js",
         "./inference-receipt.js"
-      ]
-    },
-    {
-      "path": "pool/adapter-publisher-client.js",
-      "owner": "pool",
-      "sha256": "sha256:981b8d66a7ad4189540ea3a40ae00afcaaf46d805b2f39139b9478ba4e4188a5",
-      "imports": [
-        "./adapter-publication.js",
-        "./identity.js",
-        "./inference-receipt.js",
-        "./sdk.js"
       ]
     },
     {
@@ -2066,17 +2046,6 @@
       ]
     },
     {
-      "path": "pool/p2p-artifact-transfer.js",
-      "owner": "pool",
-      "sha256": "sha256:22db438853dc4562553035115ad7e953b2f6cf9908f669649b103d88c1d6a6bb",
-      "imports": [
-        "../vendor/reploid/artifacts/binary.js",
-        "./adapter-pack.js",
-        "./inference-receipt.js",
-        "./p2p-payload.js"
-      ]
-    },
-    {
       "path": "pool/p2p-payload.js",
       "owner": "pool",
       "sha256": "sha256:55ca9c2d9ccc44da8de6c2b33b35351f757a7d0e25aafd6f6989beb2ef63b6af",
@@ -2510,15 +2479,6 @@
       "owner": "pool",
       "sha256": "sha256:065735de22c55c5473c11746e20477868d578c11412a006c6280df0f5a673f26",
       "imports": []
-    },
-    {
-      "path": "pool/protein-investigation.js",
-      "owner": "pool",
-      "sha256": "sha256:2358242a5d31d0df80eb755905896f5b8540dd577e5ee6c689a0f5b9cb32afc1",
-      "imports": [
-        "./inference-receipt.js",
-        "./protein-uncertainty-campaign.js"
-      ]
     },
     {
       "path": "pool/protein-uncertainty-campaign.js",
@@ -4723,15 +4683,6 @@
       ]
     },
     {
-      "path": "ui/pool-home/auto-download.js",
-      "owner": "ui",
-      "sha256": "sha256:4301b372ac14935a7e3c2a85d1c3652e24ae1b00b5453e2c355af1b7338a7d62",
-      "imports": [
-        "../../config/chat-files.json",
-        "../components/model-select.js"
-      ]
-    },
-    {
       "path": "ui/pool-home/choice-availability.js",
       "owner": "ui",
       "sha256": "sha256:115528aae24d3495eee147bc9e7b637305d99bfecf0a64225214abac9ef9b84c",
@@ -5203,13 +5154,13 @@
     {
       "path": "ui/react/app.js",
       "owner": "ui",
-      "sha256": "sha256:3b744abe452560258eef737c262e4c4d93b94bedfefdfc4da472d15eee04e8bf",
+      "sha256": "sha256:bdd572c8f7f59bf5d3cdcf8b9e7c79bb32472c65c8f8f940672bc97a82b842c3",
       "imports": []
     },
     {
       "path": "ui/react/design.js",
       "owner": "ui",
-      "sha256": "sha256:533d3ba41b0310c5967f7d6f07b1028a47eee036743371be10c0ed30884a6a0f",
+      "sha256": "sha256:cccd1afb8befa1dbf2748c1a20a59d4a77d6863c003855ede985c5242ce15c85",
       "imports": []
     },
     {

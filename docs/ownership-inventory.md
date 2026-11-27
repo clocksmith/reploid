@@ -18,10 +18,10 @@ Product entries: `index.html`, `pool-entry.html`, `design.html`, `document-study
 
 | Owner | Files |
 | --- | ---: |
-| apps/poolday | 357 |
-| self | 460 |
+| apps/poolday | 352 |
+| self | 457 |
 | shared | 2541 |
-| total | 3358 |
+| total | 3350 |
 
 Every file lives in its owner's root.
 
@@ -181,12 +181,9 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `blueprints/0x00008A-capabilities-system-doppler-optimizer.md` | `self/blueprints/0x00008A-capabilities-system-doppler-optimizer.md` | self | Substrate design records and their index. |
 | `blueprints/0x00008B-tools-doppleroptimize.md` | `self/blueprints/0x00008B-tools-doppleroptimize.md` | self | Substrate design records and their index. |
 | `blueprints/0x00008C-ui-proto-optimization.md` | `self/blueprints/0x00008C-ui-proto-optimization.md` | self | Substrate design records and their index. |
-| `blueprints/0x00008D-pool-adapter-pack-publisher.md` | `self/blueprints/0x00008D-pool-adapter-pack-publisher.md` | self | Substrate design records and their index. |
 | `blueprints/0x00008E-pool-adapter-pack.md` | `self/blueprints/0x00008E-pool-adapter-pack.md` | self | Substrate design records and their index. |
 | `blueprints/0x00008F-pool-adapter-publication.md` | `self/blueprints/0x00008F-pool-adapter-publication.md` | self | Substrate design records and their index. |
-| `blueprints/0x000090-pool-adapter-publisher-client.md` | `self/blueprints/0x000090-pool-adapter-publisher-client.md` | self | Substrate design records and their index. |
 | `blueprints/0x000091-pool-adapter-registry.md` | `self/blueprints/0x000091-pool-adapter-registry.md` | self | Substrate design records and their index. |
-| `blueprints/0x000092-pool-p2p-artifact-transfer.md` | `self/blueprints/0x000092-pool-p2p-artifact-transfer.md` | self | Substrate design records and their index. |
 | `blueprints/0x000093-pool-sequence-workload.md` | `self/blueprints/0x000093-pool-sequence-workload.md` | self | Substrate design records and their index. |
 | `blueprints/0x000094-pool-sequence-result.md` | `self/blueprints/0x000094-pool-sequence-result.md` | self | Substrate design records and their index. |
 | `blueprints/0x000095-pool-participation-profile.md` | `self/blueprints/0x000095-pool-participation-profile.md` | self | Substrate design records and their index. |
@@ -591,10 +588,8 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `pool/adapter-execution-policy.js` | `shared/pool/adapter-execution-policy.js` | shared | Reached from native hosts and browser entries. |
 | `pool/adapter-execution.d.ts` | `apps/poolday/pool/adapter-execution.d.ts` | apps/poolday | Describes pool/adapter-execution.js. Reached only from product entries. |
 | `pool/adapter-execution.js` | `apps/poolday/pool/adapter-execution.js` | apps/poolday | Reached only from product entries. |
-| `pool/adapter-pack-publisher.js` | `apps/poolday/pool/adapter-pack-publisher.js` | apps/poolday | Poolday runtime, interface and earning code used by hosted services, scripts and tests. |
 | `pool/adapter-pack.js` | `shared/pool/adapter-pack.js` | shared | Reached from native hosts and browser entries. |
 | `pool/adapter-publication.js` | `apps/poolday/pool/adapter-publication.js` | apps/poolday | Reached only from product entries. |
-| `pool/adapter-publisher-client.js` | `apps/poolday/pool/adapter-publisher-client.js` | apps/poolday | Poolday runtime, interface and earning code used by hosted services, scripts and tests. |
 | `pool/adapter-registry.js` | `apps/poolday/pool/adapter-registry.js` | apps/poolday | Reached only from product entries. |
 | `pool/adjudication-north-star.js` | `apps/poolday/pool/adjudication-north-star.js` | apps/poolday | Reached only from product entries. |
 | `pool/adjudication-pilot-manifest.json` | `apps/poolday/pool/adjudication-pilot-manifest.json` | apps/poolday | Poolday runtime, interface and earning code used by hosted services, scripts and tests. |
@@ -682,7 +677,6 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `pool/operation-participation.js` | `apps/poolday/pool/operation-participation.js` | apps/poolday | Reached only from product entries. |
 | `pool/operation-room-network.d.ts` | `apps/poolday/pool/operation-room-network.d.ts` | apps/poolday | Describes pool/operation-room-network.js. Reached only from product entries. |
 | `pool/operation-room-network.js` | `apps/poolday/pool/operation-room-network.js` | apps/poolday | Reached only from product entries. |
-| `pool/p2p-artifact-transfer.js` | `apps/poolday/pool/p2p-artifact-transfer.js` | apps/poolday | Poolday runtime, interface and earning code used by hosted services, scripts and tests. |
 | `pool/p2p-payload.js` | `apps/poolday/pool/p2p-payload.js` | apps/poolday | Reached only from product entries. |
 | `pool/p2p-transport.js` | `shared/pool/p2p-transport.js` | shared | Reached from product and substrate entries. |
 | `pool/pack-operation-adapters.d.ts` | `shared/pool/pack-operation-adapters.d.ts` | shared | Describes pool/pack-operation-adapters.js. Reached from native hosts and browser entries. |
@@ -736,7 +730,6 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `pool/policy-router.js` | `apps/poolday/pool/policy-router.js` | apps/poolday | Reached only from product entries. |
 | `pool/policy-validation.js` | `apps/poolday/pool/policy-validation.js` | apps/poolday | Reached only from product entries. |
 | `pool/pool-config.json` | `shared/pool/pool-config.json` | shared | Reached from native hosts and browser entries. |
-| `pool/protein-investigation.js` | `apps/poolday/pool/protein-investigation.js` | apps/poolday | Poolday runtime, interface and earning code used by hosted services, scripts and tests. |
 | `pool/protein-uncertainty-campaign.js` | `apps/poolday/pool/protein-uncertainty-campaign.js` | apps/poolday | Reached only from product entries. |
 | `pool/provider-client.js` | `apps/poolday/pool/provider-client.js` | apps/poolday | Reached only from product entries. |
 | `pool/realized-action-value.js` | `apps/poolday/pool/realized-action-value.js` | apps/poolday | Reached only from product entries. |
@@ -863,7 +856,6 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `ui/components/vfs-progress.js` | `self/ui/components/vfs-progress.js` | self | Reached only from substrate entries. |
 | `ui/panels/cognition-panel.js` | `self/ui/panels/cognition-panel.js` | self | Reached only from substrate entries. |
 | `ui/pool-home/answer-choice.js` | `apps/poolday/ui/pool-home/answer-choice.js` | apps/poolday | Reached only from product entries. |
-| `ui/pool-home/auto-download.js` | `apps/poolday/ui/pool-home/auto-download.js` | apps/poolday | Poolday runtime, interface and earning code used by hosted services, scripts and tests. |
 | `ui/pool-home/choice-availability.js` | `apps/poolday/ui/pool-home/choice-availability.js` | apps/poolday | Reached only from product entries. |
 | `ui/pool-home/computer-labels.js` | `apps/poolday/ui/pool-home/computer-labels.js` | apps/poolday | Reached only from product entries. |
 | `ui/pool-home/constants.js` | `apps/poolday/ui/pool-home/constants.js` | apps/poolday | Reached only from product entries. |
