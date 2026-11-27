@@ -1350,8 +1350,8 @@
     },
     {
       "path": "config/lab-upgrades.js",
-      "byteLength": 1078,
-      "sha256": "sha256:ae6829db4169fece14334234bca85d70085c6f6fe839a674655a912831d13a31"
+      "byteLength": 2023,
+      "sha256": "sha256:3e1a409d4c0257a9da59f55aa9dab9d2f8bdf2b983c5348b50fa8cf51a8e0003"
     },
     {
       "path": "config/lora-adapters/doppler-wgsl-qwen35-9b-v12-external20-seed11.json",
@@ -1425,8 +1425,8 @@
     },
     {
       "path": "config/module-inventory.json",
-      "byteLength": 690565,
-      "sha256": "sha256:bc064208329a6809d784306a882eec4099b0aa3f7fbd3eadd47dd80c0a987051"
+      "byteLength": 690595,
+      "sha256": "sha256:b843aea365a2ffb7ca5ac92e0abf4a3fd7b5dd00184af5ca6e3a5d4715ffab83"
     },
     {
       "path": "config/module-registry.json",
@@ -1515,8 +1515,8 @@
     },
     {
       "path": "config/tool-surfaces.js",
-      "byteLength": 3164,
-      "sha256": "sha256:7dc5a895441cd86af0e723e5e96f976cfa5856bebe86c614cdb5d26fa7d98812"
+      "byteLength": 2900,
+      "sha256": "sha256:d802dee103c069bf12f8d869f5048a74ae6af18909b3bd97b4e8a55223f34a82"
     },
     {
       "path": "config/vfs-manifest.json",
@@ -1710,8 +1710,8 @@
     },
     {
       "path": "core/tool-runner.js",
-      "byteLength": 26615,
-      "sha256": "sha256:5a874ddcd81e2800255fff404a98758142d09c0c534507926f578590a22c87ac"
+      "byteLength": 26617,
+      "sha256": "sha256:4e3a95b7af51648bdf05b6f5430269e665a6fe728e9f5b4a0cdca0719db49767"
     },
     {
       "path": "core/tool-writer.js",
@@ -12641,7 +12641,7 @@
     {
       "path": "zero/source.json",
       "byteLength": 8718,
-      "sha256": "sha256:f34baf335700bdd22e2e03f844781d313305943d403318cd7610077d5bb6b65d"
+      "sha256": "sha256:586d911e618717272a5184e07cef6cdb1b21ae2cc5433f4f4ec4046f9150f511"
     },
     {
       "path": "zero/store.js",
@@ -12664,5 +12664,5 @@
       "sha256": "sha256:abb6c18f6167d6afc8ee1b3adfcbbb89c0e93fb4fc4e98d7a12250f78aab206a"
     }
   ],
-  "bundleHash": "sha256:e62fc9487aa5f7b68c269be96bf7953ffc1f09045394bfc6f2659a8f416ca637"
+  "bundleHash": "sha256:dd4113a905afd162107cd6b48281b28c43b03ea44afc212d3f07e23065e0b588"
 }

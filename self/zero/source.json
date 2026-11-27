@@ -29,8 +29,8 @@
     },
     {
       "path": "config/tool-surfaces.js",
-      "bytes": 3164,
-      "sha256": "7dc5a895441cd86af0e723e5e96f976cfa5856bebe86c614cdb5d26fa7d98812"
+      "bytes": 2900,
+      "sha256": "d802dee103c069bf12f8d869f5048a74ae6af18909b3bd97b4e8a55223f34a82"
     },
     {
       "path": "config/vfs-policy.js",

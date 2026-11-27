@@ -379,10 +379,11 @@
     {
       "path": "config/lab-upgrades.js",
       "owner": "config",
-      "sha256": "sha256:ae6829db4169fece14334234bca85d70085c6f6fe839a674655a912831d13a31",
+      "sha256": "sha256:3e1a409d4c0257a9da59f55aa9dab9d2f8bdf2b983c5348b50fa8cf51a8e0003",
       "imports": [
         "../instance.js",
-        "./self-source-manifest.json"
+        "./self-source-manifest.json",
+        "./tool-surfaces.js"
       ]
     },
     {
@@ -444,7 +445,7 @@
     {
       "path": "config/tool-surfaces.js",
       "owner": "config",
-      "sha256": "sha256:7dc5a895441cd86af0e723e5e96f976cfa5856bebe86c614cdb5d26fa7d98812",
+      "sha256": "sha256:d802dee103c069bf12f8d869f5048a74ae6af18909b3bd97b4e8a55223f34a82",
       "imports": []
     },
     {
@@ -711,7 +712,7 @@
     {
       "path": "core/tool-runner.js",
       "owner": "core",
-      "sha256": "sha256:5a874ddcd81e2800255fff404a98758142d09c0c534507926f578590a22c87ac",
+      "sha256": "sha256:4e3a95b7af51648bdf05b6f5430269e665a6fe728e9f5b4a0cdca0719db49767",
       "imports": [
         "../config/lab-upgrades.js",
         "../config/tool-surfaces.js",
