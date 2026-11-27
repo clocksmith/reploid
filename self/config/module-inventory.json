@@ -4423,7 +4423,7 @@
     {
       "path": "ui/components/button-feedback.js",
       "owner": "ui",
-      "sha256": "sha256:65fa883978c2f1f6108a9a3a16c9630fb4b8caf31428ea94ff0d6ec878a61b2d",
+      "sha256": "sha256:f17118bf0ebfa1877f20bcc2bdf68f706f007ea943e5328e98d2f4e5d84b5fd4",
       "imports": []
     },
     {
@@ -4536,7 +4536,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:9c28b9269cf7de0598e77623a1c7da1a589fa722538a2e114ed8ee63bfa62e0d",
+      "sha256": "sha256:c4a495d2161ca69d40dae2b1c8d7653b495f1588877c752e5013ef30f7426da5",
       "imports": []
     },
     {
@@ -5665,7 +5665,7 @@
     {
       "path": "ui/react/design.js",
       "owner": "ui",
-      "sha256": "sha256:640e550988c20d007f87e05e9d463d478f3bc148d396da7bdd621cfd5809b462",
+      "sha256": "sha256:434c0a4b81c82adf4152f48c2a0f73ca2553931562d8f467f890214dd69f0af9",
       "imports": []
     },
     {
