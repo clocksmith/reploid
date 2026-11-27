@@ -323,9 +323,8 @@ function SpecializedJobs({ services }: { readonly services: ComputersServices })
     pending.current = true;
     const attempt = revision.current;
     try {
-      if (!approved) throw new Error(t.specialized.approvalFirst);
       if (attempt !== revision.current) return;
-      await operations.start(model === IMPORT ? { file: file as File } : { modelId: model });
+      await operations.start({ ...(model === IMPORT ? { file: file as File } : { modelId: model }), approved });
     } catch (cause) {
       setError(messageOf(cause));
     } finally {

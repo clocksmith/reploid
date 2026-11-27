@@ -191,4 +191,5 @@ export type OperationPhase = 'idle' | 'starting' | 'sharing' | 'stopping';
 export function operationModels(): ReadonlyArray<{ readonly modelId: string; readonly label?: string }>;
 export function operationLimitsText(): string;
 export function operationStatusText(state: { readonly phase: OperationPhase; readonly modelId?: string; readonly error?: string }): string;
-export function operationSelection(input?: { readonly modelId?: string; readonly file?: File | null }): Promise<object>;
+export const OPERATION_APPROVAL_REQUIRED: string;
+export function operationSelection(input?: { readonly modelId?: string; readonly file?: File | null; readonly approved?: boolean }): Promise<object & { readonly approved: true }>;

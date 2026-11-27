@@ -311,7 +311,8 @@ export type ComputersServices = {
     readonly limits: () => string;
     readonly getState: () => OperationView;
     readonly subscribe: (listener: () => void) => () => void;
-    readonly start: (selection: { readonly modelId: string } | { readonly file: File }) => Promise<unknown>;
+    /** Offers the choice with the person's approval of it as given; the host refuses an unapproved offer. */
+    readonly start: (selection: ({ readonly modelId: string } | { readonly file: File }) & { readonly approved: boolean }) => Promise<unknown>;
     readonly stop: () => Promise<unknown>;
   };
 };

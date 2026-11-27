@@ -484,8 +484,8 @@ export function createComputersServices(product: { readonly host: object; readon
       },
       start: async (selection) => {
         const port = need(participation(), 'Specialized model jobs');
-        const request = await host$.operationSelection('modelId' in selection ? { modelId: selection.modelId } : { file: selection.file });
-        return port.start({ ...request, approved: true });
+        const choice = 'modelId' in selection ? { modelId: selection.modelId } : { file: selection.file };
+        return port.start(await host$.operationSelection({ ...choice, approved: selection.approved }));
       },
       stop: () => need(participation(), 'Specialized model jobs').stop(),
     },

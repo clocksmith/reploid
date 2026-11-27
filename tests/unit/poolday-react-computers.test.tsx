@@ -4,7 +4,7 @@ import { act, cleanup, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { PooldayRoot } from '@reploid/poolday-ui';
-import { projectComputers } from '../../apps/poolday/host/decisions/computers.js';
+import { OPERATION_APPROVAL_REQUIRED, operationSelection, projectComputers } from '../../apps/poolday/host/decisions/computers.js';
 import { parseComputer, weightSupplyOfferFromInventory } from '../../packages/reploid/src/contracts/computer-records.js';
 import { projectChatCatalog } from '../../apps/poolday/host/chat-view.js';
 import { localOffers } from '../fixtures/local-offers.js';
@@ -111,6 +111,28 @@ describe('Computers decisions', () => {
     expect(narrowed.peers.map((row: { id: string }) => row.id)).toEqual(['peer-ready']);
     expect(projectComputers(state, { filter: { providerIds: [], label: 'X' } }).empty).toBe('No computer offers this model right now. Show all computers to choose another.');
   });
+});
+
+describe('Computers host decisions the pane only calls', () => {
+  const descriptor = () => new File([JSON.stringify({ schema: 'reploid.document-models/v1', models: [] })], 'models.json', { type: 'application/json' });
+
+  it("offers specialized jobs only with the person's own approval, and carries it as given", async () => {
+    await expect(operationSelection({ file: descriptor() })).rejects.toThrow(OPERATION_APPROVAL_REQUIRED);
+    await expect(operationSelection({ file: descriptor(), approved: 'yes' as unknown as boolean })).rejects.toThrow(OPERATION_APPROVAL_REQUIRED);
+    expect(await operationSelection({ file: descriptor(), approved: true })).toMatchObject({ configuration: { schema: 'reploid.document-models/v1' }, approved: true });
+  });
+
+  it('passes an unapproved start to the host refusal instead of approving it on the way', async () => {
+    const start = vi.fn(async () => undefined);
+    const fixture = fixtureHost();
+    const services = createComputersServices({ host: { ...fixture.host, operationSharing: { start, stop: vi.fn(), getState: () => ({ phase: 'idle' }) } }, earning: Promise.resolve(null) });
+    await expect(services.operations.start({ file: descriptor(), approved: false })).rejects.toThrow(OPERATION_APPROVAL_REQUIRED);
+    expect(start).not.toHaveBeenCalled();
+    await services.operations.start({ file: descriptor(), approved: true });
+    expect(start).toHaveBeenCalledWith(expect.objectContaining({ approved: true }));
+    services.dispose();
+  });
+
 });
 
 describe('Computers pane', () => {

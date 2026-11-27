@@ -206,7 +206,6 @@ export const computers = {
     stop: 'Stop sharing',
     reason: 'Check the approval above to share this capability.',
     weights: 'Weights may load on the first job. This does not expose private work or enable candidate adoption.',
-    approvalFirst: 'Approve the publisher and public-input execution first',
     withdrawn: 'Sharing approval was withdrawn',
   },
 } as const;

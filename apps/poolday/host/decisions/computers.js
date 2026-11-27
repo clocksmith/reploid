@@ -514,14 +514,19 @@ export const operationStatusText = state => state.error || ({
   sharing: 'Offering ' + state.modelId + '. Jobs load the exact model when needed.',
   stopping: 'Stopping participation and releasing owned work'
 })[state.phase];
-/** The participation request for an approved model or an imported descriptor file's text. */
-export async function operationSelection({ modelId = '', file = null } = {}) {
+export const OPERATION_APPROVAL_REQUIRED = 'Approve the publisher and public-input execution first';
+/**
+ * The participation request for an approved model or an imported descriptor file's text. `approved` is the
+ * person's own approval of this exact choice; nothing is offered without it, and the request carries it as given.
+ */
+export async function operationSelection({ modelId = '', file = null, approved = false } = {}) {
+  if (approved !== true) throw new Error(OPERATION_APPROVAL_REQUIRED);
   if (modelId) {
     const model = operationModels().find(item => item.modelId === modelId);
     if (!model) throw new Error('This capability is no longer admitted');
-    return { model };
+    return { model, approved };
   }
   if (!file || file.size > poolConfig.operationParticipation.maxConfigurationBytes) throw new Error('Choose a smaller model descriptor');
   const value = JSON.parse(await file.text());
-  return value.schema === 'reploid.document-models/v1' ? { configuration: value } : { model: value };
+  return { ...(value.schema === 'reploid.document-models/v1' ? { configuration: value } : { model: value }), approved };
 }
