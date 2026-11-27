@@ -34,6 +34,7 @@ import { createDownloadDialog } from './download-dialog.js';
 import { createThreadList } from './threads.js';
 import { createPrivacyDialog } from './privacy-dialog.js';
 import { createRemoteApproval, remotePermissionView } from './remote-approval.js';
+import { createSendIntentStore } from '../send-intents.js';
 
 export { relativeTime } from './threads.js';
 import workProfile from '../../config/work-profile.json' with { type: 'json' };
@@ -119,14 +120,27 @@ export function createConversationController(session, {
   let executionLocation = viewState.executionLocation || 'auto';
   let errorText = '', searchOn = false, retryPending = false, retryDeadline = null;
   /**
-   * Send, as one record: `idle`; `held` while it waits for a computer during discovery (`scope` is what it was
-   * pressed for, `scheduled` that its release is already queued); `submitting` from the press until the session
-   * admitted it. A held Send and a submitting one never coexist.
+   * The held Send is the chat host's (host/send-intents.js, a reploid.send-intent/1 intent): it expires 30 s after
+   * the press whatever discovery is doing, and the host checks its deadline, selection revision and pinned artifact
+   * right before dispatch. A session that brings no store (a test double) gets one of its own here.
+   */
+  const ownIntents = session.sendIntents ? null : createSendIntentStore({ now });
+  const intents = session.sendIntents ?? ownIntents;
+  /**
+   * Send, as one record: `idle`; `held` while the host holds its intent (`intentId`) for a route (`scope` is the
+   * draft and route it was pressed for, `scheduled` that its release is already queued); `submitting` from the press
+   * until the session admitted it. A held Send and a submitting one never coexist.
    */
   const IDLE = Object.freeze({ kind: 'idle' }), SUBMITTING = Object.freeze({ kind: 'submitting' });
   let send = IDLE;
-  const held = () => send.kind === 'held' ? send : null;
-  const dropHold = () => { if (send.kind === 'held') send = IDLE; };
+  const held = () => send.kind === 'held' && intents.holds(send.intentId) ? send : null;
+  const dropHold = () => { if (send.kind === 'held') { intents.cancel(send.intentId); send = IDLE; } };
+  /** The model selection the host's intents bind: the thread's model, or a pick; otherwise the page chooses (auto). */
+  const reportSelection = state => {
+    const thread = state.activeThread;
+    const pin = thread ? (thread.automaticModel ? null : thread.model) : choice.model && !choice.automatic ? choice.model : null;
+    intents.select(pin ? { mode: 'pinned', artifact: pin } : { mode: 'auto' });
+  };
   const submitting = () => send.kind === 'submitting';
   const endSubmit = () => { if (send.kind === 'submitting') send = IDLE; };
   let sendAfterDestination = false, pickerChoice = null, stagedDestination = null;
@@ -159,7 +173,8 @@ export function createConversationController(session, {
    */
   const automaticContributors = state => !state.activeThread && viewState.privacy === undefined && !viewState.privacyTouched
     && state.remoteAnswersEnabled !== false && !lockedDestination(state) && !(state.models || []).some(storedHere)
-    && (state.discoveryPhase === 'searching' || (state.models || []).some(publicAnswers));
+    // A Send held for this route keeps it until its intent ends: the hold is not bound by discovery.
+    && (state.discoveryPhase === 'searching' || !!held() || (state.models || []).some(publicAnswers));
   const explicitPrivacy = state => (state.activeThread ? state.activeThread.privacy : viewState.privacy)
     ?? (automaticContributors(state) ? openDefault : localPolicy);
   /**
@@ -337,19 +352,22 @@ export function createConversationController(session, {
       state.remoteNetworkId, state.remoteAnswersEnabled, state.activeThread?.permissions, contextPrompt,
       state.activeThread?.systemContext, searching(), composerRevision, draftText]);
   }
-  function canWaitForPublicModel(state, model, location) {
+  /** Whether a Send pressed now may be held: a whole public model while computers are being found. */
+  const canWaitForPublicModel = (state, model, location) => holdable(state, model, location)
+    && ['observed', 'searching'].includes(state.discoveryPhase);
+  /** Whether a held Send may keep waiting for `model`: its route and draft still permit it. Discovery does not bound it. */
+  function holdable(state, model, location) {
     const privacy = explicitPrivacy(state);
     const pinned = state.activeThread?.model || choice.model || viewState.draftModel;
     return !!model?.identity && (!pinned?.identity || modelIdentity(model) === modelIdentity(pinned)) && !model.partition && !model.fleet && location !== 'local'
       && (!state.activeThread || location === 'network') && allowsOpenPlaintext(privacy)
       && !searching() && !attachmentReader.pending
       && !state.storageError && !state.activeThread?.closed && !state.comparisonPhase
-      && !(state.runningIds || []).includes(state.selectedId) && !submitting()
-      && ['observed', 'searching'].includes(state.discoveryPhase);
+      && !(state.runningIds || []).includes(state.selectedId) && !submitting();
   }
   function readyForQueuedSend(state, intent) {
     const model = state.models?.find(item => modelKey(item) === currentKey);
-    return !disposed && canWaitForPublicModel(state, model, effectiveLocation(state))
+    return !disposed && holdable(state, model, effectiveLocation(state))
       && queueScope(state, model) === intent.scope && model.networkAvailability === 'ready'
       && model.reachableProviderIds?.length > 0;
   }
@@ -434,8 +452,11 @@ export function createConversationController(session, {
 
   function advance() {
     const state = withComputerLabels(sessionState, session);
+    // An intent the host no longer holds (expired, claimed or cancelled) is no longer this page's held Send.
+    if (send.kind === 'held' && !intents.holds(send.intentId)) send = IDLE;
     applyPairedDesktopDefault(state);
     applyRememberedChoice(state);
+    reportSelection(state);
     const finding = searchingNow(state);
     if (selectedId !== state.selectedId) {
       pickerRevision++;
@@ -489,13 +510,13 @@ export function createConversationController(session, {
     const usable = explicitPrivacy(state).computation === 'plaintext' && (execution.usable || prepareHere);
     const busy = runningIds.includes(thread?.id) || !!state.comparisonPhase;
     privacyChoice.follow(state, busy || !!thread?.closed);
-    // The queued Send: it waits for a computer running this model while discovery runs, and lapses when that can't happen.
-    const permitted = !busy && canWaitForPublicModel(state, selectedModel, location);
+    // The queued Send: it waits for a computer running this model until its intent expires (30 s from the press,
+    // host/send-intents.js), and lapses earlier only when its draft or route no longer permits it.
+    const permitted = !busy && holdable(state, selectedModel, location);
     if (held() && (!permitted || held().scope !== queueScope(state, selectedModel))) dropHold();
-    // A Send held for whichever model turns up ends with the wait when none did: the status says so.
-    if (held() && waitsForAnyModel(state) && choiceWaitOver(state) && !usable) dropHold();
     const intent = held(), ready = !!intent && readyForQueuedSend(state, intent);
-    // The hold is bounded by the discovery wait; once it is over, the held Send goes the way a Send pressed now would.
+    // Released when its computer is ready, or, for a model already able to answer, once the discovery wait has
+    // chosen it: then it goes the way a Send pressed now would, after the host's check.
     if (intent && !intent.scheduled && (ready || usable && choiceWaitOver(state))) {
       intent.scheduled = true;
       queueMicrotask(() => {
@@ -505,7 +526,10 @@ export function createConversationController(session, {
         if (readyForQueuedSend(latest, intent)) submitDraft(intent);
         else if (choiceWaitOver(latest) && !sendDisabled
           && modelExecutionState(latest.models?.find(item => modelKey(item) === currentKey), effectiveLocation(latest)).usable) {
-          dropHold(); submitDraft();
+          const refusal = intents.claim(intent.intentId, { model: latest.models.find(item => modelKey(item) === currentKey),
+            threadId: latest.selectedId ?? null });
+          send = IDLE;
+          if (refusal) notify(); else submitDraft();
         }
       });
     }
@@ -634,6 +658,9 @@ export function createConversationController(session, {
       send: { visible: !busy, disabled: sendDisabled },
       // Stop stays reachable when the reader scrolls away from the active answer; the transcript row has its own.
       stop: { visible: busy },
+      // The host's held Send, as it reports it: held until `expiresAt`, or expired with nothing sent.
+      sendIntent: held() ? { status: 'held', expiresAt: intents.state().intent.expiresAt }
+        : intents.state().expired ? { status: 'expired', expiresAt: intents.state().expired.expiredAt } : null,
       chip: {
         visible: models.length > 0, caption: !activeModel, findingFirst,
         // The selection the composer would send with now (the vanilla page's hidden model select).
@@ -698,12 +725,22 @@ export function createConversationController(session, {
     }
     if (!intent && finding && !modelExecutionState(model, effectiveLocation(state)).usable
       && canWaitForPublicModel(state, model, effectiveLocation(state))) {
-      send = { kind: 'held', scope: queueScope(state, model), scheduled: false };
+      // The host records the intent for the current selection; nothing else is created until a route is ready.
+      reportSelection(state);
+      let created;
+      try { created = intents.hold({ threadId: state.selectedId ?? null }); } catch { return; }
+      send = { kind: 'held', intentId: created.intentId, scope: queueScope(state, model), scheduled: false };
       notify();
       return;
     }
     const pinned = state.activeThread?.model || choice.model || viewState.draftModel;
     if (!model || pinned?.identity && modelIdentity(model) !== modelIdentity(pinned)) return;
+    // Right before dispatch the host checks the intent's deadline, selection revision and pinned artifact; a refusal
+    // dispatches and creates nothing, and the typed text stays.
+    if (intent) {
+      const refusal = intents.claim(intent.intentId, { model, threadId: state.selectedId ?? null });
+      if (refusal) { send = IDLE; notify(); return; }
+    }
     const location = intent ? 'network' : effectiveLocation(state);
     const searched = searching();
     if (searched && files.length) { error("Search-backed answers don't include files. Remove the files or turn off search for this answer."); return; }
@@ -726,7 +763,6 @@ export function createConversationController(session, {
           const current = latest.models?.find(item => modelKey(item) === modelKey(model));
           if (disposed || composerRevision !== revision || selectedId !== threadId
             || latest.remoteNetworkId !== state.remoteNetworkId || latest.remoteAnswersEnabled !== state.remoteAnswersEnabled
-            || !['observed', 'searching'].includes(latest.discoveryPhase)
             || latest.activeThread?.permissions?.executionLocation !== 'network' || searching()
             || !allowsOpenPlaintext(latest.activeThread?.privacy)
             || modelIdentity(current) !== modelIdentity(model)
@@ -924,6 +960,8 @@ export function createConversationController(session, {
     sheetOpen: () => sheet.open, disposed: () => disposed });
 
   const unsubscribe = session.subscribe(state => { sessionState = state; notify(); });
+  // The host's intents change on their own (expiry); the page re-reads after the change that caused it returns.
+  const unsubscribeIntents = intents.subscribe(() => queueMicrotask(notify));
   const unsubscribeSearch = search && session.searchPermissionRequest ? search.subscribe(() => notify()) : () => {};
   if (search && search.state().state === 'unknown') void search.refresh();
   const unsubscribeWebSearch = webSearch ? webSearch.subscribe(state => {
@@ -1090,7 +1128,7 @@ export function createConversationController(session, {
       disposed = true;
       clearTimeout(retryDeadline);
       fitRequest?.abort(); downloads.dispose(); attachmentReader.close(); threadList.dispose();
-      unsubscribe(); unsubscribeSearch(); unsubscribeWebSearch(); listeners.clear();
+      unsubscribe(); unsubscribeIntents(); ownIntents?.close(); unsubscribeSearch(); unsubscribeWebSearch(); listeners.clear();
     }
   };
   return api;

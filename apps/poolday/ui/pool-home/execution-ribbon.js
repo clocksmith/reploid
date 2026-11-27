@@ -28,6 +28,24 @@ export function recordedAdapterText(attempt, model) {
     return [adapter?.name || 'Unnamed adapter', adapter?.manifest?.version ? `v${adapter.manifest.version}` : null, identity].filter(Boolean).join(' · ');
   }).join('; ') || (requested.length ? 'No adapter recorded' : null);
 }
+/**
+ * The model an answer names, from its own execution evidence: the provider-signed receipt, else the execution record,
+ * else the request the attempt was created with. Never the conversation's current model or the picker. The name is
+ * the one the conversation, the attempt's request or the catalog lists for that exact identity; without one, the
+ * evidence's own model id.
+ */
+export function answeredModel(state, thread, attempt) {
+  const execution = attempt?.execution, receipt = execution?.executionReceipt;
+  const evidence = typeof receipt?.modelIdentity === 'string' ? { id: receipt.model ?? null, identity: receipt.modelIdentity }
+    : typeof execution?.modelIdentity === 'string' ? { id: execution.modelId ?? null, identity: execution.modelIdentity } : null;
+  // An attempt that has recorded no execution evidence yet (still running, or saved before it was kept) names the
+  // model it was created with.
+  const asked = attempt?.request?.model ?? thread?.model ?? null;
+  if (!evidence) return { id: asked?.id ?? null, identity: asked?.identity ?? null, name: asked?.name ?? null };
+  const named = [thread?.model, attempt?.request?.model, ...(state?.models || [])]
+    .find(model => model?.name && model.identity === evidence.identity && (evidence.id === null || model.id === evidence.id));
+  return { ...evidence, name: named?.name ?? evidence.id };
+}
 const orderedTiming = (execution, index) => {
   const summary = execution?.stepSummary;
   if (summary) {
@@ -80,7 +98,7 @@ export function projectExecutionRibbon(state) {
   return { key: attempt ? `${thread.id}:${attempt.id}` : null, thread, attempt, execution, requester, local, split, ordered: !!ordered, executors,
     planId: ordered?.planId || execution?.planId,
     requesterExecutes: executors.some(node => node.id === requester),
-    model: executors.length ? thread.model.name : null, adapter: recordedAdapterText(attempt, thread?.model), status, statusLabel: labels[status] || status,
+    model: executors.length ? answeredModel(state, thread, attempt).name : null, adapter: recordedAdapterText(attempt, thread?.model), status, statusLabel: labels[status] || status,
     response, active: !!active, totalMs: measured(attempt?.finishedAt) && measured(attempt?.createdAt) ? attempt.finishedAt - attempt.createdAt : null,
     transferMs: sum(execution?.steps, 'transferMs'), activationBytes: measured(execution?.activationBytes) ? execution.activationBytes : null };
 }

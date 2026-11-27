@@ -896,12 +896,11 @@ describe('Conversation workspace', () => {
     expect(session.getDraft(session.getState().selectedId).text).toBe(draft);
   });
 
-  it.each(['edit', 'identity', 'interrupt', 'cancel', 'retry'])('disarms queued delivery after %s and preserves the draft', async change => {
+  it.each(['edit', 'identity', 'cancel', 'retry'])('disarms queued delivery after %s and preserves the draft', async change => {
     const f = waitingDraft(), id = CANONICAL_CHAT_MODELS[1].identity;
     c().send();
     if (change === 'edit') { f.write('Edited question'); f.write('Exact question'); }
     if (change === 'identity') { f.setOffer({ identity: id + '-replaced' }); f.setOffer({ identity: id }); }
-    if (change === 'interrupt') { f.setPhase('interrupted'); f.setPhase('searching'); }
     if (change === 'cancel') c().cancelQueuedSend();
     if (change === 'retry') { f.setPhase('observed'); c().retryConnection(); }
     f.setOffer({ availability: 'ready', networkAvailability: 'ready', reachableProviderIds: ['live'] });
@@ -909,6 +908,18 @@ describe('Conversation workspace', () => {
     expect(f.send).not.toHaveBeenCalled();
     expect(composer().nextAction).not.toBe('cancel-queued');
     expect(composer().draft).toBe('Exact question');
+  });
+
+  // The held Send is bounded by its intent's 30 s expiry, not by discovery (host/send-intents.js): an interruption the
+  // connection recovers from inside it does not drop the question.
+  it('keeps queued delivery across a discovery interruption inside the intent\'s 30 s', async () => {
+    const f = waitingDraft();
+    c().send();
+    f.setPhase('interrupted'); f.setPhase('searching');
+    expect(composer().nextAction).toBe('cancel-queued');
+    f.setOffer({ availability: 'ready', networkAvailability: 'ready', reachableProviderIds: ['live'] });
+    await vi.waitFor(() => expect(f.send).toHaveBeenCalledOnce());
+    expect(f.send.mock.calls[0].slice(1)).toEqual(['Exact question', []]);
   });
 
   it('carries the text and file to the switched model without overwriting a separate unsent conversation', async () => {

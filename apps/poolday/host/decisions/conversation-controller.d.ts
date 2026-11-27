@@ -35,6 +35,8 @@ export type ComposerView = {
   readonly placeholder: string;
   readonly send: { readonly visible: boolean; readonly disabled: boolean };
   readonly stop: { readonly visible: boolean };
+  /** The chat host's held Send (reploid.send-intent/1): held until expiresAt, or expired with nothing sent. No wording yet. */
+  readonly sendIntent: { readonly status: 'held' | 'expired'; readonly expiresAt: number } | null;
   readonly chip: {
     readonly visible: boolean;
     readonly caption: boolean;

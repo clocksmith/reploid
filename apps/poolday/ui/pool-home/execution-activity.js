@@ -1,4 +1,4 @@
-import { projectExecutionRibbon, RECORDED_GPU_TITLE } from './execution-ribbon.js';
+import { projectExecutionRibbon, RECORDED_GPU_TITLE, answeredModel } from './execution-ribbon.js';
 import { escapeHtml as escape } from '../components/attachments.js';
 import { interfaceIcon } from '../components/interface-icons.js';
 import { serviceCreditOutcomeText } from './service-credit-text.js';
@@ -68,7 +68,7 @@ export function updateExecutionActivity(root, state) {
     ...(view.nodes.length ? [`${view.computerCount} computer${view.computerCount === 1 ? '' : 's'}`] : []),
     ...(view.split ? ['Partitioned'] : []), ...(supply.answer ? [supply.answer] : [])].join(' · ');
   const supplyText = supplyCaption(view, supply);
-  const readable = [view.model || (supplyText ? view.thread?.model?.name : ''), supplyText].filter(Boolean).join(' · ');
+  const readable = [view.model || (supplyText ? answeredModel(state, view.thread, view.attempt).name : ''), supplyText].filter(Boolean).join(' · ');
   const trigger = root.querySelector('[data-execution-trigger]');
   trigger.setAttribute('aria-label', summary + '. Execution details');
   trigger.title = summary + (view.nodes.length ? '\n' + view.nodes.map(node => node.label).join(' → ') : '')

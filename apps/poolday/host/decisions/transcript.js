@@ -10,6 +10,7 @@
 import { answerPrivacy } from '../../ui/pool-home/privacy-controls.js';
 import { failureLabel } from '../../ui/pool-home/message-list.js';
 import { projectExecutionActivity, projectSupplyLabel, supplyCaption } from '../../ui/pool-home/execution-activity.js';
+import { answeredModel } from '../../ui/pool-home/execution-ribbon.js';
 
 const FAILED = new Set(['failed', 'cancelled', 'interrupted']);
 const AUTHOR_STATUS = { queued: 'Waiting…', loading: 'Preparing…', executing: 'Thinking…', cancelling: 'Stopping…' };
@@ -21,7 +22,7 @@ function attemptSignature(attempt) {
   return JSON.stringify([attempt.id, attempt.status, attempt.error ?? null, attempt.retryOf ?? null, attempt.createdAt ?? null, attempt.finishedAt ?? null,
     execution?.placement ?? null, execution?.peerId ?? null, execution?.timing ?? null, execution?.completion?.generatedTokenCount ?? null,
     execution?.admission?.queuePosition ?? null, execution?.admission?.queuedCount ?? null, execution?.serviceCredit ?? null,
-    execution?.receipt?.route ?? null, execution?.stepSummary?.count ?? null, execution?.steps?.length ?? null,
+    execution?.receipt?.route ?? null, execution?.modelIdentity ?? null, execution?.executionReceipt?.modelIdentity ?? null, execution?.stepSummary?.count ?? null, execution?.steps?.length ?? null,
     retrieval?.outcome ?? null, retrieval?.partial ?? null, retrieval?.progress ?? null, retrieval?.sources?.length ?? null,
     attempt.provenance?.supply ?? null]);
 }
@@ -44,7 +45,8 @@ function projectActivity(state) {
     ...(view.nodes.length ? [`${view.computerCount} computer${view.computerCount === 1 ? '' : 's'}`] : []),
     ...(view.split ? ['Partitioned'] : []), ...(supply.answer ? [supply.answer] : [])].join(' · ');
   const supplyText = supplyCaption(view, supply);
-  const readable = [view.model || (supplyText ? view.thread?.model?.name : ''), supplyText].filter(Boolean).join(' · ');
+  // The model named on the answer is the one its execution evidence names (answeredModel), not the conversation's.
+  const readable = [view.model || (supplyText ? answeredModel(state, view.thread, view.attempt).name : ''), supplyText].filter(Boolean).join(' · ');
   const activeText = toolStatus || queueLabel || (view.execution?.privateDelegation && view.nodes.length
     ? `${view.model} · ${view.split ? 'split across ' : view.status === 'executing' ? 'running on ' : 'assigned to '}${view.nodes.map(node => node.label).join(' + ')}`
     : view.status === 'executing' ? 'Generating' : view.statusLabel);

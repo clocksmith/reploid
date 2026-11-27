@@ -12,7 +12,7 @@ import { selectAvailableChatModel } from '../../apps/poolday/host/chat-view.js';
 import profile from '../../apps/poolday/config/work-profile.json' with { type: 'json' };
 
 const cleanups = [];
-afterEach(async () => { for (const cleanup of cleanups.splice(0).reverse()) await cleanup(); });
+afterEach(async () => { vi.useRealTimers(); for (const cleanup of cleanups.splice(0).reverse()) await cleanup(); });
 const observed = { discoveryPhase: 'observed', peerDiscoveryTimedOut: true, network: { consumer: { connectionState: 'connected', peers: [] } } };
 const key = model => model.selectionId || model.id;
 const served = model => ({ ...model, availability: 'ready', networkAvailability: 'ready', providerIds: ['peer'], reachableProviderIds: ['peer'] });
@@ -98,10 +98,16 @@ it('holds a Send pressed while computers are being found and sends it to the mod
 });
 
 it('keeps a first visitor on this device when nobody can answer, and never sends the held question elsewhere', async () => {
+  // The held Send outlives the discovery wait: it ends when its intent expires, 30 s after the press.
+  vi.useFakeTimers({ now: 1_000_000 });
   const f = fixture();
   f.view.send('Typed before discovery settled');
   f.publish(observed);
-  await new Promise(resolve => setTimeout(resolve, 0));
+  await vi.advanceTimersByTimeAsync(0);
+  expect(f.view.composer().nextAction).toBe('cancel-queued');
+  expect(chip(f).source).toBe('Contributors');
+  await vi.advanceTimersByTimeAsync(30_000);
+  vi.useRealTimers();
   expect(f.created).toHaveLength(0);
   expect(chip(f).source).toBe('This device');
   expect(f.view.composer().disclosure).toBe('Nothing leaves this device.');
@@ -300,12 +306,17 @@ it('holds a returning visitor\'s Send for whichever model turns up when their re
   expect(key(f.created[0].model)).toBe(key(MEDIUM));
   expect(f.created[0]).toMatchObject({ executionLocation: 'network', privacy: { recipients: { kind: 'open' } } });
 
-  // With nobody to answer when the wait ends, the hold ends with a stated reason and the draft stays.
+  // With nobody to answer, the hold ends when its intent expires (30 s after the press, not with the discovery
+  // wait), with a stated reason, and the draft stays.
+  vi.useFakeTimers({ now: 2_000_000 });
   const alone = fixture({ storage: record() });
   alone.view.send('Typed before discovery settled');
   expect(alone.view.composer().nextAction).toBe('cancel-queued');
   alone.publish(observed);
-  await new Promise(resolve => setTimeout(resolve, 0));
+  await vi.advanceTimersByTimeAsync(0);
+  expect(alone.view.composer().nextAction).toBe('cancel-queued');
+  await vi.advanceTimersByTimeAsync(30_000);
+  vi.useRealTimers();
   expect(alone.created).toHaveLength(0);
   expect(alone.view.composer().status.text).toBe('No eligible computer found for this model.');
   expect(alone.view.composer().nextAction).toBe('retry');
@@ -486,4 +497,90 @@ it('drops a held Send when the draft changes, the sheet opens, search changes or
   // Untouched, the same hold is sent once a computer serves a model.
   f = held();
   expect(await settle(f)).toBe(1);
+});
+
+// The Send intent (reploid.send-intent/1, apps/poolday/host/send-intents.js): the chat host owns the held Send and its
+// 30 s expiry; the controller renders it.
+it('expires a held Send 30 s after the press whatever discovery is doing, creates nothing, and keeps the typed text', async () => {
+  vi.useFakeTimers({ now: 5_000_000 });
+  try {
+    const f = fixture();
+    f.view.send('Held while computers are found');
+    expect(f.view.composer().nextAction).toBe('cancel-queued');
+    expect(f.view.composer().sendIntent).toMatchObject({ status: 'held', expiresAt: 5_000_000 + 30000 });
+    // Discovery is still searching at 29 s: the hold stands.
+    await vi.advanceTimersByTimeAsync(29_000);
+    expect(f.view.composer().nextAction).toBe('cancel-queued');
+    await vi.advanceTimersByTimeAsync(1_000);
+    expect(f.view.composer().nextAction).not.toBe('cancel-queued');
+    expect(f.view.composer().sendIntent).toMatchObject({ status: 'expired' });
+    expect(f.created).toHaveLength(0);
+    expect(f.view.composer().draft).toBe('Held while computers are found');
+    // A computer arriving after the expiry sends nothing: a new Send is needed.
+    f.publish({ ...observed, models: [served(SMALL), MEDIUM] });
+    await vi.advanceTimersByTimeAsync(10);
+    expect(f.created).toHaveLength(0);
+    expect(f.sent).toHaveLength(0);
+    expect(f.view.composer().draft).toBe('Held while computers are found');
+    f.c.send();
+    await vi.waitFor(() => expect(f.sent).toHaveLength(1));
+  } finally { vi.useRealTimers(); }
+});
+
+it('keeps a held Send past the end of the discovery wait until a computer arrives inside the 30 s', async () => {
+  vi.useFakeTimers({ now: 6_000_000 });
+  try {
+    const f = fixture();
+    f.view.send('Held across the discovery wait');
+    // The discovery wait ends with nobody to answer: the hold is not bound by it.
+    f.publish(observed);
+    await vi.advanceTimersByTimeAsync(12_000);
+    expect(f.view.composer().nextAction).toBe('cancel-queued');
+    expect(f.created).toHaveLength(0);
+    f.publish({ models: [served(SMALL), MEDIUM] });
+    await vi.waitFor(() => expect(f.sent).toHaveLength(1));
+    expect(key(f.created[0].model)).toBe(key(SMALL));
+  } finally { vi.useRealTimers(); }
+});
+
+it('dispatches nothing when the selection changes between Send and a ready route', async () => {
+  const f = fixture();
+  f.view.send('Held, then the selection changes');
+  expect(f.view.composer().nextAction).toBe('cancel-queued');
+  // Another surface of the same host changes the selection while the Send is held.
+  f.session.sendIntents.select({ mode: 'pinned', artifact: { identity: MEDIUM.identity, adapterIdentities: [] } });
+  f.publish({ ...observed, models: [served(SMALL), MEDIUM] });
+  await new Promise(resolve => setTimeout(resolve, 0));
+  expect(f.created).toHaveLength(0);
+  expect(f.sent).toHaveLength(0);
+  expect(f.view.composer().draft).toBe('Held, then the selection changes');
+});
+
+it('holds a pin to its exact artifact: a model of the same name and id with other weights never answers it', async () => {
+  const f = fixture({ storage: memory(pickOf(MEDIUM)) });
+  f.publish({ discoveryPhase: 'observed', peerDiscoveryTimedOut: false, network: observed.network, models: [served(SMALL), MEDIUM] });
+  f.view.send('For the exact pick');
+  expect(f.view.composer().nextAction).toBe('cancel-queued');
+  expect(f.session.sendIntents.state().intent.selection).toEqual({ mode: 'pinned', artifact: { identity: MEDIUM.identity, adapterIdentities: [] } });
+  const impostor = { ...served(MEDIUM), identity: 'sha256:' + 'c'.repeat(64) };
+  f.publish({ models: [served(SMALL), impostor] });
+  await new Promise(resolve => setTimeout(resolve, 0));
+  expect(f.created).toHaveLength(0);
+  expect(f.sent).toHaveLength(0);
+});
+
+it('names the model and provider on the answer from its execution evidence, not from the current picker', () => {
+  const f = fixture();
+  f.publish({ ...observed, models: [served(SMALL), served(MEDIUM)] });
+  // The picker shows the small model; the answer was served by the medium one, as its signed receipt states.
+  expect(chip(f).selectionId).toBe(key(SMALL));
+  const thread = { id: 'thread-r', model: SMALL, privacy: null, grants: [], permissions: { sharingScope: 'mesh', executionLocation: 'network' },
+    messages: [{ id: 'u', role: 'user', content: 'Q' }, { id: 'a', role: 'assistant', content: 'A', attemptId: 'at' }],
+    attempts: [{ id: 'at', status: 'completed', createdAt: 1, finishedAt: 2, request: { model: SMALL },
+      execution: { provider: 'peer', placement: 'peer-whole-request', peerId: 'peer-medium', modelId: MEDIUM.id, modelIdentity: MEDIUM.identity,
+        adapterIdentities: [], executionReceipt: { provider: 'peer-medium', model: MEDIUM.id, modelIdentity: MEDIUM.identity } } }] };
+  f.publish({ threads: [thread], selectedId: thread.id, activeThread: thread });
+  const answer = f.view.snapshot().messages.find(row => row.role === 'assistant');
+  expect(answer.activity.readable).toBe(`${MEDIUM.name} · Shared computer`);
+  expect(answer.activity.title).toContain('1 computer');
 });
