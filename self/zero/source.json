@@ -214,8 +214,8 @@
     },
     {
       "path": "zero/image.js",
-      "bytes": 8060,
-      "sha256": "5350905d6be52710dc96413821a6b824ab428ddedb8caa146f93aafade25d8b5"
+      "bytes": 8086,
+      "sha256": "81d155e3ac1bec7b02d3d753acec235f2c45148c7322ed6a76c98e18987f3623"
     },
     {
       "path": "zero/index.html",

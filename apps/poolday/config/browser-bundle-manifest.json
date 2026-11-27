@@ -1426,7 +1426,7 @@
     {
       "path": "config/module-inventory.json",
       "byteLength": 690535,
-      "sha256": "sha256:101503c3712fc8e71d447f21daf4881c0aabd40efc89d9183d9ec5cfe0bb4040"
+      "sha256": "sha256:af601ce0450b8b230c95448c5523621189d5b4903938d656675c4d741725fb51"
     },
     {
       "path": "config/module-registry.json",
@@ -12620,8 +12620,8 @@
     },
     {
       "path": "zero/image.js",
-      "byteLength": 8060,
-      "sha256": "sha256:5350905d6be52710dc96413821a6b824ab428ddedb8caa146f93aafade25d8b5"
+      "byteLength": 8086,
+      "sha256": "sha256:81d155e3ac1bec7b02d3d753acec235f2c45148c7322ed6a76c98e18987f3623"
     },
     {
       "path": "zero/index.html",
@@ -12641,7 +12641,7 @@
     {
       "path": "zero/source.json",
       "byteLength": 8718,
-      "sha256": "sha256:583994d2c582092233fcb6d3bebea05a60c5c668de813d9cb11e12b38652695c"
+      "sha256": "sha256:f34baf335700bdd22e2e03f844781d313305943d403318cd7610077d5bb6b65d"
     },
     {
       "path": "zero/store.js",
@@ -12664,5 +12664,5 @@
       "sha256": "sha256:abb6c18f6167d6afc8ee1b3adfcbbb89c0e93fb4fc4e98d7a12250f78aab206a"
     }
   ],
-  "bundleHash": "sha256:c046cf18d074d0088ddd22dc6447fdcbaf320bcbb01b31ad0133ce17e8801416"
+  "bundleHash": "sha256:5ab989980a77685a9889c16f1ac4dab3c69f5f03e018368c033934799741de4f"
 }
