@@ -240,12 +240,18 @@ export function createSettingsServices(product: { readonly host: object; readonl
       if (value !== session?.getRoutePreference?.()) session?.setRoutePreference?.(value);
     },
     setRemoteAnswersEnabled: async (enabled) => session?.setRemoteAnswersEnabled?.(enabled),
+    // A failed change never rejects to the screen: the session records it as network.files.error, which the switch's
+    // status already shows; a failed reconnect is recorded as network.error.
     toggleFileSharing: async (selection) => {
       if (!session?.setFileSharing) return;
       const request = settings.fileSharingRequest(session.getState?.() ?? latest, selection);
-      if (request.enable && request.paused) await session.connect?.();
-      if (request.cachedOnly && session.setCachedFileContribution) return session.setCachedFileContribution(true);
-      return session.setFileSharing(request.enable, request.modelId, request.enable, request.controls);
+      try {
+        if (request.enable && request.paused) await session.connect?.();
+        if (request.cachedOnly && session.setCachedFileContribution) await session.setCachedFileContribution(true);
+        else await session.setFileSharing(request.enable, request.modelId, request.enable, request.controls);
+      } catch (error) {
+        console.warn('[Reploid] File sharing change failed', error);
+      }
     },
     storage,
     localData,

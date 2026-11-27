@@ -182,3 +182,30 @@ describe('stored models', () => {
     expect(modelStorage.remove).toHaveBeenCalledWith('one');
   });
 });
+
+describe('file sharing', () => {
+  it('shows a failed change in the switch status instead of an uncaught page error', async () => {
+    const unhandled: unknown[] = [];
+    const record = (reason: unknown) => unhandled.push(reason);
+    process.on('unhandledRejection', record);
+    const swarm = {
+      getFileState: () => ({ sharing: false, preparing: false, enabled: false }),
+      allowCachedFiles: vi.fn(async () => { throw new Error('Storage is full'); }),
+      shareFiles: vi.fn(async () => undefined),
+      stopFiles: vi.fn(async () => undefined),
+    };
+    const session = createChatSession({ storage: null, service: createChatTestService(), swarm });
+    try {
+      const { query } = mount({ host: { chat: session } });
+      expect(query('[data-file-sharing-row]').textContent).toContain('Not sharing');
+      await userEvent.click(query('[data-toggle-file-contribution]'));
+      await waitFor(() => expect(query('[data-file-sharing-row]').textContent).toContain('Storage is full'));
+      expect(swarm.allowCachedFiles).toHaveBeenCalledWith(true);
+      await flush();
+      expect(unhandled).toEqual([]);
+    } finally {
+      process.off('unhandledRejection', record);
+      await session.close();
+    }
+  });
+});

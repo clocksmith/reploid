@@ -139,6 +139,13 @@ export function createChatSession({
   const isCached = model => !zeroRequesterWeights && failedLocalModel !== model.id && !model.partition && !model.adapters?.length
     && cachedModels.some(item => item.id === model.id && item.identity === model.identity);
   let discovering = false, peerDiscoveryTimedOut = false;
+  // The last failed file-sharing change, shown as network.files.error until the next change starts. The swarm's own
+  // file error wins; this covers what fails before the swarm records anything (a refused approval, no network).
+  let fileSharingFailure = '';
+  const changeFileSharing = async work => {
+    fileSharingFailure = '';
+    try { return await work(); } catch (error) { fileSharingFailure = error?.message || String(error); throw error; } finally { notifyAll(); }
+  };
   let observationTimer, observationState;
   const startObservation = stage => {
     clearTimeout(observationTimer); observationState = stage;
@@ -394,7 +401,9 @@ export function createChatSession({
     // The workspace's view shares its saved conversations, frozen, so building this state costs the same however
     // long the history is: nothing below copies a conversation that did not change.
     const { threads: savedThreads, ...workspaceState } = workspace.view();
-    const network = copy({ ...(swarm?.getState?.() || { sharing: false, consumer: null }), files: swarm?.getFileState?.() || null });
+    const fileState = swarm?.getFileState?.() || null;
+    const files = fileSharingFailure && !fileState?.error ? { ...fileState, error: fileSharingFailure } : fileState;
+    const network = copy({ ...(swarm?.getState?.() || { sharing: false, consumer: null }), files });
     // Only active execution metadata is ephemeral. Text and terminal states
     // remain the committed workspace projection supplied above.
     const ephemeral = workspaceState.ephemeralExecutions || [];
@@ -771,9 +780,11 @@ export function createChatSession({
     },
     async setCachedFileContribution(enabled) {
       assertOpen();
-      assert(swarm?.allowCachedFiles, 'File sharing is unavailable');
-      assert(!enabled || !zeroRequesterWeights, ZERO_WEIGHT_NOTICE);
-      try { await swarm.allowCachedFiles(enabled); } finally { notifyAll(); }
+      return changeFileSharing(async () => {
+        assert(swarm?.allowCachedFiles, 'File sharing is unavailable');
+        assert(!enabled || !zeroRequesterWeights, ZERO_WEIGHT_NOTICE);
+        await swarm.allowCachedFiles(enabled);
+      });
     },
     // Weight supply (the Contribute journey for an empty cache). Its data is network.weightSupply in the session state.
     // OWNER: the Contribute view calls recommendWeightSupply when it opens (joining never computes one), renders
@@ -838,15 +849,15 @@ export function createChatSession({
     },
     async setFileSharing(enabled, selectionId, approved, controls) {
       assertOpen();
-      assert(swarm?.shareFiles, 'File contribution is unavailable');
-      assert(!enabled || !zeroRequesterWeights, ZERO_WEIGHT_NOTICE);
-      try {
+      return changeFileSharing(async () => {
+        assert(swarm?.shareFiles, 'File contribution is unavailable');
+        assert(!enabled || !zeroRequesterWeights, ZERO_WEIGHT_NOTICE);
         if (!enabled) { await swarm.stopFiles(); return; }
         assert(approved === true, 'Approve file distribution separately from compute');
         const model = getCatalogModels().find(item => modelKey(item) === selectionId);
         assert(model, 'Select a catalog model before distributing files');
         await swarm.shareFiles(model, true, controls);
-      } finally { notifyAll(); }
+      });
     },
     close() {
       if (closing) return closing;
