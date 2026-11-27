@@ -204,8 +204,10 @@ async function replayOne(reservationId, requesterId, group, { policies, at, comp
   const windowOpen = wholeModel ? at < closesAt : at <= closesAt + skew;
   // A closing receipt counts when signed by deadline + release window + clock allowance, even after the deadline: a stage that closes
   // honestly late is then paid what one that backdates its close would be. The charge stays capped by the requester's
-  // in-time acknowledgments. Both ends carry the clock allowance, as `inTime`'s do.
-  const closesInTime = value => ms(value) >= ms(agreed.notBefore) - skew && ms(value) <= closesAt + skew;
+  // in-time acknowledgments. Both ends carry the clock allowance, as `inTime`'s do. Whole-model terms that say so end
+  // where their window passes, before deadline + releaseWindowMs: the ledger has released the hold by then, so a close
+  // signed later could only turn the expiry it posted into a settlement (docs/settlement-replay.md, "Release window").
+  const closesInTime = value => ms(value) >= ms(agreed.notBefore) - skew && (wholeModel ? ms(value) < closesAt : ms(value) <= closesAt + skew);
   const counted = row => (closingReceipt(row) ? closesInTime(row.signedAt) : inTime(row.signedAt));
   const stages = agreed.shares.length, finalIndex = stages - 1;
   const matches = row => row.attemptId === agreed.attemptId;
