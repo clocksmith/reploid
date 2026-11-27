@@ -1,12 +1,12 @@
 {
   "schema": "reploid.scoring-rollout-old-peer-transcript/v1",
   "old": "91dd22456",
-  "new": "fcda6f546",
+  "new": "700cda21b",
   "oldTargetScoringSha256": "712b1b536749b1ad04462b074cf324e35e3f865f32535cac4015e0e6fdae8f5e",
   "label": "Frames an old release sent to, and received from, the current one in a scripted one-operator run (tests/fixtures/scoring-rollout/run.js).",
   "oldProviderAdvertisement": {
     "kind": "peer_advertisement",
-    "peerId": "peer:f6ccd6e9dca8ab912a2b4161",
+    "peerId": "peer:0b7a04e4985cc81a73ae0455",
     "role": "provider",
     "swarmEnabled": true,
     "hasInference": true,
@@ -22,9 +22,9 @@
       "uniquePeers": [],
       "updatedAt": null
     },
-    "updatedAt": 1795744653411,
+    "updatedAt": 1795745102830,
     "model": "scoring-rollout-scripted-model",
-    "observationSession": "node:peer:f6ccd6e9dca8ab912a2b4161",
+    "observationSession": "node:peer:0b7a04e4985cc81a73ae0455",
     "observationSequence": 9,
     "readiness": "ready",
     "activity": {
@@ -33,7 +33,7 @@
       "failure": null
     },
     "preparation": null,
-    "modelIdentity": "sha256:62880d46462b08e82c8e02f6aa4e24f45b8823458ce8ab8029d3a521d8ed5a0a",
+    "modelIdentity": "sha256:b42d1c8925bbd5e4e14b4cf634efa1ccc455e52cf17232fc0f189d65d7024372",
     "executionOffers": [
       {
         "schema": "reploid.execution-offer/v1",
@@ -41,7 +41,7 @@
         "backend": "doppler-plaintext/v1",
         "kind": "plaintext",
         "modelIdentities": [
-          "sha256:62880d46462b08e82c8e02f6aa4e24f45b8823458ce8ab8029d3a521d8ed5a0a"
+          "sha256:b42d1c8925bbd5e4e14b4cf634efa1ccc455e52cf17232fc0f189d65d7024372"
         ],
         "operation": "generate",
         "protocol": null,
@@ -69,19 +69,19 @@
     }
   },
   "oldRequesterScoreRequest": {
-    "requestId": "b12bfc63-ac6f-47df-a2f0-49a440a1c362",
+    "requestId": "11cc1d6b-149c-4b68-a42f-28cf3b3dc494",
     "receipt": {
       "version": 3,
-      "receiptId": "receipt:2af66197353893e06c1dd2eb",
-      "provider": "peer:a03ca92163838afccb35bbdb",
-      "consumer": "peer:2b0218cc72377e11d83ce877",
-      "jobHash": "request:6cabe24c-7139-48c0-baa3-d0ea1a5e89cd",
+      "receiptId": "receipt:5e5640a7c16b83fd41bf8974",
+      "provider": "peer:af2b982c7592c92ecd0a80d1",
+      "consumer": "peer:54bd01d8c97bcd0fcabfd955",
+      "jobHash": "request:892bc4dd-ad63-4215-ae7f-eec29acf59f4",
       "model": "scoring-rollout-scripted-model",
       "inputTokens": 4,
       "outputTokens": 3,
       "status": "completed",
-      "timestamp": 1795744655321,
-      "modelIdentity": "sha256:62880d46462b08e82c8e02f6aa4e24f45b8823458ce8ab8029d3a521d8ed5a0a",
+      "timestamp": 1795745104997,
+      "modelIdentity": "sha256:b42d1c8925bbd5e4e14b4cf634efa1ccc455e52cf17232fc0f189d65d7024372",
       "adapterIdentities": [],
       "inputDigest": "sha256:23a1477ea0cf56831ad3a61f82c2eac3cc0c648b2498f86aa531638cef2aef7f",
       "outputDigest": "sha256:6899ee404683a14e8c2a03149860df25d67d34d9cd4dae7350cbe91e4b3976be",
@@ -89,8 +89,8 @@
       "stopReason": "eos-token",
       "cleanup": "settled",
       "ownerPolicyDigest": null,
-      "settingsDigest": "sha256:5b734fb99a1c1b6d4af8730086b2c821b29ebb664a7f19494ebb2ff492270566",
-      "providerSignature": "Q4i3aKj4IXMbBf4YbrLMAH8x7E4__HqwUZjL4tNwn7kU9UQYSbC2v9OweFMJU9irGq6hJ0J3JjmZHVRTgzo5CA",
+      "settingsDigest": "sha256:a5057ff8bb37090384d06857adf56c0531272730735dc19468eaf64238137fe3",
+      "providerSignature": "OZ_ypqisc47-ZQHA6XSpNeYCa8lLL7b39CzfZyML7AIPzRLnRwqH6y7bicbrW1gTLM7YzQbFmqBfHhXNGENWAg",
       "providerKey": {
         "alg": "Ed25519",
         "crv": "Ed25519",
@@ -99,9 +99,9 @@
           "verify"
         ],
         "kty": "OKP",
-        "x": "biaeUKejIHsvudP4CvHc9SaDjOl1NLyUZhV6UQiPvOA"
+        "x": "y3ClFL8Ca2pmVPOW6QObs0qpIWLlaGgghHnf4pqCM44"
       },
-      "consumerSignature": "SfMcR_HYpXAKEnaaUYsGnC6O7d1jXXEZg1NGMIYaEpOyl1ZRg6oRG23mx6Hkv74gr6X1Ye4BGzr774ov00jSAw",
+      "consumerSignature": "AXasraLIH4SH7nsBQICoyuRzDkRGz-k3KCAKjFBfOKuQ5EWvmdyiu87hxsC0UgfTzN_ttQ5S9wGsXs0W0UG8AQ",
       "consumerKey": {
         "key_ops": [
           "verify"
@@ -109,7 +109,7 @@
         "ext": true,
         "alg": "Ed25519",
         "crv": "Ed25519",
-        "x": "6kqmBNFu8BOsMFiUebQ9KmGRnimx_mj9Z4_JPMyAcl8",
+        "x": "o6X2Vpk_ujfNd7Cthz5DK9O95QPFXahtGxHqIEjAWs8",
         "kty": "OKP"
       }
     },
@@ -126,7 +126,7 @@
     "target": "one two three"
   },
   "newProviderAnswerToOldRequester": {
-    "requestId": "b12bfc63-ac6f-47df-a2f0-49a440a1c362",
+    "requestId": "11cc1d6b-149c-4b68-a42f-28cf3b3dc494",
     "error": "This provider scores only as an admitted mesh operation; nothing was run"
   }
 }
