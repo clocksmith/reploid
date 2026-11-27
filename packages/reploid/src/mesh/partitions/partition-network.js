@@ -1,5 +1,6 @@
 import { createRoutePartitionNetwork } from './partition-route-network.js';
 import { assertPartition as assert } from './partition-contract.js';
+import { isParticipantId } from '../../contracts/identifiers.js';
 
 const LABEL = 'reploid-partitions';
 const READY = 'reploid.partition-channel-ready/v1';
@@ -62,7 +63,7 @@ export function createPartitionNetwork({ transport, verifyPeer, createEndpoint, 
         const verifiedId = await verifyPeer(peerId, entry.controller.signal);
         entry.controller.signal.throwIfAborted();
         const after = transport.getPeerBinding(peerId);
-        assert(/^peer:[a-f0-9]{24}$/.test(verifiedId) && before.local === after?.local && before.remote === after?.remote,
+        assert(isParticipantId(verifiedId) && before.local === after?.local && before.remote === after?.remote,
           'Partition peer identity or certificate changed');
         await ready;
         entry.controller.signal.throwIfAborted();

@@ -655,8 +655,8 @@
     },
     {
       "path": "chat/thread-grants.js",
-      "bytes": 7586,
-      "sha256": "6e009a39eae9dfd76f0d39bdd53fa79da7bd20b3f0f1035bd90d3d013eacf300"
+      "bytes": 7570,
+      "sha256": "5f842584ede59321582c6624180341bb53c0468798177780ae96c45c60408d0c"
     },
     {
       "path": "chat/workspace-history.d.ts",
@@ -1185,8 +1185,8 @@
     },
     {
       "path": "mesh/operation-envelope.js",
-      "bytes": 39652,
-      "sha256": "18ed5c29af81839985f4bfbb15242ee5f1536258bbfe00819fcc6723c04e2a8d"
+      "bytes": 39730,
+      "sha256": "7db3dcabfc10ab99d1108ab3a915d4d0c0739fcad7b9dd54a474089f86edf4c7"
     },
     {
       "path": "mesh/partitions/automatic-ordered-partitions.d.ts",
@@ -1345,8 +1345,8 @@
     },
     {
       "path": "mesh/partitions/partition-link.js",
-      "bytes": 6133,
-      "sha256": "a713a4898eafbc449f9f49ca0cc30af3da6e4d6d2ddd14acc63ddffc35585011"
+      "bytes": 6188,
+      "sha256": "8fc69711afd51ed16ae2569461af443a3c60ea8d78e1d0a6bcfb1666e723cb77"
     },
     {
       "path": "mesh/partitions/partition-network.d.ts",
@@ -1355,8 +1355,8 @@
     },
     {
       "path": "mesh/partitions/partition-network.js",
-      "bytes": 6128,
-      "sha256": "6397af362a2fc0b1b55e1968a764dcf9917de9a91c0af39a7e4f7b788426a9b1"
+      "bytes": 6183,
+      "sha256": "170c0487abc78b2f1ef1275e31ea1a6e82554c8146e2978d4eadf32f55fe9f51"
     },
     {
       "path": "mesh/partitions/partition-ordered-chat.d.ts",
@@ -1460,8 +1460,8 @@
     },
     {
       "path": "mesh/partitions/partition-route-network.js",
-      "bytes": 10579,
-      "sha256": "d8e80f1c5c7d0e9675ff7775c4fe3669cc7dc8f6d5a1dfc95387ee536953b585"
+      "bytes": 10634,
+      "sha256": "afd7a71610ca9240dc1b903e9c13e9928fe17b0ec84838cf8eea83955e4291eb"
     },
     {
       "path": "mesh/partitions/partition-route-ranking.d.ts",
@@ -1600,8 +1600,8 @@
     },
     {
       "path": "mesh/protected-generation.js",
-      "bytes": 59006,
-      "sha256": "aa145c99b9c20e9ed3ed60caefa160855820cd7a70d2cf8efdf77cda69c0fa9b"
+      "bytes": 59019,
+      "sha256": "855e89743d90f156e08f9da290787aade1c6b310e024039a77d946fbc20c460b"
     },
     {
       "path": "mesh/provider-hardware.d.ts",
@@ -1915,8 +1915,8 @@
     },
     {
       "path": "transport/owner-pairing.js",
-      "bytes": 2939,
-      "sha256": "391364c1b5a62695268844b398807d12aa5a3484e22759b02e78745720058890"
+      "bytes": 2962,
+      "sha256": "81187b5f3e8294a2e6c47f41fd091389efa64e57b93fa44ba98fa043badbfa56"
     },
     {
       "path": "transport/partition-data-channel.d.ts",

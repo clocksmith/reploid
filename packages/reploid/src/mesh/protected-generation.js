@@ -26,6 +26,7 @@ import { hashJson, sha256Hex } from '../artifacts/signatures.js';
 import { createPeerIdFromPublicJwk, importSigningKey, importVerificationKey, getIdentitySignAlgorithm,
   fromBase64Url, toBase64Url } from '../artifacts/identity.js';
 import { executionError, CONFIDENTIAL_EXECUTION_REVIEW_REASON } from '../chat/execution-policy.js';
+import { isDigest, isParticipantId } from '../contracts/identifiers.js';
 
 export const PROTECTED_PROTOCOL = 'reploid.protected-generation/v1';
 export const PROTECTED_BACKEND = 'doppler-protected-ckks/v1';
@@ -61,7 +62,7 @@ const encoder = new TextEncoder();
 const hex = bytes => Array.from(bytes, byte => byte.toString(16).padStart(2, '0')).join('');
 const randomHex = (bytes = 32) => hex(globalThis.crypto.getRandomValues(new Uint8Array(bytes)));
 const object = value => value !== null && typeof value === 'object' && !Array.isArray(value);
-const digest = value => typeof value === 'string' && /^sha256:[a-f0-9]{64}$/.test(value);
+const digest = value => isDigest(value);
 const label = value => typeof value === 'string' && value.length > 0 && value.length <= 256;
 const nonce = value => typeof value === 'string' && /^[a-f0-9]{64}$/.test(value);
 const exact = (value, keys) => object(value) && Object.keys(value).length === keys.length && keys.every(key => Object.hasOwn(value, key));
@@ -105,7 +106,7 @@ export function validateProtectedDescriptor(input) {
     && digest(value.circuit.identity) && digest(value.circuit.modelIdentity)
     && [value.circuit.vocab, value.circuit.context, value.circuit.inputLevel, value.circuit.logSlots].every(Number.isSafeInteger)
     && Array.isArray(value.circuit.rotations) && value.circuit.rotations.length <= 64 && value.circuit.rotations.every(Number.isSafeInteger)
-    && exact(value.evaluator, ['participantId', 'publicJwk']) && /^peer:[a-f0-9]{24}$/.test(value.evaluator.participantId) && object(value.evaluator.publicJwk)
+    && exact(value.evaluator, ['participantId', 'publicJwk']) && isParticipantId(value.evaluator.participantId) && object(value.evaluator.publicJwk)
     && exact(value.keyEpochs, ['maxTtlSeconds', 'reuse']) && Number.isSafeInteger(value.keyEpochs.maxTtlSeconds) && value.keyEpochs.maxTtlSeconds > 0
     && typeof value.keyEpochs.reuse === 'boolean'
     && exact(value.lanes, ['max']) && Number.isSafeInteger(value.lanes.max) && value.lanes.max >= 1 && value.lanes.max <= MAX_LANES

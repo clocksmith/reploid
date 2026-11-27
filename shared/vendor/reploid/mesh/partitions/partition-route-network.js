@@ -1,4 +1,5 @@
 import { assertPartition as assert, canonicalPartitionJson, canonicalPartitionRoute } from './partition-contract.js';
+import { isParticipantId } from '../../contracts/identifiers.js';
 
 const REQUEST = 'reploid.partition-channel-route/v1';
 const ACCEPT = 'reploid.partition-channel-route-accepted/v1';
@@ -113,7 +114,7 @@ export function createRoutePartitionNetwork({ transport, verifyPeer, createEndpo
         const certificate = {local: observedCertificate.local, remote: observedCertificate.remote};
         const remoteParticipantId = await guarded(entry, () => verifyPeer(peerId, entry.controller.signal));
         entry.controller.signal.throwIfAborted();
-        assert(/^peer:[a-f0-9]{24}$/.test(remoteParticipantId) && sameCertificate(peerId, certificate), 'Ordered peer identity or certificate changed');
+        assert(isParticipantId(remoteParticipantId) && sameCertificate(peerId, certificate), 'Ordered peer identity or certificate changed');
         await opened(entry); entry.controller.signal.throwIfAborted();
         if (!incoming) channel.send(JSON.stringify({ schema: REQUEST, route: entry.route }));
         const bound = await received; entry.controller.signal.throwIfAborted();

@@ -1,9 +1,10 @@
 import { canonicalPartitionRoute, canonicalPartitionJson } from '../contracts/partition.js';
 import { orderedPartitionDisclosure } from '../contracts/partition-disclosure.js';
+import { isDigest, isParticipantId } from '../contracts/identifiers.js';
 
 /** Conversation disclosure only. The host supplies the verified recipient identity. */
-const hash = value => typeof value === 'string' && /^sha256:[a-f0-9]{64}$/.test(value);
-const recipient = value => typeof value === 'string' && /^peer:[a-f0-9]{24}$/.test(value);
+const hash = value => isDigest(value);
+const recipient = value => isParticipantId(value);
 
 const orderedDisclosure = 'ordered-partition-activations-and-tokens';
 const sameJson = (a, b) => canonicalPartitionJson(a ?? null) === canonicalPartitionJson(b ?? null);

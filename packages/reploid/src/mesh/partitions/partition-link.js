@@ -1,6 +1,7 @@
 import { createP2PTransport } from '../../transport/assignment.js';
 import { createMeshPeerIdentity } from '../peer-identity.js';
 import { assertPartition as assert } from './partition-contract.js';
+import { isParticipantId } from '../../contracts/identifiers.js';
 
 /** Manual signaling adapter with certificate-bound identities. Reuses Poolday's
  * transport and identity challenge; a signaling code grants no compute permission.
@@ -89,7 +90,7 @@ export function createPartitionLink({ identity, roomId, kind, initiator, config,
       assert(typeof code === 'string' && code.length <= 90000, 'Invalid partition connection code');
       const packet = JSON.parse(atob(code.trim()));
       assert(packet.schema === 'reploid.partition-link/v1' && packet.roomId === roomId && packet.kind === kind
-        && /^peer:[a-f0-9]{24}$/.test(packet.peerId) && packet.peerId !== identity.peerId
+        && isParticipantId(packet.peerId) && packet.peerId !== identity.peerId
         && (!remoteId || remoteId === packet.peerId) && Array.isArray(packet.signals) && packet.signals.length <= 70,
       'Partition signaling identity mismatch');
       remoteId = packet.peerId;

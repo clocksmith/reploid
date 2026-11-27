@@ -20,6 +20,7 @@ import {
   SETTLEMENT_ACCEPTANCE_SCHEMA, SETTLEMENT_FAULT_SCHEMA, SETTLEMENT_STOP_SCHEMA, SETTLEMENT_TERMS_SCHEMA, acceptSettlementTerms, signSettlementStop,
   WHOLE_MODEL_TERMS_MODE, signSettlementTermsFor, signStageFaultRecord, termsDigest, verifySettlementAcceptance, verifySettlementFault, verifySettlementTerms
 } from './settlement-terms.js';
+import { DIGEST_PATTERN, PARTICIPANT_ID_PATTERN } from '../contracts/identifiers.js';
 
 export const MESH_OPERATION_SCHEMA = 'reploid.mesh-operation/v1';
 export const MESH_OPERATION_GRANT_SCHEMA = 'reploid.mesh-operation-grant/v1';
@@ -55,8 +56,8 @@ export const meshOperationError = (code, message) => {
 };
 
 const SPLIT_ROUTES = Object.freeze(['split', 'split-local-edges']);
-const DIGEST = /^sha256:[a-f0-9]{64}$/;
-const PARTICIPANT = /^peer:[a-f0-9]{24}$/;
+const DIGEST = DIGEST_PATTERN;
+const PARTICIPANT = PARTICIPANT_ID_PATTERN;
 const REQUEST_ID = /^[A-Za-z0-9_-]{8,128}$/;
 const invalid = message => meshOperationError('OPERATION_REQUEST_INVALID', message);
 const object = value => value !== null && typeof value === 'object' && !Array.isArray(value);
