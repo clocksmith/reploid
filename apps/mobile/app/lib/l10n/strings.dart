@@ -139,8 +139,13 @@ abstract final class Strings {
 
   static String checking(String recipient) =>
       'Asking ${shortId(recipient)} to accept. Your prompt has not been sent.';
-  static String answeredBy(String recipient, {required bool verified}) =>
-      'Answered by ${shortId(recipient)}, '
+  static String answeredBy(
+    String recipient, {
+    required bool verified,
+    String? model,
+  }) =>
+      'Answered by ${shortId(recipient)}'
+      '${model == null || model.isEmpty ? '' : ' ($model)'}, '
       '${verified ? receiptVerified : receiptUnverified}';
   static String sentTo(String recipient) => 'Sent to ${shortId(recipient)}';
 

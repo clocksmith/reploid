@@ -114,7 +114,11 @@ void main() {
     expect(find.text('You asked: hello there'), findsOneWidget);
     expect(
       find.text(
-        Strings.answeredBy('peer:00000000000000000000000a', verified: true),
+        Strings.answeredBy(
+          'peer:00000000000000000000000a',
+          verified: true,
+          model: 'Qwen 3.5 2B',
+        ),
       ),
       findsOneWidget,
     );
@@ -430,7 +434,13 @@ void main() {
     await tester.pump(const Duration(seconds: 1));
     await tester.pump();
     expect(
-      find.text(Strings.answeredBy(MemoryNetwork.desktopId, verified: true)),
+      find.text(
+        Strings.answeredBy(
+          MemoryNetwork.desktopId,
+          verified: true,
+          model: 'Qwen 3.5 2B',
+        ),
+      ),
       findsOneWidget,
     );
     expect(network.delivered.single.$2, MemoryNetwork.desktopId);
