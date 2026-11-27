@@ -2,7 +2,7 @@
 
 Change Passport remains an inactive alternative. This page defines
 its implemented interfaces and required evidence; it does not select work.
-[Product intent](product-intent.md) and the [pilot charter](pilot-charter.md)
+[Product intent](product-intent.md) and the archived [pilot charter](../archive/change-passport-pilot-charter.md)
 own their separate product and external-adoption boundaries.
 
 ## Local start

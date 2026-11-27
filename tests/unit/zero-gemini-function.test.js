@@ -26,7 +26,11 @@ describe('Zero Gemini admission policy', () => {
 
   it('treats Origin as a browser policy, not as the access credential', () => {
     expect(zeroGeminiPolicy.isAllowedOrigin('')).toBe(true);
+    expect(zeroGeminiPolicy.isAllowedOrigin('https://replo.id')).toBe(true);
     expect(zeroGeminiPolicy.isAllowedOrigin('https://reploid.web.app')).toBe(true);
+    expect(zeroGeminiPolicy.isAllowedOrigin('http://localhost:8000')).toBe(true);
+    expect(zeroGeminiPolicy.isAllowedOrigin('http://[::1]:5173')).toBe(true);
+    expect(zeroGeminiPolicy.isAllowedOrigin('http://localhost.evil.example:8000')).toBe(false);
     expect(zeroGeminiPolicy.isAllowedOrigin('https://attacker.example')).toBe(false);
   });
 

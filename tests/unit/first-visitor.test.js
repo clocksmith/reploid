@@ -3,7 +3,7 @@ import { afterEach, expect, it, vi } from 'vitest';
 import { createChatSession, CANONICAL_CHAT_MODELS } from '../../apps/poolday/host/chat-session.js';
 import { createChatTestService } from '../fixtures/chat-service.js';
 import { openConversation } from '../fixtures/conversation-view.js';
-import { AUTO_DOWNLOAD_STORAGE_KEY } from '../../apps/poolday/ui/pool-home/auto-download.js';
+const AUTO_DOWNLOAD_STORAGE_KEY = 'reploid.auto-download.v1';
 const cleanups = [];
 const observedDiscovery = {
   discoveryPhase: 'observed', peerDiscoveryTimedOut: true,

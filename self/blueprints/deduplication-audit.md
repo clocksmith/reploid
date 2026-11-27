@@ -234,7 +234,7 @@ receipts. Zero static imports alone does not establish a dead entrypoint.
 | Four `.deployment-checkouts` | Removed with `git worktree remove` after confirming each was clean. Release branches and commits were preserved; no forced removal. |
 | `agent-client.js`, `points-ledger.js` | Removed unused clients and their seed entries. |
 | `dream-instance.js` | Retained: `SELF_BOOT_SPEC.instances.sources` declares the instance-manifest source; absence from default boot is deliberate. |
-| `adapter-publisher-client.js` | Retained: a documented opt-in client in `docs/browser-inference-pool.md`, with a maintained design record. It is not part of the default chat flow. |
+| `adapter-publisher-client.js` | Removed in November 2026 along with unreferenced adapter-pack publisher/transfer helpers; `adapter-registry.js` and `adapter-publication.js` remain the active adapter contracts. |
 | `sw-module-loader.js` | Retained as a compatibility URL for installed workers; now forwards to canonical `sw.js` rather than copying its bootstrap. |
 | Three superseded Qwen manifests | Moved byte-for-byte from served `self/config/model-manifests/` to `docs/status/model-manifests/`. Filenames preserve identity and historical recovery provenance. Current catalog manifests remain served. |
 | Eight DI modules | Retained: configured dynamic entrypoints in `genesis-levels.json`/`module-registry.json`. The loader instantiates declared module factories; static import counts miss this route. Registration does not prove an integrated caller workflow. |

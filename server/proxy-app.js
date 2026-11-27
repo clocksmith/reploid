@@ -13,7 +13,9 @@ import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 import SignalingServer, { isLoopbackAddress } from './signaling-server.js';
+import { allowsSwarmOrigin } from './swarm-protocol.js';
 import { PublicSwarmServer } from './public-swarm-server.js';
+import hostedApiConfig from '../shared/config/hosted-api.json' with { type: 'json' };
 import AgentBridge from './agent-bridge.js';
 import fetch from 'node-fetch';
 import createPoolRouter from './pool/routes.js';
@@ -141,10 +143,15 @@ const ANTHROPIC_API_KEY = appConfig?.api?.anthropicKey || process.env.ANTHROPIC_
 const HUGGINGFACE_API_KEY = appConfig?.api?.huggingfaceKey || process.env.HUGGINGFACE_API_KEY;
 const GROQ_API_KEY = appConfig?.api?.groqKey || process.env.GROQ_API_KEY;
 const VLLM_ENDPOINT = appConfig?.api?.vllmEndpoint || process.env.VLLM_ENDPOINT || 'http://localhost:8000';
-const DEFAULT_CORS_ORIGINS = ['http://localhost:8080', 'https://replo.id'];
+const DEFAULT_CORS_ORIGINS = [
+  ...hostedApiConfig.allowedOrigins,
+  `http://localhost:${PORT}`,
+  `http://127.0.0.1:${PORT}`
+];
 const ENV_CORS_ORIGINS = process.env.CORS_ORIGINS
   ? process.env.CORS_ORIGINS.split(',').map(origin => origin.trim()).filter(Boolean)
   : null;
+const USING_DEFAULT_CORS_ORIGINS = !appConfig?.server?.corsOrigins && !ENV_CORS_ORIGINS;
 const CORS_ORIGINS = appConfig?.server?.corsOrigins || ENV_CORS_ORIGINS || DEFAULT_CORS_ORIGINS;
 const AUTO_START_OLLAMA = appConfig.ollama?.autoStart ?? (process.env.AUTO_START_OLLAMA === 'true');
 const POOL_BACKEND_ONLY = process.env.POOL_BACKEND_ONLY === 'true';
@@ -384,7 +391,10 @@ if (decoFeedback) {
 app.use((req, res, next) => {
   if (req.path.startsWith('/api/') || req.path.startsWith('/pool/') || req.path.startsWith('/change-control/')) {
     const origin = req.headers.origin;
-    if (CORS_ORIGINS.includes('*') || CORS_ORIGINS.includes(origin)) {
+    const isAllowedCorsOrigin = CORS_ORIGINS.includes('*')
+      || CORS_ORIGINS.includes(origin)
+      || (USING_DEFAULT_CORS_ORIGINS && allowsSwarmOrigin(origin, hostedApiConfig));
+    if (isAllowedCorsOrigin) {
       res.header('Access-Control-Allow-Origin', origin || '*');
     } else {
       res.header('Access-Control-Allow-Origin', CORS_ORIGINS[0]);

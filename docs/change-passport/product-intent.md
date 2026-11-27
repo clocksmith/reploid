@@ -37,7 +37,7 @@ changes and generic pull-request review may use the same contract later.
 ## Baseline and proof
 
 The frozen baseline workflow, the comparison, the admission sequence and the
-measures are defined once in the [external pilot charter](pilot-charter.md).
+measures are preserved in the archived [external pilot charter](../archive/change-passport-pilot-charter.md).
 
 ## User journey
 

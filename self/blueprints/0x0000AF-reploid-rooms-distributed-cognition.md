@@ -20,7 +20,7 @@ It overlaps existing code and documents, which remain the authority for what run
 
 - [`apps/poolday/pool/peer-room.js`](../../apps/poolday/pool/peer-room.js): requester room discovery, peer assignment planning and receipt agreement for Poolday jobs.
 - [`packages/reploid/src/transport/room.js`](../../packages/reploid/src/transport/room.js): the swarm transport that selects BroadcastChannel or WebRTC for room messages.
-- [`docs/poolday/room-1-pilot-charter.md`](../../docs/poolday/room-1-pilot-charter.md): the Room-1 research pilot (protein annotation adjudication).
+- [`docs/archive/room-1-pilot-charter.md`](../../docs/archive/room-1-pilot-charter.md): the archived Room-1 research pilot charter (protein annotation adjudication).
 
 Any implementation of this design must extend those surfaces rather than add a parallel room stack.
 

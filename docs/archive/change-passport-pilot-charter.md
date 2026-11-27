@@ -1,5 +1,7 @@
 # Change Passport External Pilot Charter
 
+> Status: Archived (inactive pilot charter). Change Passport remains an inactive alternative; the external pilot has not started.
+
 ## Product boundary
 
 The external pilot governs whether one exact production-agent
@@ -19,7 +21,7 @@ conditions into one replayable Passport.
 The implementation has completed one internally operated live GitHub cycle,
 but the external pilot is not frozen and has not started. The current GitHub
 App is owner-only and therefore cannot yet be installed by a design partner.
-The [pilot manifest](pilot-manifest.json) deliberately leaves every external
+The [pilot manifest](../change-passport/pilot-manifest.json) deliberately leaves every external
 identity and candidate boundary empty.
 
 Use `npm run verify:change-passport:pilot` to validate the template. Use

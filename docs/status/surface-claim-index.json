@@ -137,7 +137,7 @@
       "evidencePaths": [
         "docs/change-passport/product-intent.md",
         "docs/change-passport/runtime-contract.md",
-        "docs/change-passport/pilot-charter.md",
+        "docs/archive/change-passport-pilot-charter.md",
         "docs/change-passport/pilot-manifest.json",
         "docs/status/change-passport-github-installation-2026-08-23.json",
         "docs/status/change-passport-github-authority-boundary-2026-08-23.json",
@@ -205,14 +205,12 @@
         "apps/poolday/config/browser-bundle-manifest.json",
         "scripts/verify-browser-bundle.js",
         "scripts/verify-pool-release.js",
-        "scripts/pool-release-evidence.js",
         "server/pool/release-identity.js",
         "server/pool/routes.js",
         "tests/e2e/p2p-actual-inference.spec.js",
         "tests/unit/pool-browser-qualification.test.js",
         "tests/unit/pool-browser-release-identity.test.js",
-        "tests/unit/pool-coordinator-release-identity.test.js",
-        "tests/unit/pool-release-evidence.test.js"
+        "tests/unit/pool-coordinator-release-identity.test.js"
       ],
       "blockers": [
         "one clean-release-bound Poolday interruption, cancellation, stale-result, manifest-corruption, and cached-shard recovery evidence set",

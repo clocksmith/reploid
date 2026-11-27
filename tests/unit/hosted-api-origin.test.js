@@ -1,6 +1,8 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import hostedApi from '../../shared/config/hosted-api.json';
+import swarmBootstrap from '../../shared/config/swarm-bootstrap.json';
+import { DEFAULT_ALLOWED_ORIGINS as ZERO_GEMINI_ALLOWED_ORIGINS } from '../../packages/functions/zero-gemini-policy.js';
 import { HOSTED_API_ORIGIN, hostedApiUrl } from '../../shared/config/hosted-api.js';
 import { attributionCall, checkApiOrigin } from '../../scripts/cloudflare/set-api-origin.js';
 
@@ -22,8 +24,11 @@ describe('one hosted API origin', () => {
     expect(switched).toContain("mode: 'cors'");
   });
 
-  it('allows only exact hosted origins for CORS', () => {
+  it('allows only exact hosted origins for CORS and keeps discovery and Zero aligned', () => {
     expect(hostedApi.allowedOrigins).toContain('https://replo.id');
     for (const origin of hostedApi.allowedOrigins) expect(new URL(origin).origin).toBe(origin);
+    expect(swarmBootstrap.allowedOrigins).toEqual(hostedApi.allowedOrigins);
+    expect(swarmBootstrap.allowLoopbackOrigins).toBe(hostedApi.allowLoopbackOrigins);
+    expect([...ZERO_GEMINI_ALLOWED_ORIGINS]).toEqual(hostedApi.allowedOrigins);
   });
 });

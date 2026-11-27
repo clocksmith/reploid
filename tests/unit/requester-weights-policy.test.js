@@ -1,6 +1,5 @@
 import { afterEach, expect, it, vi } from 'vitest';
 import { createChatSession, CANONICAL_CHAT_MODELS } from '../../apps/poolday/host/chat-session.js';
-import { createAutoDownload } from '../../apps/poolday/ui/pool-home/auto-download.js';
 import { createChatExecution } from '../../apps/poolday/host/chat-execution.js';
 import { createExecutionPolicy } from '../../packages/reploid/src/chat/execution-policy.js';
 import { createChatTestService } from '../fixtures/chat-service.js';
@@ -30,17 +29,6 @@ it('refuses every way of placing weights on the requester when switched on', asy
   const row = session.getState().models.find(item => item.id === model.id);
   expect(row.localCached).toBeFalsy();
   expect(row.localReady).toBeFalsy();
-});
-
-it('starts no automatic download when switched on, even with the browser preference on', () => {
-  const getModelDownload = vi.fn();
-  const downloads = createAutoDownload({ getState: () => ({ zeroRequesterWeights: true }), getModelDownload, downloadLocalModel: vi.fn() },
-    { storage: { getItem: () => 'on', setItem() {} } });
-  expect(downloads.enabled()).toBe(false);
-  expect(downloads.available()).toBe(false);
-  downloads.consider({ eligible: true, models: CANONICAL_CHAT_MODELS });
-  expect(getModelDownload).not.toHaveBeenCalled();
-  downloads.dispose();
 });
 
 it.each([

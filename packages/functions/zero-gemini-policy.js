@@ -8,16 +8,23 @@ export const DEFAULT_GLOBAL_REQUESTS_PER_MINUTE = 120;
 
 const RATE_LIMIT_WINDOW_MS = 60 * 1000;
 const DEFAULT_MAX_RATE_BUCKETS = 2048;
-const DEFAULT_ALLOWED_ORIGINS = Object.freeze([
+export const DEFAULT_ALLOWED_ORIGINS = Object.freeze([
   'https://replo.id',
-  'https://www.replo.id',
   'https://reploid.web.app',
   'https://reploid.firebaseapp.com',
-  'http://localhost:8000',
-  'http://localhost:5173',
-  'http://127.0.0.1:8000',
-  'http://127.0.0.1:5173'
+  'https://reploid--cloudflare-knjy5oir.web.app'
 ]);
+
+const isLoopbackHttpOrigin = (origin) => {
+  try {
+    const url = new URL(origin);
+    return url.origin === origin
+      && ['http:', 'https:'].includes(url.protocol)
+      && ['localhost', '127.0.0.1', '[::1]'].includes(url.hostname);
+  } catch {
+    return false;
+  }
+};
 
 const rateBuckets = new Map();
 
@@ -36,7 +43,10 @@ export const getAllowedOrigins = () => {
 };
 
 export const isAllowedOrigin = (origin) => {
-  return !origin || getAllowedOrigins().includes(origin);
+  if (!origin) return true;
+  const configured = String(process.env.ZERO_GEMINI_ALLOWED_ORIGINS || '').trim();
+  if (configured) return getAllowedOrigins().includes(origin);
+  return DEFAULT_ALLOWED_ORIGINS.includes(origin) || isLoopbackHttpOrigin(origin);
 };
 
 export const pruneRateBuckets = (now) => {

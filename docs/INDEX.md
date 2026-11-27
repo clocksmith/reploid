@@ -73,7 +73,7 @@ comparison and evidence selection.
 
 ### Change Passport (inactive alternative)
 - **[docs/change-passport/product-intent.md](./change-passport/product-intent.md)** - Inactive commercial alternative, independent proof, authority, and claim boundary
-- **[docs/change-passport/pilot-charter.md](./change-passport/pilot-charter.md)** - Frozen comparison protocol and external authority boundary
+- **[docs/archive/change-passport-pilot-charter.md](./archive/change-passport-pilot-charter.md)** - Archived frozen comparison protocol and external authority boundary (inactive)
 - **[docs/change-passport/pilot-manifest.json](./change-passport/pilot-manifest.json)** - Machine-readable pilot readiness and fail-closed freeze gate
 - **[docs/change-passport/runtime-contract.md](./change-passport/runtime-contract.md)** - Hosted storage, authentication, GitHub App, endpoint, and deployment boundary
 - [Change Passport documentation charter](./change-passport/CATSCAN.md)
@@ -146,7 +146,7 @@ Poolday is the internal name for the product code in `apps/poolday`; the
 - **[docs/poolday/complete-pack-jobs.md](./poolday/complete-pack-jobs.md)** - Explicit public operation delegation, bounded recovery, signed streams and archived acceptance
 - [docs/poolday/remote-operations.md](./poolday/remote-operations.md) - Pointer; content moved to complete-pack-jobs.md and document-search.md
 - **[docs/poolday/biological-sequence-lane.md](./poolday/biological-sequence-lane.md)** - Governed protein/DNA sequence execution, receipt, privacy, and AdapterPack boundary (journeys retired 2026-11-26; code remains on specialist routes)
-- **[docs/poolday/room-1-pilot-charter.md](./poolday/room-1-pilot-charter.md)** - Prospective protein annotation adjudication pilot
+- **[docs/archive/room-1-pilot-charter.md](./archive/room-1-pilot-charter.md)** - Archived prospective protein annotation adjudication pilot charter (inactive)
 - **[docs/poolday/p2p-envelope-protocol.md](./poolday/p2p-envelope-protocol.md)** - Signed peer envelope contract
 - **[docs/poolday/participation-identity-routing.md](./poolday/participation-identity-routing.md)** - Request/contribute modes, device identity, artifact authority, and deterministic routing
 - **[docs/poolday/discovery-contract.md](./poolday/discovery-contract.md)** - Target atomic active-science object, action-value boundary, epistemic updates, replication, and closure

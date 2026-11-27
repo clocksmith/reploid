@@ -1,5 +1,7 @@
 # Reploid Room-1 Pilot Charter: Prospective Protein Annotation Adjudication
 
+> Status: Archived (inactive pilot charter). The Room-1 prospective adjudication pilot is inactive; retained specialist-route code and contracts are indexed in [docs/poolday/README.md](../poolday/README.md).
+
 ## 1. Milestone Overview
 
 **Milestone Name:** `Reploid Room-1: Prospective Protein Annotation Adjudication`  
@@ -50,11 +52,11 @@ Each case record in [`apps/poolday/pool/adjudication-pilot-manifest.json`](../..
 
 * **Governing North-Star Metric:** the median normalized cost to a predeclared
   independently replicated conclusion, frozen by `poolday.adjudication_north_star_policy/v1`
-  and defined in [Discovery Contract: measured improvement](discovery-contract.md#measured-improvement).
+  and defined in [Discovery Contract: measured improvement](../poolday/discovery-contract.md#measured-improvement).
 * **Success Paths (Predeclared Gate):**
   1. **Quality Path:** Higher proportion of independently replicated, non-contradicted decisions at equivalent curator active time ($p < 0.05$).
   2. **Effort Path:** $\ge 20\%$ reduction in median curator active time with non-inferior decision replication quality.
-* **Operational Counters (Excluded from Product Success):** peers, jobs, receipts and other activity counters are operational metrics only; see [measured improvement](discovery-contract.md#measured-improvement).
+* **Operational Counters (Excluded from Product Success):** peers, jobs, receipts and other activity counters are operational metrics only; see [measured improvement](../poolday/discovery-contract.md#measured-improvement).
 
 ---
 

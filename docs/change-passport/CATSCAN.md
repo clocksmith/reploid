@@ -27,7 +27,7 @@ Inputs:
 Outputs:
 - The alternative workflow in [product intent](product-intent.md).
 - Interface, custody, deployment, and release gates in the [runtime contract](runtime-contract.md).
-- The external comparison boundary in the [pilot charter](pilot-charter.md)
+- The archived external comparison boundary in the [pilot charter](../archive/change-passport-pilot-charter.md)
   and machine-readable [pilot manifest](pilot-manifest.json).
 
 ## Invariants

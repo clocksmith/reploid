@@ -848,7 +848,7 @@ are separate. A signed receipt proves identity/integrity, not honest GPU executi
 hardware attestation or correctness.
 
 Research Room-1 remains an optional scientific workflow with its own
-[Discovery Contract](poolday/discovery-contract.md), [pilot](poolday/room-1-pilot-charter.md),
+[Discovery Contract](poolday/discovery-contract.md), archived [pilot charter](archive/room-1-pilot-charter.md),
 [biological sequence restrictions](poolday/biological-sequence-lane.md) and
 [claims/nonclaims](poolday/claims-and-nonclaims.md). Public-protein-only and related safety
 restrictions apply to those catalogs/protocols; they do not redefine every network

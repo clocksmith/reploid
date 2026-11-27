@@ -6,7 +6,6 @@ import {
   sealAdapterPack,
   verifyAdapterPack
 } from '../../shared/pool/adapter-pack.js';
-import { buildPromotedAdapterPack } from '../../apps/poolday/pool/adapter-pack-publisher.js';
 import {
   adapterRequirementFromPublication,
   createAdapterUseApproval,
@@ -28,11 +27,6 @@ import {
   signProviderReceipt
 } from '../../shared/pool/inference-receipt.js';
 import { exactModelContractKey, LAUNCH_MODEL } from '../../shared/pool/model-contract.js';
-import {
-  assembleAdapterArtifact,
-  createAdapterArtifactChunks,
-  createAdapterArtifactRequest
-} from '../../apps/poolday/pool/p2p-artifact-transfer.js';
 import {
   buildPeerAssignmentPlan,
   createSignedJobIntent,
@@ -192,75 +186,6 @@ describe('governed Poolday adapter packs', () => {
     });
   });
 
-  it('publishes only a controller-approved NeuralCompiler registry entry', async () => {
-    const { pack: template } = await buildPack();
-    const approvalCore = {
-      schema: 'reploid.trained-adapter-human-approval/v1',
-      approvalId: 'approval-unit',
-      approvedAt: '2026-07-18T00:00:00.000Z',
-      source: 'hitl-controller',
-      humanRequired: true,
-      decision: 'approve',
-      adapterId: template.adapter.id,
-      adapterSha256: template.adapter.sha256.replace('sha256:', ''),
-      dopplerIdentityReceiptHash: fakeHash('4').replace('sha256:', ''),
-      dopplerParityReceiptHash: fakeHash('5').replace('sha256:', ''),
-      gammaSelectionReceiptHash: fakeHash('6').replace('sha256:', '')
-    };
-    const entry = {
-      manifest: {
-        id: template.adapter.id,
-        adapterSha256: template.adapter.sha256,
-        bytes: template.adapter.bytes,
-        format: template.adapter.format,
-        rank: template.adapter.rank,
-        alpha: template.adapter.alpha,
-        targetModules: template.adapter.targetModules
-      },
-      metadata: {
-        trainedAdapter: true,
-        admissionState: 'promoted',
-        trainedAdapterAdmission: {
-          artifact: {
-            adapterId: template.adapter.id,
-            adapterSha256: template.adapter.sha256.replace('sha256:', ''),
-            baseModelId: template.baseModel.modelId,
-            baseCheckpointSha256: template.baseModel.checkpointSha256.replace('sha256:', '')
-          },
-          receipts: {
-            identityReceiptHash: fakeHash('4').replace('sha256:', ''),
-            parityReceiptHash: fakeHash('5').replace('sha256:', ''),
-            gammaReceiptHash: fakeHash('6').replace('sha256:', '')
-          }
-        },
-        humanApproval: {
-          ...approvalCore,
-          receiptSha256: (await hashJson(approvalCore)).replace('sha256:', '')
-        }
-      }
-    };
-    const published = await buildPromotedAdapterPack(entry, {
-      version: '1.0.0',
-      baseModel: template.baseModel,
-      runtime: template.runtime,
-      distribution: template.distribution,
-      runtimeManifest: template.runtimeManifest
-    });
-    expect(await verifyAdapterPack(published)).toMatchObject({ ok: true });
-    expect(published.evidence.humanPromotionReceiptHash).toBe(
-      `sha256:${entry.metadata.humanApproval.receiptSha256}`
-    );
-
-    const forged = structuredClone(entry);
-    forged.metadata.humanApproval.adapterId = 'forged';
-    await expect(buildPromotedAdapterPack(forged, {
-      version: '1.0.0',
-      baseModel: template.baseModel,
-      runtime: template.runtime,
-      distribution: template.distribution
-    })).rejects.toThrow('Human approval receipt hash mismatch');
-  });
-
   it('binds promotion evidence and exact base-model compatibility', async () => {
     const { pack } = await buildPack();
     expect(await verifyAdapterPack(pack)).toMatchObject({ ok: true });
@@ -279,41 +204,6 @@ describe('governed Poolday adapter packs', () => {
       promotion: { state: 'shadow', humanRequired: true }
     });
     expect((await verifyAdapterPack(unpromoted)).reasons).toContain('adapter pack is not promoted');
-  });
-
-  it('transfers exact adapter bytes between assignment peers and rejects corruption', async () => {
-    const { pack, bytes } = await buildPack();
-    const requirement = adapterRequirementFromPack(pack);
-    const assignment = assignmentFor(requirement);
-    const request = await createAdapterArtifactRequest({
-      assignment,
-      missingChunkIndexes: [0, 1],
-      fromPeerId: 'provider-unit',
-      toPeerId: 'seeder-unit'
-    });
-    expect(request.body.packHash).toBe(pack.packHash);
-    const chunks = await createAdapterArtifactChunks({
-      assignment,
-      pack,
-      bytes,
-      fromPeerId: 'seeder-unit',
-      toPeerId: 'provider-unit'
-    });
-    const assembled = await assembleAdapterArtifact({ assignment, pack, chunkPayloads: chunks });
-    expect(Array.from(assembled.bytes)).toEqual(Array.from(bytes));
-    expect(assembled.transferReceipt).toMatchObject({
-      packHash: pack.packHash,
-      adapterSha256: pack.adapter.sha256,
-      source: 'peer',
-      sourcePeerId: 'seeder-unit'
-    });
-
-    const corrupted = structuredClone(chunks);
-    corrupted[0].body.dataBase64 = corrupted[0].body.dataBase64.replace(/^./, 'A');
-    const { payloadHash, ...core } = corrupted[0];
-    corrupted[0].payloadHash = await hashJson(core);
-    await expect(assembleAdapterArtifact({ assignment, pack, chunkPayloads: corrupted }))
-      .rejects.toThrow('integrity mismatch');
   });
 
   it('loads a promoted pack through the public Doppler LoRA surface', async () => {

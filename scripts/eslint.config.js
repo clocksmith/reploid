@@ -85,7 +85,7 @@ export default [
     languageOptions: { globals: { GPUBufferUsage: 'readonly', GPUMapMode: 'readonly' } } },
   // These codecs deliberately support optional Node Buffer and browser encodings.
   { files: ['packages/reploid/src/artifacts/identity.js', 'packages/reploid/src/artifacts/signatures.js',
-    'shared/pool/device-identity.js', 'apps/poolday/pool/p2p-artifact-transfer.js',
+    'shared/pool/device-identity.js',
     'packages/reploid/src/artifacts/binary.js',
     'self/bridge.js', 'self/tools/ReadFile.js', 'self/tools/WriteFile.js', 'self/key-unsealer.js'],
     languageOptions: { globals: { Buffer: 'readonly' } } },

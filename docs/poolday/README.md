@@ -21,7 +21,7 @@ the code remains and is still served on the specialist routes.
 | [document-search.md](document-search.md) | Local document search and reviewed public tasks |
 | [biological-sequence-lane.md](biological-sequence-lane.md) | Protein sequence workloads in the coordinator lane |
 | [discovery-contract.md](discovery-contract.md) | Research Room Discovery Contract and its implemented subset |
-| [room-1-pilot-charter.md](room-1-pilot-charter.md) | Room-1 protein annotation adjudication pilot |
+| [../archive/room-1-pilot-charter.md](../archive/room-1-pilot-charter.md) | Archived Room-1 protein annotation adjudication pilot charter (inactive) |
 | [receipt-backed-retrieval.md](receipt-backed-retrieval.md) | Retrieval and embedding direction for the research lane |
 | [product-intent.md](product-intent.md) | Compatibility links only |
 | [remote-operations.md](remote-operations.md) | Pointer; content moved to complete-pack-jobs.md and document-search.md |

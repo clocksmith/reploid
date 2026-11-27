@@ -435,7 +435,6 @@ import { createPromptPayload, createExecutionResultPayload, createReceiptPayload
 import { createPeerControlPlane, buildPeerAssignmentPlan } from './pool/peer-control-plane.js';
 import { createPeerProviderNode, runPeerJob } from './pool/peer-room.js';
 import { createPeerRoomBusFactory } from './pool/peer-rendezvous.js';
-import { createAdapterPublisherClient } from './pool/adapter-publisher-client.js';
 import { createAdapterRegistry, acquireAdapterForAssignment } from './pool/adapter-registry.js';
 ```
 
