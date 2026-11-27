@@ -156,7 +156,7 @@ const manifest = { protocol: 'toy-engine/v0', implementation: 'fake', scheme: 'c
 async function setup({ engine = fakeEngine(), misbehave = null, wrongIdentity = false, tap = null, insecure = false, allowInsecure = false,
   extraAdvertisements = [], now = Date.now, keyHolder = () => fakeKeyHolder(), trapLanes = 3, randomInt,
   trapSource = 'oracle', allowPublicTrapSet = false, oracleAnswer = null, publicSet = null, failureLimits, maxKeyEpochSeconds = 86400,
-  timeoutMs = 2000, portFlag = true } = {}) {
+  timeoutMs = 2000, portFlag = true, tokenizer = { alphabet: ALPHABET } } = {}) {
   const oracle = await fakeOracle();
   const identity = await createSigningIdentity({ algorithm: 'ECDSA' });
   const signingIdentity = wrongIdentity ? await createSigningIdentity({ algorithm: 'ECDSA' }) : identity;
@@ -172,7 +172,7 @@ async function setup({ engine = fakeEngine(), misbehave = null, wrongIdentity = 
   };
   const policy = { protocols: ['reploid.protected-generation/v1'], engines: ['toy-engine/v0'],
     parameterSets: [{ id: 'toy-n12', digest: PROFILE, insecureDevelopment: insecure }], allowInsecureDevelopment: allowInsecure,
-    circuits: [{ identity: CIRCUIT, modelIdentity: MODEL, tokenizer: { alphabet: ALPHABET }, vocab: VOCAB, context: CONTEXT, inputLevel: 36, logSlots: 6,
+    circuits: [{ identity: CIRCUIT, modelIdentity: MODEL, tokenizer, vocab: VOCAB, context: CONTEXT, inputLevel: 36, logSlots: 6,
       rotations: [1, 2, 4, 8, 16, 32], traps: trapSource === 'oracle' ? { source: 'oracle', endpoint: 'oracle:1', oracleKeys: [oracle.publicKey] }
         : { source: 'public-set', envelope, publisherKeys: [publicKey] } }],
     trapLanes, maxTrapTolerance: 1, maxKeyEpochSeconds, allowPublicTrapSet, ...(failureLimits ? { failureLimits } : {}) };
@@ -222,6 +222,25 @@ async function runToEnd(inference, plan, content = 'bdf', requestId = 'r1') {
   return { events, result: await handle.result };
 }
 const toText = tokens => tokens.map(t => ALPHABET[t]).join('');
+
+describe('pinned word tokenizer', () => {
+  const words = Array.from({ length: VOCAB }, (_, i) => `word${i}`);
+  it('tokenizes and rejoins words locally on the signed route', async () => {
+    const { inference } = await setup({ tokenizer: { words } });
+    const plan = await inference.prepare(prepareInput());
+    const { result } = await runToEnd(inference, plan, 'word1 word3 word5');
+    expect(result.status).toBe('completed');
+    expect(result.output.text).toBe(greedy([1, 3, 5], 4).map(token => words[token]).join(' '));
+  });
+
+  it('rejects an unknown word before opening a protected connection', async () => {
+    const { inference, counts } = await setup({ tokenizer: { words } });
+    const plan = await inference.prepare(prepareInput());
+    const { result } = await runToEnd(inference, plan, 'word1 unknown');
+    expect(result.error?.code).toBe('EXECUTION_REQUEST_INVALID');
+    expect(counts.connect).toBe(0);
+  });
+});
 
 describe('protected route flag', () => {
   it('without the flag, homomorphic is refused before discovery and nothing is sent', async () => {

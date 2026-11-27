@@ -30,17 +30,18 @@ const LIE_LANE = /^lie-lane=(\d)$/;
 
 /** Start one Doppler evaluator process (whole, stage-a or stage-b) and wait until it listens. */
 export async function startDopplerEvaluator({ doppler, programs, role = 'whole', backend = 'webgpu', next = null, hopListen = '127.0.0.1:0',
-  listen = '127.0.0.1:0', stateDir = null, maxLanes = 8, timing = 'overlap', report = null, log = () => {}, startTimeoutMs = 120000 }) {
+  listen = '127.0.0.1:0', stateDir = null, maxLanes = 8, timing = 'overlap', report = null, sessions = 0, log = () => {}, startTimeoutMs = 120000 }) {
   const { evaluator } = resolveDopplerProtected(doppler);
   const dir = await mkdtemp(path.join(os.tmpdir(), 'doppler-evaluator-'));
   const ready = path.join(dir, 'ready');
-  const args = [evaluator, ...programs.flatMap(base => ['--program', base]), '--listen', listen, '--ready-file', ready, '--sessions', '0',
+  const args = [evaluator, ...programs.flatMap(base => ['--program', base]), '--listen', listen, '--ready-file', ready, '--sessions', String(sessions),
     '--backend', backend, '--max-lanes', String(maxLanes), '--timing', timing, '--role', role];
   if (role === 'stage-a') args.push('--next', next);
   if (role === 'stage-b') args.push('--hop-listen', hopListen);
   if (stateDir) args.push('--state-dir', stateDir);
   if (report) args.push('--report', report);
   const child = spawn(process.execPath, args, { stdio: ['ignore', 'ignore', 'pipe'] });
+  const done = new Promise(resolve => child.once('close', (code, signal) => resolve({ code, signal })));
   let stderr = '', hop = null;
   child.stderr.on('data', chunk => {
     const text = String(chunk);
@@ -57,14 +58,14 @@ export async function startDopplerEvaluator({ doppler, programs, role = 'whole',
     }
   } finally { await rm(dir, { recursive: true, force: true }); }
   if (role === 'stage-b') for (let i = 0; !hop && i < 100; i++) await new Promise(resolve => setTimeout(resolve, 20));
-  return Object.freeze({ address, hop, role, child, stop: () => child.kill('SIGTERM') });
+  return Object.freeze({ address, hop, role, child, done, stop: () => child.kill('SIGTERM') });
 }
 
 /**
  * The engine port for `startProtectedEvaluatorPeer`: `describe(profile)`, `open(schedule)`, `stop()`. One engine
  * session per protected session, one at a time per engine.
  */
-export function createDopplerEvaluatorEngine({ doppler, profile, model = null, evaluator = null, stages = null, maxLanes = 8, misbehave = '',
+export function createDopplerEvaluatorEngine({ doppler, profile, model = null, triage = false, evaluator = null, stages = null, maxLanes = 8, misbehave = '',
   timeoutMs = 30 * 60 * 1000, connectTimeoutMs = 30000, onStop = () => {}, random = randomInt }) {
   resolveDopplerProtected(doppler);
   const split = Boolean(stages);
@@ -76,7 +77,7 @@ export function createDopplerEvaluatorEngine({ doppler, profile, model = null, e
   let described = null;
   const describe = async (asked = profile) => {
     if (asked !== profile) throw new Error(`This engine runs ${profile}, not ${asked}`);
-    described ??= await describeDopplerEngine({ doppler, profile, model, maxLanes,
+    described ??= await describeDopplerEngine({ doppler, profile, model, triage, maxLanes,
       implementation: split ? 'doppler-webgpu-split/ln2' : 'doppler-webgpu-evaluator' });
     return described;
   };
@@ -86,6 +87,9 @@ export function createDopplerEvaluatorEngine({ doppler, profile, model = null, e
     async open({ profile: asked, modelIdentity, lanes, promptTokens, generatedTokens, keyEpoch }) {
       const pinned = await describe(asked);
       if (modelIdentity !== pinned.model) throw new Error('The session pins another model');
+      if (triage && (promptTokens !== pinned.limits.promptTokens || generatedTokens !== pinned.limits.generatedTokens)) {
+        throw new Error('The evaluator only runs the pinned ticket schedule');
+      }
       let release;
       const previous = lock;
       lock = new Promise(resolve => { release = resolve; });
@@ -109,8 +113,12 @@ export function createDopplerEvaluatorEngine({ doppler, profile, model = null, e
           const link = await connectFrameSocket(address, { inspect, timeoutMs: connectTimeoutMs });
           links.push(link);
           await send(link, 'hello', { profile: pinned.profile, model: pinned.model, promptTokens, generatedTokens, keyEpoch: keyEpoch.id,
+            ...(triage ? { circuit: pinned.circuit, profileDigest: pinned.profileDigest } : {}),
             keyEpochExpires: keyEpoch.expiresAt, lanes, ...(split ? { role, cutLayer: SPLIT_LAYER, hopToken } : {}) });
           const manifest = (await expect(link, 'manifest')).header.fields;
+          if (triage && (manifest.circuit !== pinned.circuit || manifest.promptTokens !== promptTokens || manifest.generatedTokens !== generatedTokens)) {
+            throw new Error(`The Doppler ${role} evaluator does not match the pinned circuit or ticket schedule`);
+          }
           if (manifest.profileDigest !== pinned.profileDigest || manifest.model !== pinned.model || manifest.inputLevel !== pinned.inputLevel
             || manifest.logSlots !== pinned.logSlots || JSON.stringify(manifest.rotations) !== JSON.stringify(pinned.rotations)
             || (manifest.lanes ?? 1) !== lanes || (manifest.role ?? 'whole') !== role || (split && manifest.cutLayer !== SPLIT_LAYER)) {

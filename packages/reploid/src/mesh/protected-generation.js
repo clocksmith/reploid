@@ -147,6 +147,9 @@ export async function verifyProtectedAdvertisement(input) {
 // Requester policy and eligibility
 
 const keyList = keys => Array.isArray(keys) && keys.length > 0 && keys.length <= 16 && keys.every(label);
+const validTokenizer = (tokenizer, vocab) => exact(tokenizer, ['alphabet']) && label(tokenizer.alphabet)
+  || exact(tokenizer, ['words']) && Array.isArray(tokenizer.words) && tokenizer.words.length === vocab
+    && new Set(tokenizer.words).size === vocab && tokenizer.words.every(word => typeof word === 'string' && /^[a-z0-9]{1,32}$/.test(word));
 /** `{ source: 'oracle', endpoint, oracleKeys }` (v2) or `{ source: 'public-set', envelope, publisherKeys }` (v1, broken). */
 const validTrapSource = traps => traps?.source === 'oracle' ? exact(traps, ['source', 'endpoint', 'oracleKeys']) && label(traps.endpoint) && keyList(traps.oracleKeys)
   : traps?.source === 'public-set' && exact(traps, ['source', 'envelope', 'publisherKeys']) && object(traps.envelope) && keyList(traps.publisherKeys);
@@ -165,7 +168,7 @@ export function validateProtectedPolicy(input) {
     && typeof value.allowInsecureDevelopment === 'boolean' && typeof value.allowPublicTrapSet === 'boolean'
     && Array.isArray(value.circuits) && value.circuits.length > 0 && value.circuits.every(item =>
       exact(item, ['identity', 'modelIdentity', 'tokenizer', 'vocab', 'context', 'inputLevel', 'logSlots', 'rotations', 'traps'])
-      && digest(item.identity) && digest(item.modelIdentity) && exact(item.tokenizer, ['alphabet']) && label(item.tokenizer.alphabet)
+      && digest(item.identity) && digest(item.modelIdentity) && validTokenizer(item.tokenizer, item.vocab)
       && [item.vocab, item.context, item.inputLevel, item.logSlots].every(Number.isSafeInteger) && Array.isArray(item.rotations)
       && validTrapSource(item.traps))
     && Number.isSafeInteger(value.trapLanes) && value.trapLanes >= 1 && value.trapLanes < MAX_LANES
@@ -227,7 +230,8 @@ export async function verifyTrapSet(envelope, { publisherKeys, circuit, maxToler
   try { body = JSON.parse(envelope.body); } catch { throw unverified('body is not JSON'); }
   const tolerance = body?.tolerance;
   if (body?.schema !== TRAP_SET_SCHEMA || body.circuit !== circuit.identity || body.model !== circuit.modelIdentity
-    || body.vocab !== circuit.vocab || body.context !== circuit.context || body.tokenizer?.alphabet !== circuit.tokenizer.alphabet) {
+    || body.vocab !== circuit.vocab || body.context !== circuit.context || !validTokenizer(body.tokenizer, circuit.vocab)
+    || canonicalize(body.tokenizer) !== canonicalize(circuit.tokenizer)) {
     throw unverified('it is not for the pinned circuit');
   }
   if (!(typeof tolerance?.maxAbsLogitError === 'number' && tolerance.maxAbsLogitError > 0 && tolerance.maxAbsLogitError <= maxTolerance

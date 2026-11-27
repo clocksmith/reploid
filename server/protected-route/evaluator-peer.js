@@ -83,7 +83,7 @@ export async function startLocalDopplerEvaluators({ doppler, programs, split = f
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   const { values } = parseArgs({ options: {
-    doppler: { type: 'string' }, profile: { type: 'string', default: 'research-n16-u32' }, model: { type: 'string' },
+    doppler: { type: 'string' }, profile: { type: 'string', default: 'research-n16-u32' }, model: { type: 'string' }, triage: { type: 'boolean' },
     evaluator: { type: 'string' }, 'stage-a': { type: 'string' }, 'stage-b': { type: 'string' },
     program: { type: 'string', multiple: true }, split: { type: 'boolean', default: false }, backend: { type: 'string', default: 'webgpu' },
     'identity-file': { type: 'string' }, listen: { type: 'string', default: '127.0.0.1:0' }, 'ready-file': { type: 'string' },
@@ -99,7 +99,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   const maxLanes = Number(values['max-lanes']);
   const local = values.program?.length ? await startLocalDopplerEvaluators({ doppler: values.doppler, programs: values.program, split: values.split,
     backend: values.backend, stateDir: values['state-dir'] ?? null, maxLanes, log }) : null;
-  const engine = createDopplerEvaluatorEngine({ doppler: values.doppler, profile: values.profile, model: values.model ?? null, maxLanes,
+  const engine = createDopplerEvaluatorEngine({ doppler: values.doppler, profile: values.profile, model: values.model ?? null, triage: values.triage, maxLanes,
     misbehave: engineMisbehaviour(values.misbehave) ? values.misbehave : '', onStop: () => local?.stop(),
     ...(local ?? (values.evaluator ? { evaluator: values.evaluator } : { stages: { a: values['stage-a'], b: values['stage-b'] } })) });
   const peer = await startProtectedEvaluatorPeer({ engine, profile: values.profile, identity: await loadIdentity(values['identity-file']),

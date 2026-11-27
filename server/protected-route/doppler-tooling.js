@@ -43,9 +43,15 @@ export async function runDopplerTool(doppler, args, { timeoutMs = 120000 } = {})
  * identity and circuit digest, geometry, input level, slot count and rotations. Shape and pins only; nothing here makes
  * a backend eligible (the requester's allowlist decides).
  */
-export async function describeDopplerEngine({ doppler, profile, model = null, maxLanes = 8, implementation = 'doppler-webgpu-evaluator' }) {
+export async function describeDopplerEngine({ doppler, profile, model = null, triage = false, maxLanes = 8, implementation = 'doppler-webgpu-evaluator' }) {
   const { tools, model: defaultModel } = resolveDopplerProtected(doppler);
   const load = file => import(pathToFileURL(path.join(tools, file)).href);
+  if (triage) {
+    const { describeTriage } = await load('tools.js');
+    const descriptor = describeTriage(model ?? undefined);
+    if (profile !== descriptor.profile) throw new Error('Profile differs from the pinned ticket triage profile');
+    return Object.freeze({ ...descriptor, implementation, maxLanes });
+  }
   const [plan, params] = await Promise.all([load('plan.js'), load('ckks/params.js')]);
   const p = params.lookupProfile(profile);
   if (p.wire !== params.WIRE_RAW_U32) throw new Error(`Profile ${profile} is not a WebGPU (u32) profile`);
@@ -68,8 +74,8 @@ export const dopplerReference = ({ doppler, model = null, prompt, generate }) =>
  * Compile the WebGPU session program for a prompt length and generated count (`pp.js gpu-compile`): a prefill step and
  * a decode step for every later position. Returns the program base path.
  */
-export async function compileDopplerProgram({ doppler, profile, promptTokens, generatedTokens, out, model = null }) {
-  await runDopplerTool(doppler, ['gpu-compile', '--profile', profile, ...(model ? ['--model', model] : []), '--positions', String(promptTokens),
+export async function compileDopplerProgram({ doppler, profile, promptTokens, generatedTokens, out, model = null, triage = false }) {
+  await runDopplerTool(doppler, ['gpu-compile', '--profile', profile, ...(triage ? ['--triage'] : []), ...(model ? ['--model', model] : []), '--positions', String(promptTokens),
     '--decode-through', String(promptTokens + generatedTokens - 2), '--out', out], { timeoutMs: 600000 });
   return out;
 }
