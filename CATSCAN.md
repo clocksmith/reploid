@@ -36,7 +36,7 @@ Outputs: [README](README.md) navigation, [component index](docs/component-index.
 - Permissions/budgets precede ranking; granted runtime operation remains CI-independent.
 - Require artifact identities, numerical tolerances, allocation budgets, cancellation
   settlement; never promise universal determinism or immediate GPU termination.
-- Code cannot overrule charters; claims require evidence.
+- Claims require evidence.
 
 ## Acceptance
 

@@ -1,16 +1,16 @@
 # Reploid Code Agent
 
-When this repository is checked out under Deco, `../AGENTS.md` supplies the
-shared operating rules. This file covers Reploid-specific commands and boundaries;
+The shared operating rules are the [Deco operating contract](https://github.com/clocksmith/ouroboros/blob/main/deco/AGENTS.md).
+This file covers Reploid-specific commands and boundaries;
 a standalone checkout does not require the Deco workspace.
 
 **Prime Directive:** Build what the request needs. [GOALS.md](GOALS.md), [INTENT.md](INTENT.md) and `CATSCAN.md` files ([component index](docs/component-index.md)) are references for ownership and contracts: look up the one for the surface you touch when it helps, not as a reading list before editing. See [DOPPLER](https://github.com/clocksmith/doppler) for the WebGPU inference engine.
 
 ## Product and component references
 
-Follow `../ouroboros/docs/projects/reploid/roadmap.md` in the deco workspace for capped validation and acceptance; never copy private roadmap, pricing, or business-plan content into this repository. Public product authority lives in [product-specification.md](docs/product-specification.md) and [open-mesh-architecture.md](docs/open-mesh-architecture.md).
+Journey acceptance lives in [docs/critical-user-journeys.md](docs/critical-user-journeys.md) (`npm run verify:journeys`). The detailed validation register stays private in `../ouroboros/docs/projects/reploid/roadmap.md` in the deco workspace; never copy private roadmap, pricing, or business-plan content into this repository. Public product authority lives in [product-specification.md](docs/product-specification.md) and [open-mesh-architecture.md](docs/open-mesh-architecture.md).
 
-Where each surface keeps its owner docs (a lookup, not a reading list):
+Where each surface keeps its owner docs:
 
 | Change | Relevant owner reference |
 | --- | --- |
@@ -32,7 +32,7 @@ Where each surface keeps its owner docs (a lookup, not a reading list):
 - **Truthful claims:** Declare numerical tolerances, allocation budgets, and cancellation settlement; never promise universal determinism, immediate GPU termination, trustless compute, hardware attestation, or exactly-once relay delivery. A relay acknowledgement proves only recipient receipt of that relay record.
 - **Public copy & routes:** Trace route files, boot profile, VFS seed, and rendered state when changing the UI. Preserve the requested product direction and trust claims; make routine UI implementation choices within that scope.
 - **Zero / X operational discipline:** Diagnose Zero behavior from process parentage, provider status, VFS state, tool logs, and resume state. All agent-generated changes must pass the Verification Worker sandbox and preserve Genesis Kernel rollback. Governed self-improvement (L0–L4) follows [INTENT.md](INTENT.md) and [rsi-improvement-episodes.md](docs/rsi-improvement-episodes.md); model or Arena scoring never grants activation permission.
-- **Symbols:** Enforce [`docs/EMOJI.md`](docs/EMOJI.md); use only approved Unicode symbols, no emojis.
+- **Symbols:** Enforce [`docs/EMOJI.md`](docs/EMOJI.md); use only approved Unicode symbols, no emojis. `npm run verify:emoji` (CI) enforces it.
 - **JavaScript only:** No Python or Go files, and no code that starts a Python or Go process; port to Node instead. WGSL through Doppler is fine. The only other language allowed is the Flutter app in `apps/mobile/`: its Dart code, pub manifests and Flutter-generated Swift, Kotlin, Gradle and bridging-header runner files, nowhere else. `npm run verify:js-only` (part of `npm run lint` and CI) enforces it.
 
 ## Poolday design system

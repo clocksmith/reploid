@@ -80,6 +80,10 @@ jobs:
           npm run verify:module-system
           npm run verify:change-passport:sdk
           npm run verify:browser-bundle:local
+          npm run verify:planning-boundary
+          npm run verify:emoji
+          npm run verify:surface-claims
+          npm run verify:journeys
       - run: npm run build:browser-bundle
       - run: npm run package:hosting
 
