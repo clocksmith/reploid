@@ -5183,13 +5183,13 @@
     {
       "path": "ui/react/app.js",
       "owner": "ui",
-      "sha256": "sha256:58c9c7054cc388e2384f6029200ecf08a5b1fe6faf1ad0f5843267c2fc35a54a",
+      "sha256": "sha256:b74f12342c8a6d72e06971bb43c107c7eec554cb68188d47ec527cb4ae59c92a",
       "imports": []
     },
     {
       "path": "ui/react/design.js",
       "owner": "ui",
-      "sha256": "sha256:ddf13dd616dbebab90966742a5c0b9132ba1eab75bd33a9b5e9b5e5a2dcddd7f",
+      "sha256": "sha256:ad5181ca21e490c0be1abd26d208c6140c89d58d6283c2506d81c22dbe4e7fa7",
       "imports": []
     },
     {
