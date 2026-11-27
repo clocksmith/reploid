@@ -2,7 +2,8 @@
  * @fileoverview Route/tool surface composition.
  *
  * /zero starts with only CreateTool. /x extends the same seed with explicitly
- * selected upgrades. Reploid keeps its separate file substrate.
+ * selected upgrades, declared in X's own self/config/lab-upgrades.js and passed in
+ * as `surfaceIds`. Reploid keeps its separate file substrate.
  */
 
 export const TOOL_SURFACES = Object.freeze({
@@ -85,15 +86,9 @@ export function getToolNamesForSurfaceIds(surfaceIds = [], options = {}) {
   return tools;
 }
 
+/** An extension passes the surfaces it selected; this module holds no surface's upgrade policy. */
 export function getToolSurfaceIdsForMode(mode = 'reploid', options = {}) {
-  if (mode === 'x' && ['reflection', 'cognition', 'substrate', 'full'].includes(options.upgradeLevel)) {
-    const surfaces = ['sharedFile', 'extendedFile', 'promotion'];
-    if (['cognition', 'substrate', 'full'].includes(options.upgradeLevel)) surfaces.push('cognition');
-    if (['substrate', 'full'].includes(options.upgradeLevel)) surfaces.push('workers');
-    if (options.upgradeLevel === 'full') surfaces.push('optimization', 'swarm');
-    return surfaces;
-  }
-  return TOOL_SURFACE_IDS_BY_MODE[mode] || ZERO_TOOL_SURFACE_IDS;
+  return options.surfaceIds || TOOL_SURFACE_IDS_BY_MODE[mode] || ZERO_TOOL_SURFACE_IDS;
 }
 
 export function getToolNamesForMode(mode = 'reploid', options = {}) {

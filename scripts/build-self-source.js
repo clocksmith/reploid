@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { parse } from 'acorn';
 import { resolveBaseModules } from '../self/config/module-resolution.js';
 import { getToolNamesForMode } from '../shared/config/tool-surfaces.js';
+import { LAB_UPGRADE_TOOL_SURFACE_IDS } from '../self/config/lab-upgrades.js';
 import { toCanonicalBrowserPath } from './browser-tree-paths.js';
 import { openBrowserTree } from '../server/browser-tree.js';
 
@@ -69,7 +70,7 @@ async function build() {
   const catalog = { schema: 'reploid/self-source-catalog/v1', version: 1, profiles: {} };
   for (const level of levels) {
     const modules = resolveBaseModules(level, genesis).filter(id => level !== 'spark' || id !== 'ErrorStore');
-    const tools = getToolNamesForMode(level === 'spark' ? 'zero' : 'x', { upgradeLevel: level });
+    const tools = getToolNamesForMode(level === 'spark' ? 'zero' : 'x', { surfaceIds: LAB_UPGRADE_TOOL_SURFACE_IDS[level] });
     const files = await collectSelfSource([
       ...baseEntries, ...modules.flatMap(id => genesis.moduleFiles[id]), ...tools.map(name => `tools/${name}.js`)
     ]);

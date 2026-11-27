@@ -4,7 +4,9 @@ import {
   getToolNamesForMode,
   ZERO_SEED_TOOLS
 } from '../../shared/config/tool-surfaces.js';
-import { LAB_UPGRADE_LEVELS } from '../../self/config/lab-upgrades.js';
+import { getLabToolSurfaceIds, LAB_UPGRADE_LEVELS } from '../../self/config/lab-upgrades.js';
+
+const xTools = (level, options = {}) => getToolNamesForMode('x', { ...options, surfaceIds: getLabToolSurfaceIds('x', level) });
 import { listReploidEnvironmentTemplates } from '../../self/config/reploid-environments.js';
 
 describe('tool surfaces', () => {
@@ -23,26 +25,28 @@ describe('tool surfaces', () => {
       hasToolWriter: true,
       hasSubstrateLoader: true
     })).toContain('Promote');
-    expect(getToolNamesForMode('x', {
-      upgradeLevel: 'full',
+    expect(xTools('full', {
       hasToolWriter: true,
       hasSubstrateLoader: true
     })).toContain('Promote');
   });
 
   it('does not let a selected X upgrade expand Zero or an invalid X selection', () => {
-    expect(getToolNamesForMode('zero', { upgradeLevel: 'full' })).toEqual(['CreateTool']);
-    expect(getToolNamesForMode('x', { upgradeLevel: 'unknown' })).toEqual(['CreateTool']);
-    expect(getToolNamesForMode('x', { upgradeLevel: 'reflection' })).toContain('ReadFile');
-    expect(getToolNamesForMode('x', { upgradeLevel: 'reflection' })).not.toContain('SpawnWorker');
-    expect(getToolNamesForMode('x', { upgradeLevel: 'substrate' })).toContain('SpawnWorker');
-    expect(getToolNamesForMode('x', { upgradeLevel: 'substrate' })).not.toContain('SwarmShareFile');
-    expect(getToolNamesForMode('x', { upgradeLevel: 'full' })).toContain('SwarmShareFile');
+    expect(getToolNamesForMode('zero', { surfaceIds: getLabToolSurfaceIds('zero', 'full') })).toEqual(['CreateTool']);
+    expect(xTools('unknown')).toEqual(['CreateTool']);
+    expect(xTools('spark')).toEqual(getToolNamesForMode('zero'));
+    // The shared table holds no X upgrade policy: a level name alone selects nothing.
+    expect(getToolNamesForMode('x', { upgradeLevel: 'full' })).toEqual(['CreateTool']);
+    expect(xTools('reflection')).toContain('ReadFile');
+    expect(xTools('reflection')).not.toContain('SpawnWorker');
+    expect(xTools('substrate')).toContain('SpawnWorker');
+    expect(xTools('substrate')).not.toContain('SwarmShareFile');
+    expect(xTools('full')).toContain('SwarmShareFile');
   });
 
   it.each(['zero', 'x'])('never advertises host git on %s, including optional levels', mode => {
     for (const upgradeLevel of LAB_UPGRADE_LEVELS) {
-      expect(getToolNamesForMode(mode, { upgradeLevel })).not.toContain('git');
+      expect(getToolNamesForMode(mode, { surfaceIds: getLabToolSurfaceIds(mode, upgradeLevel) })).not.toContain('git');
     }
     expect(getToolNamesForMode('reploid')).toContain('git');
   });

@@ -1,5 +1,5 @@
 import { resolveRuntimeMode } from './runtime-mode.js';
-import { getLabUpgradeLevel, isMinimalLabMode } from '../config/lab-upgrades.js';
+import { getLabToolSurfaceIds, isMinimalLabMode } from '../config/lab-upgrades.js';
 /**
  * @fileoverview Tool Runner
  * Execution engine for built-in and dynamic tools.
@@ -35,7 +35,7 @@ const ToolRunner = {
     const getBootMode = () => mode;
 
     const getKernelToolNames = () => getToolNamesForMode(getBootMode(), {
-      upgradeLevel: getLabUpgradeLevel(getBootMode()),
+      surfaceIds: getLabToolSurfaceIds(getBootMode()),
       hasToolWriter: !!ToolWriter,
       hasSubstrateLoader: !!SubstrateLoader
     });
