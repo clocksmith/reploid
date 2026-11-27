@@ -134,7 +134,9 @@ them is the conversation controller
   offers (the contributing browser is listed as two rows, one per offer).
 - [`tests/unit/first-answer-defaults.test.js`](../tests/unit/first-answer-defaults.test.js) holds
   the decisions behind journey 2 (FIRST-02): the automatic computer and model, following
-  availability, a held Send while computers are being found, and kept picks.
+  availability, a held Send while computers are being found or while the automatic choice is still provisional
+  (inside the session's bounded discovery wait, 8 s from connecting, when no model is named as ready and a Send goes
+  to the choice the wait settles on), and kept picks.
 
 A run of the check on one day shows that the journeys held for that browser, on that network,
 with the computers then online. It is not a statement about capacity or reliability.

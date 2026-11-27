@@ -148,7 +148,8 @@ it('does not settle on whichever computer advertised first: during the discovery
   expect(chip(f).selectionId).toBe(key(MEDIUM));
   f.c.setDraft('Typed in the first second');
   f.publish({ models: [served(SMALL), served(MEDIUM)] });
-  expect([chip(f).selectionId, chip(f).availability]).toEqual([key(SMALL), 'ready']);
+  // Still inside the wait, the choice is provisional: not named as ready.
+  expect([chip(f).selectionId, chip(f).availability]).toEqual([key(SMALL), 'waiting']);
   // Once the wait is over the draft keeps its model while a computer serves it.
   f.publish({ peerDiscoveryTimedOut: true });
   f.publish({ models: [served(SMALL), served(MEDIUM)].reverse() });
@@ -156,6 +157,56 @@ it('does not settle on whichever computer advertised first: during the discovery
   f.c.send();
   await vi.waitFor(() => expect(f.sent).toHaveLength(1));
   expect(key(f.created[0].model)).toBe(key(SMALL));
+});
+
+// The deployed first-visit walk at b8c3432b: the chip named the 27B model, Ready, about 2 s after load, while the
+// bounded discovery wait was still open; a computer serving the preferred 0.8B model answered inside it, and the
+// question typed meanwhile went to the 0.8B model. The automatic choice is provisional until the wait is over: the
+// composer names no model as ready meanwhile, a Send pressed in it is held, and it goes to the settled choice.
+it('holds a Send pressed while the automatic choice is provisional and sends it to the choice discovery settles on', async () => {
+  const f = fixture();
+  // The first computer advertises a less preferred model; the session's bounded wait (chat-session.js) is still open.
+  f.publish({ discoveryPhase: 'observed', peerDiscoveryTimedOut: false, network: observed.network, models: [SMALL, served(MEDIUM)] });
+  expect(chip(f).availability).not.toBe('ready');
+  expect(chip(f).label).not.toContain(MEDIUM.name);
+  expect(f.view.composer().route).toMatchObject({ destination: 'contributors', status: 'waiting', send: 'queue' });
+  expect(f.view.composer().disclosure).toBe('The answering computer can read your prompt.');
+  f.view.send('Typed while computers were still answering');
+  await new Promise(resolve => setTimeout(resolve, 0));
+  // Nothing lands on the first computer to advertise: the Send is the host's held intent.
+  expect(f.created).toHaveLength(0);
+  expect(f.view.composer().nextAction).toBe('cancel-queued');
+  expect(f.session.sendIntents.state().intent.selection).toEqual({ mode: 'auto' });
+  // A computer serving the preferred model answers inside the wait: still held.
+  f.publish({ models: [served(SMALL), served(MEDIUM)] });
+  await new Promise(resolve => setTimeout(resolve, 0));
+  expect(f.created).toHaveLength(0);
+  // The wait ends: the composer names the settled choice as ready and that is the model the question goes to.
+  f.publish({ peerDiscoveryTimedOut: true });
+  expect([chip(f).selectionId, chip(f).availability]).toEqual([key(SMALL), 'ready']);
+  await vi.waitFor(() => expect(f.sent).toHaveLength(1));
+  expect(f.created).toHaveLength(1);
+  expect(key(f.created[0].model)).toBe(key(SMALL));
+  expect(f.created[0]).toMatchObject({ executionLocation: 'network', privacy: { recipients: { kind: 'open' } } });
+
+  // With no better computer, the wait's end sends the held question to the model the composer then names.
+  const g = fixture();
+  g.publish({ discoveryPhase: 'observed', peerDiscoveryTimedOut: false, network: observed.network, models: [SMALL, served(MEDIUM)] });
+  g.view.send('Typed while computers were still answering');
+  await new Promise(resolve => setTimeout(resolve, 0));
+  expect(g.created).toHaveLength(0);
+  g.publish({ peerDiscoveryTimedOut: true });
+  expect([chip(g).selectionId, chip(g).availability]).toEqual([key(MEDIUM), 'ready']);
+  await vi.waitFor(() => expect(g.sent).toHaveLength(1));
+  expect(key(g.created[0].model)).toBe(key(MEDIUM));
+
+  // A pick is not provisional: inside the same wait it is named as ready and answers at once.
+  const h = fixture({ storage: memory(pickOf(MEDIUM)) });
+  h.publish({ discoveryPhase: 'observed', peerDiscoveryTimedOut: false, network: observed.network, models: [served(SMALL), served(MEDIUM)] });
+  expect([chip(h).selectionId, chip(h).availability]).toEqual([key(MEDIUM), 'ready']);
+  h.view.send('For the model I picked');
+  await vi.waitFor(() => expect(h.sent).toHaveLength(1));
+  expect(key(h.created[0].model)).toBe(key(MEDIUM));
 });
 
 it('stays on this device for a visitor whose device stores a model, or who turned network answers off', () => {
@@ -311,6 +362,10 @@ it('holds a returning visitor\'s Send for whichever model turns up when their re
   expect(f.view.composer().status.text).toBe('Finding computers…');
   expect(f.view.composer().nextAction).toBe('cancel-queued');
   f.publish({ discoveryPhase: 'observed', peerDiscoveryTimedOut: false, network: observed.network, models: [SMALL, served(MEDIUM)] });
+  // The first computer to advertise does not take it while the discovery wait is open; the wait's end does.
+  await new Promise(resolve => setTimeout(resolve, 0));
+  expect(f.created).toHaveLength(0);
+  f.publish({ peerDiscoveryTimedOut: true });
   await vi.waitFor(() => expect(f.sent).toHaveLength(1));
   expect(key(f.created[0].model)).toBe(key(MEDIUM));
   expect(f.created[0]).toMatchObject({ executionLocation: 'network', privacy: { recipients: { kind: 'open' } } });
@@ -340,7 +395,7 @@ it('bounds a held Send by the discovery wait: it says it is waiting for capacity
   const busy = { ...SMALL, availability: 'busy', networkAvailability: 'busy', providerIds: ['peer'], reachableProviderIds: [] };
   f.publish({ discoveryPhase: 'observed', peerDiscoveryTimedOut: false, network: observed.network, models: [busy, MEDIUM] });
   await new Promise(resolve => setTimeout(resolve, 0));
-  expect([chip(f).selectionId, chip(f).availability]).toEqual([key(SMALL), 'ready']);
+  expect([chip(f).selectionId, chip(f).availability]).toEqual([key(SMALL), 'waiting']);
   expect(f.view.composer().status.text).toBe('Waiting for capacity.');
   expect(f.view.composer().nextAction).toBe('cancel-queued');
   expect(f.sent).toHaveLength(0);
@@ -402,6 +457,7 @@ it('keeps finding computers, and keeps a held Send, when a split route or a priv
   expect(f.view.composer().nextAction).toBe('cancel-queued');
   expect(f.created).toHaveLength(0);
   f.publish({ discoveryPhase: 'observed', peerDiscoveryTimedOut: false, network: observed.network, models: [served(SMALL), MEDIUM, SPLIT, POOL] });
+  f.publish({ peerDiscoveryTimedOut: true });
   await vi.waitFor(() => expect(f.sent).toHaveLength(1));
   expect(key(f.created[0].model)).toBe(key(SMALL));
 });

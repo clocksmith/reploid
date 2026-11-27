@@ -277,6 +277,15 @@ export function createConversationController(session, {
   const choosingStill = state => automaticContributors(state) ? !choiceWaitOver(state)
     : waitsForAnyModel(state) && (state.discoveryPhase === 'searching' || state.discoveryPhase === 'observed' && !choiceWaitOver(state));
   /**
+   * The automatic choice is provisional while the session's bounded discovery wait is open (chat-session.js: 8 s from
+   * connecting, then peerDiscoveryTimedOut): a computer serving a model the preference order ranks higher may still
+   * answer in it, and the choice would move. Only a choice the page makes is provisional, never a pick, a thread's
+   * model or a paired desktop's. Meanwhile the composer names no model as ready, and a Send pressed is held and goes
+   * to the settled choice when the wait ends; the held intent's own 30 s still bounds it.
+   */
+  const provisionalChoice = state => !state.activeThread && waitsForAnyModel(state)
+    && state.discoveryPhase === 'observed' && state.peerDiscoveryTimedOut === false;
+  /**
    * A remembered pick whose model the catalog does not list yet (a private pool's model before the pool's state has
    * loaded, a split route that is down, a build that changed). It stands as the chosen model so the composer names
    * it as unavailable and Send goes nowhere else; the catalog entry takes its place when it is listed.
@@ -390,7 +399,7 @@ export function createConversationController(session, {
   }
   function readyForQueuedSend(state, intent) {
     const model = state.models?.find(item => modelKey(item) === currentKey);
-    return !disposed && holdable(state, model, effectiveLocation(state))
+    return !disposed && !provisionalChoice(state) && holdable(state, model, effectiveLocation(state))
       && queueScope(state, model) === intent.scope && model.networkAvailability === 'ready'
       && model.reachableProviderIds?.length > 0;
   }
@@ -534,6 +543,8 @@ export function createConversationController(session, {
     const blocked = ownDesktopOffline(state);
     const usable = explicitPrivacy(state).computation === 'plaintext' && (execution.usable || prepareHere) && !blocked;
     const busy = runningIds.includes(thread?.id) || !!state.comparisonPhase;
+    // A model able to answer that the page chose while discovery is still choosing: Send holds rather than dispatches.
+    const settling = usable && provisionalChoice(state);
     privacyChoice.follow(state, busy || !!thread?.closed);
     // The queued Send: it waits for a computer running this model until its intent expires (30 s from the press,
     // host/send-intents.js), and lapses earlier only when its draft or route no longer permits it.
@@ -560,22 +571,22 @@ export function createConversationController(session, {
     }
     const invite = viewState.guestInvite, guest = state.guestAccess;
     const inviteJoined = !!invite && guest?.joined && guest.hostParticipantId === invite.hostPeerId;
-    const queueable = !busy && !usable && finding && canWaitForPublicModel(state, selectedModel, location);
+    const queueable = !busy && (settling || !usable && finding) && canWaitForPublicModel(state, selectedModel, location);
     // With nothing chosen and no contributor to answer, Send asks where to run only when contributors are not the route.
     const askFirst = !thread && !busy && !usable && !queueable && viewState.privacy === undefined && !viewState.privacyTouched && !lockedDestination(state)
       && !automaticContributors(state);
-    const sendMode = usable ? 'dispatch' : queueable ? 'queue' : askFirst ? 'choose' : 'none';
+    const sendMode = queueable ? 'queue' : usable ? 'dispatch' : askFirst ? 'choose' : 'none';
     sendDisabled = attachmentReader.pending || !(usable || queueable || askFirst) || !!thread?.closed || !!state.storageError || (!!invite && !inviteJoined);
     // What the composer reads of the sheet is its staging before the sheet follows this change.
     const frame = { state, finding, thread, catalogModels, runningIds, pinnedModel, models, location, freshVisitor, current, selectedModel,
-      execution, usable, blocked, sendMode, busy, ready, invite, guest, inviteJoined, sheetModel: pickerModel, sheetChoice: pickerChoice };
+      execution, usable, settling, blocked, sendMode, busy, ready, invite, guest, inviteJoined, sheetModel: pickerModel, sheetChoice: pickerChoice };
     if (sheet.open) advanceSheet(state);
     threadList.follow(state);
     return frame;
   }
 
   function project({ state, finding, thread, catalogModels, runningIds, pinnedModel, models, location, freshVisitor, current, selectedModel,
-    execution, usable, blocked, sendMode, busy, ready, invite, guest, inviteJoined, sheetModel, sheetChoice }) {
+    execution, usable, settling, blocked, sendMode, busy, ready, invite, guest, inviteJoined, sheetModel, sheetChoice }) {
     const localPreparing = state.localModel?.phase === 'loading';
     const requestedModel = selectedModel || pinnedModel || models.find(model => modelKey(model) === current)
       || catalogModels.find(model => modelKey(model) === current)
@@ -613,6 +624,7 @@ export function createConversationController(session, {
     if (!busy) {
       if (state.history?.mode === 'refused' && historyHandover) statusText = '';
       else if (thread?.closed) statusText = 'Restore this thread to continue.';
+      else if (settling) statusText = 'Finding computers…';
       else if (usable) {
         if (execution.source === 'network') statusText = execution.status === 'busy' ? 'Waiting for capacity.' : creditCapText(selectedModel);
         else if (execution.status === 'cached') statusText = 'Model downloaded.';
@@ -657,14 +669,14 @@ export function createConversationController(session, {
     // the chip, the disclosure, the status line and the next action all read it.
     const lockedHost = lockedDestination(state), destination = currentRoute(state);
     const runsHereNow = destination === 'device' || location === 'local' || execution.usable && execution.source === 'local' && !blocked;
-    const findingFirst = (freshVisitor || waitsForAnyModel(state)) && !(thread?.model || choice.model) && phase === 'searching' && !execution.usable;
+    const findingFirst = settling || (freshVisitor || waitsForAnyModel(state)) && !(thread?.model || choice.model) && phase === 'searching' && !execution.usable;
     const computerName = runsHereNow ? 'This device' : destination === 'desktop' ? (lockedHost?.guest ? lockedHost.label : OWN_DESKTOP_TITLE)
       : destination === 'named' ? 'Named computers' : selectedModel?.fleet ? execution.label : 'Contributors';
-    const availability = blocked ? 'unavailable' : execution.usable ? 'ready' : preparing || phase === 'searching' ? 'waiting' : 'unavailable';
+    const availability = blocked ? 'unavailable' : settling ? 'waiting' : execution.usable ? 'ready' : preparing || phase === 'searching' ? 'waiting' : 'unavailable';
     const route = Object.freeze({
       destination: runsHereNow ? 'device' : destination === 'desktop' ? (lockedHost?.guest ? 'invited' : 'desktop') : destination,
       computer: computerName, restricted: destination === 'desktop' && !lockedHost?.guest,
-      status: held() ? 'queued' : blocked ? 'blocked' : usable ? 'ready' : availability === 'waiting' ? 'waiting' : 'unavailable',
+      status: held() ? 'queued' : blocked ? 'blocked' : usable && !settling ? 'ready' : availability === 'waiting' ? 'waiting' : 'unavailable',
       send: busy || thread?.closed ? 'none' : sendDisabled ? 'none' : sendMode
     });
     const availabilityText = { ready: 'Ready', waiting: preparing ? 'Loading' : 'Finding computers', unavailable: 'Unavailable' }[availability];
@@ -711,7 +723,7 @@ export function createConversationController(session, {
         source: findingFirst ? '' : activeModel ? computerName : '',
         name: findingFirst ? 'Finding computers…' : activeModel ? modelVariantLabel(activeModel) : '',
         availability, label: modelDigest ? `Answer on ${modelDigest}, ${availabilityText}` : findingFirst ? 'Answer on, Finding computers' : 'Answer on',
-        activity: execution.status === 'ready' && !blocked ? 'ready' : 'idle', executionSource: execution.source
+        activity: execution.status === 'ready' && !blocked && !settling ? 'ready' : 'idle', executionSource: execution.source
       },
       // The chip beside "Answer on" always names the thread's protection (and "Your devices" when it runs only there).
       privacy: { label: `Who can read it: ${named.label}`, caption: named.label, disabled: privacyDisabled },
@@ -767,7 +779,7 @@ export function createConversationController(session, {
       openDestination({ forSend: true });
       return;
     }
-    if (!intent && finding && !modelExecutionState(model, effectiveLocation(state)).usable
+    if (!intent && (provisionalChoice(state) || finding && !modelExecutionState(model, effectiveLocation(state)).usable)
       && canWaitForPublicModel(state, model, effectiveLocation(state))) {
       // The host records the intent for the current selection; nothing else is created until a route is ready.
       reportSelection(state);
