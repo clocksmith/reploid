@@ -23,7 +23,7 @@
  * capacity claim: see `notEstablished`.
  */
 import { spawn } from 'node:child_process';
-import { createHash, randomUUID, randomBytes } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import readline from 'node:readline';
@@ -403,7 +403,7 @@ export async function runHeSplit({ config, directory, log = () => {}, now = Date
     };
 
     for (const kase of config.cases) {
-      const key = kase.name === 'split' ? 'split' : kase.name === 'stop' ? 'stop' : 'failure';
+      const key = ['split', 'stop'].includes(kase.name) ? kase.name : 'failure';
       receipt[key] = await step(`case ${kase.name}`, () => runCase(kase));
     }
     receipt.quote = receipt.split?.quote ?? null;
