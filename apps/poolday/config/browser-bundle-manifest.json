@@ -1349,9 +1349,14 @@
       "sha256": "sha256:6f343344d22c601c0bd1c99320d608c96e37dfd62f569dceb806d33b22592169"
     },
     {
+      "path": "config/lab-upgrade-levels.js",
+      "byteLength": 887,
+      "sha256": "sha256:33804ff7f699b19ee0c168e48489cb14444197c18a389deac15b8a81065781df"
+    },
+    {
       "path": "config/lab-upgrades.js",
-      "byteLength": 2023,
-      "sha256": "sha256:3e1a409d4c0257a9da59f55aa9dab9d2f8bdf2b983c5348b50fa8cf51a8e0003"
+      "byteLength": 1633,
+      "sha256": "sha256:745e02fb560697665f3ac1a9226c8a8b54a22779c71ee39d5f64f84d720dff70"
     },
     {
       "path": "config/lora-adapters/doppler-wgsl-qwen35-9b-v12-external20-seed11.json",
@@ -1425,8 +1430,8 @@
     },
     {
       "path": "config/module-inventory.json",
-      "byteLength": 690730,
-      "sha256": "sha256:13c740dbe9f6ddebb7c6f2e6d2a3374f834a759d7976d517855f98199ee58c5a"
+      "byteLength": 691278,
+      "sha256": "sha256:ea31902fa304294ee90b5de3358f14f83d22c4d34599857c165872fffd31993d"
     },
     {
       "path": "config/module-registry.json",
@@ -1485,13 +1490,13 @@
     },
     {
       "path": "config/self-source-catalog.json",
-      "byteLength": 119515,
-      "sha256": "sha256:42f9f8120def8866db3bb73fea1805c1c6af0ea30e352e465b3f4727f5cee6e9"
+      "byteLength": 119915,
+      "sha256": "sha256:f72a755f5aec9a62b4b14fdb440a8f53715f47ea53f8cdf6881118d1cdeafd4b"
     },
     {
       "path": "config/self-source-manifest.json",
-      "byteLength": 9128,
-      "sha256": "sha256:d99884b5d4a9ef09b84ddd42c677310032659b09c729bcd8ba7a6089402cd176"
+      "byteLength": 9200,
+      "sha256": "sha256:208bfdb30e5632ed7518cfcd8c4ffdb424643b86523efb4669967c6779287bb7"
     },
     {
       "path": "config/service-worker.js",
@@ -1520,8 +1525,8 @@
     },
     {
       "path": "config/vfs-manifest.json",
-      "byteLength": 148625,
-      "sha256": "sha256:ee55fe210eef0333050c37899ffa45574714453bfcddb0e58a5aa07f11b28692"
+      "byteLength": 148688,
+      "sha256": "sha256:0ee8299b38d31883c7ce51e0dc9c2466b9af80a6c50253259bcb2a717f805e92"
     },
     {
       "path": "config/vfs-policy.js",
@@ -1849,6 +1854,11 @@
       "sha256": "sha256:ff0387b1d59fc11a6d856eec9edab4d8059f4b0f17dd09620723fe37b45d63b6"
     },
     {
+      "path": "host/boot-x.js",
+      "byteLength": 3506,
+      "sha256": "sha256:e26ff1ba8860b9bd585124c94ff287db98ee27dcd012c4b82cfee15aabd94589"
+    },
+    {
       "path": "host/bridge-files.js",
       "byteLength": 4680,
       "sha256": "sha256:95b8b0bcf72d3de9f10f8e873593e722797851ddee524b6e54c33dfd8dad3e4b"
@@ -1960,8 +1970,8 @@
     },
     {
       "path": "host/decisions/conversation-controller.js",
-      "byteLength": 83782,
-      "sha256": "sha256:af8e02804ee0fd4ec39ee3b435fb57b2f2d5d25e1990ddf39ecdc13a1de20d28"
+      "byteLength": 83777,
+      "sha256": "sha256:8cfb64bb331a34f08a613e564a52a4ccf0cc67ce4f5450e84d821aa8a0966440"
     },
     {
       "path": "host/decisions/conversation-details.js",
@@ -2265,8 +2275,8 @@
     },
     {
       "path": "host/sw-module-loader.js",
-      "byteLength": 22584,
-      "sha256": "sha256:861a66e7b95d9ad50d848fbf0579f1983546b037c440bac1d5460cc3c2b39ef3"
+      "byteLength": 22640,
+      "sha256": "sha256:a6e5a921cec560f2cf67998debd2d74dba1b5e0c21e05c916d2e952b21cee534"
     },
     {
       "path": "host/swarm-autoconnect.js",
@@ -2405,8 +2415,8 @@
     },
     {
       "path": "index.html",
-      "byteLength": 9905,
-      "sha256": "sha256:e8eea41abdee72d6d34455773c18be0731f4f60286b3360b171b51aa3ad2bcb1"
+      "byteLength": 10070,
+      "sha256": "sha256:0813f6e7931aa057160563db591b999436621f35357b4425e78991c6cdf83cae"
     },
     {
       "path": "infrastructure/audit-logger.js",
@@ -3520,8 +3530,8 @@
     },
     {
       "path": "styles/poolday/primitives/surfaces.css",
-      "byteLength": 8342,
-      "sha256": "sha256:7c78841d6de23265751c352f0eb5995074cd1c9409698871ed0216a0f23a6971"
+      "byteLength": 7158,
+      "sha256": "sha256:75a3d54945d672f802b1a05eca84ce3e259d8b39044724493e3f6b0622420720"
     },
     {
       "path": "styles/poolday/primitives/text.css",
@@ -4200,13 +4210,13 @@
     },
     {
       "path": "ui/react/app.js",
-      "byteLength": 3065671,
-      "sha256": "sha256:3d04e71b85d7a96eb0143073996547476a2b56e35eb3cb3c3ef10088444d30a0"
+      "byteLength": 3064967,
+      "sha256": "sha256:b628a9de31f448deb66943ddc1a24004dfb19e1d61c732e5bc18c3a68b9ace7d"
     },
     {
       "path": "ui/react/design.js",
-      "byteLength": 2122200,
-      "sha256": "sha256:14d4179e5cd65f2a9009017de30449c0f91ce4347e649cf43a22e539e3274f7c"
+      "byteLength": 2116031,
+      "sha256": "sha256:0a373ef33060b3650380492cd7163f8e1c657b2dbf331c44a66202898f4fab1b"
     },
     {
       "path": "ui/reploid-home/index.js",
@@ -12610,8 +12620,8 @@
     },
     {
       "path": "zero/boot.js",
-      "byteLength": 4360,
-      "sha256": "sha256:506ecd64fb3f02aa82090479d8dce821861b41bb3236f91310054725548b381a"
+      "byteLength": 4630,
+      "sha256": "sha256:dbe057f3a302df6983016f0df1c4e85dc648e7d2363a809dc43d7bca6b824ea1"
     },
     {
       "path": "zero/config.json",
@@ -12630,8 +12640,8 @@
     },
     {
       "path": "zero/main.js",
-      "byteLength": 1490,
-      "sha256": "sha256:f44a14d053a60eac89355145e6e57f5b95b9534094725e0cd5d4e33863efd0bc"
+      "byteLength": 1615,
+      "sha256": "sha256:de716b2578edd44479f3fc9191fbed281b9e4117a2aac7a312d27769b439a629"
     },
     {
       "path": "zero/provider.js",
@@ -12641,7 +12651,7 @@
     {
       "path": "zero/source.json",
       "byteLength": 8719,
-      "sha256": "sha256:716b36f8f9fdfa83a107aaab3741442b86de725077355d4fec4f3a8b76adb989"
+      "sha256": "sha256:5fcff0ddcfc82b0bfa9dea9f0af6d8d1ee31dd1aacf1e4b6afab75ac04b634e0"
     },
     {
       "path": "zero/store.js",
@@ -12650,19 +12660,19 @@
     },
     {
       "path": "zero/style.css",
-      "byteLength": 2291,
-      "sha256": "sha256:fbcdd9eda47606a641bc92a71abcc570c79893cb2170e73a4639166c3ebc8ed1"
+      "byteLength": 2480,
+      "sha256": "sha256:28aed20ccf0d1f6834e095d67b2c3f2bb5c12cf78c05b8c2abba78f93e5241b1"
     },
     {
       "path": "zero/tools.js",
-      "byteLength": 14293,
-      "sha256": "sha256:bac08692c575e878a3611b81476c3d9f1e0ded0fb0788531b4b8f97aabf14bb5"
+      "byteLength": 14393,
+      "sha256": "sha256:81377bb8ac9a61021279a4f6c8d83f07957328ec8863e159fb1946bcd895e946"
     },
     {
       "path": "zero/ui.js",
-      "byteLength": 5125,
-      "sha256": "sha256:abb6c18f6167d6afc8ee1b3adfcbbb89c0e93fb4fc4e98d7a12250f78aab206a"
+      "byteLength": 5307,
+      "sha256": "sha256:f17c57d2f5d32a7d9f5517b9ad4937c51e3923fac2e2a03528fdb5f5be6b582b"
     }
   ],
-  "bundleHash": "sha256:a70502eebbfef7c7aea7a4716a94a634bb71486e86c6b365f4b179d78d518a28"
+  "bundleHash": "sha256:fdd8747c9a5dd2fb65caad2384986a33cb4844ca74108374f0c0d4d08ac52221"
 }
