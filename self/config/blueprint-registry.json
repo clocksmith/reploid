@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-26T21:19:25.195Z",
+  "generatedAt": "2026-11-27T01:09:34.038Z",
   "features": [
     {
       "id": "0x000002",
@@ -855,21 +855,6 @@
       ]
     },
     {
-      "id": "0x000088",
-      "name": "ui-pool-home-controls",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x000088",
-          "path": "blueprints/0x000088-ui-pool-home-controls.md"
-        }
-      ],
-      "files": [
-        "ui/pool-home/controls.js",
-        "ui/pool-home/index.js"
-      ]
-    },
-    {
       "id": "0x000089",
       "name": "ui-pool-home-view",
       "status": "active",
@@ -880,9 +865,7 @@
         }
       ],
       "files": [
-        "ui/pool-home/ledger-store.js",
-        "ui/pool-home/operation-sharing.js",
-        "ui/pool-home/view.js"
+        "ui/pool-home/ledger-store.js"
       ]
     },
     {
@@ -1254,20 +1237,6 @@
       ]
     },
     {
-      "id": "0x0000A4",
-      "name": "ui-pool-home-network-projection",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x0000A4",
-          "path": "blueprints/0x0000A4-ui-pool-home-network-projection.md"
-        }
-      ],
-      "files": [
-        "ui/pool-home/network-projection.js"
-      ]
-    },
-    {
       "id": "0x0000A5",
       "name": "ui-pool-home-record-persistence",
       "status": "active",
@@ -1378,12 +1347,9 @@
         }
       ],
       "files": [
-        "ui/pool-home/requester-controls.js",
         "ui/pool-home/research-panels.js",
         "ui/pool-home/research-store.js",
-        "ui/pool-home/research-view.js",
-        "ui/pool-home/room-projection.js",
-        "ui/pool-home/room-view.js"
+        "ui/pool-home/room-projection.js"
       ]
     },
     {

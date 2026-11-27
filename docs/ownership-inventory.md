@@ -14,14 +14,14 @@ and JSON. A file reached from the product entries and the substrate entries is s
 traversal stops at the documented substrate entry points (`zero/boot.js`, `kernel/boot.js`).
 Files no entry reaches are assigned by the rules in the generator, with the reason shown.
 
-Product entries: `index.html`, `pool-entry.html`, `design.html`, `document-study.html`, `repair-smoke.html`, `ui/pool-home/index.js`.
+Product entries: `index.html`, `pool-entry.html`, `design.html`, `document-study.html`, `repair-smoke.html`.
 
 | Owner | Files |
 | --- | ---: |
-| apps/poolday | 412 |
-| self | 457 |
-| shared | 2532 |
-| total | 3401 |
+| apps/poolday | 357 |
+| self | 458 |
+| shared | 2531 |
+| total | 3346 |
 
 Every file lives in its owner's root.
 
@@ -427,26 +427,38 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `host/contributor-search.js` | `apps/poolday/host/contributor-search.js` | apps/poolday | Reached only from product entries. |
 | `host/credits/browser.js` | `apps/poolday/host/credits/browser.js` | apps/poolday | Reached only from product entries. |
 | `host/credits/local-sign-in.js` | `apps/poolday/host/credits/local-sign-in.js` | apps/poolday | Reached only from product entries. |
-| `host/decisions/computers.d.ts` | `apps/poolday/host/decisions/computers.d.ts` | apps/poolday | Describes host/decisions/computers.js. Product decisions and helpers the React bundle (ui/react/app.js) compiles in; the bundle is not traced by import. |
-| `host/decisions/computers.js` | `apps/poolday/host/decisions/computers.js` | apps/poolday | Product decisions and helpers the React bundle (ui/react/app.js) compiles in; the bundle is not traced by import. |
-| `host/decisions/conversation-controller.d.ts` | `apps/poolday/host/decisions/conversation-controller.d.ts` | apps/poolday | Describes host/decisions/conversation-controller.js. Product decisions and helpers the React bundle (ui/react/app.js) compiles in; the bundle is not traced by import. |
-| `host/decisions/conversation-controller.js` | `apps/poolday/host/decisions/conversation-controller.js` | apps/poolday | Product decisions and helpers the React bundle (ui/react/app.js) compiles in; the bundle is not traced by import. |
-| `host/decisions/conversation-details.d.ts` | `apps/poolday/host/decisions/conversation-details.d.ts` | apps/poolday | Describes host/decisions/conversation-details.js. Product decisions and helpers the React bundle (ui/react/app.js) compiles in; the bundle is not traced by import. |
-| `host/decisions/conversation-details.js` | `apps/poolday/host/decisions/conversation-details.js` | apps/poolday | Product decisions and helpers the React bundle (ui/react/app.js) compiles in; the bundle is not traced by import. |
-| `host/decisions/download-dialog.js` | `apps/poolday/host/decisions/download-dialog.js` | apps/poolday | Product decisions and helpers the React bundle (ui/react/app.js) compiles in; the bundle is not traced by import. |
-| `host/decisions/model-choices.js` | `apps/poolday/host/decisions/model-choices.js` | apps/poolday | Product decisions and helpers the React bundle (ui/react/app.js) compiles in; the bundle is not traced by import. |
+| `host/decisions/ask.js` | `apps/poolday/host/decisions/ask.js` | apps/poolday | Reached only from product entries. |
+| `host/decisions/compute.js` | `apps/poolday/host/decisions/compute.js` | apps/poolday | Reached only from product entries. |
+| `host/decisions/computers.d.ts` | `apps/poolday/host/decisions/computers.d.ts` | apps/poolday | Describes host/decisions/computers.js. Reached only from product entries. |
+| `host/decisions/computers.js` | `apps/poolday/host/decisions/computers.js` | apps/poolday | Reached only from product entries. |
+| `host/decisions/conversation-controller.d.ts` | `apps/poolday/host/decisions/conversation-controller.d.ts` | apps/poolday | Describes host/decisions/conversation-controller.js. Reached only from product entries. |
+| `host/decisions/conversation-controller.js` | `apps/poolday/host/decisions/conversation-controller.js` | apps/poolday | Reached only from product entries. |
+| `host/decisions/conversation-details.d.ts` | `apps/poolday/host/decisions/conversation-details.d.ts` | apps/poolday | Describes host/decisions/conversation-details.js. Reached only from product entries. |
+| `host/decisions/conversation-details.js` | `apps/poolday/host/decisions/conversation-details.js` | apps/poolday | Reached only from product entries. |
+| `host/decisions/download-dialog.js` | `apps/poolday/host/decisions/download-dialog.js` | apps/poolday | Reached only from product entries. |
+| `host/decisions/examples.js` | `apps/poolday/host/decisions/examples.js` | apps/poolday | Reached only from product entries. |
+| `host/decisions/experiments.js` | `apps/poolday/host/decisions/experiments.js` | apps/poolday | Reached only from product entries. |
+| `host/decisions/improve.js` | `apps/poolday/host/decisions/improve.js` | apps/poolday | Reached only from product entries. |
+| `host/decisions/model-choices.js` | `apps/poolday/host/decisions/model-choices.js` | apps/poolday | Reached only from product entries. |
 | `host/decisions/model-state.d.ts` | `apps/poolday/host/decisions/model-state.d.ts` | apps/poolday | Describes host/decisions/model-state.js. Reached only from product entries. |
 | `host/decisions/model-state.js` | `apps/poolday/host/decisions/model-state.js` | apps/poolday | Reached only from product entries. |
-| `host/decisions/privacy-dialog.js` | `apps/poolday/host/decisions/privacy-dialog.js` | apps/poolday | Product decisions and helpers the React bundle (ui/react/app.js) compiles in; the bundle is not traced by import. |
-| `host/decisions/projected-store.d.ts` | `apps/poolday/host/decisions/projected-store.d.ts` | apps/poolday | Describes host/decisions/projected-store.js. Product decisions and helpers the React bundle (ui/react/app.js) compiles in; the bundle is not traced by import. |
-| `host/decisions/projected-store.js` | `apps/poolday/host/decisions/projected-store.js` | apps/poolday | Product decisions and helpers the React bundle (ui/react/app.js) compiles in; the bundle is not traced by import. |
+| `host/decisions/privacy-dialog.js` | `apps/poolday/host/decisions/privacy-dialog.js` | apps/poolday | Reached only from product entries. |
+| `host/decisions/projected-store.d.ts` | `apps/poolday/host/decisions/projected-store.d.ts` | apps/poolday | Describes host/decisions/projected-store.js. Reached only from product entries. |
+| `host/decisions/projected-store.js` | `apps/poolday/host/decisions/projected-store.js` | apps/poolday | Reached only from product entries. |
 | `host/decisions/prompt-disclosure.d.ts` | `apps/poolday/host/decisions/prompt-disclosure.d.ts` | apps/poolday | Describes host/decisions/prompt-disclosure.js. Reached only from product entries. |
 | `host/decisions/prompt-disclosure.js` | `apps/poolday/host/decisions/prompt-disclosure.js` | apps/poolday | Reached only from product entries. |
-| `host/decisions/remote-approval.js` | `apps/poolday/host/decisions/remote-approval.js` | apps/poolday | Product decisions and helpers the React bundle (ui/react/app.js) compiles in; the bundle is not traced by import. |
-| `host/decisions/settings.d.ts` | `apps/poolday/host/decisions/settings.d.ts` | apps/poolday | Describes host/decisions/settings.js. Product decisions and helpers the React bundle (ui/react/app.js) compiles in; the bundle is not traced by import. |
-| `host/decisions/settings.js` | `apps/poolday/host/decisions/settings.js` | apps/poolday | Product decisions and helpers the React bundle (ui/react/app.js) compiles in; the bundle is not traced by import. |
-| `host/decisions/threads.js` | `apps/poolday/host/decisions/threads.js` | apps/poolday | Product decisions and helpers the React bundle (ui/react/app.js) compiles in; the bundle is not traced by import. |
-| `host/decisions/transcript.js` | `apps/poolday/host/decisions/transcript.js` | apps/poolday | Product decisions and helpers the React bundle (ui/react/app.js) compiles in; the bundle is not traced by import. |
+| `host/decisions/records.js` | `apps/poolday/host/decisions/records.js` | apps/poolday | Reached only from product entries. |
+| `host/decisions/remote-approval.js` | `apps/poolday/host/decisions/remote-approval.js` | apps/poolday | Reached only from product entries. |
+| `host/decisions/research-forms.js` | `apps/poolday/host/decisions/research-forms.js` | apps/poolday | Reached only from product entries. |
+| `host/decisions/research-workspace.js` | `apps/poolday/host/decisions/research-workspace.js` | apps/poolday | Reached only from product entries. |
+| `host/decisions/rooms.js` | `apps/poolday/host/decisions/rooms.js` | apps/poolday | Reached only from product entries. |
+| `host/decisions/run-ledger.js` | `apps/poolday/host/decisions/run-ledger.js` | apps/poolday | Reached only from product entries. |
+| `host/decisions/run-result.js` | `apps/poolday/host/decisions/run-result.js` | apps/poolday | Reached only from product entries. |
+| `host/decisions/run-routes.js` | `apps/poolday/host/decisions/run-routes.js` | apps/poolday | Reached only from product entries. |
+| `host/decisions/settings.d.ts` | `apps/poolday/host/decisions/settings.d.ts` | apps/poolday | Describes host/decisions/settings.js. Reached only from product entries. |
+| `host/decisions/settings.js` | `apps/poolday/host/decisions/settings.js` | apps/poolday | Reached only from product entries. |
+| `host/decisions/threads.js` | `apps/poolday/host/decisions/threads.js` | apps/poolday | Reached only from product entries. |
+| `host/decisions/transcript.js` | `apps/poolday/host/decisions/transcript.js` | apps/poolday | Reached only from product entries. |
 | `host/device-capability.js` | `apps/poolday/host/device-capability.js` | apps/poolday | Reached only from product entries. |
 | `host/device-search.js` | `apps/poolday/host/device-search.js` | apps/poolday | Reached only from product entries. |
 | `host/document-comparison.js` | `apps/poolday/host/document-comparison.js` | apps/poolday | Reached only from product entries. |
@@ -459,7 +471,7 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `host/fleet-account.js` | `apps/poolday/host/fleet-account.js` | apps/poolday | Reached only from product entries. |
 | `host/guest-join.js` | `apps/poolday/host/guest-join.js` | apps/poolday | Reached only from product entries. |
 | `host/history-handover.js` | `apps/poolday/host/history-handover.js` | apps/poolday | Reached only from product entries. |
-| `host/local-data.js` | `apps/poolday/host/local-data.js` | apps/poolday | Product decisions and helpers the React bundle (ui/react/app.js) compiles in; the bundle is not traced by import. |
+| `host/local-data.js` | `apps/poolday/host/local-data.js` | apps/poolday | Reached only from product entries. |
 | `host/lora-training-executor.js` | `apps/poolday/host/lora-training-executor.js` | apps/poolday | Reached only from product entries. |
 | `host/lora-training-worker.js` | `apps/poolday/host/lora-training-worker.js` | apps/poolday | Reached only from product entries. |
 | `host/lora-training.js` | `apps/poolday/host/lora-training.js` | apps/poolday | Reached only from product entries. |
@@ -757,10 +769,6 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `styles/audit.css` | `self/styles/audit.css` | self | Reached only from substrate entries. |
 | `styles/boot.css` | `apps/poolday/styles/boot.css` | apps/poolday | Reached only from product entries. |
 | `styles/capsule.css` | `self/styles/capsule.css` | self | Reached only from substrate entries. |
-| `styles/poolday/compositions/conversation.css` | `apps/poolday/styles/poolday/compositions/conversation.css` | apps/poolday | Reached only from product entries. |
-| `styles/poolday/compositions/interaction.css` | `apps/poolday/styles/poolday/compositions/interaction.css` | apps/poolday | Reached only from product entries. |
-| `styles/poolday/compositions/mobile-navigation.css` | `apps/poolday/styles/poolday/compositions/mobile-navigation.css` | apps/poolday | Reached only from product entries. |
-| `styles/poolday/compositions/screens.css` | `apps/poolday/styles/poolday/compositions/screens.css` | apps/poolday | Reached only from product entries. |
 | `styles/poolday/layers.json` | `apps/poolday/styles/poolday/layers.json` | apps/poolday | Poolday runtime, interface and earning code used by hosted services, scripts and tests. |
 | `styles/poolday/primitives/base.css` | `apps/poolday/styles/poolday/primitives/base.css` | apps/poolday | Reached only from product entries. |
 | `styles/poolday/primitives/choices.css` | `apps/poolday/styles/poolday/primitives/choices.css` | apps/poolday | Reached only from product entries. |
@@ -768,6 +776,8 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `styles/poolday/primitives/layout.css` | `apps/poolday/styles/poolday/primitives/layout.css` | apps/poolday | Reached only from product entries. |
 | `styles/poolday/primitives/messages.css` | `apps/poolday/styles/poolday/primitives/messages.css` | apps/poolday | Reached only from product entries. |
 | `styles/poolday/primitives/optical.css` | `apps/poolday/styles/poolday/primitives/optical.css` | apps/poolday | Reached only from product entries. |
+| `styles/poolday/primitives/prism.css` | `apps/poolday/styles/poolday/primitives/prism.css` | apps/poolday | Reached only from product entries. |
+| `styles/poolday/primitives/range.css` | `apps/poolday/styles/poolday/primitives/range.css` | apps/poolday | Reached only from product entries. |
 | `styles/poolday/primitives/surfaces.css` | `apps/poolday/styles/poolday/primitives/surfaces.css` | apps/poolday | Reached only from product entries. |
 | `styles/poolday/primitives/text.css` | `apps/poolday/styles/poolday/primitives/text.css` | apps/poolday | Reached only from product entries. |
 | `styles/poolday/primitives/workspace.css` | `apps/poolday/styles/poolday/primitives/workspace.css` | apps/poolday | Reached only from product entries. |
@@ -841,91 +851,47 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `ui/change-passport/index.js` | `self/ui/change-passport/index.js` | self | Reached only from substrate entries. |
 | `ui/change-passport/styles.css` | `self/ui/change-passport/styles.css` | self | Reached only from substrate entries. |
 | `ui/components/attachments.js` | `apps/poolday/ui/components/attachments.js` | apps/poolday | Reached only from product entries. |
-| `ui/components/button-feedback.js` | `apps/poolday/ui/components/button-feedback.js` | apps/poolday | Reached only from product entries. |
-| `ui/components/choices.js` | `apps/poolday/ui/components/choices.js` | apps/poolday | Product decisions and helpers the React bundle (ui/react/app.js) compiles in; the bundle is not traced by import. |
-| `ui/components/dialog.js` | `apps/poolday/ui/components/dialog.js` | apps/poolday | Product decisions and helpers the React bundle (ui/react/app.js) compiles in; the bundle is not traced by import. |
 | `ui/components/diamond-renderer.js` | `apps/poolday/ui/components/diamond-renderer.js` | apps/poolday | Reached only from product entries. |
-| `ui/components/diamond.js` | `apps/poolday/ui/components/diamond.js` | apps/poolday | Reached only from product entries. |
-| `ui/components/disclosure.js` | `apps/poolday/ui/components/disclosure.js` | apps/poolday | Reached only from product entries. |
-| `ui/components/html.js` | `shared/ui/components/html.js` | shared | Reached from product and substrate entries. |
+| `ui/components/html.js` | `self/ui/components/html.js` | self | Reached only from substrate entries. |
 | `ui/components/inline-chat.js` | `self/ui/components/inline-chat.js` | self | Reached only from substrate entries. |
-| `ui/components/interface-icons.js` | `apps/poolday/ui/components/interface-icons.js` | apps/poolday | Reached only from product entries. |
-| `ui/components/mathematical-background.js` | `apps/poolday/ui/components/mathematical-background.js` | apps/poolday | Product decisions and helpers the React bundle (ui/react/app.js) compiles in; the bundle is not traced by import. |
-| `ui/components/message-markdown.js` | `apps/poolday/ui/components/message-markdown.js` | apps/poolday | Product decisions and helpers the React bundle (ui/react/app.js) compiles in; the bundle is not traced by import. |
-| `ui/components/model-select.js` | `apps/poolday/ui/components/model-select.js` | apps/poolday | Product decisions and helpers the React bundle (ui/react/app.js) compiles in; the bundle is not traced by import. |
-| `ui/components/permission-card.js` | `apps/poolday/ui/components/permission-card.js` | apps/poolday | Reached only from product entries. |
+| `ui/components/model-select.js` | `apps/poolday/ui/components/model-select.js` | apps/poolday | Reached only from product entries. |
 | `ui/components/vfs-progress.js` | `self/ui/components/vfs-progress.js` | self | Reached only from substrate entries. |
 | `ui/panels/cognition-panel.js` | `self/ui/panels/cognition-panel.js` | self | Reached only from substrate entries. |
-| `ui/pool-home/agent-network.js` | `apps/poolday/ui/pool-home/agent-network.js` | apps/poolday | Reached only from product entries. |
-| `ui/pool-home/answer-choice.js` | `apps/poolday/ui/pool-home/answer-choice.js` | apps/poolday | Poolday runtime, interface and earning code used by hosted services, scripts and tests. |
-| `ui/pool-home/app.bundle.js` | `apps/poolday/ui/pool-home/app.bundle.js` | apps/poolday | Reached only from product entries. |
+| `ui/pool-home/answer-choice.js` | `apps/poolday/ui/pool-home/answer-choice.js` | apps/poolday | Reached only from product entries. |
 | `ui/pool-home/auto-download.js` | `apps/poolday/ui/pool-home/auto-download.js` | apps/poolday | Poolday runtime, interface and earning code used by hosted services, scripts and tests. |
-| `ui/pool-home/capability-controls.js` | `apps/poolday/ui/pool-home/capability-controls.js` | apps/poolday | Reached only from product entries. |
-| `ui/pool-home/choice-availability.js` | `apps/poolday/ui/pool-home/choice-availability.js` | apps/poolday | Poolday runtime, interface and earning code used by hosted services, scripts and tests. |
-| `ui/pool-home/circle-guest-view.js` | `apps/poolday/ui/pool-home/circle-guest-view.js` | apps/poolday | Poolday runtime, interface and earning code used by hosted services, scripts and tests. |
+| `ui/pool-home/choice-availability.js` | `apps/poolday/ui/pool-home/choice-availability.js` | apps/poolday | Reached only from product entries. |
 | `ui/pool-home/computer-labels.js` | `apps/poolday/ui/pool-home/computer-labels.js` | apps/poolday | Reached only from product entries. |
-| `ui/pool-home/computer-preferences-view.js` | `apps/poolday/ui/pool-home/computer-preferences-view.js` | apps/poolday | Poolday runtime, interface and earning code used by hosted services, scripts and tests. |
 | `ui/pool-home/constants.js` | `apps/poolday/ui/pool-home/constants.js` | apps/poolday | Reached only from product entries. |
-| `ui/pool-home/context-indicator.js` | `apps/poolday/ui/pool-home/context-indicator.js` | apps/poolday | Poolday runtime, interface and earning code used by hosted services, scripts and tests. |
-| `ui/pool-home/contribution-models.js` | `apps/poolday/ui/pool-home/contribution-models.js` | apps/poolday | Poolday runtime, interface and earning code used by hosted services, scripts and tests. |
+| `ui/pool-home/context-indicator.js` | `apps/poolday/ui/pool-home/context-indicator.js` | apps/poolday | Reached only from product entries. |
+| `ui/pool-home/contribution-models.js` | `apps/poolday/ui/pool-home/contribution-models.js` | apps/poolday | Reached only from product entries. |
 | `ui/pool-home/contribution-state.js` | `apps/poolday/ui/pool-home/contribution-state.js` | apps/poolday | Reached only from product entries. |
-| `ui/pool-home/contribution-status-view.js` | `apps/poolday/ui/pool-home/contribution-status-view.js` | apps/poolday | Reached only from product entries. |
 | `ui/pool-home/control-display-text.js` | `apps/poolday/ui/pool-home/control-display-text.js` | apps/poolday | Reached only from product entries. |
-| `ui/pool-home/controls.js` | `apps/poolday/ui/pool-home/controls.js` | apps/poolday | Reached only from product entries. |
-| `ui/pool-home/conversation-model-picker.js` | `apps/poolday/ui/pool-home/conversation-model-picker.js` | apps/poolday | Poolday runtime, interface and earning code used by hosted services, scripts and tests. |
-| `ui/pool-home/dashboard-controls.js` | `apps/poolday/ui/pool-home/dashboard-controls.js` | apps/poolday | Reached only from product entries. |
-| `ui/pool-home/document-search.js` | `apps/poolday/ui/pool-home/document-search.js` | apps/poolday | Reached only from product entries. |
-| `ui/pool-home/examples-view.js` | `apps/poolday/ui/pool-home/examples-view.js` | apps/poolday | Reached only from product entries. |
-| `ui/pool-home/execution-activity.js` | `apps/poolday/ui/pool-home/execution-activity.js` | apps/poolday | Poolday runtime, interface and earning code used by hosted services, scripts and tests. |
+| `ui/pool-home/conversation-model-picker.js` | `apps/poolday/ui/pool-home/conversation-model-picker.js` | apps/poolday | Reached only from product entries. |
+| `ui/pool-home/execution-activity.js` | `apps/poolday/ui/pool-home/execution-activity.js` | apps/poolday | Reached only from product entries. |
 | `ui/pool-home/execution-ribbon.js` | `apps/poolday/ui/pool-home/execution-ribbon.js` | apps/poolday | Reached only from product entries. |
-| `ui/pool-home/fleet-account-view.js` | `apps/poolday/ui/pool-home/fleet-account-view.js` | apps/poolday | Poolday runtime, interface and earning code used by hosted services, scripts and tests. |
-| `ui/pool-home/history-handover-view.js` | `apps/poolday/ui/pool-home/history-handover-view.js` | apps/poolday | Reached only from product entries. |
-| `ui/pool-home/home-ask-controls.js` | `apps/poolday/ui/pool-home/home-ask-controls.js` | apps/poolday | Reached only from product entries. |
-| `ui/pool-home/index.js` | `apps/poolday/ui/pool-home/index.js` | apps/poolday | Reached only from product entries. |
+| `ui/pool-home/fleet-account-view.js` | `apps/poolday/ui/pool-home/fleet-account-view.js` | apps/poolday | Reached only from product entries. |
 | `ui/pool-home/ledger-store.js` | `apps/poolday/ui/pool-home/ledger-store.js` | apps/poolday | Reached only from product entries. |
-| `ui/pool-home/lora-training.js` | `apps/poolday/ui/pool-home/lora-training.js` | apps/poolday | Reached only from product entries. |
-| `ui/pool-home/message-list.js` | `apps/poolday/ui/pool-home/message-list.js` | apps/poolday | Poolday runtime, interface and earning code used by hosted services, scripts and tests. |
-| `ui/pool-home/model-adapters.js` | `apps/poolday/ui/pool-home/model-adapters.js` | apps/poolday | Poolday runtime, interface and earning code used by hosted services, scripts and tests. |
-| `ui/pool-home/model-preparation.js` | `apps/poolday/ui/pool-home/model-preparation.js` | apps/poolday | Poolday runtime, interface and earning code used by hosted services, scripts and tests. |
-| `ui/pool-home/model-providers.js` | `apps/poolday/ui/pool-home/model-providers.js` | apps/poolday | Poolday runtime, interface and earning code used by hosted services, scripts and tests. |
-| `ui/pool-home/navigation.js` | `apps/poolday/ui/pool-home/navigation.js` | apps/poolday | Reached only from product entries. |
-| `ui/pool-home/network-controls.js` | `apps/poolday/ui/pool-home/network-controls.js` | apps/poolday | Poolday runtime, interface and earning code used by hosted services, scripts and tests. |
-| `ui/pool-home/network-projection.js` | `apps/poolday/ui/pool-home/network-projection.js` | apps/poolday | Reached only from product entries. |
-| `ui/pool-home/operation-sharing.d.ts` | `apps/poolday/ui/pool-home/operation-sharing.d.ts` | apps/poolday | Describes ui/pool-home/operation-sharing.js. Reached only from product entries. |
-| `ui/pool-home/operation-sharing.js` | `apps/poolday/ui/pool-home/operation-sharing.js` | apps/poolday | Reached only from product entries. |
+| `ui/pool-home/message-list.js` | `apps/poolday/ui/pool-home/message-list.js` | apps/poolday | Reached only from product entries. |
+| `ui/pool-home/model-adapters.js` | `apps/poolday/ui/pool-home/model-adapters.js` | apps/poolday | Reached only from product entries. |
+| `ui/pool-home/model-preparation.js` | `apps/poolday/ui/pool-home/model-preparation.js` | apps/poolday | Reached only from product entries. |
+| `ui/pool-home/model-providers.js` | `apps/poolday/ui/pool-home/model-providers.js` | apps/poolday | Reached only from product entries. |
+| `ui/pool-home/network-controls.js` | `apps/poolday/ui/pool-home/network-controls.js` | apps/poolday | Reached only from product entries. |
 | `ui/pool-home/page-identity.js` | `apps/poolday/ui/pool-home/page-identity.js` | apps/poolday | Reached only from product entries. |
-| `ui/pool-home/participation-controls.js` | `apps/poolday/ui/pool-home/participation-controls.js` | apps/poolday | Reached only from product entries. |
-| `ui/pool-home/participation-state-view.js` | `apps/poolday/ui/pool-home/participation-state-view.js` | apps/poolday | Reached only from product entries. |
-| `ui/pool-home/peer-run-surface.js` | `apps/poolday/ui/pool-home/peer-run-surface.js` | apps/poolday | Reached only from product entries. |
 | `ui/pool-home/pending-request-recovery.js` | `apps/poolday/ui/pool-home/pending-request-recovery.js` | apps/poolday | Reached only from product entries. |
-| `ui/pool-home/prism.js` | `apps/poolday/ui/pool-home/prism.js` | apps/poolday | Reached only from product entries. |
 | `ui/pool-home/privacy-controls.js` | `apps/poolday/ui/pool-home/privacy-controls.js` | apps/poolday | Reached only from product entries. |
-| `ui/pool-home/provider-controls.js` | `apps/poolday/ui/pool-home/provider-controls.js` | apps/poolday | Reached only from product entries. |
-| `ui/pool-home/provider-status-view.js` | `apps/poolday/ui/pool-home/provider-status-view.js` | apps/poolday | Reached only from product entries. |
-| `ui/pool-home/record-controls.js` | `apps/poolday/ui/pool-home/record-controls.js` | apps/poolday | Reached only from product entries. |
 | `ui/pool-home/record-ledger-view.js` | `apps/poolday/ui/pool-home/record-ledger-view.js` | apps/poolday | Reached only from product entries. |
 | `ui/pool-home/record-persistence.js` | `apps/poolday/ui/pool-home/record-persistence.js` | apps/poolday | Reached only from product entries. |
-| `ui/pool-home/remote-permission.js` | `apps/poolday/ui/pool-home/remote-permission.js` | apps/poolday | Poolday runtime, interface and earning code used by hosted services, scripts and tests. |
-| `ui/pool-home/requester-controls.js` | `apps/poolday/ui/pool-home/requester-controls.js` | apps/poolday | Reached only from product entries. |
-| `ui/pool-home/research-adjudication-panel.js` | `apps/poolday/ui/pool-home/research-adjudication-panel.js` | apps/poolday | Reached only from product entries. |
+| `ui/pool-home/remote-permission.js` | `apps/poolday/ui/pool-home/remote-permission.js` | apps/poolday | Reached only from product entries. |
 | `ui/pool-home/research-adjudication-records.js` | `apps/poolday/ui/pool-home/research-adjudication-records.js` | apps/poolday | Reached only from product entries. |
 | `ui/pool-home/research-evaluation-records.js` | `apps/poolday/ui/pool-home/research-evaluation-records.js` | apps/poolday | Reached only from product entries. |
 | `ui/pool-home/research-form-values.js` | `apps/poolday/ui/pool-home/research-form-values.js` | apps/poolday | Reached only from product entries. |
-| `ui/pool-home/research-lifecycle-panel.js` | `apps/poolday/ui/pool-home/research-lifecycle-panel.js` | apps/poolday | Reached only from product entries. |
 | `ui/pool-home/research-lifecycle-records.js` | `apps/poolday/ui/pool-home/research-lifecycle-records.js` | apps/poolday | Reached only from product entries. |
 | `ui/pool-home/research-panels.js` | `apps/poolday/ui/pool-home/research-panels.js` | apps/poolday | Reached only from product entries. |
-| `ui/pool-home/research-plugins.js` | `apps/poolday/ui/pool-home/research-plugins.js` | apps/poolday | Reached only from product entries. |
 | `ui/pool-home/research-question-records.js` | `apps/poolday/ui/pool-home/research-question-records.js` | apps/poolday | Reached only from product entries. |
 | `ui/pool-home/research-review-records.js` | `apps/poolday/ui/pool-home/research-review-records.js` | apps/poolday | Reached only from product entries. |
 | `ui/pool-home/research-room-actions.js` | `apps/poolday/ui/pool-home/research-room-actions.js` | apps/poolday | Reached only from product entries. |
-| `ui/pool-home/research-room-route.js` | `apps/poolday/ui/pool-home/research-room-route.js` | apps/poolday | Reached only from product entries. |
 | `ui/pool-home/research-store.js` | `apps/poolday/ui/pool-home/research-store.js` | apps/poolday | Reached only from product entries. |
-| `ui/pool-home/research-technical-panel.js` | `apps/poolday/ui/pool-home/research-technical-panel.js` | apps/poolday | Reached only from product entries. |
-| `ui/pool-home/research-view.js` | `apps/poolday/ui/pool-home/research-view.js` | apps/poolday | Reached only from product entries. |
 | `ui/pool-home/research-work-records.js` | `apps/poolday/ui/pool-home/research-work-records.js` | apps/poolday | Reached only from product entries. |
-| `ui/pool-home/research-workspace-binding.js` | `apps/poolday/ui/pool-home/research-workspace-binding.js` | apps/poolday | Reached only from product entries. |
-| `ui/pool-home/research-workspace-render.js` | `apps/poolday/ui/pool-home/research-workspace-render.js` | apps/poolday | Reached only from product entries. |
-| `ui/pool-home/room-activity-controls.js` | `apps/poolday/ui/pool-home/room-activity-controls.js` | apps/poolday | Reached only from product entries. |
 | `ui/pool-home/room-adjudication-proof.js` | `apps/poolday/ui/pool-home/room-adjudication-proof.js` | apps/poolday | Reached only from product entries. |
 | `ui/pool-home/room-context-projection.js` | `apps/poolday/ui/pool-home/room-context-projection.js` | apps/poolday | Reached only from product entries. |
 | `ui/pool-home/room-evidence-archive.js` | `apps/poolday/ui/pool-home/room-evidence-archive.js` | apps/poolday | Reached only from product entries. |
@@ -935,33 +901,12 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `ui/pool-home/room-record-projection.js` | `apps/poolday/ui/pool-home/room-record-projection.js` | apps/poolday | Reached only from product entries. |
 | `ui/pool-home/room-result-projection.js` | `apps/poolday/ui/pool-home/room-result-projection.js` | apps/poolday | Reached only from product entries. |
 | `ui/pool-home/room-timeline-projection.js` | `apps/poolday/ui/pool-home/room-timeline-projection.js` | apps/poolday | Reached only from product entries. |
-| `ui/pool-home/room-view.js` | `apps/poolday/ui/pool-home/room-view.js` | apps/poolday | Reached only from product entries. |
-| `ui/pool-home/route-alternatives.js` | `apps/poolday/ui/pool-home/route-alternatives.js` | apps/poolday | Poolday runtime, interface and earning code used by hosted services, scripts and tests. |
+| `ui/pool-home/route-alternatives.js` | `apps/poolday/ui/pool-home/route-alternatives.js` | apps/poolday | Reached only from product entries. |
 | `ui/pool-home/route-controls.js` | `apps/poolday/ui/pool-home/route-controls.js` | apps/poolday | Reached only from product entries. |
-| `ui/pool-home/route-detail-view.js` | `apps/poolday/ui/pool-home/route-detail-view.js` | apps/poolday | Reached only from product entries. |
-| `ui/pool-home/run-contribution-evidence.js` | `apps/poolday/ui/pool-home/run-contribution-evidence.js` | apps/poolday | Reached only from product entries. |
-| `ui/pool-home/run-controls.js` | `apps/poolday/ui/pool-home/run-controls.js` | apps/poolday | Reached only from product entries. |
 | `ui/pool-home/run-result-format.js` | `apps/poolday/ui/pool-home/run-result-format.js` | apps/poolday | Reached only from product entries. |
-| `ui/pool-home/run-result-view.js` | `apps/poolday/ui/pool-home/run-result-view.js` | apps/poolday | Reached only from product entries. |
-| `ui/pool-home/run-visual-state.js` | `apps/poolday/ui/pool-home/run-visual-state.js` | apps/poolday | Reached only from product entries. |
-| `ui/pool-home/sequence-consent.js` | `apps/poolday/ui/pool-home/sequence-consent.js` | apps/poolday | Reached only from product entries. |
 | `ui/pool-home/service-credit-text.js` | `apps/poolday/ui/pool-home/service-credit-text.js` | apps/poolday | Reached only from product entries. |
-| `ui/pool-home/shell-view.js` | `apps/poolday/ui/pool-home/shell-view.js` | apps/poolday | Reached only from product entries. |
-| `ui/pool-home/specialist-routes.js` | `apps/poolday/ui/pool-home/specialist-routes.js` | apps/poolday | Reached only from product entries. |
-| `ui/pool-home/theme.js` | `apps/poolday/ui/pool-home/theme.js` | apps/poolday | Reached only from product entries. |
 | `ui/pool-home/view-markup.js` | `apps/poolday/ui/pool-home/view-markup.js` | apps/poolday | Reached only from product entries. |
-| `ui/pool-home/view.js` | `apps/poolday/ui/pool-home/view.js` | apps/poolday | Reached only from product entries. |
-| `ui/pool-home/web-search-settings.js` | `apps/poolday/ui/pool-home/web-search-settings.js` | apps/poolday | Poolday runtime, interface and earning code used by hosted services, scripts and tests. |
-| `ui/pool-home/work-activity-list.js` | `apps/poolday/ui/pool-home/work-activity-list.js` | apps/poolday | Reached only from product entries. |
-| `ui/pool-home/work-approval-panel.js` | `apps/poolday/ui/pool-home/work-approval-panel.js` | apps/poolday | Reached only from product entries. |
-| `ui/pool-home/work-capabilities.js` | `apps/poolday/ui/pool-home/work-capabilities.js` | apps/poolday | Reached only from product entries. |
-| `ui/pool-home/work-goal-composer.js` | `apps/poolday/ui/pool-home/work-goal-composer.js` | apps/poolday | Reached only from product entries. |
-| `ui/pool-home/work-layout.js` | `apps/poolday/ui/pool-home/work-layout.js` | apps/poolday | Reached only from product entries. |
-| `ui/pool-home/work-result-view.js` | `apps/poolday/ui/pool-home/work-result-view.js` | apps/poolday | Reached only from product entries. |
-| `ui/pool-home/work-task-header.js` | `apps/poolday/ui/pool-home/work-task-header.js` | apps/poolday | Reached only from product entries. |
-| `ui/pool-home/work-task-history.js` | `apps/poolday/ui/pool-home/work-task-history.js` | apps/poolday | Reached only from product entries. |
-| `ui/pool-home/work-tool-offers.js` | `apps/poolday/ui/pool-home/work-tool-offers.js` | apps/poolday | Reached only from product entries. |
-| `ui/pool-home/work.js` | `apps/poolday/ui/pool-home/work.js` | apps/poolday | Reached only from product entries. |
+| `ui/pool-home/web-search-settings.js` | `apps/poolday/ui/pool-home/web-search-settings.js` | apps/poolday | Reached only from product entries. |
 | `ui/proto/index.js` | `self/ui/proto/index.js` | self | Reached only from substrate entries. |
 | `ui/proto/optimization.js` | `self/ui/proto/optimization.js` | self | Reached only from substrate entries. |
 | `ui/proto/replay.js` | `self/ui/proto/replay.js` | self | Reached only from substrate entries. |

@@ -3010,6 +3010,46 @@
       "imports": []
     },
     {
+      "path": "self/host/decisions/ask.js",
+      "owner": "self",
+      "sha256": "sha256:4dabdc4beb33fa3fea0da38572f228d41b672437b826c42da8c1d5db7c5a4507",
+      "imports": [
+        "../../pool/model-contract.js",
+        "../../pool/participation-profile.js",
+        "../../pool/peer-rendezvous.js",
+        "../../pool/policy-router.js",
+        "../../pool/sequence-workload.js",
+        "../../ui/pool-home/control-display-text.js",
+        "../../ui/pool-home/page-identity.js",
+        "../../ui/pool-home/route-controls.js",
+        "../peer-run-session.js",
+        "../product-context.js",
+        "./run-ledger.js",
+        "./run-result.js",
+        "./run-routes.js"
+      ]
+    },
+    {
+      "path": "self/host/decisions/compute.js",
+      "owner": "self",
+      "sha256": "sha256:1a8d5b81ba77f5a9a8668919c22e0bc612cf52edb7ba1a9ebfd178770f2d0ab8",
+      "imports": [
+        "../../pool/model-contract.js",
+        "../../pool/participation-profile.js",
+        "../../pool/peer-rendezvous.js",
+        "../../ui/pool-home/contribution-state.js",
+        "../../ui/pool-home/control-display-text.js",
+        "../../ui/pool-home/page-identity.js",
+        "../../ui/pool-home/room-record-projection.js",
+        "../../ui/pool-home/view-markup.js",
+        "../product-context.js",
+        "../provider-contribution-session.js",
+        "./run-ledger.js",
+        "./run-result.js",
+        "./run-routes.js"
+      ]
+    },
+    {
       "path": "self/host/decisions/computers.js",
       "owner": "self",
       "sha256": "sha256:a0631ad93e3b9c75c5660867ea0497ef2900d5627e4a0d715cb57ff35fbd03c9",
@@ -3089,6 +3129,49 @@
       ]
     },
     {
+      "path": "self/host/decisions/examples.js",
+      "owner": "self",
+      "sha256": "sha256:3d3cfc2bcfff8f6b27e69db2d47492411b544ec1affc8d837ced68b3ad999f07",
+      "imports": [
+        "../../config/surface-intents.js",
+        "../../pool/document-search-policy.json",
+        "../../pool/model-contract.js",
+        "../../pool/peer-rendezvous.js",
+        "../../pool/policy-router.js",
+        "../../pool/sequence-workload.js",
+        "../../ui/components/attachments.js",
+        "../../ui/components/diamond-renderer.js",
+        "../../ui/pool-home/computer-labels.js",
+        "../../ui/pool-home/constants.js",
+        "../../ui/pool-home/contribution-state.js",
+        "../../ui/pool-home/control-display-text.js",
+        "../../ui/pool-home/page-identity.js",
+        "../../ui/pool-home/pending-request-recovery.js",
+        "../../ui/pool-home/record-ledger-view.js",
+        "../../ui/pool-home/run-result-format.js",
+        "../../ui/pool-home/view-markup.js",
+        "../peer-run-session.js",
+        "../product-context.js"
+      ]
+    },
+    {
+      "path": "self/host/decisions/experiments.js",
+      "owner": "self",
+      "sha256": "sha256:8f6ada59d2a59d33ff581d09ede49a55d373303e183a15b4356a5e54a89d13d6",
+      "imports": [
+        "../research-plugins.js"
+      ]
+    },
+    {
+      "path": "self/host/decisions/improve.js",
+      "owner": "self",
+      "sha256": "sha256:27f938aa100c1a2b8730d836a7242c03275aeb74214a9deeefac69ba4a151389",
+      "imports": [
+        "../../ui/pool-home/privacy-controls.js",
+        "../work-session.js"
+      ]
+    },
+    {
       "path": "self/host/decisions/model-choices.js",
       "owner": "self",
       "sha256": "sha256:1f568b624875bf1f1c6bd795caa12e0e7fa74884783768f5f5f37fac7e257acd",
@@ -3134,11 +3217,102 @@
       ]
     },
     {
+      "path": "self/host/decisions/records.js",
+      "owner": "self",
+      "sha256": "sha256:c4337fabcf7701892acb80018309e3da2c9425b86da40e8cd80b6d5a0da82e68",
+      "imports": [
+        "../../pool/peer-control-plane.js",
+        "../../pool/sdk.js",
+        "../../ui/pool-home/constants.js",
+        "../../ui/pool-home/contribution-state.js",
+        "../../ui/pool-home/control-display-text.js",
+        "../../ui/pool-home/ledger-store.js",
+        "../../ui/pool-home/record-persistence.js",
+        "../../ui/pool-home/room-record-projection.js",
+        "../../ui/pool-home/view-markup.js",
+        "../product-context.js"
+      ]
+    },
+    {
       "path": "self/host/decisions/remote-approval.js",
       "owner": "self",
       "sha256": "sha256:2cb764bca22848fd8a15164fc6cb53cffd39ee4bf35aee3dbbbdd238b4548183",
       "imports": [
         "../../ui/pool-home/remote-permission.js"
+      ]
+    },
+    {
+      "path": "self/host/decisions/research-forms.js",
+      "owner": "self",
+      "sha256": "sha256:f3a1647d51defc46e4664e1f8c4bda742003b19081158f010dab0a3d3a752b97",
+      "imports": []
+    },
+    {
+      "path": "self/host/decisions/research-workspace.js",
+      "owner": "self",
+      "sha256": "sha256:dbb2f65a60ffd55f5174348d18f024ef7a70deb35504c7b401547378b31defc3",
+      "imports": [
+        "../../pool/evidence-network.js",
+        "../../ui/pool-home/research-panels.js",
+        "../../ui/pool-home/research-review-records.js",
+        "./research-forms.js"
+      ]
+    },
+    {
+      "path": "self/host/decisions/rooms.js",
+      "owner": "self",
+      "sha256": "sha256:f3d3e7420be9cdaf141faa5ad6647884bdb0379068ba20c910cdb722e4401595",
+      "imports": [
+        "../../pool/discovery-contract.js",
+        "../../pool/evidence-network.js",
+        "../../pool/identity.js",
+        "../../pool/model-contract.js",
+        "../../pool/policy-router.js",
+        "../../ui/pool-home/constants.js",
+        "../../ui/pool-home/ledger-store.js",
+        "../../ui/pool-home/record-persistence.js",
+        "../../ui/pool-home/research-lifecycle-records.js",
+        "../../ui/pool-home/research-review-records.js",
+        "../../ui/pool-home/research-room-actions.js",
+        "../../ui/pool-home/research-store.js",
+        "../../ui/pool-home/room-projection.js",
+        "../product-context.js",
+        "./research-workspace.js"
+      ]
+    },
+    {
+      "path": "self/host/decisions/run-ledger.js",
+      "owner": "self",
+      "sha256": "sha256:661c24ffecff6e6f91efd132dc683b22a64152d42ad969ab05490af47b4a9f21",
+      "imports": [
+        "../../ui/pool-home/constants.js",
+        "../../ui/pool-home/ledger-store.js",
+        "../../ui/pool-home/record-persistence.js",
+        "../../ui/pool-home/room-record-projection.js",
+        "../../ui/pool-home/view-markup.js",
+        "../product-context.js"
+      ]
+    },
+    {
+      "path": "self/host/decisions/run-result.js",
+      "owner": "self",
+      "sha256": "sha256:82b6686beaf5fd703cc1c85e45de0a3ee5bd6a25e44cf27201dacf2a68c2291d",
+      "imports": [
+        "../../ui/pool-home/run-result-format.js",
+        "../../ui/pool-home/view-markup.js"
+      ]
+    },
+    {
+      "path": "self/host/decisions/run-routes.js",
+      "owner": "self",
+      "sha256": "sha256:a25ff957345c154c7b73c219b50cc136083028cd5c68184a3692e14b5fb81b04",
+      "imports": [
+        "../../pool/identity.js",
+        "../../pool/model-contract.js",
+        "../../pool/participation-profile.js",
+        "../../pool/policy-router.js",
+        "../../ui/pool-home/view-markup.js",
+        "./run-result.js"
       ]
     },
     {
@@ -3198,7 +3372,7 @@
     {
       "path": "self/host/document-study.js",
       "owner": "self",
-      "sha256": "sha256:86aa1ae8127b18366ce39b3ec1b4aafa0eff7a8b87e326899c7b369b257b3b0e",
+      "sha256": "sha256:9861a2b80e8d1f48f39c608bd05d45f3505be5d1d5689830b4c2e8b26997230a",
       "imports": []
     },
     {
@@ -3898,7 +4072,7 @@
     {
       "path": "self/manifest.js",
       "owner": "self",
-      "sha256": "sha256:ff2a0afd5b631b8714e28cd703f1654f0c997f310abf8dbc84749c2d111b961c",
+      "sha256": "sha256:05ec679c64f5c2ebc8fc56739a6387a5774510a985b7a1fb4573a97428de6434",
       "imports": [
         "./boot-spec.js",
         "./config/tool-surfaces.js",
@@ -4440,48 +4614,13 @@
     {
       "path": "ui/components/attachments.js",
       "owner": "ui",
-      "sha256": "sha256:b68b86833282fe4e069e668b0e0df6c92ad9f9dc02a539074a1dd8f1d8ef89b0",
-      "imports": [
-        "./html.js"
-      ]
-    },
-    {
-      "path": "ui/components/button-feedback.js",
-      "owner": "ui",
-      "sha256": "sha256:f17118bf0ebfa1877f20bcc2bdf68f706f007ea943e5328e98d2f4e5d84b5fd4",
-      "imports": []
-    },
-    {
-      "path": "ui/components/choices.js",
-      "owner": "ui",
-      "sha256": "sha256:668ef13eb57f83a90d64c838f38b2d9b07b9e903ec45813f8e43745a98124ea5",
-      "imports": [
-        "./attachments.js",
-        "./interface-icons.js"
-      ]
-    },
-    {
-      "path": "ui/components/dialog.js",
-      "owner": "ui",
-      "sha256": "sha256:0b79416cba8a9c1f6d813ffe723979a1587c183e1f16777ba8b4e48c92ec1ed4",
+      "sha256": "sha256:1b7cbb171df3f608d8c5e46eb5129b05e4da8c7f2740965288c01ca3bd4a3b3f",
       "imports": []
     },
     {
       "path": "ui/components/diamond-renderer.js",
       "owner": "ui",
       "sha256": "sha256:7e45a7ad7ea033d8bd676339cdb15856eb63a2fb3c1229d42cde7f7d8c268bec",
-      "imports": []
-    },
-    {
-      "path": "ui/components/diamond.js",
-      "owner": "ui",
-      "sha256": "sha256:f8c588f35e7e30345c8dea72915a5cfd15f329977d51d252bc16f17a35eba918",
-      "imports": []
-    },
-    {
-      "path": "ui/components/disclosure.js",
-      "owner": "ui",
-      "sha256": "sha256:4124879f37f9e409a7c481e1d468e9597d82f23a72facd43a45c12b833862514",
       "imports": []
     },
     {
@@ -4497,39 +4636,11 @@
       "imports": []
     },
     {
-      "path": "ui/components/interface-icons.js",
-      "owner": "ui",
-      "sha256": "sha256:820fc87eb33b151ee947bed660b0f86a48f0cb1e9e83f70aa43521eee46726b8",
-      "imports": []
-    },
-    {
-      "path": "ui/components/mathematical-background.js",
-      "owner": "ui",
-      "sha256": "sha256:d2957d53f3a882ad0bb82b2e66084df0da02ab0574b8b0bc33cb4802fe7097ab",
-      "imports": []
-    },
-    {
-      "path": "ui/components/message-markdown.js",
-      "owner": "ui",
-      "sha256": "sha256:58eb6a02055472018044bb9b9e4a3cc956595d983533bb60210b1ef7d7ec3053",
-      "imports": []
-    },
-    {
       "path": "ui/components/model-select.js",
       "owner": "ui",
-      "sha256": "sha256:278039db839205a450e11ab33d7302cfb764ed0ff64eab5e04d74424c3e20f1e",
+      "sha256": "sha256:bb4496e66e36293f3896dfb3873755e6265ca49bdad25da5ba45a2c4e3d34fe4",
       "imports": [
-        "../../host/decisions/model-state.js",
-        "./attachments.js",
-        "./interface-icons.js"
-      ]
-    },
-    {
-      "path": "ui/components/permission-card.js",
-      "owner": "ui",
-      "sha256": "sha256:7b5ba4e62620109a5e9799ae5e2c3d5deaec4b48f6588b6473218e8dff3235b3",
-      "imports": [
-        "./attachments.js"
+        "../../host/decisions/model-state.js"
       ]
     },
     {
@@ -4545,14 +4656,6 @@
       "imports": []
     },
     {
-      "path": "ui/pool-home/agent-network.js",
-      "owner": "ui",
-      "sha256": "sha256:204efbc8b7a74b32d7ba31fb095c2ef3156d625ecb4ba6bd843145bd6c82fa22",
-      "imports": [
-        "../../host/computer-records.js"
-      ]
-    },
-    {
       "path": "ui/pool-home/answer-choice.js",
       "owner": "ui",
       "sha256": "sha256:4aabd57a8a2130664602abe8488fd662eda41189d52860d590de748a42feef27",
@@ -4561,26 +4664,12 @@
       ]
     },
     {
-      "path": "ui/pool-home/app.bundle.js",
-      "owner": "ui",
-      "sha256": "sha256:d81459e72b33dc35d63e62af58f9c93f999014d158f1aefd2339ff955897f35c",
-      "imports": []
-    },
-    {
       "path": "ui/pool-home/auto-download.js",
       "owner": "ui",
-      "sha256": "sha256:b025401a0b20c6fa62d139476f093976b66dd142d7a68b6cd5b1ae36b7db9ef9",
+      "sha256": "sha256:4301b372ac14935a7e3c2a85d1c3652e24ae1b00b5453e2c355af1b7338a7d62",
       "imports": [
         "../../config/chat-files.json",
         "../components/model-select.js"
-      ]
-    },
-    {
-      "path": "ui/pool-home/capability-controls.js",
-      "owner": "ui",
-      "sha256": "sha256:cb8c68a457c263a42752e73bdf587675fd70ebae84401dfd55573e5f918be0ab",
-      "imports": [
-        "../../host/device-capability.js"
       ]
     },
     {
@@ -4595,15 +4684,6 @@
       ]
     },
     {
-      "path": "ui/pool-home/circle-guest-view.js",
-      "owner": "ui",
-      "sha256": "sha256:0a87168e8a9fbaee3ad6779706be591d9a153241c3c4cbbccb8b6ac7f38df78f",
-      "imports": [
-        "../../host/circle-invites.js",
-        "../components/attachments.js"
-      ]
-    },
-    {
       "path": "ui/pool-home/computer-labels.js",
       "owner": "ui",
       "sha256": "sha256:86493dea3a61d54d5c03500b789e2801574ee28610426c5286e3ca92937d9061",
@@ -4612,20 +4692,9 @@
       ]
     },
     {
-      "path": "ui/pool-home/computer-preferences-view.js",
-      "owner": "ui",
-      "sha256": "sha256:20ad006a777fc69b77dc9168cad739f2200844afb49d8cb2bcb6ec8be7675eb2",
-      "imports": [
-        "../../config/computer-preferences.json",
-        "../../vendor/reploid/contracts/identifiers.js",
-        "./computer-labels.js",
-        "./execution-ribbon.js"
-      ]
-    },
-    {
       "path": "ui/pool-home/constants.js",
       "owner": "ui",
-      "sha256": "sha256:6db4202c74b6bb69fedb0ad40e4e05170d032bc9f9b95b36a6dd4471238b594a",
+      "sha256": "sha256:10a81d78454bea5d7908d85924d7ef570095d3ba15ce244d06e671314f6d782d",
       "imports": [
         "../../config/chat-prompts.json"
       ]
@@ -4642,57 +4711,23 @@
     {
       "path": "ui/pool-home/contribution-models.js",
       "owner": "ui",
-      "sha256": "sha256:172389166404bae799d4a252212e714f0ae80669bbe35ef8667b4b4578994b15",
+      "sha256": "sha256:1c58b149b17952eb6b3cb57cb0535756462d600c6fca90691244d21c25c05424",
       "imports": [
         "../../host/decisions/model-state.js",
-        "../components/interface-icons.js",
-        "../components/model-select.js",
         "./model-preparation.js"
       ]
     },
     {
       "path": "ui/pool-home/contribution-state.js",
       "owner": "ui",
-      "sha256": "sha256:857492caf03672ab69e76f97d071df151604bad99612ae365ad7fe5fb2cf0f04",
+      "sha256": "sha256:7e1f021bec84e6984e487301e0830571a998cbcc84087eeb12608041429576c7",
       "imports": []
-    },
-    {
-      "path": "ui/pool-home/contribution-status-view.js",
-      "owner": "ui",
-      "sha256": "sha256:9b6910e9b9190058f888732f8625ed2fac50957e96d576444460a159917ba047",
-      "imports": [
-        "../components/html.js",
-        "./contribution-state.js",
-        "./record-ledger-view.js",
-        "./room-record-projection.js",
-        "./view-markup.js"
-      ]
     },
     {
       "path": "ui/pool-home/control-display-text.js",
       "owner": "ui",
       "sha256": "sha256:583d37924de6605c7e0dbc5b7de5860bf173bf91139bf761329021006695feb9",
       "imports": []
-    },
-    {
-      "path": "ui/pool-home/controls.js",
-      "owner": "ui",
-      "sha256": "sha256:3e484e087e2a9527c4c5628c3e85e16c9e18d00f2189f21a230dbec2d084c7e3",
-      "imports": [
-        "../../host/contribution-resume.js",
-        "../../host/device-capability.js",
-        "./capability-controls.js",
-        "./dashboard-controls.js",
-        "./home-ask-controls.js",
-        "./page-identity.js",
-        "./participation-controls.js",
-        "./participation-state-view.js",
-        "./pending-request-recovery.js",
-        "./provider-controls.js",
-        "./record-controls.js",
-        "./room-activity-controls.js",
-        "./run-controls.js"
-      ]
     },
     {
       "path": "ui/pool-home/conversation-model-picker.js",
@@ -4706,102 +4741,27 @@
       ]
     },
     {
-      "path": "ui/pool-home/dashboard-controls.js",
-      "owner": "ui",
-      "sha256": "sha256:ec53a46ececed8c4a4c3235f0a698f03ee87cd36a4659a66160c203f54885ce3",
-      "imports": []
-    },
-    {
-      "path": "ui/pool-home/document-search.js",
-      "owner": "ui",
-      "sha256": "sha256:7441e5d55e0715b6a689a5e2c2b8b802da85ea0e0e85e410d5aeba97874a8960",
-      "imports": [
-        "../../pool/document-search-policy.json",
-        "../components/attachments.js",
-        "../components/permission-card.js",
-        "./computer-labels.js"
-      ]
-    },
-    {
-      "path": "ui/pool-home/examples-view.js",
-      "owner": "ui",
-      "sha256": "sha256:9bf56505edc5f6b11652cfc475085be8c2fa51746db653e734f83e90fb21d077",
-      "imports": [
-        "../../config/surface-intents.js",
-        "../../pool/model-contract.js",
-        "../components/diamond.js",
-        "../components/html.js",
-        "./constants.js",
-        "./document-search.js",
-        "./route-controls.js",
-        "./run-result-view.js",
-        "./shell-view.js"
-      ]
-    },
-    {
       "path": "ui/pool-home/execution-activity.js",
       "owner": "ui",
-      "sha256": "sha256:d051f1a268e84b2bc9107cb89cf36ffd590f2e4bb50e38bcaa7435aad99ca7a7",
+      "sha256": "sha256:0133c19d200861d342f17cf1290942bc47515856d454705943789b5e2855191e",
       "imports": [
-        "../components/attachments.js",
-        "../components/interface-icons.js",
-        "./execution-ribbon.js",
-        "./service-credit-text.js"
+        "./execution-ribbon.js"
       ]
     },
     {
       "path": "ui/pool-home/execution-ribbon.js",
       "owner": "ui",
-      "sha256": "sha256:91efd7cd5f02f31c8a1df96f2978bb5fa88b9c2919bcf8c9427a7b81460ffdf8",
+      "sha256": "sha256:2abd1175bd5bc95212413abb443cd1fc3c9426fee4dfcd8a4ba580bac039c1c0",
       "imports": [
         "../../vendor/reploid/mesh/provider-hardware.js",
-        "./computer-labels.js",
-        "./service-credit-text.js"
+        "./computer-labels.js"
       ]
     },
     {
       "path": "ui/pool-home/fleet-account-view.js",
       "owner": "ui",
-      "sha256": "sha256:d5101e1d1af7802488d7ee937e8651ee80bbfb8e06823a50aca71ab4442c7358",
-      "imports": [
-        "../components/attachments.js",
-        "../components/choices.js",
-        "../components/dialog.js",
-        "./service-credit-text.js"
-      ]
-    },
-    {
-      "path": "ui/pool-home/history-handover-view.js",
-      "owner": "ui",
-      "sha256": "sha256:a1cfa837762f2ecd388c875ee59ccdb2b0ac36b5e3e0a97a6258251a3a5edb7f",
+      "sha256": "sha256:b241db9cb54af9b0ae3cebd7a795165c90da82e0dbbee6a756720b8d4a9f00e4",
       "imports": []
-    },
-    {
-      "path": "ui/pool-home/home-ask-controls.js",
-      "owner": "ui",
-      "sha256": "sha256:831431b6b7aa0366518f16f1a0c754fcef12f2430bb8d41a05b8353d21a1c273",
-      "imports": [
-        "../../pool/model-contract.js",
-        "../../pool/sequence-workload.js",
-        "./constants.js",
-        "./peer-run-surface.js",
-        "./sequence-consent.js"
-      ]
-    },
-    {
-      "path": "ui/pool-home/index.js",
-      "owner": "ui",
-      "sha256": "sha256:33d997b37b702b4bbb0ee3060454bf85dd3fa2e866ecc4f512f143b8721b4c93",
-      "imports": [
-        "../../host/open-product-host.js",
-        "../components/button-feedback.js",
-        "./constants.js",
-        "./execution-ribbon.js",
-        "./history-handover-view.js",
-        "./navigation.js",
-        "./shell-view.js",
-        "./theme.js"
-      ]
     },
     {
       "path": "ui/pool-home/ledger-store.js",
@@ -4810,29 +4770,16 @@
       "imports": []
     },
     {
-      "path": "ui/pool-home/lora-training.js",
-      "owner": "ui",
-      "sha256": "sha256:6a4034072381d74c1b55325f010d635d521c87e05a99a9993d473667121a6d78",
-      "imports": []
-    },
-    {
       "path": "ui/pool-home/message-list.js",
       "owner": "ui",
-      "sha256": "sha256:2f3227581e2756d566b7637302fc8757ce8167a2436d8a08193f7511b958eb91",
-      "imports": [
-        "../components/attachments.js",
-        "../components/interface-icons.js",
-        "../components/message-markdown.js",
-        "./execution-activity.js",
-        "./privacy-controls.js"
-      ]
+      "sha256": "sha256:45a80176b46b7c3ecdfd61191dddc8fb0bc1c7120fe602c75986d0ae1bf6f3f9",
+      "imports": []
     },
     {
       "path": "ui/pool-home/model-adapters.js",
       "owner": "ui",
-      "sha256": "sha256:c3e57a1fa05730e936a7708d8a7b29723b9ba0dc00bd432e01dfaaf4ca041d6a",
+      "sha256": "sha256:caa7262aa25fac500f3616cfdbcec33ec71dc5243cb15d408735947000b07d16",
       "imports": [
-        "../components/attachments.js",
         "../components/model-select.js",
         "./model-providers.js"
       ]
@@ -4848,59 +4795,21 @@
     {
       "path": "ui/pool-home/model-providers.js",
       "owner": "ui",
-      "sha256": "sha256:b7029273233f06f3650b77d3eec0aff1a61f30e0a06e0420d2aa483b4f0e2fa1",
+      "sha256": "sha256:313c2e99961e30c6c688e3ba913fd08efc51901156acf7d71414fa4c58fe4e6b",
       "imports": [
         "../../host/decisions/model-state.js",
-        "../components/attachments.js",
-        "../components/interface-icons.js",
         "./computer-labels.js",
         "./execution-ribbon.js",
         "./network-controls.js"
       ]
     },
     {
-      "path": "ui/pool-home/navigation.js",
-      "owner": "ui",
-      "sha256": "sha256:01bf18ca5207cde5c4912b5e97950e88dc5cd6e263238ba998dc8d30aa3686e3",
-      "imports": [
-        "./shell-view.js"
-      ]
-    },
-    {
       "path": "ui/pool-home/network-controls.js",
       "owner": "ui",
-      "sha256": "sha256:7e7024cd96663888f74e5bee99de10a11266bcb35e0b1dde1bed36f2ee3cd735",
+      "sha256": "sha256:a804779a1687d4a2909f3640872572ca9ebed233700e6ed64550fa41ffb4ffc9",
       "imports": [
-        "../../capabilities/communication/library-adapter.js",
-        "../../host/decisions/model-state.js",
         "../../vendor/reploid/mesh/preparation-progress.js",
-        "../components/attachments.js",
-        "../components/choices.js",
-        "../components/model-select.js",
-        "./choice-availability.js",
-        "./computer-labels.js",
-        "./computer-preferences-view.js",
-        "./execution-ribbon.js",
         "./model-preparation.js"
-      ]
-    },
-    {
-      "path": "ui/pool-home/network-projection.js",
-      "owner": "ui",
-      "sha256": "sha256:1828eb9a3196cc0edf1cc84e211ab985a589aff7f56c11b00f78a17a909066db",
-      "imports": [
-        "./constants.js"
-      ]
-    },
-    {
-      "path": "ui/pool-home/operation-sharing.js",
-      "owner": "ui",
-      "sha256": "sha256:4538ee30f24db4cfd8c83c6bb847d20135a2145c91b1eb32c94aef6f0a5b4f53",
-      "imports": [
-        "../../pool/model-contract.js",
-        "../../pool/operation-model.js",
-        "../../pool/pool-config.json",
-        "../components/html.js"
       ]
     },
     {
@@ -4910,69 +4819,14 @@
       "imports": []
     },
     {
-      "path": "ui/pool-home/participation-controls.js",
-      "owner": "ui",
-      "sha256": "sha256:7b7de9c6803a815159dc27bd768ad9fc63c5d7e408d9eb7f31ec15691334238a",
-      "imports": [
-        "../../pool/participation-profile.js",
-        "./control-display-text.js",
-        "./participation-state-view.js",
-        "./provider-controls.js"
-      ]
-    },
-    {
-      "path": "ui/pool-home/participation-state-view.js",
-      "owner": "ui",
-      "sha256": "sha256:c8579189c1dc8602eebb439af689c18022540e4383464556761f0dfc0f497844",
-      "imports": [
-        "../../pool/identity.js",
-        "../../pool/participation-profile.js",
-        "./control-display-text.js",
-        "./view.js"
-      ]
-    },
-    {
-      "path": "ui/pool-home/peer-run-surface.js",
-      "owner": "ui",
-      "sha256": "sha256:640f813dd1fb400784697198b3d5737899659b30be60a0f3a67cb954aa63becd",
-      "imports": [
-        "../../host/peer-run-session.js",
-        "../../pool/adapter-publication.js",
-        "../../pool/adapter-registry.js",
-        "../../pool/evidence-network.js",
-        "../../pool/identity.js",
-        "../../pool/model-contract.js",
-        "../../pool/policy-router.js",
-        "../../pool/sdk.js",
-        "../../pool/sequence-workload.js",
-        "./control-display-text.js",
-        "./page-identity.js",
-        "./pending-request-recovery.js",
-        "./research-store.js",
-        "./room-activity-controls.js",
-        "./sequence-consent.js",
-        "./view.js"
-      ]
-    },
-    {
       "path": "ui/pool-home/pending-request-recovery.js",
       "owner": "ui",
-      "sha256": "sha256:326035ad1f53558a438ff105d5122837508f501584de91416cd4d67c3410fb05",
+      "sha256": "sha256:8fe1c64e5d6038e78a8872077d3de66c7b126747c6a0443878bb363d168e7f30",
       "imports": [
+        "../../host/product-context.js",
         "../../pool/policy-router.js",
         "../../pool/sequence-workload.js",
-        "./page-identity.js",
-        "./view.js"
-      ]
-    },
-    {
-      "path": "ui/pool-home/prism.js",
-      "owner": "ui",
-      "sha256": "sha256:51e82d2bdd687b16804c783100260b2e62eabc588c68a356e844f379b683a7ce",
-      "imports": [
-        "../components/diamond-renderer.js",
-        "./constants.js",
-        "./contribution-state.js"
+        "./page-identity.js"
       ]
     },
     {
@@ -4988,56 +4842,15 @@
       ]
     },
     {
-      "path": "ui/pool-home/provider-controls.js",
-      "owner": "ui",
-      "sha256": "sha256:699e5656870781a17cba6c0d9d05c0ed822ef28f8006ed11378a1d26d42c694c",
-      "imports": [
-        "../../host/provider-contribution-session.js",
-        "../../pool/model-contract.js",
-        "./contribution-state.js",
-        "./control-display-text.js",
-        "./page-identity.js",
-        "./participation-state-view.js",
-        "./room-activity-controls.js",
-        "./view.js"
-      ]
-    },
-    {
-      "path": "ui/pool-home/provider-status-view.js",
-      "owner": "ui",
-      "sha256": "sha256:23a2f21a2d6de47180968870f3488dedbcf07dd46d0044471810806d0ff05935",
-      "imports": [
-        "../components/html.js",
-        "./view-markup.js"
-      ]
-    },
-    {
-      "path": "ui/pool-home/record-controls.js",
-      "owner": "ui",
-      "sha256": "sha256:f05e5dd446088377b8fafe6b05bceff57f26764a19286f2d8c311880444fa5fb",
-      "imports": [
-        "../../pool/sdk.js",
-        "./room-activity-controls.js",
-        "./view.js"
-      ]
-    },
-    {
       "path": "ui/pool-home/record-ledger-view.js",
       "owner": "ui",
-      "sha256": "sha256:e39c401ec2227284c7cb5c102722b0a16caeac3f6092c56db8f1ecbe3f87b372",
+      "sha256": "sha256:f5fcf2b04b00e1d47e5aa1f54b977a80ac1681e9656367b56115c187671704b8",
       "imports": [
         "../../host/product-context.js",
-        "../../pool/peer-control-plane.js",
-        "../components/html.js",
         "./constants.js",
-        "./contribution-state.js",
         "./ledger-store.js",
         "./record-persistence.js",
-        "./research-room-route.js",
         "./room-record-projection.js",
-        "./room-view.js",
-        "./run-visual-state.js",
-        "./shell-view.js",
         "./view-markup.js"
       ]
     },
@@ -5055,22 +4868,6 @@
       "owner": "ui",
       "sha256": "sha256:1bca37ad62e7cb9681f779a77fee2b64da934ac776359a5a9a158cd5b2bf1e96",
       "imports": []
-    },
-    {
-      "path": "ui/pool-home/requester-controls.js",
-      "owner": "ui",
-      "sha256": "sha256:8c0d1a7ee9f4c0557ccb047f4c2c85a224631c73d6d404c5801437ea0322e8bc",
-      "imports": [
-        "../components/html.js"
-      ]
-    },
-    {
-      "path": "ui/pool-home/research-adjudication-panel.js",
-      "owner": "ui",
-      "sha256": "sha256:6bc4de2e15033466247561ea4a6d8caaf90e85174a1345a37a47d0d73693666a",
-      "imports": [
-        "./research-panels.js"
-      ]
     },
     {
       "path": "ui/pool-home/research-adjudication-records.js",
@@ -5097,16 +4894,6 @@
       "imports": []
     },
     {
-      "path": "ui/pool-home/research-lifecycle-panel.js",
-      "owner": "ui",
-      "sha256": "sha256:2c9024cc6c46aa8e19cb942f3eef33ed0e413d3938987a9abd83c8112869deaa",
-      "imports": [
-        "../../pool/evidence-record-contract.js",
-        "./research-adjudication-panel.js",
-        "./research-panels.js"
-      ]
-    },
-    {
       "path": "ui/pool-home/research-lifecycle-records.js",
       "owner": "ui",
       "sha256": "sha256:cbbd39a69d0ae058a331731d9afa1b8d281d5642c7a78e5badb8cd3d8e443ae2",
@@ -5122,19 +4909,8 @@
     {
       "path": "ui/pool-home/research-panels.js",
       "owner": "ui",
-      "sha256": "sha256:abf70cf5db5a713de4f21eaf797338c7aabaca8209dd314fcd7d7eb9d64a5abd",
-      "imports": [
-        "../components/html.js"
-      ]
-    },
-    {
-      "path": "ui/pool-home/research-plugins.js",
-      "owner": "ui",
-      "sha256": "sha256:ca8cb8b96873039dbefe2b38d90d681ab661ab685dbf442a8e7bd7d8bb1b8a4a",
-      "imports": [
-        "../../host/research-plugins.js",
-        "../components/attachments.js"
-      ]
+      "sha256": "sha256:6445adf5fd9b8ce89394232b79a436ed34ef18ab9e791d9cc78659c286b7f850",
+      "imports": []
     },
     {
       "path": "ui/pool-home/research-question-records.js",
@@ -5156,31 +4932,15 @@
     {
       "path": "ui/pool-home/research-room-actions.js",
       "owner": "ui",
-      "sha256": "sha256:6e3de8ab3177f23c61f7aa970f6661f73060c1cb177f5a017e23016ed9763931",
+      "sha256": "sha256:b819f28eb528aacb7302ff053ae943d83508ecf31ae7aa06a0bc889e774a975a",
       "imports": [
-        "../../pool/discovery-contract.js",
-        "../../pool/evidence-network.js",
-        "../../pool/identity.js",
-        "../../pool/model-contract.js",
-        "./research-store.js"
-      ]
-    },
-    {
-      "path": "ui/pool-home/research-room-route.js",
-      "owner": "ui",
-      "sha256": "sha256:10c2a6febb67b1465a63a06801e3e672b473dd79dd4211166329c62a167ecad0",
-      "imports": [
-        "../../host/product-context.js",
-        "./ledger-store.js",
-        "./research-store.js",
-        "./room-view.js",
-        "./shell-view.js"
+        "../../pool/evidence-network.js"
       ]
     },
     {
       "path": "ui/pool-home/research-store.js",
       "owner": "ui",
-      "sha256": "sha256:b179171bbc80657e99931c608ef7b11613be204e5ee68d755ddb498ea9b8c026",
+      "sha256": "sha256:c3874cb83e4a6daf58263b67ae692a393d0abb48690af3727c9093527420a8ce",
       "imports": [
         "../../pool/discovery-contract.js",
         "../../pool/evidence-network.js",
@@ -5190,69 +4950,12 @@
       ]
     },
     {
-      "path": "ui/pool-home/research-technical-panel.js",
-      "owner": "ui",
-      "sha256": "sha256:7b71cd7f2707ab26f18e8c257bd7d424b532b90bb3e27edff65bbd510b467911",
-      "imports": [
-        "../components/html.js",
-        "./research-panels.js"
-      ]
-    },
-    {
-      "path": "ui/pool-home/research-view.js",
-      "owner": "ui",
-      "sha256": "sha256:75dcf729d34a15526ffebf30a4984ec21fdb8b65bb46d5de63a5b6f15ecd4777",
-      "imports": [
-        "./research-lifecycle-records.js",
-        "./research-review-records.js",
-        "./research-room-actions.js",
-        "./research-workspace-binding.js",
-        "./research-workspace-render.js"
-      ]
-    },
-    {
       "path": "ui/pool-home/research-work-records.js",
       "owner": "ui",
       "sha256": "sha256:b98e13b4293a69dca834557a6836e6722d1e95fb9aaf2e68bdcd1d3c7b2eef15",
       "imports": [
         "../../pool/evidence-network.js",
         "./research-form-values.js"
-      ]
-    },
-    {
-      "path": "ui/pool-home/research-workspace-binding.js",
-      "owner": "ui",
-      "sha256": "sha256:40f1157dc76a7122298e7c9a8fb9fdd96303f9cfab3386a28f8133a1b3297a40",
-      "imports": [
-        "../../pool/evidence-network.js",
-        "../../pool/identity.js",
-        "./research-lifecycle-records.js",
-        "./research-review-records.js",
-        "./research-store.js",
-        "./research-workspace-render.js"
-      ]
-    },
-    {
-      "path": "ui/pool-home/research-workspace-render.js",
-      "owner": "ui",
-      "sha256": "sha256:281ad5051cdbea3c4c39d2b049a3075e0b5e1e8309bcb938e6aee190b0fdda38",
-      "imports": [
-        "../../pool/evidence-network.js",
-        "../components/html.js",
-        "./research-lifecycle-panel.js",
-        "./research-panels.js",
-        "./research-store.js",
-        "./research-technical-panel.js"
-      ]
-    },
-    {
-      "path": "ui/pool-home/room-activity-controls.js",
-      "owner": "ui",
-      "sha256": "sha256:e83dd9382093a1265e1b1ec68a371e907c0f0876a8b90303ed05c8bfa007a115",
-      "imports": [
-        "../../pool/sdk.js",
-        "./control-display-text.js",
-        "./view.js"
       ]
     },
     {
@@ -5299,7 +5002,7 @@
     {
       "path": "ui/pool-home/room-projection.js",
       "owner": "ui",
-      "sha256": "sha256:33755ab9feb97b08f86cc6969751f56334f75c7849c48040884bdba3df4475cb",
+      "sha256": "sha256:6fddee1d0ae6974d21dbc9c20523a58fba41416bfd3e3e1f17b93e006499a46e",
       "imports": [
         "../../pool/evidence-network.js",
         "../../pool/research-cycle.js",
@@ -5315,7 +5018,7 @@
     {
       "path": "ui/pool-home/room-record-projection.js",
       "owner": "ui",
-      "sha256": "sha256:8237414fd7388ff2d6e96be1ca2f5a0f54c2491351f621509a64df9d57803b19",
+      "sha256": "sha256:3589c25adcfba80025bd8318222514de73973fc5a91a62f25240dfe9bcaf1065",
       "imports": [
         "../../pool/model-contract.js",
         "./record-persistence.js"
@@ -5340,15 +5043,6 @@
       ]
     },
     {
-      "path": "ui/pool-home/room-view.js",
-      "owner": "ui",
-      "sha256": "sha256:9ed554b629bda25098e6854d676a1a074bf62259f337278618c1c23ae159e9d7",
-      "imports": [
-        "../components/html.js",
-        "./room-projection.js"
-      ]
-    },
-    {
       "path": "ui/pool-home/route-alternatives.js",
       "owner": "ui",
       "sha256": "sha256:2d2d58e6cc506c1a78d3a39f3d6287771b3aa832bf3df3f988f6a8cce3226c9e",
@@ -5360,54 +5054,11 @@
     {
       "path": "ui/pool-home/route-controls.js",
       "owner": "ui",
-      "sha256": "sha256:eed356a6fe45443495715087dce4ba428c6cbdb45602ad755a1abf96dacabb8a",
+      "sha256": "sha256:3fc1ed28cb5b5ca0d9e6752813f8efd569c980686515acffa56b3b7807f00ebd",
       "imports": [
         "../../host/product-context.js",
         "../../pool/model-contract.js",
-        "../../pool/participation-profile.js",
-        "../../pool/policy-router.js",
-        "../components/html.js",
-        "./view-markup.js"
-      ]
-    },
-    {
-      "path": "ui/pool-home/route-detail-view.js",
-      "owner": "ui",
-      "sha256": "sha256:8000a8baf62e679f39e5e4c774539bd12507962829c7e7218d0b5a53056da543",
-      "imports": [
-        "../../host/product-context.js",
-        "../../pool/model-contract.js",
-        "../../pool/participation-profile.js",
-        "../components/html.js",
-        "./constants.js",
-        "./contribution-status-view.js",
-        "./operation-sharing.js",
-        "./provider-status-view.js",
-        "./record-ledger-view.js",
-        "./requester-controls.js",
-        "./research-room-route.js",
-        "./research-store.js",
-        "./research-view.js",
-        "./route-controls.js",
-        "./run-result-view.js"
-      ]
-    },
-    {
-      "path": "ui/pool-home/run-contribution-evidence.js",
-      "owner": "ui",
-      "sha256": "sha256:7318c54cf0f09347cd77c6b0262192e915208339fc2859a7952bf7cb350ec655",
-      "imports": [
-        "../components/html.js",
-        "./view-markup.js"
-      ]
-    },
-    {
-      "path": "ui/pool-home/run-controls.js",
-      "owner": "ui",
-      "sha256": "sha256:0e2fd7118d40a1259f9c468d59bfcb18137495a0f3f2711694bff6b4d65eeddc",
-      "imports": [
-        "../../pool/model-contract.js",
-        "./peer-run-surface.js"
+        "../../pool/policy-router.js"
       ]
     },
     {
@@ -5419,203 +5070,22 @@
       ]
     },
     {
-      "path": "ui/pool-home/run-result-view.js",
-      "owner": "ui",
-      "sha256": "sha256:1190b4e19339a5c3947c5591348737b235f552664ec9b7b4ebeffd7763594e9e",
-      "imports": [
-        "../../host/product-context.js",
-        "../components/html.js",
-        "./constants.js",
-        "./ledger-store.js",
-        "./record-ledger-view.js",
-        "./room-view.js",
-        "./run-contribution-evidence.js",
-        "./run-result-format.js",
-        "./run-visual-state.js",
-        "./shell-view.js",
-        "./view-markup.js"
-      ]
-    },
-    {
-      "path": "ui/pool-home/run-visual-state.js",
-      "owner": "ui",
-      "sha256": "sha256:9a5fd38c8e4e422d0163e1c11a034012b8584073db617461eecee29258dced12",
-      "imports": [
-        "../../host/product-context.js",
-        "./constants.js",
-        "./network-projection.js"
-      ]
-    },
-    {
-      "path": "ui/pool-home/sequence-consent.js",
-      "owner": "ui",
-      "sha256": "sha256:a7902af99e88595f7643f5193f10c9e67a20e0d17c98799867da6a502948e218",
-      "imports": []
-    },
-    {
       "path": "ui/pool-home/service-credit-text.js",
       "owner": "ui",
       "sha256": "sha256:0095fd16950efca0975327a791c75f6b7e7b01efffb6c8e3cdcdb6296d403c4e",
       "imports": []
     },
     {
-      "path": "ui/pool-home/shell-view.js",
-      "owner": "ui",
-      "sha256": "sha256:39e9176eb5f351b2f8c4c0ebeeaf37a632c330166f6209e65aadd4afe5b81f21",
-      "imports": [
-        "../../host/product-context.js",
-        "../../pool/peer-room.js",
-        "../components/attachments.js",
-        "../components/interface-icons.js",
-        "./constants.js",
-        "./execution-ribbon.js",
-        "./theme.js"
-      ]
-    },
-    {
-      "path": "ui/pool-home/specialist-routes.js",
-      "owner": "ui",
-      "sha256": "sha256:3d0c5ed913525cac4b75cdcef8575f008396f9fa5464f43db0ecc2759e420091",
-      "imports": [
-        "./contribution-state.js",
-        "./controls.js",
-        "./document-search.js",
-        "./ledger-store.js",
-        "./prism.js",
-        "./research-store.js",
-        "./research-view.js",
-        "./shell-view.js",
-        "./view.js"
-      ]
-    },
-    {
-      "path": "ui/pool-home/theme.js",
-      "owner": "ui",
-      "sha256": "sha256:2c23fdd6a243cbdd2d0e9855c8238cd7ba0a96f0b349aa567c8a4b7f4b4c22a8",
-      "imports": [
-        "../components/disclosure.js"
-      ]
-    },
-    {
       "path": "ui/pool-home/view-markup.js",
       "owner": "ui",
-      "sha256": "sha256:c41becfeebc99acf7a104f32f15dfa694ce57cd2be24d0b00983c90283431674",
+      "sha256": "sha256:6804dd604b5a998eccaf64afe180190857196bef7c7a409de3312082a1dffe06",
       "imports": []
-    },
-    {
-      "path": "ui/pool-home/view.js",
-      "owner": "ui",
-      "sha256": "sha256:2b6eca1ff7e651ca54cca6a3274e952cd0c87c2a3f1f922fdbe63ae50b9295ba",
-      "imports": [
-        "../../host/peer-execution-config.js",
-        "../../host/product-context.js",
-        "../../pool/peer-rendezvous.js",
-        "./contribution-status-view.js",
-        "./examples-view.js",
-        "./network-projection.js",
-        "./provider-status-view.js",
-        "./record-ledger-view.js",
-        "./research-room-route.js",
-        "./route-controls.js",
-        "./route-detail-view.js",
-        "./run-result-format.js",
-        "./run-result-view.js",
-        "./run-visual-state.js",
-        "./shell-view.js",
-        "./work.js"
-      ]
     },
     {
       "path": "ui/pool-home/web-search-settings.js",
       "owner": "ui",
       "sha256": "sha256:b3a526aa83dac216f28658e224452f157ea1e959e965aa14aef864e36cd4bce9",
       "imports": []
-    },
-    {
-      "path": "ui/pool-home/work-activity-list.js",
-      "owner": "ui",
-      "sha256": "sha256:d86f798c614dad896881a1f7ef4d6a644624987f7028c68834cda9854eb3a0a5",
-      "imports": []
-    },
-    {
-      "path": "ui/pool-home/work-approval-panel.js",
-      "owner": "ui",
-      "sha256": "sha256:8f1d3188f61d1040c71449b9a12a893c5e71c52bc8e533234c72563a6dc45807",
-      "imports": [
-        "../components/permission-card.js"
-      ]
-    },
-    {
-      "path": "ui/pool-home/work-capabilities.js",
-      "owner": "ui",
-      "sha256": "sha256:eeecc5af2a420fdfc8ce464126dc4ccb31b442f987cf4048fb6eddad7a3efb2b",
-      "imports": [
-        "./agent-network.js",
-        "./work-tool-offers.js"
-      ]
-    },
-    {
-      "path": "ui/pool-home/work-goal-composer.js",
-      "owner": "ui",
-      "sha256": "sha256:ee6d32feb61ae962a50ec2a9b1bdefdf060e663e4ffd8ff2064bb7d41665ff88",
-      "imports": [
-        "../../config/work-profile.json",
-        "../../host/work-session.js",
-        "../../providers/work-provider.js",
-        "../components/html.js"
-      ]
-    },
-    {
-      "path": "ui/pool-home/work-layout.js",
-      "owner": "ui",
-      "sha256": "sha256:a7de1f13410db048a10e73bc8b0b2b7719144671363dbdc495fb3b62c210218b",
-      "imports": []
-    },
-    {
-      "path": "ui/pool-home/work-result-view.js",
-      "owner": "ui",
-      "sha256": "sha256:66c32d9b8b2e211e4bf2ab980d15d4881283b78184eb7311ee697aa7d159ec3d",
-      "imports": []
-    },
-    {
-      "path": "ui/pool-home/work-task-header.js",
-      "owner": "ui",
-      "sha256": "sha256:4b98ad259a45387218a94964c0393fca4a9fb5b14334ad9f9218ee016e91ccae",
-      "imports": []
-    },
-    {
-      "path": "ui/pool-home/work-task-history.js",
-      "owner": "ui",
-      "sha256": "sha256:33507bc3f0d37500b903ae19104045c30402c17f76364abfb4a397721e583763",
-      "imports": []
-    },
-    {
-      "path": "ui/pool-home/work-tool-offers.js",
-      "owner": "ui",
-      "sha256": "sha256:ddd086b106b0ac451f74f14ee1f2d2fe7dc204e3b800ec5ef7251ba9e85d1ca7",
-      "imports": []
-    },
-    {
-      "path": "ui/pool-home/work.js",
-      "owner": "ui",
-      "sha256": "sha256:4d5e8cbe1ed122ea90a1a7183ed506c112c3ee6c3a823001505c56c08056287f",
-      "imports": [
-        "../../config/work-profile.json",
-        "../../host/work-session.js",
-        "../../vendor/reploid/chat/execution-policy.js",
-        "../components/permission-card.js",
-        "./computer-labels.js",
-        "./lora-training.js",
-        "./privacy-controls.js",
-        "./work-activity-list.js",
-        "./work-approval-panel.js",
-        "./work-capabilities.js",
-        "./work-goal-composer.js",
-        "./work-layout.js",
-        "./work-result-view.js",
-        "./work-task-header.js",
-        "./work-task-history.js"
-      ]
     },
     {
       "path": "ui/proto/index.js",
@@ -5687,13 +5157,13 @@
     {
       "path": "ui/react/app.js",
       "owner": "ui",
-      "sha256": "sha256:2423a48d0a6eab463ef348b4510e8802cdf10db05def419b51bb7f94379fa1d1",
+      "sha256": "sha256:ea4deeaaf3f06601a7f39bd1818ceafc9fcb5d7a7ed2540ab43d3f859e9fe54b",
       "imports": []
     },
     {
       "path": "ui/react/design.js",
       "owner": "ui",
-      "sha256": "sha256:1cb62b8a311e9b743a2e2b92641ef5b36c5ffb73246995fd1e07cc9d7f4842a0",
+      "sha256": "sha256:210b33b7f34011e99ef0a2c4b6936f98a34189bb66462a1863af04156324b032",
       "imports": []
     },
     {
