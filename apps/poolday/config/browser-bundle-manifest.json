@@ -1340,8 +1340,8 @@
     },
     {
       "path": "config/hosted-api.json",
-      "byteLength": 279,
-      "sha256": "sha256:716bf38eaed6be80091119dab9bb4719c195e9b4580de71444739c219d395c21"
+      "byteLength": 331,
+      "sha256": "sha256:1ce8be932205b75553f737febb296a9e7cf39668e2551ee8facbd23253160c0a"
     },
     {
       "path": "config/immutability.js",
@@ -1426,7 +1426,7 @@
     {
       "path": "config/module-inventory.json",
       "byteLength": 688773,
-      "sha256": "sha256:213d77243f9cb9d2492727f81e4947e6bbf05df59384121ae1360a52a2da7134"
+      "sha256": "sha256:576c370c3289cae5ae0f1da7afac26751b4a17d09653d7d71cf076b07f8fd46b"
     },
     {
       "path": "config/module-registry.json",
@@ -1510,8 +1510,8 @@
     },
     {
       "path": "config/swarm-bootstrap.json",
-      "byteLength": 970,
-      "sha256": "sha256:e58556e86cbe99ab3d28fc2a01a5cd89596a9bb7d6264e58ab76978423c1074e"
+      "byteLength": 1018,
+      "sha256": "sha256:11b4197f8dd8ca0aca5317296631fd345f0af8c5de91f844bb1a5bc0237112dc"
     },
     {
       "path": "config/tool-surfaces.js",
@@ -4200,13 +4200,13 @@
     },
     {
       "path": "ui/react/app.js",
-      "byteLength": 3009745,
-      "sha256": "sha256:2a985a3711dc2c9396c71ad7d18b2643ae186f94b49aa134a7ba531f04851942"
+      "byteLength": 3009839,
+      "sha256": "sha256:51c24319485d1fff0b2b77b5e398ee376e70619a79c258dbd082df5c0bf70ae1"
     },
     {
       "path": "ui/react/design.js",
-      "byteLength": 2100828,
-      "sha256": "sha256:24eb463baed8e01bec6f860c6bfc7912848180c31b93f8f4831f3a599c84d391"
+      "byteLength": 2100922,
+      "sha256": "sha256:314d2e41d7d11df49bf114501a0a697f68c5027448b32f3fa5dca043aa1609fe"
     },
     {
       "path": "ui/reploid-home/index.js",
@@ -12631,7 +12631,7 @@
     {
       "path": "zero/source.json",
       "byteLength": 8718,
-      "sha256": "sha256:b1f1df7d93ea5bacfdc5782f0d59192651eba85d4b084f331769a25b0cb502eb"
+      "sha256": "sha256:ea62a22d2cf1dcfadf5383788fbbfcad714d413b5b0a9c2d38c53101e24edbdb"
     },
     {
       "path": "zero/store.js",
@@ -12654,5 +12654,5 @@
       "sha256": "sha256:abb6c18f6167d6afc8ee1b3adfcbbb89c0e93fb4fc4e98d7a12250f78aab206a"
     }
   ],
-  "bundleHash": "sha256:46a0c1825864a00eca4865190d8f48010b6a9da48377d1824e2cb32c4840bc1b"
+  "bundleHash": "sha256:a07c9c455cc8faf578bd5bd7685b9f7950f3edf89c1ae1486ef63e8922fb1ad4"
 }
