@@ -70,8 +70,8 @@
     },
     {
       "path": "blueprints/0x00000A-tool-runner-engine.md",
-      "byteLength": 6530,
-      "sha256": "sha256:12258b77fb50b1c2a104c3dfe7db9fa515d97c9407ae24c6319144432d872e69"
+      "byteLength": 6461,
+      "sha256": "sha256:662835ce7c88ce66ebc251233466eea8dc05b2cb9a34b97e427c5dc31e9aaa90"
     },
     {
       "path": "blueprints/0x00000B-pure-tool-logic-helpers.md",
@@ -340,8 +340,8 @@
     },
     {
       "path": "blueprints/0x000040-verification-manager.md",
-      "byteLength": 8874,
-      "sha256": "sha256:dc1bf2157d29b7f687421a0287ef6862cadbb325dbbd431d05b2393e335411ac"
+      "byteLength": 8840,
+      "sha256": "sha256:d763b5ffec270596693045ed93b401ea0eca407a28dc760ce717b95e50266616"
     },
     {
       "path": "blueprints/0x000041-module-widget-protocol.md",
@@ -540,8 +540,8 @@
     },
     {
       "path": "blueprints/0x000068-hierarchical-memory-architecture.md",
-      "byteLength": 19541,
-      "sha256": "sha256:984a8b893e7cfc2c1d5a3863be62d1bb821a22a5040502e7ca00b8682556d08c"
+      "byteLength": 19395,
+      "sha256": "sha256:3151cce9c2ae7f5828573fbab8aaf4df3a453665464c67f81423a241ad7c0927"
     },
     {
       "path": "blueprints/0x000069-app-mounting-system.md",
@@ -906,7 +906,7 @@
     {
       "path": "blueprints/canonical-inventory.md",
       "byteLength": 18868,
-      "sha256": "sha256:7ef5bfce68ba782475711fc02f231066dd53b46f3c37aecb3905bf0c51f2f5ce"
+      "sha256": "sha256:73bcbab27465810da5620e0c7d04cfe444103a7d68cdf98a8f8ef7ae4ae358ab"
     },
     {
       "path": "blueprints/deduplication-audit.md",
@@ -12669,5 +12669,5 @@
       "sha256": "sha256:abb6c18f6167d6afc8ee1b3adfcbbb89c0e93fb4fc4e98d7a12250f78aab206a"
     }
   ],
-  "bundleHash": "sha256:764d6aebea858811da7e1c044df48ea95e706b67c1bd6cde010e35b840a259f9"
+  "bundleHash": "sha256:d1dff9cf8a7c6246d3599e46d9a4ae5765720a0f790438660fe28e40970ae166"
 }
