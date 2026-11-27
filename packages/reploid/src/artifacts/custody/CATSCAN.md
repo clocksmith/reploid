@@ -31,8 +31,8 @@ storage cap; served bytes only from confirmed transfers.
 
 ## Acceptance
 Evidence: [contract tests](../../../../../tests/unit/pool-peer-pack-custody.test.js).
-Exchange composition: [exchange tests](../../../../../tests/unit/custody-exchange.test.js).
-Weight supply: [acceptance](../../../../../tests/integration/weight-supply-acceptance.test.js).
+Exchange: [tests](../../../../../tests/unit/custody-exchange.test.js).
+Weight supply: [acceptance](../../../../../tests/integration/weight-supply-transport.test.js), [fast](../../../../../tests/integration/weight-supply-acceptance.test.js).
 Run tests/unit/pool-peer-pack-custody.test.js, tests/e2e/peer-pack-custody.spec.js from the repository root.
 
 ## Non-goals
