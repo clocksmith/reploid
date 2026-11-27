@@ -14,6 +14,7 @@ import defaultCatalog from '../shared/config/chat-models.json' with { type: 'jso
 import { findCatalogModel, supersededIdentities } from './native-model-names.js';
 import { askableRoute } from './native-node-ask.js';
 import { DIGEST_PATTERN, PARTICIPANT_ID_PATTERN } from '../shared/vendor/reploid/contracts/identifiers.js';
+import { offerAvailability, offersOfPeer } from './computer-records.js';
 
 export const PEERS_SCHEMA = 'reploid.peers/v1';
 /** The page gives discovery 8 s before it reports that nobody is there (apps/poolday/host/chat-session.js). */
@@ -49,13 +50,14 @@ function namedModel(catalog, id, hashes) {
 
 /** The whole-model route this one computer gives a requester, or null: the projection `ask` reads, asked
  * about a single advertisement. Without a connection list the projection skips its open-channel test. */
-const wholeRoute = (catalog, peer, connections) => projectChatCatalog({ models: catalog, peers: [peer], connections })
+const wholeRoute = (catalog, peer, connections, now) => projectChatCatalog({ models: catalog, peers: [peer], connections, now })
   .find(route => !route.adapters?.length && route.providerIds.length) ?? null;
 
 // Explains a refusal the projection already made; it never decides one.
-function whyNotUsable(peer, { entry, earlier }, usableWithoutChannelTest) {
+function whyNotUsable(peer, { entry, earlier }, usableWithoutChannelTest, now) {
   if (usableWithoutChannelTest) return 'no open channel';
-  if (!peer.hasInference) return 'reports no loaded model';
+  // OWNER: a paused or expired offer also lands here and reads "reports no loaded model"; the text is unchanged.
+  if (!offerAvailability({ offers: offersOfPeer(peer) }, 'inference', now).offered) return 'reports no loaded model';
   if (peer.blocked === true) return 'blocked on this computer';
   if (peer.unresponsive === true) return 'not answering';
   if (peer.identityProtocol !== 1 || peer.admissionProtocol !== 2) return 'older protocol';
@@ -110,11 +112,11 @@ export function meshRoster(observed = {}, { model = null, self = {}, executionCl
     let named = { entry: null, earlier: false }, serves = null, state, detail = null, freeSlots = null;
     if (whole) {
       named = namedModel(catalog, peer.model, hashes); serves = 'whole'; freeSlots = count(peer.availableSlots);
-      const route = wholeRoute(catalog, peer, connections);
+      const route = wholeRoute(catalog, peer, connections, now);
       if (route && askableRoute(route, executionClass)) state = 'ready';
       else if (route) { state = 'busy'; detail = route.capacityUnknown ? 'free slots not reported' : 'no free slot'; }
       else if (peer.readiness === 'ready') {
-        state = 'not-usable'; detail = whyNotUsable(peer, named, connections !== undefined && wholeRoute(catalog, peer, undefined) !== null);
+        state = 'not-usable'; detail = whyNotUsable(peer, named, connections !== undefined && wholeRoute(catalog, peer, undefined, now) !== null, now);
       } else if (peer.readiness === 'loading') { state = 'loading'; detail = preparationText(peer.preparation); }
       else { state = 'not-serving'; detail = READINESS.includes(peer.readiness) ? peer.readiness : 'unavailable'; }
     } else if (stage) {

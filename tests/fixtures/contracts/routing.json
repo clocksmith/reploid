@@ -1,0 +1,278 @@
+{
+ "description": "Routing over the same peer records on every surface that chooses a provider. A current offer can have no capacity: a busy or failed provider stays listed with its offer but is never chosen for new work; a paused or expired offer is neither chosen nor counted as available, though the record may still list it. `now` is after the expired offer ends.",
+ "model": {
+  "id": "qwen-3-5-0-8b-q4k-ef16-af32-vf16",
+  "name": "Qwen",
+  "identity": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+  "provider": "doppler"
+ },
+ "now": 2000,
+ "peers": [
+  {
+   "peerId": "ready",
+   "role": "provider",
+   "swarmEnabled": true,
+   "hasInference": true,
+   "model": "qwen-3-5-0-8b-q4k-ef16-af32-vf16",
+   "modelIdentity": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+   "readiness": "ready",
+   "availableSlots": 1,
+   "adapterIdentities": [],
+   "identityProtocol": 1,
+   "admissionProtocol": 2,
+   "updatedAt": 1795000000000,
+   "attemptId": null,
+   "contribution": null,
+   "offers": [
+    {
+     "schema": "reploid.offer/1",
+     "kind": "inference",
+     "connectionId": "ready",
+     "readiness": "ready",
+     "paused": false,
+     "expiresAt": null,
+     "scope": {
+      "modelId": "qwen-3-5-0-8b-q4k-ef16-af32-vf16",
+      "modelIdentities": [
+       "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+      ],
+      "adapterIdentities": [],
+      "execution": "whole-model",
+      "stageIndex": null,
+      "availableSlots": 1
+     }
+    }
+   ]
+  },
+  {
+   "peerId": "busy",
+   "role": "provider",
+   "swarmEnabled": true,
+   "hasInference": true,
+   "model": "qwen-3-5-0-8b-q4k-ef16-af32-vf16",
+   "modelIdentity": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+   "readiness": "ready",
+   "availableSlots": 0,
+   "adapterIdentities": [],
+   "identityProtocol": 1,
+   "admissionProtocol": 2,
+   "updatedAt": 1795000000000,
+   "attemptId": null,
+   "contribution": null,
+   "offers": [
+    {
+     "schema": "reploid.offer/1",
+     "kind": "inference",
+     "connectionId": "busy",
+     "readiness": "busy",
+     "paused": false,
+     "expiresAt": null,
+     "scope": {
+      "modelId": "qwen-3-5-0-8b-q4k-ef16-af32-vf16",
+      "modelIdentities": [
+       "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+      ],
+      "adapterIdentities": [],
+      "execution": "whole-model",
+      "stageIndex": null,
+      "availableSlots": 0
+     }
+    }
+   ]
+  },
+  {
+   "peerId": "failed",
+   "role": "provider",
+   "swarmEnabled": true,
+   "hasInference": true,
+   "model": "qwen-3-5-0-8b-q4k-ef16-af32-vf16",
+   "modelIdentity": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+   "readiness": "failed",
+   "availableSlots": 0,
+   "adapterIdentities": [],
+   "identityProtocol": 1,
+   "admissionProtocol": 2,
+   "updatedAt": 1795000000000,
+   "attemptId": null,
+   "contribution": null,
+   "offers": [
+    {
+     "schema": "reploid.offer/1",
+     "kind": "inference",
+     "connectionId": "failed",
+     "readiness": "failed",
+     "paused": false,
+     "expiresAt": null,
+     "scope": {
+      "modelId": "qwen-3-5-0-8b-q4k-ef16-af32-vf16",
+      "modelIdentities": [
+       "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+      ],
+      "adapterIdentities": [],
+      "execution": "whole-model",
+      "stageIndex": null,
+      "availableSlots": 0
+     }
+    }
+   ]
+  },
+  {
+   "peerId": "paused",
+   "role": "provider",
+   "swarmEnabled": true,
+   "hasInference": true,
+   "model": "qwen-3-5-0-8b-q4k-ef16-af32-vf16",
+   "modelIdentity": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+   "readiness": "ready",
+   "availableSlots": 1,
+   "adapterIdentities": [],
+   "identityProtocol": 1,
+   "admissionProtocol": 2,
+   "updatedAt": 1795000000000,
+   "attemptId": null,
+   "contribution": null,
+   "offers": [
+    {
+     "schema": "reploid.offer/1",
+     "kind": "inference",
+     "connectionId": "paused",
+     "readiness": "ready",
+     "paused": true,
+     "expiresAt": null,
+     "scope": {
+      "modelId": "qwen-3-5-0-8b-q4k-ef16-af32-vf16",
+      "modelIdentities": [
+       "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+      ],
+      "adapterIdentities": [],
+      "execution": "whole-model",
+      "stageIndex": null,
+      "availableSlots": 1
+     }
+    }
+   ]
+  },
+  {
+   "peerId": "expired",
+   "role": "provider",
+   "swarmEnabled": true,
+   "hasInference": true,
+   "model": "qwen-3-5-0-8b-q4k-ef16-af32-vf16",
+   "modelIdentity": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+   "readiness": "ready",
+   "availableSlots": 1,
+   "adapterIdentities": [],
+   "identityProtocol": 1,
+   "admissionProtocol": 2,
+   "updatedAt": 1795000000000,
+   "attemptId": null,
+   "contribution": null,
+   "offers": [
+    {
+     "schema": "reploid.offer/1",
+     "kind": "inference",
+     "connectionId": "expired",
+     "readiness": "ready",
+     "paused": false,
+     "expiresAt": 1000,
+     "scope": {
+      "modelId": "qwen-3-5-0-8b-q4k-ef16-af32-vf16",
+      "modelIdentities": [
+       "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+      ],
+      "adapterIdentities": [],
+      "execution": "whole-model",
+      "stageIndex": null,
+      "availableSlots": 1
+     }
+    }
+   ]
+  },
+  {
+   "peerId": "claims-role",
+   "role": "provider",
+   "swarmEnabled": true,
+   "hasInference": true,
+   "model": "qwen-3-5-0-8b-q4k-ef16-af32-vf16",
+   "modelIdentity": null,
+   "readiness": "idle",
+   "availableSlots": 0,
+   "adapterIdentities": [],
+   "identityProtocol": 1,
+   "admissionProtocol": 2,
+   "updatedAt": 1795000000000,
+   "attemptId": null,
+   "contribution": null,
+   "offers": []
+  }
+ ],
+ "connections": [
+  {
+   "id": "ready",
+   "phase": "connected",
+   "channelState": "open",
+   "iceState": "connected",
+   "attemptId": null
+  },
+  {
+   "id": "busy",
+   "phase": "connected",
+   "channelState": "open",
+   "iceState": "connected",
+   "attemptId": null
+  },
+  {
+   "id": "failed",
+   "phase": "connected",
+   "channelState": "open",
+   "iceState": "connected",
+   "attemptId": null
+  },
+  {
+   "id": "paused",
+   "phase": "connected",
+   "channelState": "open",
+   "iceState": "connected",
+   "attemptId": null
+  },
+  {
+   "id": "expired",
+   "phase": "connected",
+   "channelState": "open",
+   "iceState": "connected",
+   "attemptId": null
+  },
+  {
+   "id": "claims-role",
+   "phase": "connected",
+   "channelState": "open",
+   "iceState": "connected",
+   "attemptId": null
+  }
+ ],
+ "expected": {
+  "listed": [
+   "ready",
+   "busy",
+   "failed",
+   "paused",
+   "expired",
+   "claims-role"
+  ],
+  "offering": [
+   "ready",
+   "busy",
+   "failed"
+  ],
+  "providers": [
+   "ready",
+   "busy"
+  ],
+  "selectable": [
+   "ready"
+  ],
+  "withoutReady": {
+   "selectable": []
+  }
+ }
+}

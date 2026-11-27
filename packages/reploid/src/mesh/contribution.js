@@ -3,6 +3,7 @@
  */
 
 import policy from '../rules/contribution.rules.json' with { type: 'json' };
+import { offersOfPeer, providesNow } from '../contracts/computer-records.js';
 export const DEFAULT_REWARD_POLICY = Object.freeze(policy);
 
 const roundScore = (value) => Math.round(Number(value || 0) * 1000) / 1000;
@@ -109,7 +110,8 @@ export function rankProviderPeers(peers = [], options = {}) {
   const policy = options.policy || DEFAULT_REWARD_POLICY;
 
   return [...(Array.isArray(peers) ? peers : [])]
-    .filter((peer) => peer?.role === 'provider')
+    // A provider is a peer with an active inference offer now (busy included), never one whose advertised role says so.
+    .filter((peer) => providesNow({ offers: offersOfPeer(peer) }, 'inference', now))
     .map((peer) => ({
       ...peer,
       decayedScore: decayContributionScore(peer?.contribution, now, policy)

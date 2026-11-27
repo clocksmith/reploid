@@ -115,6 +115,55 @@
       "expected": { "schema": "reploid.operation-roles/1", "operation": "inference", "operationId": "request:old",
         "consumer": { "computerId": "peer:aaaaaaaaaaaaaaaaaaaaaaaa", "participantId": "peer:aaaaaaaaaaaaaaaaaaaaaaaa" },
         "provider": { "computerId": "peer:bbbbbbbbbbbbbbbbbbbbbbbb", "participantId": "peer:bbbbbbbbbbbbbbbbbbbbbbbb" } }
+    },
+    {
+      "name": "advertisement from before readiness was advertised (server/swarm-inference-peer.js): hasInference with the swarm on is a ready offer",
+      "reader": "inferenceOfferFromAdvertisement",
+      "input": { "kind": "peer_advertisement", "peerId": "remote-relay", "role": "provider", "swarmEnabled": true, "hasInference": true,
+        "capabilities": ["generation"], "provider": "openai", "model": "gpt-4o-mini", "updatedAt": 1795000000000 },
+      "options": {},
+      "expected": { "schema": "reploid.offer/1", "kind": "inference", "connectionId": "remote-relay", "readiness": "ready", "paused": false, "expiresAt": null,
+        "scope": { "modelId": "gpt-4o-mini", "modelIdentities": [], "adapterIdentities": [], "execution": "whole-model", "stageIndex": null, "availableSlots": null } }
+    },
+    {
+      "name": "advertisement from before readiness with the swarm off (role solo) offers nothing",
+      "reader": "inferenceOfferFromAdvertisement",
+      "input": { "kind": "peer_advertisement", "peerId": "remote-solo", "role": "solo", "swarmEnabled": false, "hasInference": true, "updatedAt": 1 },
+      "options": {},
+      "expected": null
+    },
+    {
+      "name": "a role field alone is no offer: role provider without hasInference or readiness",
+      "reader": "inferenceOfferFromAdvertisement",
+      "input": { "peerId": "remote-role-only", "role": "provider", "updatedAt": 1 },
+      "options": {},
+      "expected": null
+    },
+    {
+      "name": "a connection that has advertised nothing has no inference offer (not a preparing one)",
+      "reader": "inferenceOfferFromAdvertisement",
+      "input": { "peerId": "remote-connected", "updatedAt": 1 },
+      "options": {},
+      "expected": null
+    },
+    {
+      "name": "ledger directory row of an online computer with no resident model and nothing preparing: no inference offer",
+      "reader": "computerFromLedgerRow",
+      "input": { "id": "mac", "participantIds": ["peer:aaaaaaaaaaaaaaaaaaaaaaaa"], "online": true, "observedAt": 10, "activeRequests": 0, "preparing": false,
+        "resident": null, "preferences": { "enabled": true } },
+      "options": { "observationMaxAgeMs": 60000 },
+      "expected": { "schema": "reploid.computer/1", "computerId": "mac", "identityBasis": "ledger-enrollment", "participantIds": ["peer:aaaaaaaaaaaaaaaaaaaaaaaa"],
+        "accountId": null, "connections": [], "offers": [], "connectionAssistance": null }
+    },
+    {
+      "name": "advertisement of a failed model: a failed inference offer (it still offers compute, with no capacity)",
+      "reader": "inferenceOfferFromAdvertisement",
+      "input": { "peerId": "remote-compute", "updatedAt": 1, "model": "m", "readiness": "failed",
+        "modelIdentity": "sha256:1111111111111111111111111111111111111111111111111111111111111111", "availableSlots": 0 },
+      "options": {},
+      "expected": { "schema": "reploid.offer/1", "kind": "inference", "connectionId": "remote-compute", "readiness": "failed", "paused": false, "expiresAt": null,
+        "scope": { "modelId": "m", "modelIdentities": ["sha256:1111111111111111111111111111111111111111111111111111111111111111"],
+          "adapterIdentities": [], "execution": "whole-model", "stageIndex": null, "availableSlots": 0 } }
     }
   ]
 }

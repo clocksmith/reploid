@@ -14,11 +14,19 @@ describe('observed agent network', () => {
     expect(projectAgents(active, {}, 'local')[0].state).toBe('Awaiting approval');
   });
   it('deduplicates peer advertisements and excludes both local identities', () => {
-    const peers = [{ peerId: 'own-supplier', role: 'provider' }, { peerId: 'remote', role: 'provider', model: 'Remote model' }];
+    // A peer offers inference by its advertised readiness or, on the pre-readiness wire, hasInference with the swarm on.
+    const peers = [{ peerId: 'own-supplier', role: 'provider' }, { peerId: 'remote', role: 'provider', swarmEnabled: true, hasInference: true, model: 'Remote model' }];
     const swarm = { consumer: { peerId: 'own-consumer', transport: 'webrtc', peers }, supplier: { peerId: 'own-supplier', transport: 'webrtc', peers } };
     const rows = projectAgents(work, swarm, 'local');
     expect(rows).toHaveLength(2);
     expect(rows[1]).toMatchObject({ model: 'Remote model', state: 'Available offer', location: 'WebRTC peer' });
+  });
+  it('reads a role field without an offer, or a paused offer, as a connected agent', () => {
+    const paused = { schema: 'reploid.offer/1', kind: 'inference', connectionId: 'remote', readiness: 'ready', paused: true, expiresAt: null,
+      scope: { modelId: null, modelIdentities: [], adapterIdentities: [], execution: 'whole-model', stageIndex: null, availableSlots: 1 } };
+    const peers = [{ peerId: 'claims', role: 'provider', model: 'Remote model' }, { peerId: 'paused', role: 'provider', offers: [paused] }];
+    const rows = projectAgents(work, { consumer: { transport: 'webrtc', peers } }, 'local');
+    expect(rows.slice(1).map(row => row.state)).toEqual(['Connected agent', 'Connected agent']);
   });
   it('does not call same-browser advertisements remote WebRTC or missing offers available', () => {
     const rows = projectAgents({ ...work, peerModels: [{ available: false, modelId: 'missing' }] }, { consumer: { peers: [{ peerId: 'tab', role: 'consumer' }] } }, 'local');

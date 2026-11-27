@@ -1,0 +1,496 @@
+{
+ "description": "Projections every surface derives from the records: `reader` is the contract export, `args` its arguments, `expected` its result. Offering a kind and having capacity for it are separate facts.",
+ "cases": [
+  {
+   "name": "ready with a free slot: offers compute and has capacity",
+   "reader": "offerAvailability",
+   "args": [
+    {
+     "schema": "reploid.computer/1",
+     "computerId": "peer:bbbbbbbbbbbbbbbbbbbbbbbb",
+     "identityBasis": "signing-key",
+     "participantIds": [
+      "peer:bbbbbbbbbbbbbbbbbbbbbbbb"
+     ],
+     "accountId": null,
+     "connections": [
+      {
+       "connectionId": "remote-compute",
+       "participantId": "peer:bbbbbbbbbbbbbbbbbbbbbbbb"
+      }
+     ],
+     "offers": [
+      {
+       "schema": "reploid.offer/1",
+       "kind": "inference",
+       "connectionId": "remote-compute",
+       "readiness": "ready",
+       "paused": false,
+       "expiresAt": null,
+       "scope": {
+        "modelId": "m",
+        "modelIdentities": [
+         "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+        ],
+        "adapterIdentities": [],
+        "execution": "whole-model",
+        "stageIndex": null,
+        "availableSlots": 1
+       }
+      }
+     ],
+     "connectionAssistance": null
+    },
+    "inference",
+    0
+   ],
+   "expected": {
+    "kind": "inference",
+    "offered": true,
+    "readiness": "ready",
+    "available": true,
+    "freeSlots": 1
+   }
+  },
+  {
+   "name": "ready with the slot count unreported: capacity unknown but not refused",
+   "reader": "offerAvailability",
+   "args": [
+    {
+     "schema": "reploid.computer/1",
+     "computerId": "peer:bbbbbbbbbbbbbbbbbbbbbbbb",
+     "identityBasis": "signing-key",
+     "participantIds": [
+      "peer:bbbbbbbbbbbbbbbbbbbbbbbb"
+     ],
+     "accountId": null,
+     "connections": [
+      {
+       "connectionId": "remote-compute",
+       "participantId": "peer:bbbbbbbbbbbbbbbbbbbbbbbb"
+      }
+     ],
+     "offers": [
+      {
+       "schema": "reploid.offer/1",
+       "kind": "inference",
+       "connectionId": "remote-compute",
+       "readiness": "ready",
+       "paused": false,
+       "expiresAt": null,
+       "scope": {
+        "modelId": "m",
+        "modelIdentities": [
+         "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+        ],
+        "adapterIdentities": [],
+        "execution": "whole-model",
+        "stageIndex": null,
+        "availableSlots": null
+       }
+      }
+     ],
+     "connectionAssistance": null
+    },
+    "inference",
+    0
+   ],
+   "expected": {
+    "kind": "inference",
+    "offered": true,
+    "readiness": "ready",
+    "available": true,
+    "freeSlots": null
+   }
+  },
+  {
+   "name": "busy: still offers compute, with no available capacity",
+   "reader": "offerAvailability",
+   "args": [
+    {
+     "schema": "reploid.computer/1",
+     "computerId": "peer:bbbbbbbbbbbbbbbbbbbbbbbb",
+     "identityBasis": "signing-key",
+     "participantIds": [
+      "peer:bbbbbbbbbbbbbbbbbbbbbbbb"
+     ],
+     "accountId": null,
+     "connections": [
+      {
+       "connectionId": "remote-compute",
+       "participantId": "peer:bbbbbbbbbbbbbbbbbbbbbbbb"
+      }
+     ],
+     "offers": [
+      {
+       "schema": "reploid.offer/1",
+       "kind": "inference",
+       "connectionId": "remote-compute",
+       "readiness": "busy",
+       "paused": false,
+       "expiresAt": null,
+       "scope": {
+        "modelId": "m",
+        "modelIdentities": [
+         "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+        ],
+        "adapterIdentities": [],
+        "execution": "whole-model",
+        "stageIndex": null,
+        "availableSlots": 0
+       }
+      }
+     ],
+     "connectionAssistance": null
+    },
+    "inference",
+    0
+   ],
+   "expected": {
+    "kind": "inference",
+    "offered": true,
+    "readiness": "busy",
+    "available": false,
+    "freeSlots": 0
+   }
+  },
+  {
+   "name": "failed: still offers compute, with no available capacity",
+   "reader": "offerAvailability",
+   "args": [
+    {
+     "schema": "reploid.computer/1",
+     "computerId": "peer:bbbbbbbbbbbbbbbbbbbbbbbb",
+     "identityBasis": "signing-key",
+     "participantIds": [
+      "peer:bbbbbbbbbbbbbbbbbbbbbbbb"
+     ],
+     "accountId": null,
+     "connections": [
+      {
+       "connectionId": "remote-compute",
+       "participantId": "peer:bbbbbbbbbbbbbbbbbbbbbbbb"
+      }
+     ],
+     "offers": [
+      {
+       "schema": "reploid.offer/1",
+       "kind": "inference",
+       "connectionId": "remote-compute",
+       "readiness": "failed",
+       "paused": false,
+       "expiresAt": null,
+       "scope": {
+        "modelId": "m",
+        "modelIdentities": [
+         "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+        ],
+        "adapterIdentities": [],
+        "execution": "whole-model",
+        "stageIndex": null,
+        "availableSlots": 0
+       }
+      }
+     ],
+     "connectionAssistance": null
+    },
+    "inference",
+    0
+   ],
+   "expected": {
+    "kind": "inference",
+    "offered": true,
+    "readiness": "failed",
+    "available": false,
+    "freeSlots": 0
+   }
+  },
+  {
+   "name": "ready but every slot taken: offers compute, no capacity",
+   "reader": "offerAvailability",
+   "args": [
+    {
+     "schema": "reploid.computer/1",
+     "computerId": "peer:bbbbbbbbbbbbbbbbbbbbbbbb",
+     "identityBasis": "signing-key",
+     "participantIds": [
+      "peer:bbbbbbbbbbbbbbbbbbbbbbbb"
+     ],
+     "accountId": null,
+     "connections": [
+      {
+       "connectionId": "remote-compute",
+       "participantId": "peer:bbbbbbbbbbbbbbbbbbbbbbbb"
+      }
+     ],
+     "offers": [
+      {
+       "schema": "reploid.offer/1",
+       "kind": "inference",
+       "connectionId": "remote-compute",
+       "readiness": "ready",
+       "paused": false,
+       "expiresAt": null,
+       "scope": {
+        "modelId": "m",
+        "modelIdentities": [
+         "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+        ],
+        "adapterIdentities": [],
+        "execution": "whole-model",
+        "stageIndex": null,
+        "availableSlots": 0
+       }
+      }
+     ],
+     "connectionAssistance": null
+    },
+    "inference",
+    0
+   ],
+   "expected": {
+    "kind": "inference",
+    "offered": true,
+    "readiness": "ready",
+    "available": false,
+    "freeSlots": 0
+   }
+  },
+  {
+   "name": "preparing: offers compute, no capacity yet",
+   "reader": "offerAvailability",
+   "args": [
+    {
+     "schema": "reploid.computer/1",
+     "computerId": "peer:bbbbbbbbbbbbbbbbbbbbbbbb",
+     "identityBasis": "signing-key",
+     "participantIds": [
+      "peer:bbbbbbbbbbbbbbbbbbbbbbbb"
+     ],
+     "accountId": null,
+     "connections": [
+      {
+       "connectionId": "remote-compute",
+       "participantId": "peer:bbbbbbbbbbbbbbbbbbbbbbbb"
+      }
+     ],
+     "offers": [
+      {
+       "schema": "reploid.offer/1",
+       "kind": "inference",
+       "connectionId": "remote-compute",
+       "readiness": "preparing",
+       "paused": false,
+       "expiresAt": null,
+       "scope": {
+        "modelId": "m",
+        "modelIdentities": [
+         "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+        ],
+        "adapterIdentities": [],
+        "execution": "whole-model",
+        "stageIndex": null,
+        "availableSlots": null
+       }
+      }
+     ],
+     "connectionAssistance": null
+    },
+    "inference",
+    0
+   ],
+   "expected": {
+    "kind": "inference",
+    "offered": true,
+    "readiness": "preparing",
+    "available": false,
+    "freeSlots": 0
+   }
+  },
+  {
+   "name": "paused: offers nothing now",
+   "reader": "offerAvailability",
+   "args": [
+    {
+     "schema": "reploid.computer/1",
+     "computerId": "peer:bbbbbbbbbbbbbbbbbbbbbbbb",
+     "identityBasis": "signing-key",
+     "participantIds": [
+      "peer:bbbbbbbbbbbbbbbbbbbbbbbb"
+     ],
+     "accountId": null,
+     "connections": [
+      {
+       "connectionId": "remote-compute",
+       "participantId": "peer:bbbbbbbbbbbbbbbbbbbbbbbb"
+      }
+     ],
+     "offers": [
+      {
+       "schema": "reploid.offer/1",
+       "kind": "inference",
+       "connectionId": "remote-compute",
+       "readiness": "ready",
+       "paused": true,
+       "expiresAt": null,
+       "scope": {
+        "modelId": "m",
+        "modelIdentities": [
+         "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+        ],
+        "adapterIdentities": [],
+        "execution": "whole-model",
+        "stageIndex": null,
+        "availableSlots": 1
+       }
+      }
+     ],
+     "connectionAssistance": null
+    },
+    "inference",
+    0
+   ],
+   "expected": {
+    "kind": "inference",
+    "offered": false,
+    "readiness": null,
+    "available": false,
+    "freeSlots": 0
+   }
+  },
+  {
+   "name": "expired: offers nothing now",
+   "reader": "offerAvailability",
+   "args": [
+    {
+     "schema": "reploid.computer/1",
+     "computerId": "peer:bbbbbbbbbbbbbbbbbbbbbbbb",
+     "identityBasis": "signing-key",
+     "participantIds": [
+      "peer:bbbbbbbbbbbbbbbbbbbbbbbb"
+     ],
+     "accountId": null,
+     "connections": [
+      {
+       "connectionId": "remote-compute",
+       "participantId": "peer:bbbbbbbbbbbbbbbbbbbbbbbb"
+      }
+     ],
+     "offers": [
+      {
+       "schema": "reploid.offer/1",
+       "kind": "inference",
+       "connectionId": "remote-compute",
+       "readiness": "ready",
+       "paused": false,
+       "expiresAt": 100,
+       "scope": {
+        "modelId": "m",
+        "modelIdentities": [
+         "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+        ],
+        "adapterIdentities": [],
+        "execution": "whole-model",
+        "stageIndex": null,
+        "availableSlots": 1
+       }
+      }
+     ],
+     "connectionAssistance": null
+    },
+    "inference",
+    100
+   ],
+   "expected": {
+    "kind": "inference",
+    "offered": false,
+    "readiness": null,
+    "available": false,
+    "freeSlots": 0
+   }
+  },
+  {
+   "name": "not yet expired: offers compute with capacity",
+   "reader": "offerAvailability",
+   "args": [
+    {
+     "schema": "reploid.computer/1",
+     "computerId": "peer:bbbbbbbbbbbbbbbbbbbbbbbb",
+     "identityBasis": "signing-key",
+     "participantIds": [
+      "peer:bbbbbbbbbbbbbbbbbbbbbbbb"
+     ],
+     "accountId": null,
+     "connections": [
+      {
+       "connectionId": "remote-compute",
+       "participantId": "peer:bbbbbbbbbbbbbbbbbbbbbbbb"
+      }
+     ],
+     "offers": [
+      {
+       "schema": "reploid.offer/1",
+       "kind": "inference",
+       "connectionId": "remote-compute",
+       "readiness": "ready",
+       "paused": false,
+       "expiresAt": 100,
+       "scope": {
+        "modelId": "m",
+        "modelIdentities": [
+         "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+        ],
+        "adapterIdentities": [],
+        "execution": "whole-model",
+        "stageIndex": null,
+        "availableSlots": 1
+       }
+      }
+     ],
+     "connectionAssistance": null
+    },
+    "inference",
+    99
+   ],
+   "expected": {
+    "kind": "inference",
+    "offered": true,
+    "readiness": "ready",
+    "available": true,
+    "freeSlots": 1
+   }
+  },
+  {
+   "name": "a connected computer with no advertised offer offers no compute",
+   "reader": "offerAvailability",
+   "args": [
+    {
+     "schema": "reploid.computer/1",
+     "computerId": "peer:bbbbbbbbbbbbbbbbbbbbbbbb",
+     "identityBasis": "signing-key",
+     "participantIds": [
+      "peer:bbbbbbbbbbbbbbbbbbbbbbbb"
+     ],
+     "accountId": null,
+     "connections": [
+      {
+       "connectionId": "remote-compute",
+       "participantId": "peer:bbbbbbbbbbbbbbbbbbbbbbbb"
+      }
+     ],
+     "offers": [],
+     "connectionAssistance": null
+    },
+    "inference",
+    0
+   ],
+   "expected": {
+    "kind": "inference",
+    "offered": false,
+    "readiness": null,
+    "available": false,
+    "freeSlots": 0
+   }
+  }
+ ]
+}

@@ -735,13 +735,13 @@
     },
     {
       "path": "contracts/computer-records.d.ts",
-      "bytes": 6571,
-      "sha256": "7b7ac5dd00de8237943db7883dc6dd8c0cf055f2f9fdfb30df92d0030dbac7fb"
+      "bytes": 7005,
+      "sha256": "740aa969c780cc4e5431a3ea69c008ab4c3de2970d8b3397535b732a68417150"
     },
     {
       "path": "contracts/computer-records.js",
-      "bytes": 19154,
-      "sha256": "818df6d6ceb416c1030231071f85a6bafabdffebd600b50353fa75106648853e"
+      "bytes": 21375,
+      "sha256": "35fd6fb78975c0ad30279fce2a1cb32860339c677626efd7f380a35564f79271"
     },
     {
       "path": "contracts/config/doppler-execution-contracts.d.ts",
@@ -1050,8 +1050,8 @@
     },
     {
       "path": "mesh/contribution.js",
-      "bytes": 4997,
-      "sha256": "653e256f8586cf2c5741abf9c12b3aec1a0d190e34ecc2905fdcc2fe97b210d5"
+      "bytes": 5232,
+      "sha256": "c07852b26a7c2630bb813e94d4741836b2f5898fc9bf8074cd4ab1acb06aa07a"
     },
     {
       "path": "mesh/generation-context-cache.d.ts",
@@ -1570,8 +1570,8 @@
     },
     {
       "path": "mesh/peer-generation.js",
-      "bytes": 111418,
-      "sha256": "452e147c021654e6ddd0f6651e228d050fcb6fc48d2dac2b4afec3e85c9c20f3"
+      "bytes": 111810,
+      "sha256": "11370a059a3223ca14c91dafc5fcf86d1ac9e79eb37e67e6dfd670e78388a451"
     },
     {
       "path": "mesh/peer-identity.js",
@@ -1635,8 +1635,8 @@
     },
     {
       "path": "mesh/swarm-coordination.js",
-      "bytes": 4290,
-      "sha256": "35cd997e4f20ed6ba78bc8de4788b5cc172d34639aaf4b973f18f91a123db334"
+      "bytes": 6025,
+      "sha256": "f0c971318f77a082bd3532903f1611d23ab2943f7fb9962dcde26a068bc15609"
     },
     {
       "path": "mesh/target-scoring.d.ts",

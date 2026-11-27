@@ -1,6 +1,7 @@
 import { openPluginSession } from '../../../shared/vendor/reploid/plugins/index.js';
 import { validateExecutionPolicy, createExecutionPolicy } from '../../../shared/vendor/reploid/chat/execution-policy.js';
 import { createPeerInference } from '../providers/peer-inference.js';
+import { offerAvailability, offersOfPeer } from './computer-records.js';
 import { modelImitationPlugin } from '../plugins/model-imitation/plugin.js';
 import protocol from '../plugins/model-imitation/protocol.json' with { type: 'json' };
 
@@ -25,7 +26,8 @@ export function createResearchPlugins({ chat, swarm, storage }) {
   };
   const models = () => chat.getState().models.filter(model => !model.partition && !model.adapters?.length && model.provider === 'doppler');
   const recipients = (model, peers = swarm.getState().consumer?.peers || []) => [...new Set(peers.filter(peer => peer.model === model.id
-    && peer.modelIdentity === model.identity && peer.role === 'provider' && peer.readiness === 'ready'
+    // Capacity now comes from the peer's current inference offer, never its advertised role.
+    && peer.modelIdentity === model.identity && offerAvailability({ offers: offersOfPeer(peer) }, 'inference', Date.now()).available && peer.readiness === 'ready'
     && peer.availableSlots > 0 && !peer.adapterIdentities?.length && peer.blocked !== true
     && peer.identityVerified === true && peer.admissionProtocol === 2 && peer.participantId)
     .map(peer => peer.participantId))];

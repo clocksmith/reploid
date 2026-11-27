@@ -11,9 +11,15 @@ import * as library from '../../packages/reploid/src/contracts/computer-records.
 import * as browser from '../../apps/poolday/host/computer-records.js';
 import * as native from '../../server/computer-records.js';
 import * as http from '../../server/fleet/contract.js';
+import { buildSwarmState, chooseProviderPeer } from '../../packages/reploid/src/mesh/swarm-coordination.js';
+import { rankProviderPeers } from '../../packages/reploid/src/mesh/contribution.js';
+import { projectChatCatalog, projectProviderEligibility } from '../../apps/poolday/host/chat-view.js';
+import { meshRoster } from '../../server/native-node-peers.js';
 
 const { records } = JSON.parse(readFileSync(new URL('../fixtures/contracts/records.json', import.meta.url), 'utf8'));
 const { cases } = JSON.parse(readFileSync(new URL('../fixtures/contracts/wire.json', import.meta.url), 'utf8'));
+const projections = JSON.parse(readFileSync(new URL('../fixtures/contracts/projections.json', import.meta.url), 'utf8')).cases;
+const routing = JSON.parse(readFileSync(new URL('../fixtures/contracts/routing.json', import.meta.url), 'utf8'));
 const surfaces = Object.entries({ library, browser, native, http: http.computerRecords });
 
 const outcome = (surface, run) => {
@@ -48,6 +54,10 @@ describe('computer, offer and operation-role records across surfaces', () => {
     }
   });
 
+  it.each(projections.map(row => [row.name, row]))('projection: %s', (name, row) => {
+    for (const [surfaceName, surface] of surfaces) expect(surface[row.reader](...row.args), surfaceName).toEqual(row.expected);
+  });
+
   it('provider availability derives from an active, unexpired offer', () => {
     const computer = library.parseComputer(records.find(row => row.name.startsWith('browser computer')).value);
     expect(library.providesNow(computer, 'inference', 0)).toBe(true);
@@ -74,5 +84,46 @@ describe('computer, offer and operation-role records across surfaces', () => {
     expect(library.isComputerId('mac', 'signing-key')).toBe(false);
     expect(library.isConnectionId('own-compute')).toBe(true);
     expect(library.isConnectionId('peer:0123456789abcdef01234567')).toBe(false);
+  });
+
+  describe('routing: a current offer can have zero capacity', () => {
+    const { model, now, peers, connections, expected } = routing;
+    const ids = rows => rows.map(row => row.peerId);
+    const withoutReady = peers.filter(peer => peer.peerId !== 'ready');
+
+    it('every surface reads the same offers: offering compute and having capacity are separate facts', () => {
+      for (const [surfaceName, surface] of surfaces) {
+        const availability = peer => surface.offerAvailability({ offers: surface.offersOfPeer(peer) }, 'inference', now);
+        expect(ids(peers.filter(peer => availability(peer).offered)), surfaceName).toEqual(expected.offering);
+        expect(ids(peers.filter(peer => surface.providesNow({ offers: surface.offersOfPeer(peer) }, 'inference', now))), surfaceName).toEqual(expected.providers);
+        expect(ids(peers.filter(peer => availability(peer).available)), surfaceName).toEqual(expected.selectable);
+      }
+    });
+
+    it('library: providers are counted from active offers and only one with capacity is chosen', () => {
+      expect(buildSwarmState({ peers, now }).providerCount).toBe(expected.providers.length);
+      expect(ids(rankProviderPeers(peers, { now })).sort()).toEqual([...expected.providers].sort());
+      expect(chooseProviderPeer(peers, { now })?.peerId).toBe('ready');
+      expect(chooseProviderPeer(withoutReady, { now })).toBeNull();
+    });
+
+    it('browser host: catalog admission lists a busy provider without sending to it and never a paused or expired one', () => {
+      const decisions = projectProviderEligibility({ model, peers, connections, now });
+      expect(ids(decisions)).toEqual(expected.listed);
+      expect(ids(decisions.filter(row => row.stage === null))).toEqual(expected.selectable);
+      expect(Object.fromEntries(decisions.map(row => [row.peerId, row.reason]))).toMatchObject({ busy: 'busy', failed: 'not-loaded', paused: 'no-inference', expired: 'no-inference' });
+      const [route] = projectChatCatalog({ models: [model], peers, connections, now });
+      expect(route).toMatchObject({ availability: 'ready', providerIds: ['ready', 'busy'], reachableProviderIds: expected.selectable });
+      const [rest] = projectChatCatalog({ models: [model], peers: withoutReady, connections, now });
+      expect(rest).toMatchObject({ availability: 'busy', providerIds: ['busy'], reachableProviderIds: expected.withoutReady.selectable });
+    });
+
+    it('native hosts and CLI: the roster lists every provider and marks only one with capacity ready', () => {
+      const roster = meshRoster({ peers, connections }, { catalog: [model], now });
+      expect(ids(roster.rows).sort()).toEqual([...expected.listed].sort());
+      expect(ids(roster.rows.filter(row => row.state === 'ready'))).toEqual(expected.selectable);
+      expect(Object.fromEntries(roster.rows.map(row => [row.peerId, row.state]))).toMatchObject({ busy: 'busy', failed: 'not-serving', paused: 'not-usable', expired: 'not-usable' });
+      expect(meshRoster({ peers: withoutReady, connections }, { catalog: [model], now }).summary.ready).toBe(0);
+    });
   });
 });

@@ -137,6 +137,29 @@ it('reports each connection\'s inference offer as the canonical record and ignor
   } finally { await f.mesh.close(); }
 });
 
+it('lists busy, failed and paused providers with their offers, counts providers from offers, and sends new work only to one with capacity', async () => {
+  const f = fixture(); await f.mesh.connect();
+  try {
+    f.advertise('busy', 'qwen', { availableSlots: 0 });
+    f.advertise('failed', 'qwen', { readiness: 'failed', availableSlots: 0, hasInference: false });
+    // A stale hasInference flag or a role field is not an offer: a paused provider advertises 'idle' and offers nothing.
+    f.advertise('paused', 'qwen', { readiness: 'idle', modelIdentity: null, availableSlots: 0, hasInference: true, role: 'provider' });
+    // An advertisement from before readiness (server/swarm-inference-peer.js) still counts, but is never placed.
+    f.handlers.get('reploid:peer-advertisement')('relay', { kind: 'peer_advertisement', role: 'provider', swarmEnabled: true, hasInference: true,
+      capabilities: ['generation'], provider: 'openai', model: 'gpt', updatedAt: Date.now() });
+    const snapshot = f.mesh.getSwarmSnapshot();
+    expect(Object.fromEntries(snapshot.peers.map(peer => [peer.peerId, peer.offers.map(offer => offer.readiness)])))
+      .toEqual({ busy: ['busy'], failed: ['failed'], paused: [], relay: ['ready'] });
+    expect(snapshot.providerCount).toBe(2);
+    f.advertise('ready', 'qwen');
+    expect(f.mesh.getSwarmSnapshot().providerCount).toBe(3);
+    const pending = f.mesh.generate([], null, { modelId: 'qwen' });
+    await vi.waitFor(() => expect(f.sent).toHaveLength(1));
+    expect(f.sent[0].peer).toBe('ready');
+    await f.respond(f.sent[0]); await pending;
+  } finally { await f.mesh.close(); }
+});
+
 it('names the computer of a contributor connection only from a link its requester key signed for that proven key', async () => {
   const f = fixture(); await f.mesh.connect();
   try {

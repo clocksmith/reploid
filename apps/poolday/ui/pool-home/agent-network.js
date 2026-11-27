@@ -1,3 +1,4 @@
+import { offersOfPeer, providesNow } from '../../host/computer-records.js';
 /** Read-only projection of host-owned agents. Advertisements never imply execution. */
 export function projectAgents(work, swarm = {}, selectedModelId) {
   const active = work.records?.find(row => work.busy && row.id === work.activeId);
@@ -20,7 +21,8 @@ export function projectAgents(work, swarm = {}, selectedModelId) {
     seen.add(peer.peerId);
     rows.push({ id: peer.peerId, name: 'Peer ' + peer.peerId.slice(0, 8), model: peer.model || 'No model offered',
       location: snapshot.transport === 'webrtc' ? 'WebRTC peer' : 'Same browser',
-      state: peer.role === 'provider' ? 'Available offer' : 'Connected agent' });
+      // An active inference offer (busy included), never the advertised role.
+      state: providesNow({ offers: offersOfPeer(peer) }, 'inference', Date.now()) ? 'Available offer' : 'Connected agent' });
   }
   for (const offer of work.peerModels || []) {
     if (!offer.available) continue;

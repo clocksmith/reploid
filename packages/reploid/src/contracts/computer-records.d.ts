@@ -101,8 +101,11 @@ export function isComputer(value: unknown): value is Computer;
 export function isOffer(value: unknown): value is Offer;
 export function isOperationRoles(value: unknown): value is OperationRoles;
 export function isOfferActive(offer: unknown, now: number): boolean;
-export function offerOf<K extends OfferKind>(computer: Computer | null | undefined, kind: K): Extract<Offer, { kind: K }> | null;
-export function providesNow(computer: Computer | null | undefined, kind: OfferKind, now: number): boolean;
+export function offerOf<K extends OfferKind>(computer: { offers?: Offer[] } | null | undefined, kind: K): Extract<Offer, { kind: K }> | null;
+export function providesNow(computer: { offers?: Offer[] } | null | undefined, kind: OfferKind, now: number): boolean;
+export function isOfferCurrent(offer: unknown, now: number): boolean;
+export type OfferAvailability = { kind: OfferKind; offered: boolean; readiness: OfferReadiness | null; available: boolean; freeSlots: number | null };
+export function offerAvailability(computer: { offers?: Offer[] } | null | undefined, kind: OfferKind, now: number): OfferAvailability;
 
 export function inferenceOffer(input: {
   connectionId?: ConnectionId | null; readiness: OfferReadiness; paused?: boolean; expiresAt?: number | null; modelId?: string | null;
@@ -125,6 +128,7 @@ export function operationRoles(input: {
 }): OperationRoles;
 
 export function inferenceOfferFromAdvertisement(advertisement: unknown, options?: { connectionId?: ConnectionId | null }): InferenceOffer | null;
+export function offersOfPeer(peer: unknown): Offer[];
 export function weightSupplyOfferFromInventory(artifacts: unknown, options?: {
   connectionId?: ConnectionId | null; readiness?: OfferReadiness; paused?: boolean; expiresAt?: number | null;
   modelIdentities?: Digest[]; maxStorageBytes?: number | null;

@@ -22,7 +22,7 @@ import { createGenerationRecovery, createMemoryGenerationJournal } from './gener
 import { assertSettingsSupported, effectiveRequestDigest, isCanonicalGenerationSettings, normalizeGenerationSettings,
   normalizeGenerationSettingsCapability } from './generation-settings.js';
 import { DIGEST_PATTERN, isDigest, isParticipantId } from '../contracts/identifiers.js';
-import { inferenceOfferFromAdvertisement, isOfferActive, operationRolesFromReceipt } from '../contracts/computer-records.js';
+import { inferenceOffer, inferenceOfferFromAdvertisement, isOfferActive, operationRolesFromReceipt } from '../contracts/computer-records.js';
 
 const adapterSet = value => {
   if (!Array.isArray(value) || value.length > 1 || value.some(id => !isDigest(id))) {
@@ -263,11 +263,13 @@ export function createPeerGenerationMesh({ config, ports }) {
     connections: swarmTransport?.getPeerStates?.() || []
   });
 
+  // This computer's own inference offer, the record its advertised role follows: active while its model is ready.
+  const ownOffers = () => ready() ? [inferenceOffer({ readiness: 'ready' })] : [];
   const getSwarmSnapshot = () => ({
     instanceId,
     ...swarmController.getState({
       swarmEnabled,
-      hasInference: ready()
+      offers: ownOffers()
     }),
     ...getTransportState(),
     peerId: identityBundle?.peerId || null,
@@ -307,7 +309,7 @@ export function createPeerGenerationMesh({ config, ports }) {
     const advertisement = createPeerAdvertisement({
       peerId: identityBundle.peerId,
       swarmEnabled,
-      hasInference: ready(),
+      offers: ownOffers(),
       capabilities: ['generation'],
       contribution: identityBundle.contribution,
       updatedAt: Date.now()
@@ -489,7 +491,9 @@ export function createPeerGenerationMesh({ config, ports }) {
       else delete next.generationSettings;
       // This connection's offers as the canonical records (contracts/computer-records.js), derived from the fields
       // normalized above; a remote advertisement's own `offers` field is never read.
-      next.offers = [inferenceOfferFromAdvertisement(next, { connectionId: remotePeerId })].filter(Boolean);
+      // An advertisement from before readiness was advertised keeps its offer through the same reader.
+      next.offers = [inferenceOfferFromAdvertisement(payload.readiness === undefined ? { ...next, readiness: undefined } : next,
+        { connectionId: remotePeerId })].filter(Boolean);
     }
     if (next) {
       const connection = swarmTransport?.getPeerStates?.().find(peer => peer.id === remotePeerId);

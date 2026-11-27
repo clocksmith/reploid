@@ -184,6 +184,23 @@ export function isOfferActive(offer, now) {
 export const offerOf = (computer, kind) => computer?.offers?.find(offer => offer.kind === kind) ?? null;
 /** Whether the computer provides `kind` at `now`: derived from its active offer, never a stored provider flag. */
 export const providesNow = (computer, kind, now) => isOfferActive(offerOf(computer, kind), now);
+/** Whether `offer` still stands at `now`: valid, not paused and not expired, in any readiness (busy and failed included). */
+export function isOfferCurrent(offer, now) {
+  return isOffer(offer) && !offer.paused && (offer.expiresAt === null || offer.expiresAt > now);
+}
+/**
+ * Two separate facts about the computer's offer of `kind` at `now`. `offered`: it has a current offer of that kind, so
+ * a busy or failed computer still offers it. `available`: it has capacity for new work now, which only a ready offer
+ * with a free slot (or an unreported count) has. `freeSlots` is the reported free count when available (null when
+ * unreported) and 0 otherwise. A connection that advertised no offer has no offer, so it offers nothing.
+ */
+export function offerAvailability(computer, kind, now) {
+  const offer = offerOf(computer, kind);
+  const offered = isOfferCurrent(offer, now);
+  const slots = offered && offer.kind === 'inference' ? offer.scope.availableSlots : null;
+  const available = offered && offer.readiness === 'ready' && slots !== 0;
+  return { kind, offered, readiness: offered ? offer.readiness : null, available, freeSlots: available ? slots : 0 };
+}
 
 // Builders. Each fills the record's defaults, then validates; a caller passes only facts it has verified.
 
@@ -228,7 +245,10 @@ const ADVERTISED_READINESS = Object.freeze({ loading: 'preparing', ready: 'ready
  */
 export function inferenceOfferFromAdvertisement(advertisement, { connectionId = advertisement?.peerId ?? null } = {}) {
   if (!isObject(advertisement)) return null;
-  const readiness = ADVERTISED_READINESS[advertisement.readiness];
+  // An advertisement from before readiness was advertised (swarm-coordination.js createPeerAdvertisement alone, as
+  // server/swarm-inference-peer.js still sends) states its offer only as `hasInference` with the swarm on.
+  const preReadiness = advertisement.readiness === undefined && advertisement.hasInference === true && advertisement.swarmEnabled === true;
+  const readiness = preReadiness ? 'ready' : ADVERTISED_READINESS[advertisement.readiness];
   const modelIdentity = isDigest(advertisement.modelIdentity) ? advertisement.modelIdentity : null;
   if (!readiness && !modelIdentity) return null;
   const slots = Number.isSafeInteger(advertisement.availableSlots) && advertisement.availableSlots >= 0 ? advertisement.availableSlots : null;
@@ -237,6 +257,17 @@ export function inferenceOfferFromAdvertisement(advertisement, { connectionId = 
     readiness: readiness === 'ready' && slots === 0 ? 'busy' : readiness || 'unavailable',
     modelId: isRecordId(advertisement.model) ? advertisement.model : null, modelIdentities: modelIdentity ? [modelIdentity] : [],
     adapterIdentities: adapters, availableSlots: slots });
+}
+
+/**
+ * The offers of a locally normalized mesh peer record (a swarm snapshot row): the `offers` its normalizer derived
+ * (mesh/peer-generation.js handlePeerAdvertisement, mesh/swarm-coordination.js upsertPeer), or, for a record that
+ * carries none, the inference offer read from its advertised fields. Those normalizers drop a remote advertisement's
+ * own `offers` field, so only local records belong here, never a raw advertisement.
+ */
+export function offersOfPeer(peer) {
+  if (Array.isArray(peer?.offers)) return peer.offers.filter(isOffer);
+  try { const offer = inferenceOfferFromAdvertisement(peer); return offer ? [offer] : []; } catch { return []; }
 }
 
 /**

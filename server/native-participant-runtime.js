@@ -29,6 +29,7 @@ import { acceptToolResult, expectedConstraintIdentity } from '../shared/infrastr
 import { openNativePartition } from './native-partition.js';
 import { assertNativeRuntimeSourceMode } from './native-runtime-source.js';
 import { isParticipantId } from '../shared/vendor/reploid/contracts/identifiers.js';
+import { offersOfPeer, providesNow } from './computer-records.js';
 
 /** `owner` is the optional owner gate from openNativeOwnerControls. It defers or reduces
  * new contribution, stage attempts and piece supply; it never cancels admitted work.
@@ -351,7 +352,8 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
         requireValue(!closed && wholeRequester, 'Native whole-model requester unavailable');
         const proven = [];
         for (const peer of mesh.getSwarmSnapshot().peers || []) {
-          if (peer.role !== 'provider' || peer.readiness !== 'ready' || peer.modelIdentity !== model.identity) continue;
+          // A provider is a peer with an active inference offer (busy included), never one whose role says so.
+          if (!providesNow({ offers: offersOfPeer(peer) }, 'inference', Date.now()) || peer.readiness !== 'ready' || peer.modelIdentity !== model.identity) continue;
           try { const proof = await mesh.verifyPeerIdentity(peer.peerId, signal); if (proof) proven.push(proof); }
           catch { signal?.throwIfAborted(); }
         }

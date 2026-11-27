@@ -1,7 +1,8 @@
-// Projections remain import-free; this syntax check does not verify an artifact.
+// Projections import only the pure computer and offer records (no runtime owner); this syntax check does not verify an artifact.
+import { offerAvailability, offersOfPeer } from './computer-records.js';
 const SHA256_PATTERN = /^sha256:[a-f0-9]{64}$/;
 /** Pure projections. Discovery describes availability; accepted attempts own history. */
-// The model checks the session's projections read. This file stays import-free (scripts/verify-layers.js), so they are
+// The model checks the session's projections read. This file imports no runtime owner (scripts/verify-layers.js), so they are
 // defined here and every other reader takes them from decisions/model-state.js, which re-exports them.
 /** Statuses of a computer that answers now: ready, or busy and taking requests. */
 export const SERVING_STATUSES = Object.freeze(['ready', 'busy']);
@@ -62,7 +63,7 @@ const reachableOn = (open, peer) => {
  * 'no-capacity' (a ready provider with no free slot, or none this page can reach). projectChatCatalog admits providers
  * from this one function, so a view that states the reason cannot disagree with the choice.
  */
-function providerExclusion(peer, model, open, known) {
+function providerExclusion(peer, model, open, known, now) {
   const out = (stage, reason) => ({ stage, reason });
   // A computer blocked on this device is never chosen, so it is not counted as capacity either.
   if (peer.blocked === true) return out('incompatible', 'blocked');
@@ -73,7 +74,11 @@ function providerExclusion(peer, model, open, known) {
   if (peer.modelIdentity !== model.identity) return out('incompatible', 'other-build');
   if (!(model.adapters || []).every(adapter => peer.adapterIdentities?.includes(adapter.identity))) return out('incompatible', 'adapter');
   if (peer.readiness !== 'ready') return out('not-ready', peer.readiness === 'loading' ? 'loading' : 'not-loaded');
-  if (!peer.hasInference) return out('not-ready', 'no-inference');
+  // Whether it provides inference comes from its current offer, never a flag or role it advertised. A busy or failed
+  // offer still stands but has no capacity, so it is never sent new work; a paused or expired one offers nothing.
+  const inference = offerAvailability({ offers: offersOfPeer(peer) }, 'inference', now);
+  if (!inference.offered) return out('not-ready', 'no-inference');
+  if (!inference.available) return out('no-capacity', 'busy');
   if (!(peer.availableSlots > 0)) return out('no-capacity', Number.isSafeInteger(peer.availableSlots) ? 'busy' : 'capacity-unknown');
   if (!reachableOn(open, peer)) return out('no-capacity', 'unreachable');
   return out(null, null);
@@ -81,9 +86,9 @@ function providerExclusion(peer, model, open, known) {
 
 /** Each advertised computer against one catalog model: the decision projectChatCatalog makes, one row per computer,
  * in the order given. */
-export function projectProviderEligibility({ model, peers, connections }) {
+export function projectProviderEligibility({ model, peers, connections, now = Date.now() }) {
   const open = openConnections(connections);
-  return (peers || []).map(peer => ({ peerId: peer.peerId, ...providerExclusion(peer, model, open, !!connections) }));
+  return (peers || []).map(peer => ({ peerId: peer.peerId, ...providerExclusion(peer, model, open, !!connections, now) }));
 }
 
 /** The computers a request could be sent to now, by the data-channel test admission uses: an open channel, and for a
@@ -94,13 +99,13 @@ export function reachablePeerIds({ peers, connections }) {
   return new Set([...open.keys()].filter(id => !advertised.has(id) || reachableOn(open, advertised.get(id))));
 }
 
-export function projectChatCatalog({ models, peers, connections, releasedPartitionModels = [] }) {
+export function projectChatCatalog({ models, peers, connections, releasedPartitionModels = [], now = Date.now() }) {
   const selections = models.filter(model => !model.partition).flatMap(model => [model, ...compatibleAdapters(model).map(adapter => ({
     ...model, name: adapter.name, selectionId: model.id + '/' + adapter.id, adapters: [adapter]
   }))]);
   // The host supplies only routes admitted by its release policy.
   return selections.map(model => {
-    const decisions = projectProviderEligibility({ model, peers, connections });
+    const decisions = projectProviderEligibility({ model, peers, connections, now });
     const sendable = new Set(peers.filter((peer, index) => decisions[index].stage === null));
     const ready = peers.filter((peer, index) => sendable.has(peer) || decisions[index].stage === 'no-capacity');
     const loading = decisions.some(row => row.reason === 'loading');

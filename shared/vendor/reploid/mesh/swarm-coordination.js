@@ -3,6 +3,7 @@
  */
 
 import { DEFAULT_REWARD_POLICY, rankProviderPeers } from './contribution.js';
+import { inferenceOfferFromAdvertisement, isOfferActive, offerAvailability, offersOfPeer, providesNow } from '../contracts/computer-records.js';
 
 export const SWARM_ROLES = Object.freeze({
   SOLO: 'solo',
@@ -11,8 +12,15 @@ export const SWARM_ROLES = Object.freeze({
   DEAD: 'dead'
 });
 
+/**
+ * The swarm role this computer advertises (the `role` field older peers read). With `offers` (reploid.offer/1 records),
+ * it provides inference only through an active inference offer at `now`; `hasInference` is the input for a caller with
+ * no offer records (the Zero host's own inference configuration).
+ */
 export function deriveSwarmRole(options = {}) {
-  const hasInference = !!options.hasInference;
+  const hasInference = Array.isArray(options.offers)
+    ? options.offers.some(offer => offer?.kind === 'inference' && isOfferActive(offer, Number(options.now ?? Date.now())))
+    : !!options.hasInference;
   const swarmEnabled = !!options.swarmEnabled;
 
   if (hasInference && !swarmEnabled) return SWARM_ROLES.SOLO;
@@ -25,12 +33,14 @@ export function createPeerAdvertisement(options = {}) {
   const peerId = String(options.peerId || 'unknown').trim() || 'unknown';
   const capabilities = Array.from(new Set(Array.isArray(options.capabilities) ? options.capabilities.filter(Boolean) : []));
   const swarmEnabled = !!options.swarmEnabled;
-  const hasInference = !!options.hasInference;
+  const role = deriveSwarmRole({ hasInference: options.hasInference, swarmEnabled, offers: options.offers, now: options.now });
+  // `role` and `hasInference` stay on the wire for peers that read them; both follow the offers when given.
+  const hasInference = Array.isArray(options.offers) ? role === SWARM_ROLES.PROVIDER || role === SWARM_ROLES.SOLO : !!options.hasInference;
 
   return {
     kind: 'peer_advertisement',
     peerId,
-    role: deriveSwarmRole({ hasInference, swarmEnabled }),
+    role,
     swarmEnabled,
     hasInference,
     capabilities,
@@ -73,27 +83,33 @@ export function createGenerationResult(options = {}) {
 
 export function buildSwarmState(options = {}) {
   const peers = Array.isArray(options.peers) ? options.peers : [];
+  const now = Number(options.now ?? Date.now());
   const role = deriveSwarmRole({
     hasInference: !!options.hasInference,
-    swarmEnabled: !!options.swarmEnabled
+    swarmEnabled: !!options.swarmEnabled,
+    offers: options.offers,
+    now
   });
 
   return {
     enabled: !!options.swarmEnabled,
     role,
     peerCount: peers.length,
-    providerCount: peers.filter((peer) => peer?.role === SWARM_ROLES.PROVIDER).length,
+    // Providers are peers with an active inference offer (busy included), never a peer's advertised role.
+    providerCount: peers.filter((peer) => providesNow({ offers: offersOfPeer(peer) }, 'inference', now)).length,
     consumerCount: peers.filter((peer) => peer?.role === SWARM_ROLES.CONSUMER).length,
     soloCount: peers.filter((peer) => peer?.role === SWARM_ROLES.SOLO).length
   };
 }
 
+/** The best-ranked provider with capacity for new work now: a busy, failed, paused or expired offer is never chosen. */
 export function chooseProviderPeer(peers = [], options = {}) {
+  const now = options.now || Date.now();
   const ranked = rankProviderPeers(peers, {
-    now: options.now || Date.now(),
+    now,
     policy: options.policy || DEFAULT_REWARD_POLICY
   });
-  return ranked[0] || null;
+  return ranked.find((peer) => offerAvailability({ offers: offersOfPeer(peer) }, 'inference', now).available) || null;
 }
 
 export function createSwarmController(options = {}) {
@@ -105,7 +121,12 @@ export function createSwarmController(options = {}) {
   return {
     upsertPeer(peer) {
       if (!peer?.peerId) return null;
-      const next = createPeerAdvertisement(peer);
+      // A remote peer's own `offers` and `role` are never trusted: its offers are read from its advertised fields.
+      const { offers: _claimed, ...advertised } = peer;
+      const next = createPeerAdvertisement({ ...advertised, offers: undefined });
+      let offer = null;
+      try { offer = inferenceOfferFromAdvertisement({ ...advertised, peerId: next.peerId }); } catch { offer = null; }
+      next.offers = offer ? [offer] : [];
       peerMap.set(next.peerId, next);
       return next;
     },
