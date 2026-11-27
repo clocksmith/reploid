@@ -1263,11 +1263,11 @@ describe('AgentLoop - Integration Tests', () => {
 
       await agentLoop.run('Test short responses');
 
-      // Should detect degradation
-      const warningCalls = mockEventBus.emit.mock.calls.filter(
-        c => c[0] === 'agent:warning'
-      );
-      // May or may not trigger depending on timing, but shouldn't crash
+      expect(mockEventBus.emit).toHaveBeenCalledWith('agent:warning', expect.objectContaining({
+        type: 'stuck_loop',
+        reason: 'Model producing very short responses repeatedly'
+      }));
+      expect(iteration).toBeLessThanOrEqual(6);
     });
   });
 

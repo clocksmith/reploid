@@ -113,11 +113,10 @@ npm run test:unit
 Multi-module workflow tests with realistic state management.
 
 Representative integration areas:
-- Core cognitive loop: `agent-loop.test.js`, `fsm.test.js`, `rsi-loop.test.js`
+- Core cognitive loop: `agent-loop.test.js`, `rsi-loop.test.js`
 - LLM & inference: `llm-client.test.js`, `gepa-optimizer.test.js`
 - Memory & state: `prompt-memory.test.js`, `reflection-system.test.js`, `replay-engine.test.js`, `vfs.test.js`
-- Persistence: `long-session.test.js`, `genesis-snapshot.test.js`
-- Tool execution: `tool-runner.test.js`
+- Persistence: `genesis-snapshot.test.js`
 - Arena (safety): `arena-harness.test.js`
 - Networking: `webrtc-swarm.test.js`
 - Routing: `websocket-routing.test.js`
@@ -138,7 +137,6 @@ Representative browser specs:
 - `accessibility.spec.js` - A11y compliance
 - `agent-goals.spec.js` - Goal completion flows
 - `modules.spec.js` - Module loading
-- `rsi-loop.spec.js` - RSI loop validation
 
 **Run:**
 ```bash

@@ -1,13 +1,12 @@
 #!/usr/bin/env npx tsx
 /**
- * REPLOID CLI - Unified testing, benchmarking, and debugging
+ * REPLOID CLI - Unified testing and debugging
  *
  * Usage:
  *   npx tsx scripts/reploid-cli.ts <command> [options]
  *
  * Commands:
  *   test [suite]     Run tests (unit, integration, e2e, full)
- *   bench            Run benchmarks
  *   debug [options]  Interactive debug mode
  *   start            Start dev server
  *   signal           Start standalone signaling server
@@ -16,7 +15,6 @@
  *   reploid test                    # Run Vitest suites (no browser execution)
  *   reploid test --unit             # Unit tests only
  *   reploid test --e2e --headed     # E2E with visible browser
- *   reploid bench                   # Run benchmarks
  *   reploid debug --goal chat       # Debug specific goal
  */
 
@@ -52,7 +50,6 @@ function header(title: string) {
 
 const commands = {
   test: 'Run Vitest suites; --full also runs Playwright',
-  bench: 'Run performance benchmarks',
   debug: 'Open the browser debug console',
   start: 'Start the development server',
   signal: 'Start standalone WebRTC signaling',
@@ -175,7 +172,7 @@ export function parseArgs(argv: string[]): CLIOptions {
 
 function printHelp(): void {
   console.log(`
-${colors.bright}REPLOID CLI - Test, Benchmark, Debug${colors.reset}
+${colors.bright}REPLOID CLI - Test, Debug${colors.reset}
 
 ${Object.entries(commands).map(([name, description]) => `  reploid ${name.padEnd(8)} ${description}`).join('\n')}
 
@@ -188,9 +185,6 @@ ${colors.cyan}TEST - Correctness Tests${colors.reset}
   reploid test --filter <name>  Filter tests by name
   reploid test --watch          Watch mode
   reploid test --coverage       With coverage report
-
-${colors.cyan}BENCH - Performance Benchmarks${colors.reset}
-  reploid bench                 Run performance benchmarks
 
 ${colors.cyan}DEBUG - Interactive Debugging${colors.reset}
   reploid debug                 Start debug console
@@ -275,21 +269,6 @@ export function buildProofCommand(argv: string[]): string[] {
   return [entry.script, ...args.filter((arg) => arg !== '--dry-run')];
 }
 
-async function runBench(opts: CLIOptions): Promise<number> {
-  header('REPLOID BENCHMARKS');
-
-  // Check if benchmark file exists
-  const benchPath = join(PROJECT_ROOT, 'tests/benchmarks');
-
-  log('Running performance benchmarks...', colors.cyan);
-
-  const args = ['vitest', 'bench', '--config', 'tests/vitest.config.js'];
-  if (opts.filter) {
-    args.push('-t', opts.filter);
-  }
-
-  return runCommand('npx', args);
-}
 
 async function runDebug(opts: CLIOptions): Promise<number> {
   header('REPLOID DEBUG MODE');
@@ -302,20 +281,17 @@ async function runDebug(opts: CLIOptions): Promise<number> {
     log('Browser: headed (visible)', colors.yellow);
   }
 
-  // Use the E2E debug console
-  const args = ['playwright', 'test', '--config', 'tests/playwright.config.js', 'tests/e2e/debug-console.js'];
-
-  if (opts.headed) {
-    args.push('--headed');
-  }
-
-  // Pass goal via environment
+  // tests/e2e/debug-console.js is a standalone Playwright script, not a test file.
   const env = { ...process.env };
+  if (opts.headed) {
+    env.HEADLESS = 'false';
+  }
   if (opts.goal) {
-    env.REPLOID_DEBUG_GOAL = opts.goal;
+    env.GOAL = opts.goal;
+    env.TEST_AWAKEN = 'true';
   }
 
-  return runCommand('npx', args, { env });
+  return runCommand('node', ['tests/e2e/debug-console.js'], { env });
 }
 
 async function runStart(opts: CLIOptions): Promise<number> {
@@ -365,9 +341,6 @@ async function main(): Promise<void> {
   switch (opts.command) {
     case 'test':
       exitCode = await runTests(opts);
-      break;
-    case 'bench':
-      exitCode = await runBench(opts);
       break;
     case 'debug':
       exitCode = await runDebug(opts);

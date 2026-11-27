@@ -71,7 +71,7 @@ Match the check to the risk. Times are from one laptop.
 | Before a push that changes served source or build inputs (including `apps/poolday-react` and `packages/poolday-ui`) | `npm run build`, and commit what it writes as its own commit. Recheck the bundles and inventories after rebasing onto `main` and regenerate them if a build input changed | 5-13 s |
 | Before pushing to `main` | The contract checks for each behavior you changed (next table) and, for a page change, the journey for that surface under `tests/e2e/` | 1-5 s a row |
 | Every push to `main` | The [Smoke workflow](.github/workflows/test.yml) runs `smoke`, `design-system`, `mobile`, and `ui-keyboard`. The Chromium job disables the GPU. The Flutter job runs checks without a platform build | 2 min |
-| Release, hardware work, or a change that justifies it | `npm test`, `npm run test:heavy`, `npm run test:e2e`, and the physical controllers (`tests/fixtures/*-physical.js`, `tests/contracts/`) | not in CI |
+| Release, hardware work, or a change that justifies it | `npm test`, `npm run test:heavy`, `npm run test:e2e`, the physical controllers (`tests/fixtures/*-physical.js`, `tests/contracts/`), and `REPLOID_PRIVACY_NATIVE_RTC=1` for `tests/integration/privacy-native-webrtc.test.js` (native WebRTC processes) | not in CI |
 
 These checks stay when their behavior changes; replace one only with a stronger test at the same boundary.
 

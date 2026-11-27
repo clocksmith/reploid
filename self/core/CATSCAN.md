@@ -46,7 +46,7 @@ Outputs:
   [visual workflow tests](../../tests/integration/visual-change-passport.test.js),
   [improvement episode tests](../../tests/unit/improvement-episode.test.js),
   [agent-loop policy tests](../../tests/unit/agent-loop-policies.test.js),
-  [tool-runner integration tests](../../tests/integration/tool-runner.test.js), and
+  [tool-runner tests](../../tests/unit/tool-runner.test.js), and
   [VFS tests](../../tests/integration/vfs.test.js).
 
 ## Non-goals

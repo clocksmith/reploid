@@ -82,7 +82,7 @@ A pass is evidence that a change cleared these checks. It does not adopt or acti
 ### 8. Verification
 
 - `tests/unit/tool-verification-gate.test.js` runs the real manager, tool writer and tool runner on the tool-creation gate.
-- `tests/unit/verification-worker-prototype.test.js` loads the real Worker source and checks its prototype-access detection.
+- `tests/unit/verification-worker-prototype.test.js` loads the real Worker source and checks its dangerous-pattern detection by path, capability write boundaries and complexity warnings.
 - `tests/unit/write-file-verification.test.js` exercises the `WriteFile` core gate with the VFS policy mocked open.
-- `tests/unit/verification-manager.test.js` checks the real module's metadata; most of its cases test a copy of the capability rules held in the test file, so they do not prove the Worker's rules.
+- `tests/unit/verification-manager.test.js` checks the real module's metadata and path capabilities.
 - `tests/e2e/vfs-storage-contract.spec.js` runs the Worker in a browser for the storage-owner exception.

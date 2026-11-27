@@ -4,7 +4,7 @@
 
 **Implementation Status:** Implemented
 
-**Verified Artifacts:** `/self/core/tool-runner.js`, `/self/core/tool-capabilities.js`, `/self/tool-runner.js`, `/packages/reploid/src/agent/tool-runner.js`, `/tests/unit/tool-runner.test.js`, `/tests/unit/tool-runner-disposal.test.js`, `/tests/integration/tool-runner.test.js`
+**Verified Artifacts:** `/self/core/tool-runner.js`, `/self/core/tool-capabilities.js`, `/self/tool-runner.js`, `/packages/reploid/src/agent/tool-runner.js`, `/tests/unit/tool-runner.test.js`, `/tests/unit/tool-runner-disposal.test.js`
 
 **Planned Artifacts:** None
 
@@ -61,4 +61,4 @@ The runner executes a tool; it does not decide that a tool's result should be ad
 
 ### 6. Verification
 
-`tests/unit/tool-runner.test.js`, `tests/unit/tool-runner-disposal.test.js`, `tests/integration/tool-runner.test.js` and `tests/unit/self-authorization.test.js` cover loading, surfaces, disposal and the self runner's default authorization.
+`tests/unit/tool-runner.test.js`, `tests/unit/tool-runner-disposal.test.js` and `tests/unit/self-authorization.test.js` cover loading, surfaces, arena gating, disposal and the self runner's default authorization.

@@ -422,8 +422,8 @@ describe('EpisodicMemory', () => {
 
       const pruned = await episodicMemory.pruneByRetention();
 
-      // Pruning should work
-      expect(typeof pruned).toBe('number');
+      expect(pruned).toBe(1);
+      expect(await episodicMemory.pruneByRetention()).toBe(0);
     });
 
     it('should emit pruned event', async () => {
@@ -442,7 +442,7 @@ describe('EpisodicMemory', () => {
 
       await episodicMemory.pruneByRetention();
 
-      // Event should be emitted if pruning occurred
+      expect(eventSpy).toHaveBeenCalledWith({ pruned: 1, reason: 'retention' });
     });
   });
 

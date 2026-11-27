@@ -211,17 +211,14 @@ describe('ToolRunner', () => {
       });
 
       it('should return dynamically loaded tools', async () => {
-        mockVFS.list.mockResolvedValue(['/tools/CustomTool.js']);
+        global.window = { getReploidMode: () => 'reploid' };
+        toolRunner = composeToolRunner();
+        mockVFS.list.mockImplementation(async (root) => (root === '/tools/' ? ['/tools/ReadFile.js'] : []));
         mockVFS.read.mockResolvedValue('export default (args) => "result";');
-
-        // Mock dynamic import
-        global.URL.createObjectURL = vi.fn(() => 'blob:mock-url');
-        global.URL.revokeObjectURL = vi.fn();
 
         await toolRunner.init();
 
-        // Tool should be in list after loading
-        // (Note: actual loading may fail in test env due to import() limitations)
+        expect(toolRunner.list()).toContain('ReadFile');
       });
     });
 
@@ -602,6 +599,21 @@ describe('ToolRunner', () => {
 
     it('should not have LoadModule as built-in when SubstrateLoader is unavailable', () => {
       expect(toolRunner.has('LoadModule')).toBe(false);
+    });
+  });
+
+  describe('arena gating', () => {
+    it('is disabled by default', () => {
+      expect(toolRunner.isArenaGatingEnabled()).toBe(false);
+    });
+
+    it('can be enabled and disabled while security is on', () => {
+      setSecurityEnabled(true, { persist: false });
+      toolRunner.setArenaGating(true);
+      expect(toolRunner.isArenaGatingEnabled()).toBe(true);
+
+      toolRunner.setArenaGating(false);
+      expect(toolRunner.isArenaGatingEnabled()).toBe(false);
     });
   });
 

@@ -52,7 +52,6 @@
     "test:watch": "npx tsx scripts/reploid-cli.ts test --watch",
     "test:coverage": "npx tsx scripts/reploid-cli.ts test --coverage",
     "test:ci": "vitest run --config tests/vitest.config.js --coverage --reporter=default --reporter=json --outputFile=test-results/vitest-results.json",
-    "bench": "npx tsx scripts/reploid-cli.ts bench",
     "debug": "npx tsx scripts/reploid-cli.ts debug",
     "cli": "tsx scripts/reploid-cli.ts",
     "build:cloud-access": "node scripts/build-reploid-cloud-access.js",

@@ -4,7 +4,7 @@
 
 **Implementation Status:** In-Progress
 
-**Verified Artifacts:** `/self/capabilities/cognition/knowledge-tree.js`, `/self/core/memory-manager.js`, `/tests/unit/knowledge-tree.test.js`, `/tests/integration/long-session.test.js`
+**Verified Artifacts:** `/self/capabilities/cognition/knowledge-tree.js`, `/self/core/memory-manager.js`, `/tests/unit/knowledge-tree.test.js`
 
 **Planned Artifacts:** None
 
@@ -12,7 +12,7 @@
 
 **Former Blueprint Paths:** `self/blueprints/0x000068-hierarchical-memory-architecture.md`
 
-**Incomplete boundary:** the section 8 success criteria are unmeasured. `tests/integration/long-session.test.js` drives `MemoryManager` with mocked LLM, VFS and embedding collaborators, so it checks control flow, not memory reuse rate, reconstruction accuracy or latency with a real model. The specification stays In-Progress until those measurements exist.
+**Incomplete boundary:** the section 8 success criteria are unmeasured: no test drives `MemoryManager` with a real model to measure memory reuse rate, reconstruction accuracy or latency. The specification stays In-Progress until those measurements exist.
 
 **Objective:** Implement a three-tier memory system (Working/Episodic/Semantic) enabling effectively infinite context through intelligent storage, summarization, and retrieval.
 
