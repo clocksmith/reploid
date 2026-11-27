@@ -21,7 +21,6 @@ import { createFleetRequester } from '../../server/fleet/requester.js';
 
 const repo = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const transcript = JSON.parse(await fs.readFile(path.join(repo, 'tests/fixtures/scoring-rollout/old-peer-transcript-91dd22456.json'), 'utf8'));
-const PROVIDER = 'peer:' + 'c'.repeat(24);
 const wire = vi.hoisted(() => ({ handlers: new Map(), sent: [], deliver: null }));
 vi.mock('../../shared/vendor/reploid/transport/index.js', async original => ({ ...await original(),
   createSwarmTransport: () => ({ onMessage: (type, handler) => wire.handlers.set(type, handler), offMessage() {},

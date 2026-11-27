@@ -17,6 +17,7 @@
   },
   "scripts": {
     "verify:fleet-receipts": "node tests/fixtures/fleet-credit-replay.js reports/fleet-native/20261110/whole-model.json reports/fleet-native/20261110/partition.json reports/fleet-browser/20261111/hosted-unmodified-chrome-replay.json reports/fleet-browser/20261111/fair-queue-replay.json reports/fleet-browser/20261111/partition-27b-replay.json reports/fleet-browser/20261111/sustained-multiuser-load-replay.json",
+    "verify:scoring-rollout": "node tests/fixtures/scoring-rollout/run.js",
     "package:hosting": "node scripts/package-hosting.js",
     "prepare:hosting": "npm run verify:browser-bundle:local && npm run package:hosting",
     "verify:swarm-bootstrap": "node --test scripts/repair-checks/swarm-join.test.js",

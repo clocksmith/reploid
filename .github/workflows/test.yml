@@ -64,6 +64,8 @@ jobs:
         run: npx vitest run --config tests/vitest.config.js tests/unit/native-complete-request.test.js tests/unit/native-complete-lifecycle.test.js tests/unit/complete-request-timing.test.js tests/unit/complete-worker-protocol.test.js tests/unit/complete-request-client.test.js tests/unit/provider-state.test.js tests/unit/native-lifecycle-runner.test.js tests/unit/compare-complete-preflight.test.js tests/unit/compare-split-single-clock.test.js tests/unit/native-piece-cache-source.test.js tests/unit/native-diagnostic-source.test.js
       - name: Check execution policy at CLI and research entrypoints
         run: npx vitest run --config tests/vitest.config.js tests/unit/chat-catalog-modes.test.js tests/unit/native-node-ask.test.js tests/unit/research-plugin-host.test.js
+      - name: Check the scoring rollout against an older release (recorded transcript) and the native operation port
+        run: npx vitest run --config tests/vitest.config.js tests/unit/scoring-rollout-old-peers.test.js tests/unit/native-mesh-operation-send.test.js tests/unit/mesh-operation-dispatch.test.js tests/unit/target-scoring.test.js
       - name: Verify committed generated contracts and inventories
         run: |
           npm run lint
