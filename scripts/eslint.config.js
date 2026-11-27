@@ -56,7 +56,6 @@ const cleanedModules = [
   'apps/poolday/ui/pool-home/pending-request-recovery.js',
   'apps/poolday/ui/pool-home/page-identity.js',
   'apps/poolday/ui/pool-home/view-markup.js',
-  'apps/poolday/ui/pool-home/record-ledger-view.js',
   'apps/poolday/ui/pool-home/run-result-format.js',
   'apps/poolday/ui/pool-home/route-controls.js',
   'packages/reploid/src/mesh/partitions/preparation-owner.js',

@@ -24,7 +24,7 @@ import {
   POOL_PENDING_REQUEST_TTL_MS, readPendingRequestRecovery, writePendingRequestRecovery, clearPendingRequestRecovery
 } from '../../ui/pool-home/pending-request-recovery.js';
 import { getRequesterIdentityNamespace } from '../../ui/pool-home/page-identity.js';
-import { addReceiptLedgerRow, recordPeerLedgerEvents } from '../../ui/pool-home/record-ledger-view.js';
+import { addReceiptLedgerRow, recordPeerLedgerEvents } from './run-ledger.js';
 import { participantLabel } from '../../ui/pool-home/computer-labels.js';
 import { bindDiamondRenderer } from '../../ui/components/diamond-renderer.js';
 import { subscribeContributionState } from '../../ui/pool-home/contribution-state.js';

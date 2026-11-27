@@ -1,6 +1,5 @@
 /**
- * The room's saved answers and peer events, written as the vanilla record ledger wrote them
- * (ui/pool-home/record-ledger-view.js addReceiptLedgerRow and recordPeerLedgerEvents), without the
+ * The room's saved answers and peer events, written as the vanilla record ledger wrote them, without the
  * page refreshes: one store and one persistence per room, so Records and Room-1 read what Ask and
  * Compute saved.
  */

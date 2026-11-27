@@ -2,7 +2,7 @@
  * The Records page ("Recent jobs", also /history) without markup: the unified timeline of requests, answers,
  * contributions and room events with its type facets, the remembered disclosures, shared-room activity, local
  * contributor scores, saved answer receipts and the receipt lookup. The same records and wording the vanilla page
- * rendered (ui/pool-home/record-ledger-view.js, record-controls.js, room-activity-controls.js), as one snapshot
+ * rendered (record-controls.js, room-activity-controls.js; the receipt writers are run-ledger.js), as one snapshot
  * and commands. Ledgers stay in this browser's storage per room; nothing here publishes anything.
  */
 import { verifyReceiptRecord, createPoolSdk } from '../../../../shared/pool/sdk.js';
