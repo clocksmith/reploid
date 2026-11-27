@@ -31,14 +31,20 @@ async function allowOpenNetwork(page) {
   await expect(policy).toBeHidden();
 }
 
-test('fresh public route starts on this device, offers local recovery and reports interrupted discovery', async ({ page, baseURL }, info) => {
+test('fresh public route stays on contributors, reports interrupted discovery, and keeps this device a choice', async ({ page, baseURL }, info) => {
   await localOnly(page, baseURL);
-  // A first visitor runs on this device until they choose a computer; discovery status follows that choice.
+  // A first visitor's route is contributors: with the connection down the composer says so and offers a retry, and
+  // never presents this device or a download as the way forward.
   const message = page.locator('[data-model-status]');
-  await expect(page.locator('[data-prompt-disclosure]')).toHaveText('Nothing leaves this device.');
+  await expect(page.locator('[data-composer-model-source]')).toHaveText('Contributors');
+  await expect(message).toContainText('Connection interrupted.', { timeout: 12000 });
+  await expect(page.locator('[data-retry-connection]')).toHaveText('Retry connection');
   await expect(page.locator('[data-review-shared-model]')).toBeHidden();
-  await expect(page.locator('[data-retry-connection]')).toBeHidden();
   const download = page.locator('[data-download-local]');
+  await expect(download).toBeHidden();
+  // This device stays one choice away, with its reviewed download.
+  await chooseComputer(page, 'local');
+  await expect(page.locator('[data-prompt-disclosure]')).toHaveText('Nothing leaves this device.');
   if (await page.evaluate(() => !!navigator.gpu && !!navigator.storage?.getDirectory && !!navigator.locks)) {
     await expect(message).toContainText('Model unavailable here.');
     await expect(download).toBeVisible();
@@ -49,11 +55,6 @@ test('fresh public route starts on this device, offers local recovery and report
     await expect(page.locator('[data-download-confirm]')).toHaveText('Download model');
     await page.locator('[data-download-cancel]').click();
   } else await expect(message).toContainText(/WebGPU|storage|Web Locks/);
-  await chooseComputer(page, 'network');
-  await expect(message).toContainText('Connection interrupted.', { timeout: 12000 });
-  await expect(page.locator('[data-review-shared-model]')).toBeHidden();
-  await expect(page.locator('[data-retry-connection]')).toHaveText('Retry connection');
-  await expect(download).toBeHidden();
   await page.screenshot({ path: info.outputPath('actual-empty-route.png') });
 });
 
@@ -161,10 +162,11 @@ test('reviews a reachable alternate model before changing the public destination
 for (const [theme, width, height] of [['light', 1440, 1000], ['light', 390, 844], ['dark', 390, 844]]) {
   test(`${theme} ${width}px download, unknown total, cancellation and late peer controls`, async ({ page, baseURL }, info) => {
     await page.setViewportSize({ width, height }); await localOnly(page, baseURL); await installFixture(page, theme);
-    // Automatic placement downloads to this device and still lets a late network peer answer.
+    // On automatic placement the download to this device is an optional recovery beside the network's next action,
+    // and a late network peer can still answer.
     await allowOpenNetwork(page);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1)).toBe(true);
-    const download = page.locator('[data-download-local]'), cancel = page.locator('[data-cancel-download]');
+    const download = page.locator('[data-optional-download]'), cancel = page.locator('[data-cancel-download]');
     await expect(download).toBeVisible(); await page.screenshot({ path: info.outputPath('empty.png') });
     await download.click(); await expect(page.locator('[data-download-confirm]')).toBeEnabled();
     await page.locator('[data-download-confirm]').click(); await expect(cancel).toBeVisible();

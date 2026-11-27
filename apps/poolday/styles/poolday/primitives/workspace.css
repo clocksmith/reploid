@@ -81,7 +81,8 @@
     --pool-param-dock-inset: max(var(--pool-size-8), env(safe-area-inset-bottom));
     padding-block-start: var(--pool-size-8);
     padding-inline: max(var(--pool-size-8), env(safe-area-inset-left)) max(var(--pool-size-8), env(safe-area-inset-right));
-    padding-block-end: calc(var(--pool-size-64) + var(--pool-param-dock-inset) + var(--pool-size-8));
+    /* The dock's measured height (--pool-param-dock-height, set by the frame), so nothing sits under a taller dock. */
+    padding-block-end: calc(var(--pool-param-dock-height, var(--pool-size-64)) + var(--pool-param-dock-inset) + var(--pool-size-8));
   }
   .pool-home .pool-workspace-bar {
     inset-block-start: auto;
@@ -107,7 +108,7 @@
   .pool-home .pool-drawer {
     inset-block-start: var(--pool-size-8);
     inset-inline: max(var(--pool-param-workspace-gutter), env(safe-area-inset-left)) max(var(--pool-param-workspace-gutter), env(safe-area-inset-right));
-    inset-block-end: calc(max(0px, 100dvh - var(--pool-param-workspace-height, 100dvh)) + var(--pool-size-64) + var(--pool-param-dock-inset) + var(--pool-size-8));
+    inset-block-end: calc(max(0px, 100dvh - var(--pool-param-workspace-height, 100dvh)) + var(--pool-param-dock-height, var(--pool-size-64)) + var(--pool-param-dock-inset) + var(--pool-size-8));
     inline-size: auto;
   }
 }

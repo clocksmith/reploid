@@ -39,7 +39,12 @@ export function Workspace({
   const frame = useRef<HTMLDivElement>(null);
   const main = useRef<HTMLElement>(null);
   const covered = useCoveredMain(frame, main);
-  const style = { '--pool-param-workspace-height': height === null ? undefined : `${height}px` } as CSSProperties;
+  const barHeight = useBarHeight(frame);
+  const style = {
+    '--pool-param-workspace-height': height === null ? undefined : `${height}px`,
+    // The dock's real height, so the page reserves exactly what it covers (larger text or a wrapped label makes it taller).
+    '--pool-param-dock-height': barHeight === null ? undefined : `${barHeight}px`,
+  } as CSSProperties;
   return (
     <div
       ref={frame}
@@ -85,6 +90,21 @@ function useCoveredMain(frame: RefObject<HTMLDivElement | null>, main: RefObject
     return () => window.removeEventListener('resize', onResize);
   }, []);
   return covered;
+}
+
+/** The bar's rendered height, followed as its labels wrap or the text size changes. */
+function useBarHeight(frame: RefObject<HTMLDivElement | null>): number | null {
+  const [height, setHeight] = useState<number | null>(null);
+  useEffect(() => {
+    const bar = frame.current?.querySelector(':scope > .pool-workspace-bar');
+    if (!bar || typeof ResizeObserver !== 'function') return undefined;
+    const measure = () => setHeight(Math.ceil(bar.getBoundingClientRect().height));
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(bar);
+    return () => observer.disconnect();
+  }, [frame]);
+  return height;
 }
 
 // Below this visual-viewport height (a phone with its keyboard open) the frame is compact.
