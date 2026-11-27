@@ -34,6 +34,7 @@
     "daily": "node scripts/reploid-daily.js",
     "start": "npx tsx scripts/reploid-cli.ts start",
     "dev": "npm start",
+    "preview:ui:mock": "node scripts/preview-ui-mock.js",
     "deploy": "node scripts/deploy.js",
     "start:signaling": "node server/reploid-signaling.js",
     "test": "npx tsx scripts/reploid-cli.ts test",

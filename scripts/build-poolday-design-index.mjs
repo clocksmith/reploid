@@ -28,7 +28,8 @@ export const PRIMITIVE_ORDER = [
   'Readout', 'Divider', 'Stack', 'Row', 'Columns', 'Grow', 'Toolbar', 'Log', 'Surface', 'Card', 'Frame', 'Button', 'IconButton', 'Chip', 'SelectorButton', 'Menu',
   'Field', 'RangeField', 'FilePicker', 'TextArea', 'InputGroup', 'Toggle', 'SingleChoice', 'MultiChoice', 'ListItem', 'List', 'Section',
   'Disclosure', 'Notice', 'MessageText', 'MessageRow', 'Transcript', 'ConversationLayout', 'ThreadItem', 'Navigator', 'SidebarLayout',
-  'BarButton', 'BrandLink', 'WorkspaceBar', 'Drawer', 'Workspace', 'Dialog', 'Sheet', 'TokenSwatch',
+  'BarButton', 'BrandLink', 'WorkspaceBar', 'Drawer', 'Workspace', 'Dialog', 'Sheet',
+  'PanelHeader', 'SummaryStrip', 'ControlRow', 'DetailSheet', 'InlineAlert', 'EmptyState', 'TokenSwatch',
 ];
 /** Small pieces first, whole screens last. */
 export const COMPOSITION_ORDER = [

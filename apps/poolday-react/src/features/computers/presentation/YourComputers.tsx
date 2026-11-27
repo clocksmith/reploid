@@ -1,5 +1,20 @@
 import { useEffect, useRef, useState } from 'react';
-import { Button, Disclosure, Facts, Field, List, ListItem, Notice, Row, Section, Stack, StatusLine, Text } from '@reploid/poolday-ui';
+import {
+  Button,
+  DetailSheet,
+  Disclosure,
+  EmptyState,
+  Facts,
+  Field,
+  InlineAlert,
+  List,
+  ListItem,
+  Row,
+  Section,
+  Stack,
+  StatusLine,
+  Text,
+} from '@reploid/poolday-ui';
 import type { ComputersServices, ComputersView, GuestInvite, PrivateAccount, PrivateComputersView } from '../domain/services';
 import { computers as t } from '../../../l10n/computers';
 import { ActivityList } from './FleetAccount';
@@ -48,6 +63,7 @@ function OwnerPairing({ view, services }: { readonly view: NonNullable<Computers
         if (!live.current) return;
         setFields((current) => ({ ...current, code: '' }));
         setLink('');
+        setManualOpen(false);
         setStatus(t.owner.paired(result.hostLabel));
       },
       (cause: unknown) => live.current && setStatus(messageOf(cause) || t.owner.failed),
@@ -146,9 +162,15 @@ function PrivateComputers({ view, services }: { readonly view: Extract<PrivateCo
         </Disclosure>
       )}
       {view.computers.map((computer) => (
-        <Disclosure key={computer.id} quiet summary={computer.name} status={computer.status} data={{ 'data-private-computer': computer.id, 'data-private-tone': computer.tone }}>
+        <DetailSheet
+          key={computer.id}
+          title={computer.name}
+          status={computer.status}
+          closeLabel={t.close}
+          data={{ 'data-private-computer': computer.id, 'data-private-tone': computer.tone }}
+        >
           <Facts items={computer.facts} />
-        </Disclosure>
+        </DetailSheet>
       ))}
       {view.connected && (
         <Disclosure quiet summary={t.private.credits} open={accountOpen} onToggle={setAccountOpen} data={{ 'data-private-account': true }}>
@@ -184,11 +206,9 @@ function PrivateComputers({ view, services }: { readonly view: Extract<PrivateCo
           <Button variant="quiet" label={t.private.disconnect} onPress={pending ? undefined : () => act(() => services.privateComputers.disconnect())} data={{ 'data-private-disconnect': true }} />
         </Row>
       )}
-      {(error || view.error) && (
-        <Notice tone="error" data={{ 'data-private-error': true }}>
-          {error || view.error}
-        </Notice>
-      )}
+      <InlineAlert tone="error" data={{ 'data-private-error': true }}>
+        {error || view.error || null}
+      </InlineAlert>
     </>
   );
 }
@@ -247,12 +267,21 @@ function GuestInvites({ services }: { readonly services: ComputersServices }) {
         </Text>
         <Row>
           <Button label={t.invites.create} onPress={busy ? undefined : create} data={{ 'data-circle-invite-submit': true }} />
+          <Button variant="quiet" label={t.invites.refresh} onPress={() => run(async () => undefined)} data={{ 'data-circle-invite-refresh': true }} />
         </Row>
-        <Disclosure quiet summary={t.invites.limits}>
-          <Field type="number" label={t.invites.hours} min={1} max={720} required value={limits.hours} onChange={set('hours')} />
-          <Field type="number" label={t.invites.requests} min={1} max={1000} required value={limits.maxRequests} onChange={set('maxRequests')} />
-          <Field type="number" label={t.invites.tokens} min={1} max={32768} required value={limits.maxOutputTokens} onChange={set('maxOutputTokens')} />
-        </Disclosure>
+        <List>
+          <DetailSheet
+            title={t.invites.limits}
+            status={`${limits.hours}h · ${limits.maxRequests} req · ${limits.maxOutputTokens} tok`}
+            closeLabel={t.close}
+          >
+            <Stack gap="sm">
+              <Field type="number" label={t.invites.hours} min={1} max={720} required value={limits.hours} onChange={set('hours')} />
+              <Field type="number" label={t.invites.requests} min={1} max={1000} required value={limits.maxRequests} onChange={set('maxRequests')} />
+              <Field type="number" label={t.invites.tokens} min={1} max={32768} required value={limits.maxOutputTokens} onChange={set('maxOutputTokens')} />
+            </Stack>
+          </DetailSheet>
+        </List>
         <Text variant="caption" muted>
           {t.invites.policy}
         </Text>
@@ -276,35 +305,36 @@ function GuestInvites({ services }: { readonly services: ComputersServices }) {
           </Row>
         </Stack>
       )}
-      <List data={{ 'data-circle-invite-list': true }}>
-        {rows.map((row) => (
-          <Stack key={row.id} gap="xs" data={{ 'data-circle-invite-row': row.id, 'data-circle-invite-state': row.state }}>
-            <Text variant="small">{row.summary}</Text>
-            <Text variant="small" muted>
-              {row.usage}
-            </Text>
-            {row.queued && <Text variant="small" muted>{row.queued}</Text>}
-            {row.active && (
-              <Row>
-                <Button
-                  variant="quiet"
-                  label={t.invites.revoke}
-                  onPress={() => run(async () => {
-                    const text = await services.invites.revoke(row.id);
-                    if (!live.current) return;
-                    setShared((current) => (current?.id === row.id ? null : current));
-                    setStatus(text);
-                  })}
-                  data={{ 'data-circle-invite-revoke': row.id }}
-                />
-              </Row>
-            )}
-          </Stack>
-        ))}
-      </List>
-      <Row>
-        <Button variant="quiet" label={t.invites.refresh} onPress={() => run(async () => undefined)} data={{ 'data-circle-invite-refresh': true }} />
-      </Row>
+      {rows.length > 0 ? (
+        <List data={{ 'data-circle-invite-list': true }}>
+          {rows.map((row) => (
+            <Stack key={row.id} gap="xs" data={{ 'data-circle-invite-row': row.id, 'data-circle-invite-state': row.state }}>
+              <Text variant="small">{row.summary}</Text>
+              <Text variant="small" muted>
+                {row.usage}
+              </Text>
+              {row.queued && <Text variant="small" muted>{row.queued}</Text>}
+              {row.active && (
+                <Row>
+                  <Button
+                    variant="quiet"
+                    label={t.invites.revoke}
+                    onPress={() => run(async () => {
+                      const text = await services.invites.revoke(row.id);
+                      if (!live.current) return;
+                      setShared((current) => (current?.id === row.id ? null : current));
+                      setStatus(text);
+                    })}
+                    data={{ 'data-circle-invite-revoke': row.id }}
+                  />
+                </Row>
+              )}
+            </Stack>
+          ))}
+        </List>
+      ) : (
+        <EmptyState title={t.invites.title} description={t.invites.explain} data={{ 'data-circle-invite-list': true }} />
+      )}
       <StatusLine data={{ 'data-circle-invite-status': true }}>{status}</StatusLine>
     </Disclosure>
   );
@@ -324,4 +354,3 @@ export function YourComputers({ view, services }: { readonly view: ComputersView
     </Section>
   );
 }
-

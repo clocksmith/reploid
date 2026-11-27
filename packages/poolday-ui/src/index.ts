@@ -23,3 +23,4 @@ export { Stats } from './stats.js';
 export { DataTable } from './table.js';
 export { RangeField } from './range.js';
 export { Prism } from './prism.js';
+export { PanelHeader, SummaryStrip, ControlRow, DetailSheet, InlineAlert, EmptyState } from './compositions.js';

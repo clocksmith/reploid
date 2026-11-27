@@ -1,13 +1,16 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import {
   Button,
+  DetailSheet,
   Disclosure,
+  EmptyState,
   Facts,
   FilePicker,
   Icon,
+  InlineAlert,
   List,
   ListItem,
-  Notice,
+  PanelHeader,
   Progress,
   Row,
   Section,
@@ -15,6 +18,7 @@ import {
   SingleChoice,
   Stack,
   StatusLine,
+  SummaryStrip,
   Text,
   Toggle,
 } from '@reploid/poolday-ui';
@@ -54,9 +58,9 @@ function Production({ view, services, onStartSharing }: { readonly view: Product
   };
   return (
     <Stack gap="md" data={{ 'data-production-surface': true }}>
-      <Notice tone="error" data={{ 'data-production-error': true }}>
+      <InlineAlert tone="error" data={{ 'data-production-error': true }}>
         {error || view.error || null}
-      </Notice>
+      </InlineAlert>
       {view.local.length > 0 && (
         <Row data={{ 'data-production-local': true }}>
           {view.local.map((line) => (
@@ -101,9 +105,11 @@ function Production({ view, services, onStartSharing }: { readonly view: Product
           {view.models.length > 0 ? (
             <ModelRows models={view.models} onChoose={choose} />
           ) : (
-            <Text variant="small" muted data={{ 'data-production-model-empty': true }}>
-              {view.emptyTitle ? `${view.empty}: ${view.emptyTitle}` : view.empty}
-            </Text>
+            <EmptyState
+              title={view.empty}
+              description={view.emptyTitle || undefined}
+              data={{ 'data-production-model-empty': true }}
+            />
           )}
         </Stack>
       )}
@@ -140,32 +146,39 @@ function Diagnostic({ view, services }: { readonly view: Extract<DiagnosticView,
     work().catch((cause: unknown) => setError(messageOf(cause)));
   };
   return (
-    <Disclosure quiet summary={t.diagnostic.title} data={{ 'data-computer-diagnostic': true }}>
-      <Text variant="caption" muted>
-        {t.diagnostic.explain}
-      </Text>
-      <Row>
-        <Button label={t.diagnostic.run} onPress={view.busy ? undefined : () => run(() => services.preferences.measure())} data={{ 'data-gpu-check': true }} />
-        {view.measuring && <Button label={t.diagnostic.stop} onPress={() => services.preferences.cancel()} data={{ 'data-gpu-stop': true }} />}
-      </Row>
-      <StatusLine muted={false} data={{ 'data-gpu-result': true }}>
-        {error || view.error || view.result}
-      </StatusLine>
-      {view.hardware && (
-        <Text variant="caption" muted>
-          {view.hardware}
+    <DetailSheet
+      title={t.diagnostic.title}
+      status={view.result || view.baseline}
+      closeLabel={t.close}
+      data={{ 'data-computer-diagnostic': true }}
+    >
+      <Stack gap="md">
+        <Text variant="small" muted>
+          {t.diagnostic.explain}
         </Text>
-      )}
-      <Text variant="caption" muted data={{ 'data-gpu-baseline': true }}>
-        {view.baseline}
-      </Text>
-      <Row>
-        <Button variant="quiet" label={t.diagnostic.save} onPress={view.canSave ? () => run(() => services.preferences.saveBaseline()) : undefined} data={{ 'data-gpu-save': true }} />
-        {view.baselineStored && (
-          <Button variant="quiet" label={t.diagnostic.clear} onPress={view.busy ? undefined : () => run(() => services.preferences.clearBaseline())} data={{ 'data-gpu-clear': true }} />
+        <Row>
+          <Button label={t.diagnostic.run} onPress={view.busy ? undefined : () => run(() => services.preferences.measure())} data={{ 'data-gpu-check': true }} />
+          {view.measuring && <Button label={t.diagnostic.stop} onPress={() => services.preferences.cancel()} data={{ 'data-gpu-stop': true }} />}
+        </Row>
+        <StatusLine muted={false} data={{ 'data-gpu-result': true }}>
+          {error || view.error || view.result}
+        </StatusLine>
+        {view.hardware && (
+          <Text variant="caption" muted>
+            {view.hardware}
+          </Text>
         )}
-      </Row>
-    </Disclosure>
+        <Text variant="caption" muted data={{ 'data-gpu-baseline': true }}>
+          {view.baseline}
+        </Text>
+        <Row>
+          <Button variant="quiet" label={t.diagnostic.save} onPress={view.canSave ? () => run(() => services.preferences.saveBaseline()) : undefined} data={{ 'data-gpu-save': true }} />
+          {view.baselineStored && (
+            <Button variant="quiet" label={t.diagnostic.clear} onPress={view.busy ? undefined : () => run(() => services.preferences.clearBaseline())} data={{ 'data-gpu-clear': true }} />
+          )}
+        </Row>
+      </Stack>
+    </DetailSheet>
   );
 }
 
@@ -208,10 +221,11 @@ function WeightSupply({ view, services, open }: { readonly view: WeightSupplyVie
   return (
     <Stack gap="sm" data={{ 'data-weight-supply': true, 'data-weight-supply-state': state, 'data-weight-supply-paused': view.paused ? 'true' : 'false',
       'data-weight-supply-verified-bytes': String(view.verifiedBytes) }}>
-      <Text variant="label">{w.title}</Text>
-      <Text variant="caption" muted>
-        {w.help}
-      </Text>
+      <PanelHeader
+        title={w.title}
+        summary={w.help}
+        action={<Button variant="quiet" label={w.refresh} onPress={view.busy ? undefined : () => void services.weightSupply.refresh()} data={{ 'data-weight-supply-refresh': true }} />}
+      />
       {view.approval && (
         <Facts
           items={[
@@ -273,9 +287,8 @@ function WeightSupply({ view, services, open }: { readonly view: WeightSupplyVie
         </Text>
       )}
       {state === 'asking' && <StatusLine>{w.asking}</StatusLine>}
-      <Row>
-        <Button variant="quiet" label={w.refresh} onPress={view.busy ? undefined : () => void services.weightSupply.refresh()} data={{ 'data-weight-supply-refresh': true }} />
-        {(view.approval || view.paused) && (
+      {(view.approval || view.paused) && (
+        <Row>
           <Button
             variant="quiet"
             label={view.paused ? w.resume : w.pause}
@@ -283,12 +296,12 @@ function WeightSupply({ view, services, open }: { readonly view: WeightSupplyVie
             onPress={view.busy ? undefined : () => void (view.paused ? services.weightSupply.resume() : services.weightSupply.pause())}
             data={{ 'data-weight-supply-pause': true }}
           />
-        )}
-        {view.paused && <StatusLine>{w.paused}</StatusLine>}
-      </Row>
-      <Notice tone="error" data={{ 'data-weight-supply-error': true }}>
+          {view.paused && <StatusLine>{w.paused}</StatusLine>}
+        </Row>
+      )}
+      <InlineAlert tone="error" data={{ 'data-weight-supply-error': true }}>
         {view.error || null}
-      </Notice>
+      </InlineAlert>
     </Stack>
   );
 }
@@ -395,74 +408,68 @@ export function ThisComputer({ view, services, onStartSharing }: { readonly view
       <List>
         <Disclosure quiet summary={t.device.contribute} open={open} onToggle={setOpen} data={{ 'data-production-device': true }}>
           <Stack gap="md" data={{ 'data-this-computer': true }}>
-            <Stack gap="xs">
-              <Text variant="small">{`${t.device.thisComputer} ${device.summary}`}</Text>
-              <Text variant="caption" muted data={{ 'data-local-computer': true }}>
-                {device.localComputer}
-              </Text>
-            </Stack>
-            <Facts items={[[t.device.offers, device.offers], [t.device.supplied, device.supplied], [t.device.consumed, device.consumed]]} />
+            <Text variant="small">{`${t.device.thisComputer} ${device.summary}`}</Text>
+            <SummaryStrip
+              tone={device.computeOn ? 'ready' : 'neutral'}
+              status={device.localComputer}
+              items={[[t.device.offers, device.offers], [t.device.supplied, device.supplied], [t.device.consumed, device.consumed]]}
+              data={{ 'data-local-computer': true }}
+            />
             <Text variant="caption" muted data={{ 'data-device-usage-scope': true }}>
               {device.usageScope}
             </Text>
-            {device.usageError && (
-              <Text variant="small" muted data={{ 'data-device-usage-error': true }}>
-                {device.usageError}
-              </Text>
-            )}
+            <InlineAlert tone="error" data={{ 'data-device-usage-error': true }}>
+              {device.usageError || null}
+            </InlineAlert>
             <Stack gap="sm">
               {device.sharingSummary && (
                 <Text variant="small" data={{ 'data-tab-sharing-summary': true }}>
                   {device.sharingSummary}
                 </Text>
               )}
-              <Toggle
-                title={t.device.answer}
-                status={device.computeLabel}
-                checked={device.computeOn}
-                disabled={device.computeDisabled}
-                onChange={(on) => void services.device.setCompute(on)}
-                controlData={{ 'data-toggle-contribution': true }}
-                data={{ 'data-compute-sharing-row': true }}
-              />
-              <Text variant="caption" muted>
-                {t.device.answerHelp}
-              </Text>
+              <List>
+                <Toggle
+                  title={t.device.answer}
+                  status={device.computeLabel}
+                  checked={device.computeOn}
+                  disabled={device.computeDisabled}
+                  onChange={(on) => void services.device.setCompute(on)}
+                  controlData={{ 'data-toggle-contribution': true }}
+                  data={{ 'data-compute-sharing-row': true }}
+                />
+                <Toggle
+                  title={t.device.files}
+                  status={device.filesLabel}
+                  checked={device.filesOn}
+                  disabled={device.filesDisabled}
+                  onChange={(on) => void services.device.setFiles(on)}
+                  controlData={{ 'data-toggle-device-files': true }}
+                  data={{ 'data-device-files-row': true }}
+                />
+                <Toggle
+                  title={t.device.introductions}
+                  status={t.device.introductionsStatus}
+                  checked={device.introductions}
+                  onChange={(on) => void services.network.setIntroductions(on)}
+                  data={{ 'data-toggle-introductions': true }}
+                />
+              </List>
               {device.progress && (
                 <Text variant="small" data={{ 'data-contribution-progress': true }}>
                   {device.progress}
                 </Text>
               )}
-              {device.retryStop && (
+              {(device.retryStop || device.pauseAll) && (
                 <Row>
-                  <Button label={t.device.retryStop} onPress={device.retryStopDisabled ? undefined : () => void services.device.retryStop()} data={{ 'data-retry-contribution-stop': true }} />
-                </Row>
-              )}
-              <Toggle
-                title={t.device.files}
-                status={device.filesLabel}
-                checked={device.filesOn}
-                disabled={device.filesDisabled}
-                onChange={(on) => void services.device.setFiles(on)}
-                controlData={{ 'data-toggle-device-files': true }}
-                data={{ 'data-device-files-row': true }}
-              />
-              <Text variant="caption" muted>
-                {t.device.filesHelp}
-              </Text>
-              {device.pauseAll && (
-                <Row>
-                  <Button variant="quiet" label={t.device.pauseAll} onPress={() => void services.device.pauseAll()} data={{ 'data-device-pause-all': true }} />
+                  {device.retryStop && (
+                    <Button label={t.device.retryStop} onPress={device.retryStopDisabled ? undefined : () => void services.device.retryStop()} data={{ 'data-retry-contribution-stop': true }} />
+                  )}
+                  {device.pauseAll && (
+                    <Button variant="quiet" label={t.device.pauseAll} onPress={() => void services.device.pauseAll()} data={{ 'data-device-pause-all': true }} />
+                  )}
                 </Row>
               )}
               {view.weightSupply && <WeightSupply view={view.weightSupply} services={services} open={open} />}
-              <Toggle
-                title={t.device.introductions}
-                status={t.device.introductionsStatus}
-                checked={device.introductions}
-                onChange={(on) => void services.network.setIntroductions(on)}
-                data={{ 'data-toggle-introductions': true }}
-              />
             </Stack>
             <Production view={view.production} services={services} onStartSharing={onStartSharing} />
             {device.limits && (
@@ -470,17 +477,25 @@ export function ThisComputer({ view, services, onStartSharing }: { readonly view
                 {device.limits}
               </Text>
             )}
-            <Stack gap="xs">
-              {view.diagnostic.available && <Diagnostic view={view.diagnostic} services={services} />}
-              {view.specialized && (
-                <Disclosure quiet summary={t.specialized.title} open={specializedOpen} onToggle={(next) => {
-                  setSpecializedOpen(next);
-                  if (next) setSpecializedLoaded(true);
-                }} data={{ 'data-specialized-jobs': true }}>
-                  {specializedLoaded && <SpecializedJobs services={services} />}
-                </Disclosure>
-              )}
-            </Stack>
+            {(view.diagnostic.available || view.specialized) && (
+              <List>
+                {view.diagnostic.available && <Diagnostic view={view.diagnostic} services={services} />}
+                {view.specialized && (
+                  <DetailSheet
+                    title={t.specialized.title}
+                    closeLabel={t.close}
+                    open={specializedOpen}
+                    onOpenChange={(next) => {
+                      setSpecializedOpen(next);
+                      if (next) setSpecializedLoaded(true);
+                    }}
+                    data={{ 'data-specialized-jobs': true }}
+                  >
+                    {specializedLoaded && <SpecializedJobs services={services} />}
+                  </DetailSheet>
+                )}
+              </List>
+            )}
           </Stack>
         </Disclosure>
       </List>

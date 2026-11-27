@@ -65,6 +65,12 @@ import {
   TokenSwatch,
   VisuallyHidden,
   Wordmark,
+  PanelHeader,
+  SummaryStrip,
+  ControlRow,
+  DetailSheet,
+  InlineAlert,
+  EmptyState,
 } from '@reploid/poolday-ui';
 
 afterEach(cleanup);
@@ -858,5 +864,72 @@ describe('decorative prism', () => {
     const ids = [...container.querySelectorAll('linearGradient')].map((node) => node.id);
     expect(new Set(ids).size).toBe(ids.length);
     expect(container.querySelectorAll('.pool-prism-art')).toHaveLength(2);
+  });
+});
+
+describe('canonical compositions', () => {
+  it('renders PanelHeader, SummaryStrip, ControlRow, InlineAlert, and EmptyState with accessible structure', async () => {
+    const onAction = vi.fn();
+    const onPressRow = vi.fn();
+    render(
+      <PooldayRoot>
+        <PanelHeader
+          title="Computers"
+          summary="Manage local and paired devices."
+          action={<Button label="Refresh" onPress={onAction} />}
+          data={{ 'data-panel-header': true }}
+        />
+        <SummaryStrip
+          tone="ready"
+          status="Ready"
+          items={[['Offers', '2'], ['Supplied', '120']]}
+          data={{ 'data-summary-strip': true }}
+        />
+        <List>
+          <ControlRow title="Files" status="On" control={<Badge tone="ready">Active</Badge>} data={{ 'data-control-static': true }} />
+          <ControlRow title="Diagnostic" status="Run check" onPress={onPressRow} data={{ 'data-control-press': true }} />
+        </List>
+        <InlineAlert tone="error" data={{ 'data-inline-alert': true }}>
+          Connection failed
+        </InlineAlert>
+        <EmptyState
+          title="No invites"
+          description="Create a guest link."
+          action={<Button label="Create" onPress={onAction} />}
+          data={{ 'data-empty-state': true }}
+        />
+      </PooldayRoot>,
+    );
+    expect(screen.getByRole('heading', { level: 3, name: 'Computers' })).toBeTruthy();
+    expect(screen.getByText('Manage local and paired devices.')).toBeTruthy();
+    expect(screen.getByText('Ready')).toBeTruthy();
+    expect(screen.getByText('Offers')).toBeTruthy();
+    expect(screen.getByText('120')).toBeTruthy();
+    expect(screen.getByRole('alert').textContent).toContain('Connection failed');
+    expect(screen.getByText('No invites')).toBeTruthy();
+    await userEvent.click(screen.getByRole('button', { name: 'Refresh' }));
+    await userEvent.click(screen.getByRole('button', { name: /Diagnostic/ }));
+    expect(onAction).toHaveBeenCalledTimes(1);
+    expect(onPressRow).toHaveBeenCalledTimes(1);
+  });
+
+  it('opens and closes DetailSheet in both uncontrolled and controlled modes', async () => {
+    const onOpenChange = vi.fn();
+    render(
+      <PooldayRoot>
+        <List>
+          <DetailSheet title="Advanced" status="2 options" closeLabel="Close" onOpenChange={onOpenChange} data={{ 'data-detail-trigger': true }} sheetData={{ 'data-detail-sheet': true }}>
+            <Text>Sheet body</Text>
+          </DetailSheet>
+        </List>
+      </PooldayRoot>,
+    );
+    expect(screen.queryByText('Sheet body')).toBeNull();
+    await userEvent.click(screen.getByRole('button', { name: /Advanced/ }));
+    expect(onOpenChange).toHaveBeenLastCalledWith(true);
+    expect(screen.getByText('Sheet body')).toBeTruthy();
+    await userEvent.click(screen.getByRole('button', { name: 'Close' }));
+    expect(onOpenChange).toHaveBeenLastCalledWith(false);
+    expect(screen.queryByText('Sheet body')).toBeNull();
   });
 });
