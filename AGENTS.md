@@ -105,5 +105,3 @@ Other commands:
   script in `package.json`.
 - `npm run verify:catscan` checks component-map links and inventory after
   component-map or boundary changes. `catscan:chain` is an optional lookup.
-- Fake-buffer or unit tests do not establish real inference, physical peer recovery or
-  production readiness.
