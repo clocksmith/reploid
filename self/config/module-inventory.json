@@ -18894,7 +18894,7 @@
     {
       "path": "vendor/reploid/inference/protected.js",
       "owner": "vendor",
-      "sha256": "sha256:a5360ec1e39751033c340152e3bccdaf31904f5376c60b6517015b2eb5776378",
+      "sha256": "sha256:924f281b1c6b526408d082881451402732c900b1a177759aa0dfe4c84bf9f3fb",
       "imports": [
         "../artifacts/identity.js",
         "../artifacts/signatures.js",
@@ -19550,7 +19550,7 @@
     {
       "path": "vendor/reploid/mesh/protected-generation.js",
       "owner": "vendor",
-      "sha256": "sha256:855e89743d90f156e08f9da290787aade1c6b310e024039a77d946fbc20c460b",
+      "sha256": "sha256:6d14f8aadc9ba6d9b1348059dcd8c79ae91c0a01681e2db2e3604275422b7c81",
       "imports": [
         "../artifacts/canonical-json.js",
         "../artifacts/identity.js",

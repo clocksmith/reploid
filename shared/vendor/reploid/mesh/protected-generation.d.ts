@@ -36,7 +36,7 @@ export type TrapSource =
   | { source: 'oracle'; endpoint: string; oracleKeys: string[] }
   | { source: 'public-set'; envelope: TrapSetEnvelope; publisherKeys: string[] };
 export interface PinnedCircuit {
-  identity: string; modelIdentity: string; tokenizer: { alphabet: string }; vocab: number; context: number; inputLevel: number; logSlots: number;
+  identity: string; modelIdentity: string; tokenizer: { alphabet: string } | { words: string[] }; vocab: number; context: number; inputLevel: number; logSlots: number;
   rotations: number[]; traps: TrapSource;
 }
 export interface TrapRequest {

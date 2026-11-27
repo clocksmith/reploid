@@ -1426,7 +1426,7 @@
     {
       "path": "config/module-inventory.json",
       "byteLength": 690632,
-      "sha256": "sha256:6fad50aa9a7f2f9a0082b2e372cb8f1bf3489dfed5a297ea6a8d14a3d53e7531"
+      "sha256": "sha256:c1bf359ea7ea355b399465c0e1012ec2040eeca38456ad18e04a087c568c0f3b"
     },
     {
       "path": "config/module-registry.json",
@@ -11980,8 +11980,8 @@
     },
     {
       "path": "vendor/reploid/inference/protected.js",
-      "byteLength": 18280,
-      "sha256": "sha256:a5360ec1e39751033c340152e3bccdaf31904f5376c60b6517015b2eb5776378"
+      "byteLength": 18471,
+      "sha256": "sha256:924f281b1c6b526408d082881451402732c900b1a177759aa0dfe4c84bf9f3fb"
     },
     {
       "path": "vendor/reploid/inference/protections.js",
@@ -12325,8 +12325,8 @@
     },
     {
       "path": "vendor/reploid/mesh/protected-generation.js",
-      "byteLength": 59019,
-      "sha256": "sha256:855e89743d90f156e08f9da290787aade1c6b310e024039a77d946fbc20c460b"
+      "byteLength": 59403,
+      "sha256": "sha256:6d14f8aadc9ba6d9b1348059dcd8c79ae91c0a01681e2db2e3604275422b7c81"
     },
     {
       "path": "vendor/reploid/mesh/provider-hardware.js",
@@ -12376,7 +12376,7 @@
     {
       "path": "vendor/reploid/package-assets.json",
       "byteLength": 66157,
-      "sha256": "sha256:9620c78b415af486f7c5dee6be209e6d588f8f34a24ff1b0bb3cc232ea598660"
+      "sha256": "sha256:643d32dc3caff8ebacdf1153edc1eb4f78b911834b1860bb87f895f75381f793"
     },
     {
       "path": "vendor/reploid/plugins/index.js",
@@ -12669,5 +12669,5 @@
       "sha256": "sha256:abb6c18f6167d6afc8ee1b3adfcbbb89c0e93fb4fc4e98d7a12250f78aab206a"
     }
   ],
-  "bundleHash": "sha256:58f606b1bef57e7feb849d96f76e4729a1b895b6ebaa8271f7e9990419c21291"
+  "bundleHash": "sha256:0b18c2964b67cd80892d7394ef5e54ec558801ec98f9b52eaf78e5038b1b0e1c"
 }

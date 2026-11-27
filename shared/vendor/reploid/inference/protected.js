@@ -69,12 +69,14 @@ export const PROTECTED_LEAKS = freeze(['model and circuit identity', 'prompt len
   'after a session, whether a verification failed (through the evaluator lockout and key-epoch rotation): exposure bounded to log2(n + 1) chosen bits per evaluator per key epoch over n sessions, not closed',
   'evaluator and requester identities and network metadata']);
 
-/** The fixture tokenizer: one symbol per token from the circuit's pinned alphabet. */
-function tokenize(messages, alphabet) {
+/** Tokenize locally against the circuit's pinned vocabulary. */
+function tokenize(messages, tokenizer) {
   if (messages.length !== 1 || messages[0].role !== 'user') {
     throw executionError('EXECUTION_REQUEST_INVALID', 'The protected route takes exactly one user message. Nothing was sent.');
   }
-  const tokens = [...messages[0].content].map(symbol => alphabet.indexOf(symbol));
+  const tokens = tokenizer.words
+    ? messages[0].content.trim().split(/\s+/).map(word => tokenizer.words.indexOf(word))
+    : [...messages[0].content].map(symbol => tokenizer.alphabet.indexOf(symbol));
   if (!tokens.length || tokens.some(token => token < 0)) {
     throw executionError('EXECUTION_REQUEST_INVALID', 'The message has symbols outside the pinned tokenizer. Nothing was sent.');
   }
@@ -170,7 +172,7 @@ export function createProtectedExecution({ policy: inputPolicy, discover, connec
   async function execute({ plan, pinned, requestId, messages, signal, onAdmitted, onToken }) {
     gate();
     const { circuit, parameterSet, trapSet, verified, endpoint } = pinned;
-    const promptTokens = tokenize(messages, circuit.tokenizer.alphabet);
+    const promptTokens = tokenize(messages, circuit.tokenizer);
     const generate = plan.generation.maxOutputTokens ?? Math.min(4, circuit.context - promptTokens.length + 1);
     if (promptTokens.length + generate - 1 > circuit.context) {
       throw executionError('EXECUTION_REQUEST_INVALID', `A ${promptTokens.length}-symbol prompt with ${generate} generated tokens exceeds the ${circuit.context}-position context. Nothing was sent.`);
@@ -199,7 +201,8 @@ export function createProtectedExecution({ policy: inputPolicy, discover, connec
       try {
         return await runProtectedRequesterSession({ channel, crypto, identity: requester, verified, planId: plan.id, routeId: plan.route.id,
           expiresAt: now() + SESSION_TTL_MS, trapSet: traps, trapLanes: policy.trapLanes, maxKeyEpochSeconds: policy.maxKeyEpochSeconds, promptTokens, generate, journal, randomInt, now, timeoutMs, signal,
-          onBound: onAdmitted, onToken: (token, step) => onToken(circuit.tokenizer.alphabet[token], step) });
+          onBound: onAdmitted, onToken: (token, step) => onToken(circuit.tokenizer.words
+            ? `${step === 1 ? '' : ' '}${circuit.tokenizer.words[token]}` : circuit.tokenizer.alphabet[token], step) });
       } catch (error) {
         if (error?.code === 'RESULT_UNVERIFIED') {
           // A failed verification: never reuse this key (the verdict was a pass/fail decryption of evaluator-chosen
