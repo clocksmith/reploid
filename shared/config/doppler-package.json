@@ -1,7 +1,7 @@
 {
   "name": "dopplerx",
-  "version": "0.1.7",
-  "spec": "file:deploy/artifacts/dopplerx-0.1.7.tgz",
-  "resolved": "file:deploy/artifacts/dopplerx-0.1.7.tgz",
-  "integrity": "sha512-4oQ3wseowRHzmA/Ekl0AQAg/kuSjqWjJZVO41wEhI1NFSTlciDoA7sO9o0wZYTIMSpJuHQmo98376K7RHvBlzQ=="
+  "version": "0.2.0",
+  "spec": "0.2.0",
+  "resolved": "https://registry.npmjs.org/dopplerx/-/dopplerx-0.2.0.tgz",
+  "integrity": "sha512-6JqPVFXrS+2Q6FFqHfV0QOZtz9hwlGJCPRviE+ElFZEnpUS2qHCq4GVUIFpIv5tELEXhVJrD7x5kIK+sgXHDpQ=="
 }

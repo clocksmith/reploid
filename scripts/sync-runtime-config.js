@@ -61,6 +61,17 @@ export function replaceCloudRunEnvValue(source, key, value) {
   return source.replace(pattern, `$1 ${JSON.stringify(value)}`);
 }
 
+/** Project the Doppler runtime URLs into the Worker's wrangler vars; every other entry stays as written. */
+export function projectWranglerRuntimeVars(source, runtimeEnv) {
+  let projected = source;
+  for (const key of Object.keys(RUNTIME_ENV_KEYS)) {
+    const pattern = new RegExp(`("${escapeRegExp(key)}"\\s*:\\s*)"[^"\\n]*"`);
+    if (!pattern.test(projected)) throw new Error(`Wrangler config is missing var ${key}`);
+    projected = projected.replace(pattern, `$1${JSON.stringify(runtimeEnv[key])}`);
+  }
+  return projected;
+}
+
 /** Project ordinary environment values from env.production.json. Secret
  * references and release identities remain deployment-owned manifest entries. */
 export function projectCloudRunRuntimeEnv(source, runtimeEnv) {
@@ -210,6 +221,7 @@ if (isMain) {
     deploymentConfig: path.join(repoRoot, 'deploy', 'env.production.json'),
     cloudRunYaml: path.join(repoRoot, 'deploy', 'cloud-run-service.yaml'),
     cloudBuildYaml: path.join(repoRoot, 'deploy', 'cloudbuild.yaml'),
+    wranglerApi: path.join(repoRoot, 'deploy', 'cloudflare', 'wrangler.api.jsonc'),
     packageManifest: path.join(repoRoot, 'package.json'),
     packageLock: path.join(repoRoot, 'package-lock.json')
   };
@@ -217,7 +229,8 @@ if (isMain) {
     poolConfig: fs.readFileSync(filePaths.poolConfig, 'utf8'),
     deploymentConfig: fs.readFileSync(filePaths.deploymentConfig, 'utf8'),
     cloudRunYaml: fs.readFileSync(filePaths.cloudRunYaml, 'utf8'),
-    cloudBuildYaml: fs.readFileSync(filePaths.cloudBuildYaml, 'utf8')
+    cloudBuildYaml: fs.readFileSync(filePaths.cloudBuildYaml, 'utf8'),
+    wranglerApi: fs.readFileSync(filePaths.wranglerApi, 'utf8')
   };
   const poolConfig = JSON.parse(current.poolConfig);
   const browserRuntimeVersion = DOPPLER_BROWSER_RUNTIME_VERSION;
@@ -238,7 +251,8 @@ if (isMain) {
     poolConfig: formatJson(synchronized.poolConfig),
     deploymentConfig: formatJson(synchronized.deploymentConfig),
     cloudRunYaml: synchronized.cloudRunYaml,
-    cloudBuildYaml: synchronized.cloudBuildYaml
+    cloudBuildYaml: synchronized.cloudBuildYaml,
+    wranglerApi: projectWranglerRuntimeVars(current.wranglerApi, synchronized.deploymentConfig.runtimeEnv)
   };
   const changed = Object.keys(expected).filter((key) => current[key] !== expected[key]);
 

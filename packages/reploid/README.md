@@ -200,8 +200,8 @@ assignment (or null) and input/output/deadline limits. Generation settings and
 tokenizer rules stay owned by Doppler. No sampling defaults are added here.
 `generate(messages, onUpdate, { signal, adapterArtifactStore })` forwards the
 request's `adapterSet` and its host artifact store through `executeOperation()`.
-The peer dependency is `dopplerx`; the repository's pinned 0.1.7 accepts both
-request schemas below.
+The peer dependency is `dopplerx` (`^0.1.5 || ^0.2.0`); the repository's pinned 0.2.0
+accepts both request schemas below.
 
 | Request format | Display callback | Completion |
 | --- | --- | --- |

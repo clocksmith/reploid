@@ -137,7 +137,7 @@
   "license": "MIT",
   "dependencies": {
     "acorn": "^8.15.0",
-    "dopplerx": "file:deploy/artifacts/dopplerx-0.1.7.tgz",
+    "dopplerx": "0.2.0",
     "dotenv": "^16.3.1",
     "express": "^4.22.2",
     "jose": "6.2.12",

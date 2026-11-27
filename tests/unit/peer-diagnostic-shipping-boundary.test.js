@@ -60,7 +60,8 @@ describe('peer diagnostic shipping boundary', () => {
 
   it('preserves the pinned kernel registry, including historical reachability metadata', () => {
     const registry = readFileSync(`${vendor}src/config/kernels/registry.json`);
-    const archive = dopplerPackage.resolved.replace(/^file:/, '');
+    // The registry pin's bytes are kept beside the Dockerfile, which installs from this archive.
+    const archive = `deploy/artifacts/dopplerx-${dopplerPackage.version}.tgz`;
     const archived = execFileSync('tar', ['-xOf', archive, 'package/src/config/kernels/registry.json']);
     expect(registry.equals(archived)).toBe(true);
   });

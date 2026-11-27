@@ -101,7 +101,8 @@ rollback. Prompt, output, token, and full receipt payload envelopes can move ove
 
 The current browser pin remains in `package-lock.json` and
 `shared/config/doppler-package.json`; its integrity-pinned archive
-(`artifacts/dopplerx-0.1.7.tgz`) is in the current tree, and so is
+(`artifacts/dopplerx-0.2.0.tgz`, the registry package bytes) is in the current tree,
+as are the previous pin `artifacts/dopplerx-0.1.7.tgz` and
 `artifacts/dopplerx-0.1.5.tgz`, which `retention.json` lists among the archived
 versions and the [0.1.5 qualification receipts](../reports/release-015-qualification/README.md)
 name. Other historical packages and run output are indexed in the

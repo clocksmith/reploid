@@ -24,9 +24,9 @@
     "POOL_JSON_LIMIT": "512kb",
     "POOL_RESEARCH_JSON_LIMIT": "1mb",
     "REPLOID_POOL_MODEL_BASE_URL": "https://storage.googleapis.com/reploid-model-artifacts/models",
-    "REPLOID_DOPPLER_MODULE_URL": "/vendor/doppler/0.1.7/src/index.js",
-    "REPLOID_DOPPLER_STORAGE_MODULE_URL": "/vendor/doppler/0.1.7/src/tooling-exports/storage.js",
-    "REPLOID_DOPPLER_KERNEL_BASE_URL": "/vendor/doppler/0.1.7/src/gpu/kernels",
+    "REPLOID_DOPPLER_MODULE_URL": "/vendor/doppler/0.2.0/src/index.js",
+    "REPLOID_DOPPLER_STORAGE_MODULE_URL": "/vendor/doppler/0.2.0/src/tooling-exports/storage.js",
+    "REPLOID_DOPPLER_KERNEL_BASE_URL": "/vendor/doppler/0.2.0/src/gpu/kernels",
     "REPLOID_TURN_PROVIDER": "cloudflare-realtime"
   },
   // Secrets (wrangler secret put): GEMINI_API_KEY, MIGRATION_TOKEN (only during the copy),

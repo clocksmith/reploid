@@ -3,6 +3,7 @@ import {
   replaceCloudRunEnvValue,
   projectCloudRunRuntimeEnv,
   projectServicePolicy,
+  projectWranglerRuntimeVars,
   synchronizeRuntimeConfig
 } from '../../scripts/sync-runtime-config.js';
 import {
@@ -179,4 +180,20 @@ it('projects one service policy into both deployment paths and refuses an absent
   expect(result.cloudBuildYaml).toBe('--min-instances 0 --max-instances 1 --concurrency 80 --timeout 300');
   expect(() => projectServicePolicy(run, build, { ...policy, maxInstances: 0 })).toThrow('Invalid bounded');
   expect(() => projectServicePolicy(run, '--concurrency 9', policy)).toThrow('Missing generated');
+});
+
+it('projects the Doppler runtime URLs into the Worker vars and keeps every other line', () => {
+  const env = {
+    REPLOID_POOL_MODEL_BASE_URL: 'https://models.example/models',
+    REPLOID_DOPPLER_MODULE_URL: '/vendor/doppler/9.9.9/src/index.js',
+    REPLOID_DOPPLER_STORAGE_MODULE_URL: '/vendor/doppler/9.9.9/src/tooling-exports/storage.js',
+    REPLOID_DOPPLER_KERNEL_BASE_URL: '/vendor/doppler/9.9.9/src/gpu/kernels'
+  };
+  const source = '{\n  // vars\n  "vars": {\n    "NODE_ENV": "production",\n'
+    + Object.keys(env).map(key => `    "${key}": "/vendor/doppler/0.1.7/x"`).join(',\n') + '\n  }\n}\n';
+  const projected = projectWranglerRuntimeVars(source, env);
+  for (const [key, value] of Object.entries(env)) expect(projected).toContain(`"${key}": "${value}"`);
+  expect(projected).toContain('// vars');
+  expect(projected).toContain('"NODE_ENV": "production"');
+  expect(() => projectWranglerRuntimeVars('{ "vars": {} }', env)).toThrow('missing var');
 });

@@ -68,7 +68,7 @@ function loopback() {
   return { wire, requester: end('requester', 'provider'), provider: end('provider', 'requester') };
 }
 
-/** A Doppler session stub: text streaming and target scoring, as DopplerX 0.1.7 exposes them. */
+/** A Doppler session stub: text streaming and target scoring, as DopplerX exposes them. */
 function mockSession() {
   return {
     loaded: true, modelId: model.id, manifestHash: HASH, activeLoRA: null, manifest: {},

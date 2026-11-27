@@ -5,11 +5,16 @@ import { createHash } from 'node:crypto';
 import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { pathToFileURL } from 'node:url';
 import * as native from 'dopplerx/partitions';
-import * as browser from '../../shared/vendor/doppler/0.1.7/src/partitions.js';
 import catalog from '../../shared/config/chat-models.json' with { type: 'json' };
 import { createWorkPartitionPlan } from '../../apps/poolday/host/work-partition-plan.js';
 import { readNativeModelConfiguration } from '../../server/native-model-config.js';
+import { DOPPLER_PARTITIONS_MODULE_URL } from '../../shared/config/doppler-local-models.js';
+import { resolveServedFile } from '../../server/browser-roots.js';
+
+// The browser copy is the vendored tree the page serves for the pinned Doppler version.
+const browser = await import(pathToFileURL(resolveServedFile(DOPPLER_PARTITIONS_MODULE_URL)).href);
 
 const pinned = 'sha256:a000b91dd404ff328a0deaa2f5e3ff89b5c73c9a93001d1870c145df4fdd882c';
 const digest = bytes => 'sha256:' + createHash('sha256').update(bytes).digest('hex');
