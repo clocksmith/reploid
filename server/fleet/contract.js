@@ -1,11 +1,15 @@
 import { canonicalize } from '../../shared/vendor/reploid/artifacts/canonical-json.js';
 import { participantIdFor, normalizeParticipantPublicKey } from '../../shared/vendor/reploid/artifacts/participant-proofs.js';
+import { isDigest } from '../computer-records.js';
+
+/** The canonical computer, offer and operation-role records this service writes and its clients read. */
+export * as computerRecords from '../computer-records.js';
 
 export const FLEET_SERVICE_REQUEST_SCHEMA = 'reploid.fleet-service-request/v1';
 
 export const assert = (condition, message) => { if (!condition) throw Error(message); };
 export const integer = value => Number.isSafeInteger(value) && value >= 0;
-export const digest = value => typeof value === 'string' && /^sha256:[a-f0-9]{64}$/.test(value);
+export const digest = isDigest;
 export const text = value => typeof value === 'string' && value.length > 0 && value.length <= 256;
 export const same = (a, b) => canonicalize(a) === canonicalize(b);
 

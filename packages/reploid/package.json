@@ -109,6 +109,10 @@
     "./errors": {
       "types": "./src/contracts/error.d.ts",
       "import": "./src/contracts/error.js"
+    },
+    "./contracts": {
+      "types": "./src/contracts/computer-records.d.ts",
+      "import": "./src/contracts/computer-records.js"
     }
   },
   "files": [

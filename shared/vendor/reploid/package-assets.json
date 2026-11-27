@@ -96,6 +96,10 @@
     "./errors": {
       "types": "./src/contracts/error.d.ts",
       "import": "./src/contracts/error.js"
+    },
+    "./contracts": {
+      "types": "./src/contracts/computer-records.d.ts",
+      "import": "./src/contracts/computer-records.js"
     }
   },
   "files": [
@@ -471,13 +475,13 @@
     },
     {
       "path": "artifacts/identity.d.ts",
-      "bytes": 1010,
-      "sha256": "d758486d48c9e7de15ca18cdcf2bd455a03353e41a75f2794bfb00fab5408d74"
+      "bytes": 1097,
+      "sha256": "7fdc1460e2aeaf30249e224697329b42165f6b4f22de0027fc40ffb6afda92af"
     },
     {
       "path": "artifacts/identity.js",
-      "bytes": 3025,
-      "sha256": "13a444bab82a8a10d5a1156ee7b3330db4c3c0945728bc9e19659cd4ab3aba48"
+      "bytes": 3208,
+      "sha256": "7bf9d7419547de00d71fa3535db5c85065d9b570dc7853f9ae479119248056ea"
     },
     {
       "path": "artifacts/independent-unit-journal.d.ts",
@@ -730,6 +734,16 @@
       "sha256": "3c8095f0fcca92bd97a78cda8cb19a4996f1bca15b27c31270cb5717e2305249"
     },
     {
+      "path": "contracts/computer-records.d.ts",
+      "bytes": 6571,
+      "sha256": "7b7ac5dd00de8237943db7883dc6dd8c0cf055f2f9fdfb30df92d0030dbac7fb"
+    },
+    {
+      "path": "contracts/computer-records.js",
+      "bytes": 19056,
+      "sha256": "df19423f9a8281a088a78670ef73f44fe0f57a85443655da85aef0de5cefc0bf"
+    },
+    {
       "path": "contracts/config/doppler-execution-contracts.d.ts",
       "bytes": 1184,
       "sha256": "90ffa92025453f0f32a6394c5ba47f568da7cdd6431110b7485532a2b38ebc41"
@@ -763,6 +777,16 @@
       "path": "contracts/host-ports.d.ts",
       "bytes": 1547,
       "sha256": "eec6cf8ff1e5a7065931dae47eb09974f66ca6281c047e0835575244a420504b"
+    },
+    {
+      "path": "contracts/identifiers.d.ts",
+      "bytes": 1074,
+      "sha256": "c52966bb9faffe8423734038c9598a033deea16d0a71dd387b1e2b5f82b49c51"
+    },
+    {
+      "path": "contracts/identifiers.js",
+      "bytes": 2680,
+      "sha256": "69faa701579cb29bc80beea81c7cc6f285e6b7434ed0aad5cca1449c2f6615a7"
     },
     {
       "path": "contracts/infrastructure/doppler-runtime-service.d.ts",

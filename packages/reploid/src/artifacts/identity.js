@@ -79,6 +79,8 @@ export function encodeBytes(value) {
 }
 
 export { fromBase64Url, toBase64Url };
+/** The format createPeerIdFromPublicJwk produces, defined once in contracts/identifiers.js. */
+export { PARTICIPANT_ID_PATTERN, isParticipantId } from '../contracts/identifiers.js';
 
 
 export async function createSigningIdentity({ algorithm, cryptoApi = globalThis.crypto }) {

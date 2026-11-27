@@ -1,0 +1,120 @@
+{
+  "description": "Wire forms that predate the records and must still parse into them, through the contract module's readers. `expected` is the record the reader returns (null: the input offers nothing).",
+  "cases": [
+    {
+      "name": "advertisement from a host that predates offers: ready whole model",
+      "reader": "inferenceOfferFromAdvertisement",
+      "input": { "kind": "peer_advertisement", "peerId": "remote-compute", "role": "provider", "swarmEnabled": true, "hasInference": true, "capabilities": [],
+        "contribution": null, "updatedAt": 1795000000000, "model": "qwen-3-5-0-8b-q4k-ef16-af32-vf16", "readiness": "ready",
+        "modelIdentity": "sha256:1111111111111111111111111111111111111111111111111111111111111111", "adapterIdentities": [], "availableSlots": 1, "queuedJobs": 0,
+        "identityProtocol": 1 },
+      "options": {},
+      "expected": { "schema": "reploid.offer/1", "kind": "inference", "connectionId": "remote-compute", "readiness": "ready", "paused": false, "expiresAt": null,
+        "scope": { "modelId": "qwen-3-5-0-8b-q4k-ef16-af32-vf16", "modelIdentities": ["sha256:1111111111111111111111111111111111111111111111111111111111111111"],
+          "adapterIdentities": [], "execution": "whole-model", "stageIndex": null, "availableSlots": 1 } }
+    },
+    {
+      "name": "advertisement with every slot in use",
+      "reader": "inferenceOfferFromAdvertisement",
+      "input": { "peerId": "remote-compute", "updatedAt": 1, "model": "m", "readiness": "executing",
+        "modelIdentity": "sha256:1111111111111111111111111111111111111111111111111111111111111111", "availableSlots": 0 },
+      "options": {},
+      "expected": { "schema": "reploid.offer/1", "kind": "inference", "connectionId": "remote-compute", "readiness": "busy", "paused": false, "expiresAt": null,
+        "scope": { "modelId": "m", "modelIdentities": ["sha256:1111111111111111111111111111111111111111111111111111111111111111"],
+          "adapterIdentities": [], "execution": "whole-model", "stageIndex": null, "availableSlots": 0 } }
+    },
+    {
+      "name": "advertisement of a requester that offers no inference (role consumer)",
+      "reader": "inferenceOfferFromAdvertisement",
+      "input": { "kind": "peer_advertisement", "peerId": "remote-requests", "role": "consumer", "swarmEnabled": true, "hasInference": false,
+        "updatedAt": 1795000000000, "model": null, "readiness": "idle", "modelIdentity": null, "availableSlots": 0 },
+      "options": {},
+      "expected": null
+    },
+    {
+      "name": "advertisement while loading, capacity not reported",
+      "reader": "inferenceOfferFromAdvertisement",
+      "input": { "peerId": "remote-compute", "updatedAt": 1, "model": "m", "readiness": "loading", "modelIdentity": null },
+      "options": {},
+      "expected": { "schema": "reploid.offer/1", "kind": "inference", "connectionId": "remote-compute", "readiness": "preparing", "paused": false, "expiresAt": null,
+        "scope": { "modelId": "m", "modelIdentities": [], "adapterIdentities": [], "execution": "whole-model", "stageIndex": null, "availableSlots": null } }
+    },
+    {
+      "name": "custody file inventory (reploid:custody-offer artifacts)",
+      "reader": "weightSupplyOfferFromInventory",
+      "input": [{ "path": "shard_00.bin", "role": "weight-shard", "hash": "4444444444444444444444444444444444444444444444444444444444444444", "hashAlgorithm": "sha256", "sizeBytes": 1048576 },
+        { "path": "manifest.json", "role": "manifest", "hash": "5555555555555555555555555555555555555555555555555555555555555555", "hashAlgorithm": "blake3", "sizeBytes": 2048 }],
+      "options": { "connectionId": "remote-files" },
+      "expected": { "schema": "reploid.offer/1", "kind": "weight-supply", "connectionId": "remote-files", "readiness": "ready", "paused": false, "expiresAt": null,
+        "scope": { "modelIdentities": [], "pieceIndexDigests": [],
+          "files": [{ "hashAlgorithm": "sha256", "hash": "4444444444444444444444444444444444444444444444444444444444444444", "sizeBytes": 1048576 },
+            { "hashAlgorithm": "blake3", "hash": "5555555555555555555555555555555555555555555555555555555555555555", "sizeBytes": 2048 }],
+          "maxStorageBytes": null } }
+    },
+    {
+      "name": "empty custody inventory withdraws the offer",
+      "reader": "weightSupplyOfferFromInventory",
+      "input": [],
+      "options": { "connectionId": "remote-files" },
+      "expected": null
+    },
+    {
+      "name": "ledger directory row (server/fleet/service.js computers) of a serving host",
+      "reader": "computerFromLedgerRow",
+      "input": { "id": "bee", "name": "Bee", "participantIds": ["peer:cccccccccccccccccccccccc"], "online": true, "observedAt": 1795000000000,
+        "activeRequests": 0, "preparing": false, "resident": { "modelIdentity": "sha256:1111111111111111111111111111111111111111111111111111111111111111", "mode": "whole-model",
+          "preparedAt": 1794999990000, "planId": null, "stageIndex": null, "gpuBytes": 1, "peakGpuBytes": 1, "hostBytes": 1 },
+        "preferences": { "enabled": true, "maxGpuBytes": 8589934592, "maxHostBytes": 8589934592 }, "freeGpuBytes": 0, "freeHostBytes": 0 },
+      "options": { "accountId": "owner-2", "observationMaxAgeMs": 60000 },
+      "expected": { "schema": "reploid.computer/1", "computerId": "bee", "identityBasis": "ledger-enrollment", "participantIds": ["peer:cccccccccccccccccccccccc"],
+        "accountId": "owner-2", "connections": [],
+        "offers": [{ "schema": "reploid.offer/1", "kind": "inference", "connectionId": null, "readiness": "ready", "paused": false, "expiresAt": 1795000060000,
+          "scope": { "modelId": null, "modelIdentities": ["sha256:1111111111111111111111111111111111111111111111111111111111111111"],
+            "adapterIdentities": [], "execution": "whole-model", "stageIndex": null, "availableSlots": null } }],
+        "connectionAssistance": null }
+    },
+    {
+      "name": "ledger directory row of an offline computer: it offers nothing",
+      "reader": "computerFromLedgerRow",
+      "input": { "id": "mac", "name": "Mac", "participantIds": ["peer:aaaaaaaaaaaaaaaaaaaaaaaa"], "online": false, "observedAt": null },
+      "options": {},
+      "expected": { "schema": "reploid.computer/1", "computerId": "mac", "identityBasis": "ledger-enrollment", "participantIds": ["peer:aaaaaaaaaaaaaaaaaaaaaaaa"],
+        "accountId": null, "connections": [], "offers": [], "connectionAssistance": null }
+    },
+    {
+      "name": "ledger directory row of a paused split-model stage",
+      "reader": "computerFromLedgerRow",
+      "input": { "id": "orin", "participantIds": ["peer:cccccccccccccccccccccccc"], "online": true, "observedAt": 10, "preparing": false,
+        "resident": { "modelIdentity": "sha256:2222222222222222222222222222222222222222222222222222222222222222", "mode": "partition", "stageIndex": 1 },
+        "preferences": { "enabled": false } },
+      "options": {},
+      "expected": { "schema": "reploid.computer/1", "computerId": "orin", "identityBasis": "ledger-enrollment", "participantIds": ["peer:cccccccccccccccccccccccc"],
+        "accountId": null, "connections": [],
+        "offers": [{ "schema": "reploid.offer/1", "kind": "inference", "connectionId": null, "readiness": "ready", "paused": true, "expiresAt": null,
+          "scope": { "modelId": null, "modelIdentities": ["sha256:2222222222222222222222222222222222222222222222222222222222222222"],
+            "adapterIdentities": [], "execution": "model-stage", "stageIndex": 1, "availableSlots": null } }],
+        "connectionAssistance": null }
+    },
+    {
+      "name": "signed whole-model receipt, version 2 (artifacts/receipt.js); the signed fields are read, never rewritten",
+      "reader": "operationRolesFromReceipt",
+      "input": { "version": 2, "receiptId": "receipt:0123456789abcdef01234567", "provider": "peer:bbbbbbbbbbbbbbbbbbbbbbbb", "consumer": "peer:aaaaaaaaaaaaaaaaaaaaaaaa",
+        "jobHash": "request:7c1d", "model": "m", "inputTokens": 3, "outputTokens": 5, "status": "completed", "timestamp": 1795000000000,
+        "providerSignature": "c2ln", "providerKey": { "kty": "OKP", "crv": "Ed25519", "x": "AA" } },
+      "options": { "providerComputerId": "peer:dddddddddddddddddddddddd" },
+      "expected": { "schema": "reploid.operation-roles/1", "operation": "inference", "operationId": "request:7c1d",
+        "consumer": { "computerId": "peer:aaaaaaaaaaaaaaaaaaaaaaaa", "participantId": "peer:aaaaaaaaaaaaaaaaaaaaaaaa" },
+        "provider": { "computerId": "peer:dddddddddddddddddddddddd", "participantId": "peer:bbbbbbbbbbbbbbbbbbbbbbbb" } }
+    },
+    {
+      "name": "version 1 receipt with no verified link: the provider key stands for its computer",
+      "reader": "operationRolesFromReceipt",
+      "input": { "version": 1, "receiptId": "receipt:x", "provider": "peer:bbbbbbbbbbbbbbbbbbbbbbbb", "consumer": "peer:aaaaaaaaaaaaaaaaaaaaaaaa",
+        "jobHash": "request:old", "model": "m", "inputTokens": 0, "outputTokens": 0, "status": "unmetered", "timestamp": 1 },
+      "options": {},
+      "expected": { "schema": "reploid.operation-roles/1", "operation": "inference", "operationId": "request:old",
+        "consumer": { "computerId": "peer:aaaaaaaaaaaaaaaaaaaaaaaa", "participantId": "peer:aaaaaaaaaaaaaaaaaaaaaaaa" },
+        "provider": { "computerId": "peer:bbbbbbbbbbbbbbbbbbbbbbbb", "participantId": "peer:bbbbbbbbbbbbbbbbbbbbbbbb" } }
+    }
+  ]
+}
