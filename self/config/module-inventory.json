@@ -2914,8 +2914,10 @@
     {
       "path": "self/host/chat-view.js",
       "owner": "self",
-      "sha256": "sha256:8e0e479b5e4f184aed7196a305635907bf467a7aaa282f50c08bfce7a10c624c",
-      "imports": []
+      "sha256": "sha256:783beed0711660871d8900672eed6b974ee3e6b6f932d97291af5d90abe36d97",
+      "imports": [
+        "./computer-records.js"
+      ]
     },
     {
       "path": "self/host/circle-http-client.js",
@@ -3010,7 +3012,7 @@
     {
       "path": "self/host/decisions/computers.js",
       "owner": "self",
-      "sha256": "sha256:faf091c558767a177be562f417144feee40856c655f28be054d4ca2447a66be2",
+      "sha256": "sha256:a0631ad93e3b9c75c5660867ea0497ef2900d5627e4a0d715cb57ff35fbd03c9",
       "imports": [
         "../../capabilities/communication/library-adapter.js",
         "../../pool/model-contract.js",
@@ -3492,13 +3494,14 @@
     {
       "path": "self/host/research-plugins.js",
       "owner": "self",
-      "sha256": "sha256:a06114d1fd3dcf83c13053737227a691e0f1d11143fc195b70b1aa7a83052aa3",
+      "sha256": "sha256:3307dbd3d6b7be262d2e1c96e1d3afaac64764c4b9be8e2bc6890db54a0a8294",
       "imports": [
         "../plugins/model-imitation/plugin.js",
         "../plugins/model-imitation/protocol.json",
         "../providers/peer-inference.js",
         "../vendor/reploid/chat/execution-policy.js",
-        "../vendor/reploid/plugins/index.js"
+        "../vendor/reploid/plugins/index.js",
+        "./computer-records.js"
       ]
     },
     {
@@ -4544,8 +4547,10 @@
     {
       "path": "ui/pool-home/agent-network.js",
       "owner": "ui",
-      "sha256": "sha256:28a9b93d02cbc77dc67452e404670aa338ca5cad1ac2ec630d3c132f0398fb70",
-      "imports": []
+      "sha256": "sha256:204efbc8b7a74b32d7ba31fb095c2ef3156d625ecb4ba6bd843145bd6c82fa22",
+      "imports": [
+        "../../host/computer-records.js"
+      ]
     },
     {
       "path": "ui/pool-home/answer-choice.js",
@@ -4558,7 +4563,7 @@
     {
       "path": "ui/pool-home/app.bundle.js",
       "owner": "ui",
-      "sha256": "sha256:d5cd20ba3865352b1135708308b6791bd8a1d0ef37400f91ba02c27de4c7b5d5",
+      "sha256": "sha256:d81459e72b33dc35d63e62af58f9c93f999014d158f1aefd2339ff955897f35c",
       "imports": []
     },
     {
@@ -5682,13 +5687,13 @@
     {
       "path": "ui/react/app.js",
       "owner": "ui",
-      "sha256": "sha256:72d41c96185d807997f30935aa9e44da2b100c59b49996833cca2e117b0b650c",
+      "sha256": "sha256:2423a48d0a6eab463ef348b4510e8802cdf10db05def419b51bb7f94379fa1d1",
       "imports": []
     },
     {
       "path": "ui/react/design.js",
       "owner": "ui",
-      "sha256": "sha256:ee3743de1ea48052cae2e6f1ca49f448c1e77a8101e3bd030c54f31dbd2d89ab",
+      "sha256": "sha256:1cb62b8a311e9b743a2e2b92641ef5b36c5ffb73246995fd1e07cc9d7f4842a0",
       "imports": []
     },
     {
@@ -19206,7 +19211,7 @@
     {
       "path": "vendor/reploid/contracts/computer-records.js",
       "owner": "vendor",
-      "sha256": "sha256:818df6d6ceb416c1030231071f85a6bafabdffebd600b50353fa75106648853e",
+      "sha256": "sha256:35fd6fb78975c0ad30279fce2a1cb32860339c677626efd7f380a35564f79271",
       "imports": [
         "./identifiers.js"
       ]
@@ -19397,8 +19402,9 @@
     {
       "path": "vendor/reploid/mesh/contribution.js",
       "owner": "vendor",
-      "sha256": "sha256:653e256f8586cf2c5741abf9c12b3aec1a0d190e34ecc2905fdcc2fe97b210d5",
+      "sha256": "sha256:c07852b26a7c2630bb813e94d4741836b2f5898fc9bf8074cd4ab1acb06aa07a",
       "imports": [
+        "../contracts/computer-records.js",
         "../rules/contribution.rules.json"
       ]
     },
@@ -19936,7 +19942,7 @@
     {
       "path": "vendor/reploid/mesh/peer-generation.js",
       "owner": "vendor",
-      "sha256": "sha256:452e147c021654e6ddd0f6651e228d050fcb6fc48d2dac2b4afec3e85c9c20f3",
+      "sha256": "sha256:11370a059a3223ca14c91dafc5fcf86d1ac9e79eb37e67e6dfd670e78388a451",
       "imports": [
         "../artifacts/generation-terminal.js",
         "../artifacts/receipt.js",
@@ -20032,8 +20038,9 @@
     {
       "path": "vendor/reploid/mesh/swarm-coordination.js",
       "owner": "vendor",
-      "sha256": "sha256:35cd997e4f20ed6ba78bc8de4788b5cc172d34639aaf4b973f18f91a123db334",
+      "sha256": "sha256:f0c971318f77a082bd3532903f1611d23ab2943f7fb9962dcde26a068bc15609",
       "imports": [
+        "../contracts/computer-records.js",
         "./contribution.js"
       ]
     },

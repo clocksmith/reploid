@@ -412,30 +412,6 @@ var contribution_rules_default = {
   scoreHalfLifeMs: 2592e6
 };
 
-// shared/vendor/reploid/mesh/contribution.js
-var DEFAULT_REWARD_POLICY = Object.freeze(contribution_rules_default);
-
-// shared/vendor/reploid/mesh/swarm-coordination.js
-var SWARM_ROLES = Object.freeze({
-  SOLO: "solo",
-  PROVIDER: "provider",
-  CONSUMER: "consumer",
-  DEAD: "dead"
-});
-
-// shared/vendor/reploid/artifacts/generation-terminal.js
-var GENERATION_TERMINAL_SCHEMAS = Object.freeze(["reploid.generation-terminal/v1", "reploid.generation-terminal/v2"]);
-
-// shared/vendor/reploid/mesh/generation-settings.js
-var GENERATION_SETTINGS_SCHEMA = "reploid.generation-settings/v1";
-var GENERATION_SETTINGS_CAPABILITY = Object.freeze({
-  schema: GENERATION_SETTINGS_SCHEMA,
-  maxOutputTokens: false,
-  tools: false,
-  outputSchema: false,
-  thinking: false
-});
-
 // shared/vendor/reploid/contracts/computer-records.js
 var COMPUTER_SCHEMA = "reploid.computer/1";
 var OFFER_SCHEMA = "reploid.offer/1";
@@ -580,6 +556,30 @@ var parseOffer = parser(OFFER_SCHEMA);
 var parseConnectionAssistance = parser(CONNECTION_ASSISTANCE_SCHEMA);
 var parseOperationRoles = parser(OPERATION_ROLES_SCHEMA);
 var ADVERTISED_READINESS = Object.freeze({ loading: "preparing", ready: "ready", executing: "ready", stopping: "stopping", failed: "failed" });
+
+// shared/vendor/reploid/mesh/contribution.js
+var DEFAULT_REWARD_POLICY = Object.freeze(contribution_rules_default);
+
+// shared/vendor/reploid/mesh/swarm-coordination.js
+var SWARM_ROLES = Object.freeze({
+  SOLO: "solo",
+  PROVIDER: "provider",
+  CONSUMER: "consumer",
+  DEAD: "dead"
+});
+
+// shared/vendor/reploid/artifacts/generation-terminal.js
+var GENERATION_TERMINAL_SCHEMAS = Object.freeze(["reploid.generation-terminal/v1", "reploid.generation-terminal/v2"]);
+
+// shared/vendor/reploid/mesh/generation-settings.js
+var GENERATION_SETTINGS_SCHEMA = "reploid.generation-settings/v1";
+var GENERATION_SETTINGS_CAPABILITY = Object.freeze({
+  schema: GENERATION_SETTINGS_SCHEMA,
+  maxOutputTokens: false,
+  tools: false,
+  outputSchema: false,
+  thinking: false
+});
 
 // shared/vendor/reploid/mesh/gpu-signature.policy.json
 var gpu_signature_policy_default = {
