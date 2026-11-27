@@ -3,7 +3,7 @@ import type { Protection } from '../chat/execution-policy.js';
 
 export type MeshOperationName = 'generate' | 'scoreTargetSequence' | 'scoreChoices' | 'embed';
 export type MeshOperationErrorCode = 'UNKNOWN_OPERATION' | 'UNSUPPORTED_OPERATION' | 'OPERATION_OFFER_MISMATCH'
-  | 'OPERATION_GRANT_REVOKED' | 'OPERATION_REQUEST_INVALID' | 'OPERATION_RESULT_INVALID';
+  | 'OPERATION_GRANT_REVOKED' | 'OPERATION_REQUEST_INVALID' | 'OPERATION_RESULT_INVALID' | 'OPERATION_REFUSED' | 'OPERATION_BUSY';
 export type MeshOperationRoute = 'local' | 'remote' | 'split' | 'split-local-edges' | 'auto';
 
 export const MESH_OPERATION_SCHEMA: 'reploid.mesh-operation/v1';
@@ -12,6 +12,7 @@ export const MESH_OPERATION_UNITS: 'reploid.mesh-operation-units/v1';
 export const MESH_OPERATION_REQUEST: 'reploid:mesh-operation-request';
 export const MESH_OPERATION_RESULT: 'reploid:mesh-operation-result';
 export const MESH_OPERATION_CANCEL: 'reploid:mesh-operation-cancel';
+export const MESH_OPERATION_RECEIPT: 'reploid:mesh-operation-receipt';
 export const MESH_OPERATIONS: Readonly<Record<MeshOperationName, Readonly<{ costUnit: string; orderedSplit: boolean }>>>;
 export const MESH_OPERATION_ERROR_CODES: Readonly<{ [K in MeshOperationErrorCode]: K }>;
 export function meshOperationError(code: MeshOperationErrorCode, message: string): Error & { code: MeshOperationErrorCode };
@@ -51,14 +52,24 @@ export interface MeshOperationResult {
   providerReceipt: Record<string, unknown>;
   settlement: unknown;
   costUnit: string;
+  /** The requester's signed settlement records of the attempt (openMeshOperationCharge). */
+  charge?: Readonly<MeshOperationCharge>;
+}
+/** What the requester protocol returns: the output, both signed receipts and the synchronous delivery of the acknowledgment. */
+export interface MeshOperationReply {
+  output: Record<string, unknown>;
+  receipt: Record<string, unknown>;
+  closing: SignedSettlementRecord | null;
+  deliver(frame: { receipt: Record<string, unknown>; acknowledgment: SignedSettlementRecord }): boolean;
 }
 export interface MeshOperationPorts {
   offer(envelope: MeshOperationEnvelope): MeshOperationOffer | null;
   reserve(envelope: MeshOperationEnvelope, inputDigest: string): Promise<unknown>;
-  send(envelope: MeshOperationEnvelope, controls: { signal: AbortSignal }): Promise<{ output: Record<string, unknown>; receipt: Record<string, unknown> }>;
+  open(hold: unknown, envelope: MeshOperationEnvelope): Promise<Readonly<MeshOperationCharge>>;
+  send(envelope: MeshOperationEnvelope, controls: { signal: AbortSignal; settlement: Readonly<MeshOperationCharge> }): Promise<MeshOperationReply>;
   countersign(receipt: Record<string, unknown>): Promise<Record<string, unknown>>;
   settle(hold: unknown, receipt: Record<string, unknown>): Promise<unknown>;
-  cancel(hold: unknown, error: unknown): Promise<unknown>;
+  cancel(hold: unknown, error: unknown, charge: Readonly<MeshOperationCharge> | null): Promise<unknown>;
   generate?(envelope: MeshOperationEnvelope, controls: { signal: AbortSignal }): Promise<MeshOperationResult>;
 }
 type OperationTransport = Required<Pick<SwarmTransport, 'getPeerBinding' | 'onMessage' | 'sendToPeer'>>;
@@ -67,7 +78,10 @@ export function supportedMeshOperations(value: unknown): MeshOperationName[];
 export function meshOperationPlanDigest(fields: Pick<MeshOperationEnvelope, 'operation' | 'modelId' | 'manifestDigest' | 'execution' | 'recipientGrant'>): Promise<string>;
 export function meshOperationInputDigest(envelope: MeshOperationEnvelope): Promise<string>;
 export function createMeshOperationEnvelope(fields: Omit<MeshOperationEnvelope, 'schema' | 'planDigest'> & { planDigest?: string | null }): Promise<Readonly<MeshOperationEnvelope>>;
+/** Refuses, among others, a payload with nothing to run: an empty target, prompt, choice list or input. */
 export function assertMeshOperationEnvelope(envelope: unknown): MeshOperationEnvelope;
+/** The envelope as a provider admits it, before the payload is disclosed. */
+export function meshOperationAdmission(envelope: MeshOperationEnvelope): Omit<MeshOperationEnvelope, 'payload'>;
 /** Throws synchronously, before any hold or wire byte, when the envelope does not match the offer. */
 export function authorizeMeshOperation(envelope: MeshOperationEnvelope, offer: MeshOperationOffer | null): Readonly<{ costUnit: string; orderedSplit: boolean }>;
 export function meshOperationOffer(discovery: { models?: Array<Record<string, any>>; peers?: Array<Record<string, any>> }, envelope: MeshOperationEnvelope): MeshOperationOffer | null;
@@ -84,18 +98,28 @@ export function attachMeshOperations(options: {
   verifyPeer(peerId: string, signal?: AbortSignal): Promise<string | null>;
   currentPeer(peerId: string): string | null;
   offer(): MeshOperationOffer;
-  admit?(input: { envelope: MeshOperationEnvelope; consumer: string; inputDigest: string }): Promise<unknown>;
+  /** The host's rule, asked at admission (`operation.admit`) and again before running (`operation.execute`). */
+  authorize(request: { action: 'operation.admit' | 'operation.execute'; peerId: string; consumer: string;
+    envelope: MeshOperationEnvelope | Omit<MeshOperationEnvelope, 'payload'> }): Promise<boolean>;
+  admit?(input: { envelope: Omit<MeshOperationEnvelope, 'payload'>; consumer: string; inputDigest: string;
+    settlement: { terms: SignedSettlementRecord; charge: SignedSettlementRecord } }): Promise<unknown>;
   dispatch(envelope: MeshOperationEnvelope, signal: AbortSignal): Promise<Record<string, unknown>>;
+  settlementAccount?(): Promise<string> | string;
+  onSettlementRecords?(value: { reservationId: string; records: SignedSettlementRecord[] }): unknown;
+  onReceipt?(receipt: Record<string, unknown>): unknown;
+  /** Attempts admitted or running at once (default 1). */
+  maxRunning?: number;
   now?: () => number;
-}): void;
+}): Readonly<{ running(): number; close(): Promise<void> }>;
 export function requestMeshOperation(options: {
   transport: OperationTransport;
   verifyPeer(peerId: string, signal?: AbortSignal): Promise<string | null>;
   currentPeer(peerId: string): string | null;
   providerPeer: string;
   envelope: MeshOperationEnvelope;
+  settlement: Readonly<MeshOperationCharge>;
   signal?: AbortSignal;
-}): Promise<{ output: Record<string, unknown>; receipt: Record<string, unknown> }>;
+}): Promise<MeshOperationReply>;
 
 /** A record signed with a participant's own key: its body, the key and the signature. */
 export type SignedSettlementRecord = Record<string, unknown> & { schema: string; publicJwk: JsonWebKey; signature: string };
@@ -119,7 +143,7 @@ export interface MeshOperationCharge {
   /** Throws unless this is the provider's signed acceptance of exactly these terms. */
   accept(acceptance: unknown): Promise<true>;
   /** Signs the acknowledgment of the provider's closing receipt; throws when it commits to another output. */
-  acknowledge(delivered: { receipt: unknown; units: number; outputDigest: string }): Promise<SignedSettlementRecord>;
+  acknowledge(delivered: { receipt: unknown; units: number; outputDigest: string; send?: (acknowledgment: SignedSettlementRecord) => boolean | void }): Promise<SignedSettlementRecord>;
   /** Keeps the provider's closing receipt, or its stage fault, of an answer that did not complete. */
   close(record: unknown): Promise<true>;
   stop(): Promise<SignedSettlementRecord>;

@@ -1416,7 +1416,7 @@
     {
       "path": "config/module-inventory.json",
       "byteLength": 688386,
-      "sha256": "sha256:923a09cec36f2e5c532773d3b6f26a243f0e06ee2c2d69d87ec5f8a3d6746ef8"
+      "sha256": "sha256:2d473c0b42f6708da06230666d6b42e4d75280c7d139befeb5b1d5d50c81dddf"
     },
     {
       "path": "config/module-registry.json",
@@ -4190,13 +4190,13 @@
     },
     {
       "path": "ui/react/app.js",
-      "byteLength": 3014309,
-      "sha256": "sha256:9ee91843145196636e21ea247db9b64981a21c20139c2a8f3d84a9f71f59291b"
+      "byteLength": 3014420,
+      "sha256": "sha256:4cfffe548901d59f70a5bce0994244889bd9522228833185b92f4d4a836f6739"
     },
     {
       "path": "ui/react/design.js",
-      "byteLength": 2106250,
-      "sha256": "sha256:39c8cf1a98d7f7fe8c299511a13357b087a28392508a34dc0db5448a68297682"
+      "byteLength": 2106291,
+      "sha256": "sha256:480e9412bc70436e78bc2931b77ebb9ec520016ef01377c85cfb5b759d9189b4"
     },
     {
       "path": "ui/reploid-home/index.js",
@@ -12070,8 +12070,8 @@
     },
     {
       "path": "vendor/reploid/mesh/operation-envelope.js",
-      "byteLength": 39730,
-      "sha256": "sha256:7db3dcabfc10ab99d1108ab3a915d4d0c0739fcad7b9dd54a474089f86edf4c7"
+      "byteLength": 57004,
+      "sha256": "sha256:798fc89638cb0dcdfac39354d5940df5528c2f5db4e38f8b004e1750b829fcbc"
     },
     {
       "path": "vendor/reploid/mesh/partitions/automatic-ordered-partitions.js",
@@ -12350,8 +12350,8 @@
     },
     {
       "path": "vendor/reploid/package-assets.json",
-      "byteLength": 65810,
-      "sha256": "sha256:519842ab1ae5f5feec737fdfa4895e1d6d2631efd8b3bb216e31246240cef190"
+      "byteLength": 65811,
+      "sha256": "sha256:7a582d68d6c981d5e8e1577633bf81142629c90802a69d09ae24853788de0737"
     },
     {
       "path": "vendor/reploid/plugins/index.js",
@@ -12530,8 +12530,8 @@
     },
     {
       "path": "vendor/reploid/transport/message-types.js",
-      "byteLength": 2509,
-      "sha256": "sha256:47f3eb17290ece5340a32fbf4d419abbdc343f46a7ba2ca1de69e11ec9245ec3"
+      "byteLength": 2703,
+      "sha256": "sha256:53ea597be3337f3905412252fb687a791bf34eae947c646d9848692cc68fe1c3"
     },
     {
       "path": "vendor/reploid/transport/owner-pairing.js",
@@ -12644,5 +12644,5 @@
       "sha256": "sha256:abb6c18f6167d6afc8ee1b3adfcbbb89c0e93fb4fc4e98d7a12250f78aab206a"
     }
   ],
-  "bundleHash": "sha256:81a58dcff92fc2b35618cd2172d39ebc28e5aae02ccce7d0d31df7d84c862c84"
+  "bundleHash": "sha256:42035c8ffb332745ca91e000371ae35eba7ea9dfcb76cae0aab91e393d7092b1"
 }

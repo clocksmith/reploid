@@ -1205,13 +1205,13 @@
     },
     {
       "path": "mesh/operation-envelope.d.ts",
-      "bytes": 9467,
-      "sha256": "2ec63daf5f1cfd50291a1d712f7924c766abb0aa2dc9289c340c39ea38f9814d"
+      "bytes": 11355,
+      "sha256": "cc948a1184965d1f4a55721bad7db9b600de3ab0fae352be922a40afb0b8ab5c"
     },
     {
       "path": "mesh/operation-envelope.js",
-      "bytes": 39730,
-      "sha256": "7db3dcabfc10ab99d1108ab3a915d4d0c0739fcad7b9dd54a474089f86edf4c7"
+      "bytes": 57004,
+      "sha256": "798fc89638cb0dcdfac39354d5940df5528c2f5db4e38f8b004e1750b829fcbc"
     },
     {
       "path": "mesh/partitions/automatic-ordered-partitions.d.ts",
@@ -1930,8 +1930,8 @@
     },
     {
       "path": "transport/message-types.js",
-      "bytes": 2509,
-      "sha256": "47f3eb17290ece5340a32fbf4d419abbdc343f46a7ba2ca1de69e11ec9245ec3"
+      "bytes": 2703,
+      "sha256": "53ea597be3337f3905412252fb687a791bf34eae947c646d9848692cc68fe1c3"
     },
     {
       "path": "transport/owner-pairing.d.ts",

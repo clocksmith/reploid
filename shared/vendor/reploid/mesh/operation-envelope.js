@@ -1,19 +1,23 @@
 /**
- * One operation-agnostic mesh envelope. `generate`, `scoreTargetSequence`, `scoreChoices` and `embed` reach a named
- * provider's resident model the same way: the requester authorizes the envelope against the provider's discovered
- * offer before anything is held or sent, reserves the operation's cost, sends the envelope, verifies the provider's
- * signed receipt, countersigns it and settles. Cancellation, refusal codes and the receipt are the same for every
- * operation; each operation only declares its cost unit and whether an ordered split can run it.
+ * One operation-agnostic mesh envelope for `generate`, `scoreTargetSequence`, `scoreChoices` and `embed` on a named
+ * provider's resident model. What every operation shares: the requester authorizes the envelope against the provider's
+ * discovered offer before anything is held or sent, the refusal codes, and the signed settlement records of a charged
+ * whole-model attempt (openMeshOperationCharge, acceptMeshOperationCharge). What differs: `generate` is handed to
+ * the host's generation port, the `reploid:generation-*` protocol (peer-generation.js), which streams, acknowledges
+ * delivery and keeps a journal for recovery. The other operations use this module's protocol (attachMeshOperations,
+ * requestMeshOperation): the provider admits the envelope and signs its acceptance of the terms before the payload is
+ * sent, runs the operation, signs its execution receipt and its closing stage receipt, and gets back the countersigned
+ * receipt with the requester's acknowledgment. They are one unit per call and are neither resent nor recovered.
  *
  * This module owns the sequence and the wire protocol. Hosts supply the ports: discovery (`offer`), the ledger
  * (`reserve`, `settle`, `cancel`), the transport (`send`) and, on a provider, the resident session (`dispatch`).
  */
 import { createReceiptDraft, signReceiptDraft, verifyReceipt } from '../artifacts/receipt.js';
 import { hashJson } from '../artifacts/signatures.js';
-import { MESH_OPERATION_CANCEL, MESH_OPERATION_REQUEST, MESH_OPERATION_RESULT } from '../transport/message-types.js';
+import { MESH_OPERATION_CANCEL, MESH_OPERATION_RECEIPT, MESH_OPERATION_REQUEST, MESH_OPERATION_RESULT } from '../transport/message-types.js';
 import { AUTO_ROUTES, PROTECTIONS, PROTECTION_ROUTES } from '../chat/execution-policy.js';
 import {
-  MAX_UNACKNOWLEDGED_OUTPUTS, OUTPUT_ACKNOWLEDGMENT_SCHEMA, STAGE_RECEIPT_SCHEMA, extendOutputChain, outputChainGenesis,
+  MAX_UNACKNOWLEDGED_OUTPUTS, OUTPUT_ACKNOWLEDGMENT_SCHEMA, STAGE_RECEIPT_SCHEMA, createAttemptEvidenceSigner, extendOutputChain, outputChainGenesis,
   verifyOutputAcknowledgment, verifyStageReceipt
 } from './partitions/partition-attempt-evidence.js';
 import {
@@ -27,11 +31,18 @@ export const MESH_OPERATION_GRANT_SCHEMA = 'reploid.mesh-operation-grant/v1';
 /** The unit a non-generation receipt counts in (its signed `usage`); generation keeps `raw-model-tokens/v1`. */
 export const MESH_OPERATION_UNITS = 'reploid.mesh-operation-units/v1';
 // The frame types are registered with the transports, which own their names (transport/message-types.js).
-export { MESH_OPERATION_REQUEST, MESH_OPERATION_RESULT, MESH_OPERATION_CANCEL };
+export { MESH_OPERATION_REQUEST, MESH_OPERATION_RESULT, MESH_OPERATION_CANCEL, MESH_OPERATION_RECEIPT };
 
 /**
  * Every operation the envelope carries. `costUnit` is what one charged unit is; `orderedSplit` says whether an
  * ordered split route (stages in sequence) can run it. Only generation streams through stages today.
+ *
+ * `rerank` is not one of them. Doppler defines it only as a Capsule operation (capsule-operations.json,
+ * executeCapsuleRerank): it needs a signed application binding and a target plan, runs on a reranker Pack, and the
+ * resident session a whole-model provider holds (DopplerX's scoped session) has no rerank method. Reploid runs it
+ * locally, in document search through the Pack executor (shared/pool/pack-operation-adapters.js), and nothing sends it
+ * to a provider. Adding it here needs a provider runtime that serves a reranker Capsule first; until then an offer of
+ * it would be one no provider can run.
  */
 export const MESH_OPERATIONS = Object.freeze({
   generate: Object.freeze({ costUnit: 'output-token', orderedSplit: true }),
@@ -47,7 +58,11 @@ export const MESH_OPERATION_ERROR_CODES = Object.freeze({
   OPERATION_OFFER_MISMATCH: 'OPERATION_OFFER_MISMATCH',
   OPERATION_GRANT_REVOKED: 'OPERATION_GRANT_REVOKED',
   OPERATION_REQUEST_INVALID: 'OPERATION_REQUEST_INVALID',
-  OPERATION_RESULT_INVALID: 'OPERATION_RESULT_INVALID'
+  OPERATION_RESULT_INVALID: 'OPERATION_RESULT_INVALID',
+  /** The provider's host declined the requester or the request (owner pairing, readiness, closing). */
+  OPERATION_REFUSED: 'OPERATION_REFUSED',
+  /** The provider already runs as many operations as it allows. */
+  OPERATION_BUSY: 'OPERATION_BUSY'
 });
 
 export const meshOperationError = (code, message) => {
@@ -99,8 +114,23 @@ export async function createMeshOperationEnvelope({ requestId, operation, modelI
   return freezeJson(envelope);
 }
 
-/** Shape checks only; authorization against an offer is authorizeMeshOperation. */
-export function assertMeshOperationEnvelope(envelope) {
+const nonEmptyText = value => typeof value === 'string' && value.length > 0;
+/**
+ * How many items a payload asks to be scored or embedded: a target after a prompt or messages, the choices, the input
+ * text. A request of zero is refused before anything is held or run: the provider would be paid a unit for no work,
+ * and its records would commit to an output of nothing.
+ */
+function payloadItems(operation, payload) {
+  if (operation === 'scoreTargetSequence') {
+    return nonEmptyText(payload.target) && (Array.isArray(payload.messages) ? payload.messages.length > 0 : nonEmptyText(payload.prompt)) ? 1 : 0;
+  }
+  if (operation === 'scoreChoices') return nonEmptyText(payload.prompt) && Array.isArray(payload.choices) ? payload.choices.length : 0;
+  if (operation === 'embed') return nonEmptyText(payload.input) ? 1 : 0;
+  return 1;
+}
+
+/** The checks of every field but the payload: what a provider admits before the payload is disclosed. */
+function assertMeshOperationFields(envelope) {
   if (!object(envelope) || envelope.schema !== MESH_OPERATION_SCHEMA) throw invalid('A reploid.mesh-operation/v1 envelope is required');
   if (!Object.hasOwn(MESH_OPERATIONS, envelope.operation)) throw meshOperationError('UNKNOWN_OPERATION', `Unknown mesh operation ${String(envelope.operation)}`);
   if (!REQUEST_ID.test(envelope.requestId ?? '')) throw invalid('requestId must be 8 to 128 letters, digits, hyphens or underscores');
@@ -113,7 +143,14 @@ export function assertMeshOperationEnvelope(envelope) {
   }
   checkGrant(envelope.recipientGrant);
   if (!Number.isSafeInteger(envelope.maxCostUnits) || envelope.maxCostUnits < 1) throw invalid('maxCostUnits must be a positive integer');
+  return envelope;
+}
+
+/** Shape checks only; authorization against an offer is authorizeMeshOperation. */
+export function assertMeshOperationEnvelope(envelope) {
+  assertMeshOperationFields(envelope);
   if (!object(envelope.payload)) throw invalid('payload must be an object');
+  if (payloadItems(envelope.operation, envelope.payload) < 1) throw invalid(`The ${envelope.operation} payload has nothing to run; nothing was held or sent`);
   return envelope;
 }
 
@@ -125,6 +162,16 @@ export function assertMeshOperationEnvelope(envelope) {
  */
 export function authorizeMeshOperation(envelope, offer) {
   assertMeshOperationEnvelope(envelope);
+  return againstOffer(envelope, offer);
+}
+
+/** authorizeMeshOperation for an admission, which carries no payload. */
+function authorizeFields(admission, offer) {
+  assertMeshOperationFields(admission);
+  return againstOffer(admission, offer);
+}
+
+function againstOffer(envelope, offer) {
   const operation = MESH_OPERATIONS[envelope.operation];
   const { protection, route } = envelope.execution;
   if (!operation.orderedSplit && (SPLIT_ROUTES.includes(route) || SPLIT_ROUTES.includes(offer?.route))) {
@@ -172,13 +219,21 @@ export function meshOperationUnits(operation, output) {
 
 /**
  * The requester's sequence. Authorization runs synchronously, before this returns: a refused envelope throws here
- * with nothing held or sent. Ports:
+ * with nothing held or sent. A non-generation operation then goes the way a charged whole-model generation goes: the
+ * cost is held, the requester signs the settlement terms of that hold (openMeshOperationCharge), the provider admits
+ * the operation and signs its acceptance before the payload leaves, closes with its signed stage receipt, and the
+ * requester acknowledges that close and countersigns the execution receipt in one frame before the ledger settles.
+ * Ports:
  *  - `offer(envelope)`: the recipient's discovered offer (synchronous);
- *  - `reserve(envelope, inputDigest)`: holds the cost; returns a hold, or null for free execution;
- *  - `send(envelope, { signal })`: delivers the envelope and returns `{ output, receipt }` with the provider's signed receipt;
+ *  - `reserve(envelope, inputDigest)`: holds the cost; returns the hold;
+ *  - `open(hold, envelope)`: signs the settlement terms of that hold; returns the charge (openMeshOperationCharge);
+ *  - `send(envelope, { signal, settlement })`: runs the wire protocol (requestMeshOperation) and returns
+ *    `{ output, receipt, closing, deliver }`: the output, the provider's signed execution receipt, its signed closing
+ *    stage receipt and `deliver({ receipt, acknowledgment })`, which sends both to the provider synchronously;
  *  - `countersign(receipt)`: the requester's countersignature;
- *  - `settle(hold, receipt)`: settles the countersigned receipt; `cancel(hold, error)` releases or fences after a failure.
- * Resolves `{ acknowledgedUnits, output, providerReceipt, settlement }`.
+ *  - `settle(hold, receipt)`: settles the countersigned receipt; `cancel(hold, error, charge)` releases, stops or
+ *    fences after a failure.
+ * Resolves `{ acknowledgedUnits, output, providerReceipt, settlement, costUnit, charge }`.
  */
 export function executeMeshOperation(envelope, { signal = AbortSignal.timeout(60_000) } = {}, ports) {
   const operation = authorizeMeshOperation(envelope, ports.offer(envelope));
@@ -190,9 +245,12 @@ export function executeMeshOperation(envelope, { signal = AbortSignal.timeout(60
     signal.throwIfAborted();
     const inputDigest = await meshOperationInputDigest(envelope);
     const hold = await ports.reserve(envelope, inputDigest);
-    let receipt, output;
+    let receipt, output, providerReceipt, charge = null;
     try {
-      ({ output, receipt } = await ports.send(envelope, { signal }));
+      charge = await ports.open(hold, envelope);
+      signal.throwIfAborted();
+      let closing, deliver;
+      ({ output, receipt, closing, deliver } = await ports.send(envelope, { signal, settlement: charge }));
       signal.throwIfAborted();
       const units = meshOperationUnits(envelope.operation, output);
       const signed = await verifyReceipt(receipt);
@@ -203,13 +261,18 @@ export function executeMeshOperation(envelope, { signal = AbortSignal.timeout(60
         || receipt.stopReason !== `operation:${envelope.operation}` || receipt.outputTokens !== units || units > envelope.maxCostUnits) {
         throw meshOperationError('OPERATION_RESULT_INVALID', `The provider's ${envelope.operation} result is not bound to this envelope`);
       }
+      // Countersigned first and held unsent, so that nothing is awaited between the acknowledgment and the frame that
+      // carries both (as for generation, peer-generation.js).
+      const countersigned = await ports.countersign(receipt);
+      await charge.acknowledge({ receipt: closing, units, outputDigest: receipt.outputDigest,
+        send: acknowledgment => deliver({ receipt: countersigned, acknowledgment }) });
+      providerReceipt = countersigned;
     } catch (error) {
-      await ports.cancel(hold, error).catch(() => {});
+      await ports.cancel(hold, error, charge).catch(() => {});
       throw error;
     }
-    const providerReceipt = await ports.countersign(receipt);
     const settlement = await ports.settle(hold, providerReceipt);
-    return { acknowledgedUnits: providerReceipt.outputTokens, output, providerReceipt, settlement, costUnit: operation.costUnit };
+    return { acknowledgedUnits: providerReceipt.outputTokens, output, providerReceipt, settlement, costUnit: operation.costUnit, charge };
   })();
 }
 
@@ -222,81 +285,264 @@ export async function dispatchMeshOperation(session, envelope, { signal }) {
   return session.executeOperation({ operation: envelope.operation, payload: structuredClone(envelope.payload), signal });
 }
 
+/** The envelope as a provider admits it, before its payload is disclosed: every field but the payload. */
+export const meshOperationAdmission = ({ payload: _payload, ...admission }) => admission;
+const admissionDigest = envelope => hashJson(meshOperationAdmission(envelope));
+const RETAINED_ATTEMPTS = 64;
+const remember = (map, key, value) => {
+  map.set(key, value);
+  while (map.size > RETAINED_ATTEMPTS) map.delete(map.keys().next().value);
+};
+
 /**
- * Provider protocol. `offer()` is this provider's own current offer; `admit({ envelope, consumer, inputDigest })`
- * is its credit admission (resolves, or throws to refuse); `dispatch(envelope, signal)` runs the operation. The
- * provider authorizes the envelope against its own offer as the requester did, so a requester that skipped the
- * check is still refused before the session is touched.
+ * Provider protocol, in two steps like a charged whole-model generation (peer-generation.js):
+ *  1. admission: a `MESH_OPERATION_REQUEST` carrying the envelope without its payload, the requester's `inputDigest`
+ *     and its signed settlement terms. The provider authorizes the envelope against its own offer (so a requester that
+ *     skipped the check is still refused), asks its host (`authorize({ action: 'operation.admit', ... })`), checks
+ *     credit (`admit`), signs its acceptance of exactly those terms and answers with a `MESH_OPERATION_RESULT` that
+ *     carries `admitted.settlementAcceptance`. Nothing is run and no payload has been seen.
+ *  2. execution: a `MESH_OPERATION_REQUEST` with the whole envelope, which must be the admitted one with the admitted
+ *     input digest. The host is asked again (`operation.execute`), the operation runs (`dispatch`) and the result carries
+ *     the signed execution receipt and the signed closing stage receipt. A requester's cancel closes the attempt claiming
+ *     nothing; this provider's own failure signs a stage fault. `MESH_OPERATION_RECEIPT` brings back the countersigned
+ *     receipt and the requester's acknowledgment of the close, which completes this provider's records.
+ * `maxRunning` bounds the attempts admitted or running at once; an admission past it is refused as busy. An admitted
+ * attempt whose payload never comes is closed, claiming nothing, at its terms' deadline. `settlementAccount()` names
+ * the account this provider is paid into, for terms that name the requester's; `onSettlementRecords` receives this
+ * provider's records each time one is signed or received; `onReceipt` the countersigned receipt. Returns `{ close }`,
+ * which refuses new work, aborts what runs and resolves once every attempt has ended.
  */
-export function attachMeshOperations({ transport, identity, verifyPeer, currentPeer, offer, admit = async () => true, dispatch, now = Date.now }) {
-  const running = new Map();
-  transport.onMessage(MESH_OPERATION_CANCEL, (peer, input) => running.get(JSON.stringify([peer, input?.requestId]))?.abort(new Error('Requester cancelled')));
-  transport.onMessage(MESH_OPERATION_REQUEST, (peer, input) => {
-    void (async () => {
-      const envelope = input?.envelope, requestId = envelope?.requestId;
-      if (!REQUEST_ID.test(requestId ?? '') || !transport.getPeerBinding(peer)) return;
-      const key = JSON.stringify([peer, requestId]);
-      if (running.has(key)) return;
-      const controller = new AbortController();
-      running.set(key, controller);
-      const refuse = error => transport.sendToPeer(peer, MESH_OPERATION_RESULT, { requestId, error: error?.message || 'Operation failed',
-        ...(typeof error?.code === 'string' && Object.hasOwn(MESH_OPERATION_ERROR_CODES, error.code) ? { code: error.code } : {}) });
+export function attachMeshOperations({ transport, identity, verifyPeer, currentPeer, offer, authorize, admit = async () => true, dispatch,
+  settlementAccount = null, onSettlementRecords = null, onReceipt = null, maxRunning = 1, now = Date.now }) {
+  if (typeof authorize !== 'function') throw new TypeError('attachMeshOperations needs the host authorize port');
+  if (!Number.isSafeInteger(maxRunning) || maxRunning < 1) throw new TypeError('maxRunning must be a positive integer');
+  const signer = createAttemptEvidenceSigner({ identity, now });
+  const attempts = new Map(), served = new Map(), inFlight = new Set();
+  let closed = false;
+  const keep = charge => Promise.resolve().then(() => onSettlementRecords?.({ reservationId: charge.reservationId, records: charge.records() })).catch(() => {});
+  const reply = (peer, payload) => { try { transport.sendToPeer(peer, MESH_OPERATION_RESULT, payload); } catch { /* The requester's timeout ends its wait. */ } };
+  const refusal = (requestId, error, settlement = null) => ({ requestId, error: error?.message || 'Operation failed',
+    ...(typeof error?.code === 'string' && Object.hasOwn(MESH_OPERATION_ERROR_CODES, error.code) ? { code: error.code } : {}),
+    ...(settlement ? { settlement } : {}) });
+  const track = work => { const running = work().catch(() => {}); inFlight.add(running); running.finally(() => inFlight.delete(running)); };
+  // An attempt that ends before it ran (cancelled, expired, closed): its close claims nothing.
+  const endUnrun = async (key, attempt, peer, error) => {
+    if (attempts.get(key) !== attempt) return;
+    attempts.delete(key);
+    clearTimeout(attempt.timer);
+    let settlement = null;
+    try { settlement = { receipt: await attempt.charge.close({ failed: true }) }; await keep(attempt.charge); } catch { /* No close: the release window decides. */ }
+    reply(peer, refusal(attempt.requestId, error, settlement));
+  };
+
+  const admitOperation = async (peer, input, key) => {
+    const admission = input.envelope, requestId = admission.requestId;
+    const attempt = { requestId, controller: new AbortController(), binding: JSON.stringify(transport.getPeerBinding(peer)), phase: 'admitting',
+      charge: null, consumer: null, inputDigest: null, admissionDigest: null, timer: null, cancelled: false };
+    attempts.set(key, attempt);
+    try {
+      if (Object.hasOwn(admission, 'payload')) throw invalid('An admission carries no payload');
+      const consumer = await verifyPeer(peer, AbortSignal.timeout(5000));
+      if (!consumer || currentPeer(peer) !== consumer) throw invalid('Verified requester required');
+      if (admission.recipientGrant?.recipient !== identity.peerId) throw invalid('The envelope grants another recipient');
+      authorizeFields(admission, offer());
+      if (admission.planDigest !== await meshOperationPlanDigest(admission)) throw invalid('planDigest differs from the envelope');
+      if (!DIGEST.test(input.inputDigest ?? '')) throw invalid('The admission needs the input digest the requester reserved');
+      if (await authorize({ action: 'operation.admit', peerId: peer, consumer, envelope: structuredClone(admission) }) !== true) {
+        throw meshOperationError('OPERATION_REFUSED', 'This provider does not serve this request; nothing was run');
+      }
+      attempt.controller.signal.throwIfAborted();
+      const charge = await acceptMeshOperationCharge({ signer, settlement: input.settlement, consumer, requestId,
+        planDigest: admission.planDigest, ...(settlementAccount ? { payoutAccount: await settlementAccount() } : {}), now });
+      if (charge.maxCostUnits !== admission.maxCostUnits) throw invalid('Settlement terms cap another number of units than the envelope');
+      await admit({ envelope: admission, consumer, inputDigest: input.inputDigest, settlement: structuredClone(input.settlement) });
+      Object.assign(attempt, { charge, consumer, inputDigest: input.inputDigest, admissionDigest: await admissionDigest(admission) });
+      await keep(charge);
+      if (attempts.get(key) !== attempt) return;
+      if (attempt.controller.signal.aborted) return void await endUnrun(key, attempt, peer, attempt.controller.signal.reason);
+      attempt.phase = 'admitted';
+      // An admission whose payload never arrives holds a slot until its terms' deadline, then closes claiming nothing.
+      const deadline = Date.parse(input.settlement.terms.deadline);
+      attempt.timer = setTimeout(() => void endUnrun(key, attempt, peer, invalid('The admitted payload did not arrive in time')), Math.max(0, deadline - now()));
+      attempt.timer.unref?.();
+      reply(peer, { requestId, admitted: { settlementAcceptance: charge.acceptance } });
+    } catch (error) {
+      if (attempts.get(key) === attempt) attempts.delete(key);
+      reply(peer, refusal(requestId, error));
+    }
+  };
+
+  const runOperation = async (peer, envelope, key) => {
+    const attempt = attempts.get(key);
+    if (!attempt) return void reply(peer, refusal(envelope.requestId, invalid('This operation was not admitted; nothing was run')));
+    if (attempt.phase !== 'admitted') return;
+    attempt.phase = 'running';
+    clearTimeout(attempt.timer);
+    const { charge, controller } = attempt;
+    let ran = false;
+    try {
+      if (JSON.stringify(transport.getPeerBinding(peer)) !== attempt.binding || currentPeer(peer) !== attempt.consumer) {
+        throw invalid('The requester connection changed');
+      }
+      assertMeshOperationEnvelope(envelope);
+      if (await admissionDigest(envelope) !== attempt.admissionDigest || await meshOperationInputDigest(envelope) !== attempt.inputDigest) {
+        throw invalid('The operation differs from the one admitted');
+      }
+      authorizeMeshOperation(envelope, offer());
+      if (await authorize({ action: 'operation.execute', peerId: peer, consumer: attempt.consumer, envelope: structuredClone(envelope) }) !== true) {
+        throw meshOperationError('OPERATION_REFUSED', 'This provider does not serve this request; nothing was run');
+      }
+      controller.signal.throwIfAborted();
+      ran = true;
+      const output = await dispatch(envelope, controller.signal);
+      controller.signal.throwIfAborted();
+      const count = meshOperationUnits(envelope.operation, output), outputDigest = await hashJson(output);
+      const draft = await createReceiptDraft({ version: 2, provider: identity.peerId, consumer: attempt.consumer, jobHash: `request:${envelope.requestId}`,
+        model: envelope.modelId, modelIdentity: envelope.manifestDigest, adapterIdentities: [], inputDigest: attempt.inputDigest,
+        outputDigest, inputTokens: Number.isSafeInteger(output?.promptTokenCount) ? output.promptTokenCount : 0,
+        outputTokens: count, usage: MESH_OPERATION_UNITS,
+        stopReason: `operation:${envelope.operation}`, cleanup: 'settled', ownerPolicyDigest: null, status: 'completed', timestamp: now() });
+      const receipt = await signReceiptDraft(draft, identity);
+      const closing = await charge.close({ units: count, outputDigest, stopReason: `operation:${envelope.operation}` });
+      remember(served, key, { charge, consumer: attempt.consumer, providerSignature: receipt.providerSignature });
+      await keep(charge);
+      reply(peer, { requestId: envelope.requestId, output, receipt, settlement: { receipt: closing } });
+    } catch (error) {
+      // The requester ended it, or it never ran: a close that claims nothing. This provider failed while running it: its fault.
+      let settlement = null;
       try {
-        const consumer = await verifyPeer(peer, AbortSignal.timeout(5000));
-        if (!consumer || currentPeer(peer) !== consumer) throw invalid('Verified requester required');
-        if (envelope.recipientGrant?.recipient !== identity.peerId) throw invalid('The envelope grants another recipient');
-        authorizeMeshOperation(envelope, offer());
-        if (envelope.planDigest !== await meshOperationPlanDigest(envelope)) throw invalid('planDigest differs from the envelope');
-        const inputDigest = await meshOperationInputDigest(envelope);
-        await admit({ envelope, consumer, inputDigest });
-        const output = await dispatch(envelope, controller.signal);
-        controller.signal.throwIfAborted();
-        const draft = await createReceiptDraft({ version: 2, provider: identity.peerId, consumer, jobHash: `request:${requestId}`,
-          model: envelope.modelId, modelIdentity: envelope.manifestDigest, adapterIdentities: [], inputDigest,
-          outputDigest: await hashJson(output), inputTokens: Number.isSafeInteger(output?.promptTokenCount) ? output.promptTokenCount : 0,
-          outputTokens: meshOperationUnits(envelope.operation, output), usage: MESH_OPERATION_UNITS,
-          stopReason: `operation:${envelope.operation}`, cleanup: 'settled', ownerPolicyDigest: null, status: 'completed', timestamp: now() });
-        transport.sendToPeer(peer, MESH_OPERATION_RESULT, { requestId, output, receipt: await signReceiptDraft(draft, identity) });
-      } catch (error) { refuse(error); } finally { running.delete(key); }
-    })().catch(() => {});
+        settlement = attempt.cancelled || !ran ? { receipt: await charge.close({ failed: true }) } : { fault: await charge.fault() };
+        await keep(charge);
+      } catch { /* Neither record: the release window decides. */ }
+      reply(peer, refusal(envelope.requestId, error, settlement));
+    } finally { if (attempts.get(key) === attempt) attempts.delete(key); }
+  };
+
+  transport.onMessage(MESH_OPERATION_CANCEL, (peer, input) => {
+    const key = JSON.stringify([peer, input?.requestId]), attempt = attempts.get(key);
+    if (!attempt) return;
+    attempt.cancelled = true;
+    attempt.controller.abort(new Error('Requester cancelled'));
+    if (attempt.phase === 'admitted') track(() => endUnrun(key, attempt, peer, new Error('Requester cancelled')));
+  });
+  transport.onMessage(MESH_OPERATION_REQUEST, (peer, input) => {
+    const envelope = input?.envelope, requestId = envelope?.requestId;
+    if (!REQUEST_ID.test(requestId ?? '') || !transport.getPeerBinding(peer)) return;
+    const key = JSON.stringify([peer, requestId]);
+    if (closed) return void reply(peer, refusal(requestId, meshOperationError('OPERATION_REFUSED', 'This provider is closing; nothing was run')));
+    // The whole envelope runs an admitted attempt; an envelope without a payload asks for admission.
+    if (envelope && Object.hasOwn(envelope, 'payload')) return track(() => runOperation(peer, envelope, key));
+    if (attempts.has(key) || served.has(key)) return;
+    if (attempts.size >= maxRunning) return void reply(peer, refusal(requestId, meshOperationError('OPERATION_BUSY', 'This provider is busy; nothing was run')));
+    track(() => admitOperation(peer, input, key));
+  });
+  transport.onMessage(MESH_OPERATION_RECEIPT, (peer, input) => track(async () => {
+    const key = JSON.stringify([peer, input?.requestId]), entry = served.get(key), receipt = input?.receipt;
+    if (!entry || receipt?.providerSignature !== entry.providerSignature || receipt.consumer !== entry.consumer) return;
+    const checked = await verifyReceipt(receipt);
+    if (!checked.providerValid || !checked.consumerValid || served.get(key) !== entry) return;
+    served.delete(key);
+    if (await entry.charge.acknowledged(input.settlementAcknowledgment)) await keep(entry.charge);
+    await onReceipt?.(structuredClone(receipt));
+  }));
+  return Object.freeze({
+    /** Attempts admitted or running now. */
+    running: () => attempts.size,
+    async close() {
+      closed = true;
+      for (const attempt of attempts.values()) attempt.controller.abort(new Error('Provider closed'));
+      for (const [key, attempt] of [...attempts]) if (attempt.phase === 'admitted') track(() => endUnrun(key, attempt, null, new Error('Provider closed')));
+      while (inFlight.size) await Promise.allSettled([...inFlight]);
+    }
   });
 }
 
 const replies = new WeakMap();
-/** Requester protocol: sends an authorized envelope to the verified provider peer and returns `{ output, receipt }`. */
-export async function requestMeshOperation({ transport, verifyPeer, currentPeer, providerPeer, envelope, signal = AbortSignal.timeout(60_000) }) {
+/**
+ * Requester protocol (attachMeshOperations): asks the verified provider peer to admit the envelope without its payload,
+ * sends the payload only once the provider's signed acceptance of `settlement`'s terms verifies, and returns
+ * `{ output, receipt, closing, deliver }`. A closing record or fault that arrives after the call ended is still kept.
+ * An error before the payload left carries `payloadSent: false`.
+ */
+export async function requestMeshOperation({ transport, verifyPeer, currentPeer, providerPeer, envelope, settlement, signal = AbortSignal.timeout(60_000) }) {
+  // A call that is already stopped ends here, before anything is sent: an abort listener never fires for it.
+  signal.throwIfAborted();
+  assertMeshOperationEnvelope(envelope);
+  if (typeof settlement?.accept !== 'function' || typeof settlement.close !== 'function') {
+    throw invalid('A mesh operation needs its signed settlement terms (openMeshOperationCharge); nothing was sent');
+  }
   const providerParticipantId = envelope.recipientGrant.recipient;
   if (!transport.getPeerBinding(providerPeer) || await verifyPeer(providerPeer, signal) !== providerParticipantId) {
     throw meshOperationError('OPERATION_OFFER_MISMATCH', 'Could not verify the granted recipient');
   }
-  let waiting = replies.get(transport);
-  if (!waiting) {
-    waiting = new Map();
-    replies.set(transport, waiting);
-    transport.onMessage(MESH_OPERATION_RESULT, (peer, result) => waiting.get(JSON.stringify([peer, result?.requestId]))?.(result));
+  const inputDigest = await meshOperationInputDigest(envelope);
+  signal.throwIfAborted();
+  let channel = replies.get(transport);
+  if (!channel) {
+    channel = { waiting: new Map(), ended: new Map() };
+    replies.set(transport, channel);
+    transport.onMessage(MESH_OPERATION_RESULT, (peer, result) => {
+      const key = JSON.stringify([peer, result?.requestId]);
+      const waiting = channel.waiting.get(key);
+      if (waiting) return waiting(result);
+      // The provider's close or fault of a call that already ended here: kept with the requester's records.
+      const record = result?.settlement?.receipt ?? result?.settlement?.fault;
+      const ended = channel.ended.get(key);
+      if (ended && record && currentPeer(peer) === ended.provider) void ended.charge.close(record).catch(() => {});
+    });
   }
   const key = JSON.stringify([providerPeer, envelope.requestId]);
+  const connected = () => currentPeer(providerPeer) === providerParticipantId;
   return new Promise((resolve, reject) => {
+    let phase = 'admitting', disclosed = false;
     const abort = () => {
-      transport.sendToPeer(providerPeer, MESH_OPERATION_CANCEL, { requestId: envelope.requestId });
+      try { transport.sendToPeer(providerPeer, MESH_OPERATION_CANCEL, { requestId: envelope.requestId }); } catch { /* The provider's deadline ends it. */ }
       finish(signal.reason);
     };
     const finish = (error, value) => {
-      waiting.delete(key);
+      if (phase === 'done') return;
+      phase = 'done';
+      channel.waiting.delete(key);
       signal.removeEventListener('abort', abort);
-      if (error) reject(error); else resolve(value);
+      if (!error) return resolve(value);
+      remember(channel.ended, key, { charge: settlement, provider: providerParticipantId });
+      // The requester knows the payload never left: its host may settle the hold with a stop at zero.
+      if (!disclosed && error && typeof error === 'object') error.payloadSent = false;
+      reject(error);
     };
-    waiting.set(key, result => {
-      if (currentPeer(providerPeer) !== providerParticipantId) return finish(meshOperationError('OPERATION_OFFER_MISMATCH', 'The provider connection changed'));
-      if (result.error) {
+    const send = (payload, failure) => {
+      try { if (!transport.sendToPeer(providerPeer, MESH_OPERATION_REQUEST, payload)) finish(meshOperationError('OPERATION_OFFER_MISMATCH', failure)); }
+      catch (error) { finish(error); }
+    };
+    channel.waiting.set(key, result => {
+      if (!connected()) return finish(meshOperationError('OPERATION_OFFER_MISMATCH', 'The provider connection changed'));
+      const record = result?.settlement?.receipt ?? result?.settlement?.fault;
+      if (result?.error) {
+        if (record) void settlement.close(record).catch(() => {});
         return finish(Object.hasOwn(MESH_OPERATION_ERROR_CODES, result.code ?? '') ? meshOperationError(result.code, result.error) : new Error(result.error));
       }
-      finish(null, { output: result.output, receipt: result.receipt });
+      if (result?.admitted) {
+        if (phase !== 'admitting') return;
+        phase = 'accepting';
+        return void settlement.accept(result.admitted.settlementAcceptance).then(() => {
+          if (phase !== 'accepting') return;
+          phase = 'sent';
+          disclosed = true;
+          send({ envelope }, 'Provider unavailable');
+        }, () => {
+          if (phase !== 'accepting') return;
+          try { transport.sendToPeer(providerPeer, MESH_OPERATION_CANCEL, { requestId: envelope.requestId }); } catch { /* Nothing was disclosed. */ }
+          finish(meshOperationError('OPERATION_RESULT_INVALID', 'The provider did not sign an acceptance of the settlement terms; the payload was not sent'));
+        });
+      }
+      if (phase !== 'sent') return finish(meshOperationError('OPERATION_RESULT_INVALID', 'The provider answered before it was sent the payload'));
+      finish(null, { output: result.output, receipt: result.receipt, closing: result.settlement?.receipt ?? null,
+        // Synchronous: the acknowledgment is held only if this frame leaves (openMeshOperationCharge, acknowledge).
+        deliver: ({ receipt, acknowledgment }) => connected() && transport.sendToPeer(providerPeer, MESH_OPERATION_RECEIPT,
+          { requestId: envelope.requestId, receipt, settlementAcknowledgment: acknowledgment }) !== false });
     });
     signal.addEventListener('abort', abort, { once: true });
-    try {
-      if (!transport.sendToPeer(providerPeer, MESH_OPERATION_REQUEST, { envelope })) throw meshOperationError('OPERATION_OFFER_MISMATCH', 'Provider unavailable');
-    } catch (error) { finish(error); }
+    send({ envelope: meshOperationAdmission(envelope), inputDigest, settlement: { terms: settlement.terms, charge: settlement.charge } }, 'Provider unavailable');
   });
 }
 

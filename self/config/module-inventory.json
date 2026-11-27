@@ -5157,13 +5157,13 @@
     {
       "path": "ui/react/app.js",
       "owner": "ui",
-      "sha256": "sha256:9ee91843145196636e21ea247db9b64981a21c20139c2a8f3d84a9f71f59291b",
+      "sha256": "sha256:4cfffe548901d59f70a5bce0994244889bd9522228833185b92f4d4a836f6739",
       "imports": []
     },
     {
       "path": "ui/react/design.js",
       "owner": "ui",
-      "sha256": "sha256:39c8cf1a98d7f7fe8c299511a13357b087a28392508a34dc0db5448a68297682",
+      "sha256": "sha256:480e9412bc70436e78bc2931b77ebb9ec520016ef01377c85cfb5b759d9189b4",
       "imports": []
     },
     {
@@ -19033,7 +19033,7 @@
     {
       "path": "vendor/reploid/mesh/operation-envelope.js",
       "owner": "vendor",
-      "sha256": "sha256:7db3dcabfc10ab99d1108ab3a915d4d0c0739fcad7b9dd54a474089f86edf4c7",
+      "sha256": "sha256:798fc89638cb0dcdfac39354d5940df5528c2f5db4e38f8b004e1750b829fcbc",
       "imports": [
         "../artifacts/receipt.js",
         "../artifacts/signatures.js",
@@ -19841,7 +19841,7 @@
     {
       "path": "vendor/reploid/transport/message-types.js",
       "owner": "vendor",
-      "sha256": "sha256:47f3eb17290ece5340a32fbf4d419abbdc343f46a7ba2ca1de69e11ec9245ec3",
+      "sha256": "sha256:53ea597be3337f3905412252fb687a791bf34eae947c646d9848692cc68fe1c3",
       "imports": [
         "./circle-join.js",
         "./introductions.js",

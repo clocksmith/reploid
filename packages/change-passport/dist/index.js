@@ -231,6 +231,7 @@ var CIRCLE_JOIN_RESULT = "reploid:circle-join-result";
 var MESH_OPERATION_REQUEST = "reploid:mesh-operation-request";
 var MESH_OPERATION_RESULT = "reploid:mesh-operation-result";
 var MESH_OPERATION_CANCEL = "reploid:mesh-operation-cancel";
+var MESH_OPERATION_RECEIPT = "reploid:mesh-operation-receipt";
 var APPLICATION_MESSAGE_TYPES = Object.freeze([
   "sync-request",
   "sync-response",
@@ -260,6 +261,7 @@ var APPLICATION_MESSAGE_TYPES = Object.freeze([
   MESH_OPERATION_REQUEST,
   MESH_OPERATION_RESULT,
   MESH_OPERATION_CANCEL,
+  MESH_OPERATION_RECEIPT,
   "reploid:web-offer",
   "reploid:web-request",
   "reploid:web-response",
@@ -382,7 +384,11 @@ var MESH_OPERATION_ERROR_CODES = Object.freeze({
   OPERATION_OFFER_MISMATCH: "OPERATION_OFFER_MISMATCH",
   OPERATION_GRANT_REVOKED: "OPERATION_GRANT_REVOKED",
   OPERATION_REQUEST_INVALID: "OPERATION_REQUEST_INVALID",
-  OPERATION_RESULT_INVALID: "OPERATION_RESULT_INVALID"
+  OPERATION_RESULT_INVALID: "OPERATION_RESULT_INVALID",
+  /** The provider's host declined the requester or the request (owner pairing, readiness, closing). */
+  OPERATION_REFUSED: "OPERATION_REFUSED",
+  /** The provider already runs as many operations as it allows. */
+  OPERATION_BUSY: "OPERATION_BUSY"
 });
 var SPLIT_ROUTES = Object.freeze(["split", "split-local-edges"]);
 var WHOLE_MODEL_EXECUTION = Object.freeze({ protection: "plaintext", route: "remote" });
