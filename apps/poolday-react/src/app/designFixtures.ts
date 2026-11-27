@@ -10,7 +10,8 @@ export const composer: ComposerView = {
   attachmentHelp: false,
   attachmentHelpText: 'TXT, Markdown, JSON, JS, TS, HTML and CSS. Up to 8, 64 KB each, 128 KB total.',
   placeholder: 'Message This device…',
-  send: { visible: true, disabled: false },
+  send: { visible: true, disabled: false, mode: 'dispatch' },
+  route: { destination: 'device', computer: 'This device', restricted: false, status: 'ready', send: 'dispatch' },
   stop: { visible: false },
   chip: { visible: true, caption: false, findingFirst: false, source: 'This device', name: 'Qwen 3.5 2B', availability: 'ready', label: 'Answer on This device · Qwen 3.5 2B, Ready', activity: 'ready', executionSource: 'local', selectionId: 'qwen-2b' },
   privacy: { label: 'Who can read it: Only your devices', caption: 'Your devices', disabled: false },
@@ -18,13 +19,14 @@ export const composer: ComposerView = {
   status: { text: 'Model downloaded.' },
   acquisition: { text: '', progress: null },
   nextAction: null,
+  optionalAction: null,
   nextLabels: { join: 'Join', reviewShared: '', downloadLocal: 'Review local download', retry: 'Retry connection', retryPending: false },
   disclosure: 'Nothing leaves this device.',
   routeAlternatives: [],
   executionSettingsReset: false,
   startingPrompt: {
     text: 'Suggest 3 clever sci-fi movies under two hours.',
-    texts: ['Suggest 3 clever sci-fi movies under two hours.', 'Pick 3 podcasts for a long drive.', 'Recommend 3 board games for four players.'],
+    texts: ['Suggest 3 clever sci-fi movies under two hours.', 'Pick 3 light comedy shows with 30-minute episodes.', 'Recommend 3 terrible ’80s movies.'],
     inert: false,
   },
   error: '',
@@ -34,6 +36,8 @@ export const composer: ComposerView = {
 export const composerFinding: ComposerView = {
   ...composer,
   placeholder: 'Message…',
+  send: { visible: true, disabled: false, mode: 'queue' },
+  route: { destination: 'contributors', computer: 'Contributors', restricted: false, status: 'waiting', send: 'queue' },
   chip: { ...composer.chip, findingFirst: true, source: '', name: 'Finding computers…', availability: 'waiting', label: 'Answer on, Finding computers', activity: 'idle' },
   status: { text: 'Finding computers…' },
 };
@@ -46,6 +50,8 @@ export const composerQueued: ComposerView = {
   privacy: { label: 'Who can read it: Standard', caption: '', disabled: false },
   status: { text: 'Waiting for a computer running Gemma 27B…' },
   nextAction: 'cancel-queued',
+  send: { visible: true, disabled: true, mode: 'none' },
+  route: { destination: 'contributors', computer: 'Contributors', restricted: false, status: 'queued', send: 'none' },
   disclosure: 'A network provider could read your prompt.',
   startingPrompt: composer.startingPrompt ? { ...composer.startingPrompt, inert: true } : null,
 };
@@ -56,13 +62,14 @@ export const composerDownloading: ComposerView = {
   status: { text: '' },
   acquisition: { text: 'Downloading Qwen 3.5 0.8B · 35%', progress: { value: 224000000, max: 640000000 } },
   nextAction: 'cancel-download',
-  send: { visible: true, disabled: true },
+  send: { visible: true, disabled: true, mode: 'none' },
+  route: { destination: 'device', computer: 'This device', restricted: false, status: 'unavailable', send: 'none' },
 };
 
 export const composerRunning: ComposerView = {
   ...composer,
   status: { text: '' },
-  send: { visible: false, disabled: true },
+  send: { visible: false, disabled: true, mode: 'none' },
   stop: { visible: true },
   privacy: { ...composer.privacy, disabled: true },
   startingPrompt: null,

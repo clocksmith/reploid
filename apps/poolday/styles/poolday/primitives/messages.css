@@ -19,11 +19,9 @@
 }
 .pool-home .pool-conversation-notices,
 .pool-home .pool-conversation-composer { flex: none; inline-size: var(--pool-param-reading); align-self: center; min-inline-size: 0; }
-.pool-home .pool-conversation-composer { display: flex; flex-direction: column; gap: var(--pool-size-8); max-block-size: 45dvh; }
-/* When the composer runs out of height (a phone keyboard), its status lines scroll above the field; the field keeps
-   its size and its place at the bottom. */
-.pool-home .pool-conversation-composer > .pool-stack { flex: 1 1 auto; min-block-size: 0; }
-.pool-home .pool-conversation-composer > .pool-stack > :not(.pool-input-group) { flex: 0 1 auto; min-block-size: 0; overflow-y: auto; }
+/* The page has one scroll area, the transcript. The composer never scrolls on its own: when height runs out (a phone
+   keyboard) the transcript gives it up, and the field keeps its size and its place at the bottom. */
+.pool-home .pool-conversation-composer { display: flex; flex-direction: column; gap: var(--pool-size-8); }
 .pool-home .pool-conversation-composer > .pool-stack > .pool-input-group { flex: none; }
 .pool-home .pool-transcript {
   flex: 1;
@@ -35,8 +33,14 @@
   overflow-y: auto;
   overflow-wrap: anywhere;
   scrollbar-gutter: stable both-edges;
+  display: flex;
+  flex-direction: column;
 }
-.pool-home .pool-transcript-log { display: flex; flex-direction: column; gap: var(--pool-size-32); padding-block: var(--pool-size-16); }
+/* Suggestions for an empty conversation sit at the end of the transcript, just above the composer, and scroll with it. */
+.pool-home .pool-transcript-footer { flex: none; margin-block-start: auto; padding-block: var(--pool-size-8); }
+.pool-home .pool-transcript-footer .pool-row { flex-wrap: wrap; }
+.pool-home .pool-transcript-footer button.pool-chip { max-inline-size: 100%; text-align: start; white-space: normal; }
+.pool-home .pool-transcript-log { display: flex; flex: none; flex-direction: column; gap: var(--pool-size-32); padding-block: var(--pool-size-16); }
 .pool-home .pool-transcript-log:empty { padding: 0; }
 .pool-home .pool-message { display: grid; gap: var(--pool-size-8); inline-size: 100%; min-inline-size: 0; }
 .pool-home .pool-message-user { inline-size: fit-content; max-inline-size: 85%; align-self: flex-end; }
@@ -126,6 +130,16 @@
 }
 @media (max-width: 480px) {
   .pool-home .pool-selector .pool-selector-chevron { display: none; }
+}
+/* On a phone, and at any width where enlarged text leaves the same room (the query is in em, so it follows the
+   browser's text size), "Answer on" takes its own line above the other controls and its computer and model wrap
+   rather than truncate. */
+@media (max-width: 30em) {
+  .pool-home .pool-toolbar:has(> .pool-selector) { flex-wrap: wrap; row-gap: var(--pool-size-4); }
+  .pool-home .pool-toolbar > .pool-selector { order: -1; flex: 1 0 100%; }
+  .pool-home .pool-toolbar > .pool-selector .pool-selector-parts { flex-wrap: wrap; white-space: normal; text-align: start; }
+  .pool-home .pool-toolbar > .pool-selector .pool-selector-part,
+  .pool-home .pool-toolbar > .pool-selector .pool-selector-part > span:last-child { overflow: visible; white-space: normal; }
 }
 .pool-home .pool-workspace[data-compact] .pool-conversation { gap: var(--pool-size-8); }
 /* pool-concealed keeps an element's space while it is not shown. */

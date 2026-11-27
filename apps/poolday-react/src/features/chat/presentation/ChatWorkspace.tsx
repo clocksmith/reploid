@@ -1,5 +1,5 @@
 import { useMemo, useState, type ReactNode } from 'react';
-import { ConversationLayout, Notice, Transcript } from '@reploid/poolday-ui';
+import { Chip, ConversationLayout, Notice, Row, Transcript } from '@reploid/poolday-ui';
 import { conversation as t } from '../../../l10n/conversation';
 import { AnswerOnSheet } from './AnswerOnSheet';
 import { DownloadDialog, PrivacyDialog, RemotePermissionDialog, RenameDialog } from './ChatDialogs';
@@ -26,6 +26,7 @@ export function ChatWorkspace({
 }) {
   const [snapshot, port] = useConversation();
   const { focus } = snapshot;
+  const starters = snapshot.composer.startingPrompt;
   // Keep Stop reachable: the composer's steps aside while the running answer's own Stop is in view.
   const [answerStopInView, setAnswerStopInView] = useState(false);
   // One stable actions object, so a message re-renders only when its own record changes.
@@ -45,7 +46,23 @@ export function ChatWorkspace({
         data={{ 'data-conversation-area': true }}
         composerData={{ 'data-composer-area': true }}
         transcript={
-          <Transcript label={t.messages} conversation={snapshot.selectedId} logData={{ 'data-message-stream': true }} onWatchedVisible={setAnswerStopInView} data={{ 'data-chat-transcript': true }}>
+          <Transcript
+            label={t.messages}
+            conversation={snapshot.selectedId}
+            logData={{ 'data-message-stream': true }}
+            onWatchedVisible={setAnswerStopInView}
+            data={{ 'data-chat-transcript': true }}
+            footer={
+              // The starters scroll with the conversation, in its one scroll area, never under the composer.
+              starters && (
+                <Row data={{ 'data-starting-prompts': true }}>
+                  {starters.texts.map((text) => (
+                    <Chip key={text} label={text} concealed={starters.inert} onPress={() => port.useStartingPrompt(text)} data={{ 'data-starting-prompt': true }} />
+                  ))}
+                </Row>
+              )
+            }
+          >
             {snapshot.messages.map((message) => (
               <Message key={message.id} message={message} actions={actions} />
             ))}

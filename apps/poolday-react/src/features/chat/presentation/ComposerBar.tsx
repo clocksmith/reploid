@@ -1,6 +1,6 @@
 import { useId } from 'react';
 import {
-  Button, Chip, FilePicker, Grow, IconButton, InputGroup, Progress, Row, SelectorButton, Stack, StatusLine, Text, TextArea, Toolbar,
+  Button, FilePicker, Grow, IconButton, InputGroup, Progress, Row, SelectorButton, Stack, StatusLine, Text, TextArea, Toolbar,
 } from '@reploid/poolday-ui';
 import type { ComposerView, ConversationCommands, NextAction } from '../domain/conversation';
 import { conversation as t } from '../../../l10n/conversation';
@@ -50,22 +50,12 @@ export function ComposerBar({
   const disclosureId = useId();
   const statusId = useId();
   const { chip, acquisition } = composer;
-  const showStatus = composer.status.text !== '' || acquisition.text !== '' || acquisition.progress !== null || composer.nextAction !== null;
+  const showStatus = composer.status.text !== '' || acquisition.text !== '' || acquisition.progress !== null || composer.nextAction !== null || composer.optionalAction !== null;
+  // Send says what one press does: send now, wait for a computer (up to 30 s), ask where to run, or nothing.
+  const sendMode = composer.send.disabled ? 'none' : composer.send.mode;
+  const sendLabel = sendMode === 'queue' ? t.sendWhenFound : sendMode === 'choose' ? t.chooseWhere : t.send;
   return (
     <Stack gap="sm">
-      {composer.startingPrompt && (
-        <Row data={{ 'data-starting-prompts': true }}>
-          {composer.startingPrompt.texts.map((text) => (
-            <Chip
-              key={text}
-              label={text}
-              concealed={composer.startingPrompt?.inert ?? false}
-              onPress={() => commands.useStartingPrompt(text)}
-              data={{ 'data-starting-prompt': true }}
-            />
-          ))}
-        </Row>
-      )}
       {composer.routeAlternatives.length > 0 && (
         <Stack gap="xs" data={{ 'data-route-alternatives': true }}>
           <Text variant="small" muted>
@@ -95,6 +85,9 @@ export function ComposerBar({
             </Grow>
           )}
           {composer.nextAction && <NextActionButton action={composer.nextAction} composer={composer} commands={commands} />}
+          {composer.optionalAction === 'download-local' && (
+            <Button variant="quiet" label={composer.nextLabels.downloadLocal} hasPopup="dialog" onPress={commands.downloadLocal} data={{ 'data-optional-download': true }} />
+          )}
         </Row>
       )}
       {composer.executionSettingsReset && (
@@ -133,7 +126,7 @@ export function ComposerBar({
           describedBy={composer.disclosure !== '' ? disclosureId : undefined}
           data={{ 'data-composer-input': true }}
         />
-        <Toolbar>
+        <Toolbar data={{ 'data-composer-toolbar': true }}>
           <FilePicker label={t.attach} accept={ACCEPT} multiple onFiles={commands.attach} data={{ 'data-composer-files': true }}>
             {(open) => (
               <IconButton
@@ -188,12 +181,12 @@ export function ComposerBar({
             !stopCovered && <IconButton variant="primary" label={t.stop} icon="stop" onPress={commands.stop} data={{ 'data-composer-stop': true }} />
           ) : (
             <IconButton
-              variant="primary"
-              label={t.send}
+              variant={sendMode === 'dispatch' ? 'primary' : 'quiet'}
+              label={sendLabel}
               icon="send"
               describedBy={composer.disclosure !== '' ? disclosureId : undefined}
-              onPress={composer.send.disabled ? undefined : commands.send}
-              data={{ 'data-composer-send': true }}
+              onPress={sendMode === 'none' ? undefined : commands.send}
+              data={{ 'data-composer-send': true, 'data-send-mode': sendMode }}
             />
           )}
         </Toolbar>

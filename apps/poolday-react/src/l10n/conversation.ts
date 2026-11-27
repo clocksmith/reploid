@@ -12,6 +12,7 @@ export const conversation = {
   modelOutput: 'Model output',
   systemStatus: 'System status',
   send: 'Send',
+  sendWhenFound: 'Send when a computer is found',
   stop: 'Stop',
   attach: 'Attach text files',
   removeFile: (name: string) => `Remove ${name}`,

@@ -15,6 +15,12 @@ describe('starting prompts', () => {
     }
   });
 
+  it('asks only about movies and shows, as the owner directed', () => {
+    const screen = /\b(movies?|films?|shows?|series|miniseries|sitcom|episodes?|documentar(y|ies)|specials|musicals)\b/i;
+    for (const text of chatPrompts) expect(text).toMatch(screen);
+    for (const text of chatPrompts) expect(text).not.toMatch(/\b(gifts?|dinners?|desserts?|soups?|cocktails?|recipes?|puzzle|board games?|card games?|video games?|podcasts?|novels?|albums?|hikes?)\b/i);
+  });
+
   it('picks three distinct prompts from the set', () => {
     for (const r of [0, 0.5, 0.999999, 0.25]) {
       const picked = pickStartingPrompts(chatPrompts, () => r);

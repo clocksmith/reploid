@@ -11,6 +11,7 @@ export function Transcript({
   label,
   conversation,
   children,
+  footer,
   logData,
   onWatchedVisible,
   data,
@@ -24,6 +25,11 @@ export function Transcript({
   /** The conversation shown; its scroll position is kept when it changes. */
   readonly conversation: string | null;
   readonly children: ReactNode;
+  /**
+   * Shown at the end of the scrolling frame, outside the message log (it is not announced as output): suggestions for
+   * an empty conversation. It scrolls with the messages, so the composer below never covers it.
+   */
+  readonly footer?: ReactNode;
   /** Stable hooks on the message log itself (the scrolling frame takes `data`). */
   readonly logData?: DataAttributes;
   readonly data?: DataAttributes;
@@ -118,6 +124,7 @@ export function Transcript({
       <div className="pool-transcript-log" role="log" aria-label={label} aria-live="polite" {...dataProps(logData)}>
         {children}
       </div>
+      {footer ? <div className="pool-transcript-footer">{footer}</div> : null}
     </div>
   );
 }

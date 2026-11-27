@@ -100,10 +100,25 @@ describe('ChatWorkspace', () => {
     expect(document.querySelector('[data-composer-model-source]')?.textContent).toBe('Contributors');
   });
 
+  it('shows the starters in the transcript, its one scroll area, never in the composer or the announced log', async () => {
+    mount();
+    await waitFor(() => expect(document.querySelectorAll('[data-starting-prompt]').length).toBe(3));
+    const starters = document.querySelector('[data-starting-prompts]') as HTMLElement;
+    expect(starters.closest('[data-chat-transcript]')).not.toBeNull();
+    expect(starters.closest('[data-composer-area]')).toBeNull();
+    expect(transcript().contains(starters)).toBe(false);
+    await userEvent.click(document.querySelectorAll('[data-starting-prompt]')[0] as HTMLElement);
+    expect((composer() as HTMLTextAreaElement).value).toMatch(/^(Suggest|Pick|Recommend) 3 /);
+  });
+
   it('queues a first Send while computers are found, asks nothing, and sends when one arrives', async () => {
     const demo = mount({ searching: true, stored: false });
     await userEvent.type(composer(), 'Explain ocean tides.');
-    await userEvent.click(screen.getByRole('button', { name: 'Send' }));
+    // Before the press, Send says it will wait for a computer rather than look ready to send now.
+    const queue = screen.getByRole('button', { name: 'Send when a computer is found' });
+    expect(queue.getAttribute('data-send-mode')).toBe('queue');
+    expect(queue.classList.contains('btn-primary')).toBe(false);
+    await userEvent.click(queue);
     // Type and send is the whole journey (FIRST-02, docs/critical-user-journeys.md): no sheet asks where this should run.
     await waitFor(() => expect(screen.getByRole('button', { name: 'Cancel' })).toBeTruthy());
     expect(sheet().hasAttribute('open')).toBe(false);
