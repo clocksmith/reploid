@@ -1425,8 +1425,8 @@
     },
     {
       "path": "config/module-inventory.json",
-      "byteLength": 690632,
-      "sha256": "sha256:bcddf4992bcaef3fcce89d27da2780d88912bd9507ab9c819ea0bf84c322d342"
+      "byteLength": 690206,
+      "sha256": "sha256:9f95ba79b0e18b56bb19e9de89a8e7c0a825fb11d48d76881467f62d609da3eb"
     },
     {
       "path": "config/module-registry.json",
@@ -1520,8 +1520,8 @@
     },
     {
       "path": "config/vfs-manifest.json",
-      "byteLength": 148667,
-      "sha256": "sha256:a75d4b0f033eef94d3a29d68c4003042b54311a458534ea3c1a1c67491fce907"
+      "byteLength": 148625,
+      "sha256": "sha256:ee55fe210eef0333050c37899ffa45574714453bfcddb0e58a5aa07f11b28692"
     },
     {
       "path": "config/vfs-policy.js",
@@ -1975,8 +1975,8 @@
     },
     {
       "path": "host/decisions/examples.js",
-      "byteLength": 30620,
-      "sha256": "sha256:741a4f9f9329c2edfcd56e913cd7a8605d14e43de13c3c48a01339dd9c2613ab"
+      "byteLength": 30595,
+      "sha256": "sha256:69c2fb0629792a0d14834418811a2b669b77d13d6a87c45445ede159bdeac92e"
     },
     {
       "path": "host/decisions/experiments.js",
@@ -2015,8 +2015,8 @@
     },
     {
       "path": "host/decisions/records.js",
-      "byteLength": 10146,
-      "sha256": "sha256:c4337fabcf7701892acb80018309e3da2c9425b86da40e8cd80b6d5a0da82e68"
+      "byteLength": 10149,
+      "sha256": "sha256:637e309a6d8f4fbcabca0f176f65794b1efe397eee215326857bf5d8379b7363"
     },
     {
       "path": "host/decisions/remote-approval.js",
@@ -2040,8 +2040,8 @@
     },
     {
       "path": "host/decisions/run-ledger.js",
-      "byteLength": 4288,
-      "sha256": "sha256:661c24ffecff6e6f91efd132dc683b22a64152d42ad969ab05490af47b4a9f21"
+      "byteLength": 4201,
+      "sha256": "sha256:569faeb4b0b88621fbd506dd7f0b539a1edbd73001af304b7db08ba88071d274"
     },
     {
       "path": "host/decisions/run-result.js",
@@ -2055,8 +2055,8 @@
     },
     {
       "path": "host/decisions/settings.js",
-      "byteLength": 11089,
-      "sha256": "sha256:776ca15c63a10ccc3902231d2ee9d3a05c6fdf9636c356b51cb89f953e15ae01"
+      "byteLength": 10799,
+      "sha256": "sha256:ff5c434c17a75fdaef65f8deefa2eea90a62c277cfa92e617746b17fb98cf4ff"
     },
     {
       "path": "host/decisions/threads.js",
@@ -2200,8 +2200,8 @@
     },
     {
       "path": "host/product-context.js",
-      "byteLength": 2652,
-      "sha256": "sha256:4aa524454a6d80ed1be948d7bf417222c3a4b89deb1a1cb6f8e0daa24a39ca72"
+      "byteLength": 2543,
+      "sha256": "sha256:d28d4fce041e5e254981986d70e0353260ce2f777cb6c1c19b1832675fe36ab4"
     },
     {
       "path": "host/product-session.js",
@@ -4024,11 +4024,6 @@
       "sha256": "sha256:198c36ddeb495a5b8cab2719ae7fd5d2e2e59685902ff19ba64853e242597bc9"
     },
     {
-      "path": "ui/pool-home/record-ledger-view.js",
-      "byteLength": 3927,
-      "sha256": "sha256:f5fcf2b04b00e1d47e5aa1f54b977a80ac1681e9656367b56115c187671704b8"
-    },
-    {
       "path": "ui/pool-home/record-persistence.js",
       "byteLength": 4759,
       "sha256": "sha256:7cae87cfc24b4b844659f152d48042fce0bccc9078ad1bef979e55bc882cb509"
@@ -4205,13 +4200,13 @@
     },
     {
       "path": "ui/react/app.js",
-      "byteLength": 3064509,
-      "sha256": "sha256:8b6a175fd3e5eab9f350fb631340ae50fc3d04f9dc51372ae395372e6de70458"
+      "byteLength": 3062557,
+      "sha256": "sha256:daa25d1a76ce53fd1c461c0566003b962a31ae3ec33309f5276adf6619d73dbd"
     },
     {
       "path": "ui/react/design.js",
-      "byteLength": 2111475,
-      "sha256": "sha256:93a77291c69a400033274f6cba3fcc5aedf0eb91dce53c674bfb3920b15d2b7d"
+      "byteLength": 2109525,
+      "sha256": "sha256:d62bbf1c9d5dfc344212210bfb6bd24a6712fd06be49d2c5ed40ca85a1c24215"
     },
     {
       "path": "ui/reploid-home/index.js",
@@ -12669,5 +12664,5 @@
       "sha256": "sha256:abb6c18f6167d6afc8ee1b3adfcbbb89c0e93fb4fc4e98d7a12250f78aab206a"
     }
   ],
-  "bundleHash": "sha256:d1dff9cf8a7c6246d3599e46d9a4ae5765720a0f790438660fe28e40970ae166"
+  "bundleHash": "sha256:63b1cf65613daa29aec580445e5dcd2d780b5a3256a7f315d11258ad3aeb86f3"
 }

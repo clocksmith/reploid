@@ -17,7 +17,7 @@
     "kernel/boot.js"
   ],
   "counts": {
-    "apps/poolday": 358,
+    "apps/poolday": 357,
     "self": 458,
     "shared": 2541
   },
@@ -5090,12 +5090,6 @@
     {
       "served": "ui/pool-home/privacy-controls.js",
       "source": "apps/poolday/ui/pool-home/privacy-controls.js",
-      "owner": "apps/poolday",
-      "basis": "Reached only from product entries."
-    },
-    {
-      "served": "ui/pool-home/record-ledger-view.js",
-      "source": "apps/poolday/ui/pool-home/record-ledger-view.js",
       "owner": "apps/poolday",
       "basis": "Reached only from product entries."
     },

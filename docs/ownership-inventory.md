@@ -18,10 +18,10 @@ Product entries: `index.html`, `pool-entry.html`, `design.html`, `document-study
 
 | Owner | Files |
 | --- | ---: |
-| apps/poolday | 358 |
+| apps/poolday | 357 |
 | self | 458 |
 | shared | 2541 |
-| total | 3357 |
+| total | 3356 |
 
 Every file lives in its owner's root.
 
@@ -882,7 +882,6 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `ui/pool-home/page-identity.js` | `apps/poolday/ui/pool-home/page-identity.js` | apps/poolday | Reached only from product entries. |
 | `ui/pool-home/pending-request-recovery.js` | `apps/poolday/ui/pool-home/pending-request-recovery.js` | apps/poolday | Reached only from product entries. |
 | `ui/pool-home/privacy-controls.js` | `apps/poolday/ui/pool-home/privacy-controls.js` | apps/poolday | Reached only from product entries. |
-| `ui/pool-home/record-ledger-view.js` | `apps/poolday/ui/pool-home/record-ledger-view.js` | apps/poolday | Reached only from product entries. |
 | `ui/pool-home/record-persistence.js` | `apps/poolday/ui/pool-home/record-persistence.js` | apps/poolday | Reached only from product entries. |
 | `ui/pool-home/remote-permission.js` | `apps/poolday/ui/pool-home/remote-permission.js` | apps/poolday | Reached only from product entries. |
 | `ui/pool-home/research-adjudication-records.js` | `apps/poolday/ui/pool-home/research-adjudication-records.js` | apps/poolday | Reached only from product entries. |

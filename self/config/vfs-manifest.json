@@ -805,7 +805,6 @@
     "ui/pool-home/page-identity.js",
     "ui/pool-home/pending-request-recovery.js",
     "ui/pool-home/privacy-controls.js",
-    "ui/pool-home/record-ledger-view.js",
     "ui/pool-home/record-persistence.js",
     "ui/pool-home/remote-permission.js",
     "ui/pool-home/research-adjudication-records.js",

@@ -3143,7 +3143,7 @@
     {
       "path": "self/host/decisions/examples.js",
       "owner": "self",
-      "sha256": "sha256:741a4f9f9329c2edfcd56e913cd7a8605d14e43de13c3c48a01339dd9c2613ab",
+      "sha256": "sha256:69c2fb0629792a0d14834418811a2b669b77d13d6a87c45445ede159bdeac92e",
       "imports": [
         "../../config/surface-intents.js",
         "../../pool/document-search-policy.json",
@@ -3159,11 +3159,11 @@
         "../../ui/pool-home/control-display-text.js",
         "../../ui/pool-home/page-identity.js",
         "../../ui/pool-home/pending-request-recovery.js",
-        "../../ui/pool-home/record-ledger-view.js",
         "../../ui/pool-home/run-result-format.js",
         "../../ui/pool-home/view-markup.js",
         "../peer-run-session.js",
         "../product-context.js",
+        "./run-ledger.js",
         "./run-result.js"
       ]
     },
@@ -3232,7 +3232,7 @@
     {
       "path": "self/host/decisions/records.js",
       "owner": "self",
-      "sha256": "sha256:c4337fabcf7701892acb80018309e3da2c9425b86da40e8cd80b6d5a0da82e68",
+      "sha256": "sha256:637e309a6d8f4fbcabca0f176f65794b1efe397eee215326857bf5d8379b7363",
       "imports": [
         "../../pool/peer-control-plane.js",
         "../../pool/sdk.js",
@@ -3296,7 +3296,7 @@
     {
       "path": "self/host/decisions/run-ledger.js",
       "owner": "self",
-      "sha256": "sha256:661c24ffecff6e6f91efd132dc683b22a64152d42ad969ab05490af47b4a9f21",
+      "sha256": "sha256:569faeb4b0b88621fbd506dd7f0b539a1edbd73001af304b7db08ba88071d274",
       "imports": [
         "../../ui/pool-home/constants.js",
         "../../ui/pool-home/ledger-store.js",
@@ -3331,7 +3331,7 @@
     {
       "path": "self/host/decisions/settings.js",
       "owner": "self",
-      "sha256": "sha256:776ca15c63a10ccc3902231d2ee9d3a05c6fdf9636c356b51cb89f953e15ae01",
+      "sha256": "sha256:ff5c434c17a75fdaef65f8deefa2eea90a62c277cfa92e617746b17fb98cf4ff",
       "imports": [
         "../../ui/pool-home/choice-availability.js",
         "../../ui/pool-home/web-search-settings.js",
@@ -3592,7 +3592,7 @@
     {
       "path": "self/host/product-context.js",
       "owner": "self",
-      "sha256": "sha256:4aa524454a6d80ed1be948d7bf417222c3a4b89deb1a1cb6f8e0daa24a39ca72",
+      "sha256": "sha256:d28d4fce041e5e254981986d70e0353260ce2f777cb6c1c19b1832675fe36ab4",
       "imports": [
         "../config/doppler-local-models.js",
         "../config/ordered-participation.json",
@@ -4868,19 +4868,6 @@
       ]
     },
     {
-      "path": "ui/pool-home/record-ledger-view.js",
-      "owner": "ui",
-      "sha256": "sha256:f5fcf2b04b00e1d47e5aa1f54b977a80ac1681e9656367b56115c187671704b8",
-      "imports": [
-        "../../host/product-context.js",
-        "./constants.js",
-        "./ledger-store.js",
-        "./record-persistence.js",
-        "./room-record-projection.js",
-        "./view-markup.js"
-      ]
-    },
-    {
       "path": "ui/pool-home/record-persistence.js",
       "owner": "ui",
       "sha256": "sha256:7cae87cfc24b4b844659f152d48042fce0bccc9078ad1bef979e55bc882cb509",
@@ -5183,13 +5170,13 @@
     {
       "path": "ui/react/app.js",
       "owner": "ui",
-      "sha256": "sha256:8b6a175fd3e5eab9f350fb631340ae50fc3d04f9dc51372ae395372e6de70458",
+      "sha256": "sha256:daa25d1a76ce53fd1c461c0566003b962a31ae3ec33309f5276adf6619d73dbd",
       "imports": []
     },
     {
       "path": "ui/react/design.js",
       "owner": "ui",
-      "sha256": "sha256:93a77291c69a400033274f6cba3fcc5aedf0eb91dce53c674bfb3920b15d2b7d",
+      "sha256": "sha256:d62bbf1c9d5dfc344212210bfb6bd24a6712fd06be49d2c5ed40ca85a1c24215",
       "imports": []
     },
     {
