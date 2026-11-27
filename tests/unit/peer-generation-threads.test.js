@@ -325,6 +325,20 @@ it('rechecks provider readiness after approval without disclosing to a replaceme
 });
 
 
+it('waits for an approved provider whose last slot another requester took, and sends to no other computer', async () => {
+  const f = fixture(); await f.mesh.connect(); f.advertise('east', 'qwen');
+  let approve;
+  f.authorize.mockImplementation(request => request.action === 'mesh.dispatch'
+    ? new Promise(resolve => { approve = resolve; }) : true);
+  const request = f.mesh.generate([], null, { modelId: 'qwen' });
+  await vi.waitFor(() => expect(approve).toBeTypeOf('function'));
+  f.advertise('east', 'qwen', { availableSlots: 0 }); f.advertise('west', 'qwen'); approve(true);
+  await new Promise(resolve => setTimeout(resolve, 300)); expect(f.sent).toHaveLength(0);
+  f.advertise('east', 'qwen', { availableSlots: 1 });
+  await vi.waitFor(() => expect(f.sent).toHaveLength(1)); expect(f.sent[0].peer).toBe('east');
+  await f.respond(f.sent[0]); await expect(request).resolves.toMatchObject({ model: 'qwen' }); await f.mesh.close();
+});
+
 it('cancels and settles when a stream consumer throws, without retaining a dead request', async () => {
   const f = fixture(); await f.mesh.connect(); f.advertise('east', 'qwen');
   const request = f.mesh.generate([], () => { throw new Error('consumer failed'); }, { modelId: 'qwen' });

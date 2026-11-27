@@ -73,6 +73,8 @@ export function createPeerGenerationMesh({ config, ports }) {
   const bridgeEvents = ports.events;
   const swarmEnabled = policy.mesh.enabled;
   const REMOTE_GENERATION_TIMEOUT_MS = policy.mesh.generationTimeoutMs;
+  // A chosen provider whose only change is a full slot count is waited for this long before the request fails.
+  const BUSY_RECIPIENT_WAIT_MS = Math.min(30000, REMOTE_GENERATION_TIMEOUT_MS), BUSY_RECIPIENT_POLL_MS = 100;
   const swarmController = createSwarmController();
   const receiptHistory = [], observedPeers = new Map();
   const contextProviders = new Map();
@@ -1539,19 +1541,29 @@ export function createPeerGenerationMesh({ config, ports }) {
       }
       signal?.throwIfAborted();
       if (closed) throw new Error('Mesh is closed');
-      const verifyCurrentRecipient = () => {
+      /** True when the chosen provider is no longer the one approved, or (unless `slotsAside`) has no free slot. */
+      const recipientChanged = (slotsAside = false) => {
         const currentProvider = swarmController.listPeers().find(peer => peer.peerId === provider.peerId);
-        if (!currentProvider || currentProvider.admissionProtocol !== 2 || currentProvider.identityProtocol !== 1
+        return !currentProvider || currentProvider.admissionProtocol !== 2 || currentProvider.identityProtocol !== 1
         || peerIdentity?.getVerified(provider.peerId) !== recipientIdentity
-        || currentProvider.readiness !== 'ready' || !(currentProvider.availableSlots > 0)
+        || currentProvider.readiness !== 'ready' || (!slotsAside && !(currentProvider.availableSlots > 0))
         || JSON.stringify(swarmTransport.getPeerBinding?.(provider.peerId) || null) !== connectionBinding
         || currentProvider.model !== provider.model || currentProvider.modelIdentity !== provider.modelIdentity
         || !supportsAdapters(currentProvider, adapterIdentities)
         || JSON.stringify(currentProvider.executionOffers ?? null) !== JSON.stringify(provider.executionOffers ?? null)
-        || JSON.stringify(snapshotJson(currentProvider.generationSettings ?? null)) !== JSON.stringify(snapshotJson(provider.generationSettings ?? null))) {
-          throw new Error('Selected contributor is no longer ready; retry requires new placement');
-        }
+        || JSON.stringify(snapshotJson(currentProvider.generationSettings ?? null)) !== JSON.stringify(snapshotJson(provider.generationSettings ?? null));
       };
+      const verifyCurrentRecipient = () => {
+        if (recipientChanged()) throw new Error('Selected contributor is no longer ready; retry requires new placement');
+      };
+      // Two requesters can choose the same provider at once; the first takes its last slot before the second
+      // dispatches. Nothing has been disclosed and the approved provider is otherwise unchanged, so wait for that same
+      // provider to free a slot, for at most BUSY_RECIPIENT_WAIT_MS, instead of failing. No other computer is chosen.
+      for (const until = Date.now() + BUSY_RECIPIENT_WAIT_MS; recipientChanged() && !recipientChanged(true) && Date.now() < until;) {
+        await new Promise(resolve => setTimeout(resolve, BUSY_RECIPIENT_POLL_MS));
+        signal?.throwIfAborted();
+        if (closed) throw new Error('Mesh is closed');
+      }
       verifyCurrentRecipient();
       // The host approved and holds the cost. The requester's signed terms and charge binding travel with the
       // admission question, so the provider signs its acceptance before the prompt is sent. Only a provider that
