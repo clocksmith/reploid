@@ -119,7 +119,8 @@ async function main() {
   if (command.peers) { await runPeers(command.peers, runParticipant); return; }
   if (command.prompt !== undefined) {
     const response = await runParticipant({ anyModel: command.anyModel === true, runOnce: (participant, model, signal) => askMesh(participant, model, command.prompt,
-      { signal, anyModel: command.anyModel === true, ...(command.execution ? { execution: command.execution } : {}) }) });
+      { signal, anyModel: command.anyModel === true, ...(command.execution ? { execution: command.execution } : {}),
+        ...(command.sendIntent ? { sendIntent: command.sendIntent } : {}) }) });
     console.log(response);
     return;
   }

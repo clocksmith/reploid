@@ -1,6 +1,7 @@
 import { fail, object, freeze } from './text-request-values.js';
 import { compileExecutionRequirements, requesterEdges, EXECUTION_BACKENDS } from '../shared/vendor/reploid/chat/execution-policy.js';
 import { SERVICE_CREDIT_REFUSAL_STATUS } from './fleet/contract.js';
+import { sendIntentArtifact, sendIntentRefusal, validateSendIntent } from '../shared/vendor/reploid/chat/index.js';
 
 /** HTTP status for each stable inference refusal code. The body's error.code is the code in lower case. */
 export const EXECUTION_ERROR_STATUS = Object.freeze({
@@ -38,13 +39,18 @@ const digest = value => typeof value === 'string' && /^sha256:[a-f0-9]{64}$/u.te
  * It is read before the protocol's messages. Any protection other than plaintext is refused here
  * (CONFIDENTIAL_EXECUTION_UNAVAILABLE), and so is a split with requester-held edges: an ordinary JSON body is already
  * plaintext to this server, so it can never be protected, or kept on the requester's devices, afterwards.
+ * `sendIntent` is a reploid.send-intent/1 record read by the shared validator (sendIntentFailure applies it).
  */
 export function parseExecutionExtension(value) {
   if (value === undefined) return undefined;
   const invalid = message => Object.assign(fail(400, message, 'reploid'), { code: 'EXECUTION_REQUEST_INVALID' });
   if (!object(value) || !Object.keys(value).length
-    || Object.keys(value).some(key => !['model', 'execution', 'poolId', 'conversationId'].includes(key))) {
-    throw invalid('reploid accepts model, execution, poolId and conversationId');
+    || Object.keys(value).some(key => !['model', 'execution', 'poolId', 'conversationId', 'sendIntent'].includes(key))) {
+    throw invalid('reploid accepts model, execution, poolId, conversationId and sendIntent');
+  }
+  let sendIntent;
+  if (value.sendIntent !== undefined) {
+    try { sendIntent = validateSendIntent(value.sendIntent); } catch (error) { throw invalid(error.message); }
   }
   if (value.model !== undefined) {
     const { model } = value;
@@ -69,5 +75,18 @@ export function parseExecutionExtension(value) {
         { code: 'EXECUTION_ROUTE_UNAVAILABLE' }));
     }
   }
-  return freeze(structuredClone(value));
+  return freeze({ ...structuredClone(value), ...(sendIntent ? { sendIntent } : {}) });
+}
+
+/**
+ * The check right before execution for a request that carries a Send intent: null when it may run now on `model` in
+ * `conversationId`, else the HTTP failure. Past the intent's expiry nothing runs; a pin runs only on its exact artifact.
+ */
+export function sendIntentFailure(intent, { model, conversationId, now = Date.now() }) {
+  const refusal = sendIntentRefusal(intent, { now, selectionRevision: intent.selectionRevision, artifact: sendIntentArtifact(model),
+    threadId: conversationId ?? null });
+  if (refusal === 'expired') return fail(408, 'Request admission deadline exceeded');
+  if (refusal === 'artifact-mismatch') return fail(409, 'Requested model identity changed');
+  if (refusal) return fail(400, 'Invalid reploid.conversationId', 'reploid');
+  return null;
 }

@@ -12,3 +12,5 @@ export { ANSWER_PROVENANCE_SCHEMA, SUPPLY_CLASSES, HOSTED_EXECUTION_REFUSED, UNR
 export { EXECUTION_POLICY_SCHEMA, EXECUTION_BINDING_SCHEMA, createExecutionPolicy, validateExecutionPolicy, requestExecutionPolicy, assertAvailableExecutionPolicy, plaintextExecutionRoute, edgesExecutionRoute, tokenContextStages, EDGES_BACKEND, PROTECTIONS, ROUTE_KINDS, EXECUTION_ROUTES, PROTECTION_ROUTES, AUTO_ROUTES, requesterEdges, ATTESTED_UNAVAILABLE_REASON, validateExecutionRoute, bindExecutionRoute, sameExecutionBinding, EXECUTION_ERROR_CODES, executionError, EXECUTION_METADATA, EXECUTION_BACKENDS, executionBackend, compileExecutionRequirements, compileSecretSharedExecutionRequirements, SECRET_SHARED_PROTOCOL, SECRET_SHARED_COLLUSION, executionRequirementsFor, narrowsExecutionPolicy } from './execution-policy.js';
 
 export { validateExecutionOffers, eligibleExecutionOffers } from './execution-offers.js';
+export { SEND_INTENT_SCHEMA, SEND_INTENT_TTL_MS, SEND_INTENT_REFUSALS, sendIntentArtifact, validateSendIntent, createSendIntent,
+  sendIntentPermits, sendIntentRefusal } from './send-intent.js';

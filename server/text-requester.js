@@ -1,7 +1,7 @@
 import { createInference } from '../shared/vendor/reploid/inference/index.js';
 import { createHttpRequestOwner } from './http-request-owner.js';
 import { fail, assert, object, freeze } from './text-request-values.js';
-import { parseExecutionExtension, executionFailure, STANDARD_HTTP_EXECUTION, EXECUTION_ERROR_STATUS, CREDIT_REFUSAL_STATUS, creditRefusalOf,
+import { parseExecutionExtension, sendIntentFailure, executionFailure, STANDARD_HTTP_EXECUTION, EXECUTION_ERROR_STATUS, CREDIT_REFUSAL_STATUS, creditRefusalOf,
   creditRefusalFields } from './text-request-options.js';
 import { canonicalPartitionJson, partitionAdapterIdentities } from '../shared/vendor/reploid/mesh/partitions/partition-contract.js';
 import { requireGenerationCapability, tokenUsage } from '../shared/vendor/reploid/mesh/partitions/partition-generation-request.js';
@@ -279,6 +279,11 @@ export function createTextRequester({ participant, authenticate, authorize, stat
       };
       if (await authorize({ action: 'chat.execute', principal, request, signal }) !== true) throw fail(403, 'Request execution denied');
       requirePrivateScope();
+      // A Send intent is checked right before execution: past its expiry, or for another artifact, nothing runs.
+      if (input.reploid?.sendIntent) {
+        const refused = sendIntentFailure(input.reploid.sendIntent, { model, conversationId: input.reploid.conversationId });
+        if (refused) throw refused;
+      }
       signal.throwIfAborted(); scope.clearDeadline();
       res.setHeader('x-request-id', id); res.setHeader('x-reploid-attempt-id', attemptId);
       res.setHeader('x-reploid-model-identity', model.identity);

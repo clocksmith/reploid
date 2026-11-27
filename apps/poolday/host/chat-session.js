@@ -24,6 +24,7 @@ import { createChatContext } from './chat-context.js';
 import { createAdapterEvidence } from './adapter-evidence.js';
 import { executionRouteFor } from './execution-route.js';
 import { modelKey } from './decisions/model-state.js';
+import { createSendIntentStore } from './send-intents.js';
 
 /** The thread's requirements with the route its model and execution location stand for. */
 const withRoute = (requirements, request) => requirements.route === 'local' ? requirements
@@ -305,6 +306,9 @@ export function createChatSession({
       wording: remoteAccess.wording, grantedAt: now() });
     savePermissions([...remotePermissions, permission].slice(-MAX_PERMISSIONS));
   }
+  // The held Send and the selection it was pressed under (send-intents.js): host state beside thread selection; the
+  // conversation controller renders it and asks it right before dispatch.
+  const sendIntents = createSendIntentStore({ now, id });
   const allowances = workspace.getState().limits;
   const drafts = createChatDrafts({ storage: canonicalHistory ? { getItem: () => canonicalHistory.drafts } : storage,
     persist: canonicalHistory ? raw => canonicalHistory.saveDrafts(raw) : null, key: `${STORAGE_KEY}:drafts`, maxThreads: allowances.maxThreads,
@@ -532,6 +536,7 @@ export function createChatSession({
       }
       return inviteControls;
     },
+    sendIntents,
     getDraft: drafts.get,
     saveDraft(threadId, value) { assertOpen(); return drafts.save(threadId, value); },
     getDocumentSources: comparisonSources,
@@ -813,7 +818,7 @@ export function createChatSession({
     },
     close() {
       if (closing) return closing;
-      closed = true; fleet.close(); selfServeAccount.close?.(); ownerPairing.close(); guestJoin.close(); clearTimeout(observationTimer); acquisition.cancel(); adapterEvidence.close();
+      closed = true; sendIntents.close(); fleet.close(); selfServeAccount.close?.(); ownerPairing.close(); guestJoin.close(); clearTimeout(observationTimer); acquisition.cancel(); adapterEvidence.close();
       for (const operation of comparisons.values()) operation.controller.abort();
       discovering = false;
       closing = Promise.resolve().then(async () => {

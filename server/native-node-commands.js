@@ -9,7 +9,7 @@ import { resolvePinnedOrigin } from './native-model-origin.js';
 import { findCatalogModel } from './native-model-names.js';
 import { participantHelp, participantOptions } from './native-participant-options.js';
 import { shellCompletion } from './native-node-completion.js';
-import { askExecution } from './native-node-ask.js';
+import { askExecution, parseAskSendIntent } from './native-node-ask.js';
 import { PEERS_MAX_WAIT_MS, PEERS_MIN_WAIT_MS, PEERS_WAIT_MS } from './native-node-peers.js';
 
 const commands = {
@@ -36,7 +36,7 @@ const modelNames = models => models.flatMap(m => [shortNames[m.id], m.id].filter
 const askOptions = ['model', 'model-config', 'ordered-config', 'room', 'room-token-file', 'rtc-config-file', 'signaling-url', 'origin', 'identity-file'];
 // Execution requirements for ask. They configure the inference request, never the participant process.
 const askExecutionOptions = { participant: { type: 'string', multiple: true }, protection: { type: 'string' }, route: { type: 'string' },
-  'allow-metadata': { type: 'string' } };
+  'allow-metadata': { type: 'string' }, 'send-intent': { type: 'string' } };
 const doctorOptions = ['origin', 'signaling-url'];
 // peers joins discovery as connect does; --json and --wait-ms are its own and never reach the participant.
 const peersOptions = ['model', 'room', 'room-token-file', 'rtc-config-file', 'signaling-url', 'origin', 'identity-file'];
@@ -211,5 +211,7 @@ export function nativeCommand(argv) {
   const execution = values.participant || values.protection || values.route || values['allow-metadata'] !== undefined
     ? askExecution({ participants: values.participant ?? [], protection: values.protection, route: values.route,
       allowMetadata: values['allow-metadata'] }) : undefined;
-  return { args, prompt, ...(execution ? { execution } : {}), ...(anyModel ? { anyModel } : {}) };
+  // A Send intent (reploid.send-intent/1) bounds the wait for a route and, when pinned, the exact artifact asked.
+  const sendIntent = command === 'ask' && values['send-intent'] !== undefined ? parseAskSendIntent(values['send-intent']) : undefined;
+  return { args, prompt, ...(execution ? { execution } : {}), ...(anyModel ? { anyModel } : {}), ...(sendIntent ? { sendIntent } : {}) };
 }

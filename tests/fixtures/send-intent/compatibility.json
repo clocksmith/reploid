@@ -1,0 +1,236 @@
+{
+  "schema": "reploid.send-intent/1",
+  "cases": [
+    {
+      "name": "auto selection for a new conversation",
+      "valid": true,
+      "intent": {
+        "schema": "reploid.send-intent/1",
+        "intentId": "intent-1",
+        "threadId": null,
+        "selection": {
+          "mode": "auto"
+        },
+        "selectionRevision": 0,
+        "createdAt": 1764115200000,
+        "expiresAt": 1764115230000
+      }
+    },
+    {
+      "name": "pinned to an exact artifact in an existing conversation",
+      "valid": true,
+      "intent": {
+        "schema": "reploid.send-intent/1",
+        "intentId": "intent-2",
+        "threadId": "thread-7",
+        "selection": {
+          "mode": "pinned",
+          "artifact": {
+            "identity": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "adapterIdentities": []
+          }
+        },
+        "selectionRevision": 3,
+        "createdAt": 1764115200000,
+        "expiresAt": 1764115230000
+      }
+    },
+    {
+      "name": "pinned to a model with an adapter",
+      "valid": true,
+      "intent": {
+        "schema": "reploid.send-intent/1",
+        "intentId": "intent-3",
+        "threadId": null,
+        "selection": {
+          "mode": "pinned",
+          "artifact": {
+            "identity": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "adapterIdentities": [
+              "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+            ]
+          }
+        },
+        "selectionRevision": 12,
+        "createdAt": 1764115200000,
+        "expiresAt": 1764115230000
+      }
+    },
+    {
+      "name": "another schema version",
+      "valid": false,
+      "intent": {
+        "schema": "reploid.send-intent/2",
+        "intentId": "intent-1",
+        "threadId": null,
+        "selection": {
+          "mode": "auto"
+        },
+        "selectionRevision": 0,
+        "createdAt": 1764115200000,
+        "expiresAt": 1764115230000
+      }
+    },
+    {
+      "name": "an expiry later than 30 s",
+      "valid": false,
+      "intent": {
+        "schema": "reploid.send-intent/1",
+        "intentId": "intent-1",
+        "threadId": null,
+        "selection": {
+          "mode": "auto"
+        },
+        "selectionRevision": 0,
+        "createdAt": 1764115200000,
+        "expiresAt": 1764115260000
+      }
+    },
+    {
+      "name": "an expiry tied to discovery (8 s)",
+      "valid": false,
+      "intent": {
+        "schema": "reploid.send-intent/1",
+        "intentId": "intent-1",
+        "threadId": null,
+        "selection": {
+          "mode": "auto"
+        },
+        "selectionRevision": 0,
+        "createdAt": 1764115200000,
+        "expiresAt": 1764115208000
+      }
+    },
+    {
+      "name": "a pin by display name",
+      "valid": false,
+      "intent": {
+        "schema": "reploid.send-intent/1",
+        "intentId": "intent-1",
+        "threadId": null,
+        "selection": {
+          "mode": "pinned",
+          "artifact": {
+            "name": "Qwen 3.5 0.8B"
+          }
+        },
+        "selectionRevision": 0,
+        "createdAt": 1764115200000,
+        "expiresAt": 1764115230000
+      }
+    },
+    {
+      "name": "a pin by selection id",
+      "valid": false,
+      "intent": {
+        "schema": "reploid.send-intent/1",
+        "intentId": "intent-1",
+        "threadId": null,
+        "selection": {
+          "mode": "pinned",
+          "selectionId": "qwen-3-5-0-8b"
+        },
+        "selectionRevision": 0,
+        "createdAt": 1764115200000,
+        "expiresAt": 1764115230000
+      }
+    },
+    {
+      "name": "a pin without adapter identities",
+      "valid": false,
+      "intent": {
+        "schema": "reploid.send-intent/1",
+        "intentId": "intent-1",
+        "threadId": null,
+        "selection": {
+          "mode": "pinned",
+          "artifact": {
+            "identity": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          }
+        },
+        "selectionRevision": 0,
+        "createdAt": 1764115200000,
+        "expiresAt": 1764115230000
+      }
+    },
+    {
+      "name": "an auto selection that names a model",
+      "valid": false,
+      "intent": {
+        "schema": "reploid.send-intent/1",
+        "intentId": "intent-1",
+        "threadId": null,
+        "selection": {
+          "mode": "auto",
+          "artifact": {
+            "identity": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "adapterIdentities": []
+          }
+        },
+        "selectionRevision": 0,
+        "createdAt": 1764115200000,
+        "expiresAt": 1764115230000
+      }
+    },
+    {
+      "name": "no selection revision",
+      "valid": false,
+      "intent": {
+        "schema": "reploid.send-intent/1",
+        "intentId": "intent-1",
+        "threadId": null,
+        "selection": {
+          "mode": "auto"
+        },
+        "createdAt": 1764115200000,
+        "expiresAt": 1764115230000
+      }
+    },
+    {
+      "name": "a negative selection revision",
+      "valid": false,
+      "intent": {
+        "schema": "reploid.send-intent/1",
+        "intentId": "intent-1",
+        "threadId": null,
+        "selection": {
+          "mode": "auto"
+        },
+        "selectionRevision": -1,
+        "createdAt": 1764115200000,
+        "expiresAt": 1764115230000
+      }
+    },
+    {
+      "name": "an unknown field",
+      "valid": false,
+      "intent": {
+        "schema": "reploid.send-intent/1",
+        "intentId": "intent-1",
+        "threadId": null,
+        "selection": {
+          "mode": "auto"
+        },
+        "selectionRevision": 0,
+        "createdAt": 1764115200000,
+        "expiresAt": 1764115230000,
+        "attemptId": "attempt-1"
+      }
+    },
+    {
+      "name": "an empty thread id",
+      "valid": false,
+      "intent": {
+        "schema": "reploid.send-intent/1",
+        "intentId": "intent-1",
+        "threadId": "",
+        "selection": {
+          "mode": "auto"
+        },
+        "selectionRevision": 0,
+        "createdAt": 1764115200000,
+        "expiresAt": 1764115230000
+      }
+    }
+  ]
+}

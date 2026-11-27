@@ -581,13 +581,13 @@
     },
     {
       "path": "chat/index.d.ts",
-      "bytes": 17262,
-      "sha256": "f2b037249551fd28b5f8994a01fa0f1ae35fe439103ca28d210924ab59176445"
+      "bytes": 17569,
+      "sha256": "99222c5a6f9db331027072bbb97a21d46fa1a91d1d95fc014297906dedab7ee8"
     },
     {
       "path": "chat/index.js",
-      "bytes": 1752,
-      "sha256": "5c4f7fcd1555c953e094a07c3551baf427b4b373b978db675909e323a748351d"
+      "bytes": 1947,
+      "sha256": "a8e5677f0bdc1e06a635fd6ce083221abaaf047c174c91b223dc93cc43f795bd"
     },
     {
       "path": "chat/policy.json",
@@ -628,6 +628,16 @@
       "path": "chat/search-permission.json",
       "bytes": 1670,
       "sha256": "ffee2f326795f2b100c6e34544cd157332a9a9486b4936dee92e6cb71ce99f0e"
+    },
+    {
+      "path": "chat/send-intent.d.ts",
+      "bytes": 1385,
+      "sha256": "41a487626c14e7ff2d94ec5f04b8b2b0de97f2db3222ffd69d28cf1fcaafb1dd"
+    },
+    {
+      "path": "chat/send-intent.js",
+      "bytes": 6556,
+      "sha256": "a966511fff2afb544ce1653fbf2ab43f7fa6258b7655f39217512b35e7108f7d"
     },
     {
       "path": "chat/supply-provenance.d.ts",

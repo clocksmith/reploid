@@ -5,6 +5,14 @@ import { createInference, describeDisclosure, FREE } from '../shared/vendor/repl
 import { partitionAdapterIdentities } from '../shared/vendor/reploid/mesh/partitions/partition-contract.js';
 import { setTimeout as delay } from 'node:timers/promises';
 import chatModels from '../shared/config/chat-models.json' with { type: 'json' };
+import { sendIntentArtifact, sendIntentPermits, sendIntentRefusal, validateSendIntent } from '../shared/vendor/reploid/chat/index.js';
+
+/** `--send-intent`: a reploid.send-intent/1 record as JSON, read by the shared validator. */
+export function parseAskSendIntent(text) {
+  let value;
+  try { value = JSON.parse(text); } catch { throw Object.assign(Error('Invalid send intent: --send-intent takes one JSON record'), { code: 'SEND_INTENT_INVALID' }); }
+  return validateSendIntent(value);
+}
 
 /**
  * The route `reploid ask` takes when no model is named: the smallest ready model, by its place in the catalog
@@ -47,19 +55,22 @@ export const askableRoute = (candidate, executionClass) => candidate.availabilit
 
 /** One prompt through `reploid/inference`, the same API the browser and the SDK use. */
 export async function askMesh(participant, model, prompt, { signal, report = console.error, discoveryMs = 45000, generationMs = 120000,
-  execution = DEFAULT_ASK_EXECUTION, anyModel = false, catalog = null, settleMs = 2000 } = {}) {
+  execution = DEFAULT_ASK_EXECUTION, anyModel = false, catalog = null, settleMs = 2000, sendIntent = null } = {}) {
   // Protections this command cannot run (secret-sharing, homomorphic, attested) and malformed requirements fail before
   // discovery or any message, with their stable codes. Nothing is retried as plaintext.
   compileExecutionRequirements(structuredClone(execution));
   const routeKind = execution.route;
-  const discovery = AbortSignal.timeout(discoveryMs);
+  // A Send intent bounds the wait for a route at its expiry, whatever discovery is doing, and a pin admits only its artifact.
+  const discovery = AbortSignal.timeout(sendIntent ? Math.max(0, Math.min(discoveryMs, sendIntent.expiresAt - Date.now())) : discoveryMs);
+  const permitted = candidate => !sendIntent || sendIntentPermits(sendIntent, sendIntentArtifact({ identity: candidate.identity,
+    adapterIdentities: partitionAdapterIdentities(candidate) }));
   const waiting = AbortSignal.any([signal, discovery]);
   let route, firstReadyAt = null;
   try {
     for (;;) {
       waiting.throwIfAborted();
       const eligible = (participant.getState().models || []).filter(candidate =>
-        (anyModel || candidate.id === model.id && candidate.identity === model.identity) && askableRoute(candidate, participant.executionClass)
+        (anyModel || candidate.id === model.id && candidate.identity === model.identity) && askableRoute(candidate, participant.executionClass) && permitted(candidate)
         // An explicit route is held exactly; auto may choose either.
         && (routeKind === 'auto' || (routeKind === 'split') === Boolean(candidate.partition)));
       route = anyModel ? smallestServed(eligible, catalog) : eligible.find(candidate => !candidate.partition) ?? eligible[0];
@@ -75,7 +86,12 @@ export async function askMesh(participant, model, prompt, { signal, report = con
     throw error;
   }
   if (anyModel) { model = route; report(`Asking ${route.name}, the smallest model a ready provider serves.`); }
-  const threadId = randomUUID(), attemptId = randomUUID();
+  // Checked again right before anything is created or sent: past the expiry, or for another artifact, nothing is.
+  if (sendIntent && sendIntentRefusal(sendIntent, { now: Date.now(), selectionRevision: sendIntent.selectionRevision,
+    artifact: sendIntentArtifact({ identity: route.identity, adapterIdentities: partitionAdapterIdentities(route) }) })) {
+    throw Error(`No ready provider for ${model?.name ?? 'any model'} in room ${participant.roomId}. Check discovery with reploid connect.`);
+  }
+  const threadId = sendIntent?.threadId ?? randomUUID(), attemptId = randomUUID();
   const stages = route.partition && [...new Set(route.partition.route?.stages?.map(stage => stage.participantId)
     ?? [route.partition.participantA, route.partition.participantB])];
   const messages = [{ role: 'user', content: prompt }];
