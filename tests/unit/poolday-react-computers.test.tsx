@@ -5,9 +5,14 @@ import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { PooldayRoot } from '@reploid/poolday-ui';
 import { projectComputers } from '../../apps/poolday/host/decisions/computers.js';
+import { parseComputer, weightSupplyOfferFromInventory } from '../../packages/reploid/src/contracts/computer-records.js';
 import { projectChatCatalog } from '../../apps/poolday/host/chat-view.js';
 import { createComputersServices } from '../../apps/poolday-react/src/features/computers/infrastructure/hostComputers';
 import { ComputersPanel, PairingLinkDialog } from '../../apps/poolday-react/src/features/computers/presentation/ComputersPanel';
+
+// Connections whose announced file inventory is non-empty, as the custody exchange reports them (getState().offers).
+const sharingFiles = (ids: string[]) => ids.map((connectionId) => weightSupplyOfferFromInventory([{ path: 'shard.bin', role: 'weight-shard',
+  hash: 'b'.repeat(64), hashAlgorithm: 'sha256', sizeBytes: 5 }], { connectionId }));
 
 afterEach(() => {
   cleanup();
@@ -62,7 +67,7 @@ describe('Computers decisions', () => {
   it('states what every computer offers, with readiness for each, this device included', () => {
     const view = projectComputers({ models: [], network: { consumer: { connectionState: 'connected',
       peers: [peer('peer-ready', 'ready'), peer('peer-files', 'unknown', ''), peer('peer-idle', 'unknown', '')] },
-    files: { enabled: true, sharing: true, offering: ['peer-ready', 'peer-files'] }, computeEnabled: false } });
+    files: { enabled: true, sharing: true, offers: sharingFiles(['peer-ready', 'peer-files']) }, computeEnabled: false } });
     const offers = Object.fromEntries(view.peers.map((row: { id: string; offers: string }) => [row.id, row.offers]));
     expect(offers).toEqual({ 'peer-ready': 'Compute · Ready / Model files · Sharing', 'peer-files': 'Model files · Sharing', 'peer-idle': 'Nothing' });
     expect(view.device).toMatchObject({ offers: 'Model files · Sharing', filesOn: true, filesLabel: 'Sharing', computeOn: false, pauseAll: true });
@@ -170,7 +175,7 @@ describe('one computer that joins on two connections', () => {
   const link = (id: string) => ({ id, phase: 'connected', channelState: 'open', iceState: 'connected', attemptId: `try-${id}` });
   const connections = peers.map((row) => link(row.peerId));
   const network = (rows = peers) => ({ connections, consumer: { connectionState: 'connected', peers: rows, connections },
-    files: { enabled: false, offering: ['desk-files', 'lab-files'] } });
+    files: { enabled: false, offers: sharingFiles(['desk-files', 'lab-files']) } });
   type Row = { id: string; name: string; offers: string; eligibility: string; selection: string[][]; members: Array<{ id: string }> };
 
   it('shows one row that offers compute and model files, with readiness for each; other computers keep their rows', () => {
@@ -187,6 +192,13 @@ describe('one computer that joins on two connections', () => {
     expect(desk.id).toBe('desk-compute');
     const alone = projectComputers({ models: [], network: network([peers[0] as never]) }).peers as Row[];
     expect(desk.name).toBe(alone[0]?.name);
+    // Each row is derived from a reploid.computer/1 record: the verified identity, its connections and both offers.
+    const record = (rows.find((row) => row.members.length === 2) as unknown as { computer: Record<string, unknown> }).computer;
+    expect(parseComputer(record)).toMatchObject({ computerId: key('a'), identityBasis: 'signing-key', participantIds: [key('a'), key('b')],
+      connections: [{ connectionId: 'desk-files', participantId: key('a') }, { connectionId: 'desk-compute', participantId: key('b') }] });
+    expect((record.offers as Array<{ kind: string; readiness: string }>).map((offer) => [offer.kind, offer.readiness])).toEqual([['inference', 'ready'], ['weight-supply', 'ready']]);
+    // An unverified connection is no computer record, whatever it claims.
+    expect((rows.find((row) => row.id === 'mimic') as unknown as { computer: unknown }).computer).toBeNull();
   });
 
   it('keeps the routing connection\'s reason on the merged row', () => {

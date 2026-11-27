@@ -1,4 +1,5 @@
 import { beforeEach, afterEach, expect, it, vi } from 'vitest';
+import { parseOffer } from '../../packages/reploid/src/contracts/computer-records.js';
 import { bindExecutionRoute, createExecutionPolicy, plaintextExecutionRoute } from '../../packages/reploid/src/chat/execution-policy.js';
 import { hashJson } from '../../packages/reploid/src/artifacts/signatures.js';
 import { resolveConfig } from '../../shared/vendor/reploid/config/index.js';
@@ -465,6 +466,21 @@ it('reports a contribution choice only after the person makes one', async () => 
   expect(swarm.getState()).toMatchObject({ computeEnabled: false, filesEnabled: false, contributionChosen: false });
   await swarm.stopFiles();
   expect(swarm.getState()).toMatchObject({ filesEnabled: false, contributionChosen: true });
+  await swarm.close();
+});
+
+it('reports this device\'s two offers and connection assistance as the canonical records, each paused on its own', async () => {
+  const swarm = fixture();
+  expect(swarm.getState()).toMatchObject({ localOffers: [], connectionAssistance: { schema: 'reploid.connection-assistance/1', enabled: true } });
+  await swarm.stopFiles();
+  // Stopping files pauses that offer only; there is still no inference offer, and nothing about consuming changes.
+  const [files] = swarm.getState().localOffers;
+  expect(swarm.getState().localOffers).toHaveLength(1);
+  expect(parseOffer(files)).toMatchObject({ kind: 'weight-supply', paused: true, readiness: 'unavailable' });
+  await swarm.stop();
+  expect(swarm.getState().localOffers.map(offer => [offer.kind, offer.paused])).toEqual([['inference', true], ['weight-supply', true]]);
+  swarm.allowIntroductions(false);
+  expect(swarm.getState().connectionAssistance.enabled).toBe(false);
   await swarm.close();
 });
 

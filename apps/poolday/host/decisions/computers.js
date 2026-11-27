@@ -16,13 +16,13 @@ import { hasBrowserModelOrigin, modelVariantLabel } from '../../ui/components/mo
 import { sameModelVariant } from '../../ui/pool-home/model-providers.js';
 import { projectProviderEligibility, reachablePeerIds } from '../chat-view.js';
 import { modelKey } from './model-state.js';
+import { computerRecord, inferenceOffer, isConnectionId, isDigest, isParticipantId, isRecordId } from '../computer-records.js';
 
 export { creditAccounts, accountText, creditActivity } from '../../ui/pool-home/service-credit-text.js';
 
 const plural = (count, word) => `${count} ${word}${count === 1 ? '' : 's'}`;
 const count = value => Number.isSafeInteger(value) && value >= 0 ? value.toLocaleString() : 'Not reported';
 const gib = value => Number.isFinite(value) ? `${(value / 1024 ** 3).toFixed(1)} GiB` : 'Not reported';
-const PEER_IDENTITY = /^peer:[a-f0-9]{24}$/;
 const CONNECTION_PATH_LABELS = { relayed: 'Relayed', direct: 'Direct' };
 
 /** The service-credit account (host/fleet-account.js), as Computers › Your account states it. */
@@ -182,21 +182,41 @@ export function offerText({ compute = '', files = '' } = {}) {
 function computerKeys(state) {
   const keys = new Map();
   for (const source of [state.network?.consumer, state.network?.supplier]) for (const peer of source?.peers || []) {
-    if (peer.identityVerified !== true || !PEER_IDENTITY.test(peer.participantId || '')) continue;
-    const key = PEER_IDENTITY.test(peer.computerId || '') ? peer.computerId : peer.participantId;
+    if (peer.identityVerified !== true || !isParticipantId(peer.participantId)) continue;
+    const key = isParticipantId(peer.computerId) ? peer.computerId : peer.participantId;
     if (!keys.has(peer.peerId) || key !== peer.participantId) keys.set(peer.peerId, { key, participantId: peer.participantId });
   }
   return keys;
 }
 
 const SERVING = ['ready', 'executing', 'loading', 'preparing'];
-const computeText = phase => SERVING.includes(phase) ? (['ready', 'executing'].includes(phase) ? 'Ready' : 'Preparing') : '';
+
+// A roster connection's inference offer (reploid.offer/1), from the phase network-controls.js merges from its
+// advertisement and any split-model stage it reports. A connection that has advertised nothing offers nothing.
+const ROSTER_READINESS = { ready: 'ready', executing: 'ready', busy: 'busy', loading: 'preparing', preparing: 'preparing', stopping: 'stopping', failed: 'failed' };
+const READINESS_RANK = ['ready', 'busy', 'preparing', 'stopping', 'failed', 'unavailable'];
+function rosterInferenceOffer(peer) {
+  const readiness = peer.executionType ? ROSTER_READINESS[peer.phase] : null;
+  if (!readiness) return null;
+  const stage = peer.executionType === 'partition';
+  return inferenceOffer({ connectionId: isConnectionId(peer.id) ? peer.id : null, readiness,
+    modelId: isRecordId(peer.modelId) ? peer.modelId : null, modelIdentities: isDigest(peer.modelIdentity) ? [peer.modelIdentity] : [],
+    adapterIdentities: [...new Set((peer.adapterIdentities || []).filter(isDigest))], execution: stage ? 'model-stage' : 'whole-model',
+    stageIndex: stage && Number.isSafeInteger(peer.partitionIndex) && peer.partitionIndex >= 0 ? peer.partitionIndex : null });
+}
+const bestOffer = offers => offers.filter(Boolean).sort((a, b) => READINESS_RANK.indexOf(a.readiness) - READINESS_RANK.indexOf(b.readiness))[0] || null;
+/** The compute word of an inference offer. A busy or failed offer reads as none, as it did before these records. */
+const offerComputeText = offer => ({ ready: 'Ready', preparing: 'Preparing' })[offer?.readiness] || '';
+// OWNER: a connection still in its transport 'preparing' phase has advertised nothing, so it offers nothing, but the
+// roster has always shown it as "Compute · Preparing". Kept unchanged until the owner decides.
+const computeText = (peer, offer) => offerComputeText(offer) || (!peer.executionType && peer.phase === 'preparing' ? 'Preparing' : '');
 
 /** The roster rows, one per computer, filtered to one model's serving computers when a filter is set (network-controls.js renderPeerRows). */
 function peerRows(state, filter, names, selected) {
   const selection = selectionFacts(state, selected);
-  // Peers whose announced file inventory is non-empty (custody exchange); compute comes from the peer's own advertisement.
-  const filePeers = new Set(state.network?.files?.offering || []);
+  // Each connection's weight-supply offer is its announced file inventory (custody exchange getState().offers); its
+  // inference offer comes from its own advertisement.
+  const fileOffers = new Map((state.network?.files?.offers || []).filter(offer => offer?.connectionId).map(offer => [offer.connectionId, offer]));
   const serves = peer => !filter || (peer.executionType === 'whole-model' && !peer.blocked
     && (!filter.model || peer.modelId === filter.model.id && peer.modelIdentity === filter.model.identity) && filter.providers.includes(peer.id));
   const keys = computerKeys(state);
@@ -207,14 +227,25 @@ function peerRows(state, filter, names, selected) {
     groups.get(key).push(peer);
   }
   const computers = [...groups].map(([key, members]) => {
+    const inference = new Map(members.map(peer => [peer.id, rosterInferenceOffer(peer)]));
+    const offers = [bestOffer([...inference.values()]), members.map(peer => fileOffers.get(peer.id)).find(Boolean) || null].filter(Boolean);
+    // A verified computer is a reploid.computer/1 record: its identity, its connections and the keys they proved, and
+    // its offers. An unverified connection is no computer record; it keeps its own offers.
+    let record = null;
+    if (!key.startsWith('connection:')) {
+      try {
+        record = computerRecord({ computerId: key, offers,
+          connections: members.map(peer => ({ connectionId: peer.id, participantId: keys.get(peer.id)?.participantId ?? null })) });
+      } catch { record = null; }
+    }
     const choices = new Map(members.map(peer => [peer.id, selection(peer.id)]));
-    const offers = id => !!choices.get(id).facts.some(([term, value]) => term.startsWith('Ready for') && value === 'Yes');
+    const routable = id => !!choices.get(id).facts.some(([term, value]) => term.startsWith('Ready for') && value === 'Yes');
     // The connection routing considers for the selected model (it serves a model), else the computer's own connection.
-    const primary = members.find(peer => offers(peer.id)) || members.find(peer => SERVING.includes(peer.phase))
+    const primary = members.find(peer => routable(peer.id)) || members.find(peer => SERVING.includes(peer.phase))
       || members.find(peer => peer.modelId) || members.find(peer => keys.get(peer.id)?.participantId === key) || members[0];
     // The computer is named by its own connection: the one holding the key every other connection links to.
     const own = members.find(peer => keys.get(peer.id)?.participantId === key) || primary;
-    return { key, members, primary, own, choices };
+    return { key, members, primary, own, choices, record, offers: record?.offers ?? offers, inference };
   }).filter(computer => computer.members.some(serves));
   const byLabel = new Map();
   for (const { own } of computers) {
@@ -222,12 +253,12 @@ function peerRows(state, filter, names, selected) {
     if (!byLabel.has(label)) byLabel.set(label, []);
     byLabel.get(label).push(own.id);
   }
-  const views = computers.map(({ members, primary: peer, own, choices }) => {
+  const views = computers.map(({ members, primary: peer, own, choices, record, offers, inference }) => {
     const label = computerLabel(state, own.id), same = byLabel.get(label);
     let suffix = 6;
     while (suffix < own.id.length && same.some(id => id !== own.id && id.slice(-suffix) === own.id.slice(-suffix))) suffix++;
     const serving = SERVING.includes(peer.phase);
-    const identityOf = id => { const participant = state.computerIdentities?.get(id) || ''; return PEER_IDENTITY.test(participant) ? participant : ''; };
+    const identityOf = id => { const participant = state.computerIdentities?.get(id) || ''; return isParticipantId(participant) ? participant : ''; };
     const identity = identityOf(peer.id), ownIdentity = identityOf(own.id);
     const contribution = peer.contribution;
     const chosen = choices.get(peer.id);
@@ -237,8 +268,9 @@ function peerRows(state, filter, names, selected) {
       reachable: chosen.reachable,
       eligibility: chosen.eligibility,
       selection: chosen.facts,
-      offers: offerText({ compute: members.map(member => computeText(member.phase)).sort((a, b) => (b === 'Ready') - (a === 'Ready'))[0] || '',
-        files: members.some(member => filePeers.has(member.id)) ? 'Sharing' : '' }),
+      computer: record,
+      offers: offerText({ compute: members.map(member => computeText(member, inference.get(member.id))).sort((a, b) => (b === 'Ready') - (a === 'Ready'))[0] || '',
+        files: offers.some(offer => offer.kind === 'weight-supply') ? 'Sharing' : '' }),
       name: same.length > 1 ? `${label} · connection ${own.id.slice(-suffix)}` : label,
       status: peer.status,
       tone: ['ready', 'executing'].includes(peer.phase) ? 'ready'
@@ -270,7 +302,7 @@ function peerRows(state, filter, names, selected) {
         ['Consumed receipts', count(contribution?.consumed)]
       ],
       ids: [...members.map(member => [members.length === 1 ? 'Connection ID'
-        : 'Connection ID · ' + (computeText(member.phase) || member.modelId ? 'compute' : filePeers.has(member.id) ? 'model files' : 'requests'), member.id]),
+        : 'Connection ID · ' + (computeText(member, inference.get(member.id)) || member.modelId ? 'compute' : fileOffers.has(member.id) ? 'model files' : 'requests'), member.id]),
         ['Attempt ID', peer.attemptId || 'Not reported'], ['Model ID', peer.modelIdentity || 'Not reported']]
     };
   });

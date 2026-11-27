@@ -29,6 +29,7 @@ import { createWorkPartitionNetworks } from './work-partition-networks.js';
 import { createReadinessRecorder, createReadinessRecordStore } from '../../../shared/vendor/reploid/measurement/index.js';
 import partitionPolicy from '../config/partition-policy.json' with { type: 'json' };
 import { createContributionHistory } from './contribution-history.js';
+import { connectionAssistance as assistanceRecord, inferenceOffer, isConnectionId, isDigest, weightSupplyOffer } from './computer-records.js';
 
 const PRODUCER_COMPUTE_CHOICE = 'REPLOID_PRODUCER_COMPUTE_CHOICE', PRODUCER_FILES_CHOICE = 'REPLOID_PRODUCER_FILES_CHOICE';
 
@@ -146,6 +147,29 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
   const contributionHistory = createContributionHistory({ storage });
   // Whether this browser ever chose to offer compute or files: a stored choice exists only after the person decided.
   const contributionChosen = () => [PRODUCER_COMPUTE_CHOICE, PRODUCER_FILES_CHOICE].some(key => (storage?.getItem?.(key) ?? null) !== null);
+  // This device's two offers as reploid.offer/1 records, each with its own readiness and pause: a stored 'false'
+  // choice is a paused offer, no stored choice is no offer. Consuming never depends on either.
+  const COMPUTE_READINESS = { loading: 'preparing', connecting: 'preparing', ready: 'ready', executing: 'ready', stopping: 'stopping', failed: 'failed' };
+  const stored = key => storage?.getItem?.(key) ?? null;
+  const ownConnection = snapshot => (isConnectionId(snapshot?.peerId) ? snapshot.peerId : null);
+  const localOffers = () => {
+    const offers = [];
+    if (computeEnabled || stored(PRODUCER_COMPUTE_CHOICE) === 'false') {
+      const stage = contribution.partition === true, index = contribution.descriptor?.index;
+      offers.push(inferenceOffer({ connectionId: ownConnection(supplier?.getSwarmSnapshot()), paused: !computeEnabled,
+        readiness: stopping ? 'stopping' : (computeEnabled && sharing && COMPUTE_READINESS[contribution.phase]) || 'unavailable',
+        modelId: contribution.modelId || null, modelIdentities: isDigest(contribution.modelIdentity) ? [contribution.modelIdentity] : [],
+        execution: stage ? 'model-stage' : 'whole-model', stageIndex: stage && Number.isSafeInteger(index) && index >= 0 ? index : null }));
+    }
+    if (filesEnabled || stored(PRODUCER_FILES_CHOICE) === 'false') {
+      const files = modelFiles?.getState() || {};
+      const identity = LOCAL_DOPPLER_MODELS.find(model => model.id === files.model?.id)?.identity;
+      offers.push(weightSupplyOffer({ connectionId: ownConnection(consumer?.getSwarmSnapshot()), paused: !filesEnabled,
+        readiness: !filesEnabled ? 'unavailable' : files.stopping ? 'stopping' : files.sharing ? 'ready' : files.preparing ? 'preparing' : 'unavailable',
+        modelIdentities: isDigest(identity) ? [identity] : [], maxStorageBytes: getFileContributionLimits().storedBytes ?? null }));
+    }
+    return offers;
+  };
   const getState = () => ({ introductionAssistance, sharing, computeEnabled, filesEnabled, contributionChosen: contributionChosen(), stopping, connecting, paused,
     connections: consumerTransport?.getPeerStates?.() || retainedConnections,
     // An established peer channel can outlive the service that introduces new peers.
@@ -158,7 +182,8 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
     contribution: { ...contribution }, contributionHistory: contributionHistory.getState(),
     limits: { maxInboundJobs: contribution.partition ? partitionPolicy.limits.maxConcurrentAttempts : 1, maxOutputTokens: profile.generation.maxTokens },
     consumer: consumer?.getSwarmSnapshot() || null, supplier: supplier?.getSwarmSnapshot() || null,
-    offers: peerOffers?.getState() || null });
+    offers: peerOffers?.getState() || null,
+    localOffers: localOffers(), connectionAssistance: assistanceRecord({ enabled: introductionAssistance }) });
   const notify = () => onChange(getState());
   for (const event of ['swarm:bootstrap-error', 'swarm:connection-failed']) eventBus.on(event, detail => {
     if (!closed && !paused) {
