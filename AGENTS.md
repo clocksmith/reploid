@@ -52,10 +52,8 @@ The CI `design-system` job runs the first three; the `ui-keyboard` job runs the 
 
 ## Run and verify
 
-- **Commit and push to `main`.** Every verified change, settlement and ledger changes
-  included, goes straight to `main`: rebase, push, confirm CI is green, fix forward if it
-  goes red. Do not open pull requests; if a direct push is refused, open one and merge it
-  immediately yourself, then delete the branch. Never leave a PR or branch waiting for review.
+- **Git delivery** follows the [workspace rule](https://github.com/clocksmith/ouroboros/blob/main/deco/AGENTS.md#git-delivery), settlement and ledger
+  changes included. The checks below are Reploid's own.
 
 - `npm start` starts the local application; `npm run start:signaling` starts the
   signaling server. See [README.md](README.md) for setup and local routes.
