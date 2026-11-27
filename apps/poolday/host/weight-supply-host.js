@@ -179,6 +179,7 @@ export function createHostWeightSupply({ identity, connectionId, exchange, inven
         acquisition: current?.acquisition ?? { queuedPieces: 0, acquiringPieces: 0, failedPieces: 0, pendingBytes: 0 },
         // OWNER: label for replacement history (pieces removed with their reason code, pieces added, held bytes before and after).
         replacements: current?.replacements ?? [],
+        // OWNER: label for the served-transfer records (reploid.weight-transfer/1: piece, bytes, consumer, times).
         transfers: service?.getServedTransfers() ?? [],
         // OWNER: label for the shared-file inventory, each file with its sources and whether it is offered.
         inventory: shared,

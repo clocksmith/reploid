@@ -776,7 +776,8 @@ export function createChatSession({
       try { await swarm.allowCachedFiles(enabled); } finally { notifyAll(); }
     },
     // Weight supply (the Contribute journey for an empty cache). Its data is network.weightSupply in the session state.
-    // The Contribute view asks for a recommendation when it opens; joining never computes one.
+    // OWNER: the Contribute view calls recommendWeightSupply when it opens (joining never computes one), renders
+    // network.weightSupply, and passes the storage cap the owner chose to approveWeightSupply.
     async recommendWeightSupply(options) {
       assertOpen();
       assert(swarm?.recommendWeightSupply, 'Weight supply is unavailable');
