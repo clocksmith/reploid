@@ -19,6 +19,42 @@ export function createCreditRecovery({ db, transaction, read, settle, post, enro
   /** The receipts kept as the contradiction of a requester's own final stage: at most two, at one sequence. */
   const twinsOf = data => (data.twin === undefined ? [] : [data.twin].flat());
   const store = (id, key, value) => db.prepare('INSERT OR REPLACE INTO fleet_components VALUES (?,?,?)').run(id, key, JSON.stringify(value));
+  /**
+   * A stage contradicting itself (docs/settlement-replay.md, step 5): two different signed receipts of one stage that
+   * repeat a sequence, have steps that go backwards, continue after a closing receipt, or give two chains for one count.
+   * The replay calls the attempt a conflict and moves no credit, whatever order the receipts arrive in.
+   */
+  const contradicts = (held, receipt) => {
+    const body = ({ publicJwk: _key, signature: _signature, ...rest }) => rest;
+    if (!held || !receipt || held.partitionIndex !== receipt.partitionIndex || same(body(held), body(receipt))) return false;
+    if (held.sequence === receipt.sequence) return true;
+    const [earlier, later] = held.sequence < receipt.sequence ? [held, receipt] : [receipt, held];
+    return later.steps < earlier.steps || (earlier.status !== 'executing' && earlier.timing.closedAt !== null)
+      || Boolean(earlier.output && later.output && earlier.output.count === later.output.count && earlier.output.chain !== later.output.chain);
+  };
+  /** The contradictions the ledger kept for a request, one per stage: `{ partitionIndex, participantId, receipts: [held, other] }`. */
+  const contradictionsOf = id => Object.entries(pieces(id)).filter(([key]) => key.startsWith('contradiction:')).map(([, value]) => value)
+    .sort((a, b) => a.partitionIndex - b.partitionIndex);
+  /**
+   * Keeps the first contradiction of each stage among `receipts` and the receipts the ledger holds, as evidence. Under
+   * the failed-stage rules the requester's own stage is left out: its contradiction blocks nobody, and its final stage's
+   * is kept as `twin` instead. Runs inside the caller's transaction.
+   */
+  const keepContradictions = (id, binding, retained, receipts) => {
+    const finalIndex = binding.providers.length - 1, own = ownStageOf(binding, enrollment);
+    const seen = new Map();
+    for (const receipt of receipts.filter(Boolean)) {
+      const index = receipt.partitionIndex, key = `contradiction:${index}`;
+      if (forfeitRules(binding) && own(index)) continue;
+      const heldOf = seen.get(index) ?? [retained[`stage:${index}`], index === finalIndex ? retained.ack?.acknowledgedReceipt : null].filter(Boolean);
+      seen.set(index, [...heldOf, receipt]);
+      if (retained[key]) continue;
+      const against = heldOf.find(held => contradicts(held, receipt));
+      if (!against) continue;
+      retained[key] = { partitionIndex: index, participantId: binding.providers[index].participantId, receipts: [against, receipt] };
+      store(id, key, retained[key]);
+    }
+  };
   const unadmittedOf = id => {
     const row = read(id);
     // Old requests have no complete admission journal. Never infer zero work for those.
@@ -128,7 +164,12 @@ export function createCreditRecovery({ db, transaction, read, settle, post, enro
         : now() >= request.binding.deadline + window)) continue;
       let outcome = { id: row.id, unit: policy.unit, charge: 0, ownComputeUnits: 0, outputTokens: 0, status: 'expired', usage: null,
         reason: 'provider-unclaimed-after-window', credits: [], evidenceHash: null, economicHash: null, settledAt: now() };
-      if (split) {
+      const contradictions = split ? contradictionsOf(row.id) : [];
+      if (contradictions.length) {
+        // The replay's conflict: a stage signed incompatible receipts, so nobody is charged or paid, and the receipts are
+        // kept in the outcome as the evidence that names it (docs/settlement-replay.md, "Who bears a conflict").
+        outcome = { ...outcome, reason: 'stage-contradicted-itself', contradictions };
+      } else if (split) {
         const progress = splitProgress(row.id, request.binding);
         if (progress.acknowledgedOutputTokens !== null && progress.awaitingStages.length === 0) continue;
         const failedStages = forfeitRules(request.binding);
@@ -154,6 +195,7 @@ export function createCreditRecovery({ db, transaction, read, settle, post, enro
     expire: expiry,
     unadmitted: unadmittedOf,
     interrupted: interruptedOf,
+    contradictions: contradictionsOf,
     async closeStageOwner(envelope) {
       expiry();
       const { signature, ...signed } = envelope;
@@ -195,8 +237,9 @@ export function createCreditRecovery({ db, transaction, read, settle, post, enro
         // Fence even if the earlier HTTP admission is still in flight. A late packet cannot reopen this stage.
         db.prepare('INSERT INTO fleet_stage_owners VALUES (?,?,?,?) ON CONFLICT(request_id,stage) DO UPDATE SET closure=excluded.closure')
           .run(id, stage, owner, JSON.stringify(envelope));
-        const prior = pieces(id)[`stage:${stage}`];
-        if (receipt && (!prior || prior.status === 'executing' && receipt.sequence > prior.sequence)) store(id, `stage:${stage}`, receipt);
+        const retained = pieces(id), prior = retained[`stage:${stage}`];
+        keepContradictions(id, row.binding, retained, [receipt]);
+        if (receipt && !retained[`contradiction:${stage}`] && (!prior || prior.status === 'executing' && receipt.sequence > prior.sequence)) store(id, `stage:${stage}`, receipt);
         return 'closed';
       });
       const outcome = await this.recover(id);
@@ -271,8 +314,12 @@ export function createCreditRecovery({ db, transaction, read, settle, post, enro
         const noteTwin = (held, receipt) => {
           if (keepsTwin && held && receipt && held.partitionIndex === finalIndex && held.sequence === receipt.sequence && !same(held, receipt)) keepTwin(held);
         };
+        // A stage's receipts that contradict each other, late ones included, are kept whatever order they arrive in; the
+        // contradicted stage's receipt is then left as it is.
+        keepContradictions(id, row.binding, retained, [...proof.receipts, ...proof.late, proof.acknowledgedReceipt]);
         for (const receipt of proof.receipts) {
           const key = `stage:${receipt.partitionIndex}`, prior = retained[key];
+          if (retained[`contradiction:${receipt.partitionIndex}`]) continue;
           if (prior && prior.sequence > receipt.sequence) continue;
           if (prior && prior.status !== 'executing') {
             const semantic = ({ signature: _signature, publicJwk: _key, signedAt: _at, ...body }) => body;
@@ -367,7 +414,11 @@ export function createCreditRecovery({ db, transaction, read, settle, post, enro
       const row = read(id); assert(row, 'Unknown credit reservation');
       if (row.state === 'settled') return row.outcome;
       if (row.state === 'abandoned') return { id, status: 'abandoned' };
-      if (row.state !== 'closing') return { id, status: 'pending' };
+      // A stage that contradicted itself: nothing settles on it (the replay's conflict). The hold is released, uncharged,
+      // once the release window has passed (expiry).
+      const contradicted = row.binding.mode === 'partition' ? contradictionsOf(id).map(item => item.partitionIndex) : [];
+      const named = contradicted.length ? { contradictedStages: contradicted } : {};
+      if (row.state !== 'closing') return { id, status: 'pending', ...named };
       const data = pieces(id), missing = this.unadmitted(id), request = row.binding;
       if (request.mode === 'whole-model') {
         if (data.terminal && request.terminalCharge != null) return settle(id, data.terminal);
@@ -383,6 +434,7 @@ export function createCreditRecovery({ db, transaction, read, settle, post, enro
         });
       }
       const progress = splitProgress(id, request), { acknowledgedOutputTokens, stages, interrupted, awaitingStages } = progress;
+      if (contradicted.length) return { id, status: 'pending', heldCredits: request.maximum, acknowledgedOutputTokens, awaitingStages, ...named };
       if (acknowledgedOutputTokens === null || awaitingStages.length) {
         return { id, status: 'pending', heldCredits: request.maximum, acknowledgedOutputTokens, awaitingStages };
       }

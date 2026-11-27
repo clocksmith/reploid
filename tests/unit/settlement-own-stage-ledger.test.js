@@ -374,18 +374,22 @@ describe('the requester\'s own stage contradicts itself (T2)', () => {
     await live.statementsVerify();
   });
 
-  it('an outside stage\'s second receipt is refused the same way, and its own close still settles the request', async () => {
+  it('an outside stage\'s second close is kept as its contradiction: nobody is paid, as the replay\'s conflict moves nothing', async () => {
     const parties = await createParties(4), live = await open(parties, EDGE_OWNERS);
     const a = await edges(parties), all = [...new Set(a.all())];
     live.admit(a);
     for (const index of [0, 1, 2, 3]) await live.close(a, all, index);
-    await expect(live.collect(a, { receipts: [await twinOf(parties, 1, closeOf(all, 1), recount(closeOf(all, 1)))] })).rejects.toThrow('Conflicting stage closure');
-    const outcome = await live.acknowledge(a, all);
-    expect(outcome).toMatchObject({ charge: 16, outputTokens: 6 });
-    expect(amounts(outcome, a)).toEqual([0, 8, 8, 0]);
-    // The replay, handed both of the outside stage's receipts, calls the attempt a conflict and moves nothing: the
-    // ledger never holds two receipts of one stage, so it does not see what the replay sees here.
-    expect(await live.replay([...all, await twinOf(parties, 1, closeOf(all, 1), recount(closeOf(all, 1)))])).toMatchObject({ status: 'conflict', debit: null });
+    const second = await twinOf(parties, 1, closeOf(all, 1), recount(closeOf(all, 1)));
+    // Not refused: the ledger keeps both signed closes as the stage's contradiction and settles nothing on them.
+    expect(await live.collect(a, { receipts: [second] })).toMatchObject({ status: 'pending', contradictedStages: [1] });
+    expect(await live.acknowledge(a, all)).toMatchObject({ status: 'pending', contradictedStages: [1] });
+    const outcome = await live.decide(a);
+    expect(outcome).toMatchObject({ status: 'expired', charge: 0, credits: [], reason: 'stage-contradicted-itself',
+      contradictions: [{ partitionIndex: 1, participantId: parties.stages[1].peerId, receipts: [closeOf(all, 1), second] }] });
+    expect(live.balances()).toEqual({ 'owner-a': 0, 'owner-b': 0, 'owner-requester': 0 });
+    // The replay, handed both of the outside stage's receipts, calls the attempt a conflict and moves nothing either.
+    expect(await live.replay([...all, second])).toMatchObject({ status: 'conflict', debit: null });
+    await live.statementsVerify();
   });
 });
 
@@ -626,4 +630,57 @@ describe('every attack of the failed-stage rules, in the live ledger', () => {
     expect(row).toMatchObject({ forfeited: [{ partitionIndex: 1, cause: 'no-close' }], late: [{ kind: 'fault', partitionIndex: 1 }] });
     sameAsReplay(outcome, row, a);
   });
+});
+
+// An outside stage that signs two different receipts for one attempt (docs/settlement-replay.md, step 5 and "Who bears a
+// conflict"): its receipts repeat a sequence, have steps that go backwards, or continue after its close. The replay calls
+// the attempt a conflict and moves no credit: that stage is not paid, nor are its partners, nor is the requester charged.
+// The ledger keeps one receipt per stage, so it used to drop a receipt older than the one it held (`prior.sequence >
+// receipt.sequence`) and to overwrite an executing receipt with a different one at its sequence, and then paid the
+// stage. It now keeps the pair as evidence and settles nothing on it.
+describe('an outside stage signs two conflicting receipts, delivered out of order', () => {
+  /** A receipt of stage `index` at `first`'s sequence, signed a millisecond later, with `changes`. */
+  const resign = (parties, index, first, changes) => signerOf(parties.stages[index], Date.parse(first.signedAt) + 1).sign(STAGE_RECEIPT_SCHEMA,
+    { ...bodyOf(first), signedAt: new Date(Date.parse(first.signedAt) + 1).toISOString(), ...changes });
+  const run = async (conflicting) => {
+    const parties = await createParties(3), live = await open(parties, OUTSIDE);
+    const a = await threeOutside(parties), all = [...new Set(a.all())];
+    live.admit(a);
+    const { held, other } = await conflicting(parties, all);
+    // The later receipt reaches the ledger first; the conflicting one arrives after it.
+    await live.collect(a, { receipts: [held] });
+    expect(await live.collect(a, { receipts: [other] })).toMatchObject({ status: 'pending', contradictedStages: [1] });
+    for (const index of [0, 1, 2]) await live.close(a, all, index);
+    expect(await live.acknowledge(a, all)).toMatchObject({ status: 'pending', contradictedStages: [1] });
+    const outcome = await live.decide(a);
+    expect(outcome).toMatchObject({ status: 'expired', charge: 0, credits: [], reason: 'stage-contradicted-itself',
+      contradictions: [{ partitionIndex: 1, participantId: parties.stages[1].peerId }] });
+    expect(outcome.contradictions[0].receipts).toHaveLength(2);
+    expect(outcome.contradictions[0].receipts).toEqual(expect.arrayContaining([held, other]));
+    expect(live.balances()).toEqual({ 'owner-a': 0, 'owner-b': 0, 'owner-c': 0, 'owner-requester': 0 });
+    const row = await live.replay([...all, other]);
+    expect(row).toMatchObject({ status: 'conflict', debit: null });
+    expect(row.conflicts).toEqual(expect.arrayContaining([expect.objectContaining({ kind: 'stage-receipt', blocking: true, partitionIndex: 1 })]));
+    // Presenting the full evidence again cannot settle it, and nothing else posts.
+    await expect(live.ledger.settle(a.reservationId, { identity: a.identity, receipts: [0, 1, 2].map(index => closeOf(all, index)),
+      acknowledgment: ackOf(all, 6), acknowledgedReceipt: closeOf(all, 2) })).rejects.toThrow(/Claim window closed|contradict/);
+    expect(live.ledger.snapshot().journal).toHaveLength(0);
+    await live.statementsVerify();
+  };
+
+  it('steps that go backwards: an older sequence claiming more steps than the receipt the ledger holds', () => run(async (parties, all) => {
+    const own = receiptsOf(all, 1).filter(row => row.status === 'executing'), held = own.at(-1), earlier = own.at(-2);
+    return { held, other: await resign(parties, 1, earlier, { steps: held.steps + 1, tokens: { ...earlier.tokens, processed: held.tokens.processed + 1 } }) };
+  }));
+
+  it('two different receipts at one sequence, the second arriving after the first', () => run(async (parties, all) => {
+    const held = receiptsOf(all, 1).filter(row => row.status === 'executing').at(-1);
+    return { held, other: await resign(parties, 1, held, { tokens: { ...held.tokens, processed: held.tokens.processed + 1 } }) };
+  }));
+
+  it('a step receipt after its close, handed in after the close', () => run(async (parties, all) => {
+    const held = closeOf(all, 1), step = receiptsOf(all, 1).filter(row => row.status === 'executing').at(-1);
+    return { held, other: await resign(parties, 1, held, { sequence: held.sequence + 1, status: 'executing', steps: held.steps,
+      timing: { ...held.timing, closedAt: null }, tokens: step.tokens }) };
+  }));
 });

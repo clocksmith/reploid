@@ -292,6 +292,10 @@ export async function openFleetCredits({ file, computers, policy: supplied, now 
         assert(interrupted.every(held => evidence?.interruptedOwners?.some?.(claim => same(claim, held.closure))),
           'This request holds a stage owner\'s interruption claim; settlement evidence must present it');
       }
+      // A stage that signed receipts contradicting each other (credit-recovery.js keepContradictions) is the replay's
+      // conflict: no evidence settles the request, and its hold is released uncharged at the release window.
+      assert(row.state === 'settled' || recovery.contradictions(id).length === 0,
+        'A stage of this request contradicted itself; nothing settles on its receipts');
       const observed = await verifyCreditEvidence(row.binding, evidence, enrollment, now(), policy.maxClockSkewMs, { unadmitted: recovery.unadmitted(id),
         interrupted, releaseWindowMs: policy.partitionUnclaimedReleaseMs, maxUnacknowledgedOutputs });
       assert(!observed.terminalStatus || integer(observed.fixedCharge), 'Accepted fixed terminal terms required');
