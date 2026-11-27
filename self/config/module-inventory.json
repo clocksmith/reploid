@@ -3852,7 +3852,7 @@
     {
       "path": "self/host/work-model-files.js",
       "owner": "self",
-      "sha256": "sha256:8fdb7b7d9ff2f8b1efdbde38586c6a9eed084092740205d3cd7d4ffcddedae25",
+      "sha256": "sha256:6f7e5178b4f1da06f79b9219a894a10cadc51490108420c245b557e7cb2764b8",
       "imports": [
         "../config/chat-files.json",
         "../config/doppler-local-models.js",
@@ -5183,13 +5183,13 @@
     {
       "path": "ui/react/app.js",
       "owner": "ui",
-      "sha256": "sha256:b74f12342c8a6d72e06971bb43c107c7eec554cb68188d47ec527cb4ae59c92a",
+      "sha256": "sha256:e498d22fb2ceaef4ba174f27fe8e07db2bed5f1f73458abc0b94398eefb3dc3f",
       "imports": []
     },
     {
       "path": "ui/react/design.js",
       "owner": "ui",
-      "sha256": "sha256:ad5181ca21e490c0be1abd26d208c6140c89d58d6283c2506d81c22dbe4e7fa7",
+      "sha256": "sha256:53c4c4b34baa30e63c8753c2a616f268f1f0d0bc700a5ff9ee90b229cf1bb383",
       "imports": []
     },
     {
