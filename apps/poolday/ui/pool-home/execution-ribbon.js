@@ -42,6 +42,17 @@ export function answeredModel(state, thread, attempt) {
     .find(model => model?.name && model.identity === evidence.identity && (evidence.id === null || model.id === evidence.id));
   return { ...evidence, name: named?.name ?? evidence.id };
 }
+/**
+ * The computer that provided a whole-model answer, from the same execution evidence as its model: the operation roles
+ * its requester derived from the countersigned receipt (reploid.operation-roles/1), else the execution record's peer.
+ * `connectionId` is the connection it answered on, which the roster labels; `participantId` and `computerId` are null
+ * when nothing verified them.
+ */
+export function answeredProvider(attempt) {
+  const execution = attempt?.execution, provider = execution?.operationRoles?.provider;
+  const connectionId = provider?.connectionId ?? execution?.peerId ?? null;
+  return connectionId || provider?.participantId ? { connectionId, participantId: provider?.participantId ?? null, computerId: provider?.computerId ?? null } : null;
+}
 const orderedTiming = (execution, index) => {
   const summary = execution?.stepSummary;
   if (summary) {
@@ -63,7 +74,7 @@ export function projectExecutionRibbon(state) {
   const split = !!ordered || execution?.placement === 'two-device-layer-partition';
   // Selected/discovered models are not proof of placement. Use this attempt's receipt only.
   const ids = ordered ? ordered.stages.map(stage => stage.participantId) : local ? [requester] : split ? [execution.participantA, execution.participantB].filter(Boolean)
-    : execution?.peerId ? [execution.peerId] : [];
+    : answeredProvider(attempt)?.connectionId ? [answeredProvider(attempt).connectionId] : [];
   const layer = Number.isSafeInteger(execution?.splitLayer) ? execution.splitLayer : null;
   // What ran, as saved with a completed answer; current providers are read in the model picker.
   // A whole-model answer saves its executor's reported GPU; distributed stages save none.

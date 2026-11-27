@@ -285,7 +285,9 @@ export function createChatSession({
       // neither verifies it again nor establishes a credit settlement.
       return { ...raw, execution: { ...raw.execution, receipt: result.executionReceipt,
         ...(raw.usage ? { usage: raw.usage } : {}),
-        ...(raw.executionReceipt ? { executionReceipt: structuredClone(raw.executionReceipt) } : {}) } };
+        ...(raw.executionReceipt ? { executionReceipt: structuredClone(raw.executionReceipt) } : {}),
+        // The answer's operation roles stay with its execution record, from the port's execution or its raw response.
+        ...((raw.execution?.operationRoles ?? raw.operationRoles) ? { operationRoles: structuredClone(raw.execution?.operationRoles ?? raw.operationRoles) } : {}) } };
     },
     now,
     id

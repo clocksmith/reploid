@@ -5,6 +5,8 @@ import { createReceiptDraft, signReceiptDraft, countersignReceipt, verifyReceipt
 import { hashJson, sha256Hex } from '../../packages/reploid/src/artifacts/signatures.js';
 import { createChatTestService } from '../fixtures/chat-service.js';
 import { bindExecutionRoute, createExecutionPolicy, plaintextExecutionRoute } from '../../packages/reploid/src/chat/execution-policy.js';
+import { operationRolesFromReceipt } from '../../packages/reploid/src/contracts/computer-records.js';
+import { answeredProvider } from '../../apps/poolday/ui/pool-home/execution-ribbon.js';
 
 const OPEN_POLICY = createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'open', ids: [] } });
 
@@ -16,7 +18,7 @@ it.each(['public', 'private'])('retains a %s whole-model receipt through history
     selectionId: 'private:fixture:model', fleet: { poolIdentity: 'fixture', requester: { participantId: consumer.peerId } }, availability: 'ready'
   } : {}) };
   const values = new Map(), storage = { getItem: key => values.get(key), setItem: (key, value) => values.set(key, value) };
-  let receipt;
+  let receipt, roles;
   const answer = vi.fn(async messages => {
     const content = 'Receipt-backed fixture';
     receipt = await countersignReceipt(await signReceiptDraft(await createReceiptDraft({
@@ -26,8 +28,10 @@ it.each(['public', 'private'])('retains a %s whole-model receipt through history
       inputTokens: 4, outputTokens: 2, usage: 'raw-model-tokens/v1', status: 'completed',
       cleanup: 'settled', stopReason: 'eos-token', ownerPolicyDigest: null
     }), provider), consumer);
+    // The requester's verifier attaches the roles it derived from the countersigned receipt (mesh/peer-generation.js).
+    roles = operationRolesFromReceipt(receipt, { providerConnectionId: 'provider-connection' });
     return { model: model.id, modelIdentity: model.identity, adapterIdentities: [], content, provider: 'doppler',
-      peerId: provider.peerId, executionReceipt: receipt };
+      peerId: provider.peerId, executionReceipt: receipt, operationRoles: roles };
   });
   const swarm = { getState: () => ({ sharing: false }), hasProvider: () => true, connect: async () => {},
     async generate(messages, controls) {
@@ -63,6 +67,9 @@ it.each(['public', 'private'])('retains a %s whole-model receipt through history
   const reopened = createChatSession(options);
   const saved = reopened.getState().threads[0].attempts[0].execution;
   expect(saved.executionReceipt).toEqual(receipt);
+  // The answer's roles are kept with its execution record, and its provider is read from them.
+  expect(saved.operationRoles).toEqual(roles);
+  expect(answeredProvider({ execution: saved })).toEqual({ connectionId: 'provider-connection', participantId: provider.peerId, computerId: provider.peerId });
   expect(await verifyReceipt(saved.executionReceipt)).toMatchObject({ providerValid: true, consumerValid: true });
   expect(saved.serviceCredit).toBeUndefined();
   expect(answer).toHaveBeenCalledOnce();

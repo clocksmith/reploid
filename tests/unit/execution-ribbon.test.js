@@ -56,6 +56,11 @@ describe('Execution ribbon evidence projection', () => {
   it('distinguishes local execution from whole-request peer execution', () => {
     expect(projectExecutionRibbon(snapshot({ placement: 'local-webgpu' })).executors[0].id).toBe('requester');
     expect(projectExecutionRibbon(snapshot({ placement: 'peer-whole-request', peerId: 'executor' })).executors[0].id).toBe('executor');
+    // The provider comes from the answer's operation roles when its record has them.
+    const operationRoles = { schema: 'reploid.operation-roles/1', operation: 'inference', operationId: 'job',
+      consumer: { computerId: null, participantId: 'peer:aaaaaaaaaaaaaaaaaaaaaaaa' },
+      provider: { computerId: null, participantId: 'peer:bbbbbbbbbbbbbbbbbbbbbbbb', connectionId: 'answered-on' } };
+    expect(projectExecutionRibbon(snapshot({ placement: 'peer-whole-request', peerId: 'executor', operationRoles })).executors[0].id).toBe('answered-on');
   });
   it('does not mistake discovery outages for execution failure, and identifies an explicit retry', () => {
     const state = snapshot(split, 'executing');

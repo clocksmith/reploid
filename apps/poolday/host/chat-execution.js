@@ -19,6 +19,9 @@ function chatResult({ threadId, attemptId }, result, placement) {
     execution: { ...placement, modelId: result.model, modelIdentity: result.modelIdentity,
       adapterIdentities: result.adapterIdentities, completion, stopReason: completion?.stopReason ?? null,
       ...(result.executionReceipt ? { executionReceipt: structuredClone(result.executionReceipt) } : {}),
+      // Who consumed and who provided this answer (reploid.operation-roles/1), as the requester's verifier derived them
+      // from the countersigned receipt (mesh/peer-generation.js). Unsigned; the answer's provider is read from here.
+      ...(result.operationRoles ? { operationRoles: structuredClone(result.operationRoles) } : {}),
       timing: result.timing ?? null, hardware: publicProviderHardware(result.hardware) } };
 }
 
