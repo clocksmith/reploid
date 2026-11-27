@@ -429,6 +429,16 @@
       "sha256": "98c476930471585ad9092f1d03e3e3d2233b31fcc7e8307c366867c4af5e914e"
     },
     {
+      "path": "artifacts/custody/shared-inventory.d.ts",
+      "bytes": 1047,
+      "sha256": "549674542f1e050090aaf95714ec90a7feb3754d10f58ad25f75805d2d2918ce"
+    },
+    {
+      "path": "artifacts/custody/shared-inventory.js",
+      "bytes": 4677,
+      "sha256": "37230733167a8a085063aa43448711faa5a69ebf368e5063018680069fa4225f"
+    },
+    {
       "path": "artifacts/custody/supplier-summary.d.ts",
       "bytes": 339,
       "sha256": "5dc44b4b47cc29462d930e740e650ea40418c468918810d7167ec4ba8d0de80e"
@@ -445,13 +455,13 @@
     },
     {
       "path": "artifacts/custody/weight-supply.d.ts",
-      "bytes": 2738,
-      "sha256": "1289144276964213f7d1688d5a3de685801653f93d14a800994b2c764175454d"
+      "bytes": 3994,
+      "sha256": "3d0ce6276dcb6c8059cb344f5cf8bf2a3cfc4687e8b7b779665190261a7869b1"
     },
     {
       "path": "artifacts/custody/weight-supply.js",
-      "bytes": 20165,
-      "sha256": "56856087b12a403cc46af904005ee350d6bcfb87b354b129c05eb2b9e562e257"
+      "bytes": 25970,
+      "sha256": "289ea6b2a6e4e57f1c2ecf1ae8de2bb714911155fadb42756b2122abc898e387"
     },
     {
       "path": "artifacts/custody-certificate.js",

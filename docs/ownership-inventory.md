@@ -18,10 +18,10 @@ Product entries: `index.html`, `pool-entry.html`, `design.html`, `document-study
 
 | Owner | Files |
 | --- | ---: |
-| apps/poolday | 357 |
+| apps/poolday | 358 |
 | self | 458 |
-| shared | 2538 |
-| total | 3353 |
+| shared | 2540 |
+| total | 3356 |
 
 Every file lives in its owner's root.
 
@@ -32,7 +32,7 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | Served tree | Files | Owner |
 | --- | ---: | --- |
 | `vendor/doppler/` | 2069 | shared |
-| `vendor/reploid/` | 383 | shared |
+| `vendor/reploid/` | 385 | shared |
 
 ## Files
 
@@ -507,6 +507,7 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `host/web-access.d.ts` | `apps/poolday/host/web-access.d.ts` | apps/poolday | Describes host/web-access.js. Reached only from product entries. |
 | `host/web-access.js` | `apps/poolday/host/web-access.js` | apps/poolday | Reached only from product entries. |
 | `host/web-search.js` | `apps/poolday/host/web-search.js` | apps/poolday | Reached only from product entries. |
+| `host/weight-supply-host.js` | `apps/poolday/host/weight-supply-host.js` | apps/poolday | Reached only from product entries. |
 | `host/work-evolution.js` | `apps/poolday/host/work-evolution.js` | apps/poolday | Reached only from product entries. |
 | `host/work-helpers.js` | `apps/poolday/host/work-helpers.js` | apps/poolday | Reached only from product entries. |
 | `host/work-inputs.js` | `apps/poolday/host/work-inputs.js` | apps/poolday | Reached only from product entries. |

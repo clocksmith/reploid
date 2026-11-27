@@ -1425,8 +1425,8 @@
     },
     {
       "path": "config/module-inventory.json",
-      "byteLength": 688773,
-      "sha256": "sha256:576c370c3289cae5ae0f1da7afac26751b4a17d09653d7d71cf076b07f8fd46b"
+      "byteLength": 689449,
+      "sha256": "sha256:b9a7d878b2496b8f3f6503f332e4912a7d1e2afe00cdbfc9290d7ffc37ed5cff"
     },
     {
       "path": "config/module-registry.json",
@@ -1520,8 +1520,8 @@
     },
     {
       "path": "config/vfs-manifest.json",
-      "byteLength": 148507,
-      "sha256": "sha256:5bbece67af03af26ad6ab321fcaa4284b86e8e1a2fd7f13e3f7811e7cd2d854a"
+      "byteLength": 148606,
+      "sha256": "sha256:702bd08ca255fefd37b463a6ec027a51c498af68a928cab05990c353e528429c"
     },
     {
       "path": "config/vfs-policy.js",
@@ -1880,8 +1880,8 @@
     },
     {
       "path": "host/chat-session.js",
-      "byteLength": 52241,
-      "sha256": "sha256:907e505e4d717a4a024912c69b716f4b1f2d6ef86d6d200342511c07661a554e"
+      "byteLength": 53663,
+      "sha256": "sha256:608e0f9233a5a9ebd6312e027e0c56eeb592ae3aaf673a26ab5458b4831cb0ad"
     },
     {
       "path": "host/chat-view.js",
@@ -2294,6 +2294,11 @@
       "sha256": "sha256:a8d7933855e070be5ace89280697404ecb20d7e7a84db4dd03bd175c2bbc8d61"
     },
     {
+      "path": "host/weight-supply-host.js",
+      "byteLength": 11821,
+      "sha256": "sha256:0522b4dee8c2782a345f0ac68b0e6a453651e3fea2ccbac8bf1dd10487bdc261"
+    },
+    {
       "path": "host/work-evolution.js",
       "byteLength": 2182,
       "sha256": "sha256:d79c32cae1203759c9fd4dcf31d4ec35d2607991dea757eb68696d2e3423b231"
@@ -2315,8 +2320,8 @@
     },
     {
       "path": "host/work-model-files.js",
-      "byteLength": 35915,
-      "sha256": "sha256:492c0c2b41dd64cebe283be25e6eb72b813f8d8453f8a4e7571845db613fbe96"
+      "byteLength": 43248,
+      "sha256": "sha256:8fdb7b7d9ff2f8b1efdbde38586c6a9eed084092740205d3cd7d4ffcddedae25"
     },
     {
       "path": "host/work-partition-artifact-source.js",
@@ -2370,8 +2375,8 @@
     },
     {
       "path": "host/work-swarm.js",
-      "byteLength": 44358,
-      "sha256": "sha256:ef7208672dca216cbced06229681411e1c7ad29ca0f8e3432224e38b958fc07c"
+      "byteLength": 48560,
+      "sha256": "sha256:9811fa06bd78fc08566fce55b8261786f57182c5a5f8b3f4ed6325b60d3b6864"
     },
     {
       "path": "host/work-task.js",
@@ -4200,8 +4205,8 @@
     },
     {
       "path": "ui/react/app.js",
-      "byteLength": 3009839,
-      "sha256": "sha256:51c24319485d1fff0b2b77b5e398ee376e70619a79c258dbd082df5c0bf70ae1"
+      "byteLength": 3052777,
+      "sha256": "sha256:6c4c478f5fe1b6ecc3e6f3e07048d5dcdaf553e840adcc517f678bb63f3ac075"
     },
     {
       "path": "ui/react/design.js",
@@ -11679,6 +11684,11 @@
       "sha256": "sha256:98c476930471585ad9092f1d03e3e3d2233b31fcc7e8307c366867c4af5e914e"
     },
     {
+      "path": "vendor/reploid/artifacts/custody/shared-inventory.js",
+      "byteLength": 4677,
+      "sha256": "sha256:37230733167a8a085063aa43448711faa5a69ebf368e5063018680069fa4225f"
+    },
+    {
       "path": "vendor/reploid/artifacts/custody/supplier-summary.js",
       "byteLength": 1089,
       "sha256": "sha256:a1ef2a2a9318a32db070a51aef2f9ed999fe47f2fd0e704fc600cb53bad17135"
@@ -11690,8 +11700,8 @@
     },
     {
       "path": "vendor/reploid/artifacts/custody/weight-supply.js",
-      "byteLength": 20165,
-      "sha256": "sha256:56856087b12a403cc46af904005ee350d6bcfb87b354b129c05eb2b9e562e257"
+      "byteLength": 25970,
+      "sha256": "sha256:289ea6b2a6e4e57f1c2ecf1ae8de2bb714911155fadb42756b2122abc898e387"
     },
     {
       "path": "vendor/reploid/artifacts/delivery-attestation.js",
@@ -12360,8 +12370,8 @@
     },
     {
       "path": "vendor/reploid/package-assets.json",
-      "byteLength": 65811,
-      "sha256": "sha256:7c12278b449d3cbc64a0cdf7b9c2febe0fc74300503b58679f257102128aa0ef"
+      "byteLength": 66157,
+      "sha256": "sha256:85688186df28d1a6b0e8099bca33c3d0374647026caf774c9bd888d447371192"
     },
     {
       "path": "vendor/reploid/plugins/index.js",
@@ -12654,5 +12664,5 @@
       "sha256": "sha256:abb6c18f6167d6afc8ee1b3adfcbbb89c0e93fb4fc4e98d7a12250f78aab206a"
     }
   ],
-  "bundleHash": "sha256:a07c9c455cc8faf578bd5bd7685b9f7950f3edf89c1ae1486ef63e8922fb1ad4"
+  "bundleHash": "sha256:9466452a2a9e484ed68f69334501cca56d0143910494d266c662c857c7a0dab5"
 }

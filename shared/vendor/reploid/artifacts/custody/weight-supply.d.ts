@@ -5,6 +5,7 @@ import type {
 } from '../../contracts/weight-supply.js';
 import type { CustodyDeliveryRecord, CustodyServedTransfer, createCustodyExchange } from './exchange.js';
 
+export const WEIGHT_SUPPLY_STATE_SCHEMA: 'reploid.weight-supply-state/1';
 export function verifyWeightSupplyApproval(approval: unknown): Promise<boolean>;
 export function meshWeightDemand(exchangeState: ReturnType<ReturnType<typeof createCustodyExchange>['getState']>, inferenceOffers: Offer[],
   options: { now: number }): WeightDemand[];
@@ -27,6 +28,21 @@ export interface WeightSupplyPorts {
   /** Each approval, replacement and served transfer, for the host's durable log. */
   onRecord?(record: WeightSupplyApproval | WeightSupplyReplacement | WeightTransfer): void;
   onChange?(): void;
+  /** Piece IDs this device holds outside the piece store (a full cached model), counted as cached. */
+  cachedPieceIds?(): Promise<string[]> | string[];
+}
+export interface WeightSupplyStatePiece {
+  pieceId: string; modelIdentity: string; pieceIndexDigest: string; path: string; offset: number; sizeBytes: number;
+  state: 'verified' | 'queued'; verifiedAt: number | null; servedBytes: number; servedTransfers: number;
+}
+export interface WeightSupplyState {
+  schema: typeof WEIGHT_SUPPLY_STATE_SCHEMA; computerId: string; paused: boolean; approval: WeightSupplyApproval | null;
+  pieces: WeightSupplyStatePiece[]; replacements: WeightSupplyReplacement[]; transfers: WeightTransfer[]; servedBytes: number; servedTransfers: number;
+}
+export type WeightSupplyRestoredApproval = 'none' | 'restored' | 'invalid' | 'other-computer' | 'expired' | 'index-changed';
+export interface WeightSupplyRestore {
+  approval: WeightSupplyRestoredApproval; restoredPieces: number; requeuedPieces: number;
+  dropped: { pieceId: string | null; reason: string }[];
 }
 export function createWeightSupply(options: {
   identity: { peerId: string; publicJwk: JsonWebKey; privateJwk: JsonWebKey; algorithm?: string };
@@ -46,5 +62,7 @@ export function createWeightSupply(options: {
   getWeightSupplyReport(): WeightSupplyReport;
   getServedTransfers(): WeightTransfer[];
   getApproval(): WeightSupplyApproval | null;
+  exportWeightSupplyState(): WeightSupplyState;
+  restoreWeightSupply(snapshot: WeightSupplyState | null): Promise<WeightSupplyRestore>;
   whenIdle(): Promise<void>;
 }>;

@@ -17,9 +17,9 @@
     "kernel/boot.js"
   ],
   "counts": {
-    "apps/poolday": 357,
+    "apps/poolday": 358,
     "self": 458,
-    "shared": 2538
+    "shared": 2540
   },
   "pendingMoves": 0,
   "violations": [],
@@ -2840,6 +2840,12 @@
     {
       "served": "host/web-search.js",
       "source": "apps/poolday/host/web-search.js",
+      "owner": "apps/poolday",
+      "basis": "Reached only from product entries."
+    },
+    {
+      "served": "host/weight-supply-host.js",
+      "source": "apps/poolday/host/weight-supply-host.js",
       "owner": "apps/poolday",
       "basis": "Reached only from product entries."
     },
@@ -16030,6 +16036,16 @@
     {
       "served": "vendor/reploid/artifacts/custody/runtime.js",
       "source": "shared/vendor/reploid/artifacts/custody/runtime.js",
+      "owner": "shared"
+    },
+    {
+      "served": "vendor/reploid/artifacts/custody/shared-inventory.d.ts",
+      "source": "shared/vendor/reploid/artifacts/custody/shared-inventory.d.ts",
+      "owner": "shared"
+    },
+    {
+      "served": "vendor/reploid/artifacts/custody/shared-inventory.js",
+      "source": "shared/vendor/reploid/artifacts/custody/shared-inventory.js",
       "owner": "shared"
     },
     {

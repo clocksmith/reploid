@@ -2892,7 +2892,7 @@
     {
       "path": "self/host/chat-session.js",
       "owner": "self",
-      "sha256": "sha256:907e505e4d717a4a024912c69b716f4b1f2d6ef86d6d200342511c07661a554e",
+      "sha256": "sha256:608e0f9233a5a9ebd6312e027e0c56eeb592ae3aaf673a26ab5458b4831cb0ad",
       "imports": [
         "../config/doppler-local-models.js",
         "../config/requester-weights.json",
@@ -3803,6 +3803,15 @@
       ]
     },
     {
+      "path": "self/host/weight-supply-host.js",
+      "owner": "self",
+      "sha256": "sha256:0522b4dee8c2782a345f0ac68b0e6a453651e3fea2ccbac8bf1dd10487bdc261",
+      "imports": [
+        "../vendor/reploid/artifacts/custody/weight-supply.js",
+        "./computer-records.js"
+      ]
+    },
+    {
       "path": "self/host/work-evolution.js",
       "owner": "self",
       "sha256": "sha256:d79c32cae1203759c9fd4dcf31d4ec35d2607991dea757eb68696d2e3423b231",
@@ -3843,7 +3852,7 @@
     {
       "path": "self/host/work-model-files.js",
       "owner": "self",
-      "sha256": "sha256:492c0c2b41dd64cebe283be25e6eb72b813f8d8453f8a4e7571845db613fbe96",
+      "sha256": "sha256:8fdb7b7d9ff2f8b1efdbde38586c6a9eed084092740205d3cd7d4ffcddedae25",
       "imports": [
         "../config/chat-files.json",
         "../config/doppler-local-models.js",
@@ -3856,6 +3865,8 @@
         "../pool/peer-pack-data-channel.js",
         "../vendor/reploid/artifacts/custody-certificate.js",
         "../vendor/reploid/artifacts/custody/exchange.js",
+        "../vendor/reploid/artifacts/custody/shared-inventory.js",
+        "../vendor/reploid/contracts/weight-supply.js",
         "./model-acquisition.js",
         "./work-model-cache.js",
         "./work-partition-artifact-source.js"
@@ -3984,7 +3995,7 @@
     {
       "path": "self/host/work-swarm.js",
       "owner": "self",
-      "sha256": "sha256:ef7208672dca216cbced06229681411e1c7ad29ca0f8e3432224e38b958fc07c",
+      "sha256": "sha256:9811fa06bd78fc08566fce55b8261786f57182c5a5f8b3f4ed6325b60d3b6864",
       "imports": [
         "../capabilities/communication/library-adapter.js",
         "../config/doppler-local-models.js",
@@ -4007,6 +4018,7 @@
         "./computer-records.js",
         "./contribution-history.js",
         "./contributor-identity.js",
+        "./weight-supply-host.js",
         "./work-model-files.js",
         "./work-partition-networks.js",
         "./work-partition-plan.js",
@@ -5171,7 +5183,7 @@
     {
       "path": "ui/react/app.js",
       "owner": "ui",
-      "sha256": "sha256:51c24319485d1fff0b2b77b5e398ee376e70619a79c258dbd082df5c0bf70ae1",
+      "sha256": "sha256:6c4c478f5fe1b6ecc3e6f3e07048d5dcdaf553e840adcc517f678bb63f3ac075",
       "imports": []
     },
     {
@@ -18424,6 +18436,12 @@
       ]
     },
     {
+      "path": "vendor/reploid/artifacts/custody/shared-inventory.js",
+      "owner": "vendor",
+      "sha256": "sha256:37230733167a8a085063aa43448711faa5a69ebf368e5063018680069fa4225f",
+      "imports": []
+    },
+    {
       "path": "vendor/reploid/artifacts/custody/supplier-summary.js",
       "owner": "vendor",
       "sha256": "sha256:a1ef2a2a9318a32db070a51aef2f9ed999fe47f2fd0e704fc600cb53bad17135",
@@ -18438,7 +18456,7 @@
     {
       "path": "vendor/reploid/artifacts/custody/weight-supply.js",
       "owner": "vendor",
-      "sha256": "sha256:56856087b12a403cc46af904005ee350d6bcfb87b354b129c05eb2b9e562e257",
+      "sha256": "sha256:289ea6b2a6e4e57f1c2ecf1ae8de2bb714911155fadb42756b2122abc898e387",
       "imports": [
         "../../contracts/computer-records.js",
         "../../contracts/weight-supply.js",
