@@ -10,7 +10,8 @@
  * Everything else is answered here. POST bodies must be JSON envelopes of at most MAX_BODY_BYTES and are forwarded
  * byte for byte with only content-type and accept; nothing from the caller's other headers is passed on, and this
  * Worker adds nothing the ledger treats as authority. Requests are rate limited per edge-reported client address, per
- * participant and in total (Workers Rate Limiting bindings, counted per Cloudflare location). A ledger that is
+ * participant and in total, each by one LedgerRateLimit Durable Object per bucket (exact counts in fixed one-minute
+ * windows, held in memory: an evicted object starts a fresh window). A missing or failing limiter refuses. A ledger that is
  * stopped, locked or unreachable is a plain 503 naming no upstream. CORS headers are never sent: the page does not
  * call the ledger, and CORS is not access control.
  */
@@ -19,6 +20,8 @@ export const FLEET_REQUEST_SCHEMA = 'reploid.fleet-service-request/v1';
 export const MAX_BODY_BYTES = 262144;
 export const MAX_RESPONSE_BYTES = 1048576;
 export const UPSTREAM_TIMEOUT_MS = 30000;
+export const RATE_WINDOW_MS = 60000;
+export const RATE_LIMITS = Object.freeze({ address: 240, participant: 240, total: 1200 });
 // The binding's VPC service decides where this lands; the origin only has to be a valid URL for the request.
 const UPSTREAM_ORIGIN = 'http://127.0.0.1:18443';
 const UNAVAILABLE = 'The ledger is not reachable right now (it may be stopped or locked). Try again later.';
@@ -50,10 +53,27 @@ async function readBounded(stream, limit) {
   return bytes;
 }
 
-/** True when the limiter allows `key`. A missing or failing limiter refuses (fails closed). */
-async function allowed(limiter, key) {
-  if (typeof limiter?.limit !== 'function') return false;
-  try { return (await limiter.limit({ key })).success === true; } catch { return false; }
+/** One fixed-window counter per bucket name. Exact within one object; the Worker names one object per bucket. */
+export class LedgerRateLimit {
+  constructor() { this.start = 0; this.count = 0; }
+  async fetch(request) {
+    const { limit, windowMs } = await request.json();
+    const now = Date.now(), start = now - now % windowMs;
+    if (start !== this.start) { this.start = start; this.count = 0; }
+    this.count += 1;
+    return Response.json({ allowed: this.count <= limit, retryAfter: Math.max(1, Math.ceil((start + windowMs - now) / 1000)) });
+  }
+}
+
+/** True when the bucket's limiter allows one more request. A missing or failing limiter refuses (fails closed). */
+async function allowed(env, bucket, limit) {
+  const namespace = env.LEDGER_LIMITS;
+  if (typeof namespace?.idFromName !== 'function') return false;
+  try {
+    const response = await namespace.get(namespace.idFromName(bucket)).fetch('https://limit.internal/', {
+      method: 'POST', body: JSON.stringify({ limit, windowMs: RATE_WINDOW_MS }) });
+    return (await response.json()).allowed === true;
+  } catch { return false; }
 }
 
 export default {
@@ -66,7 +86,7 @@ export default {
     if (request.method !== method) return json(405, { error: `Use ${method} for this fleet endpoint` }, { allow: method });
     if (typeof env.LEDGER?.fetch !== 'function') return unavailable();
     const address = request.headers.get('cf-connecting-ip') || 'unknown';
-    if (!await allowed(env.LEDGER_ADDRESS_LIMIT, `a:${address}`)) return limited();
+    if (!await allowed(env, `a:${address}`, RATE_LIMITS.address)) return limited();
 
     let body = null;
     if (method === 'POST') {
@@ -83,9 +103,9 @@ export default {
         || typeof envelope.participantId !== 'string' || !envelope.participantId || envelope.participantId.length > 256) {
         return json(400, { error: 'Invalid fleet request' });
       }
-      if (!await allowed(env.LEDGER_PARTICIPANT_LIMIT, `p:${envelope.participantId}`)) return limited();
+      if (!await allowed(env, `p:${envelope.participantId}`, RATE_LIMITS.participant)) return limited();
     }
-    if (!await allowed(env.LEDGER_TOTAL_LIMIT, 'total')) return limited();
+    if (!await allowed(env, 'total', RATE_LIMITS.total)) return limited();
 
     try {
       const upstream = await env.LEDGER.fetch(new Request(UPSTREAM_ORIGIN + url.pathname, {

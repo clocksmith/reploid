@@ -7,16 +7,24 @@ import { fileURLToPath } from 'node:url';
 import { createSigningIdentity } from '../../packages/reploid/src/artifacts/identity.js';
 import { openFleetCredits } from '../../server/fleet/credits.js';
 import { createFleetClient, startFleetService } from '../../server/fleet/service.js';
-import worker, { MAX_BODY_BYTES } from '../../server/fleet/ledger-edge-worker.js';
+import worker, { LedgerRateLimit, MAX_BODY_BYTES, RATE_LIMITS } from '../../server/fleet/ledger-edge-worker.js';
 
 const EDGE = 'https://reploid-ledger.reploid.workers.dev';
 const model = { id: 'test-model', identity: 'sha256:' + 'a'.repeat(64) };
 const placementPolicy = { maxMeasurementAgeMs: 60000, maxObservationAgeMs: 10000, minResidencyMs: 1000, maxRouteCandidates: 100, queuedRequestsPerReplica: 2 };
 let root, credits, service, keys, calls;
 
-function limiter(limit) {
-  const counts = new Map();
-  return { async limit({ key }) { const next = (counts.get(key) || 0) + 1; counts.set(key, next); return { success: next <= limit }; } };
+/** A stand-in for the Durable Object namespace: one real LedgerRateLimit per bucket name; `limits` overrides by bucket prefix. */
+function limiters(limits = {}) {
+  const objects = new Map();
+  return {
+    idFromName: name => name,
+    get: name => ({ async fetch(url, init) {
+      if (!objects.has(name)) objects.set(name, new LedgerRateLimit());
+      const body = JSON.parse(init.body), prefix = name === 'total' ? 'total' : name.slice(0, 1);
+      return objects.get(name).fetch(new Request(url, { method: 'POST', body: JSON.stringify({ ...body, limit: limits[prefix] ?? body.limit }) }));
+    } })
+  };
 }
 /** A stand-in for the Workers VPC binding: forwards to `target` (a loopback ledger) and records what arrived. */
 function binding(target) {
@@ -31,7 +39,7 @@ function binding(target) {
 }
 function environment(overrides = {}) {
   return { LEDGER_ROUTE: 'enabled', LEDGER: binding(service.url.replace(/\/v1\/fleet$/, '')),
-    LEDGER_ADDRESS_LIMIT: limiter(1000), LEDGER_PARTICIPANT_LIMIT: limiter(1000), LEDGER_TOTAL_LIMIT: limiter(1000), ...overrides };
+    LEDGER_LIMITS: limiters(), ...overrides };
 }
 const edgeClient = (identity, env) => createFleetClient({ url: `${EDGE}/v1/fleet`, identity,
   fetchImpl: (url, init) => worker.fetch(new Request(url, { ...init, headers: { ...init.headers, 'cf-connecting-ip': '203.0.113.7' } }), env) });
@@ -57,7 +65,7 @@ describe('ledger edge Worker', () => {
   it('is off by default in its deploy config, and off answers 404 without touching the binding', async () => {
     const source = await readFile(path.join(path.dirname(fileURLToPath(import.meta.url)), '../../deploy/cloudflare/wrangler.ledger.jsonc'), 'utf8');
     expect(source).toMatch(/"LEDGER_ROUTE": "disabled"/);
-    expect(source).not.toMatch(/^\s*"vpc_services"/m);
+    expect(source).toMatch(/"class_name": "LedgerRateLimit"/);
     for (const env of [environment({ LEDGER_ROUTE: 'disabled' }), environment({ LEDGER_ROUTE: undefined }), {}]) {
       const response = await call(env, '/v1/fleet/coordinator');
       expect(response.status).toBe(404);
@@ -133,7 +141,7 @@ describe('ledger edge Worker', () => {
   });
 
   it('rate limits per address, per participant and in total, and fails closed without limiters', async () => {
-    const byAddress = environment({ LEDGER_ADDRESS_LIMIT: limiter(2) });
+    const byAddress = environment({ LEDGER_LIMITS: limiters({ a: 2 }) });
     const statuses = [];
     for (let index = 0; index < 3; index++) {
       statuses.push((await call(byAddress, '/v1/fleet/coordinator', { headers: { 'cf-connecting-ip': '198.51.100.1' } })).status);
@@ -141,24 +149,37 @@ describe('ledger edge Worker', () => {
     expect(statuses).toEqual([404, 404, 429]);
     expect((await call(byAddress, '/v1/fleet/coordinator', { headers: { 'cf-connecting-ip': '198.51.100.2' } })).status).toBe(404);
 
-    const byParticipant = environment({ LEDGER_PARTICIPANT_LIMIT: limiter(1) });
+    const byParticipant = environment({ LEDGER_LIMITS: limiters({ p: 1 }) });
     const post = (env, id) => call(env, '/v1/fleet', { method: 'POST', headers: { 'content-type': 'application/json' }, body: envelope(id) });
     expect((await post(byParticipant, 'peer:a')).status).toBe(400);
     expect((await post(byParticipant, 'peer:a')).status).toBe(429);
     expect((await post(byParticipant, 'peer:b')).status).toBe(400);
 
-    const total = environment({ LEDGER_TOTAL_LIMIT: limiter(1) });
+    const total = environment({ LEDGER_LIMITS: limiters({ total: 1 }) });
     expect((await call(total, '/v1/fleet/coordinator')).status).toBe(404);
     expect((await call(total, '/v1/fleet/coordinator')).status).toBe(429);
 
     const before = calls.length;
-    for (const name of ['LEDGER_ADDRESS_LIMIT', 'LEDGER_PARTICIPANT_LIMIT', 'LEDGER_TOTAL_LIMIT']) {
-      const missing = environment({ [name]: undefined });
-      expect((await post(missing, 'peer:c')).status).toBe(429);
-      const failing = environment({ [name]: { limit: async () => { throw Error('limiter down'); } } });
-      expect((await post(failing, 'peer:c')).status).toBe(429);
-    }
+    expect((await post(environment({ LEDGER_LIMITS: undefined }), 'peer:c')).status).toBe(429);
+    const failing = { idFromName: name => name, get: () => ({ fetch: async () => { throw Error('limiter down'); } }) };
+    expect((await post(environment({ LEDGER_LIMITS: failing }), 'peer:c')).status).toBe(429);
+    expect(RATE_LIMITS).toEqual({ address: 240, participant: 240, total: 1200 });
     expect(calls.length).toBe(before);
+  });
+
+  it('counts each bucket in fixed one-minute windows', async () => {
+    const limit = new LedgerRateLimit();
+    const ask = async () => (await (await limit.fetch(new Request('https://limit.internal/', { method: 'POST',
+      body: JSON.stringify({ limit: 2, windowMs: 60000 }) }))).json()).allowed;
+    const realNow = Date.now;
+    try {
+      Date.now = () => 120000;
+      expect([await ask(), await ask(), await ask()]).toEqual([true, true, false]);
+      Date.now = () => 179999;
+      expect(await ask()).toBe(false);
+      Date.now = () => 180000;
+      expect(await ask()).toBe(true);
+    } finally { Date.now = realNow; }
   });
 
   it('answers a plain 503 naming no upstream when the ledger is down, locked or answers anything but its JSON', async () => {
