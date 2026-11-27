@@ -6,6 +6,7 @@
   "allowedOrigins": [
     "https://replo.id",
     "https://reploid.web.app",
-    "https://reploid.firebaseapp.com"
+    "https://reploid.firebaseapp.com",
+    "https://reploid--cloudflare-knjy5oir.web.app"
   ]
 }
