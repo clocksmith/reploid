@@ -23,11 +23,8 @@ import createChangeControlRouter from '../../change-control/routes.js';
 import { createChangeControlService } from '../../change-control/service.js';
 import { createZeroGeminiHandler } from '../../../packages/functions/zero-gemini-handler.js';
 import { createFirebaseIdTokenVerifier, verifyAppCheckToken } from './firebase-tokens.js';
+import { bearerToken } from '../../pool/http-admission.js';
 
-const bearer = (req) => {
-  const match = String(req.headers.authorization || '').match(/^Bearer\s+(.+)$/i);
-  return match ? match[1].trim() : null;
-};
 
 /**
  * `firestore` is the coordinator's document store (sqlite-firestore.js); `env` holds the Worker vars
@@ -45,7 +42,7 @@ export function createCoordinatorApp({ firestore, env, runtimeBundleIdentity, rt
   installJsonBodyMiddleware(app, { poolBackendOnly: true, poolJsonLimit: env.POOL_JSON_LIMIT || '512kb', poolResearchJsonLimit: env.POOL_RESEARCH_JSON_LIMIT || '1mb' });
 
   const requireFirebaseAccess = async (req, res, next) => {
-    const token = bearer(req);
+    const token = bearerToken(req);
     if (!token) return res.status(401).json({ error: 'Server access token is required' });
     try {
       const decoded = await verifyAuthToken(token);

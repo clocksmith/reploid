@@ -20,6 +20,7 @@
  */
 import { SelfServeError } from './self-serve.js';
 import { answerCoordinatorKey } from './service.js';
+import { bearerToken } from '../pool/http-admission.js';
 
 const json = (response, status, value) => {
   response.writeHead(status, { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store', 'x-content-type-options': 'nosniff' });
@@ -60,8 +61,7 @@ export function createSelfServeHttpHandler({ selfServe, fleet, authenticate, coo
     try { return JSON.parse(Buffer.concat(chunks)); } catch { throw new SelfServeError('body_invalid', 'Request body must be JSON'); }
   };
   const session = async request => {
-    const header = request.headers.authorization || '';
-    const token = header.startsWith('Bearer ') ? header.slice(7).trim() : '';
+    const token = bearerToken(request);
     if (!token) throw new SelfServeError('sign_in_required', 'Sign in first.', 401);
     try {
       const value = await authenticate(token);

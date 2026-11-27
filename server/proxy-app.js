@@ -17,6 +17,7 @@ import { PublicSwarmServer } from './public-swarm-server.js';
 import AgentBridge from './agent-bridge.js';
 import fetch from 'node-fetch';
 import createPoolRouter from './pool/routes.js';
+import { bearerToken } from './pool/http-admission.js';
 import { installJsonBodyMiddleware } from './json-body-middleware.js';
 import { createExternalBrainRouter } from './external-brain.js';
 import { mountEarningRoutes } from './earning-routes/mount.js';
@@ -287,13 +288,6 @@ const admitAnonymousInference = createPublicInferenceMiddleware({
   configurationError: publicInferenceConfigError
 });
 
-const extractAuthorizationToken = (req) => {
-  const header = req.headers.authorization || req.headers.Authorization;
-  if (typeof header !== 'string') return null;
-  const match = header.match(/^Bearer\s+(.+)$/i);
-  return match ? match[1].trim() : null;
-};
-
 const requireServerAccess = async (req, res, next) => {
   if (!rateLimiter.check(getRateLimitKey(req))) {
     return res.status(429).json({ error: 'Rate limit exceeded. Please try again later.' });
@@ -304,7 +298,7 @@ const requireServerAccess = async (req, res, next) => {
     return next();
   }
 
-  const token = extractAuthorizationToken(req);
+  const token = bearerToken(req);
   if (SERVER_ACCESS_TOKEN && tokensEqual(token, SERVER_ACCESS_TOKEN)) {
     req.reploidAccessSubject = 'server-access-token';
     return next();

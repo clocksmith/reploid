@@ -41,11 +41,14 @@ export const createPoolRateLimiter = ({
   };
 };
 
-export const extractBearerToken = (req) => {
-  const header = req.headers.authorization || req.headers.Authorization;
-  if (typeof header !== 'string') return null;
-  const match = header.match(/^Bearer\s+(.+)$/i);
-  return match ? match[1].trim() : null;
+/** The token of an `Authorization: Bearer <token>` header on a Node or Fetch request, or null.
+ * One grammar for every hosted route: the scheme as clients send it, then one token with no spaces. */
+export const bearerToken = (req) => {
+  const headers = req?.headers;
+  const header = typeof headers?.get === 'function' ? headers.get('authorization')
+    : headers?.authorization || headers?.Authorization;
+  const match = typeof header === 'string' ? header.match(/^Bearer\s+(\S+)$/) : null;
+  return match ? match[1] : null;
 };
 
 export const isLoopbackRequest = (req) => {
@@ -151,7 +154,7 @@ export function registerPoolAdmission(router, { store, rateLimits, authOptions, 
     const requestPolicy = effectivePoolAuthPolicy(authOptions, req);
     const routeRequiresAuth = requestPolicy.request.authenticationRequired;
     const localDevelopment = requestPolicy.localDevelopment.eligibleForRequest;
-    const token = extractBearerToken(req);
+    const token = bearerToken(req);
     if (!token) {
       if (routeRequiresAuth) return res.status(401).json({ error: 'Firebase auth token required' });
       req.poolAuth = {

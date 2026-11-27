@@ -3,11 +3,13 @@
  * counts and documents back for parity checks (scripts/cloudflare/migrate-firestore.js). They exist
  * only while the MIGRATION_TOKEN Worker secret is set; without it every /admin path is a 404.
  */
+import { bearerToken } from '../../pool/http-admission.js';
+
 const MAX_IMPORT_BYTES = 8 * 1024 * 1024;
 const MAX_IMPORT_DOCUMENTS = 2000;
 
-function tokenMatches(header, secret) {
-  const presented = new TextEncoder().encode(String(header || '').replace(/^Bearer\s+/i, ''));
+function tokenMatches(request, secret) {
+  const presented = new TextEncoder().encode(bearerToken(request) || '');
   const expected = new TextEncoder().encode(String(secret || ''));
   if (!expected.length || presented.length !== expected.length) return false;
   let difference = 0;
@@ -20,7 +22,7 @@ const json = (body, status = 200) => Response.json(body, { status, headers: { 'C
 /** In the Worker (no `firestore`): authenticate, then forward to the coordinator. In the coordinator: run. */
 export async function handleMigration(request, env, firestore = null) {
   if (!env.MIGRATION_TOKEN) return json({ error: 'Not found' }, 404);
-  if (!tokenMatches(request.headers.get('Authorization'), env.MIGRATION_TOKEN)) return json({ error: 'Unauthorized' }, 401);
+  if (!tokenMatches(request, env.MIGRATION_TOKEN)) return json({ error: 'Unauthorized' }, 401);
   if (!firestore) return env.COORDINATOR.getByName('coordinator').fetch(request);
   const url = new URL(request.url);
   if (url.pathname === '/admin/inventory' && request.method === 'GET') return json({ collections: firestore.inventory() });
