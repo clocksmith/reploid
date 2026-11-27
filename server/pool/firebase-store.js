@@ -78,7 +78,7 @@ const defaultReputation = (providerId) => ({
   points: 0,
   updatedAt: nowIso()
 });
-export function createFirestorePoolStore({ firestore, collectionPrefix = '' } = {}) {
+export function createFirestorePoolStore({ firestore, collectionPrefix = '', kind = 'firestore' } = {}) {
   if (!firestore?.collection) {
     throw new Error('Firestore instance with collection() is required');
   }
@@ -125,7 +125,7 @@ export function createFirestorePoolStore({ firestore, collectionPrefix = '' } = 
   const evidenceChanged = () => Object.assign(new Error('Reputation evidence changed'),
     { status: 409, code: 'settlement_evidence_changed' });
   const api = {
-    kind: 'firestore',
+    kind,
     async getSettlementRecord(collection, id) {
       const snapshot = await settlementRef(collection, id).get();
       return snapshot.exists ? snapshot.data() : null;

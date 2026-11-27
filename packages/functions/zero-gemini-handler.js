@@ -1,0 +1,267 @@
+/**
+ * @fileoverview The Zero Gemini request handler, shared by the Firebase Function (index.js) and the
+ * Cloudflare coordinator (server/cloudflare/api). Each host supplies how it verifies the Firebase Auth
+ * and App Check tokens and where the Gemini key comes from; the policy and the request are the same.
+ */
+import {
+  DEFAULT_GEMINI_MODEL,
+  DEFAULT_CLIENT_REQUESTS_PER_MINUTE,
+  DEFAULT_GLOBAL_REQUESTS_PER_MINUTE,
+  DEFAULT_MAX_INPUT_CHARS,
+  DEFAULT_MAX_MESSAGES,
+  DEFAULT_MAX_OUTPUT_TOKENS,
+  DEFAULT_REFERER,
+  enforceRateLimit,
+  getAllowedModels,
+  getAllowedOrigins,
+  isAllowedOrigin,
+  numberEnv,
+  validateMessages,
+  resolveFallbackModel
+} from './zero-gemini-policy.js';
+
+const PROVIDER = 'gemini';
+const ALLOWED_METHODS = 'GET,POST,OPTIONS';
+const ALLOWED_HEADERS = 'Authorization, Content-Type, X-Firebase-AppCheck, X-Reploid-Client-Id';
+
+const setHeaders = (req, res) => {
+  const origin = req.headers.origin || '';
+  const allowedOrigins = getAllowedOrigins();
+  const responseOrigin = origin && allowedOrigins.includes(origin)
+    ? origin
+    : allowedOrigins[0] || DEFAULT_REFERER;
+  res.set('Access-Control-Allow-Origin', responseOrigin);
+  res.set('Access-Control-Allow-Methods', ALLOWED_METHODS);
+  res.set('Access-Control-Allow-Headers', ALLOWED_HEADERS);
+  res.set('Cache-Control', 'no-store');
+  res.set('Vary', 'Origin');
+};
+
+const toText = (value) => {
+  if (typeof value === 'string') return value;
+  if (value === null || value === undefined) return '';
+  return JSON.stringify(value);
+};
+
+const toGeminiPayload = (messages = [], { maxOutputTokens = 8192 } = {}) => {
+  const systemText = messages
+    .filter((message) => message?.role === 'system')
+    .map((message) => toText(message.content).trim())
+    .filter(Boolean)
+    .join('\n\n');
+  const contents = messages
+    .filter((message) => message?.role !== 'system')
+    .map((message) => ({
+      role: message?.role === 'assistant' ? 'model' : 'user',
+      parts: [{ text: toText(message?.content).trim() }]
+    }))
+    .filter((message) => message.parts[0].text);
+
+  const payload = {
+    contents: contents.length > 0
+      ? contents
+      : [{ role: 'user', parts: [{ text: 'Continue.' }] }],
+    generationConfig: {
+      temperature: 0.7,
+      topP: 0.95,
+      maxOutputTokens
+    }
+  };
+
+  if (systemText) {
+    payload.systemInstruction = {
+      parts: [{ text: systemText }]
+    };
+  }
+
+  return payload;
+};
+
+const extractGeminiContent = (data = {}) => {
+  const parts = data.candidates?.[0]?.content?.parts || [];
+  return parts
+    .map((part) => part?.text || '')
+    .filter(Boolean)
+    .join('');
+};
+
+const readError = async (response) => {
+  const text = await response.text().catch(() => '');
+  if (!text) return `Gemini API error (${response.status})`;
+  try {
+    const data = JSON.parse(text);
+    return data?.error?.message || `Gemini API error (${response.status})`;
+  } catch {
+    return text.slice(0, 240);
+  }
+};
+
+const bearerToken = (req) => {
+  const value = String(req.headers.authorization || '').trim();
+  const match = value.match(/^Bearer\s+(.+)$/i);
+  return match ? match[1].trim() : null;
+};
+
+/** verifyZeroAccess(req, { bearerToken, appCheckToken }) must throw unless both tokens verify. */
+export function createZeroGeminiHandler({ verifyZeroAccess, getApiKey }) {
+  if (typeof verifyZeroAccess !== 'function' || typeof getApiKey !== 'function') throw new TypeError('Zero Gemini needs a verifier and a key source');
+  return async (req, res) => {
+    setHeaders(req, res);
+
+    if (!isAllowedOrigin(req.headers.origin || '')) {
+      res.status(403).json({ error: 'Origin not allowed.' });
+      return;
+    }
+
+    if (req.method === 'OPTIONS') {
+      res.status(204).send('');
+      return;
+    }
+
+    try {
+      req.zeroIdentity = await verifyZeroAccess(req, { bearerToken: bearerToken(req), appCheckToken: String(req.headers['x-firebase-appcheck'] || '').trim() });
+    } catch {
+      res.status(401).json({ error: 'Verified Firebase Auth and App Check credentials are required.' });
+      return;
+    }
+
+    const key = String((await getApiKey()) || '').trim();
+
+    if (req.method === 'GET') {
+      res.status(200).json({
+        ok: true,
+        functionBacked: true,
+        zeroOnly: true,
+        providers: [PROVIDER],
+        configuredProviders: [PROVIDER],
+        primaryProvider: PROVIDER,
+        primaryModel: process.env.GEMINI_MODEL || DEFAULT_GEMINI_MODEL,
+        hasApiKey: !!key,
+        limits: {
+          maxMessages: numberEnv('ZERO_GEMINI_MAX_MESSAGES', DEFAULT_MAX_MESSAGES),
+          maxInputChars: numberEnv('ZERO_GEMINI_MAX_INPUT_CHARS', DEFAULT_MAX_INPUT_CHARS),
+          maxOutputTokens: numberEnv('ZERO_GEMINI_MAX_OUTPUT_TOKENS', DEFAULT_MAX_OUTPUT_TOKENS),
+          clientRequestsPerMinute: numberEnv('ZERO_GEMINI_CLIENT_RPM', DEFAULT_CLIENT_REQUESTS_PER_MINUTE),
+          globalRequestsPerMinute: numberEnv('ZERO_GEMINI_GLOBAL_RPM', DEFAULT_GLOBAL_REQUESTS_PER_MINUTE)
+        }
+      });
+      return;
+    }
+
+    if (req.method !== 'POST') {
+      res.status(405).json({ error: 'Use GET for health or POST for chat.' });
+      return;
+    }
+
+    if (!key) {
+      res.status(500).json({ error: 'GEMINI_API_KEY secret is not configured.' });
+      return;
+    }
+
+    const rateLimit = enforceRateLimit(req);
+    if (!rateLimit.allowed) {
+      res.set('Retry-After', String(rateLimit.retryAfterSeconds));
+      res.status(429).json({
+        error: 'Rate limit exceeded.',
+        clientRequestsPerMinute: rateLimit.clientLimit,
+        globalRequestsPerMinute: rateLimit.globalLimit,
+        retryAfterMs: rateLimit.retryAfterMs,
+        retryAfterSeconds: rateLimit.retryAfterSeconds
+      });
+      return;
+    }
+
+    const provider = String(req.body?.provider || PROVIDER).toLowerCase();
+    if (provider !== PROVIDER) {
+      res.status(400).json({ error: 'Zero Cloud Function only serves Gemini.' });
+      return;
+    }
+
+    try {
+      validateMessages(req.body?.messages || []);
+    } catch (error) {
+      res.status(400).json({ error: error.message });
+      return;
+    }
+
+    const model = String(req.body?.model || process.env.GEMINI_MODEL || DEFAULT_GEMINI_MODEL).trim();
+    if (!getAllowedModels().has(model)) {
+      res.status(400).json({ error: 'Requested model is not enabled for Zero.' });
+      return;
+    }
+    let fallbackModel;
+    try { fallbackModel = resolveFallbackModel(model, req.body?.allowedFallbackModels); }
+    catch (error) { res.status(400).json({ error: error.message }); return; }
+    const maxOutputTokens = Number(req.body?.max_tokens || req.body?.maxOutputTokens || 8192);
+    const maxAllowedOutputTokens = numberEnv('ZERO_GEMINI_MAX_OUTPUT_TOKENS', DEFAULT_MAX_OUTPUT_TOKENS);
+    const payload = toGeminiPayload(req.body?.messages || [], {
+      maxOutputTokens: Math.max(1, Math.min(maxAllowedOutputTokens, Number.isFinite(maxOutputTokens) ? maxOutputTokens : maxAllowedOutputTokens))
+    });
+
+    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`;
+
+    try {
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-goog-api-key': key,
+          'Referer': process.env.GEMINI_REFERER || DEFAULT_REFERER
+        },
+        body: JSON.stringify(payload)
+      });
+
+      let geminiResponse = response;
+      let effectiveModel = model;
+
+
+      if (!geminiResponse.ok && geminiResponse.status === 404 && fallbackModel) {
+        const fallbackEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(fallbackModel)}:generateContent`;
+        try {
+          const fallbackResponse = await fetch(fallbackEndpoint, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-goog-api-key': key,
+              'Referer': process.env.GEMINI_REFERER || DEFAULT_REFERER
+            },
+            body: JSON.stringify(payload)
+          });
+          if (fallbackResponse.ok) {
+            geminiResponse = fallbackResponse;
+            effectiveModel = fallbackModel;
+          }
+        } catch {
+          // Retain original response if fallback attempt fails
+        }
+      }
+
+      if (!geminiResponse.ok) {
+        const retryAfter = geminiResponse.headers?.get?.('retry-after');
+        if (retryAfter) {
+          res.set('Retry-After', retryAfter);
+        }
+        res.status(geminiResponse.status).json({
+          error: await readError(geminiResponse),
+          retryAfter: retryAfter || null
+        });
+        return;
+      }
+
+      const data = await geminiResponse.json();
+      const content = extractGeminiContent(data);
+      res.status(200).json({
+        content,
+        raw: content,
+        provider: PROVIDER,
+        requestedModel: model,
+        model: effectiveModel,
+        timestamp: Date.now(),
+        usage: data.usageMetadata || null
+      });
+    } catch (error) {
+      console.error('Zero Gemini request failed:', error?.name || 'Error');
+      res.status(502).json({ error: 'Gemini request failed.' });
+    }
+  };
+}

@@ -38,6 +38,9 @@ const configuredEnvValue = (...names) => names
     return normalized && !normalized.startsWith('<required-');
   }) || null;
 
+// Durable, transactional coordinator stores: Firestore on Google Cloud, Durable Object SQLite on Cloudflare.
+const PERSISTENT_STORE_MODES = new Set(['firestore', 'durable-object-sqlite']);
+
 const configuredReleaseValue = (releaseEnv, name) => {
   const normalized = String(releaseEnv?.[name] || '').trim();
   return normalized && !normalized.startsWith('<required-') ? normalized : null;
@@ -124,6 +127,7 @@ export function registerPoolDeploymentRoutes(router, { store, resolveRuntimeBund
     const runtimeBundle = await resolveRuntimeBundleIdentity();
     const metrics = await store.getMetrics();
     const storageMode = store.kind || 'unknown';
+    const persistentStore = PERSISTENT_STORE_MODES.has(storageMode);
     const authVerifierConfigured = typeof verifyAuthToken === 'function';
     const authRequired = authPolicy.required;
     const modelArtifactBaseConfigured = Boolean(configuredEnvValue('REPLOID_POOL_MODEL_BASE_URL', 'POOL_MODEL_BASE_URL'));
@@ -151,7 +155,7 @@ export function registerPoolDeploymentRoutes(router, { store, resolveRuntimeBund
       && typeof store.listPoolEventsForJob === 'function';
     const distributedRateLimitSupported = typeof store.consumeRateLimit === 'function';
     const productionReady = configValidation.ok
-      && (!readinessConfig.requiresFirestore || storageMode === 'firestore')
+      && (!readinessConfig.requiresFirestore || persistentStore)
       && (!readinessConfig.requiresFirebaseAuthVerifier || authVerifierConfigured)
       && (!readinessConfig.requiresAuthForNonDiscoveryRoutes || authRequired)
       && (!readinessConfig.requiresOffloadedModelArtifactBase || modelArtifactBaseConfigured)
@@ -161,9 +165,9 @@ export function registerPoolDeploymentRoutes(router, { store, resolveRuntimeBund
       && (!readinessConfig.requiresPrivateAdapterDeliverySigner || privateAdapterDeliveryConfigured)
       && (!readinessConfig.requiresCommitRevealStore || commitRevealSupported)
       && turn.configured
-      && (storageMode !== 'firestore' || (releaseSourceRevisionValid && releaseImageBound))
-      && (storageMode !== 'firestore' || /^sha256:[a-f0-9]{64}$/.test(runtimeBundle.runtimeBundleHash || ''))
-      && (storageMode !== 'firestore' || distributedRateLimitSupported);
+      && (!persistentStore || (releaseSourceRevisionValid && releaseImageBound))
+      && (!persistentStore || /^sha256:[a-f0-9]{64}$/.test(runtimeBundle.runtimeBundleHash || ''))
+      && (!persistentStore || distributedRateLimitSupported);
     return res.json({
       ok: productionReady,
       configVersion: POOL_CONFIG_VERSION,
@@ -216,7 +220,7 @@ export function registerPoolDeploymentRoutes(router, { store, resolveRuntimeBund
         },
         rateLimit: {
           supported: distributedRateLimitSupported,
-          distributed: storageMode === 'firestore' && distributedRateLimitSupported,
+          distributed: persistentStore && distributedRateLimitSupported,
           address: rateLimits.address,
           principal: rateLimits.principal,
           qualification: rateLimits.qualification,
@@ -231,7 +235,7 @@ export function registerPoolDeploymentRoutes(router, { store, resolveRuntimeBund
         serverAuth: {
           ...effectivePoolAuthPolicy(authOptions, req),
           explicitRequired: requireAuth,
-          requiredByPersistentStore: storageMode === 'firestore'
+          requiredByPersistentStore: persistentStore
         },
         canaryCreation: {
           browserEnabled: allowCanaryCreation,

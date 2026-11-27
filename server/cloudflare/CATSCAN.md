@@ -10,6 +10,7 @@ Owns the Cloudflare adapter over the [shared signaling core](../swarm-protocol.j
 
 ## Scope
 This subtree; browser workspace and Firebase records remain with their existing owners.
+[`api/`](api/index.js) is the `reploid-api` Worker (the Cloud Run backend).
 
 ## Contracts
 Inputs: [bootstrap policy](../../shared/config/swarm-bootstrap.json), Firebase identity tokens, private namespace capabilities.
@@ -24,7 +25,7 @@ Outputs: existing signaling envelopes and expiring RTC configuration.
 - Failure is explicit. Existing Google endpoints remain available for operator rollback, not silent fallback.
 
 ## Acceptance
-- Evidence: [runtime tests](../../tests/cloudflare/swarm.spec.js) cover admission, hibernation state, isolation, expiry, credential validation and failures.
+- Evidence: [runtime tests](../../tests/cloudflare/swarm.spec.js) cover admission, hibernation state, isolation, expiry, credential validation and failures; [API tests](../../tests/cloudflare/api.spec.js) for `api/`.
 - Production qualification separately requires automatic app discovery, forced TURN data channels, persistence and disconnect evidence.
 
 ## Non-goals

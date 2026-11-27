@@ -23,16 +23,16 @@ describe('proxy public surface', () => {
   });
 
   it('never puts the Gemini key in a request URL', () => {
-    for (const file of ['server/proxy-providers.js', 'packages/functions/index.js']) {
+    for (const file of ['server/proxy-providers.js', 'packages/functions/zero-gemini-handler.js']) {
       const source = fs.readFileSync(path.join(repoRoot, file), 'utf8');
       expect(source).not.toMatch(/[?&]key=\$\{/);
     }
     expect(fs.readFileSync(path.join(repoRoot, 'server/proxy-app.js'), 'utf8')).toContain("'x-goog-api-key': GEMINI_API_KEY");
-    expect(fs.readFileSync(path.join(repoRoot, 'packages/functions/index.js'), 'utf8')).toContain("'x-goog-api-key': key");
+    expect(fs.readFileSync(path.join(repoRoot, 'packages/functions/zero-gemini-handler.js'), 'utf8')).toContain("'x-goog-api-key': key");
   });
 
   it('does not return raw exception messages from Gemini 502 paths', () => {
-    for (const file of ['server/proxy-providers.js', 'packages/functions/index.js']) {
+    for (const file of ['server/proxy-providers.js', 'packages/functions/zero-gemini-handler.js']) {
       const source = fs.readFileSync(path.join(repoRoot, file), 'utf8');
       expect(source).not.toMatch(/status\(502\)\.json\(\{\s*error:\s*error/);
     }

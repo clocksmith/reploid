@@ -1,6 +1,7 @@
 /**
  * @fileoverview Managed Zero inference proxy contract.
  */
+import { HOSTED_API_ORIGIN } from '../../shared/config/hosted-api.js';
 
 export const ZERO_GEMINI_FUNCTION_PATH = '/zero/gemini';
 export const ZERO_GEMINI_PROVIDER = 'gemini';
@@ -26,6 +27,7 @@ let zeroAccessPromise = null;
 const trimTrailingSlash = (value) => String(value || '').replace(/\/$/, '');
 
 export const getZeroGeminiFunctionUrl = () => {
+  if (HOSTED_API_ORIGIN) return `${HOSTED_API_ORIGIN}${ZERO_GEMINI_FUNCTION_PATH}`;
   if (typeof window !== 'undefined' && window.location?.origin) {
     return `${trimTrailingSlash(window.location.origin)}${ZERO_GEMINI_FUNCTION_PATH}`;
   }

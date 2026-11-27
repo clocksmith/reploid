@@ -13,6 +13,7 @@ import { createChatSession, openCanonicalChatSession, LOCAL_HISTORY_IDENTITY, SE
 import { createWebSearch } from './web-search.js';
 import { createContributorSearch } from './contributor-search.js';
 import { createServerSearch } from './server-search.js';
+import { HOSTED_API_ORIGIN } from '../../../shared/config/hosted-api.js';
 import { getPoolAuthToken } from '../../../shared/pool/identity.js';
 import { createDeviceSearch } from './device-search.js';
 import { acquireChatHistoryOwner, refusedChatHistory } from './chat-history.js';
@@ -65,7 +66,7 @@ async function openOrderedRequesterChat({ chatOptions, requesterIdentity, ports 
 export function createProductSession({ storage, networkOptions, swarmNetworkOptions, operationNetwork = null,
   canonical = null, ordered = null, eventTarget = window, onChanges = () => {}, onDocuments = () => {}, onSharing = () => {},
   historyPorts = {}, earning = null, participantIdentity = null, webAccess = null, webContribution = null, getCircleOwnerRequest,
-  search = createServerSearch({ authorization: getPoolAuthToken }) }) {
+  search = createServerSearch({ baseUrl: HOSTED_API_ORIGIN, authorization: getPoolAuthToken }) }) {
   let notifySearch = () => {};
   let training, runtime, work, chat, modelCache, documents, operationSharing, closed = false, closing, ownsNetwork = false;
   const service = createReploidDopplerRuntimeService();

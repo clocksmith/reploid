@@ -1,6 +1,6 @@
 import { createExternalBrainProvider } from '../providers/external-brain.js';
 import { getCurrentReploidInstanceId } from '../../shared/instance.js';
-import { getZeroAccessHeaders, ZERO_GEMINI_FUNCTION_PATH, ZERO_GEMINI_PROVIDER,
+import { getZeroAccessHeaders, getZeroGeminiFunctionUrl, ZERO_GEMINI_FUNCTION_PATH, ZERO_GEMINI_PROVIDER,
   ZERO_GEMINI_MODEL, ZERO_GEMINI_SERVER_TYPE, ZERO_GEMINI_AGENT_THROTTLE } from '../config/zero-inference.js';
 
 const MAX_BODY = 1024 * 1024;
@@ -124,7 +124,7 @@ export function createZeroProvider({ fetch: fetchRequest = (...args) => globalTh
         }));
         return external.chat(wire, config, requestId, { signal });
       }
-      const endpoints = [ZERO_GEMINI_FUNCTION_PATH, `${getLocation()?.origin}${ZERO_GEMINI_FUNCTION_PATH}`];
+      const endpoints = [ZERO_GEMINI_FUNCTION_PATH, `${getLocation()?.origin}${ZERO_GEMINI_FUNCTION_PATH}`, getZeroGeminiFunctionUrl()];
       if (config.provider !== ZERO_GEMINI_PROVIDER || [config.id, config.model].some(model => model !== undefined && model !== ZERO_GEMINI_MODEL)
         || [config.url, config.endpoint].some(url => url !== undefined && !endpoints.includes(url))
         || (config.serverType !== undefined && config.serverType !== ZERO_GEMINI_SERVER_TYPE)

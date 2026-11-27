@@ -11,8 +11,9 @@ import {
 } from './inference-receipt.js';
 import { getPoolAuthToken } from './identity.js';
 import swarmPolicy from '../config/swarm-bootstrap.json' with { type: 'json' };
+import { hostedApiUrl } from '../config/hosted-api.js';
 
-const DEFAULT_BASE_URL = '/pool';
+const DEFAULT_BASE_URL = hostedApiUrl('/pool');
 const POOL_CLIENT_ID_STORAGE_KEY = 'reploid.pool.clientId.v1';
 let fallbackClientId = null;
 

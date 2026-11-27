@@ -1,0 +1,11 @@
+{
+  "schema": "reploid.hosted-api/v1",
+  "apiOrigin": "",
+  "cloudflareApiOrigin": "https://reploid-api.reploid.workers.dev",
+  "allowLoopbackOrigins": true,
+  "allowedOrigins": [
+    "https://replo.id",
+    "https://reploid.web.app",
+    "https://reploid.firebaseapp.com"
+  ]
+}

@@ -1,4 +1,5 @@
 import { createHmac } from 'node:crypto';
+import cloudflareTurnPolicy from '../cloudflare/policy.json' with { type: 'json' };
 
 export const TURN_CREDENTIAL_SCHEMA = 'reploid.pool.turn_credentials/v1';
 export const DEFAULT_TURN_CREDENTIAL_TTL_SECONDS = 600;
@@ -42,6 +43,11 @@ export const getTurnServiceConfiguration = (env = process.env) => {
 };
 
 export const getPublicTurnServiceStatus = (env = process.env) => {
+  // On Cloudflare, /pool/rtc-config relays the reploid-swarm issuer (Cloudflare Realtime TURN).
+  if (env.REPLOID_TURN_PROVIDER === 'cloudflare-realtime') {
+    return Object.freeze({ configured: true, credentialMode: 'cloudflare_realtime_ephemeral', ttlSeconds: cloudflareTurnPolicy.turnTtlSeconds,
+      transports: ['udp:3478', 'tcp:3478', 'tcp:443', 'tls:5349', 'tls:443'] });
+  }
   const configuration = getTurnServiceConfiguration(env);
   return Object.freeze({
     configured: configuration.configured,

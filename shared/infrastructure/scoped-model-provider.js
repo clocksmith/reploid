@@ -1,4 +1,5 @@
 /** Shared scoped Doppler/provider bridge; hosts supply catalog and execution policy. */
+import { hostedApiUrl } from '../config/hosted-api.js';
 import { createGenerationContextCache } from '../vendor/reploid/mesh/generation-context-cache.js';
 import { REVERSE_PROMPT_GENERATION, REVERSE_PROMPT_GENERATION_HASH, hasReversePromptTemplate } from './reverse-prompt-profile.js';
 import { DOPPLER_PACKAGE_VERSION } from '../config/doppler-local-models.js';
@@ -265,7 +266,7 @@ export async function openScopedModelProvider({ model, service, scope, signal, c
           && !!headers.get('X-Firebase-AppCheck')?.trim(), 'Firebase Auth and App Check credentials are required');
         headers.set('Content-Type', 'application/json');
         combined.throwIfAborted();
-        const response = await fetchImpl('/zero/gemini', {
+        const response = await fetchImpl(hostedApiUrl('/zero/gemini'), {
           method: 'POST', headers,
           body: JSON.stringify({ model: model.id, provider: model.provider, messages,
             allowedFallbackModels, maxOutputTokens: requestGeneration.maxTokens }),

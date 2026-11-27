@@ -1,0 +1,38 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  // reploid-api: the hosted backend (Cloud Run reploid-pool + the zeroGemini Function) on Cloudflare.
+  // Its own Worker, separate from reploid-swarm (signaling, TURN), reploid-fleet-api and reploid-ledger.
+  "name": "reploid-api",
+  "account_id": "a83dfba998fd42d3dab5dc607e7c6b60",
+  "main": "../../server/cloudflare/api/index.js",
+  "compatibility_date": "2026-09-26",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": true,
+  "preview_urls": false,
+  // release-identity.js resolves its repository root from import.meta.url at load; the bundle has none.
+  "define": { "import.meta.url": "\"file:///reploid/server/cloudflare/api/index.js\"" },
+  // The JSON routes accept only UTF-8 bodies; this replaces iconv-lite's Node stream wrappers.
+  "alias": { "iconv-lite": "../../server/cloudflare/api/iconv-lite-utf8.js" },
+  "durable_objects": { "bindings": [{ "name": "COORDINATOR", "class_name": "ReploidCoordinator" }] },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["ReploidCoordinator"] }],
+  // The one TURN credential issuer stays reploid-swarm.
+  "services": [{ "binding": "SWARM", "service": "reploid-swarm" }],
+  "vars": {
+    "NODE_ENV": "production",
+    "FIREBASE_PROJECT_ID": "reploid",
+    "FIREBASE_PROJECT_NUMBER": "506730551098",
+    "POOL_JSON_LIMIT": "512kb",
+    "POOL_RESEARCH_JSON_LIMIT": "1mb",
+    "REPLOID_POOL_MODEL_BASE_URL": "https://storage.googleapis.com/reploid-model-artifacts/models",
+    "REPLOID_DOPPLER_MODULE_URL": "/vendor/doppler/0.1.7/src/index.js",
+    "REPLOID_DOPPLER_STORAGE_MODULE_URL": "/vendor/doppler/0.1.7/src/tooling-exports/storage.js",
+    "REPLOID_DOPPLER_KERNEL_BASE_URL": "/vendor/doppler/0.1.7/src/gpu/kernels",
+    "REPLOID_TURN_PROVIDER": "cloudflare-realtime"
+  },
+  // Secrets (wrangler secret put): GEMINI_API_KEY, MIGRATION_TOKEN (only during the copy),
+  // REPLOID_CHANGE_CONTROL_TOKENS / REPLOID_GITHUB_* only if Change Control is turned on.
+  "observability": {
+    "enabled": true,
+    "logs": { "enabled": true, "invocation_logs": false, "head_sampling_rate": 1 }
+  }
+}

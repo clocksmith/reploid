@@ -2,14 +2,9 @@
  * @fileoverview Server adapter for the canonical Poolday configuration.
  */
 
-import fs from 'fs';
-
 import { createPoolConfigContract } from '../../shared/pool/config-contract.js';
 import { hashJson } from './hash.js';
-import { resolveServedFile } from '../browser-roots.js';
-
-const configPath = resolveServedFile('pool/pool-config.json');
-const poolConfig = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+import poolConfig from '../../shared/pool/pool-config.json' with { type: 'json' };
 const contract = createPoolConfigContract(poolConfig, { hashJson });
 
 

@@ -21,6 +21,8 @@
     "prepare:hosting": "npm run verify:browser-bundle:local && npm run package:hosting",
     "verify:swarm-bootstrap": "node --test scripts/repair-checks/swarm-join.test.js",
     "verify:swarm-cloudflare": "vitest run --config tests/cloudflare/vitest.config.js",
+    "verify:api-cloudflare": "vitest run --config tests/cloudflare/vitest.api.config.js",
+    "build:api-cloudflare": "wrangler deploy --config deploy/cloudflare/wrangler.api.jsonc --dry-run",
     "build:swarm-cloudflare": "wrangler deploy --config deploy/cloudflare/wrangler.jsonc --dry-run",
     "deploy:swarm-cloudflare": "wrangler deploy --config deploy/cloudflare/wrangler.jsonc",
     "smoke:swarm-bootstrap": "node scripts/verify-swarm-runtime.js",
