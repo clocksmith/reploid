@@ -26,8 +26,8 @@ const workerFiles = ['shared/core/verification-worker.js', 'self/sw.js',
 // These Node harnesses execute serialized callbacks inside Playwright pages.
 const browserHarnesses = ['evaluate-document-answers', 'pool-actual-browser-smoke',
   'pool-browser-smoke', 'verify-cloudflare-swarm', 'verify-deploy-surface',
-  'verify-document-search', 'verify-gpu-startup', 'verify-peer-pack-execution',
-  'verify-poolday-forecast-sdk', 'verify-swarm-runtime',
+  'verify-gpu-startup', 'verify-peer-pack-execution',
+  'verify-swarm-runtime',
   'verify-visual-change-passport-dogfood'].map(name => `scripts/${name}.js`);
 const cleanedModules = [
   'apps/poolday/host/private-computers.js',
