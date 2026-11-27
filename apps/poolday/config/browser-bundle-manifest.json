@@ -1426,7 +1426,7 @@
     {
       "path": "config/module-inventory.json",
       "byteLength": 690632,
-      "sha256": "sha256:16fa4974472c4988d5911a69cc4668d79b6cbcdc6de4d788206de51ac56aeff8"
+      "sha256": "sha256:d2362c73252f0a569919f0721b11e44908191c26d8363689e7b0f50ae9926c78"
     },
     {
       "path": "config/module-registry.json",
@@ -4205,8 +4205,8 @@
     },
     {
       "path": "ui/react/app.js",
-      "byteLength": 3065395,
-      "sha256": "sha256:8a2557c7c65d1cd88e155e5606b0021a3f7c5c6885e9f365914367176f59eb5b"
+      "byteLength": 3065657,
+      "sha256": "sha256:e9f370996a459f0848c11804fed395ea6aa2acf2da4cfcece3334107c2a67359"
     },
     {
       "path": "ui/react/design.js",
@@ -12305,8 +12305,8 @@
     },
     {
       "path": "vendor/reploid/mesh/peer-generation.js",
-      "byteLength": 111810,
-      "sha256": "sha256:11370a059a3223ca14c91dafc5fcf86d1ac9e79eb37e67e6dfd670e78388a451"
+      "byteLength": 112908,
+      "sha256": "sha256:2d28fd811ddc0e364876f537bd1ae0bfd040f53eb8c7c42b739f82b096f3c8d6"
     },
     {
       "path": "vendor/reploid/mesh/peer-identity.js",
@@ -12376,7 +12376,7 @@
     {
       "path": "vendor/reploid/package-assets.json",
       "byteLength": 66157,
-      "sha256": "sha256:643d32dc3caff8ebacdf1153edc1eb4f78b911834b1860bb87f895f75381f793"
+      "sha256": "sha256:31eb0061ab1ac546e034e98e22c783aff23c7176cdfca6b480146f6a0a1af486"
     },
     {
       "path": "vendor/reploid/plugins/index.js",
@@ -12669,5 +12669,5 @@
       "sha256": "sha256:abb6c18f6167d6afc8ee1b3adfcbbb89c0e93fb4fc4e98d7a12250f78aab206a"
     }
   ],
-  "bundleHash": "sha256:b8be7d638bec75b3fbd06d9e6ae73bf162e898df88d71b08853ae011cc6f89c4"
+  "bundleHash": "sha256:7d4e5ff9a34a75d5299765205aee4b0859d0cd2cccfb97dfb3ea4d907442f92b"
 }

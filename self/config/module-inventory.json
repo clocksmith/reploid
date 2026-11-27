@@ -5183,7 +5183,7 @@
     {
       "path": "ui/react/app.js",
       "owner": "ui",
-      "sha256": "sha256:8a2557c7c65d1cd88e155e5606b0021a3f7c5c6885e9f365914367176f59eb5b",
+      "sha256": "sha256:e9f370996a459f0848c11804fed395ea6aa2acf2da4cfcece3334107c2a67359",
       "imports": []
     },
     {
@@ -19496,7 +19496,7 @@
     {
       "path": "vendor/reploid/mesh/peer-generation.js",
       "owner": "vendor",
-      "sha256": "sha256:11370a059a3223ca14c91dafc5fcf86d1ac9e79eb37e67e6dfd670e78388a451",
+      "sha256": "sha256:2d28fd811ddc0e364876f537bd1ae0bfd040f53eb8c7c42b739f82b096f3c8d6",
       "imports": [
         "../artifacts/generation-terminal.js",
         "../artifacts/receipt.js",
