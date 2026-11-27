@@ -377,11 +377,20 @@
       "imports": []
     },
     {
+      "path": "config/lab-upgrade-levels.js",
+      "owner": "config",
+      "sha256": "sha256:33804ff7f699b19ee0c168e48489cb14444197c18a389deac15b8a81065781df",
+      "imports": [
+        "../instance.js"
+      ]
+    },
+    {
       "path": "config/lab-upgrades.js",
       "owner": "config",
-      "sha256": "sha256:3e1a409d4c0257a9da59f55aa9dab9d2f8bdf2b983c5348b50fa8cf51a8e0003",
+      "sha256": "sha256:745e02fb560697665f3ac1a9226c8a8b54a22779c71ee39d5f64f84d720dff70",
       "imports": [
         "../instance.js",
+        "./lab-upgrade-levels.js",
         "./self-source-manifest.json",
         "./tool-surfaces.js"
       ]
@@ -2841,6 +2850,16 @@
       ]
     },
     {
+      "path": "self/host/boot-x.js",
+      "owner": "self",
+      "sha256": "sha256:e26ff1ba8860b9bd585124c94ff287db98ee27dcd012c4b82cfee15aabd94589",
+      "imports": [
+        "../config/lab-upgrade-levels.js",
+        "../instance.js",
+        "../zero/boot.js"
+      ]
+    },
+    {
       "path": "self/host/bridge-files.js",
       "owner": "self",
       "sha256": "sha256:95b8b0bcf72d3de9f10f8e873593e722797851ddee524b6e54c33dfd8dad3e4b",
@@ -3096,7 +3115,7 @@
     {
       "path": "self/host/decisions/conversation-controller.js",
       "owner": "self",
-      "sha256": "sha256:af8e02804ee0fd4ec39ee3b435fb57b2f2d5d25e1990ddf39ecdc13a1de20d28",
+      "sha256": "sha256:8cfb64bb331a34f08a613e564a52a4ccf0cc67ce4f5450e84d821aa8a0966440",
       "imports": [
         "../../config/chat-prompts.json",
         "../../config/work-profile.json",
@@ -3771,7 +3790,7 @@
     {
       "path": "self/host/sw-module-loader.js",
       "owner": "self",
-      "sha256": "sha256:861a66e7b95d9ad50d848fbf0579f1983546b037c440bac1d5460cc3c2b39ef3",
+      "sha256": "sha256:a6e5a921cec560f2cf67998debd2d74dba1b5e0c21e05c916d2e952b21cee534",
       "imports": []
     },
     {
@@ -5184,13 +5203,13 @@
     {
       "path": "ui/react/app.js",
       "owner": "ui",
-      "sha256": "sha256:3d04e71b85d7a96eb0143073996547476a2b56e35eb3cb3c3ef10088444d30a0",
+      "sha256": "sha256:b628a9de31f448deb66943ddc1a24004dfb19e1d61c732e5bc18c3a68b9ace7d",
       "imports": []
     },
     {
       "path": "ui/react/design.js",
       "owner": "ui",
-      "sha256": "sha256:14d4179e5cd65f2a9009017de30449c0f91ce4347e649cf43a22e539e3274f7c",
+      "sha256": "sha256:0a373ef33060b3650380492cd7163f8e1c657b2dbf331c44a66202898f4fab1b",
       "imports": []
     },
     {
@@ -19996,7 +20015,7 @@
     {
       "path": "zero/boot.js",
       "owner": "zero",
-      "sha256": "sha256:506ecd64fb3f02aa82090479d8dce821861b41bb3236f91310054725548b381a",
+      "sha256": "sha256:dbe057f3a302df6983016f0df1c4e85dc648e7d2363a809dc43d7bca6b824ea1",
       "imports": [
         "../instance.js",
         "./image.js",
@@ -20012,7 +20031,7 @@
     {
       "path": "zero/main.js",
       "owner": "zero",
-      "sha256": "sha256:f44a14d053a60eac89355145e6e57f5b95b9534094725e0cd5d4e33863efd0bc",
+      "sha256": "sha256:de716b2578edd44479f3fc9191fbed281b9e4117a2aac7a312d27769b439a629",
       "imports": [
         "./image.js",
         "./provider.js",
@@ -20040,7 +20059,7 @@
     {
       "path": "zero/tools.js",
       "owner": "zero",
-      "sha256": "sha256:bac08692c575e878a3611b81476c3d9f1e0ded0fb0788531b4b8f97aabf14bb5",
+      "sha256": "sha256:81377bb8ac9a61021279a4f6c8d83f07957328ec8863e159fb1946bcd895e946",
       "imports": [
         "../config/vfs-policy.js",
         "../core/create-tool.js",
@@ -20058,7 +20077,7 @@
     {
       "path": "zero/ui.js",
       "owner": "zero",
-      "sha256": "sha256:abb6c18f6167d6afc8ee1b3adfcbbb89c0e93fb4fc4e98d7a12250f78aab206a",
+      "sha256": "sha256:f17c57d2f5d32a7d9f5517b9ad4937c51e3923fac2e2a03528fdb5f5be6b582b",
       "imports": []
     }
   ]

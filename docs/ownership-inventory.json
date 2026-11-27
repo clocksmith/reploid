@@ -14,11 +14,12 @@
   ],
   "selfEntryPoints": [
     "zero/boot.js",
+    "host/boot-x.js",
     "kernel/boot.js"
   ],
   "counts": {
     "apps/poolday": 357,
-    "self": 458,
+    "self": 460,
     "shared": 2541
   },
   "pendingMoves": 0,
@@ -1656,6 +1657,12 @@
       "basis": "Reached from product and substrate entries."
     },
     {
+      "served": "config/lab-upgrade-levels.js",
+      "source": "self/config/lab-upgrade-levels.js",
+      "owner": "self",
+      "basis": "Reached only from substrate entries."
+    },
+    {
       "served": "config/lab-upgrades.js",
       "source": "self/config/lab-upgrades.js",
       "owner": "self",
@@ -2254,6 +2261,12 @@
       "source": "apps/poolday/host/adapter-evidence.js",
       "owner": "apps/poolday",
       "basis": "Reached only from product entries."
+    },
+    {
+      "served": "host/boot-x.js",
+      "source": "self/host/boot-x.js",
+      "owner": "self",
+      "basis": "Reached only from substrate entries."
     },
     {
       "served": "host/bridge-files.js",

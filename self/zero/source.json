@@ -109,8 +109,8 @@
     },
     {
       "path": "host/sw-module-loader.js",
-      "bytes": 22584,
-      "sha256": "861a66e7b95d9ad50d848fbf0579f1983546b037c440bac1d5460cc3c2b39ef3"
+      "bytes": 22640,
+      "sha256": "a6e5a921cec560f2cf67998debd2d74dba1b5e0c21e05c916d2e952b21cee534"
     },
     {
       "path": "instance.js",
@@ -204,8 +204,8 @@
     },
     {
       "path": "zero/boot.js",
-      "bytes": 4360,
-      "sha256": "506ecd64fb3f02aa82090479d8dce821861b41bb3236f91310054725548b381a"
+      "bytes": 4630,
+      "sha256": "dbe057f3a302df6983016f0df1c4e85dc648e7d2363a809dc43d7bca6b824ea1"
     },
     {
       "path": "zero/config.json",
@@ -224,8 +224,8 @@
     },
     {
       "path": "zero/main.js",
-      "bytes": 1490,
-      "sha256": "f44a14d053a60eac89355145e6e57f5b95b9534094725e0cd5d4e33863efd0bc"
+      "bytes": 1615,
+      "sha256": "de716b2578edd44479f3fc9191fbed281b9e4117a2aac7a312d27769b439a629"
     },
     {
       "path": "zero/provider.js",
@@ -239,18 +239,18 @@
     },
     {
       "path": "zero/style.css",
-      "bytes": 2291,
-      "sha256": "fbcdd9eda47606a641bc92a71abcc570c79893cb2170e73a4639166c3ebc8ed1"
+      "bytes": 2480,
+      "sha256": "28aed20ccf0d1f6834e095d67b2c3f2bb5c12cf78c05b8c2abba78f93e5241b1"
     },
     {
       "path": "zero/tools.js",
-      "bytes": 14293,
-      "sha256": "bac08692c575e878a3611b81476c3d9f1e0ded0fb0788531b4b8f97aabf14bb5"
+      "bytes": 14393,
+      "sha256": "81377bb8ac9a61021279a4f6c8d83f07957328ec8863e159fb1946bcd895e946"
     },
     {
       "path": "zero/ui.js",
-      "bytes": 5125,
-      "sha256": "abb6c18f6167d6afc8ee1b3adfcbbb89c0e93fb4fc4e98d7a12250f78aab206a"
+      "bytes": 5307,
+      "sha256": "f17c57d2f5d32a7d9f5517b9ad4937c51e3923fac2e2a03528fdb5f5be6b582b"
     }
   ],
   "boot": {

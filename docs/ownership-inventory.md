@@ -11,7 +11,7 @@ depends on its owner: `server/browser-tree.js` composes `self/`, `shared/` and
 
 Ownership follows references: imports, HTML and CSS references, and absolute served URLs in code
 and JSON. A file reached from the product entries and the substrate entries is shared. Product
-traversal stops at the documented substrate entry points (`zero/boot.js`, `kernel/boot.js`).
+traversal stops at the documented substrate entry points (`zero/boot.js`, `host/boot-x.js`, `kernel/boot.js`).
 Files no entry reaches are assigned by the rules in the generator, with the reason shown.
 
 Product entries: `index.html`, `pool-entry.html`, `design.html`, `document-study.html`, `repair-smoke.html`.
@@ -19,9 +19,9 @@ Product entries: `index.html`, `pool-entry.html`, `design.html`, `document-study
 | Owner | Files |
 | --- | ---: |
 | apps/poolday | 357 |
-| self | 458 |
+| self | 460 |
 | shared | 2541 |
-| total | 3356 |
+| total | 3358 |
 
 Every file lives in its owner's root.
 
@@ -309,6 +309,7 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `config/hosted-api.js` | `shared/config/hosted-api.js` | shared | Reached from native hosts and browser entries. |
 | `config/hosted-api.json` | `shared/config/hosted-api.json` | shared | Reached from native hosts and browser entries. |
 | `config/immutability.js` | `shared/config/immutability.js` | shared | Reached from product and substrate entries. |
+| `config/lab-upgrade-levels.js` | `self/config/lab-upgrade-levels.js` | self | Reached only from substrate entries. |
 | `config/lab-upgrades.js` | `self/config/lab-upgrades.js` | self | Reached only from substrate entries. |
 | `config/lora-adapters/doppler-wgsl-qwen35-9b-v12-external20-seed11.json` | `self/config/lora-adapters/doppler-wgsl-qwen35-9b-v12-external20-seed11.json` | self | Adapter manifests the substrate neural compiler reads from /config/lora-adapters. |
 | `config/lora-adapters/doppler-wgsl-qwen35-9b-v12-external20-seed29.json` | `self/config/lora-adapters/doppler-wgsl-qwen35-9b-v12-external20-seed29.json` | self | Adapter manifests the substrate neural compiler reads from /config/lora-adapters. |
@@ -409,6 +410,7 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `experimental/openclaw-audit/self-audit.js` | `self/experimental/openclaw-audit/self-audit.js` | self | Reached only from substrate entries. |
 | `favicon.svg` | `shared/favicon.svg` | shared | Reached from product and substrate entries. |
 | `host/adapter-evidence.js` | `apps/poolday/host/adapter-evidence.js` | apps/poolday | Reached only from product entries. |
+| `host/boot-x.js` | `self/host/boot-x.js` | self | Reached only from substrate entries. |
 | `host/bridge-files.js` | `self/host/bridge-files.js` | self | Reached only from substrate entries. |
 | `host/chat-context.js` | `apps/poolday/host/chat-context.js` | apps/poolday | Reached only from product entries. |
 | `host/chat-drafts.js` | `apps/poolday/host/chat-drafts.js` | apps/poolday | Reached only from product entries. |
