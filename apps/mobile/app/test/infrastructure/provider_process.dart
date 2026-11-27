@@ -11,7 +11,19 @@ const providerScript =
     '$repositoryRoot/tests/fixtures/requester-conformance/stdio-provider.js';
 
 /// Why the web client's provider code cannot run here, or null when it can.
+///
+/// With REPLOID_MOBILE_REQUIRE_PROVIDER=1 (set in CI) a missing provider is a
+/// failure instead of a skip, so the parity tests cannot pass vacuously.
 String? providerUnavailable() {
+  final reason = _providerUnavailable();
+  if (reason != null &&
+      Platform.environment['REPLOID_MOBILE_REQUIRE_PROVIDER'] == '1') {
+    throw StateError('The provider tests are required but $reason.');
+  }
+  return reason;
+}
+
+String? _providerUnavailable() {
   if (!File(providerScript).existsSync()) {
     return 'the provider fixture is missing';
   }

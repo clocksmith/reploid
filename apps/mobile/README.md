@@ -103,17 +103,19 @@ After changing the contract or the model catalog, run
 
 ### CI
 
-Reploid's CI (`.github/workflows/test.yml`) installs no Flutter, so it does
-not run these checks; run `bash tool/check.sh` (and `tool/e2e_macos.sh` for a
-change to the transport or the request flow) before pushing a change under
-`apps/mobile/`. CI covers one shared rule: `npm run lint` includes `verify:js-only`, which
-allows Dart, pub manifests and Flutter's generated runner files only in this
-directory. Run `npm run verify:requester-contract` at the repository root
-after a change to the contract, its vectors or the web modules they come
-from; it is not in CI either. A CI job
-for `tool/check.sh` would be cheap (a pinned Flutter SDK on a Linux runner,
-free on this public repository, a few minutes with the pub cache); the
-macOS end-to-end run needs a macOS runner and is better left local.
+The `mobile` job in Reploid's CI (`.github/workflows/test.yml`) runs
+`bash tool/check.sh` on Linux with the Flutter version in `.flutter-version`
+on every push to `main` and every pull request. It installs the repository's
+Node modules first and sets `REPLOID_MOBILE_REQUIRE_PROVIDER=1`, so the tests
+that run the web client's provider code fail instead of skipping when Node or
+`node_modules` is missing. It has no path filter: those tests and the
+generated contract and token checks read sources outside this directory. It
+builds no platform binary; run `tool/e2e_macos.sh` locally for a change to the
+transport or the request flow. `npm run lint` also includes `verify:js-only`,
+which allows Dart, pub manifests and Flutter's generated runner files only in
+this directory. Run `npm run verify:requester-contract` at the repository root
+after a change to the contract, its vectors or the web modules they come from;
+it is not in CI.
 
 ## Releases
 

@@ -108,3 +108,36 @@ jobs:
       - run: npm run verify:poolday-ui
       - run: npm run verify:pool:css
       - run: npm run test:poolday-ui
+
+  mobile:
+    # apps/mobile/tool/check.sh: format, analysis, boundaries, the generated contract and design tokens
+    # against their JavaScript/CSS sources, the four test packages and an independent consumer.
+    # No path filter: the app's parity tests run the web client's own provider code and the shared
+    # conformance vectors, so a change almost anywhere in the requester path can break them.
+    # No platform builds.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 1
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22.x
+          cache: npm
+      # The parity tests start tests/fixtures/requester-conformance/stdio-provider.js, which imports
+      # the web client's modules.
+      - run: npm ci --omit=optional --no-audit --no-fund
+      - name: Read the pinned Flutter version
+        id: flutter-pin
+        run: echo "version=$(tr -d '[:space:]' < apps/mobile/.flutter-version)" >> "$GITHUB_OUTPUT"
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: ${{ steps.flutter-pin.outputs.version }}
+          cache: true
+      - name: Check the Flutter app
+        env:
+          # A missing Node provider fails the parity tests instead of skipping them.
+          REPLOID_MOBILE_REQUIRE_PROVIDER: '1'
+        run: bash apps/mobile/tool/check.sh
