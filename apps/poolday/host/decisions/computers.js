@@ -16,7 +16,7 @@ import { hasBrowserModelOrigin, modelVariantLabel } from '../../ui/components/mo
 import { sameModelVariant } from '../../ui/pool-home/model-providers.js';
 import { projectProviderEligibility, reachablePeerIds } from '../chat-view.js';
 import { modelKey } from './model-state.js';
-import { computerRecord, inferenceOffer, isConnectionId, isDigest, isParticipantId, isRecordId } from '../computer-records.js';
+import { computerRecord, inferenceOffer, isConnectionId, isDigest, isParticipantId, isRecordId, offerAvailability } from '../computer-records.js';
 
 export { creditAccounts, accountText, creditActivity } from '../../ui/pool-home/service-credit-text.js';
 
@@ -205,11 +205,13 @@ function rosterInferenceOffer(peer) {
     stageIndex: stage && Number.isSafeInteger(peer.partitionIndex) && peer.partitionIndex >= 0 ? peer.partitionIndex : null });
 }
 const bestOffer = offers => offers.filter(Boolean).sort((a, b) => READINESS_RANK.indexOf(a.readiness) - READINESS_RANK.indexOf(b.readiness))[0] || null;
-/** The compute word of an inference offer. A busy or failed offer reads as none, as it did before these records. */
-const offerComputeText = offer => ({ ready: 'Ready', preparing: 'Preparing' })[offer?.readiness] || '';
-// OWNER: a connection still in its transport 'preparing' phase has advertised nothing, so it offers nothing, but the
-// roster has always shown it as "Compute · Preparing". Kept unchanged until the owner decides.
-const computeText = (peer, offer) => offerComputeText(offer) || (!peer.executionType && peer.phase === 'preparing' ? 'Preparing' : '');
+/**
+ * The compute word of an inference offer. A connection that has advertised no offer has none, so a connection still
+ * in its transport 'preparing' phase offers nothing (owner rule): only an advertised offer reads as "Preparing".
+ * OWNER: a busy or failed offer still offers compute (the row's `inference.offered`) with no capacity, but its word
+ * stays empty ("Nothing"), as it read before these records; the wording is the owner's to change.
+ */
+const computeText = offer => ({ ready: 'Ready', preparing: 'Preparing' })[offer?.readiness] || '';
 
 /** The roster rows, one per computer, filtered to one model's serving computers when a filter is set (network-controls.js renderPeerRows). */
 function peerRows(state, filter, names, selected) {
@@ -269,7 +271,9 @@ function peerRows(state, filter, names, selected) {
       eligibility: chosen.eligibility,
       selection: chosen.facts,
       computer: record,
-      offers: offerText({ compute: members.map(member => computeText(member, inference.get(member.id))).sort((a, b) => (b === 'Ready') - (a === 'Ready'))[0] || '',
+      // Two facts, kept apart: whether this computer offers compute now, and whether it has capacity for new work.
+      inference: offerAvailability({ offers }, 'inference', Date.now()),
+      offers: offerText({ compute: members.map(member => computeText(inference.get(member.id))).sort((a, b) => (b === 'Ready') - (a === 'Ready'))[0] || '',
         files: offers.some(offer => offer.kind === 'weight-supply') ? 'Sharing' : '' }),
       name: same.length > 1 ? `${label} · connection ${own.id.slice(-suffix)}` : label,
       status: peer.status,
@@ -302,7 +306,7 @@ function peerRows(state, filter, names, selected) {
         ['Consumed receipts', count(contribution?.consumed)]
       ],
       ids: [...members.map(member => [members.length === 1 ? 'Connection ID'
-        : 'Connection ID · ' + (computeText(member, inference.get(member.id)) || member.modelId ? 'compute' : fileOffers.has(member.id) ? 'model files' : 'requests'), member.id]),
+        : 'Connection ID · ' + (computeText(inference.get(member.id)) || member.modelId ? 'compute' : fileOffers.has(member.id) ? 'model files' : 'requests'), member.id]),
         ['Attempt ID', peer.attemptId || 'Not reported'], ['Model ID', peer.modelIdentity || 'Not reported']]
     };
   });
@@ -332,21 +336,26 @@ function deviceView(state, network) {
   const summary = [];
   if (network.sharing || network.stopping) summary.push((sharedName || 'Selected model') + (contribution.partition ? ' · partition compute' : ' · compute'));
   if (sharingFiles) summary.push((network.files?.model?.name || network.files?.model?.id || 'Model files') + ' · files');
-  const computeOn = network.computeEnabled ?? !!network.sharing;
+  // This device's offers are the records work-swarm.js reports (getState().localOffers, reploid.offer/1), so the pane and
+  // the offers cannot disagree: a switch is on while its offer stands unpaused, and pausing one offer leaves the other
+  // and consuming untouched. Connection assistance is its own record (getState().connectionAssistance).
+  const own = kind => (Array.isArray(network.localOffers) ? network.localOffers : []).find(offer => offer?.kind === kind) || null;
+  const computeOffer = own('inference'), filesOffer = own('weight-supply');
+  const computeOn = !!computeOffer && !computeOffer.paused;
   const computeLabel = network.stopping ? 'Stopping' : cleanupPending ? 'Cleanup not confirmed' : network.sharing
     ? (network.contribution?.phase === 'loading' ? preparationStatus(network.contribution.progress).status
       : ({ ready: 'Ready', executing: 'Working', failed: 'Failed', waiting: 'Waiting for another contributor' }[network.contribution?.phase] || 'Sharing'))
-    : network.computeEnabled ? 'On · waiting for a downloaded model' : 'Not sharing';
-  // The same switch Settings shows: one swarm state (filesEnabled), read and written from both places.
-  const filesOn = !!(network.files?.enabled ?? sharingFiles), filesLabel = fileSharingStatus(network);
+    : computeOn ? 'On · waiting for a downloaded model' : 'Not sharing';
+  // The same switch Settings shows: the weight-supply offer stands while filesEnabled is on (work-swarm.js).
+  const filesOn = !!filesOffer && !filesOffer.paused, filesLabel = fileSharingStatus(network);
   return {
     summary: cleanupPending ? '· Cleanup not confirmed'
       : network.stopping ? '· Stopping' : network.contribution?.phase === 'loading' ? '· ' + preparationStatus(network.contribution.progress).status
         : network.contribution?.phase === 'executing' ? '· Working' : network.sharing ? '· ' + (network.contribution?.phase === 'ready' ? 'Ready' : 'Sharing')
-          : network.computeEnabled ? '· Enabled · not serving'
-            // Files alone are an offer too; "Paused" only after this browser chose to contribute and stopped.
-            : sharingFiles ? '· Sharing' : network.files?.enabled ? '· Files on · not sharing'
-              : network.contributionChosen ? '· Paused' : '· Not sharing',
+          : computeOn ? '· Enabled · not serving'
+            // Files alone are an offer too; "Paused" only once an offer this browser chose stands paused.
+            : sharingFiles ? '· Sharing' : filesOn ? '· Files on · not sharing'
+              : computeOffer?.paused || filesOffer?.paused ? '· Paused' : '· Not sharing',
     localComputer: [id ? computerLabel(state, id) : null, hardwareText(hardware) ? `Reported GPU: ${hardwareText(hardware)}` : 'GPU not reported'].filter(Boolean).join(' · '),
     supplied: usage?.supplied?.available ? tokenText(usage.supplied) : '—',
     consumed: tokenText(usage?.consumed),
@@ -364,7 +373,7 @@ function deviceView(state, network) {
     retryStop: cleanupPending,
     retryStopDisabled: !!network.stopping,
     progress: network.contribution?.error || progressText,
-    introductions: !!network.introductionAssistance,
+    introductions: network.connectionAssistance?.enabled === true,
     limits: network.limits ? 'Serving limits: ' + network.limits.maxInboundJobs + (network.limits.maxInboundJobs === 1 ? ' request' : ' requests')
       + ' at a time · ' + network.limits.maxOutputTokens + ' output tokens per request' : ''
   };

@@ -7,6 +7,7 @@ import { PooldayRoot } from '@reploid/poolday-ui';
 import { projectComputers } from '../../apps/poolday/host/decisions/computers.js';
 import { parseComputer, weightSupplyOfferFromInventory } from '../../packages/reploid/src/contracts/computer-records.js';
 import { projectChatCatalog } from '../../apps/poolday/host/chat-view.js';
+import { localOffers } from '../fixtures/local-offers.js';
 import { createComputersServices } from '../../apps/poolday-react/src/features/computers/infrastructure/hostComputers';
 import { ComputersPanel, PairingLinkDialog } from '../../apps/poolday-react/src/features/computers/presentation/ComputersPanel';
 
@@ -56,18 +57,42 @@ describe('Computers decisions', () => {
   it('says Paused only after this browser chose to contribute, and counts files alone as sharing', () => {
     const summary = (network: Record<string, unknown>) => projectComputers({ models: [], network: { consumer: { connectionState: 'connected', peers: [] }, ...network } }).device.summary;
     // A device that downloaded a model without opting in offers nothing and was never paused.
-    expect(summary({ computeEnabled: false, filesEnabled: false })).toBe('· Not sharing');
-    expect(summary({ computeEnabled: false, contributionChosen: true })).toBe('· Paused');
-    expect(summary({ computeEnabled: true })).toBe('· Enabled · not serving');
+    expect(summary({ localOffers: localOffers() })).toBe('· Not sharing');
+    expect(summary({ localOffers: localOffers({ compute: false }) })).toBe('· Paused');
+    expect(summary({ localOffers: localOffers({ compute: true }) })).toBe('· Enabled · not serving');
     // A switch that is on is never Paused, even before its files are offered.
-    expect(summary({ computeEnabled: false, contributionChosen: true, files: { enabled: true, sharing: false } })).toBe('· Files on · not sharing');
-    expect(summary({ computeEnabled: false, contributionChosen: true, files: { enabled: true, sharing: true, model: { name: 'Qwen 3.5 0.8B' } } })).toBe('· Sharing');
+    expect(summary({ localOffers: localOffers({ compute: false, files: true }), files: { enabled: true, sharing: false } })).toBe('· Files on · not sharing');
+    expect(summary({ localOffers: localOffers({ compute: false, files: true, filesReadiness: 'ready' }),
+      files: { enabled: true, sharing: true, model: { name: 'Qwen 3.5 0.8B' } } })).toBe('· Sharing');
+  });
+
+  it('reads this device\'s switches from its offers and connection assistance, never from separate flags', () => {
+    const device = (network: Record<string, unknown>) => projectComputers({ models: [], network: { consumer: { connectionState: 'connected', peers: [] }, ...network } }).device;
+    // Flags that disagree with the records lose: the pane shows what the offers say.
+    expect(device({ computeEnabled: true, filesEnabled: true, files: { enabled: true }, introductionAssistance: true,
+      localOffers: localOffers({ compute: false, files: false }), connectionAssistance: { schema: 'reploid.connection-assistance/1', enabled: false } }))
+      .toMatchObject({ computeOn: false, filesOn: false, introductions: false, pauseAll: false, summary: '· Paused', offers: 'Nothing' });
+    // Pausing one offer leaves the other standing.
+    expect(device({ localOffers: localOffers({ compute: false, files: true }), files: { enabled: true, sharing: false } }))
+      .toMatchObject({ computeOn: false, filesOn: true, pauseAll: true });
+    expect(device({ localOffers: localOffers({ compute: true, files: false }), connectionAssistance: { schema: 'reploid.connection-assistance/1', enabled: true } }))
+      .toMatchObject({ computeOn: true, filesOn: false, introductions: true, computeLabel: 'On · waiting for a downloaded model' });
+  });
+
+  it('a connection that advertised nothing offers no compute; a busy or failed computer offers compute with no capacity', () => {
+    const view = projectComputers({ models: [], network: { connections: [{ id: 'joining', phase: 'preparing' }], consumer: { connectionState: 'connected',
+      peers: [{ ...peer('busy', 'ready'), availableSlots: 0 }, peer('failed', 'failed'), peer('ready', 'ready')] } } });
+    const rows = Object.fromEntries(view.peers.map((row: { id: string }) => [row.id, row]));
+    expect(rows.joining).toMatchObject({ offers: 'Nothing', inference: { offered: false, available: false } });
+    expect(rows.busy.inference).toEqual({ kind: 'inference', offered: true, readiness: 'busy', available: false, freeSlots: 0 });
+    expect(rows.failed.inference).toEqual({ kind: 'inference', offered: true, readiness: 'failed', available: false, freeSlots: 0 });
+    expect(rows.ready.inference).toEqual({ kind: 'inference', offered: true, readiness: 'ready', available: true, freeSlots: null });
   });
 
   it('states what every computer offers, with readiness for each, this device included', () => {
     const view = projectComputers({ models: [], network: { consumer: { connectionState: 'connected',
       peers: [peer('peer-ready', 'ready'), peer('peer-files', 'unknown', ''), peer('peer-idle', 'unknown', '')] },
-    files: { enabled: true, sharing: true, offers: sharingFiles(['peer-ready', 'peer-files']) }, computeEnabled: false } });
+    files: { enabled: true, sharing: true, offers: sharingFiles(['peer-ready', 'peer-files']) }, localOffers: localOffers({ files: true, filesReadiness: 'ready' }) } });
     const offers = Object.fromEntries(view.peers.map((row: { id: string; offers: string }) => [row.id, row.offers]));
     expect(offers).toEqual({ 'peer-ready': 'Compute · Ready / Model files · Sharing', 'peer-files': 'Model files · Sharing', 'peer-idle': 'Nothing' });
     expect(view.device).toMatchObject({ offers: 'Model files · Sharing', filesOn: true, filesLabel: 'Sharing', computeOn: false, pauseAll: true });
@@ -122,7 +147,8 @@ describe('Computers pane', () => {
     await userEvent.click(screen.getByRole('switch', { name: 'Share model files' }));
     expect(fixture.chat.setCachedFileContribution).toHaveBeenCalledWith(true);
     // Settings writes the same swarm state; this switch reads it back, so the two never disagree.
-    act(() => fixture.set({ network: { consumer: { connectionState: 'connected', peers: [] }, computeEnabled: true, files: { enabled: true, sharing: true } } }));
+    act(() => fixture.set({ network: { consumer: { connectionState: 'connected', peers: [] }, localOffers: localOffers({ compute: true, files: true, filesReadiness: 'ready' }),
+      files: { enabled: true, sharing: true } } }));
     expect(screen.getByRole('switch', { name: 'Share model files' }).getAttribute('aria-checked')).toBe('true');
     await userEvent.click(screen.getByRole('button', { name: 'Pause all' }));
     expect(fixture.chat.setComputeContribution).toHaveBeenCalledWith(false);

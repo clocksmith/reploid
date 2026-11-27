@@ -3,7 +3,7 @@
  * its own copy in apps/poolday-react/src/features/computers/domain/services.ts and checks it against this
  * declaration in features/computers/infrastructure/hostComputers.ts.
  */
-import type { Computer } from '../computer-records.js';
+import type { Computer, OfferAvailability } from '../computer-records.js';
 export type Tone = 'ready' | 'pending' | 'unavailable';
 export type Fact = readonly [term: string, value: string];
 /** A roster row's phase, from the peer's advertisement and this page's connection to it. */
@@ -66,6 +66,8 @@ export type PeerView = {
   readonly offers: string;
   /** The verified computer this row shows (reploid.computer/1); null for an unverified connection. */
   readonly computer: Computer | null;
+  /** Whether this computer offers compute now, and, separately, whether it has capacity for new work (contracts offerAvailability). */
+  readonly inference: OfferAvailability;
   readonly identity: string;
   readonly members: ReadonlyArray<{ readonly id: string; readonly identity: string }>;
   readonly localName: string;

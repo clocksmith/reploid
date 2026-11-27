@@ -11,11 +11,12 @@ import { projectComputers } from '../../apps/poolday/host/decisions/computers.js
 import { createComputersServices } from '../../apps/poolday-react/src/features/computers/infrastructure/hostComputers';
 import { ComputersPanel } from '../../apps/poolday-react/src/features/computers/presentation/ComputersPanel';
 import { openConversation } from '../fixtures/conversation-view.js';
+import { localOffers } from '../fixtures/local-offers.js';
 
 afterEach(cleanup);
 
 const model = { id: 'm', name: 'Model', identity: 'fixture:model', provider: 'doppler', source: { baseUrl: 'fixture:' }, networkAvailability: 'ready' };
-const state = () => ({ models: [model], network: { sharing: true, computeEnabled: true,
+const state = () => ({ models: [model], network: { sharing: true, computeEnabled: true, localOffers: localOffers({ compute: true, files: true, computeReadiness: 'ready', filesReadiness: 'ready' }),
   contribution: { modelId: 'm', ready: true, phase: 'ready', completed: 2,
     production: { outputTokens: 14, missingTokenCounts: 0 } },
   files: { enabled: true, sharing: true, suppliedBytes: 394 } } });
@@ -268,7 +269,8 @@ it('blocks local model actions when the host reports missing browser support', a
 });
 
 it('controls compute and model files for this device under Computers, reading the same file state Settings shows', async () => {
-  mount(sessionOf({ models: [], network: { files: { enabled: true, sharing: true, suppliedBytes: 10, verifiedFiles: [{ artifactId: 'file' }] } } }));
+  mount(sessionOf({ models: [], network: { localOffers: localOffers({ files: true, filesReadiness: 'ready' }),
+    files: { enabled: true, sharing: true, suppliedBytes: 10, verifiedFiles: [{ artifactId: 'file' }] } } }));
   await openDevice();
   const device = document.querySelector('[data-this-computer]') as HTMLElement;
   expect(within(device).getByRole('switch', { name: 'Share model files' }).getAttribute('aria-checked')).toBe('true');
