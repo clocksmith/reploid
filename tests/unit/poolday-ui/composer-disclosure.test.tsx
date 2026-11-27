@@ -34,14 +34,34 @@ describe('ComposerBar prompt disclosure', () => {
       expect(shown(line)).toBe(true);
       // The sentence is on the page once: the visible line is also the one assistive technology reads.
       expect(screen.getAllByText(view.disclosure)).toEqual([line]);
-      expect(screen.getByRole('textbox', { name: 'Message' }).getAttribute('aria-describedby')).toBe(line.id);
-      expect(screen.getByRole('button', { name: 'Send' }).getAttribute('aria-describedby')).toBe(line.id);
+      expect(screen.getByRole('textbox', { name: 'Message' }).getAttribute('aria-describedby')?.split(' ')).toContain(line.id);
+      expect(screen.getByRole('button', { name: 'Send' }).getAttribute('aria-describedby')?.split(' ')).toContain(line.id);
       // It stands before the field, so a longer sentence never moves Send or covers the text.
       const field = document.querySelector('[data-composer-field]') as HTMLElement;
       expect(field.contains(line)).toBe(false);
       expect(line.compareDocumentPosition(field) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     });
   }
+
+  it('gives a queued draft one status and one action without hiding the disclosure', () => {
+    mount({
+      ...routes[0]![1],
+      route: { ...routes[0]![1].route, status: 'queued', send: 'none' },
+      status: { text: 'Waiting for a computer.' },
+      acquisition: { text: 'Checking model files.', progress: { value: 1, max: 2 } },
+      nextAction: 'cancel-queued',
+      optionalAction: 'download-local',
+      send: { visible: true, disabled: true, mode: 'none' },
+    });
+    const row = document.querySelector('[data-composer-status-row]')!;
+    expect(row.querySelectorAll('[role="status"]')).toHaveLength(1);
+    expect(row.textContent).toContain('Waiting for a computer.');
+    expect(row.querySelectorAll('button')).toHaveLength(1);
+    expect(document.querySelector('[data-optional-download]')).toBeNull();
+    expect(document.querySelector('[data-composer-model-source]')).toBeNull();
+    expect(document.querySelector('[data-open-privacy]')?.textContent).not.toContain('Standard');
+    expect(shown(disclosure())).toBe(true);
+  });
 
   it('follows the selection: the line changes with the route', () => {
     const { rerender } = mount(routes[3]![1]);

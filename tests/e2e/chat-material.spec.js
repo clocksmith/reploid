@@ -920,17 +920,23 @@ for (const width of [1280, 390, 320]) test(`model source, selection and composer
     return fits || getComputedStyle(node).textOverflow === 'ellipsis';
   })).toBe(true);
   await expect(page.locator('[data-open-model]')).toHaveAttribute('aria-label', /Contributors · Qwen 3\.5 0\.8B/);
-  const digest = await page.locator('[data-open-model] .pool-selector-parts').boundingBox();
-  expect(digest.height).toBeLessThanOrEqual(24);
-  const bounds = await source.boundingBox(), button = await page.locator('[data-open-model]').boundingBox();
-  expect(bounds.x).toBeGreaterThanOrEqual(button.x); expect(bounds.x + bounds.width).toBeLessThanOrEqual(button.x + button.width);
+  const digest = page.locator('[data-open-model] .pool-selector-parts');
+  if (width <= 390) {
+    await expect(digest).toBeHidden();
+    await expect(page.locator('[data-open-model]').getByText('Answer on', { exact: true })).toBeVisible();
+  } else {
+    expect((await digest.boundingBox()).height).toBeLessThanOrEqual(24);
+    const bounds = await source.boundingBox(), button = await page.locator('[data-open-model]').boundingBox();
+    expect(bounds.x).toBeGreaterThanOrEqual(button.x); expect(bounds.x + bounds.width).toBeLessThanOrEqual(button.x + button.width);
+  }
   await page.screenshot({ path: info.outputPath(`shared-ready-${width}.png`) });
   await page.evaluate(() => window.setVisualSources({ local: true, shared: false }));
   await expect(page.locator('[data-composer-send]')).toBeDisabled();
-  // The selector keeps naming the destination; availability is the separate dot.
-  await expect(source).toHaveText('Contributors');
-  await expect(page.locator('[data-composer-availability]')).toHaveAttribute('data-availability', 'unavailable');
+  // Keep the selection accessible, but don't repeat the unavailable route in the toolbar.
+  await expect(source).toHaveCount(0);
+  await expect(page.locator('[data-open-model]')).toHaveAttribute('aria-label', /Contributors .*Unavailable/);
   await expect(page.locator('[data-model-status]')).toContainText('No eligible computer found');
+  await expect(page.locator('[data-route-alternatives]')).toHaveCount(0);
   await expect(page.locator('[data-download-local]')).toBeHidden();
   await expect(page.locator('[data-retry-connection]')).toHaveText('Search again');
   expect(await page.locator('[data-composer-field]').boundingBox()).toEqual(field);

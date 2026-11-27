@@ -20,12 +20,13 @@ export function Stack({ gap = 'md', children, data }: LayoutProps) {
 export function Row({
   gap = 'sm',
   justify = 'start',
+  wrap = true,
   children,
   data,
-}: LayoutProps & { readonly justify?: 'start' | 'between' | 'end' }) {
+}: LayoutProps & { readonly justify?: 'start' | 'between' | 'end'; readonly wrap?: boolean }) {
   return (
     <div
-      className={cx('pool-row', gapClass(gap), justify === 'between' && 'pool-row-between', justify === 'end' && 'pool-row-end')}
+      className={cx('pool-row', gapClass(gap), !wrap && 'pool-row-nowrap', justify === 'between' && 'pool-row-between', justify === 'end' && 'pool-row-end')}
       {...dataProps(data)}
     >
       {children}

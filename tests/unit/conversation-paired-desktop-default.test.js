@@ -76,7 +76,7 @@ describe('Paired desktop default', () => {
       expect(composer().status.text).toBe('Your desktop is offline. Open Reploid on your desktop.');
       expect(composer().chip.source).toBe('Your desktop');
       expect(composer().chip.availability).toBe('unavailable');
-      expect(composer().placeholder).toBe('Message your desktop…');
+      expect(composer().placeholder).toBe('Message…');
       expect(composer().nextAction).toBe('retry');
       expect(composer().send.disabled).toBe(true);
       expect(JSON.stringify(controller.getSnapshot())).not.toContain('Mars');

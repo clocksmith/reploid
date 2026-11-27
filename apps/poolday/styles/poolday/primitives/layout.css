@@ -6,6 +6,8 @@
    pool-grow     takes the remaining space in a row */
 .pool-home .pool-stack { display: flex; flex-direction: column; gap: var(--pool-param-gap, var(--pool-size-16)); min-width: 0; }
 .pool-home .pool-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--pool-param-gap, var(--pool-size-8)); min-width: 0; }
+.pool-home .pool-row-nowrap { flex-wrap: nowrap; }
+.pool-home .pool-row-nowrap > .pool-button { flex: none; white-space: nowrap; }
 .pool-home .pool-row-between { justify-content: space-between; }
 .pool-home .pool-row-end { justify-content: flex-end; }
 .pool-home .pool-columns {

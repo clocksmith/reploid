@@ -78,7 +78,8 @@ for (const width of [320, 390, 1280]) {
         }, DESKTOP);
         await page.locator('[data-composer-input]').fill('Only for my desktop');
         await expect(page.locator('[data-model-status]')).toHaveText('Your desktop is offline. Open Reploid on your desktop.');
-        await expect(page.locator('[data-composer-model-source]')).toHaveText('Your desktop');
+        await expect(page.locator('[data-open-model]')).toHaveAttribute('aria-label', /Your desktop/);
+        await expect(page.locator('[data-composer-model-source]')).toHaveCount(0);
         await expect(page.locator('[data-composer-send]')).toHaveAttribute('data-send-mode', 'none');
         await expect(page.locator('[data-composer-send]')).toBeDisabled();
         await expect(page.locator('[data-retry-connection]')).toBeVisible();
@@ -117,6 +118,7 @@ for (const width of [320, 390, 1280]) {
           await expect(page.locator('[data-model-status]')).toHaveText('No computer answered in 30 seconds. Nothing was sent.', { timeout: 40000 });
           await expect(page.locator('[data-composer-input]')).toHaveValue('Recommend 3 holiday movies that aren’t cheesy.');
           await expect(page.locator('[data-composer-send]')).toHaveAttribute('data-send-mode', 'none');
+          await expect(page.locator('[data-retry-connection]')).toBeVisible();
           expect(await page.evaluate(() => window.askAndroid.calls.length)).toBe(0);
           expect(await page.evaluate(() => window.askAndroid.session.getState().threads.length)).toBe(0);
         });
@@ -186,13 +188,17 @@ async function expectReadableAnswerOn(page) {
   const selector = page.locator('[data-open-model]');
   await expect(selector).toBeVisible();
   const facts = await selector.evaluate(button => {
-    const parts = [...button.querySelectorAll('[data-composer-model-source], [data-composer-model-name]')];
+    const parts = [...button.querySelectorAll('[data-composer-model-source], [data-composer-model-name], .pool-selector-compact-label')]
+      .filter(part => part.getClientRects().length);
     const box = button.getBoundingClientRect();
     return { clipped: parts.filter(part => part.scrollWidth > part.clientWidth + 1 || getComputedStyle(part).textOverflow === 'ellipsis' && part.scrollWidth > part.clientWidth),
       texts: parts.map(part => part.textContent), inView: box.left >= 0 && box.right <= window.innerWidth + 1, height: box.height };
   });
-  expect(facts.texts[0]).toBe('Contributors');
-  expect(facts.texts[1]?.length).toBeGreaterThan(3);
+  if (page.viewportSize().width <= 390) expect(facts.texts).toEqual(['Answer on']);
+  else {
+    expect(facts.texts[0]).toBe('Contributors');
+    expect(facts.texts[1]?.length).toBeGreaterThan(3);
+  }
   expect(facts.clipped).toEqual([]);
   expect(facts.inView).toBe(true);
   expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(0);

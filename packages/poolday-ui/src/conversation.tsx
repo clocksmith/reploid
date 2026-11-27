@@ -217,6 +217,7 @@ export function SelectorButton({
   status,
   parts,
   placeholder,
+  compactLabel,
   onPress,
   disabled = false,
   describedBy,
@@ -232,6 +233,8 @@ export function SelectorButton({
   readonly parts: ReadonlyArray<{ readonly text: string; readonly data?: DataAttributes }>;
   /** Shown instead of the parts while nothing is chosen. */
   readonly placeholder?: string;
+  /** Short visible name in a compact toolbar; the accessible name still identifies the current selection. */
+  readonly compactLabel?: string | undefined;
   readonly onPress: () => void;
   readonly disabled?: boolean;
   readonly describedBy?: string;
@@ -246,7 +249,7 @@ export function SelectorButton({
     <button
       ref={button}
       type="button"
-      className="pool-button btn-ghost pool-selector"
+      className={cx('pool-button btn-ghost pool-selector', compactLabel !== undefined && 'pool-selector-has-compact-label')}
       aria-label={label}
       aria-haspopup="dialog"
       aria-describedby={describedBy}
@@ -255,6 +258,7 @@ export function SelectorButton({
       data-activity={activity}
       {...dataProps(data)}
     >
+      {compactLabel !== undefined && <span className="pool-selector-compact-label pool-small">{compactLabel}</span>}
       {placeholder !== undefined && <span className="pool-small">{placeholder}</span>}
       <span className="pool-selector-parts pool-small">
         {status && <StatusDot state={status} data={{ 'data-composer-availability': true }} />}
@@ -408,9 +412,9 @@ export function ThreadItem({
 }
 
 /** One row of controls inside a field: they keep one line, and the last one sits at the end. */
-export function Toolbar({ label, children, data }: { readonly label?: string; readonly children: ReactNode; readonly data?: DataAttributes }) {
+export function Toolbar({ label, children, data, compact = false }: { readonly label?: string; readonly children: ReactNode; readonly data?: DataAttributes; readonly compact?: boolean }) {
   return (
-    <div className="pool-toolbar" role={label ? 'toolbar' : undefined} aria-label={label} {...dataProps(data)}>
+    <div className={cx('pool-toolbar', compact && 'pool-toolbar-compact')} role={label ? 'toolbar' : undefined} aria-label={label} {...dataProps(data)}>
       {children}
     </div>
   );

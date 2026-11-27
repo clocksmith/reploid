@@ -598,7 +598,7 @@ export function createConversationController(session, {
     const localEligible = !!session.downloadLocalModel && !state.localDownloadIssue && !usable && !localPreparing && !busyAcquisition(state)
       && !requestedModel?.fleet && isDownloadableBaseModel(requestedModel) && !publicCanAnswer && !blocked;
     const canAcquire = localEligible && location === 'local' && (phase === 'observed' || !freshVisitor || exhausted);
-    const optionalDownload = localEligible && location !== 'local' && phase === 'observed' && !thread?.closed && !busy;
+    const optionalDownload = localEligible && location !== 'local' && phase === 'observed' && !thread?.closed && !busy && !held();
     const acquisition = state.acquisition;
     let acquisitionText = acquiring ? acquisition.progress?.message || 'Checking model files.'
       : ['failed', 'cancelled'].includes(acquisition?.phase) ? acquisition.error || '' : '';
@@ -686,7 +686,7 @@ export function createConversationController(session, {
       ['network-opt-in', !busy && !usable && !preparing && !acquiring && !thread?.closed
         && (publicCanAnswer || (!!thread && (privacy.placement === 'local-only' || privacy.recipients.kind === 'none')))],
       ['download-local', !busy && canAcquire && !thread?.closed],
-      ['retry', !busy && !usable && !preparing && location !== 'local' && (exhausted || blocked) && !thread?.closed]
+      ['retry', !busy && !usable && !preparing && location !== 'local' && (exhausted || blocked || expiredShown) && !thread?.closed]
     ];
     const nextAction = nextActions.find(([, eligible]) => eligible)?.[0] ?? null;
     const optionalAction = optionalDownload && nextAction !== 'download-local' && nextAction !== 'cancel-download' ? 'download-local' : null;
@@ -695,7 +695,7 @@ export function createConversationController(session, {
     const composer = {
       draft: draftText, files: files.map(file => ({ name: file.name, size: file.size ?? file.text?.length ?? 0 })), attachmentsPending: attachmentReader.pending,
       attachmentHelp: attachmentHelp || files.length > 0, attachmentHelpText: ATTACHMENT_HELP,
-      placeholder: !activeModel || findingFirst ? 'Message…' : computerName === 'Contributors' ? 'Message a contributor…'
+      placeholder: !activeModel || findingFirst || route.status !== 'ready' ? 'Message…' : computerName === 'Contributors' ? 'Message a contributor…'
         : computerName === OWN_DESKTOP_TITLE ? `Message ${OWN_DESKTOP}…` : `Message ${computerName}…`,
       send: { visible: !busy, disabled: sendDisabled, mode: route.send },
       route,
@@ -728,7 +728,7 @@ export function createConversationController(session, {
         retryPending: !!retryPending
       },
       disclosure: thread?.closed ? '' : disclosure,
-      routeAlternatives: routeAlternatives({ current: currentRoute(state), model: requestedModel, desktop: pairedDesktop(state), busy,
+      routeAlternatives: held() ? [] : routeAlternatives({ current: currentRoute(state), model: requestedModel, desktop: pairedDesktop(state), busy,
         closed: !!thread?.closed, searching: phase === 'searching', fresh: freshVisitor }),
       executionSettingsReset: thread?.executionSettingsReset === true,
       startingPrompt: startingHidden || !startingPrompt ? null
@@ -1042,6 +1042,7 @@ export function createConversationController(session, {
     stop() { void act(() => session.cancel(sessionState.selectedId)); },
     cancelQueuedSend() { dropHold(); notify(); },
     retryConnection() {
+      dismissedExpiry = intents.state().expired?.intentId ?? dismissedExpiry;
       dropHold(); retryPending = true; notify();
       clearTimeout(retryDeadline);
       const deadline = retryDeadline = setTimeout(() => { retryPending = false; notify(); }, 8000);
@@ -1052,7 +1053,10 @@ export function createConversationController(session, {
     downloadLocal() {
       const state = sessionState;
       const model = state.activeThread?.model || (state.models || []).find(item => modelKey(item) === currentKey) || choice.model || state.defaultModel;
-      if (model) downloads.open(modelKey(model));
+      if (model) {
+        if (sheet.open) closePicker();
+        downloads.open(modelKey(model));
+      }
     },
     reviewSharedModel() {
       const alternative = recoveryAlternative(sessionState);
@@ -1061,7 +1065,11 @@ export function createConversationController(session, {
     reviewNetworkExecution() { openDestination({ forSend: true }); },
     takeRouteAlternative(key) {
       pickerChoice = null;
-      void act(async () => { await applyDestination(key); requestFocus('composer'); notify(); });
+      void act(async () => {
+        await applyDestination(key);
+        if (sheet.open) closePicker();
+        requestFocus('composer'); notify();
+      });
     },
     joinHost() {
       const invite = viewState.guestInvite;

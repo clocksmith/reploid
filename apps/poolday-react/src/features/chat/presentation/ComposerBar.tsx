@@ -50,31 +50,25 @@ export function ComposerBar({
   const disclosureId = useId();
   const statusId = useId();
   const { chip, acquisition } = composer;
-  const showStatus = composer.status.text !== '' || acquisition.text !== '' || acquisition.progress !== null || composer.nextAction !== null || composer.optionalAction !== null;
+  const statusText = composer.status.text || acquisition.text;
+  const showProgress = !composer.status.text && acquisition.progress !== null;
+  const showStatus = !!statusText || showProgress || composer.nextAction !== null;
+  const compactPicker = chip.caption || chip.availability !== 'ready' || composer.route.status === 'queued';
   // Send says what one press does: send now, wait for a computer (up to 30 s), ask where to run, or nothing.
   const sendMode = composer.send.disabled ? 'none' : composer.send.mode;
   const sendLabel = sendMode === 'queue' ? t.sendWhenFound : sendMode === 'choose' ? t.chooseWhere : t.send;
   return (
     <Stack gap="sm">
-      {composer.routeAlternatives.length > 0 && (
-        <Stack gap="xs" data={{ 'data-route-alternatives': true }}>
-          <Text variant="small" muted>
-            {t.alternativesHeading}
-          </Text>
-          {composer.routeAlternatives.map((offer) => (
-            <Button key={offer.key} variant="quiet" label={`${offer.title} · ${offer.reads}`} onPress={() => commands.takeRouteAlternative(offer.key)} data={{ 'data-route-alternative': offer.key }} />
-          ))}
-        </Stack>
-      )}
       {showStatus && (
-        <Row gap="sm" data={{ 'data-composer-status-row': true }}>
-          {composer.status.text !== '' && (
-            <StatusLine id={statusId} data={{ 'data-model-status': true }}>
-              {composer.status.text}
-            </StatusLine>
+        <Row gap="sm" wrap={false} data={{ 'data-composer-status-row': true }}>
+          {statusText && (
+            <Grow>
+              <StatusLine id={statusId} data={composer.status.text ? { 'data-model-status': true } : { 'data-acquisition-status': true }}>
+                {statusText}
+              </StatusLine>
+            </Grow>
           )}
-          {acquisition.text !== '' && <StatusLine data={{ 'data-acquisition-status': true }}>{acquisition.text}</StatusLine>}
-          {acquisition.progress && (
+          {showProgress && acquisition.progress && (
             <Grow>
               <Progress
                 label={t.modelDownload}
@@ -85,9 +79,6 @@ export function ComposerBar({
             </Grow>
           )}
           {composer.nextAction && <NextActionButton action={composer.nextAction} composer={composer} commands={commands} />}
-          {composer.optionalAction === 'download-local' && (
-            <Button variant="quiet" label={composer.nextLabels.downloadLocal} hasPopup="dialog" onPress={commands.downloadLocal} data={{ 'data-optional-download': true }} />
-          )}
         </Row>
       )}
       {composer.executionSettingsReset && (
@@ -123,10 +114,10 @@ export function ComposerBar({
           onChange={commands.setDraft}
           onSubmit={commands.send}
           focusSignal={focusSignal}
-          describedBy={composer.disclosure !== '' ? disclosureId : undefined}
+          describedBy={[composer.disclosure && disclosureId, statusText && statusId].filter(Boolean).join(' ') || undefined}
           data={{ 'data-composer-input': true }}
         />
-        <Toolbar data={{ 'data-composer-toolbar': true }}>
+        <Toolbar compact data={{ 'data-composer-toolbar': true }}>
           <FilePicker label={t.attach} accept={ACCEPT} multiple onFiles={commands.attach} data={{ 'data-composer-files': true }}>
             {(open) => (
               <IconButton
@@ -144,7 +135,7 @@ export function ComposerBar({
             <Button
               variant="quiet"
               icon="search"
-              label={composer.search.pressed ? t.search : ''}
+              label={''}
               accessibleLabel={t.searchToggle}
               pressed={composer.search.pressed}
               onPress={commands.toggleSearch}
@@ -154,14 +145,15 @@ export function ComposerBar({
           {chip.visible && (
             <SelectorButton
               label={chip.label}
-              status={chip.caption || chip.findingFirst ? undefined : chip.availability}
-              placeholder={chip.caption ? t.answerOn : undefined}
-              parts={chip.caption ? [] : chip.findingFirst ? [{ text: chip.name, data: { 'data-composer-model-name': true } }] : [
+              status={compactPicker ? undefined : chip.availability}
+              placeholder={compactPicker ? t.answerOn : undefined}
+              compactLabel={compactPicker ? undefined : t.answerOn}
+              parts={compactPicker ? [] : [
                 { text: chip.source, data: { 'data-composer-model-source': true } },
                 { text: chip.name, data: { 'data-composer-model-name': true } },
               ]}
               onPress={commands.openSheet}
-              describedBy={composer.status.text ? statusId : undefined}
+              describedBy={statusText ? statusId : undefined}
               activity={chip.activity}
               focusSignal={answerOnFocus}
               data={{ 'data-open-model': true }}
@@ -170,7 +162,7 @@ export function ComposerBar({
           <Button
             variant="quiet"
             icon="privacy"
-            label={composer.privacy.caption}
+            label={''}
             accessibleLabel={composer.privacy.label}
             title={composer.privacy.label}
             hasPopup="dialog"
@@ -184,7 +176,7 @@ export function ComposerBar({
               variant={sendMode === 'dispatch' ? 'primary' : 'quiet'}
               label={sendLabel}
               icon="send"
-              describedBy={composer.disclosure !== '' ? disclosureId : undefined}
+              describedBy={[composer.disclosure && disclosureId, statusText && statusId].filter(Boolean).join(' ') || undefined}
               onPress={sendMode === 'none' ? undefined : commands.send}
               data={{ 'data-composer-send': true, 'data-send-mode': sendMode }}
             />

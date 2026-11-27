@@ -1,5 +1,5 @@
 import { Button, Disclosure, Section, Sheet, SingleChoice, Stack, Text, type ChoiceGroup } from '@reploid/poolday-ui';
-import type { ComputerChoice, ConversationCommands, SheetView } from '../domain/conversation';
+import type { ComposerView, ComputerChoice, ConversationCommands, SheetView } from '../domain/conversation';
 import { conversation as t } from '../../../l10n/conversation';
 
 type OpenSheet = Extract<SheetView, { readonly open: true }>;
@@ -14,6 +14,8 @@ export function AnswerOnSheet({
   commands,
   onInspectProviders,
   presentation = 'modal',
+  localDownloadLabel,
+  routeAlternatives = [],
 }: {
   /** `inline` shows the sheet in the page flow, for the design page. */
   readonly presentation?: 'modal' | 'inline';
@@ -21,6 +23,8 @@ export function AnswerOnSheet({
   readonly commands: ConversationCommands;
   /** Opens the computers serving one model (Computers, narrowed to them). */
   readonly onInspectProviders: (key: string) => void;
+  readonly localDownloadLabel?: string | undefined;
+  readonly routeAlternatives?: ComposerView['routeAlternatives'];
 }) {
   const open = sheet.open ? (sheet as OpenSheet) : null;
   const groups: ReadonlyArray<ChoiceGroup<string>> = open
@@ -95,7 +99,18 @@ export function AnswerOnSheet({
               autoFocusChecked={presentation !== 'inline'}
               data={{ 'data-next-model': true }}
             />
+            {localDownloadLabel && open.outcome.action !== 'download' && (
+              <Button variant="quiet" label={localDownloadLabel} hasPopup="dialog" onPress={commands.downloadLocal} data={{ 'data-optional-download': true }} />
+            )}
           </Section>
+          {routeAlternatives.length > 0 && (
+            <Stack gap="xs" data={{ 'data-route-alternatives': true }}>
+              <Text variant="small" muted>{t.alternativesHeading}</Text>
+              {routeAlternatives.map((offer) => (
+                <Button key={offer.key} variant="quiet" label={`${offer.title} · ${offer.reads}`} onPress={() => commands.takeRouteAlternative(offer.key)} data={{ 'data-route-alternative': offer.key }} />
+              ))}
+            </Stack>
+          )}
           <Disclosure summary={t.sheet.details} onToggle={commands.setSheetDetails} data={{ 'data-model-details': true }}>
             {open.adapter && (
               <Stack gap="xs" data={{ 'data-model-adapter-details': true }}>

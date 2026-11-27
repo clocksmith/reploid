@@ -88,6 +88,8 @@ export function ChatWorkspace({
       />
       <AnswerOnSheet
         sheet={snapshot.sheet}
+        routeAlternatives={snapshot.composer.routeAlternatives}
+        localDownloadLabel={snapshot.composer.optionalAction ? snapshot.composer.nextLabels.downloadLocal : undefined}
         commands={port}
         onInspectProviders={(key) => {
           const filter = port.modelProviders(key);

@@ -60,7 +60,7 @@ export type ComposerView = {
   readonly status: { readonly text: string };
   readonly acquisition: { readonly text: string; readonly progress: { readonly value: number | null; readonly max: number | null } | null };
   readonly nextAction: NextAction | null;
-  /** A recovery offered beside the next action, never in its place: the reviewed download to this device. */
+  /** An optional recovery in Answer on, separate from the next action: the reviewed download to this device. */
   readonly optionalAction: 'download-local' | null;
   readonly nextLabels: { readonly join: string; readonly reviewShared: string; readonly downloadLocal: string; readonly retry: string; readonly retryPending: boolean };
   readonly disclosure: string;

@@ -68,6 +68,11 @@
 .pool-home .pool-selector-chevron { display: grid; flex: none; margin-inline-start: auto; }
 .pool-home .pool-selector-chevron > svg { inline-size: var(--pool-size-16); block-size: var(--pool-size-16); }
 .pool-home .pool-selector .pool-dot { flex: none; }
+.pool-home .pool-selector-compact-label { display: none; }
+@media (max-width: 30em) {
+  .pool-home .pool-toolbar-compact > .pool-selector-has-compact-label .pool-selector-parts { display: none; }
+  .pool-home .pool-toolbar-compact > .pool-selector-has-compact-label .pool-selector-compact-label { display: block; }
+}
 
 .pool-home .pool-readouts { flex-wrap: wrap; }
 .pool-home .pool-readout { min-block-size: var(--pool-size-44); flex-wrap: nowrap; white-space: nowrap; }
@@ -135,11 +140,11 @@
    browser's text size), "Answer on" takes its own line above the other controls and its computer and model wrap
    rather than truncate. */
 @media (max-width: 30em) {
-  .pool-home .pool-toolbar:has(> .pool-selector) { flex-wrap: wrap; row-gap: var(--pool-size-4); }
-  .pool-home .pool-toolbar > .pool-selector { order: -1; flex: 1 0 100%; }
-  .pool-home .pool-toolbar > .pool-selector .pool-selector-parts { flex-wrap: wrap; white-space: normal; text-align: start; }
-  .pool-home .pool-toolbar > .pool-selector .pool-selector-part,
-  .pool-home .pool-toolbar > .pool-selector .pool-selector-part > span:last-child { overflow: visible; white-space: normal; }
+  .pool-home .pool-toolbar:not(.pool-toolbar-compact):has(> .pool-selector) { flex-wrap: wrap; row-gap: var(--pool-size-4); }
+  .pool-home .pool-toolbar:not(.pool-toolbar-compact) > .pool-selector { order: -1; flex: 1 0 100%; }
+  .pool-home .pool-toolbar:not(.pool-toolbar-compact) > .pool-selector .pool-selector-parts { flex-wrap: wrap; white-space: normal; text-align: start; }
+  .pool-home .pool-toolbar:not(.pool-toolbar-compact) > .pool-selector .pool-selector-part,
+  .pool-home .pool-toolbar:not(.pool-toolbar-compact) > .pool-selector .pool-selector-part > span:last-child { overflow: visible; white-space: normal; }
 }
 .pool-home .pool-workspace[data-compact] .pool-conversation { gap: var(--pool-size-8); }
 /* pool-concealed keeps an element's space while it is not shown. */
@@ -159,6 +164,9 @@
 @media (max-width: 760px) {
   .pool-home .pool-message-footer .pool-readouts { display: none; }
 }
+/* The compact toolbar keeps its tap targets in one row without clipping the fixed controls. */
+.pool-home .pool-toolbar-compact > .pool-selector { overflow: hidden; white-space: nowrap; }
+.pool-home .pool-toolbar-compact > .pool-selector .pool-selector-part:first-of-type { flex: 0 1 auto; }
 /* In the composer's toolbar, labelled controls keep one line; the selector takes what is left and truncates. */
 .pool-home .pool-toolbar > .pool-button:not(.pool-selector) { flex: 0 1 auto; min-inline-size: var(--pool-size-44); white-space: nowrap; }
 .pool-home .pool-toolbar > .pool-button:not(.pool-selector) > span:last-child { min-inline-size: 0; overflow: hidden; text-overflow: ellipsis; }

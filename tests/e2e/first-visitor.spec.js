@@ -36,7 +36,8 @@ test('fresh public route stays on contributors, reports interrupted discovery, a
   // A first visitor's route is contributors: with the connection down the composer says so and offers a retry, and
   // never presents this device or a download as the way forward.
   const message = page.locator('[data-model-status]');
-  await expect(page.locator('[data-composer-model-source]')).toHaveText('Contributors');
+  await expect(page.locator('[data-open-model]')).toHaveAttribute('aria-label', /Contributors/);
+  await expect(page.locator('[data-composer-input]')).toHaveAttribute('placeholder', 'Message…');
   await expect(message).toContainText('Connection interrupted.', { timeout: 12000 });
   await expect(page.locator('[data-retry-connection]')).toHaveText('Retry connection');
   await expect(page.locator('[data-review-shared-model]')).toBeHidden();
@@ -145,8 +146,8 @@ test('reviews a reachable alternate model before changing the public destination
   await expect(review).toBeVisible();
   await review.click();
   await expect(picker).toBeVisible();
-  await expect(source).toHaveText('Contributors');
-  await expect(dot).toHaveAttribute('data-availability', 'unavailable');
+  await expect(source).toHaveCount(0);
+  await expect(dot).toHaveCount(0);
   await page.evaluate(() => window.firstVisitor.alternate(false));
   await expect(apply).toBeDisabled();
   await page.locator('[data-model-picker-close]').click();
@@ -162,14 +163,29 @@ test('reviews a reachable alternate model before changing the public destination
 for (const [theme, width, height] of [['light', 1440, 1000], ['light', 390, 844], ['dark', 390, 844]]) {
   test(`${theme} ${width}px download, unknown total, cancellation and late peer controls`, async ({ page, baseURL }, info) => {
     await page.setViewportSize({ width, height }); await localOnly(page, baseURL); await installFixture(page, theme);
-    // On automatic placement the download to this device is an optional recovery beside the network's next action,
-    // and a late network peer can still answer.
+    // On automatic placement the download is optional inside Answer on; a late network peer can still answer.
     await allowOpenNetwork(page);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1)).toBe(true);
-    const download = page.locator('[data-optional-download]'), cancel = page.locator('[data-cancel-download]');
-    await expect(download).toBeVisible(); await page.screenshot({ path: info.outputPath('empty.png') });
-    await download.click(); await expect(page.locator('[data-download-confirm]')).toBeEnabled();
-    await page.locator('[data-download-confirm]').click(); await expect(cancel).toBeVisible();
+    const download = page.locator('[data-model-picker] :is([data-optional-download], [data-answer-action="download"])');
+    const cancel = page.locator('[data-cancel-download]');
+    await expect(page.locator('[data-composer-area] [data-optional-download]')).toHaveCount(0);
+    const picker = page.locator('[data-open-model]');
+    const toolbar = page.locator('[data-composer-toolbar]');
+    const privacy = toolbar.locator('[data-open-privacy]');
+    const send = toolbar.locator('[data-composer-send]');
+    await expect(privacy).not.toContainText('Standard');
+    await expect(page.locator('[data-prompt-disclosure]')).toBeVisible();
+    expect(Math.abs((await picker.boundingBox()).y - (await send.boundingBox()).y)).toBeLessThan(4);
+    await page.screenshot({ path: info.outputPath('empty.png') });
+    await picker.click(); await expect(download).toBeVisible();
+    const startDownload = async () => {
+      await download.click(); await expect(page.locator('[data-download-confirm]')).toBeEnabled();
+      await page.locator('[data-download-confirm]').click();
+      const closePicker = page.locator('[data-model-picker-close]');
+      if (await closePicker.isVisible()) await closePicker.click();
+      await expect(cancel).toBeVisible();
+    };
+    await startDownload();
     await expect.poll(() => page.evaluate(() => window.firstVisitor.ready())).toBe(true);
     await page.evaluate(() => window.firstVisitor.progress(null));
     await expect(page.locator('[data-acquisition-progress]')).not.toHaveAttribute('value');
@@ -177,10 +193,10 @@ for (const [theme, width, height] of [['light', 1440, 1000], ['light', 390, 844]
     await page.evaluate(() => window.firstVisitor.progress(120000000));
     await expect(page.locator('[data-acquisition-status]')).toContainText('25%');
     await page.screenshot({ path: info.outputPath('downloading.png') });
-    await cancel.click(); await expect(download).toHaveText('Retry download');
+    await cancel.click();
     await page.screenshot({ path: info.outputPath('interrupted.png') });
-    await download.click(); await expect(page.locator('[data-download-confirm]')).toBeEnabled();
-    await page.locator('[data-download-confirm]').click(); await expect(cancel).toBeVisible();
+    await picker.click(); await expect(download).toBeVisible();
+    await startDownload();
     await expect.poll(() => page.evaluate(() => window.firstVisitor.ready())).toBe(true);
     await page.evaluate(() => window.firstVisitor.peer());
     await expect(page.locator('[data-acquisition-status]')).toContainText('Network model ready.');

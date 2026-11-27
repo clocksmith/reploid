@@ -45,7 +45,7 @@ describe('conversation controller', () => {
     expect(composer.optionalAction).toBe('download-local');
     expect(composer.chip.source).toBe('Contributors');
     expect(composer.chip.availability).toBe('unavailable');
-    expect(composer.placeholder).toBe('Message a contributor…');
+    expect(composer.placeholder).toBe('Message…');
     expect(composer.privacy.caption).toBe('Standard');
     expect(composer.send.disabled).toBe(true);
     controller.dispose();
