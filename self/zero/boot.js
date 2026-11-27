@@ -31,9 +31,10 @@ export async function prepareZero(store, read = readNetwork) {
   return { source, config, version: await hashZeroSource(text), legacy: false };
 }
 
-export async function connectZeroWorker(instance, serviceWorker = navigator.serviceWorker) {
+export async function connectZeroWorker(instance, serviceWorker = navigator.serviceWorker, surface = 'zero') {
   if (!serviceWorker) throw new Error('A Service Worker is required for verified tools');
-  const registration = await serviceWorker.register('/sw.js?v=zero-capsule-v1', { scope: '/zero', updateViaCache: 'none' });
+  const labSurface = surface === 'zero' || surface === 'x' ? surface : 'zero';
+  const registration = await serviceWorker.register('/sw.js?v=zero-capsule-v1', { scope: '/' + labSurface, updateViaCache: 'none' });
   await new Promise((resolve, reject) => {
     const check = () => {
       if (registration.active && serviceWorker.controller === registration.active) {
@@ -57,7 +58,7 @@ export async function connectZeroWorker(instance, serviceWorker = navigator.serv
       data?.success === true ? resolve() : reject(new Error('Zero instance registration failed'));
     };
     try {
-      serviceWorker.controller.postMessage({ type: 'REGISTER_INSTANCE', data: { instanceId: instance, surfaceId: 'zero' } }, [channel.port2]);
+      serviceWorker.controller.postMessage({ type: 'REGISTER_INSTANCE', data: { instanceId: instance, surfaceId: labSurface } }, [channel.port2]);
     } catch (error) {
       clearTimeout(timer); channel.port1.close(); channel.port2.close(); reject(error);
     }
@@ -66,11 +67,12 @@ export async function connectZeroWorker(instance, serviceWorker = navigator.serv
 
 /** The network nucleus selects saved code; it never upgrades or clears an instance. */
 export async function bootZero({ win = window, openStore = openZeroStore, read = readNetwork,
-  connect = connectZeroWorker, load = url => import(url), onLegacy = null } = {}) {
+  connect = connectZeroWorker, load = url => import(url), onLegacy = null,
+  mode = 'zero', title = 'Zero', host = null } = {}) {
   const mount = win.document.getElementById('app');
   let store;
   try {
-    if (mount) mount.textContent = 'Opening Zero…';
+    if (mount) mount.textContent = `Opening ${title}…`;
     const instance = ensureReploidWindowInstance(win);
     store = await openStore();
     const prepared = await prepareZero(store, read);
@@ -79,14 +81,15 @@ export async function bootZero({ win = window, openStore = openZeroStore, read =
       if (typeof onLegacy === 'function') await onLegacy(win);
       return { legacy: true };
     }
-    win.getReploidMode = () => 'zero';
-    await connect(instance, win.navigator.serviceWorker);
+    win.getReploidMode = () => mode;
+    await (mode === 'zero' ? connect(instance, win.navigator.serviceWorker)
+      : connect(instance, win.navigator.serviceWorker, mode));
     const query = `?instance=${encodeURIComponent(instance)}&v=${prepared.version}`;
     const { main } = await load('/' + prepared.source.boot.main + query);
-    return await main({ store, mount, ...prepared, query });
+    return await main({ store, mount, ...prepared, query, ...(host ? { host } : {}) });
   } catch (error) {
     store?.close();
-    if (mount) { mount.textContent = `Zero could not start: ${error.message}`; mount.setAttribute('role', 'alert'); }
+    if (mount) { mount.textContent = `${title} could not start: ${error.message}`; mount.setAttribute('role', 'alert'); }
     throw error;
   }
 }

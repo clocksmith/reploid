@@ -14,8 +14,10 @@ body { margin: 0; }
 .zero-capsule label { display: block; font-size: .9rem; margin-bottom: .5rem; }
 .zero-capsule textarea { display: block; box-sizing: border-box; width: 100%; padding: .8rem; font: inherit; resize: vertical; border: 1px solid #8885; border-radius: .75rem; background: transparent; color: inherit; }
 .zero-controls { justify-content: flex-end; margin-top: .6rem; }
-.zero-capsule button { font: inherit; color: inherit; background: transparent; border: 1px solid #8886; border-radius: .6rem; padding: .5rem .9rem; cursor: pointer; }
-.zero-capsule button:disabled { opacity: .45; cursor: default; }
+.zero-capsule button, .zero-capsule select { font: inherit; color: inherit; background: transparent; border: 1px solid #8886; border-radius: .6rem; padding: .5rem .9rem; cursor: pointer; }
+.zero-capsule button:disabled, .zero-capsule select:disabled { opacity: .45; cursor: default; }
+.zero-field { display: flex; align-items: center; gap: .75rem; margin-top: 1rem; }
+.zero-field label { margin: 0; margin-right: auto; }
 .zero-capsule :focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
 .zero-capsule details { font-size: .85rem; margin-top: 1.25rem; }
 .zero-capsule summary { cursor: pointer; }

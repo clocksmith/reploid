@@ -7,15 +7,36 @@ import {
   LAB_ROUTE_CASES,
   assertRouteContract,
   awakenWithoutGoal,
-  bootLegacyZeroInstance,
+  bootLegacyLabInstance,
   bootRouteWithServiceWorker,
   collectBootProbe,
+  readInstanceVfs,
   sanitizeInstanceId
 } from './reploid-lab-helpers.js';
 
 test.describe('Lab route boot contract', () => {
+  test('fresh /x boots Zero capsule with no upgrade and exposes the upgrade selector', async ({ page }, testInfo) => {
+    const instanceId = sanitizeInstanceId(`fresh-x-capsule-${testInfo.project.name}-${Date.now()}`);
+    await bootRouteWithServiceWorker(page, '/x', instanceId);
+    await expect(page).toHaveTitle('X');
+    await expect(page.locator('.zero-capsule h1')).toHaveText('X');
+    await expect(page.locator('#zero-upgrade-level')).toHaveValue('spark');
+    await expect(page.locator('#zero-upgrade-level option:checked')).toHaveText('None: Zero core');
+    expect(await page.evaluate(() => ({
+      mode: window.getReploidMode(),
+      routeMode: window.getReploidRouteMode(),
+      hasLegacyContainer: !!window.REPLOID?.container
+    }))).toEqual({
+      mode: 'x',
+      routeMode: 'x',
+      hasLegacyContainer: false
+    });
+    const files = await readInstanceVfs(page, 'x', instanceId);
+    expect(JSON.parse(files['/zero/source.json']).schema).toBe('reploid.zero.source/v1');
+  });
+
   for (const routeCase of LAB_ROUTE_CASES) {
-    const label = routeCase.mode === 'zero' ? 'saved legacy /zero (sentinel fixture)' : routeCase.route;
+    const label = `saved legacy ${routeCase.route} (sentinel fixture)`;
     test(`${label} resolves expected lab contract and awakened surface`, async ({ page }, testInfo) => {
       const instanceId = sanitizeInstanceId(`boot-contract-${routeCase.label}-${testInfo.project.name}-${Date.now()}`);
 
@@ -24,8 +45,7 @@ test.describe('Lab route boot contract', () => {
         localStorage.setItem('REPLOID_GENESIS_LEVEL', 'capsule');
       });
 
-      if (routeCase.mode === 'zero') await bootLegacyZeroInstance(page, instanceId);
-      else await bootRouteWithServiceWorker(page, routeCase.route, instanceId);
+      await bootLegacyLabInstance(page, routeCase.mode, instanceId);
       await assertRouteContract(page, routeCase);
       await awakenWithoutGoal(page);
 

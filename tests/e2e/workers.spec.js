@@ -13,12 +13,12 @@ async function bootWithWorkers(page, goal = 'Test workers') {
     sessionStorage.clear();
   });
   await page.goto('/x');
-  await page.waitForSelector('#wizard-container', { timeout: 10000 });
+  await page.waitForSelector('#zero-upgrade-level, #wizard-container', { timeout: 10000 });
 
   // Configure a model via localStorage
   await page.evaluate(() => {
     const key = 'REPLOID_TAB_INSTANCE_ID:/x';
-    const instanceId = sessionStorage.getItem(key);
+    const instanceId = sessionStorage.getItem(key) || window.REPLOID_INSTANCE_ID;
     const write = (k, v) => {
       localStorage.setItem(k, v);
       if (instanceId) {
@@ -32,6 +32,7 @@ async function bootWithWorkers(page, goal = 'Test workers') {
       hostType: 'browser-cloud'
     }]));
     write('REPLOID_MODE', 'x');
+    write('REPLOID_X_UPGRADE_LEVEL', 'full');
     write('REPLOID_GENESIS_LEVEL', 'full');
   });
 

@@ -38,7 +38,7 @@ const SUBSTRATE_ENTRIES = Object.freeze([
   'sw.js', 'sw-module-loader.js', 'bridge.js', 'runtime.js', 'manifest.js', 'tool-runner.js', 'boot-spec.js',
   'dream-instance.js', 'cloud-access.js', 'change-passport-entry.html', 'audit.html',
   'host/sw-module-loader.js', 'host/start-app.js', 'host/start-reploid.js', 'host/seed-vfs.js', 'host/vfs-bootstrap.js',
-  'host/reploid-launch.js', 'entry/seed-vfs.js', 'entry/start-app.js', 'kernel/index.html', 'kernel/boot.js', 'zero/boot.js'
+  'host/reploid-launch.js', 'host/boot-x.js', 'entry/seed-vfs.js', 'entry/start-app.js', 'kernel/index.html', 'kernel/boot.js', 'zero/boot.js'
 ]);
 /** Substrate components by charter: every file under these is a substrate entry. */
 const SUBSTRATE_TREES = Object.freeze([

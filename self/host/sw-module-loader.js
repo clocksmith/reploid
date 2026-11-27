@@ -59,6 +59,8 @@ const SELF_BOOTSTRAP_PATHS = new Set([
   '/zero/boot.js',
   '/zero/store.js',
   '/zero/image.js',
+  '/host/boot-x.js',
+  '/config/lab-upgrade-levels.js',
   '/index.html',
   '/kernel/index.html',
   '/kernel/boot.js',

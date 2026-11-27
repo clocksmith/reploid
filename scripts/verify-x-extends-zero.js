@@ -17,6 +17,7 @@ import { parse } from 'acorn';
 import { openBrowserTree } from '../server/browser-tree.js';
 import { getToolNamesForMode } from '../shared/config/tool-surfaces.js';
 import { LAB_UPGRADE_LEVELS, LAB_UPGRADE_TOOL_SURFACE_IDS } from '../self/config/lab-upgrades.js';
+import { collectSelfSource } from './build-self-source.js';
 
 const SCRIPT_PATH = fileURLToPath(import.meta.url);
 const ROOT = path.resolve(path.dirname(SCRIPT_PATH), '..');
@@ -135,12 +136,65 @@ export const xToolRunnerRequiresActivation = source => (
   && /\bverifiedToolSource\s*\(\s*VFS\s*,/.test(source)
 );
 
+/** Served module entries that index.html imports for pathname === '/x'. */
+export function resolveXRouteEntries(indexHtml) {
+  const scripts = [...indexHtml.matchAll(/<script\b[^>]*\btype=["']module["'][^>]*>([\s\S]*?)<\/script>/gi)];
+  const entries = new Set();
+  for (const [, code] of scripts) {
+    const ast = parse(code, { ecmaVersion: 'latest', sourceType: 'module' });
+    const urlBindings = new Map();
+    const helperImports = new Map();
+    walk(ast, node => {
+      if (node.type !== 'VariableDeclarator' || node.id?.type !== 'Identifier') return;
+      const direct = leadingString(node.init);
+      if (direct && MODULE_URL.test(direct)) urlBindings.set(node.id.name, direct);
+      if (['ArrowFunctionExpression', 'FunctionExpression'].includes(node.init?.type)) {
+        walk(node.init.body, inner => {
+          if (inner.type !== 'ImportExpression') return;
+          const raw = leadingString(inner.source) || (inner.source?.type === 'Identifier' ? urlBindings.get(inner.source.name) : null);
+          const url = MODULE_URL.exec(raw || '')?.[1];
+          if (url) helperImports.set(node.id.name, url);
+        });
+      }
+    });
+    const collectBranch = branch => {
+      if (!branch) return;
+      walk(branch, node => {
+        if (node.type === 'ImportExpression') {
+          const raw = leadingString(node.source) || (node.source?.type === 'Identifier' ? urlBindings.get(node.source.name) : null);
+          const url = MODULE_URL.exec(raw || '')?.[1];
+          if (url) entries.add(url.slice(1));
+        } else if (node.type === 'CallExpression' && node.callee?.type === 'Identifier' && helperImports.has(node.callee.name)) {
+          entries.add(helperImports.get(node.callee.name).slice(1));
+        }
+      });
+    };
+    walk(ast, node => {
+      if (node.type !== 'IfStatement') return;
+      if (mentions(node.test, value => value === '/x')) {
+        collectBranch(node.consequent);
+      } else if (mentions(node.test, value => value === '/zero') && node.alternate && node.alternate.type !== 'IfStatement') {
+        collectBranch(node.alternate);
+      }
+    });
+  }
+  if (!entries.size) throw new Error('Could not resolve /x boot entry from index.html');
+  return [...entries].sort();
+}
+
 export async function findDivergences({ tree }) {
   const read = async served => (await tree.read(served)).toString('utf8');
   const zeroFiles = JSON.parse(await read('zero/source.json')).files.map(entry => entry.path);
   const zero = new Set(zeroFiles);
   const catalog = JSON.parse(await read('config/self-source-catalog.json'));
-  const xSpark = new Set(catalog.profiles.spark.files);
+  const xRouteEntries = resolveXRouteEntries(await read('index.html'));
+  const xSpark = new Set(await collectSelfSource(xRouteEntries, read));
+  if (xSpark.has('zero/boot.js')) {
+    for (const file of zeroFiles) xSpark.add(file);
+  }
+  if (xSpark.has('kernel/boot.js')) {
+    for (const file of catalog.profiles.spark.files) xSpark.add(file);
+  }
   const found = [];
   for (const file of zeroFiles.filter(name => /\.m?js$/.test(name) && !name.includes('/vendor/acorn'))) {
     found.push(...analyzeZeroModule(file, await read(file), served => zero.has(served)));

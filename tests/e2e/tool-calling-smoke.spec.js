@@ -7,9 +7,10 @@ import { LAB_UPGRADE_TOOL_SURFACE_IDS } from '../../self/config/lab-upgrades.js'
 import {
   LAB_ROUTE_CASES,
   awakenWithoutGoal,
-  bootLegacyZeroInstance,
+  bootLegacyLabInstance,
   bootRouteWithServiceWorker,
   executeToolResult,
+  readInstanceVfs,
   sanitizeInstanceId,
   selectLabUpgradeBeforeBoot
 } from './reploid-lab-helpers.js';
@@ -53,11 +54,7 @@ test.describe('tool calling smoke', () => {
       const copyPath = `${directoryPath}/copy.txt`;
       const movedPath = `${directoryPath}/moved.txt`;
 
-      if (routeCase.route === '/zero') {
-        await bootLegacyZeroInstance(page, instanceId);
-      } else {
-        await bootRouteWithServiceWorker(page, routeCase.route, instanceId);
-      }
+      await bootLegacyLabInstance(page, routeCase.mode, instanceId);
       await awakenWithoutGoal(page);
 
       if (routeCase.requiredTools.length === 1 && routeCase.requiredTools[0] === 'CreateTool') {
@@ -257,6 +254,53 @@ test.describe('tool calling smoke', () => {
       }
     });
   }
+
+  test('fresh /x at spark activates verified tools inside Zero capsule without the legacy kernel', async ({ page }, testInfo) => {
+    const instanceId = sanitizeInstanceId(`tool-contract-x-capsule-${testInfo.project.name}-${Date.now()}`);
+    await bootRouteWithServiceWorker(page, '/x', instanceId);
+    await expect(page.locator('.zero-capsule h1')).toHaveText('X');
+    await expect(page.locator('#zero-upgrade-level')).toHaveValue('spark');
+
+    const capsuleResult = await page.evaluate(async ({ candidate, rejected }) => {
+      const { openZeroStore } = await import('/zero/store.js');
+      const { createZeroTools } = await import('/zero/tools.js');
+      const store = await openZeroStore();
+      const source = JSON.parse(await store.read('/zero/source.json'));
+      const tools = await createZeroTools({ VFS: store, source });
+      try {
+        const schemasBefore = tools.schemas().map(item => item.function.name);
+        let rejectedMessage = null;
+        try {
+          await tools.execute('CreateTool', { name: 'RejectedProbeTool', code: rejected });
+        } catch (error) {
+          rejectedMessage = error.message;
+        }
+        const created = await tools.execute('CreateTool', { name: 'ContractProbeTool', code: candidate });
+        const executed = await tools.execute('ContractProbeTool', {});
+        const schemasAfter = tools.schemas().map(item => item.function.name);
+        return { schemasBefore, rejectedMessage, created, executed, schemasAfter };
+      } finally {
+        tools.dispose();
+        store.close();
+      }
+    }, { candidate: toolCandidateCode, rejected: rejectedToolCandidateCode });
+
+    expect(capsuleResult.schemasBefore).toEqual(['CreateTool']);
+    expect(capsuleResult.rejectedMessage).toContain('activation check returns ok failed');
+    expect(capsuleResult.created).toMatchObject({
+      success: true,
+      name: 'ContractProbeTool',
+      activated: true,
+      targetPath: '/self/tools/ContractProbeTool.js',
+      replayPassed: true
+    });
+    expect(capsuleResult.executed).toEqual({ ok: true });
+    expect(capsuleResult.schemasAfter).toEqual(['CreateTool', 'ContractProbeTool']);
+
+    const files = await readInstanceVfs(page, 'x', instanceId);
+    expect(JSON.parse(files['/artifacts/ContractProbeTool-evidence.json']).schema)
+      .toBe('reploid.zero.createToolEvidence.v3');
+  });
 
   test('/x upgraded to reflection exposes file and promotion tools and stages CreateTool', async ({ page }, testInfo) => {
     const instanceId = sanitizeInstanceId(`tool-contract-x-reflection-${testInfo.project.name}-${Date.now()}`);

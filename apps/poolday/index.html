@@ -43,7 +43,7 @@
       window.REPLOID_VFS_VERSION = window.REPLOID_BUILD_VERSION;
     </script>
     <script>
-      if (location.pathname.replace(/\/+$/, '') !== '/zero') {
+      if (!['/zero', '/x'].includes(location.pathname.replace(/\/+$/, ''))) {
         for (const href of ['/styles/rd.css', '/styles/boot.css']) {
           const link = document.createElement('link');
           link.rel = 'stylesheet'; link.href = href; document.head.appendChild(link);
@@ -217,6 +217,9 @@
       } else if (pathname === '/zero') {
         const { bootZero } = await import('/zero/boot.js');
         await bootZero({ onLegacy: bootLegacyKernel });
+      } else if (pathname === '/x') {
+        const { bootX } = await import('/host/boot-x.js');
+        await bootX({ onLegacy: bootLegacyKernel });
       } else {
         await bootLegacyKernel();
       }

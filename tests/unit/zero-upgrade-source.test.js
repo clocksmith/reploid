@@ -1,4 +1,5 @@
 /* @vitest-environment happy-dom */
+import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { afterEach, expect, it, vi } from 'vitest';
 import manifest from '../../self/config/vfs-manifest.json' with { type: 'json' };
@@ -265,9 +266,49 @@ it.each(['boot', 'completion', 'mounted'])('rolls back a real host catch-to-call
     renderErrorUI: (await import('../../self/boot-helpers/error-ui.js')).renderErrorUI,
     boot: async (_Utils, DIContainer) => {
       const { default: ToolRunner } = await import('../../self/core/tool-runner.js');
+      const partialCode = '// tool fixture';
+      const partialHash = createHash('sha256').update(partialCode).digest('hex');
+      const partialTranscript = 'a'.repeat(64);
+      const partialReceipt = JSON.stringify({
+        schema: 'reploid.zero.createToolEvidence.v3',
+        action: 'CreateTool.activate',
+        toolName: 'Partial',
+        targetPath: '/self/tools/Partial.js',
+        evidencePath: '/artifacts/Partial-evidence.json',
+        candidateHash: partialHash,
+        targetHash: partialHash,
+        activated: true,
+        validationPassed: true,
+        activationChecksPassed: true,
+        replayPassed: true,
+        checks: {
+          verification: { kind: 'static-worker', passed: true, skipped: false, hash: partialHash },
+          validation: { passed: true, activationContractValid: true },
+          activation: {
+            passed: true,
+            executed: true,
+            declaredChecksPassed: true,
+            runtimeLoaded: true,
+            installedBytesMatch: true,
+            checkCount: 1,
+            transcriptHash: partialTranscript
+          },
+          replay: {
+            passed: true,
+            executed: true,
+            checkCount: 1,
+            transcriptHash: partialTranscript,
+            matchesActivationTranscript: true
+          }
+        }
+      });
       runner = ToolRunner.factory({
         Utils: { logger: { debug() {}, info() {}, warn() {}, error() {} }, Errors: { ToolError: Error }, trunc: String },
-        VFS: { read: async () => '// tool fixture', exists: async () => true },
+        VFS: {
+          read: async path => (path === '/artifacts/Partial-evidence.json' ? partialReceipt : partialCode),
+          exists: async () => true,
+          list: async () => []
+        },
         SchemaRegistry: { registerToolSchema() {}, unregisterToolSchema() {} },
         EventBus: { emit() {} }
       });

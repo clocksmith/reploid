@@ -35,7 +35,8 @@ export async function createZeroTools({ VFS, source = null, emit = () => {}, log
   const assertActive = signal => {
     if (disposed) throw new Error('Zero tools are disposed');
     signal?.throwIfAborted();
-    if (globalThis.window?.getReploidMode?.() !== 'zero' || getSurfaceIdFromUrl() !== 'zero') {
+    const mode = globalThis.window?.getReploidMode?.(), surface = getSurfaceIdFromUrl();
+    if (!(mode === 'zero' || mode === 'x') || mode !== surface) {
       throw new Error('Zero tools require the Zero host and verifier scope');
     }
     if (isSecurityEnabled()) throw new Error('Configured security requires its PolicyEngine; Zero cannot bypass it');
@@ -170,7 +171,7 @@ export async function createZeroTools({ VFS, source = null, emit = () => {}, log
                 loadPath: reload, load: toolName => reload(`/self/tools/${toolName}.js`, toolName),
                 allow: scoped(toolName => installed.get(toolName)?.committed === true)
               }
-            }, 'zero', name, { capabilities });
+            }, globalThis.window?.getReploidMode?.() || 'zero', name, { capabilities });
             const result = await handler(input, deps);
             assertActive(context.signal);
             return result;

@@ -830,8 +830,8 @@ export default async function(args) {
         hasEchoAfterCreate,
         echoResult,
         tools: toolRunner.list(),
-        hasZeroSelfUi: await vfs.exists('/self/ui/zero/index.js'),
-        hasZeroSelfStyles: await vfs.exists('/self/styles/zero.css')
+        hasZeroSelfUi: await vfs.exists('/ui/zero/index.js'),
+        hasZeroSelfStyles: await vfs.exists('/styles/zero.css')
       };
     });
 
@@ -856,12 +856,15 @@ export default async function(args) {
     expect(pageErrors).toEqual([]);
   });
 
-  test('/x locks the boot mode to X without boot failures', async ({ page }) => {
+  test('/x boots Zero capsule at spark and loads upgrades only when selected', async ({ page }, testInfo) => {
     const pageErrors = [];
     const startupDiscoveryRequests = [];
+    const legacyRequestsBeforeUpgrade = [];
+    let allowLegacyRequests = false;
     page.on('pageerror', (error) => pageErrors.push(error.message));
     page.on('request', (request) => {
       const url = request.url();
+      const { pathname } = new URL(url);
       if (
         url.includes('localhost:11434/api/tags')
         || url.includes('localhost:8000/api/health')
@@ -870,23 +873,37 @@ export default async function(args) {
       ) {
         startupDiscoveryRequests.push(url);
       }
+      if (!allowLegacyRequests && /^\/(?:self\/)?(?:lab\/|infrastructure\/di-container\.js|kernel\/boot\.js)/.test(pathname)) {
+        legacyRequestsBeforeUpgrade.push(url);
+      }
     });
-    for (const route of ['/x', '/x/']) {
-      await page.goto(route);
-      await page.waitForSelector('.wizard-home-provider [data-action="choose-direct"]', { timeout: 20000 });
+    for (const [index, route] of ['/x', '/x/'].entries()) {
+      const instanceId = sanitizeInstanceId(`fresh-x-${index}-${testInfo.project.name}-${Date.now()}`);
+      await bootRouteWithServiceWorker(page, route, instanceId);
 
       await expect(page.locator('.boot-mode-btn[data-mode]')).toHaveCount(0);
       await expect(page.locator('.wizard-brand')).toHaveCount(0);
       await expect(page).toHaveTitle(/^X$/i);
-      await expect(page.locator('.wizard-home-provider .type-h1')).toHaveText('Choose inference provider');
-      await expect(page.locator('[data-action="choose-direct"]')).toBeVisible();
-      await expect(page.locator('[data-action="advanced-settings"]')).toHaveCount(0);
+      await expect(page.locator('.zero-capsule h1')).toHaveText('X');
+      await expect(page.locator('.zero-state')).toHaveText('idle');
+      await expect(page.getByLabel('What should X build?')).toBeVisible();
+      await expect(page.locator('#zero-upgrade-level')).toHaveValue('spark');
+      await expect(page.locator('#zero-upgrade-level option:checked')).toHaveText('None: Zero core');
       await expect(page.locator('body')).not.toContainText(/Boot Failure|Boot failed|Module not found/i);
       await expect.poll(async () => page.evaluate(() => window.getReploidMode())).toBe('x');
       await expect.poll(async () => page.evaluate(() => window.getReploidRouteMode())).toBe('x');
+      expect(await page.evaluate(() => !!window.REPLOID?.container)).toBe(false);
     }
-    expect(pageErrors).toEqual([]);
+    expect(legacyRequestsBeforeUpgrade).toEqual([]);
     expect(startupDiscoveryRequests).toEqual([]);
+
+    allowLegacyRequests = true;
+    await page.locator('#zero-prompt').fill('Carry goal into reflection upgrade');
+    await page.selectOption('#zero-upgrade-level', 'reflection');
+    await expect(page.locator('.wizard-home-provider [data-action="choose-proxy"]')).toBeVisible({ timeout: 20000 });
+    await expect(page.locator('#zero-upgrade-level')).toHaveValue('reflection');
+    await expect(page.locator('#goal-input')).toHaveValue('Carry goal into reflection upgrade');
+    expect(pageErrors).toEqual([]);
   });
 });
 

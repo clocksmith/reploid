@@ -6,9 +6,11 @@ import {
   compareWithRecord,
   pruneRecord,
   RECORD_SCHEMA,
+  resolveXRouteEntries,
   xToolRunnerRequiresActivation,
   zeroHostToolNames
 } from '../../scripts/verify-x-extends-zero.js';
+import { bootX } from '../../self/host/boot-x.js';
 import ToolRunnerModule from '../../self/core/tool-runner.js';
 import WriteFile from '../../self/tools/WriteFile.js';
 import EditFile from '../../self/tools/EditFile.js';
@@ -49,6 +51,152 @@ export const boot = () => import('/zero/main.js');`)).toEqual([]);
     expect(zeroHostToolNames(`registry.registerToolSchema('CreateTool', {})`)).toEqual(['CreateTool']);
     expect(xToolRunnerRequiresActivation(`import { verifiedToolSource } from './create-tool.js';\nverifiedToolSource(VFS, file);`)).toBe(true);
     expect(xToolRunnerRequiresActivation(`export default {};`)).toBe(false);
+  });
+
+  it('extracts the /x route boot entry from index.html and catches legacy-kernel regressions', () => {
+    const converged = `<script type="module">
+      const bootLegacyKernel = () => import('/kernel/boot.js?v=1');
+      if (pathname === '/zero') {
+        const { bootZero } = await import('/zero/boot.js');
+        await bootZero({ onLegacy: bootLegacyKernel });
+      } else if (pathname === '/x') {
+        const { bootX } = await import('/host/boot-x.js');
+        await bootX({ onLegacy: bootLegacyKernel });
+      } else {
+        await bootLegacyKernel();
+      }
+    </script>`;
+    expect(resolveXRouteEntries(converged)).toEqual(['host/boot-x.js']);
+
+    const regressedFallback = `<script type="module">
+      const bootLegacyKernel = () => import('/kernel/boot.js?v=1');
+      if (pathname === '/zero') {
+        await import('/zero/boot.js');
+      } else {
+        await bootLegacyKernel();
+      }
+    </script>`;
+    expect(resolveXRouteEntries(regressedFallback)).toEqual(['kernel/boot.js']);
+  });
+
+  it('boots X on Zero capsule at spark, switches on explicit upgrade, and rolls back failed upgrade transitions', async () => {
+    const storage = getCurrentReploidStorage();
+    storage.removeItem(LAB_UPGRADE_STORAGE_KEY);
+    storage.removeItem('REPLOID_GENESIS_LEVEL');
+    storage.removeItem('REPLOID_GOAL');
+
+    const app = document.createElement('main');
+    app.id = 'app';
+    document.body.replaceChildren(app);
+    const win = {
+      document,
+      location: new URL('https://replo.id/x?instance=x_capsule_unit'),
+      sessionStorage,
+      navigator: { serviceWorker: {} }
+    };
+    window.REPLOID_INSTANCE_ID = 'x_capsule_unit';
+    const capsuleDispose = async () => {};
+    let mountedHost = null;
+    const onLegacy = async () => { throw new Error('Legacy should not run at spark'); };
+    const booted = await bootX({
+      win,
+      openStore: async () => ({
+        read: async path => (path === '/zero/source.json' ? null : null),
+        list: async () => [],
+        seed: async () => true,
+        close() {}
+      }),
+      read: async path => {
+        if (path === '/zero/source.json') {
+          const files = [
+            'zero/index.html', 'zero/boot.js', 'zero/store.js', 'zero/image.js',
+            'zero/style.css', 'core/verification-worker.js', 'core/vendor/acorn.js',
+            'core/vendor/ACORN-LICENSE.txt', 'host/sw-module-loader.js', 'core/import-rewrite.js',
+            'sw.js', 'zero/main.js', 'zero/agent.js', 'zero/ui.js', 'zero/config.json'
+          ];
+          const contentOf = p => p === 'zero/config.json'
+            ? JSON.stringify({ schema: 'reploid.zero.boot/v1', main: 'zero/main.js', agent: 'zero/agent.js', ui: 'zero/ui.js' })
+            : `// ${p}\n`;
+          return JSON.stringify({
+            schema: 'reploid.zero.source/v1',
+            version: 1,
+            boot: { main: 'zero/main.js', agent: 'zero/agent.js', ui: 'zero/ui.js', config: 'zero/config.json' },
+            prerequisites: [],
+            files: files.map(p => ({
+              path: p,
+              bytes: Buffer.byteLength(contentOf(p)),
+              sha256: createHash('sha256').update(contentOf(p)).digest('hex')
+            }))
+          });
+        }
+        if (path === '/zero/config.json') {
+          return JSON.stringify({ schema: 'reploid.zero.boot/v1', main: 'zero/main.js', agent: 'zero/agent.js', ui: 'zero/ui.js' });
+        }
+        return `// ${path.slice(1)}\n`;
+      },
+      connect: async () => {},
+      load: async () => ({
+        main: async ({ mount, host }) => {
+          mountedHost = host;
+          const prompt = document.createElement('textarea');
+          prompt.id = 'zero-prompt';
+          prompt.value = 'Draft goal before upgrade';
+          let lastError = null;
+          const extra = host.createExtension({
+            document,
+            element: (tag, text, attrs = {}) => {
+              const node = document.createElement(tag);
+              if (text !== undefined) node.textContent = text;
+              for (const [k, v] of Object.entries(attrs)) node.setAttribute(k, v);
+              return node;
+            },
+            fail: err => { lastError = err; }
+          });
+          mount.replaceChildren(prompt, extra);
+          const handle = { dispose: capsuleDispose, getLastError: () => lastError };
+          host.onReady(handle);
+          return handle;
+        }
+      }),
+      onLegacy,
+      onUpgrade: async (_win, level) => {
+        if (level === 'cognition') throw new Error('Upgrade load failed');
+      }
+    });
+
+    expect(win.getReploidMode()).toBe('x');
+    expect(win.getReploidRouteMode()).toBe('x');
+    expect(mountedHost.title).toBe('X');
+    const select = document.getElementById('zero-upgrade-level');
+    expect(select.value).toBe('spark');
+
+    // Failed upgrade rolls back storage and control state.
+    select.value = 'cognition';
+    await select.onchange();
+    expect(select.value).toBe('spark');
+    expect(select.disabled).toBe(false);
+    expect(booted.getLastError()?.message).toBe('Upgrade load failed');
+    expect(getCurrentReploidStorage().getItem(LAB_UPGRADE_STORAGE_KEY, { legacyFallback: false })).toBeNull();
+
+    // Successful upgrade persists level + draft goal and routes subsequent bootX calls to onLegacy.
+    select.value = 'reflection';
+    await select.onchange();
+    expect(getCurrentReploidStorage().getItem(LAB_UPGRADE_STORAGE_KEY, { legacyFallback: false })).toBe('reflection');
+    expect(getCurrentReploidStorage().getItem('REPLOID_GOAL')).toBe('Draft goal before upgrade');
+
+    let legacyCalled = false;
+    const upgradedResult = await bootX({
+      win,
+      onLegacy: async () => { legacyCalled = true; }
+    });
+    expect(upgradedResult).toEqual({ upgraded: true, level: 'reflection' });
+    expect(legacyCalled).toBe(true);
+
+    getCurrentReploidStorage().removeItem(LAB_UPGRADE_STORAGE_KEY);
+    getCurrentReploidStorage().removeItem('REPLOID_GENESIS_LEVEL');
+    getCurrentReploidStorage().removeItem('REPLOID_GOAL');
+    delete window.REPLOID_INSTANCE_ID;
+    document.body.replaceChildren();
   });
 
   it('fails on a new divergence and on a fixed one still recorded, and prunes only fixed ones', () => {

@@ -20,7 +20,7 @@ import { browserModuleReferences } from '../server/browser-module-references.js'
 import { openBrowserTree, rootOf } from '../server/browser-tree.js';
 
 /** Substrate modules the product may load: index.html boots /zero and the other substrate routes through them. */
-export const SELF_ENTRY_POINTS = Object.freeze(['zero/boot.js', 'kernel/boot.js']);
+export const SELF_ENTRY_POINTS = Object.freeze(['zero/boot.js', 'host/boot-x.js', 'kernel/boot.js']);
 const ALLOWED = Object.freeze({ self: ['self', 'shared'], shared: ['shared'], 'apps/poolday': ['apps/poolday', 'shared'] });
 const posix = path.posix;
 const stripSuffix = value => value.replace(/[?#].*$/, '');

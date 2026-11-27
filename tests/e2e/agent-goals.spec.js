@@ -34,7 +34,7 @@ async function runAgentWithGoal(page, goal, waitTime = 360000) {
     sessionStorage.clear();
   });
   await page.goto('/x');
-  await page.waitForSelector('#wizard-container', { timeout: 10000 });
+  await page.waitForSelector('#zero-upgrade-level, #wizard-container', { timeout: 10000 });
 
   // Configure Mock Model via localStorage
   await page.evaluate(() => {
@@ -51,6 +51,7 @@ async function runAgentWithGoal(page, goal, waitTime = 360000) {
       provider: 'mock',
       hostType: 'direct'
     }]));
+    write('REPLOID_X_UPGRADE_LEVEL', 'full');
     write('REPLOID_GENESIS_LEVEL', 'full');
     write('REPLOID_MODE', 'x');
     write('REPLOID_KEY_MOCK', 'mock-key');

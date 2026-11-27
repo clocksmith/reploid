@@ -22,13 +22,13 @@ Inputs:
 - Runtime modules from the [manifest](manifest.js).
 
 Outputs:
-- The substrate entry points [zero/boot.js](zero/boot.js) and [kernel/boot.js](kernel/boot.js); product entries belong to [Poolday](../apps/poolday/CATSCAN.md).
+- The substrate entry points [zero/boot.js](zero/boot.js), [host/boot-x.js](host/boot-x.js) and [kernel/boot.js](kernel/boot.js); product entries belong to [Poolday](../apps/poolday/CATSCAN.md).
 - Seeded runtime state through [boot seed](config/boot-seed.js).
 
 ## Invariants
 - A route must resolve to one declared surface and authority profile.
 - Recovery state and mutable state remain distinguishable.
-- Zero bootstraps from its minimal self-source; X extends Zero with operator-selected upgrades only, never by branching Zero's modules. Remaining runtime divergences, chiefly `/x` running the legacy kernel instead of Zero's capsule, are recorded in [zero-extension.json](../docs/x/zero-extension.json) and may only shrink (`npm run verify:x-extension`). Existing instances retain their owned source and work.
+- Zero bootstraps from its minimal self-source; X at `spark` boots Zero's capsule via [host/boot-x.js](host/boot-x.js) and loads extra modules only for upgrades above `spark`, never by branching Zero's modules. The two-file adapter in [zero-extension.json](../docs/x/zero-extension.json) may only shrink (`npm run verify:x-extension`). Existing instances retain owned source and work.
 - Browser-local claims remain bounded by verifiable records.
 
 ## Acceptance

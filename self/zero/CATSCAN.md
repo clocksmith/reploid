@@ -13,9 +13,10 @@ engine owns execution; the existing verification and activation owners gate tool
 
 ## Scope
 
-This subtree. Existing Zero instances, X and Poolday retain their own startup. X is to extend this
-capsule; until it does, [zero-extension.json](../../docs/x/zero-extension.json) records the difference
-and `npm run verify:x-extension` keeps Zero's closure free of X-only imports and branches.
+This subtree. Fresh `/zero` and fresh `/x` at `spark` ("None: Zero core") boot this capsule;
+returning legacy instances, upgraded `/x` (`reflection..full`) and Poolday retain their own startup.
+[zero-extension.json](../../docs/x/zero-extension.json) records `/x`'s two-file upgrade-selector
+adapter and `npm run verify:x-extension` keeps Zero's closure free of X-only imports and branches.
 
 ## Contracts
 

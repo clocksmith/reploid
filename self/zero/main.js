@@ -10,7 +10,7 @@ export function selectZeroConfig(config, hostname = globalThis.location?.hostnam
 }
 
 /** Saved configuration selects the two capsules; no DI graph or background seed. */
-export async function main({ store, mount, source, config, query = '' }) {
+export async function main({ store, mount, source, config, query = '', host = null }) {
   const [agentModule, uiModule] = await Promise.all([
     import('/' + config.agent + query), import('/' + config.ui + query)
   ]);
@@ -23,10 +23,13 @@ export async function main({ store, mount, source, config, query = '' }) {
       provider: createZeroProvider(), onChange: state => ui?.render(state) });
     ui = uiModule.mountZero(mount, {
       agent, config: settings, source, restored,
-      exportSource: () => exportZeroImage(store, { includeTools: true })
+      exportSource: () => exportZeroImage(store, { includeTools: true }),
+      ...(host ? { host } : {})
     });
     ui.render(agent.snapshot());
-    return { agent, tools, dispose: async () => { await agent.dispose(); ui.dispose(); store.close(); } };
+    const dispose = async () => { await agent.dispose(); ui.dispose(); store.close(); };
+    host?.onReady?.({ agent, tools, ui, store, dispose });
+    return { agent, tools, dispose };
   } catch (error) {
     await agent?.dispose();
     await tools.dispose();

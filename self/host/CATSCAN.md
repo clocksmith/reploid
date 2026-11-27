@@ -19,7 +19,7 @@ Subtree.
 
 Inputs: [seed](../config/boot-seed.js), [start-app.js](start-app.js).
 
-Outputs: [VFS](seed-vfs.js), [startup](start-reploid.js).
+Outputs: [X capsule entry](boot-x.js), [VFS](seed-vfs.js), [startup](start-reploid.js).
 
 ## Invariants
 - Explicit seeds; no missing/unverified module substitutions.

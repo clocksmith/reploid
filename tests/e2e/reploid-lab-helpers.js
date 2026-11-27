@@ -33,10 +33,10 @@ export async function readInstanceVfs(page, surface, instanceId) {
 
 // A saved-work sentinel exercises the nonempty legacy branch, not restoration of
 // a complete historical image. Boot and tool verification remain unmodified.
-export async function bootLegacyZeroInstance(page, instanceId) {
-  const fixturePath = '/__e2e__/legacy-zero-instance';
+export async function bootLegacyLabInstance(page, surface, instanceId) {
+  const fixturePath = `/__e2e__/legacy-${surface}-instance`;
   const savedPath = '/artifacts/legacy-saved-work.txt';
-  const savedText = `Saved before compact Zero: ${instanceId}`;
+  const savedText = `Saved before compact capsule (${surface}): ${instanceId}`;
   const renderFixture = route => route.fulfill({ contentType: 'text/html', body: '<!doctype html><title>Legacy instance fixture</title>' });
   await page.route(`**${fixturePath}`, renderFixture);
   try {
@@ -56,15 +56,19 @@ export async function bootLegacyZeroInstance(page, instanceId) {
           tx.onerror = tx.onabort = () => reject(tx.error);
         });
       } finally { db.close(); }
-    }, { dbName: `${DB_PREFIX}--zero--${instanceId}`, path: savedPath, content: savedText });
+    }, { dbName: `${DB_PREFIX}--${surface}--${instanceId}`, path: savedPath, content: savedText });
   } finally { await page.unroute(`**${fixturePath}`, renderFixture); }
 
-  await bootRouteWithServiceWorker(page, '/zero', instanceId);
+  await bootRouteWithServiceWorker(page, `/${surface}`, instanceId);
   await expect(page.locator('.wizard-home-provider')).toBeVisible();
-  const files = await readInstanceVfs(page, 'zero', instanceId);
+  const files = await readInstanceVfs(page, surface, instanceId);
   expect(files[savedPath]).toBe(savedText);
   expect(files['/zero/source.json']).toBeUndefined();
   await expect(page.locator('.zero-capsule')).toHaveCount(0);
+}
+
+export async function bootLegacyZeroInstance(page, instanceId) {
+  return bootLegacyLabInstance(page, 'zero', instanceId);
 }
 
 export async function selectLabUpgradeBeforeBoot(page, instanceId, level) {
@@ -292,6 +296,9 @@ export async function setMockSelectedModel(page, instanceId, options = {}) {
 }
 
 export async function awakenWithMockGoal(page, route, instanceId, goal, responses, modelOptions = {}) {
+  if (route === '/x') {
+    await selectLabUpgradeBeforeBoot(page, instanceId, modelOptions.upgradeLevel || 'reflection');
+  }
   await bootRouteWithServiceWorker(page, route, instanceId);
   await expect.poll(async () => page.evaluate(() => typeof window.triggerAwaken === 'function'), {
     timeout: 30000

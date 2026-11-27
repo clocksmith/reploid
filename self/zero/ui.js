@@ -1,6 +1,7 @@
 /** Conversation first; technical source and restoration detail remain inspectable. */
-export function mountZero(mount, { agent, config, source, restored, exportSource }) {
+export function mountZero(mount, { agent, config, source, restored, exportSource, host = null }) {
   const document = mount.ownerDocument;
+  const title = host?.title || 'Zero';
   const element = (tag, text, attributes = {}) => {
     const node = document.createElement(tag);
     if (text !== undefined) node.textContent = text;
@@ -14,11 +15,11 @@ export function mountZero(mount, { agent, config, source, restored, exportSource
   }
   const root = element('section', undefined, { class: 'zero-capsule' });
   const header = element('header'), status = element('span', 'idle', { role: 'status', class: 'zero-state' });
-  header.append(element('h1', 'Zero'), status);
+  header.append(element('h1', title), status);
   const messages = element('div', undefined, { class: 'zero-messages', role: 'log', 'aria-live': 'polite' });
   const error = element('p', '', { role: 'alert', class: 'zero-error' });
-  const form = element('form'), label = element('label', 'What should Zero build?', { for: 'zero-prompt' });
-  const prompt = element('textarea', undefined, { id: 'zero-prompt', rows: '3', required: '', placeholder: 'Give Zero a goal' });
+  const form = element('form'), label = element('label', `What should ${title} build?`, { for: 'zero-prompt' });
+  const prompt = element('textarea', undefined, { id: 'zero-prompt', rows: '3', required: '', placeholder: `Give ${title} a goal` });
   const send = element('button', 'Awaken', { type: 'submit' });
   const stop = element('button', 'Stop', { type: 'button' });
   stop.disabled = true;
@@ -34,10 +35,11 @@ export function mountZero(mount, { agent, config, source, restored, exportSource
     element('p', 'The conversation is saved in full; model context uses bounded recent exchanges.'),
     element('p', 'No API key is saved. Verification is static preflight plus fixture replay, not arbitrary-code isolation.'), exportButton);
   if (failures) inspect.append(element('pre', failures));
-  root.append(header, messages, error, form, inspect);
-  mount.replaceChildren(root);
   let dead = false, busy = false;
   const fail = reason => { if (!dead) error.textContent = reason?.message || String(reason); };
+  const extra = host?.createExtension?.({ document, element, fail }) || null;
+  root.append(header, messages, error, form, ...(extra ? [extra] : []), inspect);
+  mount.replaceChildren(root);
   form.onsubmit = async event => {
     event.preventDefault();
     if (dead || busy || !prompt.value.trim()) return;
@@ -82,10 +84,10 @@ export function mountZero(mount, { agent, config, source, restored, exportSource
           return detail;
         }
         const article = element('article', undefined, { class: `zero-message ${message.role}` });
-        article.append(element('strong', message.role === 'user' ? 'You' : 'Zero'), element('p', message.content));
+        article.append(element('strong', message.role === 'user' ? 'You' : title), element('p', message.content));
         return article;
       }));
     },
-    dispose() { dead = true; form.onsubmit = stop.onclick = exportButton.onclick = null; root.remove(); }
+    dispose() { dead = true; host?.dispose?.(); form.onsubmit = stop.onclick = exportButton.onclick = null; root.remove(); }
   };
 }
