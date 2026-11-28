@@ -1,0 +1,1807 @@
+{
+  "schema": "reploid.two-host-training-workout/v1",
+  "startedAt": "2026-11-28T12:58:54.067Z",
+  "discovery": {
+    "scope": "private Poolday invitation, signed discovery and matched DTLS bindings",
+    "servedTrainingBuild": {
+      "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+      "baseManifestHash": "sha256:9317b66f490c3a73beab54408270e6fb2901a33aadb31c910b9e3b48b1d1b0e0",
+      "sha256": {
+        "/config/lora-training.json": "868819aae4d84e23f92ef824d96868511dc7fc0a91b9b6d50850ea33af6aa568",
+        "/model-files/qwen-3-5-0-8b-q4k-ehaf16/manifest.json": "fa6eb7bbc3ba63571f8cede780b877d9272bde948697af93dd3d33837cb46137",
+        "/config/doppler-package.json": "3a9fa9754902557f3c2798c4399526841534864b389b109c96db0a22354d1d77",
+        "/ui/react/app.js": "20d97f4113ea86e87eccd7a1cc9a3dbfb8a59750b647b9334177793150a383ed",
+        "/host/lora-training.js": "ab497bd771ad208be881667cc13878035c354f6ae89637bef5cc33c8bdd60c46",
+        "/host/lora-training-worker.js": "dc0bfaf4715a4ba9e793b587e0d59446c63d6612b6a4352301f3b4e4b52de968",
+        "/host/lora-training-executor.js": "c4b72455f27eda47487a410559970eaefc4150d8c852cc291adae4b83580ad8d",
+        "/vendor/reploid/training/session.js": "f8e3cd2ea9cb6276f10e29cf259290f447a9498dd4e6f97f81def622467182c8",
+        "/vendor/reploid/training/network.js": "f8d474b6af010d14627a7441860f812104fc20774190c172f09d4107fa0ad9ab"
+      }
+    },
+    "consentAtDiscovery": "Both Improve panels displayed the training disclosure and started with consent off",
+    "connectionPaths": {
+      "coordinator": [
+        "direct"
+      ],
+      "contributor": [
+        "direct"
+      ]
+    },
+    "measurement": "RTCDataChannel application bytes, including training control and framing, in both directions",
+    "binding": {
+      "coordinator": {
+        "participantId": "peer:78f272165b1673dd08ae0c53",
+        "counterpartVerified": "peer:db2133f33ccb37fa21e3dd5f",
+        "localCertificateSha256": "a837c062fe09b825769a803e9c4bb6ce37e012436bf081c1ec2d113551ae0b30",
+        "remoteCertificateSha256": "5e2952ba567334c229d5aa33b40b003584e5fe9e82e9e2c23ab90a4070406fd2"
+      },
+      "contributor": {
+        "participantId": "peer:db2133f33ccb37fa21e3dd5f",
+        "counterpartVerified": "peer:78f272165b1673dd08ae0c53",
+        "localCertificateSha256": "5e2952ba567334c229d5aa33b40b003584e5fe9e82e9e2c23ab90a4070406fd2",
+        "remoteCertificateSha256": "a837c062fe09b825769a803e9c4bb6ce37e012436bf081c1ec2d113551ae0b30"
+      }
+    },
+    "browsers": {
+      "coordinator": {
+        "browserVersion": "158.0.8127.37",
+        "devices": [
+          {
+            "vendorId": 4203,
+            "deviceId": 0,
+            "vendorString": "Google Inc. (Apple)",
+            "deviceString": "ANGLE (Apple, ANGLE Metal Renderer: Apple M3, Version 26.6.2 (Build 25G83))",
+            "driverVersion": "26.6.2"
+          }
+        ],
+        "adapter": {
+          "vendor": "apple",
+          "architecture": "metal-3",
+          "device": "",
+          "description": ""
+        }
+      },
+      "contributor": {
+        "browserVersion": "146.0.7680.177",
+        "devices": [
+          {
+            "vendorId": 4098,
+            "deviceId": 5510,
+            "vendorString": "Google Inc. (AMD)",
+            "deviceString": "ANGLE (AMD, Vulkan 1.4.335 (Radeon 8060S Graphics (RADV STRIX_HALO) (0x00001586)), radv-26.0.3)",
+            "driverVersion": "26.0.3"
+          }
+        ],
+        "adapter": {
+          "vendor": "amd",
+          "architecture": "rdna-3",
+          "device": "",
+          "description": ""
+        }
+      }
+    }
+  },
+  "workout": {
+    "schema": "reploid.two-host-lora-workout/v1",
+    "started": "2026-11-28T12:58:58.497Z",
+    "status": "passed",
+    "discovery": {
+      "scope": "private Poolday invitation, signed discovery and matched DTLS bindings",
+      "servedTrainingBuild": {
+        "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+        "baseManifestHash": "sha256:9317b66f490c3a73beab54408270e6fb2901a33aadb31c910b9e3b48b1d1b0e0",
+        "sha256": {
+          "/config/lora-training.json": "868819aae4d84e23f92ef824d96868511dc7fc0a91b9b6d50850ea33af6aa568",
+          "/model-files/qwen-3-5-0-8b-q4k-ehaf16/manifest.json": "fa6eb7bbc3ba63571f8cede780b877d9272bde948697af93dd3d33837cb46137",
+          "/config/doppler-package.json": "3a9fa9754902557f3c2798c4399526841534864b389b109c96db0a22354d1d77",
+          "/ui/react/app.js": "20d97f4113ea86e87eccd7a1cc9a3dbfb8a59750b647b9334177793150a383ed",
+          "/host/lora-training.js": "ab497bd771ad208be881667cc13878035c354f6ae89637bef5cc33c8bdd60c46",
+          "/host/lora-training-worker.js": "dc0bfaf4715a4ba9e793b587e0d59446c63d6612b6a4352301f3b4e4b52de968",
+          "/host/lora-training-executor.js": "c4b72455f27eda47487a410559970eaefc4150d8c852cc291adae4b83580ad8d",
+          "/vendor/reploid/training/session.js": "f8e3cd2ea9cb6276f10e29cf259290f447a9498dd4e6f97f81def622467182c8",
+          "/vendor/reploid/training/network.js": "f8d474b6af010d14627a7441860f812104fc20774190c172f09d4107fa0ad9ab"
+        }
+      },
+      "consentAtDiscovery": "Both Improve panels displayed the training disclosure and started with consent off",
+      "connectionPaths": {
+        "coordinator": [
+          "direct"
+        ],
+        "contributor": [
+          "direct"
+        ]
+      },
+      "measurement": "RTCDataChannel application bytes, including training control and framing, in both directions",
+      "binding": {
+        "coordinator": {
+          "participantId": "peer:78f272165b1673dd08ae0c53",
+          "counterpartVerified": "peer:db2133f33ccb37fa21e3dd5f",
+          "localCertificateSha256": "a837c062fe09b825769a803e9c4bb6ce37e012436bf081c1ec2d113551ae0b30",
+          "remoteCertificateSha256": "5e2952ba567334c229d5aa33b40b003584e5fe9e82e9e2c23ab90a4070406fd2"
+        },
+        "contributor": {
+          "participantId": "peer:db2133f33ccb37fa21e3dd5f",
+          "counterpartVerified": "peer:78f272165b1673dd08ae0c53",
+          "localCertificateSha256": "5e2952ba567334c229d5aa33b40b003584e5fe9e82e9e2c23ab90a4070406fd2",
+          "remoteCertificateSha256": "a837c062fe09b825769a803e9c4bb6ce37e012436bf081c1ec2d113551ae0b30"
+        }
+      },
+      "browsers": {
+        "coordinator": {
+          "browserVersion": "158.0.8127.37",
+          "devices": [
+            {
+              "vendorId": 4203,
+              "deviceId": 0,
+              "vendorString": "Google Inc. (Apple)",
+              "deviceString": "ANGLE (Apple, ANGLE Metal Renderer: Apple M3, Version 26.6.2 (Build 25G83))",
+              "driverVersion": "26.6.2"
+            }
+          ],
+          "adapter": {
+            "vendor": "apple",
+            "architecture": "metal-3",
+            "device": "",
+            "description": ""
+          }
+        },
+        "contributor": {
+          "browserVersion": "146.0.7680.177",
+          "devices": [
+            {
+              "vendorId": 4098,
+              "deviceId": 5510,
+              "vendorString": "Google Inc. (AMD)",
+              "deviceString": "ANGLE (AMD, Vulkan 1.4.335 (Radeon 8060S Graphics (RADV STRIX_HALO) (0x00001586)), radv-26.0.3)",
+              "driverVersion": "26.0.3"
+            }
+          ],
+          "adapter": {
+            "vendor": "amd",
+            "architecture": "rdna-3",
+            "device": "",
+            "description": ""
+          }
+        }
+      }
+    },
+    "tolerance": {
+      "maximumAbsolute": 0.00002,
+      "rootMeanSquare": 0.000002
+    },
+    "numericalSamples": [
+      {
+        "inputIds": [
+          100,
+          200,
+          300
+        ],
+        "targetIds": [
+          200,
+          300,
+          -100
+        ],
+        "supervisedTokenCount": 2
+      },
+      {
+        "inputIds": [
+          100,
+          200,
+          300
+        ],
+        "targetIds": [
+          -100,
+          -100,
+          400
+        ],
+        "supervisedTokenCount": 1
+      },
+      {
+        "inputIds": [
+          100,
+          200,
+          300
+        ],
+        "targetIds": [
+          200,
+          300,
+          400
+        ],
+        "supervisedTokenCount": 3
+      }
+    ],
+    "model": {
+      "id": "qwen-3-5-0-8b-q4k-ehaf16",
+      "baseManifestHash": "sha256:9317b66f490c3a73beab54408270e6fb2901a33aadb31c910b9e3b48b1d1b0e0",
+      "trainer": {
+        "rank": 2,
+        "alpha": 4,
+        "optimizer": {
+          "type": "adamw",
+          "lr": 0.0001,
+          "beta1": 0.9,
+          "beta2": 0.999,
+          "eps": 1e-8,
+          "weightDecay": 0
+        },
+        "gradient": {
+          "maxNorm": 1
+        },
+        "precision": {
+          "activations": "f32",
+          "gradients": "f32",
+          "loraParams": "f32"
+        }
+      }
+    },
+    "trainingDataSha256": "35b97038d85ae0ab2cd2fbfe3520ad9af9b586d61fb3a14ad819814dfa86d8ac",
+    "schedule": [
+      [
+        "train-01",
+        "train-02"
+      ],
+      [
+        "train-03",
+        "train-04"
+      ],
+      [
+        "train-05",
+        "train-06"
+      ],
+      [
+        "train-07",
+        "train-08"
+      ],
+      [
+        "train-09",
+        "train-10"
+      ],
+      [
+        "train-11",
+        "train-12"
+      ],
+      [
+        "train-13",
+        "train-14"
+      ],
+      [
+        "train-15",
+        "train-16"
+      ],
+      [
+        "train-17",
+        "train-18"
+      ],
+      [
+        "train-19",
+        "train-20"
+      ],
+      [
+        "train-21",
+        "train-22"
+      ],
+      [
+        "train-23",
+        "train-24"
+      ],
+      [
+        "train-25",
+        "train-26"
+      ],
+      [
+        "train-27",
+        "train-28"
+      ],
+      [
+        "train-29",
+        "train-30"
+      ],
+      [
+        "train-31",
+        "train-32"
+      ]
+    ],
+    "selection": "Use step 16, before holdout scoring",
+    "rounds": [
+      {
+        "metric": {
+          "roundHash": "sha256:24196786dad5047bbe3adbeb87906dd04e98218526f5f1d49c65873a8384c499",
+          "contributors": [
+            "peer:78f272165b1673dd08ae0c53",
+            "peer:db2133f33ccb37fa21e3dd5f"
+          ],
+          "supervisedTokenCount": 2,
+          "loss": 5.570526599884033,
+          "gradientNorm": 0.02932751652510293,
+          "optimizer": {
+            "optimizer_ms": 3.399999976158142,
+            "effective_lr": 0.0001,
+            "scheduler_index": 0,
+            "scheduler_phase": "constant"
+          },
+          "stepCount": 1
+        },
+        "checkpointHash": "sha256:3bee38a13e83a3b8611b5ef042c8e785c3000923d14a02d6dae6203a4742555d",
+        "parentCheckpointHash": "sha256:23263263d6e29b948fdd20b57ec7668254383d2fb76ea15fbbffa633131cbf79",
+        "checkpointStep": 1,
+        "weightsSha256": "04bc7b0aa4054ff9c5c3c0378dfcea20448c228e8f8eec8302038eee5223de3b",
+        "before": {
+          "coordinator": {
+            "sentBytes": 298770,
+            "receivedBytes": 50711,
+            "sentFrames": 23,
+            "receivedFrames": 6,
+            "interruptions": 0
+          },
+          "contributor": {
+            "sentBytes": 50711,
+            "receivedBytes": 182401,
+            "sentFrames": 6,
+            "receivedFrames": 15,
+            "interruptions": 1
+          }
+        },
+        "after": {
+          "coordinator": {
+            "sentBytes": 448172,
+            "receivedBytes": 100972,
+            "sentFrames": 35,
+            "receivedFrames": 11,
+            "interruptions": 0
+          },
+          "contributor": {
+            "sentBytes": 100972,
+            "receivedBytes": 331803,
+            "sentFrames": 11,
+            "receivedFrames": 27,
+            "interruptions": 1
+          }
+        },
+        "elapsedMs": 20237.957249999992
+      },
+      {
+        "metric": {
+          "roundHash": "sha256:2b490fd417f79340b9f7a96b0e9fcb0a790aff2ea9fbfff185963aa63566e519",
+          "contributors": [
+            "peer:78f272165b1673dd08ae0c53",
+            "peer:db2133f33ccb37fa21e3dd5f"
+          ],
+          "supervisedTokenCount": 2,
+          "loss": 5.75908088684082,
+          "gradientNorm": 1.0412136204809483,
+          "optimizer": {
+            "optimizer_ms": 3,
+            "effective_lr": 0.0001,
+            "scheduler_index": 1,
+            "scheduler_phase": "constant"
+          },
+          "stepCount": 2
+        },
+        "checkpointHash": "sha256:a2403e18a7a5b57fc7a7b89d9ca927439d9eedec39915adf31c82832c111a274",
+        "parentCheckpointHash": "sha256:3bee38a13e83a3b8611b5ef042c8e785c3000923d14a02d6dae6203a4742555d",
+        "checkpointStep": 2,
+        "weightsSha256": "dff6ac20db4bdf70007ba517d42ee9f1b612280e184233ca6565c6ef202ee4c0",
+        "before": {
+          "coordinator": {
+            "sentBytes": 448172,
+            "receivedBytes": 100972,
+            "sentFrames": 35,
+            "receivedFrames": 11,
+            "interruptions": 0
+          },
+          "contributor": {
+            "sentBytes": 100972,
+            "receivedBytes": 331803,
+            "sentFrames": 11,
+            "receivedFrames": 27,
+            "interruptions": 1
+          }
+        },
+        "after": {
+          "coordinator": {
+            "sentBytes": 597540,
+            "receivedBytes": 151233,
+            "sentFrames": 46,
+            "receivedFrames": 16,
+            "interruptions": 0
+          },
+          "contributor": {
+            "sentBytes": 151233,
+            "receivedBytes": 481171,
+            "sentFrames": 16,
+            "receivedFrames": 38,
+            "interruptions": 1
+          }
+        },
+        "elapsedMs": 20562.450624999998
+      },
+      {
+        "metric": {
+          "roundHash": "sha256:618e614bf36b3120e6b2528f4d74387e3ff58310466bfb415abcc256fe6cdb43",
+          "contributors": [
+            "peer:78f272165b1673dd08ae0c53",
+            "peer:db2133f33ccb37fa21e3dd5f"
+          ],
+          "supervisedTokenCount": 2,
+          "loss": 5.858150005340576,
+          "gradientNorm": 2.2537474975779457,
+          "optimizer": {
+            "optimizer_ms": 2.5999999940395355,
+            "effective_lr": 0.0001,
+            "scheduler_index": 2,
+            "scheduler_phase": "constant"
+          },
+          "stepCount": 3
+        },
+        "checkpointHash": "sha256:6ebf504025562261bc124902dfc8bfb7cc6ef13b422281eec818e14e0aeded1b",
+        "parentCheckpointHash": "sha256:a2403e18a7a5b57fc7a7b89d9ca927439d9eedec39915adf31c82832c111a274",
+        "checkpointStep": 3,
+        "weightsSha256": "404d51b63c15bbb59d1e93458905b645a07107ce380938169862884ceff1a3a7",
+        "before": {
+          "coordinator": {
+            "sentBytes": 597540,
+            "receivedBytes": 151233,
+            "sentFrames": 46,
+            "receivedFrames": 16,
+            "interruptions": 0
+          },
+          "contributor": {
+            "sentBytes": 151233,
+            "receivedBytes": 481171,
+            "sentFrames": 16,
+            "receivedFrames": 38,
+            "interruptions": 1
+          }
+        },
+        "after": {
+          "coordinator": {
+            "sentBytes": 746908,
+            "receivedBytes": 201494,
+            "sentFrames": 57,
+            "receivedFrames": 21,
+            "interruptions": 0
+          },
+          "contributor": {
+            "sentBytes": 201494,
+            "receivedBytes": 630539,
+            "sentFrames": 21,
+            "receivedFrames": 49,
+            "interruptions": 1
+          }
+        },
+        "elapsedMs": 20111.81916700001
+      },
+      {
+        "metric": {
+          "roundHash": "sha256:d44a04fee31a5a6bcf43984937b779091be30b5a34967711711a8caa82bbe511",
+          "contributors": [
+            "peer:78f272165b1673dd08ae0c53",
+            "peer:db2133f33ccb37fa21e3dd5f"
+          ],
+          "supervisedTokenCount": 2,
+          "loss": 5.679072141647339,
+          "gradientNorm": 3.2609019994708364,
+          "optimizer": {
+            "optimizer_ms": 5.699999988079071,
+            "effective_lr": 0.0001,
+            "scheduler_index": 3,
+            "scheduler_phase": "constant"
+          },
+          "stepCount": 4
+        },
+        "checkpointHash": "sha256:a23b2edefb8535737f4b72ecbc09591fabbccf8816fcc7bb68ceab12ad4b919e",
+        "parentCheckpointHash": "sha256:6ebf504025562261bc124902dfc8bfb7cc6ef13b422281eec818e14e0aeded1b",
+        "checkpointStep": 4,
+        "weightsSha256": "a98450a2fd1cea0496c006b43be2658ddc60367aba5ac40327f21432f747088c",
+        "before": {
+          "coordinator": {
+            "sentBytes": 746908,
+            "receivedBytes": 201494,
+            "sentFrames": 57,
+            "receivedFrames": 21,
+            "interruptions": 0
+          },
+          "contributor": {
+            "sentBytes": 201494,
+            "receivedBytes": 630539,
+            "sentFrames": 21,
+            "receivedFrames": 49,
+            "interruptions": 1
+          }
+        },
+        "after": {
+          "coordinator": {
+            "sentBytes": 896276,
+            "receivedBytes": 251755,
+            "sentFrames": 68,
+            "receivedFrames": 26,
+            "interruptions": 0
+          },
+          "contributor": {
+            "sentBytes": 251755,
+            "receivedBytes": 779907,
+            "sentFrames": 26,
+            "receivedFrames": 60,
+            "interruptions": 1
+          }
+        },
+        "elapsedMs": 20162.987084000008
+      },
+      {
+        "metric": {
+          "roundHash": "sha256:2a368e1903a69167ad4ca417e9a1dfc5b2480f8a5b21ebba9a941b2048d77f08",
+          "contributors": [
+            "peer:78f272165b1673dd08ae0c53",
+            "peer:db2133f33ccb37fa21e3dd5f"
+          ],
+          "supervisedTokenCount": 2,
+          "loss": 6.050770044326782,
+          "gradientNorm": 4.452238832471541,
+          "optimizer": {
+            "optimizer_ms": 2.5999999940395355,
+            "effective_lr": 0.0001,
+            "scheduler_index": 4,
+            "scheduler_phase": "constant"
+          },
+          "stepCount": 5
+        },
+        "checkpointHash": "sha256:e46a83e8c0a551936b7e8f8be53838d939c6977aa93bed80b8c4913a6a03cc69",
+        "parentCheckpointHash": "sha256:a23b2edefb8535737f4b72ecbc09591fabbccf8816fcc7bb68ceab12ad4b919e",
+        "checkpointStep": 5,
+        "weightsSha256": "5e34049b99d424fdb3a22da6e2378abf006034a324779ad7f17089f36431b392",
+        "before": {
+          "coordinator": {
+            "sentBytes": 896276,
+            "receivedBytes": 251755,
+            "sentFrames": 68,
+            "receivedFrames": 26,
+            "interruptions": 0
+          },
+          "contributor": {
+            "sentBytes": 251755,
+            "receivedBytes": 779907,
+            "sentFrames": 26,
+            "receivedFrames": 60,
+            "interruptions": 1
+          }
+        },
+        "after": {
+          "coordinator": {
+            "sentBytes": 1045645,
+            "receivedBytes": 302017,
+            "sentFrames": 79,
+            "receivedFrames": 31,
+            "interruptions": 0
+          },
+          "contributor": {
+            "sentBytes": 302017,
+            "receivedBytes": 929276,
+            "sentFrames": 31,
+            "receivedFrames": 71,
+            "interruptions": 1
+          }
+        },
+        "elapsedMs": 655434.447959
+      },
+      {
+        "metric": {
+          "roundHash": "sha256:ab588f83a23906a020041fb6b95a26e9f93ae835797084283a08107ce98a5037",
+          "contributors": [
+            "peer:78f272165b1673dd08ae0c53",
+            "peer:db2133f33ccb37fa21e3dd5f"
+          ],
+          "supervisedTokenCount": 2,
+          "loss": 6.052611351013184,
+          "gradientNorm": 5.644478998198026,
+          "optimizer": {
+            "optimizer_ms": 2.5,
+            "effective_lr": 0.0001,
+            "scheduler_index": 5,
+            "scheduler_phase": "constant"
+          },
+          "stepCount": 6
+        },
+        "checkpointHash": "sha256:51125d7f7ab288e3b93c2a483bbd4f3281e3432816e5930a34a907413e009f5d",
+        "parentCheckpointHash": "sha256:e46a83e8c0a551936b7e8f8be53838d939c6977aa93bed80b8c4913a6a03cc69",
+        "checkpointStep": 6,
+        "weightsSha256": "b66168b810c106dc9dec5550279ec0953a2b49d95e8f36616fdc623a999388bb",
+        "before": {
+          "coordinator": {
+            "sentBytes": 1045645,
+            "receivedBytes": 302017,
+            "sentFrames": 79,
+            "receivedFrames": 31,
+            "interruptions": 0
+          },
+          "contributor": {
+            "sentBytes": 302017,
+            "receivedBytes": 929276,
+            "sentFrames": 31,
+            "receivedFrames": 71,
+            "interruptions": 1
+          }
+        },
+        "after": {
+          "coordinator": {
+            "sentBytes": 1195015,
+            "receivedBytes": 352280,
+            "sentFrames": 90,
+            "receivedFrames": 36,
+            "interruptions": 0
+          },
+          "contributor": {
+            "sentBytes": 352280,
+            "receivedBytes": 1078646,
+            "sentFrames": 36,
+            "receivedFrames": 82,
+            "interruptions": 1
+          }
+        },
+        "elapsedMs": 20255.93641700002
+      },
+      {
+        "metric": {
+          "roundHash": "sha256:4404b58d953d4ef37c0151b0059168bcae9771bb5ee701ec6c7e633843d43bcb",
+          "contributors": [
+            "peer:78f272165b1673dd08ae0c53",
+            "peer:db2133f33ccb37fa21e3dd5f"
+          ],
+          "supervisedTokenCount": 2,
+          "loss": 5.801549911499023,
+          "gradientNorm": 7.0237024656858615,
+          "optimizer": {
+            "optimizer_ms": 3.199999988079071,
+            "effective_lr": 0.0001,
+            "scheduler_index": 6,
+            "scheduler_phase": "constant"
+          },
+          "stepCount": 7
+        },
+        "checkpointHash": "sha256:2260dc0a95c26dc6b7e350afe64860eb886bbe9665a45be164123e81de89e0f5",
+        "parentCheckpointHash": "sha256:51125d7f7ab288e3b93c2a483bbd4f3281e3432816e5930a34a907413e009f5d",
+        "checkpointStep": 7,
+        "weightsSha256": "c175b95dfb91690fe1dcde66548044f62a43b273b67d87c77be5dbdf1b9e64b2",
+        "before": {
+          "coordinator": {
+            "sentBytes": 1195015,
+            "receivedBytes": 352280,
+            "sentFrames": 90,
+            "receivedFrames": 36,
+            "interruptions": 0
+          },
+          "contributor": {
+            "sentBytes": 352280,
+            "receivedBytes": 1078646,
+            "sentFrames": 36,
+            "receivedFrames": 82,
+            "interruptions": 1
+          }
+        },
+        "after": {
+          "coordinator": {
+            "sentBytes": 1344385,
+            "receivedBytes": 402543,
+            "sentFrames": 101,
+            "receivedFrames": 41,
+            "interruptions": 0
+          },
+          "contributor": {
+            "sentBytes": 402543,
+            "receivedBytes": 1228016,
+            "sentFrames": 41,
+            "receivedFrames": 93,
+            "interruptions": 1
+          }
+        },
+        "elapsedMs": 20428.035040999996
+      },
+      {
+        "metric": {
+          "roundHash": "sha256:818a964094fefa49430e3eac236c31cd9e673289ab3c673648d4b8b8e7a9b512",
+          "contributors": [
+            "peer:78f272165b1673dd08ae0c53",
+            "peer:db2133f33ccb37fa21e3dd5f"
+          ],
+          "supervisedTokenCount": 2,
+          "loss": 5.677891969680786,
+          "gradientNorm": 8.1208257255707,
+          "optimizer": {
+            "optimizer_ms": 2.5999999940395355,
+            "effective_lr": 0.0001,
+            "scheduler_index": 7,
+            "scheduler_phase": "constant"
+          },
+          "stepCount": 8
+        },
+        "checkpointHash": "sha256:09139d9afd5ea8f5b69e084da8c2a1fe61c42a43e9947674ed083e4d878a2900",
+        "parentCheckpointHash": "sha256:2260dc0a95c26dc6b7e350afe64860eb886bbe9665a45be164123e81de89e0f5",
+        "checkpointStep": 8,
+        "weightsSha256": "79f46f8f3266b30be7e31f638ef778b76f9cffa53308194bc20bbe9deaba4b2c",
+        "before": {
+          "coordinator": {
+            "sentBytes": 1344385,
+            "receivedBytes": 402543,
+            "sentFrames": 101,
+            "receivedFrames": 41,
+            "interruptions": 0
+          },
+          "contributor": {
+            "sentBytes": 402543,
+            "receivedBytes": 1228016,
+            "sentFrames": 41,
+            "receivedFrames": 93,
+            "interruptions": 1
+          }
+        },
+        "after": {
+          "coordinator": {
+            "sentBytes": 1493755,
+            "receivedBytes": 452806,
+            "sentFrames": 112,
+            "receivedFrames": 46,
+            "interruptions": 0
+          },
+          "contributor": {
+            "sentBytes": 452806,
+            "receivedBytes": 1377386,
+            "sentFrames": 46,
+            "receivedFrames": 104,
+            "interruptions": 1
+          }
+        },
+        "elapsedMs": 20075.27387500007
+      },
+      {
+        "metric": {
+          "roundHash": "sha256:dcb0090d509a5c9c64e888e66c5bd4c35a12ef3c3ff2887c2d178552c5f2cebd",
+          "contributors": [
+            "peer:78f272165b1673dd08ae0c53",
+            "peer:db2133f33ccb37fa21e3dd5f"
+          ],
+          "supervisedTokenCount": 2,
+          "loss": 5.794344663619995,
+          "gradientNorm": 9.380827007434648,
+          "optimizer": {
+            "optimizer_ms": 2.5,
+            "effective_lr": 0.0001,
+            "scheduler_index": 8,
+            "scheduler_phase": "constant"
+          },
+          "stepCount": 9
+        },
+        "checkpointHash": "sha256:0ad822f88684dd5bad60591bef7bee149b0b2fd053820e5fd55ff4d7dc8afc54",
+        "parentCheckpointHash": "sha256:09139d9afd5ea8f5b69e084da8c2a1fe61c42a43e9947674ed083e4d878a2900",
+        "checkpointStep": 9,
+        "weightsSha256": "e3ab689166b2df853c122c1eddd43d690ee658130334959039ac31d9e8ce2507",
+        "before": {
+          "coordinator": {
+            "sentBytes": 1493755,
+            "receivedBytes": 452806,
+            "sentFrames": 112,
+            "receivedFrames": 46,
+            "interruptions": 0
+          },
+          "contributor": {
+            "sentBytes": 452806,
+            "receivedBytes": 1377386,
+            "sentFrames": 46,
+            "receivedFrames": 104,
+            "interruptions": 1
+          }
+        },
+        "after": {
+          "coordinator": {
+            "sentBytes": 1643125,
+            "receivedBytes": 503070,
+            "sentFrames": 123,
+            "receivedFrames": 51,
+            "interruptions": 0
+          },
+          "contributor": {
+            "sentBytes": 503070,
+            "receivedBytes": 1526756,
+            "sentFrames": 51,
+            "receivedFrames": 115,
+            "interruptions": 1
+          }
+        },
+        "elapsedMs": 19316.83683299995
+      },
+      {
+        "metric": {
+          "roundHash": "sha256:9c45931b1256726e9ab17730428954262d4d54b5d02a11d125955407ee2f2356",
+          "contributors": [
+            "peer:78f272165b1673dd08ae0c53",
+            "peer:db2133f33ccb37fa21e3dd5f"
+          ],
+          "supervisedTokenCount": 2,
+          "loss": 5.431406259536743,
+          "gradientNorm": 10.893926646686541,
+          "optimizer": {
+            "optimizer_ms": 2.5999999940395355,
+            "effective_lr": 0.0001,
+            "scheduler_index": 9,
+            "scheduler_phase": "constant"
+          },
+          "stepCount": 10
+        },
+        "checkpointHash": "sha256:ebaac6dda603f043c2a4032568935666099bea1919134b27bf5752eb20afbc77",
+        "parentCheckpointHash": "sha256:0ad822f88684dd5bad60591bef7bee149b0b2fd053820e5fd55ff4d7dc8afc54",
+        "checkpointStep": 10,
+        "weightsSha256": "fdba31153bc8f6ca18b37d9b3d058300d4bfe3a96b295ef8e0d2a37fa3bda7a3",
+        "before": {
+          "coordinator": {
+            "sentBytes": 1643125,
+            "receivedBytes": 503070,
+            "sentFrames": 123,
+            "receivedFrames": 51,
+            "interruptions": 0
+          },
+          "contributor": {
+            "sentBytes": 503070,
+            "receivedBytes": 1526756,
+            "sentFrames": 51,
+            "receivedFrames": 115,
+            "interruptions": 1
+          }
+        },
+        "after": {
+          "coordinator": {
+            "sentBytes": 1792495,
+            "receivedBytes": 553333,
+            "sentFrames": 134,
+            "receivedFrames": 56,
+            "interruptions": 0
+          },
+          "contributor": {
+            "sentBytes": 553333,
+            "receivedBytes": 1676126,
+            "sentFrames": 56,
+            "receivedFrames": 126,
+            "interruptions": 1
+          }
+        },
+        "elapsedMs": 19840.157416999922
+      },
+      {
+        "metric": {
+          "roundHash": "sha256:10d4a0515dacbadd5895bc5d6cc57b35348b81ac152a3b0b587b143a6ac757ed",
+          "contributors": [
+            "peer:78f272165b1673dd08ae0c53",
+            "peer:db2133f33ccb37fa21e3dd5f"
+          ],
+          "supervisedTokenCount": 2,
+          "loss": 5.554230213165283,
+          "gradientNorm": 12.076179937772386,
+          "optimizer": {
+            "optimizer_ms": 2.7000000178813934,
+            "effective_lr": 0.0001,
+            "scheduler_index": 10,
+            "scheduler_phase": "constant"
+          },
+          "stepCount": 11
+        },
+        "checkpointHash": "sha256:72f7848b143045f3ff833e983157b2f73b9f1aef1baf5126bbd117e3931441a4",
+        "parentCheckpointHash": "sha256:ebaac6dda603f043c2a4032568935666099bea1919134b27bf5752eb20afbc77",
+        "checkpointStep": 11,
+        "weightsSha256": "f15302e5fdc9f3a9771347d26f118548880b3dd3c50a867dc8a910ce4e04d9d3",
+        "before": {
+          "coordinator": {
+            "sentBytes": 1792495,
+            "receivedBytes": 553333,
+            "sentFrames": 134,
+            "receivedFrames": 56,
+            "interruptions": 0
+          },
+          "contributor": {
+            "sentBytes": 553333,
+            "receivedBytes": 1676126,
+            "sentFrames": 56,
+            "receivedFrames": 126,
+            "interruptions": 1
+          }
+        },
+        "after": {
+          "coordinator": {
+            "sentBytes": 1941866,
+            "receivedBytes": 603596,
+            "sentFrames": 145,
+            "receivedFrames": 61,
+            "interruptions": 0
+          },
+          "contributor": {
+            "sentBytes": 603596,
+            "receivedBytes": 1825497,
+            "sentFrames": 61,
+            "receivedFrames": 137,
+            "interruptions": 1
+          }
+        },
+        "elapsedMs": 19806.48533299996
+      },
+      {
+        "metric": {
+          "roundHash": "sha256:559b683e751945539d18d35c15da5f2b7d787dbe00e4edb900beda378502e81b",
+          "contributors": [
+            "peer:78f272165b1673dd08ae0c53",
+            "peer:db2133f33ccb37fa21e3dd5f"
+          ],
+          "supervisedTokenCount": 2,
+          "loss": 5.8305418491363525,
+          "gradientNorm": 12.879724983768446,
+          "optimizer": {
+            "optimizer_ms": 2.699999988079071,
+            "effective_lr": 0.0001,
+            "scheduler_index": 11,
+            "scheduler_phase": "constant"
+          },
+          "stepCount": 12
+        },
+        "checkpointHash": "sha256:b415440bf668128a7d6c72d1960bd3bdb01b26b6a2f7f4fb3d945a098fbedfa7",
+        "parentCheckpointHash": "sha256:72f7848b143045f3ff833e983157b2f73b9f1aef1baf5126bbd117e3931441a4",
+        "checkpointStep": 12,
+        "weightsSha256": "b62fc80f5214f0f394dbc8af90719e0492f0a4c95ec2f37b95eb373ee8be9c76",
+        "before": {
+          "coordinator": {
+            "sentBytes": 1941866,
+            "receivedBytes": 603596,
+            "sentFrames": 145,
+            "receivedFrames": 61,
+            "interruptions": 0
+          },
+          "contributor": {
+            "sentBytes": 603596,
+            "receivedBytes": 1825497,
+            "sentFrames": 61,
+            "receivedFrames": 137,
+            "interruptions": 1
+          }
+        },
+        "after": {
+          "coordinator": {
+            "sentBytes": 2091237,
+            "receivedBytes": 653859,
+            "sentFrames": 156,
+            "receivedFrames": 66,
+            "interruptions": 0
+          },
+          "contributor": {
+            "sentBytes": 653859,
+            "receivedBytes": 1974868,
+            "sentFrames": 66,
+            "receivedFrames": 148,
+            "interruptions": 1
+          }
+        },
+        "elapsedMs": 19943.502875000006
+      },
+      {
+        "metric": {
+          "roundHash": "sha256:99c9fc77cfcb77efb20c9a78b662954d536d4417ddc7fb69722a5425191f93e5",
+          "contributors": [
+            "peer:78f272165b1673dd08ae0c53",
+            "peer:db2133f33ccb37fa21e3dd5f"
+          ],
+          "supervisedTokenCount": 2,
+          "loss": 5.923714876174927,
+          "gradientNorm": 14.606655162834603,
+          "optimizer": {
+            "optimizer_ms": 2.5999999940395355,
+            "effective_lr": 0.0001,
+            "scheduler_index": 12,
+            "scheduler_phase": "constant"
+          },
+          "stepCount": 13
+        },
+        "checkpointHash": "sha256:2a18073609c489939577d39367fc94985109815df1ec14bdcf30a012bd2ac42e",
+        "parentCheckpointHash": "sha256:b415440bf668128a7d6c72d1960bd3bdb01b26b6a2f7f4fb3d945a098fbedfa7",
+        "checkpointStep": 13,
+        "weightsSha256": "1cc0d507f636b9ade86ed157ba3847f02a8c5519092c386e0fbbd06292b00d32",
+        "before": {
+          "coordinator": {
+            "sentBytes": 2091237,
+            "receivedBytes": 653859,
+            "sentFrames": 156,
+            "receivedFrames": 66,
+            "interruptions": 0
+          },
+          "contributor": {
+            "sentBytes": 653859,
+            "receivedBytes": 1974868,
+            "sentFrames": 66,
+            "receivedFrames": 148,
+            "interruptions": 1
+          }
+        },
+        "after": {
+          "coordinator": {
+            "sentBytes": 2240608,
+            "receivedBytes": 704122,
+            "sentFrames": 167,
+            "receivedFrames": 71,
+            "interruptions": 0
+          },
+          "contributor": {
+            "sentBytes": 704122,
+            "receivedBytes": 2124239,
+            "sentFrames": 71,
+            "receivedFrames": 159,
+            "interruptions": 1
+          }
+        },
+        "elapsedMs": 19469.281750000082
+      },
+      {
+        "metric": {
+          "roundHash": "sha256:9081afe04b654f8bc7b9720d6feffc57957f141990446614b8134e98ab0dffcc",
+          "contributors": [
+            "peer:78f272165b1673dd08ae0c53",
+            "peer:db2133f33ccb37fa21e3dd5f"
+          ],
+          "supervisedTokenCount": 2,
+          "loss": 5.464079141616821,
+          "gradientNorm": 16.400594958570817,
+          "optimizer": {
+            "optimizer_ms": 2.9000000059604645,
+            "effective_lr": 0.0001,
+            "scheduler_index": 13,
+            "scheduler_phase": "constant"
+          },
+          "stepCount": 14
+        },
+        "checkpointHash": "sha256:2b0c5034cffd8cbb9fc0834e415b84f149e01c8538a4ce234b252e591cf8e847",
+        "parentCheckpointHash": "sha256:2a18073609c489939577d39367fc94985109815df1ec14bdcf30a012bd2ac42e",
+        "checkpointStep": 14,
+        "weightsSha256": "3b680beb46cb89159b50275031f6679d9120c1893fbc1cfd8b7d9d5c08b4bc2c",
+        "before": {
+          "coordinator": {
+            "sentBytes": 2240608,
+            "receivedBytes": 704122,
+            "sentFrames": 167,
+            "receivedFrames": 71,
+            "interruptions": 0
+          },
+          "contributor": {
+            "sentBytes": 704122,
+            "receivedBytes": 2124239,
+            "sentFrames": 71,
+            "receivedFrames": 159,
+            "interruptions": 1
+          }
+        },
+        "after": {
+          "coordinator": {
+            "sentBytes": 2389979,
+            "receivedBytes": 754385,
+            "sentFrames": 178,
+            "receivedFrames": 76,
+            "interruptions": 0
+          },
+          "contributor": {
+            "sentBytes": 754385,
+            "receivedBytes": 2273610,
+            "sentFrames": 76,
+            "receivedFrames": 170,
+            "interruptions": 1
+          }
+        },
+        "elapsedMs": 19935.521874999977
+      },
+      {
+        "metric": {
+          "roundHash": "sha256:a593b45f55d1e3106797bad06295be9a1c56847d7f35ab204a7e3b469d036ba3",
+          "contributors": [
+            "peer:78f272165b1673dd08ae0c53",
+            "peer:db2133f33ccb37fa21e3dd5f"
+          ],
+          "supervisedTokenCount": 2,
+          "loss": 4.670177698135376,
+          "gradientNorm": 16.523727943124893,
+          "optimizer": {
+            "optimizer_ms": 2.7000000178813934,
+            "effective_lr": 0.0001,
+            "scheduler_index": 14,
+            "scheduler_phase": "constant"
+          },
+          "stepCount": 15
+        },
+        "checkpointHash": "sha256:0eb89581ab559bd6af9b6fdd3beaf2d21676410fadde557c76450bf84fe109a4",
+        "parentCheckpointHash": "sha256:2b0c5034cffd8cbb9fc0834e415b84f149e01c8538a4ce234b252e591cf8e847",
+        "checkpointStep": 15,
+        "weightsSha256": "dd4372e2fbecb6513928b55cd6543ce5af31a79aa4730fec9e10aef35d88ec49",
+        "before": {
+          "coordinator": {
+            "sentBytes": 2389979,
+            "receivedBytes": 754385,
+            "sentFrames": 178,
+            "receivedFrames": 76,
+            "interruptions": 0
+          },
+          "contributor": {
+            "sentBytes": 754385,
+            "receivedBytes": 2273610,
+            "sentFrames": 76,
+            "receivedFrames": 170,
+            "interruptions": 1
+          }
+        },
+        "after": {
+          "coordinator": {
+            "sentBytes": 2539350,
+            "receivedBytes": 804648,
+            "sentFrames": 189,
+            "receivedFrames": 81,
+            "interruptions": 0
+          },
+          "contributor": {
+            "sentBytes": 804648,
+            "receivedBytes": 2422981,
+            "sentFrames": 81,
+            "receivedFrames": 181,
+            "interruptions": 1
+          }
+        },
+        "elapsedMs": 19883.60175000003
+      },
+      {
+        "metric": {
+          "roundHash": "sha256:754d31202f23c0b2db213793e03bc0a1520a542d4df95e50a08e0ae0a46d8ff4",
+          "contributors": [
+            "peer:78f272165b1673dd08ae0c53",
+            "peer:db2133f33ccb37fa21e3dd5f"
+          ],
+          "supervisedTokenCount": 2,
+          "loss": 5.013112545013428,
+          "gradientNorm": 18.701911285367927,
+          "optimizer": {
+            "optimizer_ms": 2.699999988079071,
+            "effective_lr": 0.0001,
+            "scheduler_index": 15,
+            "scheduler_phase": "constant"
+          },
+          "stepCount": 16
+        },
+        "checkpointHash": "sha256:1eac420e73abe1fd7f4df6f4ab519427b86e88057806855874b905e31c0bfff1",
+        "parentCheckpointHash": "sha256:0eb89581ab559bd6af9b6fdd3beaf2d21676410fadde557c76450bf84fe109a4",
+        "checkpointStep": 16,
+        "weightsSha256": "a27ceb9269b6e027296287a838e8ea01be7beb539c9dc927c3b54abcc52f8dea",
+        "before": {
+          "coordinator": {
+            "sentBytes": 2539350,
+            "receivedBytes": 804648,
+            "sentFrames": 189,
+            "receivedFrames": 81,
+            "interruptions": 0
+          },
+          "contributor": {
+            "sentBytes": 804648,
+            "receivedBytes": 2422981,
+            "sentFrames": 81,
+            "receivedFrames": 181,
+            "interruptions": 1
+          }
+        },
+        "after": {
+          "coordinator": {
+            "sentBytes": 2688721,
+            "receivedBytes": 854911,
+            "sentFrames": 200,
+            "receivedFrames": 86,
+            "interruptions": 0
+          },
+          "contributor": {
+            "sentBytes": 854911,
+            "receivedBytes": 2572352,
+            "sentFrames": 86,
+            "receivedFrames": 192,
+            "interruptions": 1
+          }
+        },
+        "elapsedMs": 19569.749249999993
+      }
+    ],
+    "numerical": {
+      "referenceElapsedMs": 6768.574667000001,
+      "reference": {
+        "directory": "numerical-reference",
+        "sha256": "44838f49760b55e487b5971e1983269931db5f2ff64aaa1490833a853601bdb5",
+        "manifestSha256": "b76d3957342df58c047bb0a58042b1deba7ca5b496a0179c310edefe9e4af5fe",
+        "bytes": 37051,
+        "checkpointHash": "sha256:f33d7e990259ba00b5673be35e136df0a5f8db1be013292e783af31d1744e764",
+        "step": 1
+      },
+      "referenceLoss": 9.030729134877523,
+      "pooled": {
+        "metric": {
+          "roundHash": "sha256:ade78bda2482ca167a03d860381b069ca6578b7a2597d57b836e4ac914d76e16",
+          "contributors": [
+            "peer:78f272165b1673dd08ae0c53",
+            "peer:db2133f33ccb37fa21e3dd5f"
+          ],
+          "supervisedTokenCount": 3,
+          "loss": 9.030736446380615,
+          "gradientNorm": 0.06073418637488385,
+          "optimizer": {
+            "optimizer_ms": 2.5999999940395355,
+            "effective_lr": 0.0001,
+            "scheduler_index": 0,
+            "scheduler_phase": "constant"
+          },
+          "stepCount": 1
+        },
+        "checkpointHash": "sha256:3b868403e8208f3efd1124c90747d4961b76c955e2d8abca74920c131aa2ac50",
+        "parentCheckpointHash": "sha256:23263263d6e29b948fdd20b57ec7668254383d2fb76ea15fbbffa633131cbf79",
+        "checkpointStep": 1,
+        "weightsSha256": "0a18048598ef1892cdb611616b3948eec562a3218ddb9d43b651f3fd6900eafc",
+        "before": {
+          "coordinator": {
+            "sentBytes": 0,
+            "receivedBytes": 0,
+            "sentFrames": 0,
+            "receivedFrames": 0,
+            "interruptions": 0
+          },
+          "contributor": {
+            "sentBytes": 0,
+            "receivedBytes": 0,
+            "sentFrames": 0,
+            "receivedFrames": 0,
+            "interruptions": 0
+          }
+        },
+        "after": {
+          "coordinator": {
+            "sentBytes": 149402,
+            "receivedBytes": 50260,
+            "sentFrames": 12,
+            "receivedFrames": 5,
+            "interruptions": 0
+          },
+          "contributor": {
+            "sentBytes": 50260,
+            "receivedBytes": 149402,
+            "sentFrames": 5,
+            "receivedFrames": 12,
+            "interruptions": 0
+          }
+        },
+        "elapsedMs": 21408.852625
+      },
+      "candidate": {
+        "directory": "numerical",
+        "sha256": "0a18048598ef1892cdb611616b3948eec562a3218ddb9d43b651f3fd6900eafc",
+        "manifestSha256": "b357863bf06fbb41e36d57e37c51abfcd484ca19a91652c2d504cdeabcd54642",
+        "bytes": 37051,
+        "checkpointHash": "sha256:3b868403e8208f3efd1124c90747d4961b76c955e2d8abca74920c131aa2ac50",
+        "step": 1
+      },
+      "weights": {
+        "passed": true,
+        "tolerance": {
+          "maximumAbsolute": 0.00002,
+          "rootMeanSquare": 0.000002
+        },
+        "elements": 9216,
+        "maximumAbsolute": 0.0000011890806490555406,
+        "rootMeanSquare": 1.2391883399554904e-8,
+        "perTensor": [
+          {
+            "name": "layers.23.down_proj.lora_a",
+            "shape": [
+              3584,
+              2
+            ],
+            "elements": 7168,
+            "maximumAbsolute": 0,
+            "rootMeanSquare": 0
+          },
+          {
+            "name": "layers.23.down_proj.lora_b",
+            "shape": [
+              2,
+              1024
+            ],
+            "elements": 2048,
+            "maximumAbsolute": 0.0000011890806490555406,
+            "rootMeanSquare": 2.6287154350494844e-8
+          }
+        ]
+      }
+    },
+    "dropout": {
+      "passed": true,
+      "before": {
+        "coordinator": {
+          "sentBytes": 149402,
+          "receivedBytes": 50260,
+          "sentFrames": 12,
+          "receivedFrames": 5,
+          "interruptions": 0
+        },
+        "contributor": {
+          "sentBytes": 50260,
+          "receivedBytes": 149402,
+          "sentFrames": 5,
+          "receivedFrames": 12,
+          "interruptions": 0
+        }
+      },
+      "after": {
+        "coordinator": {
+          "sentBytes": 298770,
+          "receivedBytes": 50711,
+          "sentFrames": 23,
+          "receivedFrames": 6,
+          "interruptions": 0
+        },
+        "contributor": {
+          "sentBytes": 50711,
+          "receivedBytes": 182401,
+          "sentFrames": 6,
+          "receivedFrames": 15,
+          "interruptions": 1
+        }
+      },
+      "reason": "A contributor disconnected. The attempt was interrupted; remote cleanup is not confirmed.",
+      "checkpointBefore": "sha256:3b868403e8208f3efd1124c90747d4961b76c955e2d8abca74920c131aa2ac50",
+      "checkpointAfter": "sha256:3b868403e8208f3efd1124c90747d4961b76c955e2d8abca74920c131aa2ac50",
+      "optimizerStep": 1,
+      "weightsSha256": "0a18048598ef1892cdb611616b3948eec562a3218ddb9d43b651f3fd6900eafc",
+      "coordinatorPhase": "failed",
+      "completedSteps": 0,
+      "elapsedMs": 19601.501750000003
+    },
+    "recovery": {
+      "directory": "numerical-recovered",
+      "sha256": "fa09f6e73908dc4d1c5b7b05841434f0afd634a6549dcf3c5f3a4e411aa7ca43",
+      "manifestSha256": "ed68b114b43cfd1198e990e880998ae0511d911b3ef9360b3338ff92cc34b44e",
+      "bytes": 37051,
+      "checkpointHash": "sha256:bf70e7a89a79e0fb9e4a78c98911e43cabfdf91c2b2ad90900589fa9a3c475f6",
+      "step": 2
+    },
+    "reconnected": {
+      "coordinator": {
+        "participantId": "peer:78f272165b1673dd08ae0c53",
+        "counterpartVerified": "peer:db2133f33ccb37fa21e3dd5f",
+        "localCertificateSha256": "0f0cce61e21ac05a43cd11c3a64f746c21b40ee11bb51a801a05003f554f3cee",
+        "remoteCertificateSha256": "124ea5f971f2947ffdc8b7c345fd9dac461ca43fbd28e637a5046cb013cc5564"
+      },
+      "contributor": {
+        "participantId": "peer:db2133f33ccb37fa21e3dd5f",
+        "counterpartVerified": "peer:78f272165b1673dd08ae0c53",
+        "localCertificateSha256": "124ea5f971f2947ffdc8b7c345fd9dac461ca43fbd28e637a5046cb013cc5564",
+        "remoteCertificateSha256": "0f0cce61e21ac05a43cd11c3a64f746c21b40ee11bb51a801a05003f554f3cee"
+      }
+    },
+    "taskLabelTokens": {
+      "A": 32,
+      "B": 33
+    },
+    "taskInputTokens": [
+      [
+        31,
+        30
+      ],
+      [
+        35,
+        36
+      ],
+      [
+        31,
+        30
+      ],
+      [
+        30,
+        31
+      ],
+      [
+        32,
+        31
+      ],
+      [
+        34,
+        33
+      ],
+      [
+        34,
+        37
+      ],
+      [
+        34,
+        34
+      ],
+      [
+        32,
+        30
+      ],
+      [
+        32,
+        34
+      ],
+      [
+        34,
+        33
+      ],
+      [
+        39,
+        36
+      ],
+      [
+        31,
+        33
+      ],
+      [
+        35,
+        37
+      ],
+      [
+        34,
+        34
+      ],
+      [
+        30,
+        32
+      ]
+    ],
+    "task": {
+      "directory": "task",
+      "sha256": "a27ceb9269b6e027296287a838e8ea01be7beb539c9dc927c3b54abcc52f8dea",
+      "manifestSha256": "b46bdb7965e3a041c648c5849705ae5ede710475bc00126ba0748120ef9d3c79",
+      "bytes": 37051,
+      "checkpointHash": "sha256:1eac420e73abe1fd7f4df6f4ab519427b86e88057806855874b905e31c0bfff1",
+      "step": 16
+    },
+    "taskReference": {
+      "directory": "task-reference",
+      "sha256": "23b33dab4717ec964fb43370aa2b4c013b137db784877e35fa24a215e6653196",
+      "manifestSha256": "f302d1bc551ca0cacf55e28829406e56900ab1ce827258f66c70beb092257cae",
+      "bytes": 37051,
+      "checkpointHash": "sha256:db1610dd27a84657f9bbad778f35e2cdb4aba23c133ee26677cdb436454a3f70",
+      "step": 16,
+      "elapsedMs": 48153.88945799996,
+      "metrics": [
+        {
+          "roundHash": "sha256:8445c42bfc2d63f924c421b9e89039ae944f8831c3b5029428721c9798a541e7",
+          "contributors": [
+            "local-sample-0",
+            "local-sample-1"
+          ],
+          "supervisedTokenCount": 2,
+          "loss": 5.570518970489502,
+          "gradientNorm": 0.02932653343280881,
+          "optimizer": {
+            "optimizer_ms": 2.699999988079071,
+            "effective_lr": 0.0001,
+            "scheduler_index": 0,
+            "scheduler_phase": "constant"
+          },
+          "stepCount": 1
+        },
+        {
+          "roundHash": "sha256:9791d0aa3d6652709155a56da12ab240ac5fc8912d2b9afb658d1953df1688e5",
+          "contributors": [
+            "local-sample-0",
+            "local-sample-1"
+          ],
+          "supervisedTokenCount": 2,
+          "loss": 5.759065389633179,
+          "gradientNorm": 1.0412137434235715,
+          "optimizer": {
+            "optimizer_ms": 0.09999999403953552,
+            "effective_lr": 0.0001,
+            "scheduler_index": 1,
+            "scheduler_phase": "constant"
+          },
+          "stepCount": 2
+        },
+        {
+          "roundHash": "sha256:bdd2cdfe9425387819236f6cc0a18c396817386389979ca6448726c205ad11f7",
+          "contributors": [
+            "local-sample-0",
+            "local-sample-1"
+          ],
+          "supervisedTokenCount": 2,
+          "loss": 5.85815167427063,
+          "gradientNorm": 2.253745716027714,
+          "optimizer": {
+            "optimizer_ms": 0.09999999403953552,
+            "effective_lr": 0.0001,
+            "scheduler_index": 2,
+            "scheduler_phase": "constant"
+          },
+          "stepCount": 3
+        },
+        {
+          "roundHash": "sha256:ca478d5342b6f7236ed89b2ecab7b40155920f6337af5459707c4a851003892b",
+          "contributors": [
+            "local-sample-0",
+            "local-sample-1"
+          ],
+          "supervisedTokenCount": 2,
+          "loss": 5.679096221923828,
+          "gradientNorm": 3.260895571486864,
+          "optimizer": {
+            "optimizer_ms": 0.10000002384185791,
+            "effective_lr": 0.0001,
+            "scheduler_index": 3,
+            "scheduler_phase": "constant"
+          },
+          "stepCount": 4
+        },
+        {
+          "roundHash": "sha256:6ec3d3f90dd4ce31a91db57f18ed89b36be0536c59224ecab3de2642f0a95ca6",
+          "contributors": [
+            "local-sample-0",
+            "local-sample-1"
+          ],
+          "supervisedTokenCount": 2,
+          "loss": 6.050730466842651,
+          "gradientNorm": 4.4522614082302345,
+          "optimizer": {
+            "optimizer_ms": 0,
+            "effective_lr": 0.0001,
+            "scheduler_index": 4,
+            "scheduler_phase": "constant"
+          },
+          "stepCount": 5
+        },
+        {
+          "roundHash": "sha256:52366aa4cb11827986981ceb01394e791cf687c54789af28f2a5a4506ab556f9",
+          "contributors": [
+            "local-sample-0",
+            "local-sample-1"
+          ],
+          "supervisedTokenCount": 2,
+          "loss": 6.052581310272217,
+          "gradientNorm": 5.644481541831509,
+          "optimizer": {
+            "optimizer_ms": 0.09999999403953552,
+            "effective_lr": 0.0001,
+            "scheduler_index": 5,
+            "scheduler_phase": "constant"
+          },
+          "stepCount": 6
+        },
+        {
+          "roundHash": "sha256:69e8087167ee383379ce44e35e855ceff110f05af58d47e219349aa4fd590b35",
+          "contributors": [
+            "local-sample-0",
+            "local-sample-1"
+          ],
+          "supervisedTokenCount": 2,
+          "loss": 5.801517486572266,
+          "gradientNorm": 7.023701836917633,
+          "optimizer": {
+            "optimizer_ms": 0,
+            "effective_lr": 0.0001,
+            "scheduler_index": 6,
+            "scheduler_phase": "constant"
+          },
+          "stepCount": 7
+        },
+        {
+          "roundHash": "sha256:887354eab2d3df65805f7c8f4b0d19a103885202512d7e57760d348feedcb78d",
+          "contributors": [
+            "local-sample-0",
+            "local-sample-1"
+          ],
+          "supervisedTokenCount": 2,
+          "loss": 5.6778717041015625,
+          "gradientNorm": 8.120852457674498,
+          "optimizer": {
+            "optimizer_ms": 0.09999999403953552,
+            "effective_lr": 0.0001,
+            "scheduler_index": 7,
+            "scheduler_phase": "constant"
+          },
+          "stepCount": 8
+        },
+        {
+          "roundHash": "sha256:912897bb0cac7cb07cff81bafa3682aee146ae61b6470183eccba85b79442f18",
+          "contributors": [
+            "local-sample-0",
+            "local-sample-1"
+          ],
+          "supervisedTokenCount": 2,
+          "loss": 5.794353723526001,
+          "gradientNorm": 9.380823040591748,
+          "optimizer": {
+            "optimizer_ms": 0.10000002384185791,
+            "effective_lr": 0.0001,
+            "scheduler_index": 8,
+            "scheduler_phase": "constant"
+          },
+          "stepCount": 9
+        },
+        {
+          "roundHash": "sha256:9b66c4887030c20be68d44caabb104bcd0b274e38b9407be52d63c743e5a5bef",
+          "contributors": [
+            "local-sample-0",
+            "local-sample-1"
+          ],
+          "supervisedTokenCount": 2,
+          "loss": 5.4314117431640625,
+          "gradientNorm": 10.89393886558491,
+          "optimizer": {
+            "optimizer_ms": 0,
+            "effective_lr": 0.0001,
+            "scheduler_index": 9,
+            "scheduler_phase": "constant"
+          },
+          "stepCount": 10
+        },
+        {
+          "roundHash": "sha256:db5daa2758b9c2d4e780cb4122012fc5c97cc92646bf740a6d4d35fddd1aa06c",
+          "contributors": [
+            "local-sample-0",
+            "local-sample-1"
+          ],
+          "supervisedTokenCount": 2,
+          "loss": 5.554217576980591,
+          "gradientNorm": 12.076131090755316,
+          "optimizer": {
+            "optimizer_ms": 0,
+            "effective_lr": 0.0001,
+            "scheduler_index": 10,
+            "scheduler_phase": "constant"
+          },
+          "stepCount": 11
+        },
+        {
+          "roundHash": "sha256:e4af7c355f9d8033cfc5d1d9684e7eaab541e3a1e0a900bc3086dac59dde2ea6",
+          "contributors": [
+            "local-sample-0",
+            "local-sample-1"
+          ],
+          "supervisedTokenCount": 2,
+          "loss": 5.830563068389893,
+          "gradientNorm": 12.879729608066723,
+          "optimizer": {
+            "optimizer_ms": 0,
+            "effective_lr": 0.0001,
+            "scheduler_index": 11,
+            "scheduler_phase": "constant"
+          },
+          "stepCount": 12
+        },
+        {
+          "roundHash": "sha256:425044a15514e41bc78226cda84390e6be8d00500e3255c715a668f1583adfa6",
+          "contributors": [
+            "local-sample-0",
+            "local-sample-1"
+          ],
+          "supervisedTokenCount": 2,
+          "loss": 5.923739671707153,
+          "gradientNorm": 14.606653155106102,
+          "optimizer": {
+            "optimizer_ms": 0.09999999403953552,
+            "effective_lr": 0.0001,
+            "scheduler_index": 12,
+            "scheduler_phase": "constant"
+          },
+          "stepCount": 13
+        },
+        {
+          "roundHash": "sha256:d5561255ffa8c96c3048c01b19d0198c2fab90baae2e7b2cc68cce592bf890e9",
+          "contributors": [
+            "local-sample-0",
+            "local-sample-1"
+          ],
+          "supervisedTokenCount": 2,
+          "loss": 5.464082956314087,
+          "gradientNorm": 16.400549282938524,
+          "optimizer": {
+            "optimizer_ms": 0,
+            "effective_lr": 0.0001,
+            "scheduler_index": 13,
+            "scheduler_phase": "constant"
+          },
+          "stepCount": 14
+        },
+        {
+          "roundHash": "sha256:be3da9072537ce449d51d2d7d4475503986c3fc2509da716adcbee50954c20c9",
+          "contributors": [
+            "local-sample-0",
+            "local-sample-1"
+          ],
+          "supervisedTokenCount": 2,
+          "loss": 4.670180559158325,
+          "gradientNorm": 16.52372881052312,
+          "optimizer": {
+            "optimizer_ms": 0.09999999403953552,
+            "effective_lr": 0.0001,
+            "scheduler_index": 14,
+            "scheduler_phase": "constant"
+          },
+          "stepCount": 15
+        },
+        {
+          "roundHash": "sha256:29dfa494e5d2afb15b2509ba55ac607bba4164a241cdba08bc760859bb188702",
+          "contributors": [
+            "local-sample-0",
+            "local-sample-1"
+          ],
+          "supervisedTokenCount": 2,
+          "loss": 5.013119220733643,
+          "gradientNorm": 18.70179587542345,
+          "optimizer": {
+            "optimizer_ms": 0,
+            "effective_lr": 0.0001,
+            "scheduler_index": 15,
+            "scheduler_phase": "constant"
+          },
+          "stepCount": 16
+        }
+      ],
+      "parentHashes": [
+        "sha256:23263263d6e29b948fdd20b57ec7668254383d2fb76ea15fbbffa633131cbf79",
+        "sha256:02fd940cab85283a59461f0b1306797f4ea50c9eebd95a42ff4bf50dd6c7e62a",
+        "sha256:5c5064f1a11e30c27f987d74c6bb049d6cc0affde2be2c03691f7db23793740d",
+        "sha256:6e3d388464929ea22a9daaf53e29df81ac11d164ee23a737867af6608e38c53c",
+        "sha256:2ee716f422146c80822db0be18bf7913290e8266f185a46ef9b7be5de593b6f9",
+        "sha256:e05578e4e5c17d09ae644620c3d36ba53f951cf4e6a468743f796653b7714c2b",
+        "sha256:9a91f4eb2e5f31fd6342e1167ca7f3bbc50ad309662b90d6574aef932fa4e513",
+        "sha256:6923d19ae967386c4662b7e84fd38196d52dbc3754b71feed554702c49133836",
+        "sha256:d6a39e5380a4a9976d21ce4936689582c37635d66b20a373a1dbb39cf03b179c",
+        "sha256:db1c67a9976ab3140bddc02c556b503a7aed9225d0535f04ce6ff3d2ca2fe5b7",
+        "sha256:53a3320b94ad34b2cd252caf744d1b15f94afa71c2d8161216f5f6ca6859fcb3",
+        "sha256:34b938ed575f79a632de67d35003ec4eb9559c61b926b0c244963fdd70982c46",
+        "sha256:356d7bfa4ac23af80bbb197d786a412e4b89bd9f44b409404bbf7d918234f8f8",
+        "sha256:69d5ab6fb4d13ec86d33e2951219057aaf1cc9270687dd969d0f58f6883c9be5",
+        "sha256:8e226afba7d763d9467ea30a7bf8763d2f42747aaec43596b30df8b44d470d3b",
+        "sha256:3417ab66bec64127c43dfbcde99ea9412deb7c8b7b36773267e5ae5b0a1a8014"
+      ]
+    },
+    "taskWeights": {
+      "passed": true,
+      "tolerance": {
+        "maximumAbsolute": 0.00002,
+        "rootMeanSquare": 0.000002
+      },
+      "elements": 9216,
+      "maximumAbsolute": 0.0000017117708921432495,
+      "rootMeanSquare": 3.852785406703942e-8,
+      "perTensor": [
+        {
+          "name": "layers.23.down_proj.lora_a",
+          "shape": [
+            3584,
+            2
+          ],
+          "elements": 7168,
+          "maximumAbsolute": 0.0000017117708921432495,
+          "rootMeanSquare": 4.121247508702095e-8
+        },
+        {
+          "name": "layers.23.down_proj.lora_b",
+          "shape": [
+            2,
+            1024
+          ],
+          "elements": 2048,
+          "maximumAbsolute": 4.3009640648961067e-7,
+          "rootMeanSquare": 2.7113494163529694e-8
+        }
+      ]
+    },
+    "finished": "2026-11-28T13:16:40.688Z"
+  },
+  "transport": {
+    "coordinator": {
+      "sentBytes": 2688721,
+      "receivedBytes": 854911,
+      "sentFrames": 200,
+      "receivedFrames": 86,
+      "interruptions": 0
+    },
+    "contributor": {
+      "sentBytes": 854911,
+      "receivedBytes": 2572352,
+      "sentFrames": 86,
+      "receivedFrames": 192,
+      "interruptions": 1
+    }
+  },
+  "passed": true,
+  "finishedAt": "2026-11-28T13:16:40.779Z"
+}

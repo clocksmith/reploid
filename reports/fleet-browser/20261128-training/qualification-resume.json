@@ -1,0 +1,33 @@
+{
+  "pausedAt": "2026-11-28T13:01:16.190Z",
+  "resumedAt": "2026-11-28T13:11:51.611Z",
+  "pausedMs": 635421,
+  "afterStep": 4,
+  "checkpointHash": "sha256:a23b2edefb8535737f4b72ecbc09591fabbccf8816fcc7bb68ceab12ad4b919e",
+  "controllerFilesSha256": {
+    "community-lora-two-host.mjs": "3b9a6c2e285c1ce4e30496e8898c803799f53654a0af3db5704f4d2993c28237",
+    "lora-workout-client.js": "1274a44891d98722d2d6744d59cb28c92446453348f17b4aa433280642db5e0a",
+    "lora-workout.js": "4e1af2d9b2588158f7c5a8fab288177a977ddb01acc1c42b2e3651bd6e0f2e79",
+    "lora-workout-weights.js": "ac61c4bea1dab86964cf786c64d7cbef11d1c509589143163162439be19ed06e",
+    "lora-workout-reference.js": "cfb06b88b0c2268b5c0873278f271212349881a3cd039a6460ec40a4c3716389",
+    "lora-channel-observation.js": "f348c9ac0e461c95f85d6fa9504940239cbceb92d8a355e025a163a10a50a6d4"
+  },
+  "servedBuildSha256": {
+    "/config/lora-training.json": "868819aae4d84e23f92ef824d96868511dc7fc0a91b9b6d50850ea33af6aa568",
+    "/model-files/qwen-3-5-0-8b-q4k-ehaf16/manifest.json": "fa6eb7bbc3ba63571f8cede780b877d9272bde948697af93dd3d33837cb46137",
+    "/config/doppler-package.json": "3a9fa9754902557f3c2798c4399526841534864b389b109c96db0a22354d1d77",
+    "/ui/react/app.js": "20d97f4113ea86e87eccd7a1cc9a3dbfb8a59750b647b9334177793150a383ed",
+    "/host/lora-training.js": "ab497bd771ad208be881667cc13878035c354f6ae89637bef5cc33c8bdd60c46",
+    "/host/lora-training-worker.js": "dc0bfaf4715a4ba9e793b587e0d59446c63d6612b6a4352301f3b4e4b52de968",
+    "/host/lora-training-executor.js": "c4b72455f27eda47487a410559970eaefc4150d8c852cc291adae4b83580ad8d",
+    "/vendor/reploid/training/session.js": "f8e3cd2ea9cb6276f10e29cf259290f447a9498dd4e6f97f81def622467182c8",
+    "/vendor/reploid/training/network.js": "f8d474b6af010d14627a7441860f812104fc20774190c172f09d4107fa0ad9ab"
+  },
+  "firstPostResume": {
+    "measuredMsSinceResume": 20424.572042,
+    "savedStep": 5,
+    "rawRoundElapsedMs": 655434.447959,
+    "status": "running",
+    "endedAt": "2026-11-28T13:12:12.036Z"
+  }
+}

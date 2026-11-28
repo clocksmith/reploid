@@ -1,0 +1,124 @@
+{
+  "schema": "reploid.export-triage-public-probe/v1",
+  "pins": {
+    "schema": "reploid.export-triage-score-freeze/v1",
+    "scorerSha256": "2a6668f8c83da5035b7fff95064df698692340812a642507f3c615bd8bf86768",
+    "study": {
+      "contract.json": "a4bed8b596b6982147843900a625e804d217d4a5dc12b2fb7dfd7890dbf27578",
+      "holdout.sealed.json": "136b4100499c9e45611613640368951d0ac5635ee500f0bce2e0ecc5d751310b",
+      "train.jsonl": "35b97038d85ae0ab2cd2fbfe3520ad9af9b586d61fb3a14ad819814dfa86d8ac",
+      "provenance.md": "d08e1663046af0adcea771c17823617b0298b9f981484ce25df0352cafd0f755"
+    },
+    "plaintextSha256": "2589364b8fbc3a2c0c55b6e49bc6011524673e62df5471e920f1703022c5e4ef",
+    "model": {
+      "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+      "manifestSha256": "fa6eb7bbc3ba63571f8cede780b877d9272bde948697af93dd3d33837cb46137",
+      "numericManifestDigest": "sha256:9317b66f490c3a73beab54408270e6fb2901a33aadb31c910b9e3b48b1d1b0e0",
+      "tokenizerSha256": "8fc3b6de02de5a8e21d3867aba335e2d9a3c2263201f55daaed1feab3541bea4"
+    },
+    "runtime": {
+      "name": "dopplerx",
+      "version": "0.2.0",
+      "spec": "0.2.0",
+      "resolved": "https://registry.npmjs.org/dopplerx/-/dopplerx-0.2.0.tgz",
+      "integrity": "sha512-6JqPVFXrS+2Q6FFqHfV0QOZtz9hwlGJCPRviE+ElFZEnpUS2qHCq4GVUIFpIv5tELEXhVJrD7x5kIK+sgXHDpQ=="
+    },
+    "candidates": {
+      "single": {
+        "manifestSha256": "f302d1bc551ca0cacf55e28829406e56900ab1ce827258f66c70beb092257cae",
+        "weightsSha256": "23b33dab4717ec964fb43370aa2b4c013b137db784877e35fa24a215e6653196",
+        "weightsBytes": 37051,
+        "executionDigest": "sha256:c80f5e085cf87fdb0d0ec15b675deef66b0fa21f9d7107b4ccd2f15d7995d829"
+      },
+      "pooled": {
+        "manifestSha256": "b46bdb7965e3a041c648c5849705ae5ede710475bc00126ba0748120ef9d3c79",
+        "weightsSha256": "a27ceb9269b6e027296287a838e8ea01be7beb539c9dc927c3b54abcc52f8dea",
+        "weightsBytes": 37051,
+        "executionDigest": "sha256:91f7d4129c96c54504cf24914b7c782f6ebafb5ce72c2275c5900d68efec8b6b"
+      }
+    },
+    "arms": [
+      "base",
+      "single",
+      "pooled"
+    ],
+    "primary": "pooled",
+    "maxSeqLen": 512,
+    "readout": "full-vocabulary-last-position",
+    "workoutSha256": "9a524683bc9e0673d86edc9a47f2ff5c773d364f08643823dc60b64ca4d204c1"
+  },
+  "device": {
+    "vendor": "apple",
+    "architecture": "metal-3",
+    "device": "unknown",
+    "description": "",
+    "subgroupMinSize": 32,
+    "subgroupMaxSize": 32
+  },
+  "browser": "158.0.8127.37",
+  "activeAdapters": {
+    "base": null,
+    "single": {
+      "schema": "doppler.lora-execution-identity/v1",
+      "id": "export-triage",
+      "name": "export-triage",
+      "tensorCount": 2,
+      "digest": "sha256:c80f5e085cf87fdb0d0ec15b675deef66b0fa21f9d7107b4ccd2f15d7995d829"
+    },
+    "pooled": {
+      "schema": "doppler.lora-execution-identity/v1",
+      "id": "export-triage",
+      "name": "export-triage",
+      "tensorCount": 2,
+      "digest": "sha256:91f7d4129c96c54504cf24914b7c782f6ebafb5ce72c2275c5900d68efec8b6b"
+    }
+  },
+  "cases": [
+    {
+      "id": "train-01",
+      "label": "A",
+      "promptSha256": "d9262cfb0d71cbc14d0d591493c12360b67190f9a84c08b4b310c4b81d729e87",
+      "tokens": {
+        "promptTokensSha256": "3a8f3565b49be391a661e9f259d86b43c0e28f984cac947ac4934d5c364db048",
+        "promptTokenCount": 31,
+        "choiceTokenIds": [
+          32,
+          33
+        ]
+      },
+      "base": {
+        "logits": {
+          "A": 13.439653396606445,
+          "B": 11.635037422180176
+        },
+        "prediction": "A",
+        "conditionalProbabilities": {
+          "A": 0.8587099062241317,
+          "B": 0.14129009377586835
+        }
+      },
+      "single": {
+        "logits": {
+          "A": 14.147918701171875,
+          "B": 12.305536270141602
+        },
+        "prediction": "A",
+        "conditionalProbabilities": {
+          "A": 0.8632302297737466,
+          "B": 0.13676977022625336
+        }
+      },
+      "pooled": {
+        "logits": {
+          "A": 14.147916793823242,
+          "B": 12.305536270141602
+        },
+        "prediction": "A",
+        "conditionalProbabilities": {
+          "A": 0.8632300045847627,
+          "B": 0.13676999541523718
+        }
+      }
+    }
+  ]
+}

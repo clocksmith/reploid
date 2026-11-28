@@ -1,0 +1,94 @@
+[
+  {
+    "started": "2026-11-28T12:50:44.978Z",
+    "finished": "2026-11-28T12:55:51.214Z",
+    "workoutStatus": "failed",
+    "stoppedBecause": "Operator stopped after both gates and recovery so the two devices could use host-local model shards.",
+    "numericalWeights": {
+      "passed": true,
+      "tolerance": {
+        "maximumAbsolute": 2e-05,
+        "rootMeanSquare": 2e-06
+      },
+      "elements": 9216,
+      "maximumAbsolute": 1.1890806490555406e-06,
+      "rootMeanSquare": 1.2391883399554904e-08,
+      "perTensor": [
+        {
+          "name": "layers.23.down_proj.lora_a",
+          "shape": [
+            3584,
+            2
+          ],
+          "elements": 7168,
+          "maximumAbsolute": 0,
+          "rootMeanSquare": 0
+        },
+        {
+          "name": "layers.23.down_proj.lora_b",
+          "shape": [
+            2,
+            1024
+          ],
+          "elements": 2048,
+          "maximumAbsolute": 1.1890806490555406e-06,
+          "rootMeanSquare": 2.6287154350494844e-08
+        }
+      ]
+    },
+    "referenceElapsedMs": 7401.320209,
+    "pooledElapsedMs": 137662.59658399998,
+    "sentBytes": {
+      "coordinator": 149402,
+      "contributor": 50260
+    },
+    "interruptionPassed": true,
+    "recoveryStep": 2
+  },
+  {
+    "started": "2026-11-28T12:57:07.305Z",
+    "finished": "2026-11-28T12:58:02.987Z",
+    "workoutStatus": "failed",
+    "stoppedBecause": "Task preparation requested a doubled slash in the tokenizer URL. Fixed and replayed before viewing any heldout prompt.",
+    "numericalWeights": {
+      "passed": true,
+      "tolerance": {
+        "maximumAbsolute": 2e-05,
+        "rootMeanSquare": 2e-06
+      },
+      "elements": 9216,
+      "maximumAbsolute": 1.1890806490555406e-06,
+      "rootMeanSquare": 1.2391883399554904e-08,
+      "perTensor": [
+        {
+          "name": "layers.23.down_proj.lora_a",
+          "shape": [
+            3584,
+            2
+          ],
+          "elements": 7168,
+          "maximumAbsolute": 0,
+          "rootMeanSquare": 0
+        },
+        {
+          "name": "layers.23.down_proj.lora_b",
+          "shape": [
+            2,
+            1024
+          ],
+          "elements": 2048,
+          "maximumAbsolute": 1.1890806490555406e-06,
+          "rootMeanSquare": 2.6287154350494844e-08
+        }
+      ]
+    },
+    "referenceElapsedMs": 7277.410167,
+    "pooledElapsedMs": 20954.630166999996,
+    "sentBytes": {
+      "coordinator": 149402,
+      "contributor": 50260
+    },
+    "interruptionPassed": true,
+    "recoveryStep": 2
+  }
+]

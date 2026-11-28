@@ -1,0 +1,1787 @@
+{
+  "schema": "reploid.export-triage-quality/v1",
+  "freezeSha256": "e91c1365f2e4dd1b6b4a300551c34eb00ab6614f1ee586175bc83374275d1fb6",
+  "pins": {
+    "schema": "reploid.export-triage-score-freeze/v1",
+    "scorerSha256": "2a6668f8c83da5035b7fff95064df698692340812a642507f3c615bd8bf86768",
+    "study": {
+      "contract.json": "a4bed8b596b6982147843900a625e804d217d4a5dc12b2fb7dfd7890dbf27578",
+      "holdout.sealed.json": "136b4100499c9e45611613640368951d0ac5635ee500f0bce2e0ecc5d751310b",
+      "train.jsonl": "35b97038d85ae0ab2cd2fbfe3520ad9af9b586d61fb3a14ad819814dfa86d8ac",
+      "provenance.md": "d08e1663046af0adcea771c17823617b0298b9f981484ce25df0352cafd0f755"
+    },
+    "plaintextSha256": "2589364b8fbc3a2c0c55b6e49bc6011524673e62df5471e920f1703022c5e4ef",
+    "model": {
+      "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+      "manifestSha256": "fa6eb7bbc3ba63571f8cede780b877d9272bde948697af93dd3d33837cb46137",
+      "numericManifestDigest": "sha256:9317b66f490c3a73beab54408270e6fb2901a33aadb31c910b9e3b48b1d1b0e0",
+      "tokenizerSha256": "8fc3b6de02de5a8e21d3867aba335e2d9a3c2263201f55daaed1feab3541bea4"
+    },
+    "runtime": {
+      "name": "dopplerx",
+      "version": "0.2.0",
+      "spec": "0.2.0",
+      "resolved": "https://registry.npmjs.org/dopplerx/-/dopplerx-0.2.0.tgz",
+      "integrity": "sha512-6JqPVFXrS+2Q6FFqHfV0QOZtz9hwlGJCPRviE+ElFZEnpUS2qHCq4GVUIFpIv5tELEXhVJrD7x5kIK+sgXHDpQ=="
+    },
+    "candidates": {
+      "single": {
+        "manifestSha256": "f302d1bc551ca0cacf55e28829406e56900ab1ce827258f66c70beb092257cae",
+        "weightsSha256": "23b33dab4717ec964fb43370aa2b4c013b137db784877e35fa24a215e6653196",
+        "weightsBytes": 37051,
+        "executionDigest": "sha256:c80f5e085cf87fdb0d0ec15b675deef66b0fa21f9d7107b4ccd2f15d7995d829"
+      },
+      "pooled": {
+        "manifestSha256": "b46bdb7965e3a041c648c5849705ae5ede710475bc00126ba0748120ef9d3c79",
+        "weightsSha256": "a27ceb9269b6e027296287a838e8ea01be7beb539c9dc927c3b54abcc52f8dea",
+        "weightsBytes": 37051,
+        "executionDigest": "sha256:91f7d4129c96c54504cf24914b7c782f6ebafb5ce72c2275c5900d68efec8b6b"
+      }
+    },
+    "arms": [
+      "base",
+      "single",
+      "pooled"
+    ],
+    "primary": "pooled",
+    "maxSeqLen": 512,
+    "readout": "full-vocabulary-last-position",
+    "workoutSha256": "9a524683bc9e0673d86edc9a47f2ff5c773d364f08643823dc60b64ca4d204c1"
+  },
+  "device": {
+    "vendor": "apple",
+    "architecture": "metal-3",
+    "device": "unknown",
+    "description": "",
+    "subgroupMinSize": 32,
+    "subgroupMaxSize": 32
+  },
+  "browser": "158.0.8127.37",
+  "activeAdapters": {
+    "base": null,
+    "single": {
+      "schema": "doppler.lora-execution-identity/v1",
+      "id": "export-triage",
+      "name": "export-triage",
+      "tensorCount": 2,
+      "digest": "sha256:c80f5e085cf87fdb0d0ec15b675deef66b0fa21f9d7107b4ccd2f15d7995d829"
+    },
+    "pooled": {
+      "schema": "doppler.lora-execution-identity/v1",
+      "id": "export-triage",
+      "name": "export-triage",
+      "tensorCount": 2,
+      "digest": "sha256:91f7d4129c96c54504cf24914b7c782f6ebafb5ce72c2275c5900d68efec8b6b"
+    }
+  },
+  "scores": {
+    "base": {
+      "taskCorrect": 12,
+      "taskTotal": 24,
+      "taskCorrectByLabel": {
+        "A": 12,
+        "B": 0
+      },
+      "retentionCorrect": 10,
+      "retentionTotal": 12,
+      "controlLosses": []
+    },
+    "single": {
+      "taskCorrect": 12,
+      "taskTotal": 24,
+      "taskCorrectByLabel": {
+        "A": 12,
+        "B": 0
+      },
+      "retentionCorrect": 10,
+      "retentionTotal": 12,
+      "controlLosses": [],
+      "taskNetGain": 0,
+      "checks": {
+        "task": false,
+        "perLabel": false,
+        "gain": false,
+        "retention": true
+      },
+      "passed": false
+    },
+    "pooled": {
+      "taskCorrect": 12,
+      "taskTotal": 24,
+      "taskCorrectByLabel": {
+        "A": 12,
+        "B": 0
+      },
+      "retentionCorrect": 10,
+      "retentionTotal": 12,
+      "controlLosses": [],
+      "taskNetGain": 0,
+      "checks": {
+        "task": false,
+        "perLabel": false,
+        "gain": false,
+        "retention": true
+      },
+      "passed": false
+    }
+  },
+  "primaryGatePassed": false,
+  "cases": [
+    {
+      "id": "test-01",
+      "label": "A",
+      "promptSha256": "1310cc9348e20e85948d58f7181d2569f766ce0086298c5fde7b8d077cd65821",
+      "tokens": {
+        "promptTokensSha256": "930595dd4b95c924843ef822025d2b4184c3324d2c502bc3797547da1927113d",
+        "promptTokenCount": 30,
+        "choiceTokenIds": [
+          32,
+          33
+        ]
+      },
+      "base": {
+        "logits": {
+          "A": 12.472143173217773,
+          "B": 12.155474662780762
+        },
+        "prediction": "A",
+        "conditionalProbabilities": {
+          "A": 0.578512128745948,
+          "B": 0.42148787125405196
+        }
+      },
+      "single": {
+        "logits": {
+          "A": 13.182547569274902,
+          "B": 12.82772159576416
+        },
+        "prediction": "A",
+        "conditionalProbabilities": {
+          "A": 0.5877873736610095,
+          "B": 0.41221262633899053
+        }
+      },
+      "pooled": {
+        "logits": {
+          "A": 13.182548522949219,
+          "B": 12.82772445678711
+        },
+        "prediction": "A",
+        "conditionalProbabilities": {
+          "A": 0.5877869115229907,
+          "B": 0.41221308847700927
+        }
+      }
+    },
+    {
+      "id": "test-02",
+      "label": "B",
+      "promptSha256": "05cfb02dd257dfba2850d410ac696598aad9b205f1b8f097898abccbff446e31",
+      "tokens": {
+        "promptTokensSha256": "1975e857d4207206907723c662fc58876f002510fbdaa0c419a76c846fedd1f4",
+        "promptTokenCount": 31,
+        "choiceTokenIds": [
+          32,
+          33
+        ]
+      },
+      "base": {
+        "logits": {
+          "A": 13.049478530883789,
+          "B": 11.736084938049316
+        },
+        "prediction": "A",
+        "conditionalProbabilities": {
+          "A": 0.7880804726795666,
+          "B": 0.21191952732043326
+        }
+      },
+      "single": {
+        "logits": {
+          "A": 13.763790130615234,
+          "B": 12.412178039550781
+        },
+        "prediction": "A",
+        "conditionalProbabilities": {
+          "A": 0.7943930603919762,
+          "B": 0.20560693960802387
+        }
+      },
+      "pooled": {
+        "logits": {
+          "A": 13.763790130615234,
+          "B": 12.412179946899414
+        },
+        "prediction": "A",
+        "conditionalProbabilities": {
+          "A": 0.7943927488593496,
+          "B": 0.2056072511406504
+        }
+      }
+    },
+    {
+      "id": "test-03",
+      "label": "A",
+      "promptSha256": "a427f261cd48f078059bd620f2c2c7bdef40a3ec75311fac15587d17c7d04afc",
+      "tokens": {
+        "promptTokensSha256": "8fb85aac1396a75ec7bc69c0a4b99198abe0e2164b1315b403aab798af1d599f",
+        "promptTokenCount": 33,
+        "choiceTokenIds": [
+          32,
+          33
+        ]
+      },
+      "base": {
+        "logits": {
+          "A": 13.869319915771484,
+          "B": 11.895817756652832
+        },
+        "prediction": "A",
+        "conditionalProbabilities": {
+          "A": 0.8779867823635104,
+          "B": 0.12201321763648956
+        }
+      },
+      "single": {
+        "logits": {
+          "A": 14.567392349243164,
+          "B": 12.556665420532227
+        },
+        "prediction": "A",
+        "conditionalProbabilities": {
+          "A": 0.8819187441649738,
+          "B": 0.11808125583502609
+        }
+      },
+      "pooled": {
+        "logits": {
+          "A": 14.567390441894531,
+          "B": 12.55666446685791
+        },
+        "prediction": "A",
+        "conditionalProbabilities": {
+          "A": 0.8819186448511322,
+          "B": 0.1180813551488677
+        }
+      }
+    },
+    {
+      "id": "test-04",
+      "label": "A",
+      "promptSha256": "08e3cacbf559543e54bb6f04d3a050fdc294c426b6fa49a41b8976c540f52726",
+      "tokens": {
+        "promptTokensSha256": "7df0e1efb39e3a3d9f2e5fb3d42f826462b688cda3079d4e598f24ba4de00562",
+        "promptTokenCount": 33,
+        "choiceTokenIds": [
+          32,
+          33
+        ]
+      },
+      "base": {
+        "logits": {
+          "A": 13.414305686950684,
+          "B": 11.33492374420166
+        },
+        "prediction": "A",
+        "conditionalProbabilities": {
+          "A": 0.8888830024383039,
+          "B": 0.11111699756169609
+        }
+      },
+      "single": {
+        "logits": {
+          "A": 14.134838104248047,
+          "B": 12.016975402832031
+        },
+        "prediction": "A",
+        "conditionalProbabilities": {
+          "A": 0.8926272544453376,
+          "B": 0.10737274555466236
+        }
+      },
+      "pooled": {
+        "logits": {
+          "A": 14.134838104248047,
+          "B": 12.016975402832031
+        },
+        "prediction": "A",
+        "conditionalProbabilities": {
+          "A": 0.8926272544453376,
+          "B": 0.10737274555466236
+        }
+      }
+    },
+    {
+      "id": "test-05",
+      "label": "B",
+      "promptSha256": "ed8825f00a07c78229edb961e36fe14b80763363a1a875e29540f4905c01bd12",
+      "tokens": {
+        "promptTokensSha256": "77a6a8fc7f6880f31d76c61a6b30d1db96f25826e6b081990d69655059c7d569",
+        "promptTokenCount": 37,
+        "choiceTokenIds": [
+          32,
+          33
+        ]
+      },
+      "base": {
+        "logits": {
+          "A": 13.75553035736084,
+          "B": 11.784322738647461
+        },
+        "prediction": "A",
+        "conditionalProbabilities": {
+          "A": 0.877740764180495,
+          "B": 0.12225923581950503
+        }
+      },
+      "single": {
+        "logits": {
+          "A": 14.468247413635254,
+          "B": 12.459038734436035
+        },
+        "prediction": "A",
+        "conditionalProbabilities": {
+          "A": 0.8817605448855711,
+          "B": 0.11823945511442904
+        }
+      },
+      "pooled": {
+        "logits": {
+          "A": 14.468247413635254,
+          "B": 12.459039688110352
+        },
+        "prediction": "A",
+        "conditionalProbabilities": {
+          "A": 0.8817604454565126,
+          "B": 0.11823955454348742
+        }
+      }
+    },
+    {
+      "id": "test-06",
+      "label": "B",
+      "promptSha256": "988af410ffc32030402f2f19bd99083a37e2d40dfc3bd7e080c43e69279675fd",
+      "tokens": {
+        "promptTokensSha256": "2d4c31a038b2facde43ee25d5faa5f2f906f2ec5eccb258064c18d87a674c799",
+        "promptTokenCount": 30,
+        "choiceTokenIds": [
+          32,
+          33
+        ]
+      },
+      "base": {
+        "logits": {
+          "A": 13.32284164428711,
+          "B": 11.503293991088867
+        },
+        "prediction": "A",
+        "conditionalProbabilities": {
+          "A": 0.8605118401568237,
+          "B": 0.13948815984317636
+        }
+      },
+      "single": {
+        "logits": {
+          "A": 14.035752296447754,
+          "B": 12.178071022033691
+        },
+        "prediction": "A",
+        "conditionalProbabilities": {
+          "A": 0.8650264527124112,
+          "B": 0.13497354728758884
+        }
+      },
+      "pooled": {
+        "logits": {
+          "A": 14.035751342773438,
+          "B": 12.178071975708008
+        },
+        "prediction": "A",
+        "conditionalProbabilities": {
+          "A": 0.8650262300184526,
+          "B": 0.13497376998154734
+        }
+      }
+    },
+    {
+      "id": "test-07",
+      "label": "B",
+      "promptSha256": "5d9f8f8ea62c57ec0b1247717cc24853ddb0b1a1d9e47d44ffb9f086fcfe7411",
+      "tokens": {
+        "promptTokensSha256": "18602bcfc8dd7dade5dfe98892cf8ce3fa1e6d8f3c080c5ad84ee22558ea894b",
+        "promptTokenCount": 34,
+        "choiceTokenIds": [
+          32,
+          33
+        ]
+      },
+      "base": {
+        "logits": {
+          "A": 13.218972206115723,
+          "B": 10.629829406738281
+        },
+        "prediction": "A",
+        "conditionalProbabilities": {
+          "A": 0.930159551534063,
+          "B": 0.06984044846593696
+        }
+      },
+      "single": {
+        "logits": {
+          "A": 13.948783874511719,
+          "B": 11.320940017700195
+        },
+        "prediction": "A",
+        "conditionalProbabilities": {
+          "A": 0.9326322065882646,
+          "B": 0.06736779341173531
+        }
+      },
+      "pooled": {
+        "logits": {
+          "A": 13.948782920837402,
+          "B": 11.320940017700195
+        },
+        "prediction": "A",
+        "conditionalProbabilities": {
+          "A": 0.9326321466694799,
+          "B": 0.06736785333052017
+        }
+      }
+    },
+    {
+      "id": "test-08",
+      "label": "A",
+      "promptSha256": "5feae73afc8bd6138b09061db1de46d23cdc2a5b4028d617ae2fcad8fbb3a14e",
+      "tokens": {
+        "promptTokensSha256": "b5717f460fabfd27c62a5fff90ac930dc1e03e69a4ab0d550ce794ffd2e93912",
+        "promptTokenCount": 36,
+        "choiceTokenIds": [
+          32,
+          33
+        ]
+      },
+      "base": {
+        "logits": {
+          "A": 12.839948654174805,
+          "B": 11.147392272949219
+        },
+        "prediction": "A",
+        "conditionalProbabilities": {
+          "A": 0.8445600531169859,
+          "B": 0.15543994688301407
+        }
+      },
+      "single": {
+        "logits": {
+          "A": 13.548994064331055,
+          "B": 11.818521499633789
+        },
+        "prediction": "A",
+        "conditionalProbabilities": {
+          "A": 0.8494728564781634,
+          "B": 0.1505271435218367
+        }
+      },
+      "pooled": {
+        "logits": {
+          "A": 13.548995971679688,
+          "B": 11.818521499633789
+        },
+        "prediction": "A",
+        "conditionalProbabilities": {
+          "A": 0.849473100368234,
+          "B": 0.15052689963176608
+        }
+      }
+    },
+    {
+      "id": "test-09",
+      "label": "A",
+      "promptSha256": "0e1a24dbc03c74d28c7ec7803fbee1ac26e056b3e810f31271e0c1df5d901979",
+      "tokens": {
+        "promptTokensSha256": "c85e0684c1e8f35036f08ee84959f6e7123bd4356781e1c501dd70aa461025ec",
+        "promptTokenCount": 32,
+        "choiceTokenIds": [
+          32,
+          33
+        ]
+      },
+      "base": {
+        "logits": {
+          "A": 12.58670425415039,
+          "B": 11.35519027709961
+        },
+        "prediction": "A",
+        "conditionalProbabilities": {
+          "A": 0.7740834458083946,
+          "B": 0.22591655419160528
+        }
+      },
+      "single": {
+        "logits": {
+          "A": 13.30654239654541,
+          "B": 12.036453247070312
+        },
+        "prediction": "A",
+        "conditionalProbabilities": {
+          "A": 0.7807580084501932,
+          "B": 0.21924199154980675
+        }
+      },
+      "pooled": {
+        "logits": {
+          "A": 13.306541442871094,
+          "B": 12.036454200744629
+        },
+        "prediction": "A",
+        "conditionalProbabilities": {
+          "A": 0.7807576819597293,
+          "B": 0.21924231804027072
+        }
+      }
+    },
+    {
+      "id": "test-10",
+      "label": "B",
+      "promptSha256": "cbecc3e17e7d52024819b3c0d51b3276c15f4b3aa114e43384f4426e37b2444b",
+      "tokens": {
+        "promptTokensSha256": "7acbe0015111081e77f563c62647591d5a0036ff28acb7232f58a9d7c286900f",
+        "promptTokenCount": 37,
+        "choiceTokenIds": [
+          32,
+          33
+        ]
+      },
+      "base": {
+        "logits": {
+          "A": 14.379874229431152,
+          "B": 11.241482734680176
+        },
+        "prediction": "A",
+        "conditionalProbabilities": {
+          "A": 0.9584488697823692,
+          "B": 0.04155113021763068
+        }
+      },
+      "single": {
+        "logits": {
+          "A": 15.08903694152832,
+          "B": 11.913113594055176
+        },
+        "prediction": "A",
+        "conditionalProbabilities": {
+          "A": 0.95991810923382,
+          "B": 0.040081890766179955
+        }
+      },
+      "pooled": {
+        "logits": {
+          "A": 15.089038848876953,
+          "B": 11.913113594055176
+        },
+        "prediction": "A",
+        "conditionalProbabilities": {
+          "A": 0.9599181826196291,
+          "B": 0.04008181738037092
+        }
+      }
+    },
+    {
+      "id": "test-11",
+      "label": "A",
+      "promptSha256": "cacc15620289041f3fb9a7d706a5bc53534d2dc939cb2a03b4081708f35178c2",
+      "tokens": {
+        "promptTokensSha256": "24514bca337e9c769dd55ec78646b88f3129e3e9b08024a526d6f4d77aa8e28e",
+        "promptTokenCount": 31,
+        "choiceTokenIds": [
+          32,
+          33
+        ]
+      },
+      "base": {
+        "logits": {
+          "A": 13.734889030456543,
+          "B": 11.73222827911377
+        },
+        "prediction": "A",
+        "conditionalProbabilities": {
+          "A": 0.8810761568720763,
+          "B": 0.11892384312792376
+        }
+      },
+      "single": {
+        "logits": {
+          "A": 14.433988571166992,
+          "B": 12.394057273864746
+        },
+        "prediction": "A",
+        "conditionalProbabilities": {
+          "A": 0.8849262720224839,
+          "B": 0.11507372797751621
+        }
+      },
+      "pooled": {
+        "logits": {
+          "A": 14.433988571166992,
+          "B": 12.394054412841797
+        },
+        "prediction": "A",
+        "conditionalProbabilities": {
+          "A": 0.8849265633651798,
+          "B": 0.11507343663482013
+        }
+      }
+    },
+    {
+      "id": "test-12",
+      "label": "B",
+      "promptSha256": "8fe9972b9e7226a808a4a5a1f5c223f7a774775eadc26c3a07bd1960812227c8",
+      "tokens": {
+        "promptTokensSha256": "d0f1fac1e14e36421db9af7f049ec6fe6efc4a5d950396188e9e3517e85b9961",
+        "promptTokenCount": 35,
+        "choiceTokenIds": [
+          32,
+          33
+        ]
+      },
+      "base": {
+        "logits": {
+          "A": 13.789796829223633,
+          "B": 11.968107223510742
+        },
+        "prediction": "A",
+        "conditionalProbabilities": {
+          "A": 0.860768742837297,
+          "B": 0.13923125716270296
+        }
+      },
+      "single": {
+        "logits": {
+          "A": 14.496736526489258,
+          "B": 12.637310981750488
+        },
+        "prediction": "A",
+        "conditionalProbabilities": {
+          "A": 0.8652299765594473,
+          "B": 0.13477002344055267
+        }
+      },
+      "pooled": {
+        "logits": {
+          "A": 14.496737480163574,
+          "B": 12.637311935424805
+        },
+        "prediction": "A",
+        "conditionalProbabilities": {
+          "A": 0.8652299765594473,
+          "B": 0.13477002344055267
+        }
+      }
+    },
+    {
+      "id": "test-13",
+      "label": "A",
+      "promptSha256": "6919330828a0d2ddbe4ab13edba5df2c74dae578ac90bd2a76ef6e1a61b9fbd1",
+      "tokens": {
+        "promptTokensSha256": "4f7d2803270e390849c32fa77b516871501e107fbf1caeac06f23b28855ba349",
+        "promptTokenCount": 36,
+        "choiceTokenIds": [
+          32,
+          33
+        ]
+      },
+      "base": {
+        "logits": {
+          "A": 12.812383651733398,
+          "B": 11.340487480163574
+        },
+        "prediction": "A",
+        "conditionalProbabilities": {
+          "A": 0.8133454236997352,
+          "B": 0.18665457630026483
+        }
+      },
+      "single": {
+        "logits": {
+          "A": 13.52034854888916,
+          "B": 12.010595321655273
+        },
+        "prediction": "A",
+        "conditionalProbabilities": {
+          "A": 0.8190246322576381,
+          "B": 0.18097536774236184
+        }
+      },
+      "pooled": {
+        "logits": {
+          "A": 13.520349502563477,
+          "B": 12.01059627532959
+        },
+        "prediction": "A",
+        "conditionalProbabilities": {
+          "A": 0.8190246322576381,
+          "B": 0.18097536774236184
+        }
+      }
+    },
+    {
+      "id": "test-14",
+      "label": "B",
+      "promptSha256": "c92fb84942ff555f56add681b466b63bd381fde604def7d9fb59b2d8712e3b9e",
+      "tokens": {
+        "promptTokensSha256": "d751c78b88070184e9e0587c1f090bb765f28dafa5ad0f8a2401853f1cf5abd7",
+        "promptTokenCount": 33,
+        "choiceTokenIds": [
+          32,
+          33
+        ]
+      },
+      "base": {
+        "logits": {
+          "A": 12.268287658691406,
+          "B": 10.90665054321289
+        },
+        "prediction": "A",
+        "conditionalProbabilities": {
+          "A": 0.7960256430473617,
+          "B": 0.20397435695263827
+        }
+      },
+      "single": {
+        "logits": {
+          "A": 12.97130012512207,
+          "B": 11.572000503540039
+        },
+        "prediction": "A",
+        "conditionalProbabilities": {
+          "A": 0.8020727255587833,
+          "B": 0.19792727444121666
+        }
+      },
+      "pooled": {
+        "logits": {
+          "A": 12.971301078796387,
+          "B": 11.572000503540039
+        },
+        "prediction": "A",
+        "conditionalProbabilities": {
+          "A": 0.8020728769565101,
+          "B": 0.19792712304348992
+        }
+      }
+    },
+    {
+      "id": "test-15",
+      "label": "B",
+      "promptSha256": "bc953d795b4c4e64798dbb3b63a72f2c2898a60104d4d11da1f8a36427d241b2",
+      "tokens": {
+        "promptTokensSha256": "e2b244ebaee5aaec51f0e6db6440432612c940e6d3a5cc12ecb58786b28553e0",
+        "promptTokenCount": 31,
+        "choiceTokenIds": [
+          32,
+          33
+        ]
+      },
+      "base": {
+        "logits": {
+          "A": 13.182254791259766,
+          "B": 11.240543365478516
+        },
+        "prediction": "A",
+        "conditionalProbabilities": {
+          "A": 0.8745400411025798,
+          "B": 0.1254599588974202
+        }
+      },
+      "single": {
+        "logits": {
+          "A": 13.90282154083252,
+          "B": 11.922614097595215
+        },
+        "prediction": "A",
+        "conditionalProbabilities": {
+          "A": 0.8787032739400802,
+          "B": 0.12129672605991997
+        }
+      },
+      "pooled": {
+        "logits": {
+          "A": 13.902822494506836,
+          "B": 11.922614097595215
+        },
+        "prediction": "A",
+        "conditionalProbabilities": {
+          "A": 0.8787033755863048,
+          "B": 0.12129662441369514
+        }
+      }
+    },
+    {
+      "id": "test-16",
+      "label": "A",
+      "promptSha256": "601b9259a791f3420e5737e7c7c67bb72d3c5357df1c01a369c56ae8737e5423",
+      "tokens": {
+        "promptTokensSha256": "9950d159783b0bd0eb2b4b5ee779a5d12aa33372d61d87f20395360ec5919dd3",
+        "promptTokenCount": 34,
+        "choiceTokenIds": [
+          32,
+          33
+        ]
+      },
+      "base": {
+        "logits": {
+          "A": 12.882930755615234,
+          "B": 11.303140640258789
+        },
+        "prediction": "A",
+        "conditionalProbabilities": {
+          "A": 0.8291747911401232,
+          "B": 0.17082520885987676
+        }
+      },
+      "single": {
+        "logits": {
+          "A": 13.59780502319336,
+          "B": 11.979785919189453
+        },
+        "prediction": "A",
+        "conditionalProbabilities": {
+          "A": 0.8345217588341931,
+          "B": 0.16547824116580684
+        }
+      },
+      "pooled": {
+        "logits": {
+          "A": 13.597806930541992,
+          "B": 11.979785919189453
+        },
+        "prediction": "A",
+        "conditionalProbabilities": {
+          "A": 0.8345220222297025,
+          "B": 0.1654779777702976
+        }
+      }
+    },
+    {
+      "id": "test-17",
+      "label": "B",
+      "promptSha256": "2acf0dbf08f699e38af9f16fe3064956bc726103da65f80fb84c14be5e8792bf",
+      "tokens": {
+        "promptTokensSha256": "f70db0b7c3c6e29d1671691100852a901e146ba1095bc1b99295e1f71aa422ec",
+        "promptTokenCount": 35,
+        "choiceTokenIds": [
+          32,
+          33
+        ]
+      },
+      "base": {
+        "logits": {
+          "A": 12.860767364501953,
+          "B": 11.341798782348633
+        },
+        "prediction": "A",
+        "conditionalProbabilities": {
+          "A": 0.8203865488560632,
+          "B": 0.17961345114393676
+        }
+      },
+      "single": {
+        "logits": {
+          "A": 13.56443977355957,
+          "B": 12.007850646972656
+        },
+        "prediction": "A",
+        "conditionalProbabilities": {
+          "A": 0.8258633699048125,
+          "B": 0.17413663009518762
+        }
+      },
+      "pooled": {
+        "logits": {
+          "A": 13.564437866210938,
+          "B": 12.007851600646973
+        },
+        "prediction": "A",
+        "conditionalProbabilities": {
+          "A": 0.8258629584519519,
+          "B": 0.17413704154804815
+        }
+      }
+    },
+    {
+      "id": "test-18",
+      "label": "A",
+      "promptSha256": "a34ff956a835ab653e0b0e52a2f2c683d541b8078e60bdb2629f4040e6c1aee9",
+      "tokens": {
+        "promptTokensSha256": "da929b13518d5bd61fdd21451c013e73c51456f2ad0e0336858ac83b91c38666",
+        "promptTokenCount": 43,
+        "choiceTokenIds": [
+          32,
+          33
+        ]
+      },
+      "base": {
+        "logits": {
+          "A": 13.557649612426758,
+          "B": 11.899508476257324
+        },
+        "prediction": "A",
+        "conditionalProbabilities": {
+          "A": 0.8399883148602546,
+          "B": 0.16001168513974529
+        }
+      },
+      "single": {
+        "logits": {
+          "A": 14.263851165771484,
+          "B": 12.567987442016602
+        },
+        "prediction": "A",
+        "conditionalProbabilities": {
+          "A": 0.8449937410360016,
+          "B": 0.15500625896399836
+        }
+      },
+      "pooled": {
+        "logits": {
+          "A": 14.263851165771484,
+          "B": 12.567987442016602
+        },
+        "prediction": "A",
+        "conditionalProbabilities": {
+          "A": 0.8449937410360016,
+          "B": 0.15500625896399836
+        }
+      }
+    },
+    {
+      "id": "test-19",
+      "label": "B",
+      "promptSha256": "bb382b90cb51e41d04945b3e7a282fc017379f519d48c406f8abca702bdc22e3",
+      "tokens": {
+        "promptTokensSha256": "0443f65abbc8d5e1652863a6240c7ec86ef79e17c104faacd7cbf40e43a5384a",
+        "promptTokenCount": 33,
+        "choiceTokenIds": [
+          32,
+          33
+        ]
+      },
+      "base": {
+        "logits": {
+          "A": 13.126373291015625,
+          "B": 11.124124526977539
+        },
+        "prediction": "A",
+        "conditionalProbabilities": {
+          "A": 0.8810329816678526,
+          "B": 0.11896701833214737
+        }
+      },
+      "single": {
+        "logits": {
+          "A": 13.846792221069336,
+          "B": 11.806123733520508
+        },
+        "prediction": "A",
+        "conditionalProbabilities": {
+          "A": 0.8850013201071774,
+          "B": 0.11499867989282264
+        }
+      },
+      "pooled": {
+        "logits": {
+          "A": 13.846795082092285,
+          "B": 11.806123733520508
+        },
+        "prediction": "A",
+        "conditionalProbabilities": {
+          "A": 0.8850016112845591,
+          "B": 0.11499838871544091
+        }
+      }
+    },
+    {
+      "id": "test-20",
+      "label": "A",
+      "promptSha256": "c663ff1fcd76a0e8cc129ed66707e19d68885eae0922183a7c3c34da526bcb55",
+      "tokens": {
+        "promptTokensSha256": "91b9a52eb93b269294bce42e0f59c279f2bba8b643eeb27f40d42e7e07641579",
+        "promptTokenCount": 34,
+        "choiceTokenIds": [
+          32,
+          33
+        ]
+      },
+      "base": {
+        "logits": {
+          "A": 13.606168746948242,
+          "B": 11.035463333129883
+        },
+        "prediction": "A",
+        "conditionalProbabilities": {
+          "A": 0.928952267284187,
+          "B": 0.071047732715813
+        }
+      },
+      "single": {
+        "logits": {
+          "A": 14.326883316040039,
+          "B": 11.717829704284668
+        },
+        "prediction": "A",
+        "conditionalProbabilities": {
+          "A": 0.931441986663389,
+          "B": 0.0685580133366111
+        }
+      },
+      "pooled": {
+        "logits": {
+          "A": 14.326882362365723,
+          "B": 11.717828750610352
+        },
+        "prediction": "A",
+        "conditionalProbabilities": {
+          "A": 0.931441986663389,
+          "B": 0.0685580133366111
+        }
+      }
+    },
+    {
+      "id": "test-21",
+      "label": "A",
+      "promptSha256": "c44002e19f6b05a69394b33baa0ed8de632a86a63d9a5deed3a82720f258576e",
+      "tokens": {
+        "promptTokensSha256": "de8f87f11af46dd970111291465c7119371a68b54528d33dfcdea2c9a0d9c662",
+        "promptTokenCount": 36,
+        "choiceTokenIds": [
+          32,
+          33
+        ]
+      },
+      "base": {
+        "logits": {
+          "A": 12.817493438720703,
+          "B": 11.856000900268555
+        },
+        "prediction": "A",
+        "conditionalProbabilities": {
+          "A": 0.7234205366499233,
+          "B": 0.2765794633500767
+        }
+      },
+      "single": {
+        "logits": {
+          "A": 13.50233268737793,
+          "B": 12.504151344299316
+        },
+        "prediction": "A",
+        "conditionalProbabilities": {
+          "A": 0.7307008587556689,
+          "B": 0.2692991412443311
+        }
+      },
+      "pooled": {
+        "logits": {
+          "A": 13.50233268737793,
+          "B": 12.504151344299316
+        },
+        "prediction": "A",
+        "conditionalProbabilities": {
+          "A": 0.7307008587556689,
+          "B": 0.2692991412443311
+        }
+      }
+    },
+    {
+      "id": "test-22",
+      "label": "B",
+      "promptSha256": "aa913ec060ecd0eb54b953a2b72c80ea4a787510cc9e51497da98fa4286fb870",
+      "tokens": {
+        "promptTokensSha256": "1d285853f993a8d3df09f768a4b1b7233338f7f84dff9c4c999b4f754c6af25b",
+        "promptTokenCount": 40,
+        "choiceTokenIds": [
+          32,
+          33
+        ]
+      },
+      "base": {
+        "logits": {
+          "A": 13.84347915649414,
+          "B": 11.468280792236328
+        },
+        "prediction": "A",
+        "conditionalProbabilities": {
+          "A": 0.9149163978071686,
+          "B": 0.0850836021928314
+        }
+      },
+      "single": {
+        "logits": {
+          "A": 14.549753189086914,
+          "B": 12.136889457702637
+        },
+        "prediction": "A",
+        "conditionalProbabilities": {
+          "A": 0.9178029823309417,
+          "B": 0.08219701766905825
+        }
+      },
+      "pooled": {
+        "logits": {
+          "A": 14.549753189086914,
+          "B": 12.136887550354004
+        },
+        "prediction": "A",
+        "conditionalProbabilities": {
+          "A": 0.917803126222482,
+          "B": 0.08219687377751803
+        }
+      }
+    },
+    {
+      "id": "test-23",
+      "label": "A",
+      "promptSha256": "4621e77e0e55e756ed3baf2d9e8e1a65d7b3acec5390064c96a354c00e059d98",
+      "tokens": {
+        "promptTokensSha256": "c31f60a834b2d90e1ebfcb557fe033976890edb6a0bcdd774241c645830921f7",
+        "promptTokenCount": 28,
+        "choiceTokenIds": [
+          32,
+          33
+        ]
+      },
+      "base": {
+        "logits": {
+          "A": 12.90184211730957,
+          "B": 12.240311622619629
+        },
+        "prediction": "A",
+        "conditionalProbabilities": {
+          "A": 0.6596041090054744,
+          "B": 0.3403958909945257
+        }
+      },
+      "single": {
+        "logits": {
+          "A": 13.619268417358398,
+          "B": 12.919251441955566
+        },
+        "prediction": "A",
+        "conditionalProbabilities": {
+          "A": 0.6681915358227577,
+          "B": 0.33180846417724225
+        }
+      },
+      "pooled": {
+        "logits": {
+          "A": 13.619268417358398,
+          "B": 12.91925048828125
+        },
+        "prediction": "A",
+        "conditionalProbabilities": {
+          "A": 0.6681917472633894,
+          "B": 0.33180825273661063
+        }
+      }
+    },
+    {
+      "id": "test-24",
+      "label": "B",
+      "promptSha256": "b627e83833442cf93806c674eec4031fa8bb82ede697f58b7c02507af83e79ec",
+      "tokens": {
+        "promptTokensSha256": "f82d5ea06d07c452eb6254a7b6606674c7f21e221a51a822e65562383ba3d67c",
+        "promptTokenCount": 33,
+        "choiceTokenIds": [
+          32,
+          33
+        ]
+      },
+      "base": {
+        "logits": {
+          "A": 13.295543670654297,
+          "B": 11.272773742675781
+        },
+        "prediction": "A",
+        "conditionalProbabilities": {
+          "A": 0.8831671219643318,
+          "B": 0.11683287803566823
+        }
+      },
+      "single": {
+        "logits": {
+          "A": 14.007376670837402,
+          "B": 11.946632385253906
+        },
+        "prediction": "A",
+        "conditionalProbabilities": {
+          "A": 0.8870287753262017,
+          "B": 0.11297122467379829
+        }
+      },
+      "pooled": {
+        "logits": {
+          "A": 14.007375717163086,
+          "B": 11.946632385253906
+        },
+        "prediction": "A",
+        "conditionalProbabilities": {
+          "A": 0.8870286797596771,
+          "B": 0.11297132024032286
+        }
+      }
+    },
+    {
+      "id": "control-01",
+      "label": "B",
+      "promptSha256": "7a26ad708d75efa9f7b9f51f003ccf5a405b1be2d19070919828d16fcb9e549a",
+      "tokens": {
+        "promptTokensSha256": "a21b9bdcfbc91c19f81b3cccb93f1173097bb715d890496ff1302ed56dd89378",
+        "promptTokenCount": 21,
+        "choiceTokenIds": [
+          32,
+          33
+        ]
+      },
+      "base": {
+        "logits": {
+          "A": 18.538171768188477,
+          "B": 18.818992614746094
+        },
+        "prediction": "B",
+        "conditionalProbabilities": {
+          "A": 0.430252546090119,
+          "B": 0.569747453909881
+        }
+      },
+      "single": {
+        "logits": {
+          "A": 18.944374084472656,
+          "B": 19.20248794555664
+        },
+        "prediction": "B",
+        "conditionalProbabilities": {
+          "A": 0.4358274193150467,
+          "B": 0.5641725806849534
+        }
+      },
+      "pooled": {
+        "logits": {
+          "A": 18.944374084472656,
+          "B": 19.20248794555664
+        },
+        "prediction": "B",
+        "conditionalProbabilities": {
+          "A": 0.4358274193150467,
+          "B": 0.5641725806849534
+        }
+      }
+    },
+    {
+      "id": "control-02",
+      "label": "A",
+      "promptSha256": "f85e3134f70b18339deb78474bbf2724a581316766e94d16fe932f906d4fc3e0",
+      "tokens": {
+        "promptTokensSha256": "6a007a6921d0a95be1a65b162ec8b10b3ddf8ecccb0b1e8f37150a5f7db7bfb6",
+        "promptTokenCount": 17,
+        "choiceTokenIds": [
+          32,
+          33
+        ]
+      },
+      "base": {
+        "logits": {
+          "A": 18.800249099731445,
+          "B": 16.64106559753418
+        },
+        "prediction": "A",
+        "conditionalProbabilities": {
+          "A": 0.8965238274958268,
+          "B": 0.10347617250417328
+        }
+      },
+      "single": {
+        "logits": {
+          "A": 19.23779296875,
+          "B": 17.055885314941406
+        },
+        "prediction": "A",
+        "conditionalProbabilities": {
+          "A": 0.8986130062079394,
+          "B": 0.10138699379206063
+        }
+      },
+      "pooled": {
+        "logits": {
+          "A": 19.23779296875,
+          "B": 17.055885314941406
+        },
+        "prediction": "A",
+        "conditionalProbabilities": {
+          "A": 0.8986130062079394,
+          "B": 0.10138699379206063
+        }
+      }
+    },
+    {
+      "id": "control-03",
+      "label": "B",
+      "promptSha256": "db714ac999361d84219c3db0974e7c69bd53f98ffee6b9a10b0660efaa136f80",
+      "tokens": {
+        "promptTokensSha256": "42f934d63ca284771082cbdbc01b8ebdb76f47798debf4a5e5d78c6e079e22d5",
+        "promptTokenCount": 20,
+        "choiceTokenIds": [
+          32,
+          33
+        ]
+      },
+      "base": {
+        "logits": {
+          "A": 18.277698516845703,
+          "B": 18.786462783813477
+        },
+        "prediction": "B",
+        "conditionalProbabilities": {
+          "A": 0.3754832548485454,
+          "B": 0.6245167451514546
+        }
+      },
+      "single": {
+        "logits": {
+          "A": 18.69554901123047,
+          "B": 19.181066513061523
+        },
+        "prediction": "B",
+        "conditionalProbabilities": {
+          "A": 0.38095009671661856,
+          "B": 0.6190499032833815
+        }
+      },
+      "pooled": {
+        "logits": {
+          "A": 18.69554901123047,
+          "B": 19.181068420410156
+        },
+        "prediction": "B",
+        "conditionalProbabilities": {
+          "A": 0.38094964691218475,
+          "B": 0.6190503530878152
+        }
+      }
+    },
+    {
+      "id": "control-04",
+      "label": "B",
+      "promptSha256": "895b68d178bdab86ad81ee148cfa51dc09901999f7f8dfcffc08fbde6519a91a",
+      "tokens": {
+        "promptTokensSha256": "bbc2d704ffe77b65508f8693e6fcd884ea2f8c48ee84d9edbd807958c9472453",
+        "promptTokenCount": 23,
+        "choiceTokenIds": [
+          32,
+          33
+        ]
+      },
+      "base": {
+        "logits": {
+          "A": 20.482336044311523,
+          "B": 20.07024574279785
+        },
+        "prediction": "A",
+        "conditionalProbabilities": {
+          "A": 0.601588987869985,
+          "B": 0.39841101213001495
+        }
+      },
+      "single": {
+        "logits": {
+          "A": 20.869699478149414,
+          "B": 20.436309814453125
+        },
+        "prediction": "A",
+        "conditionalProbabilities": {
+          "A": 0.6066827976715085,
+          "B": 0.39331720232849154
+        }
+      },
+      "pooled": {
+        "logits": {
+          "A": 20.869701385498047,
+          "B": 20.436311721801758
+        },
+        "prediction": "A",
+        "conditionalProbabilities": {
+          "A": 0.6066827976715085,
+          "B": 0.39331720232849154
+        }
+      }
+    },
+    {
+      "id": "control-05",
+      "label": "A",
+      "promptSha256": "6b09767f483e36d59671c4b8de29df92fa12fe3a85e2e314557eb4355e93a0de",
+      "tokens": {
+        "promptTokensSha256": "8120f25950ae1a55954461cccfb86de67fd23cf0677d63f064100a5ec9f45c8d",
+        "promptTokenCount": 18,
+        "choiceTokenIds": [
+          32,
+          33
+        ]
+      },
+      "base": {
+        "logits": {
+          "A": 19.326751708984375,
+          "B": 18.04129409790039
+        },
+        "prediction": "A",
+        "conditionalProbabilities": {
+          "A": 0.783377350414077,
+          "B": 0.2166226495859231
+        }
+      },
+      "single": {
+        "logits": {
+          "A": 19.738935470581055,
+          "B": 18.431516647338867
+        },
+        "prediction": "A",
+        "conditionalProbabilities": {
+          "A": 0.787080911066971,
+          "B": 0.21291908893302905
+        }
+      },
+      "pooled": {
+        "logits": {
+          "A": 19.738935470581055,
+          "B": 18.431516647338867
+        },
+        "prediction": "A",
+        "conditionalProbabilities": {
+          "A": 0.787080911066971,
+          "B": 0.21291908893302905
+        }
+      }
+    },
+    {
+      "id": "control-06",
+      "label": "A",
+      "promptSha256": "da0078fa60715b2b7a6074058168eae41045e5c5e07c392a41cbaffc96317e66",
+      "tokens": {
+        "promptTokensSha256": "40cb74c28a6af8c27d41a54a0c7747b6755cab29eefc865b3beb291652173cd4",
+        "promptTokenCount": 20,
+        "choiceTokenIds": [
+          32,
+          33
+        ]
+      },
+      "base": {
+        "logits": {
+          "A": 19.53001594543457,
+          "B": 17.664718627929688
+        },
+        "prediction": "A",
+        "conditionalProbabilities": {
+          "A": 0.8659131995763236,
+          "B": 0.13408680042367627
+        }
+      },
+      "single": {
+        "logits": {
+          "A": 19.94890022277832,
+          "B": 18.061643600463867
+        },
+        "prediction": "A",
+        "conditionalProbabilities": {
+          "A": 0.8684424158354979,
+          "B": 0.13155758416450217
+        }
+      },
+      "pooled": {
+        "logits": {
+          "A": 19.948902130126953,
+          "B": 18.0616455078125
+        },
+        "prediction": "A",
+        "conditionalProbabilities": {
+          "A": 0.8684424158354979,
+          "B": 0.13155758416450217
+        }
+      }
+    },
+    {
+      "id": "control-07",
+      "label": "B",
+      "promptSha256": "d895096e70c62e7068ebcd43b083e5e437b7d7f10bbc4d14ee9098dcf1d48968",
+      "tokens": {
+        "promptTokensSha256": "35cee7448c0e36bea256f7c46e891756ee863abfaa11452c3148b89662a27ef7",
+        "promptTokenCount": 25,
+        "choiceTokenIds": [
+          32,
+          33
+        ]
+      },
+      "base": {
+        "logits": {
+          "A": 18.177629470825195,
+          "B": 19.313390731811523
+        },
+        "prediction": "B",
+        "conditionalProbabilities": {
+          "A": 0.2430994483624954,
+          "B": 0.7569005516375046
+        }
+      },
+      "single": {
+        "logits": {
+          "A": 18.5882625579834,
+          "B": 19.70041847229004
+        },
+        "prediction": "B",
+        "conditionalProbabilities": {
+          "A": 0.2474691780047526,
+          "B": 0.7525308219952473
+        }
+      },
+      "pooled": {
+        "logits": {
+          "A": 18.5882625579834,
+          "B": 19.700420379638672
+        },
+        "prediction": "B",
+        "conditionalProbabilities": {
+          "A": 0.24746882280285165,
+          "B": 0.7525311771971483
+        }
+      }
+    },
+    {
+      "id": "control-08",
+      "label": "B",
+      "promptSha256": "8bbc3cc7bd2848ad818dae06b60e682bfadfae65354a7fb173e0eab13e8b0a1a",
+      "tokens": {
+        "promptTokensSha256": "7c129d26a70c5701a30f3b134a9fc85d808e1087b66050dae476172e0a40bf2b",
+        "promptTokenCount": 29,
+        "choiceTokenIds": [
+          32,
+          33
+        ]
+      },
+      "base": {
+        "logits": {
+          "A": 19.17119598388672,
+          "B": 18.03089714050293
+        },
+        "prediction": "A",
+        "conditionalProbabilities": {
+          "A": 0.7577345027834287,
+          "B": 0.24226549721657137
+        }
+      },
+      "single": {
+        "logits": {
+          "A": 19.57341194152832,
+          "B": 18.411617279052734
+        },
+        "prediction": "A",
+        "conditionalProbabilities": {
+          "A": 0.7616586614110453,
+          "B": 0.2383413385889547
+        }
+      },
+      "pooled": {
+        "logits": {
+          "A": 19.573413848876953,
+          "B": 18.411617279052734
+        },
+        "prediction": "A",
+        "conditionalProbabilities": {
+          "A": 0.76165900766092,
+          "B": 0.23834099233908002
+        }
+      }
+    },
+    {
+      "id": "control-09",
+      "label": "A",
+      "promptSha256": "ed1dc6d56337f4edbfe0504c7f92c68974bc02ed346829827e9f94c2dbfac7c3",
+      "tokens": {
+        "promptTokensSha256": "95c654b8a9b741bf8dbc6bca2167155514538ed7257aad85c890e0cc776e3c29",
+        "promptTokenCount": 20,
+        "choiceTokenIds": [
+          32,
+          33
+        ]
+      },
+      "base": {
+        "logits": {
+          "A": 18.98849105834961,
+          "B": 17.75687026977539
+        },
+        "prediction": "A",
+        "conditionalProbabilities": {
+          "A": 0.7741021242754321,
+          "B": 0.2258978757245679
+        }
+      },
+      "single": {
+        "logits": {
+          "A": 19.419252395629883,
+          "B": 18.164676666259766
+        },
+        "prediction": "A",
+        "conditionalProbabilities": {
+          "A": 0.7780909366969129,
+          "B": 0.2219090633030872
+        }
+      },
+      "pooled": {
+        "logits": {
+          "A": 19.419254302978516,
+          "B": 18.164676666259766
+        },
+        "prediction": "A",
+        "conditionalProbabilities": {
+          "A": 0.7780912660299119,
+          "B": 0.22190873397008828
+        }
+      }
+    },
+    {
+      "id": "control-10",
+      "label": "A",
+      "promptSha256": "b7901bc98b1853354c29f89839e325a51dcf42b30d5dbdb9ca7a73b2746bc61d",
+      "tokens": {
+        "promptTokensSha256": "351d20985c021da2934cd2e2b3bea715d2996547b0e069243cf446cdd5844155",
+        "promptTokenCount": 21,
+        "choiceTokenIds": [
+          32,
+          33
+        ]
+      },
+      "base": {
+        "logits": {
+          "A": 19.246234893798828,
+          "B": 17.286861419677734
+        },
+        "prediction": "A",
+        "conditionalProbabilities": {
+          "A": 0.8764651319677016,
+          "B": 0.12353486803229827
+        }
+      },
+      "single": {
+        "logits": {
+          "A": 19.661352157592773,
+          "B": 17.680267333984375
+        },
+        "prediction": "A",
+        "conditionalProbabilities": {
+          "A": 0.8787967574332076,
+          "B": 0.12120324256679235
+        }
+      },
+      "pooled": {
+        "logits": {
+          "A": 19.661352157592773,
+          "B": 17.680267333984375
+        },
+        "prediction": "A",
+        "conditionalProbabilities": {
+          "A": 0.8787967574332076,
+          "B": 0.12120324256679235
+        }
+      }
+    },
+    {
+      "id": "control-11",
+      "label": "B",
+      "promptSha256": "8fcd814370fb749e8c704fbcb7763eef618d57dd54b07b1fa82263bc5d6abf90",
+      "tokens": {
+        "promptTokensSha256": "2d4b8188c1be1c6c7a620bd97bab379055901263ca34230a2c356eadf9ea3ca4",
+        "promptTokenCount": 21,
+        "choiceTokenIds": [
+          32,
+          33
+        ]
+      },
+      "base": {
+        "logits": {
+          "A": 18.26133918762207,
+          "B": 19.419857025146484
+        },
+        "prediction": "B",
+        "conditionalProbabilities": {
+          "A": 0.23893670611168952,
+          "B": 0.7610632938883105
+        }
+      },
+      "single": {
+        "logits": {
+          "A": 18.670875549316406,
+          "B": 19.805988311767578
+        },
+        "prediction": "B",
+        "conditionalProbabilities": {
+          "A": 0.24321879333771698,
+          "B": 0.756781206662283
+        }
+      },
+      "pooled": {
+        "logits": {
+          "A": 18.67087745666504,
+          "B": 19.805988311767578
+        },
+        "prediction": "B",
+        "conditionalProbabilities": {
+          "A": 0.243219144410986,
+          "B": 0.7567808555890141
+        }
+      }
+    },
+    {
+      "id": "control-12",
+      "label": "A",
+      "promptSha256": "a9ba3ec947585c90f333a589318530a2cdba5a8c20fc5ec06b16d4274b7ac9be",
+      "tokens": {
+        "promptTokensSha256": "46f6dab7b7c7d84e7c6b8e84fd6654961ed0acd9acab88549b36fe883393d404",
+        "promptTokenCount": 21,
+        "choiceTokenIds": [
+          32,
+          33
+        ]
+      },
+      "base": {
+        "logits": {
+          "A": 18.701988220214844,
+          "B": 16.82090187072754
+        },
+        "prediction": "A",
+        "conditionalProbabilities": {
+          "A": 0.8677358569736883,
+          "B": 0.1322641430263118
+        }
+      },
+      "single": {
+        "logits": {
+          "A": 19.120983123779297,
+          "B": 17.217979431152344
+        },
+        "prediction": "A",
+        "conditionalProbabilities": {
+          "A": 0.8702311068035392,
+          "B": 0.12976889319646084
+        }
+      },
+      "pooled": {
+        "logits": {
+          "A": 19.120983123779297,
+          "B": 17.217979431152344
+        },
+        "prediction": "A",
+        "conditionalProbabilities": {
+          "A": 0.8702311068035392,
+          "B": 0.12976889319646084
+        }
+      }
+    }
+  ]
+}

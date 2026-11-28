@@ -1,0 +1,6 @@
+{
+  "at": "2026-11-28T13:01:16.190Z",
+  "reason": "An independent strict family benchmark shared the contributor GPU. Paused our controller after the latest persisted optimizer update and contributor stop.",
+  "round": 4,
+  "checkpointHash": "sha256:a23b2edefb8535737f4b72ecbc09591fabbccf8816fcc7bb68ceab12ad4b919e"
+}

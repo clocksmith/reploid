@@ -1,0 +1,9 @@
+{
+  "schema": "reploid.export-triage-reader-failure/v1",
+  "freezeSha256": "5e7a3f6fc434d22a7a11f21fa96fdbb6975756e00eac17422694b53e9f400c7d",
+  "scorerSha256": "f32613d4bcea76d33114b95f74c93456f513d656d9b7c08e27eb0fcf10f1be1d",
+  "recordedChoicePairs": 0,
+  "arm": "base",
+  "error": "[LmHeadSelect] selected-token LM head requires f16 weights, got \"q4k\".",
+  "revision": "657382a1d"
+}
