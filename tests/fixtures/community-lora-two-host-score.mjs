@@ -39,6 +39,9 @@ async function captureInputs(runDir, modelUrl, policy) {
   const tokenizer = await fetchBytes(new URL(manifest.tokenizer.file, modelUrl));
   const origin = new URL(modelUrl).origin;
   const runtime = JSON.parse(await fetchBytes(new URL('/config/doppler-package.json', origin)));
+  const workoutBytes = await readFile(join(runDir, 'workout.json'));
+  const workout = JSON.parse(workoutBytes);
+  assert.equal(workout.status, 'passed');
   const candidates = {};
   const adapters = {};
   for (const [arm, dir] of Object.entries(adapterDirs)) {
@@ -47,12 +50,17 @@ async function captureInputs(runDir, modelUrl, policy) {
     assert.equal(adapter.baseModel, manifest.modelId);
     assert.equal(adapter.metadata?.baseManifestHash, policy.baseManifestHash);
     assert.equal(adapter.metadata.checkpointStep, 16, 'Quality requires the complete training schedule');
-    assert.equal(adapter.metadata.mode, arm === 'single' ? 'individual' : 'pooled');
-    assert.equal(new Set(adapter.metadata.participants).size, arm === 'single' ? 1 : 2);
+    assert.equal(adapter.metadata.mode, arm === 'single' ? 'single-host-token-weighted-reference' : 'pooled');
+    if (arm === 'pooled') assert.equal(new Set(adapter.metadata.participants).size, 2);
+    const exported = arm === 'single' ? workout.taskReference : workout.task;
+    assert.equal(exported.step, adapter.metadata.checkpointStep);
+    assert.equal(exported.checkpointHash, adapter.metadata.checkpointHash);
+    assert.equal(exported.manifestSha256, sha(metadata));
     assert.equal(adapter.weightsPath, 'adapter.safetensors');
     assert.equal(adapter.weightsFormat, 'safetensors');
     const bytes = await readFile(join(runDir, dir, adapter.weightsPath));
     const weightsSha256 = sha(bytes);
+    assert.equal(exported.sha256, weightsSha256);
     assert.equal(adapter.weightsSize, bytes.byteLength);
     assert.equal(adapter.checksum?.replace(/^sha256:/, ''), weightsSha256);
     const decoded = await loadLoRAFromManifest(adapter, { readFile(path) {
@@ -70,7 +78,7 @@ async function captureInputs(runDir, modelUrl, policy) {
     model: { modelId: manifest.modelId, manifestSha256: sha(modelBytes),
       numericManifestDigest: policy.baseManifestHash, tokenizerSha256: sha(tokenizer) },
     runtime, candidates, arms, primary: 'pooled', maxSeqLen: 512,
-    workoutSha256: sha(await readFile(join(runDir, 'workout.json'))),
+    workoutSha256: sha(workoutBytes),
   };
   return { pins, contract, adapters };
 }
