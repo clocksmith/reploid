@@ -20,8 +20,8 @@ Product entries: `index.html`, `pool-entry.html`, `design.html`, `document-study
 | --- | ---: |
 | apps/poolday | 352 |
 | self | 457 |
-| shared | 2541 |
-| total | 3350 |
+| shared | 2542 |
+| total | 3351 |
 
 Every file lives in its owner's root.
 
@@ -317,6 +317,7 @@ Listed by tree; every file in each tree is shared. The JSON lists each file.
 | `config/model-manifests/93d77c81915f85217dc1e4a62637cd7844d3713b6dfa8b32973992d1ecf3358d.json` | `shared/config/model-manifests/93d77c81915f85217dc1e4a62637cd7844d3713b6dfa8b32973992d1ecf3358d.json` | shared | Reached from native hosts and browser entries. |
 | `config/model-manifests/cdda7ddc748f581e3c79b5067fc8647a20d43c7030644e0c48b1560a1ac30d7d.json` | `shared/config/model-manifests/cdda7ddc748f581e3c79b5067fc8647a20d43c7030644e0c48b1560a1ac30d7d.json` | shared | Reached from native hosts and browser entries. |
 | `config/model-manifests/eb2a48400c975389a4ed8a166228cdc0feeca8c56bc85f36604e26c18e303541.json` | `shared/config/model-manifests/eb2a48400c975389a4ed8a166228cdc0feeca8c56bc85f36604e26c18e303541.json` | shared | Reached from native hosts and browser entries. |
+| `config/model-manifests/fa6eb7bbc3ba63571f8cede780b877d9272bde948697af93dd3d33837cb46137.json` | `shared/config/model-manifests/fa6eb7bbc3ba63571f8cede780b877d9272bde948697af93dd3d33837cb46137.json` | shared | Retained catalog data beside the shared catalog's manifests; the current catalog does not reference it. |
 | `config/model-manifests/ff94371d6acb342ffdfd6c78b2d30379d30124ac3684a4fcbf05db6c328ddfe2.json` | `shared/config/model-manifests/ff94371d6acb342ffdfd6c78b2d30379d30124ac3684a4fcbf05db6c328ddfe2.json` | shared | Reached from native hosts and browser entries. |
 | `config/model-pieces/qwen-0-8b-pieces.json` | `shared/config/model-pieces/qwen-0-8b-pieces.json` | shared | Reached from native hosts and browser entries. |
 | `config/model-pieces/qwen-2b-pieces.json` | `shared/config/model-pieces/qwen-2b-pieces.json` | shared | Reached from native hosts and browser entries. |

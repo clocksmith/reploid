@@ -381,6 +381,16 @@
           "type": 301
         },
         {
+          "source": "/model-files/qwen-3-5-0-8b-q4k-ehaf16/manifest.json",
+          "destination": "/config/model-manifests/fa6eb7bbc3ba63571f8cede780b877d9272bde948697af93dd3d33837cb46137.json",
+          "type": 302
+        },
+        {
+          "source": "/model-files/qwen-3-5-0-8b-q4k-ehaf16/:file",
+          "destination": "/model-files/qwen-3-5-0-8b-q4k-ef16-af32-vf16/:file",
+          "type": 302
+        },
+        {
           "source": "/model-files/qwen-3-5-0-8b-q4k-ef16-af32-vf16/manifest.json",
           "destination": "/config/model-manifests/cdda7ddc748f581e3c79b5067fc8647a20d43c7030644e0c48b1560a1ac30d7d.json",
           "type": 302

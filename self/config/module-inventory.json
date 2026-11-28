@@ -3165,7 +3165,7 @@
     {
       "path": "self/host/decisions/improve.js",
       "owner": "self",
-      "sha256": "sha256:27f938aa100c1a2b8730d836a7242c03275aeb74214a9deeefac69ba4a151389",
+      "sha256": "sha256:b29f8c4ed6a633a550366ae5ee3df3ddab0f47224a91117eb7aefcd83bc4618d",
       "imports": [
         "../../ui/pool-home/privacy-controls.js",
         "../work-session.js"
@@ -3448,13 +3448,13 @@
     {
       "path": "self/host/lora-training-executor.js",
       "owner": "self",
-      "sha256": "sha256:6f080f8a5211a7a85200dc9c25e2a16821aa5e4f2350fd2e99351671217748cd",
+      "sha256": "sha256:c4b72455f27eda47487a410559970eaefc4150d8c852cc291adae4b83580ad8d",
       "imports": []
     },
     {
       "path": "self/host/lora-training-worker.js",
       "owner": "self",
-      "sha256": "sha256:588007981b0596ff8f941bfb00ed2305f933289783a45f7722817a9a3604cca3",
+      "sha256": "sha256:dc0bfaf4715a4ba9e793b587e0d59446c63d6612b6a4352301f3b4e4b52de968",
       "imports": [
         "../config/doppler-local-models.js",
         "../config/lora-training.json",
@@ -5154,13 +5154,13 @@
     {
       "path": "ui/react/app.js",
       "owner": "ui",
-      "sha256": "sha256:1781bb27a9beb36d7e91fc98e8a6eeed76b24e3cb5cf2b8c071358a655f0f449",
+      "sha256": "sha256:20d97f4113ea86e87eccd7a1cc9a3dbfb8a59750b647b9334177793150a383ed",
       "imports": []
     },
     {
       "path": "ui/react/design.js",
       "owner": "ui",
-      "sha256": "sha256:fe9b7ccfc12306fc605fb89c28ada18ad4ac1f141ac11fd434d27dbfb71b7b1e",
+      "sha256": "sha256:be115c276675e201c731de23bf5e2ffd7bb9cba7eb4cfe2f9267a8611c1d68d0",
       "imports": []
     },
     {
@@ -19782,7 +19782,7 @@
     {
       "path": "vendor/reploid/training/session.js",
       "owner": "vendor",
-      "sha256": "sha256:2c01b29a3113653392050a6da1c1cb9cc5e1ead36b2ab60634dc3b33fb6c1b17",
+      "sha256": "sha256:f8e3cd2ea9cb6276f10e29cf259290f447a9498dd4e6f97f81def622467182c8",
       "imports": [
         "../artifacts/signatures.js"
       ]

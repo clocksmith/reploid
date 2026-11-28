@@ -1835,8 +1835,8 @@
     },
     {
       "path": "training/index.d.ts",
-      "bytes": 2863,
-      "sha256": "09368de112901598dc3fe766816ae7f2ba7511145861c1d048876c5b0017cab3"
+      "bytes": 3009,
+      "sha256": "bc44cc68866570710fc865d568ad726d402e640c5652bc3d2753cf2fcb22b85e"
     },
     {
       "path": "training/index.js",
@@ -1850,8 +1850,8 @@
     },
     {
       "path": "training/session.js",
-      "bytes": 12957,
-      "sha256": "2c01b29a3113653392050a6da1c1cb9cc5e1ead36b2ab60634dc3b33fb6c1b17"
+      "bytes": 14415,
+      "sha256": "f8e3cd2ea9cb6276f10e29cf259290f447a9498dd4e6f97f81def622467182c8"
     },
     {
       "path": "transport/assignment.d.ts",

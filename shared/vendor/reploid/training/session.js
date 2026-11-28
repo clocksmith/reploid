@@ -7,6 +7,7 @@ export function createTrainingSession({ policy, participantId, openExecutor, con
   policy = copy(policy);
   let state = { phase: 'idle', message: '', completedSteps: 0, candidate: null };
   let active = null, executor = null, releasing = null, network = null, grant = null, closed = false, grantTimer = null, candidate = null;
+  let checkpoint = null;
   const listeners = new Set();
   const getState = () => ({ ...copy(state), busy: !!active || !!grant });
   const update = changes => { state = { ...state, ...changes }; onChange(getState()); for (const listener of listeners) listener(getState()); };
@@ -39,7 +40,8 @@ export function createTrainingSession({ policy, participantId, openExecutor, con
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(new Error('Training deadline reached; waiting for GPU work to settle')), policy.timeoutMs);
     const record = { controller, promise: null }; active = record;
-    candidate = null; update({ phase, message: '', candidate: null, completedSteps: 0 });
+    if (!checkpoint) candidate = null;
+    update({ phase, message: '', candidate: checkpoint ? state.candidate : null, completedSteps: 0 });
     record.promise = Promise.resolve().then(() => operation(controller.signal)).catch(error => {
       const cancelled = controller.signal.aborted; controller.abort(error);
       update({ phase: cancelled ? 'cancelled' : 'failed', message: String(error?.message || error) });
@@ -52,13 +54,14 @@ export function createTrainingSession({ policy, participantId, openExecutor, con
     });
     return record.promise;
   };
-  const prepare = async (sample, identity, signal) => {
+  const prepare = async (sample, identity, signal, parent = null) => {
     executor = await openExecutor({ signal, onProgress: message => update({ message }) });
     current(signal);
-    const result = await call('prepare', { sample, participantId: identity }, signal);
+    const result = await call('prepare', { sample, participantId: identity, ...(parent && { checkpoint: parent }) }, signal);
     assert(result.baseManifestHash === policy.baseManifestHash && result.assignment.participantId === identity,
       'Training model or participant differs from the approved configuration');
-    return result.assignment;
+    if (parent) assert(result.checkpointHash === parent.hash, 'Training checkpoint changed during restore');
+    return result;
   };
   const receive = async ({ action, jobId, body, remoteParticipantId, signal }) => {
     const accepted = grant;
@@ -92,6 +95,7 @@ export function createTrainingSession({ policy, participantId, openExecutor, con
   return Object.freeze({
     getState,
     getCandidate: () => candidate && copy(candidate),
+    getCheckpoint: () => checkpoint && copy(checkpoint),
     async connect() {
       assert(!closed && !active && !grant, 'Stop the current training activity first');
       await participantId(true);
@@ -109,10 +113,14 @@ export function createTrainingSession({ policy, participantId, openExecutor, con
         && typeof input.adapter.name === 'string' && input.adapter.name.length <= 128
         && /^\d+\.\d+\.\d+$/.test(input.adapter.version), 'Choose an adapter ID, name and semantic version');
       if (peers.length) assert(input.samples.length === 1, 'A pooled round uses one local sample per participant');
+      const parent = input.resume === true ? checkpoint : null;
+      if (input.resume === true) assert(parent, 'No retained training checkpoint to resume');
+      const retain = input.retainCheckpoint === true || !!parent;
       return begin('preparing', async signal => {
         const identity = await participantId(peers.length > 0);
         current(signal);
-        const ownAssignment = await prepare(input.samples[0], identity, signal);
+        const prepared = await prepare(input.samples[0], identity, signal, parent);
+        const ownAssignment = prepared.assignment;
         let metrics, provenance = { mode: peers.length ? 'pooled' : 'individual', participants: [identity], evaluated: false, activated: false };
         if (peers.length) {
           ensureNetwork();
@@ -143,11 +151,26 @@ export function createTrainingSession({ policy, participantId, openExecutor, con
             metrics.push(await call('step', { sample }, signal)); update({ completedSteps: metrics.length });
           }
         }
+        let nextCheckpoint = null;
+        if (retain) {
+          // Doppler binds the optimizer moments and adapter tensors to one digest.
+          const snapshot = await call('round', {
+            jobId: crypto.randomUUID(), roundId: 'checkpoint', assignments: [ownAssignment]
+          }, signal);
+          const stepCount = (parent?.value.stepCount || 0) + metrics.length;
+          assert(snapshot.checkpoint?.stepCount === stepCount && /^sha256:[a-f0-9]{64}$/.test(snapshot.checkpointHash),
+            'Training checkpoint did not advance by the completed steps');
+          nextCheckpoint = { hash: snapshot.checkpointHash, value: snapshot.checkpoint };
+          provenance.parentCheckpointHash = prepared.checkpointHash;
+          provenance.checkpointHash = nextCheckpoint.hash;
+          provenance.checkpointStep = stepCount;
+        }
         const exported = await call('export', { ...input.adapter, weightsPath: 'adapter.safetensors', metadata: provenance }, signal);
         assert(exported.weights instanceof ArrayBuffer && exported.weightsSha256, 'Doppler returned no verified adapter weights');
         const digest = await sha256HexUnprefixed(new Uint8Array(exported.weights));
         current(signal);
         assert(digest === exported.weightsSha256 && exported.manifest.checksum === digest, 'Exported adapter checksum mismatch');
+        checkpoint = nextCheckpoint;
         candidate = { ...exported, metrics, evaluated: false, activated: false };
         update({ phase: 'completed', message: 'Adapter exported. Task quality and activation require separate review.',
           candidate: { id: exported.manifest.id, version: exported.manifest.version, weightsSha256: exported.weightsSha256 } });
@@ -162,7 +185,7 @@ export function createTrainingSession({ policy, participantId, openExecutor, con
         const identity = await participantId(true); current(signal); ensureNetwork();
         const coordinator = await connectPeer(network, input.coordinator, signal); current(signal);
         assert(coordinator.participantId !== identity, 'Choose another coordinator');
-        const assignment = await prepare(input.sample, identity, signal);
+        const { assignment } = await prepare(input.sample, identity, signal);
         grant = { coordinatorId: coordinator.participantId, assignment, sample: input.sample, jobId: null,
           consumed: false, expiresAt: Date.now() + policy.timeoutMs };
         grantTimer = setTimeout(() => { this.stop().catch(error => update({ phase: 'failed', message: error.message })); }, policy.timeoutMs);

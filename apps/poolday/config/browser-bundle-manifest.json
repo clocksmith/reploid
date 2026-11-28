@@ -1365,8 +1365,8 @@
     },
     {
       "path": "config/lora-training.json",
-      "byteLength": 932,
-      "sha256": "sha256:1703d68e905afdfe30e28dd7ab41c1cbe3b337189cab879969c7aa864a1bb908"
+      "byteLength": 989,
+      "sha256": "sha256:868819aae4d84e23f92ef824d96868511dc7fc0a91b9b6d50850ea33af6aa568"
     },
     {
       "path": "config/model-manifests/74ea5e226e688388f8e4575d8c795c6132a5f2006046763305c6932321141972.json",
@@ -1387,6 +1387,11 @@
       "path": "config/model-manifests/eb2a48400c975389a4ed8a166228cdc0feeca8c56bc85f36604e26c18e303541.json",
       "byteLength": 181682,
       "sha256": "sha256:eb2a48400c975389a4ed8a166228cdc0feeca8c56bc85f36604e26c18e303541"
+    },
+    {
+      "path": "config/model-manifests/fa6eb7bbc3ba63571f8cede780b877d9272bde948697af93dd3d33837cb46137.json",
+      "byteLength": 213026,
+      "sha256": "sha256:fa6eb7bbc3ba63571f8cede780b877d9272bde948697af93dd3d33837cb46137"
     },
     {
       "path": "config/model-manifests/ff94371d6acb342ffdfd6c78b2d30379d30124ac3684a4fcbf05db6c328ddfe2.json",
@@ -1416,7 +1421,7 @@
     {
       "path": "config/module-inventory.json",
       "byteLength": 689798,
-      "sha256": "sha256:72bd698bbee42f989650d1a852ba363620bba124d639574040fd716d965ebdb8"
+      "sha256": "sha256:41a923bb3c39113a51680b01ded40bafd17931a61a83dc6d58347f03e5da8daa"
     },
     {
       "path": "config/module-registry.json",
@@ -1510,8 +1515,8 @@
     },
     {
       "path": "config/vfs-manifest.json",
-      "byteLength": 148324,
-      "sha256": "sha256:d4e38c6d0db9d7e1289613624f1d605c3546bdaeb91753aa84c16de37e6e26d6"
+      "byteLength": 148424,
+      "sha256": "sha256:6114081192bd4c540a2f2129306a68390402514ea2200df0ab8af336e15924db"
     },
     {
       "path": "config/vfs-policy.js",
@@ -1980,8 +1985,8 @@
     },
     {
       "path": "host/decisions/improve.js",
-      "byteLength": 21917,
-      "sha256": "sha256:27f938aa100c1a2b8730d836a7242c03275aeb74214a9deeefac69ba4a151389"
+      "byteLength": 22205,
+      "sha256": "sha256:b29f8c4ed6a633a550366ae5ee3df3ddab0f47224a91117eb7aefcd83bc4618d"
     },
     {
       "path": "host/decisions/model-choices.js",
@@ -2130,13 +2135,13 @@
     },
     {
       "path": "host/lora-training-executor.js",
-      "byteLength": 2596,
-      "sha256": "sha256:6f080f8a5211a7a85200dc9c25e2a16821aa5e4f2350fd2e99351671217748cd"
+      "byteLength": 2717,
+      "sha256": "sha256:c4b72455f27eda47487a410559970eaefc4150d8c852cc291adae4b83580ad8d"
     },
     {
       "path": "host/lora-training-worker.js",
-      "byteLength": 1054,
-      "sha256": "sha256:588007981b0596ff8f941bfb00ed2305f933289783a45f7722817a9a3604cca3"
+      "byteLength": 1033,
+      "sha256": "sha256:dc0bfaf4715a4ba9e793b587e0d59446c63d6612b6a4352301f3b4e4b52de968"
     },
     {
       "path": "host/lora-training.js",
@@ -4170,13 +4175,13 @@
     },
     {
       "path": "ui/react/app.js",
-      "byteLength": 3066944,
-      "sha256": "sha256:1781bb27a9beb36d7e91fc98e8a6eeed76b24e3cb5cf2b8c071358a655f0f449"
+      "byteLength": 3068245,
+      "sha256": "sha256:20d97f4113ea86e87eccd7a1cc9a3dbfb8a59750b647b9334177793150a383ed"
     },
     {
       "path": "ui/react/design.js",
-      "byteLength": 2117228,
-      "sha256": "sha256:fe9b7ccfc12306fc605fb89c28ada18ad4ac1f141ac11fd434d27dbfb71b7b1e"
+      "byteLength": 2117716,
+      "sha256": "sha256:be115c276675e201c731de23bf5e2ffd7bb9cba7eb4cfe2f9267a8611c1d68d0"
     },
     {
       "path": "ui/reploid-home/index.js",
@@ -12341,7 +12346,7 @@
     {
       "path": "vendor/reploid/package-assets.json",
       "byteLength": 66157,
-      "sha256": "sha256:3da3eecb8635fa42406c71c06bda87f2d05bc5d63d2d5fa42a26c00a69151dbe"
+      "sha256": "sha256:b74e9a9dc6d404c304647136724da62cc1b504c670b5be034699c8cde38b0eaa"
     },
     {
       "path": "vendor/reploid/plugins/index.js",
@@ -12465,8 +12470,8 @@
     },
     {
       "path": "vendor/reploid/training/session.js",
-      "byteLength": 12957,
-      "sha256": "sha256:2c01b29a3113653392050a6da1c1cb9cc5e1ead36b2ab60634dc3b33fb6c1b17"
+      "byteLength": 14415,
+      "sha256": "sha256:f8e3cd2ea9cb6276f10e29cf259290f447a9498dd4e6f97f81def622467182c8"
     },
     {
       "path": "vendor/reploid/transport/assignment.js",
@@ -12634,5 +12639,5 @@
       "sha256": "sha256:f17c57d2f5d32a7d9f5517b9ad4937c51e3923fac2e2a03528fdb5f5be6b582b"
     }
   ],
-  "bundleHash": "sha256:7158691c99b00f5d49c5bbc08a44fec6ca40a9d6e447a418b86f4768b52c3d93"
+  "bundleHash": "sha256:c3a44b7b2db68f630578f58e89d33e4745e8ad2d6424161dfb97f2127de405e7"
 }

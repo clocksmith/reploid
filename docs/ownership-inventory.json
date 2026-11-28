@@ -20,7 +20,7 @@
   "counts": {
     "apps/poolday": 352,
     "self": 457,
-    "shared": 2541
+    "shared": 2542
   },
   "pendingMoves": 0,
   "violations": [],
@@ -1703,6 +1703,12 @@
       "source": "shared/config/model-manifests/eb2a48400c975389a4ed8a166228cdc0feeca8c56bc85f36604e26c18e303541.json",
       "owner": "shared",
       "basis": "Reached from native hosts and browser entries."
+    },
+    {
+      "served": "config/model-manifests/fa6eb7bbc3ba63571f8cede780b877d9272bde948697af93dd3d33837cb46137.json",
+      "source": "shared/config/model-manifests/fa6eb7bbc3ba63571f8cede780b877d9272bde948697af93dd3d33837cb46137.json",
+      "owner": "shared",
+      "basis": "Retained catalog data beside the shared catalog's manifests; the current catalog does not reference it."
     },
     {
       "served": "config/model-manifests/ff94371d6acb342ffdfd6c78b2d30379d30124ac3684a4fcbf05db6c328ddfe2.json",
