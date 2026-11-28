@@ -139,7 +139,7 @@
 @media (max-width: 760px) {
   .pool-home .pool-workspace {
     --pool-param-workspace-gutter: var(--pool-size-8);
-    padding-block: max(var(--pool-size-8), env(safe-area-inset-top)) max(var(--pool-size-8), env(safe-area-inset-bottom));
+    padding-block: calc(var(--pool-size-64) + max(var(--pool-size-8), env(safe-area-inset-top))) max(var(--pool-size-8), env(safe-area-inset-bottom));
     padding-inline: max(var(--pool-size-8), env(safe-area-inset-left)) max(var(--pool-size-8), env(safe-area-inset-right));
   }
   .pool-home .pool-workspace-bar {
