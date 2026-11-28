@@ -152,7 +152,8 @@ async function openModel({ pins, modelUrl }) {
   if (runtime.DOPPLER_VERSION !== pins.runtime.version) throw new Error('Doppler version mismatch');
   const moduleUrl = new URL(config.DOPPLER_MODULE_URL, location.origin);
   const { computeCanonicalSha256 } = await import(new URL('./formats/canonical-hash.js', moduleUrl));
-  const model = await runtime.load({ url: modelUrl }, { cache: false, isolatedLoader: true });
+  // Doppler appends its own separator to the model base for bundled tokenizer assets.
+  const model = await runtime.load({ url: modelUrl.replace(/\/+$/, '') }, { cache: false, isolatedLoader: true });
   globalThis.triageModel = model;
   if (model.manifest?.modelId !== pins.model.modelId || model.manifestHash?.replace(/^sha256:/, '') !== pins.model.manifestSha256
     || computeCanonicalSha256(model.manifest) !== pins.model.numericManifestDigest

@@ -8,7 +8,7 @@ export async function encodeTrainingTickets(rows) {
   if (!manifestResponse.ok) throw Error('Training model manifest unavailable');
   const manifest = await manifestResponse.json();
   const tokenizer = new Tokenizer();
-  await tokenizer.initialize(manifest, { baseUrl: baseUrl.href });
+  await tokenizer.initialize(manifest, { baseUrl: baseUrl.href.replace(/\/$/, '') });
   if (tokenizer.encode('').length) throw Error('Training tokenizer inserted special tokens');
   return rows.map(({ id, prompt, label }) => {
     const inputIds = Array.from(tokenizer.encode(prompt));
