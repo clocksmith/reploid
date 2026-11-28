@@ -99,7 +99,7 @@ const workspaceFrameFailures = async (routePage, route, width) => {
   });
   const found = [], at = `${route} at ${width}px`, center = rect => rect.x + rect.width / 2, detail = JSON.stringify(frame);
   if (frame.overflowX > 1) found.push(`${at}: page scrolls horizontally: ${detail}`);
-  if (Math.abs(center(frame.toolbar) - center(frame.page)) > 1) found.push(`${at}: conversation is not centered under the workspace toolbar: ${detail}`);
+  if (width <= PHONE_MAX_WIDTH && Math.abs(center(frame.toolbar) - center(frame.page)) > 1) found.push(`${at}: conversation is not centered above the mobile navigation bar: ${detail}`);
   if (Math.abs(center(frame.composer) - center(frame.area)) > 1) found.push(`${at}: composer is not centered in the conversation: ${detail}`);
   if (frame.composer.right > frame.viewport.width - 8) found.push(`${at}: composer reaches the viewport edge: ${detail}`);
   if (frame.model.left < frame.composer.left - 1 || frame.model.right > frame.composer.right + 1
