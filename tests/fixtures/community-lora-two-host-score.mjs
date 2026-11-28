@@ -1,4 +1,5 @@
 // Independent heldout scorer. Run "freeze" before the case author releases a key.
+// node tests/fixtures/community-lora-two-host-score.mjs probe --run-dir DIR   # first public training prompt only
 // node tests/fixtures/community-lora-two-host-score.mjs freeze --run-dir DIR
 // node tests/fixtures/community-lora-two-host-score.mjs score --run-dir DIR --freeze-sha256 HASH --key-file FILE
 import assert from 'node:assert/strict';
@@ -77,7 +78,7 @@ async function captureInputs(runDir, modelUrl, policy) {
     study: cases, plaintextSha256: contract.cases.heldout.plaintextSha256,
     model: { modelId: manifest.modelId, manifestSha256: sha(modelBytes),
       numericManifestDigest: policy.baseManifestHash, tokenizerSha256: sha(tokenizer) },
-    runtime, candidates, arms, primary: 'pooled', maxSeqLen: 512,
+    runtime, candidates, arms, primary: 'pooled', maxSeqLen: 512, readout: 'full-vocabulary-last-position',
     workoutSha256: sha(workoutBytes),
   };
   return { pins, contract, adapters };
@@ -195,12 +196,27 @@ async function scorePrompt({ prompt, maxSeqLen }) {
     if (full.length !== promptTokens.length + 1 || !promptTokens.every((id, i) => id === full[i])) throw new Error('Label changes prompt tokenization');
     return full.at(-1);
   });
-  const result = await model.scoreChoices({ prompt, choices, maxSeqLen });
-  if (result.schema !== 'doppler.choice-scores/v1' || result.interpretation !== 'next-token-logits'
-    || result.promptTokenCount !== promptTokens.length || tokenIds[0] === tokenIds[1] || result.choices.length !== 2
-    || !result.choices.every((choice, i) => choice.id === choices[i].id && choice.label === choices[i].label
-      && choice.tokenId === tokenIds[i] && Number.isFinite(choice.logit))) throw new Error('Unaligned choice result');
-  return { promptTokens, choices: result.choices };
+  if (!promptTokens.length || promptTokens.length > maxSeqLen || tokenIds[0] === tokenIds[1]) throw new Error('Invalid input tokens');
+  const adapter = model.activeLoRAIdentity?.digest;
+  model.resetGenerationState();
+  let result;
+  try {
+    // The q4k head supports full-vocabulary final-position logits; the selected-token kernel requires an f16 head.
+    result = await model.advanced.prefillWithLogits(prompt, { inputIds: promptTokens, useChatTemplate: false, maxSeqLen });
+    if (result.seqLen !== promptTokens.length || result.tokens.length !== promptTokens.length
+      || !promptTokens.every((id, i) => id === result.tokens[i]) || !(result.logits instanceof Float32Array)
+      || result.logits.length !== model.manifest.architecture.vocabSize || model.activeLoRAIdentity?.digest !== adapter) {
+      throw new Error('Full-vocabulary readout did not match prompt length, token IDs, vocabulary or adapter');
+    }
+    return { promptTokens, choices: choices.map((choice, i) => {
+      const tokenId = tokenIds[i], logit = result.logits[tokenId];
+      if (!Number.isFinite(logit)) throw new Error('Nonfinite choice logit');
+      return { ...choice, tokenId, logit };
+    }) };
+  } finally {
+    result?.cache?.destroy();
+    model.resetGenerationState();
+  }
 }
 
 async function evaluate(options, pins, adapters, cases, contract, freezeSha256) {
@@ -216,7 +232,8 @@ async function evaluate(options, pins, adapters, cases, contract, freezeSha256) 
     const device = await page.evaluate(openModel, { pins, modelUrl: options.modelUrl });
     const activeAdapters = {};
     // Keep all observed outputs on a failed run. Exclusive creation prevents silently scoring the same holdout twice.
-    const journal = await open(join(options.runDir, 'quality-observations.jsonl'), 'wx');
+    const journalName = options.probe ? 'quality-public-probe-observations.jsonl' : 'quality-observations.jsonl';
+    const journal = await open(join(options.runDir, journalName), 'wx');
     try {
       await journal.writeFile(JSON.stringify({ freezeSha256, device, browser: browser.version() }) + '\n');
       for (const arm of arms) {
@@ -233,6 +250,12 @@ async function evaluate(options, pins, adapters, cases, contract, freezeSha256) 
         console.log(`Scored ${rows.length} records for ${arm}`);
       }
     } finally { await journal.close(); }
+    if (options.probe) {
+      for (const arm of ['single', 'pooled']) {
+        assert.notDeepEqual(rows[0][arm].logits, rows[0].base.logits, `Public probe: ${arm} adapter had no observable effect`);
+      }
+      return { schema: 'reploid.export-triage-public-probe/v1', pins, device, browser: browser.version(), activeAdapters, cases: rows };
+    }
     const scores = countScores(rows, contract.gate);
     return { schema: 'reploid.export-triage-quality/v1', freezeSha256, pins, device, browser: browser.version(),
       activeAdapters, scores, primaryGatePassed: scores.pooled.passed, cases: rows };
@@ -245,7 +268,7 @@ async function evaluate(options, pins, adapters, cases, contract, freezeSha256) 
 async function main() {
   const { values, positionals } = parseArgs({ allowPositionals: true, options: Object.fromEntries(
     ['run-dir', 'origin', 'model-url', 'cdp', 'freeze-sha256', 'key-file'].map(name => [name, { type: 'string' }])) });
-  assert(positionals.length === 1 && ['freeze', 'score'].includes(positionals[0]) && values['run-dir'], 'Expected freeze|score --run-dir DIR');
+  assert(positionals.length === 1 && ['freeze', 'probe', 'score'].includes(positionals[0]) && values['run-dir'], 'Expected probe|freeze|score --run-dir DIR');
   const runDir = resolve(values['run-dir']);
   const origin = values.origin ?? 'http://127.0.0.1:18383';
   const policy = JSON.parse(await fetchBytes(new URL('/config/lora-training.json', origin)));
@@ -255,6 +278,15 @@ async function main() {
   const { pins, adapters, contract } = await captureInputs(runDir, modelUrl, policy);
   const freezeFile = join(runDir, 'score-freeze.json');
   const freezeSha256 = sha(json(pins));
+  if (positionals[0] === 'probe') {
+    const [first] = (await readFile(new URL('train.jsonl', study), 'utf8')).split('\n');
+    const row = JSON.parse(first);
+    assert.equal(row.id, 'train-01');
+    const receipt = await evaluate({ ...options, probe: true }, pins, adapters, [row], contract, freezeSha256);
+    await writeFile(join(runDir, 'quality-public-probe.json'), json(receipt), { flag: 'wx' });
+    console.log(json(receipt.cases));
+    return;
+  }
   if (positionals[0] === 'freeze') {
     await writeFile(freezeFile, json(pins), { flag: 'wx' });
     console.log(json({ freezeFile, freezeSha256 }));
