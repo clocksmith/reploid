@@ -48,7 +48,7 @@ for (const [width, height] of [[1280, 800], [390, 844]]) {
 
     // This computer: the contribution switches and the models this device could share.
     await drawer.locator('[data-production-device] > summary').click();
-    await expect(drawer.getByRole('switch', { name: 'Answer requests' })).toHaveAttribute('aria-checked', 'false');
+    await expect(drawer.getByRole('switch', { name: 'Answer requests' })).toHaveAttribute('aria-checked', 'true');
     await expect(drawer.getByRole('switch', { name: 'Help peers connect' })).toBeVisible();
     await expect(drawer.locator('[data-device-usage-scope]')).toContainText('Output tokens from up to the latest');
 

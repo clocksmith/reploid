@@ -82,10 +82,10 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
   }
   let consumer = null, supplier = null, closed = false, sharing = false, stopping = false, connecting = false, error = '';
   let connection = null, introductionAssistance = storage?.getItem('REPLOID_INTRODUCTIONS_ENABLED') !== 'false';
-  // Serving is the producer's choice, so both start off. These are new keys: the earlier ones were written
-  // 'true' by automatic sharing, so a stored 'true' there does not show that anyone chose it.
-  let computeEnabled = storage?.getItem(PRODUCER_COMPUTE_CHOICE) === 'true';
-  let filesEnabled = storage?.getItem(PRODUCER_FILES_CHOICE) === 'true';
+  // Connection, introductions, cached compute, and cached file sharing are opt-out by default.
+  // Downloads still require explicit approval; only already-cached models/shards are shared.
+  let computeEnabled = storage?.getItem(PRODUCER_COMPUTE_CHOICE) !== 'false';
+  let filesEnabled = storage?.getItem(PRODUCER_FILES_CHOICE) !== 'false';
   let cachedSharing = null, cachedModels = [];
   // This session's weight supply (weight-supply-host.js), built per connection over its file exchange; its saved state
   // (IndexedDB) carries the approval and held pieces across reconnects and reloads. Joining never builds an offer.

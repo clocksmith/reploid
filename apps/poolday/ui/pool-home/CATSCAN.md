@@ -21,7 +21,7 @@ Outputs: records and labels for the React screens, through the host decisions.
 - Labels and projections feed the React screens (apps/poolday-react); decoration never signals execution.
 - Distinguish public, paired private and local capacity. Send never downloads; setup shows size before approval.
 - Discovery, cached files and viewing grant nothing. Compute, file, training and remote disclosures keep separate permissions and local opt-outs.
-- Connection and introductions default on; serving compute and files starts off, per switch; downloads require approval. Preserve training consent, bounded rounds, unadopted results, provenance, budgets, adapter compatibility and separate Room-1 administration.
+- Connection, introductions, cached compute and cached file sharing default on (opt-out per switch); downloads require approval. Preserve training consent, bounded rounds, unadopted results, provenance, budgets, adapter compatibility and separate Room-1 administration.
 
 ## Acceptance
 Evidence: [routes](../../../../tests/e2e/poolday-react-shell.spec.js), [UI](../../../../tests/unit/production-surface.test.tsx), [CSS](../../../../scripts/verify-poolday-css-layers.js), desktop/mobile checks. Qualification separate.

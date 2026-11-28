@@ -3,10 +3,17 @@ import type { ConversationCommands, ConversationSnapshot, DownloadView, PrivacyV
 import { conversation as t } from '../../../l10n/conversation';
 
 /**
- * "Who can read it?": the protection (listed unranked, unavailable ones disabled with their reason), where it runs, and
- * whether only your devices may run it. What else can be seen waits folded below; nothing changes until Apply.
+ * "Who can read it?": shows the working route and participant choices up front with concise labels,
+ * and folds unavailable/research-gated options and extended notes into disclosures so the dialog
+ * stays scannable. Nothing changes until Apply.
  */
 export function PrivacyDialog({ privacy, commands, presentation = 'modal' }: { readonly privacy: PrivacyView; readonly commands: ConversationCommands; readonly presentation?: 'modal' | 'inline' }) {
+  const availableProtections = privacy.protections.filter((option) => !option.disabled || option.value === privacy.protection);
+  const unavailableProtections = privacy.protections.filter((option) => option.disabled && option.value !== privacy.protection);
+  const availableRoutes = privacy.routes.filter((option) => !option.disabled || option.value === privacy.route);
+  const unavailableRoutes = privacy.routes.filter((option) => option.disabled && option.value !== privacy.route);
+  const unavailableCount = unavailableProtections.length + unavailableRoutes.length;
+
   return (
     <Dialog
       title={t.privacy.title}
@@ -31,21 +38,10 @@ export function PrivacyDialog({ privacy, commands, presentation = 'modal' }: { r
     >
       <Stack gap="md">
         <SingleChoice
-          label={t.privacy.protection}
-          value={privacy.protection}
-          onChange={(value) => commands.pickProtection(value)}
-          options={privacy.protections.map((option) => ({
-            ...option,
-            inputData: { 'data-privacy-protection': true },
-            statusData: { 'data-protection-status': option.value },
-          }))}
-          data={{ 'data-privacy-controls': true, 'data-protection-choices': true }}
-        />
-        <SingleChoice
           label={t.privacy.route}
           value={privacy.route}
           onChange={(value) => commands.pickRoute(value)}
-          options={privacy.routes.map((option) => ({ ...option, inputData: { 'data-privacy-route': true }, statusData: { 'data-route-status': option.value } }))}
+          options={availableRoutes.map((option) => ({ ...option, inputData: { 'data-privacy-route': true }, statusData: { 'data-route-status': option.value } }))}
           data={{ 'data-privacy-controls': true, 'data-route-choices': true }}
         />
         <Section title={t.privacy.participants}>
@@ -59,6 +55,17 @@ export function PrivacyDialog({ privacy, commands, presentation = 'modal' }: { r
             data={{ 'data-participant-choices': true }}
           />
         </Section>
+        <SingleChoice
+          label={t.privacy.protection}
+          value={privacy.protection}
+          onChange={(value) => commands.pickProtection(value)}
+          options={availableProtections.map((option) => ({
+            ...option,
+            inputData: { 'data-privacy-protection': true },
+            statusData: { 'data-protection-status': option.value },
+          }))}
+          data={{ 'data-privacy-controls': true, 'data-protection-choices': true }}
+        />
         {privacy.splitNote !== '' && (
           <Text variant="caption" muted data={{ 'data-split-note': true }}>
             {privacy.splitNote}
@@ -67,6 +74,22 @@ export function PrivacyDialog({ privacy, commands, presentation = 'modal' }: { r
         <Text variant="caption" muted>
           {t.privacy.newOnly}
         </Text>
+        {unavailableCount > 0 && (
+          <Disclosure quiet summary="Unavailable options" status={String(unavailableCount)} data={{ 'data-privacy-unavailable': true }}>
+            <Stack gap="xs">
+              {unavailableProtections.map((option) => (
+                <Text key={option.value} variant="caption" muted data={{ 'data-protection-status': option.value }}>
+                  {`${option.title} — ${option.status}`}
+                </Text>
+              ))}
+              {unavailableRoutes.map((option) => (
+                <Text key={option.value} variant="caption" muted data={{ 'data-route-status': option.value }}>
+                  {`${option.title} — ${option.status}`}
+                </Text>
+              ))}
+            </Stack>
+          </Disclosure>
+        )}
         <Disclosure quiet summary={t.privacy.whatElse} data={{ 'data-privacy-detail': true }}>
           {(['standard', 'own-devices'] as const).map((name) => (
             <Text key={name} variant="small" muted hidden={name !== privacy.preset} data={{ 'data-preset-note': name }}>

@@ -1,13 +1,12 @@
 /* Workspace primitives: the application frame of the product routes.
    pool-workspace        a frame one visual viewport tall (--pool-param-workspace-height); data-compact while it is short
-   pool-workspace-bar    vertical navigation rail on desktop (lead at top, end anchored at bottom); visible bottom bar on mobile
-   pool-bar-button       a destination in the rail: pinned icon with label expanding left to right on desktop, stacked on mobile
+   pool-workspace-bar    vertical 80px navigation rail on desktop (lead at top, end anchored at bottom); visible bottom bar on mobile
+   pool-bar-button       a destination in the rail: stacked icon and 1-word label, always visible, never overlapping content
    pool-drawer           contextual side pane (start: Chat Threads sidebar; end: contextual Details inspector on the right)
    pool-workspace-main   the active destination page (Chat, Computers, Settings, or specialist page) */
 .pool-home .pool-workspace {
   --pool-param-workspace-gutter: var(--pool-size-16);
-  --pool-param-rail-width: var(--pool-size-64);
-  --pool-param-rail-expanded: var(--pool-size-160);
+  --pool-param-rail-width: var(--pool-size-80);
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
@@ -25,7 +24,7 @@
   inset-block: var(--pool-param-workspace-gutter);
   inset-inline-start: var(--pool-param-workspace-gutter);
   inset-inline-end: auto;
-  z-index: calc(var(--pool-z-overlay) + 1);
+  z-index: 8;
   display: flex;
   flex-direction: column;
   align-items: stretch;
@@ -33,12 +32,7 @@
   gap: var(--pool-size-8);
   inline-size: var(--pool-param-rail-width);
   min-inline-size: 0;
-  padding: var(--pool-size-8);
-  overflow: hidden;
-  transition: inline-size var(--pool-duration-fast) var(--pool-ease-emphasis);
-}
-.pool-home .pool-workspace-bar:is(:hover, :focus-within) {
-  inline-size: var(--pool-param-rail-expanded);
+  padding: var(--pool-size-8) var(--pool-size-4);
 }
 .pool-home .pool-workspace-bar-lead {
   display: flex;
@@ -56,39 +50,22 @@
 }
 .pool-home .pool-bar-button {
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   align-items: center;
-  justify-content: flex-start;
-  gap: var(--pool-size-12);
-  block-size: var(--pool-size-44);
-  min-block-size: var(--pool-size-44);
+  justify-content: center;
+  gap: var(--pool-size-4);
+  block-size: auto;
+  min-block-size: var(--pool-size-56);
   min-inline-size: var(--pool-size-44);
   margin: 0;
-  padding: 0 var(--pool-size-12);
-  font-size: var(--pool-text-sm);
-  text-align: start;
+  padding: var(--pool-size-8) var(--pool-size-4);
+  font-size: var(--pool-text-xs);
+  text-align: center;
   white-space: nowrap;
-  overflow: hidden;
 }
 .pool-home .pool-bar-button > .pool-icon-box,
 .pool-home .pool-bar-button > .pool-mark { flex: none; }
-.pool-home .pool-bar-label {
-  display: inline-block;
-  max-inline-size: 0;
-  opacity: 0;
-  overflow: hidden;
-  line-height: var(--pool-leading-tight);
-  transform: translateX(calc(-1 * var(--pool-size-4)));
-  transition:
-    opacity var(--pool-duration-fast) var(--pool-ease-emphasis),
-    max-inline-size var(--pool-duration-fast) var(--pool-ease-emphasis),
-    transform var(--pool-duration-fast) var(--pool-ease-emphasis);
-}
-.pool-home .pool-workspace-bar:is(:hover, :focus-within) .pool-bar-label {
-  max-inline-size: var(--pool-size-128);
-  opacity: 1;
-  transform: translateX(0);
-}
+.pool-home .pool-bar-label { display: inline; line-height: var(--pool-leading-tight); }
 .pool-home .pool-drawer {
   position: fixed;
   inset-block: var(--pool-param-workspace-gutter);
@@ -142,30 +119,14 @@
     gap: var(--pool-size-4);
     min-block-size: var(--pool-size-56);
     padding: var(--pool-size-4) var(--pool-size-8);
-    overflow: visible;
-    transition: none;
-  }
-  .pool-home .pool-workspace-bar:is(:hover, :focus-within) {
-    inline-size: auto;
   }
   .pool-home .pool-workspace-bar-lead,
   .pool-home .pool-workspace-bar-end { display: contents; }
   .pool-home .pool-bar-button {
-    flex-direction: column;
-    justify-content: center;
     gap: var(--pool-size-2);
-    block-size: auto;
     min-block-size: var(--pool-size-44);
     padding: var(--pool-size-4);
-    font-size: var(--pool-text-xs);
-    text-align: center;
     white-space: normal;
-  }
-  .pool-home .pool-bar-label {
-    max-inline-size: none;
-    opacity: 1;
-    transform: none;
-    transition: none;
   }
   .pool-home .pool-drawer {
     inset-block-start: max(var(--pool-size-8), env(safe-area-inset-top));
@@ -178,10 +139,6 @@
 .pool-home:has(> .pool-workspace) { padding: 0; gap: 0; min-block-size: 0; }
 /* Buttons that carry an icon box keep the icon and the label on one centre line. */
 .pool-home .pool-button:has(> .pool-icon-box) { display: inline-flex; align-items: center; justify-content: center; gap: var(--pool-size-8); }
-.pool-home .pool-bar-button.pool-button:has(> .pool-icon-box) { justify-content: flex-start; }
-@media (max-width: 760px) {
-  .pool-home .pool-bar-button.pool-button:has(> .pool-icon-box) { justify-content: center; }
-}
 /* For anyone who prefers reduced motion, the rail and the drawers change state without any transition. */
 @media (prefers-reduced-motion: reduce) {
   .pool-home :is(.pool-workspace-bar, .pool-bar-button, .pool-bar-label, .pool-drawer) { transition: none !important; animation: none !important; }
@@ -189,7 +146,7 @@
 /* A page's main column scrolls (pool-workspace-scroll); pool-bar-brand is the product mark linking home. */
 .pool-home .pool-workspace-scroll { display: block; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; }
 .pool-home .pool-workspace-scroll > * { inline-size: min(100%, var(--pool-size-720)); margin-inline: auto; padding-block: var(--pool-size-16); }
-.pool-home .pool-bar-brand { gap: var(--pool-size-12); }
+.pool-home .pool-bar-brand { gap: var(--pool-size-4); }
 /* Drawers expand snappily from their own edge; reduced motion turns it off above. */
 .pool-home .pool-drawer-start:not([hidden]) { animation: pool-expand-ltr var(--pool-duration-fast) var(--pool-ease-emphasis); }
 .pool-home .pool-drawer-end:not([hidden]) { animation: pool-expand-rtl var(--pool-duration-fast) var(--pool-ease-emphasis); }

@@ -110,7 +110,7 @@ test('scripted first visit: capacity retry preserves draft, Send authorizes befo
   await expect(page.locator('[data-composer-stop]')).toBeHidden();
   await page.locator('[data-chat-rail-toolbar] [data-inspector-section="participants"]').click();
   await page.locator('[data-production-device]').getByText('Contribute this computer').click();
-  await expect(page.locator('[data-toggle-contribution]:visible')).toHaveAttribute('aria-checked', 'false');
+  await expect(page.locator('[data-toggle-contribution]:visible')).toHaveAttribute('aria-checked', 'true');
 });
 
 test('scripted attachment: disclosed text, usable citation and copying', async ({ page }) => {

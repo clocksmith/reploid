@@ -155,11 +155,10 @@ const checkNetworkInspector = async (routePage) => {
   await expect(participants).toBeVisible();
   await expect(computers).toHaveAttribute('aria-current', 'page');
   await expect(participants.locator('h1').first()).toHaveText('Computers');
-  // Computers owns contribution and Settings owns file sharing.
-  // Both start off: serving is the producer's choice.
+  // Computers owns contribution and Settings owns file sharing; both default on (opt-out).
   await participants.locator('details:has([data-toggle-contribution]) > summary').click();
   await expect(participants.locator('[data-toggle-contribution]')).toBeVisible();
-  await expect(participants.locator('[data-toggle-contribution]')).toHaveAttribute('aria-checked', 'false');
+  await expect(participants.locator('[data-toggle-contribution]')).toHaveAttribute('aria-checked', 'true');
   await routePage.locator(`[data-chat-rail-toolbar] ${workspaceToolbarControls.settings}`).click();
   const settings = routePage.locator('[data-inspector-pane="settings"]');
   await expect(settings).toBeVisible();
@@ -167,7 +166,7 @@ const checkNetworkInspector = async (routePage) => {
   await expect(settings.locator('h1').first()).toHaveText('Settings');
   const fileSharing = settings.locator('[data-toggle-file-contribution]');
   await expect(fileSharing).toBeVisible();
-  await expect(fileSharing).toHaveAttribute('aria-checked', 'false');
+  await expect(fileSharing).toHaveAttribute('aria-checked', 'true');
   await routePage.locator(`[data-chat-rail-toolbar] ${workspaceToolbarControls.chat}`).click();
   await expect(settings).toHaveCount(0);
   await expect(routePage.locator('[data-composer-input]')).toBeVisible();
@@ -217,14 +216,14 @@ try {
   await expect(page.locator('[data-composer-input]')).toBeFocused();
   await expect(page.locator('[data-chat-approval]')).toBeHidden();
   await expect(page.locator('[data-mesh-invite]')).toBeHidden();
-  // A new visitor serves nothing until they choose to: compute sharing in Computers, file sharing in Settings.
+  // Compute sharing in Computers and cached file sharing in Settings default on (opt-out).
   await page.locator(workspaceToolbarControls.computers).click();
   const computersPane = page.locator('[data-inspector-pane="participants"]');
   await computersPane.locator('details:has([data-toggle-contribution]) > summary').click();
-  await expect(computersPane.locator('[data-toggle-contribution]')).toHaveAttribute('aria-checked', 'false');
+  await expect(computersPane.locator('[data-toggle-contribution]')).toHaveAttribute('aria-checked', 'true');
   await page.locator(workspaceToolbarControls.settings).click();
   const settingsPane = page.locator('[data-inspector-pane="settings"]');
-  await expect(settingsPane.locator('[data-toggle-file-contribution]')).toHaveAttribute('aria-checked', 'false');
+  await expect(settingsPane.locator('[data-toggle-file-contribution]')).toHaveAttribute('aria-checked', 'true');
   await page.locator(workspaceToolbarControls.chat).click();
   const draft = 'Unsent deployment check: retain this draft across reload and navigation.';
   await page.locator('[data-composer-input]').fill(draft);

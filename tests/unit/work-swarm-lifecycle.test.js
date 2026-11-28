@@ -378,20 +378,9 @@ it('serves nothing until the producer chooses, prepares without downloads, and p
     resetGenerationState() {}, async *stream() {} })), close: vi.fn() };
   const prepareSource = vi.fn(async () => model.id), share = vi.fn(), stop = vi.fn();
   const swarm = fixture(service, {}, { prepareSource, share, stop });
-  // A value the old automatic sharing wrote is not a choice anyone made.
-  values.set('REPLOID_CACHED_COMPUTE_ENABLED', 'true'); values.set('REPLOID_CACHED_FILES_ENABLED', 'true');
-  const untouched = fixture(service, {}, { prepareSource, share, stop });
-  expect(untouched.getState()).toMatchObject({ introductionAssistance: true, computeEnabled: false, filesEnabled: false });
-  await untouched.shareCachedModels([{ id: model.id, identity: model.identity }]);
-  expect(service.open).not.toHaveBeenCalled(); expect(prepareSource).not.toHaveBeenCalled(); expect(share).not.toHaveBeenCalled();
-  expect(untouched.getState().sharing).toBe(false);
-  await untouched.close();
-  expect(swarm.getState()).toMatchObject({ computeEnabled: false, filesEnabled: false });
+  // Cached compute, cached file sharing, and introductions are opt-out by default.
+  expect(swarm.getState()).toMatchObject({ introductionAssistance: true, computeEnabled: true, filesEnabled: true });
   await swarm.shareCachedModels([{ id: model.id, identity: model.identity }]);
-  expect(service.open).not.toHaveBeenCalled();
-  await swarm.allowCachedFiles(true);
-  await swarm.stop();
-  await swarm.allowCachedCompute(true);
   expect(prepareSource.mock.calls[0][1].cacheOnly).toBe(true);
   expect(share.mock.calls[0][2]).toEqual({ mode: 'cached-only' });
   expect(swarm.getState().sharing).toBe(true);
@@ -460,10 +449,9 @@ it('starts paused when the stored network choice is off, and connects again only
   await swarm.close();
 });
 
-it('reports a contribution choice only after the person makes one', async () => {
+it('defaults cached compute and files to opt-out and records explicit opt-out choice', async () => {
   const swarm = fixture();
-  // A fresh browser has chosen nothing: it offers nothing and has nothing to resume.
-  expect(swarm.getState()).toMatchObject({ computeEnabled: false, filesEnabled: false, contributionChosen: false });
+  expect(swarm.getState()).toMatchObject({ computeEnabled: true, filesEnabled: true, contributionChosen: false });
   await swarm.stopFiles();
   expect(swarm.getState()).toMatchObject({ filesEnabled: false, contributionChosen: true });
   await swarm.close();
@@ -471,11 +459,11 @@ it('reports a contribution choice only after the person makes one', async () => 
 
 it('reports this device\'s two offers and connection assistance as the canonical records, each paused on its own', async () => {
   const swarm = fixture();
-  expect(swarm.getState()).toMatchObject({ localOffers: [], connectionAssistance: { schema: 'reploid.connection-assistance/1', enabled: true } });
+  expect(swarm.getState()).toMatchObject({ connectionAssistance: { schema: 'reploid.connection-assistance/1', enabled: true } });
   await swarm.stopFiles();
-  // Stopping files pauses that offer only; there is still no inference offer, and nothing about consuming changes.
-  const [files] = swarm.getState().localOffers;
-  expect(swarm.getState().localOffers).toHaveLength(1);
+  // Stopping files pauses weight-supply while inference remains unpaused until stopped.
+  expect(swarm.getState().localOffers.map(offer => [offer.kind, offer.paused])).toEqual([['inference', false], ['weight-supply', true]]);
+  const files = swarm.getState().localOffers.find(offer => offer.kind === 'weight-supply');
   expect(parseOffer(files)).toMatchObject({ kind: 'weight-supply', paused: true, readiness: 'unavailable' });
   await swarm.stop();
   expect(swarm.getState().localOffers.map(offer => [offer.kind, offer.paused])).toEqual([['inference', true], ['weight-supply', true]]);
@@ -484,7 +472,7 @@ it('reports this device\'s two offers and connection assistance as the canonical
   await swarm.close();
 });
 
-it('offers cached files from a requester-only ordered browser when the person turns file sharing on', async () => {
+it('offers cached files from a requester-only ordered browser by default (opt-out)', async () => {
   vi.stubGlobal('navigator', { gpu: {} });
   ports.ensure.mockResolvedValue({ peerId: 'fixture', contribution: {} });
   ports.createTransport.mockReturnValue({ init: async () => true, disconnect: vi.fn(), onMessage: vi.fn(), broadcast: vi.fn(), getPeerId: () => 'rtc-fixture' });
@@ -497,8 +485,6 @@ it('offers cached files from a requester-only ordered browser when the person tu
     createModelFiles: () => ({ attach: async () => {}, close: async () => {}, announce() {}, getState: () => ({}), prepareSource: async item => item.id, share }),
     networkOptions: () => ({ autoConnect: true, discoveryScope: 'public', config: resolveConfig({ overrides: { mesh: { enabled: true, roomId: 'reploid-swarm-public' } } }) }) });
   await swarm.shareCachedModels([{ id: model.id, identity: model.identity }]);
-  expect(share).not.toHaveBeenCalled();
-  await swarm.allowCachedFiles(true);
   expect(share).toHaveBeenCalledOnce();
   expect(share.mock.calls[0][0].id).toBe(model.id);
   expect(share.mock.calls[0][2]).toEqual({ mode: 'cached-only' });
