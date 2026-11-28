@@ -5154,13 +5154,13 @@
     {
       "path": "ui/react/app.js",
       "owner": "ui",
-      "sha256": "sha256:bdd572c8f7f59bf5d3cdcf8b9e7c79bb32472c65c8f8f940672bc97a82b842c3",
+      "sha256": "sha256:41ec97d1e2a59db7fe3b248827af701e175a02aa23527661bdac8028b576b8bd",
       "imports": []
     },
     {
       "path": "ui/react/design.js",
       "owner": "ui",
-      "sha256": "sha256:dc634b39c9998075cadf8945e59e5049eed00338bb1c14346b74b0821ac65c85",
+      "sha256": "sha256:8519e049f842a493e893e31832eb4950522c89c8d4492bdce6e9a9cc423bdc72",
       "imports": []
     },
     {
