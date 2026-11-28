@@ -50,23 +50,23 @@ const gotoRoute = async (targetPage, route) => {
 // its own bar carries Threads, Conversation details, Computers and Settings, and every
 // drawer stays closed until one of those opens it. On phones the bar docks below the
 // conversation. Every other route is the vanilla shell, with the app bar above its content.
-const WORKSPACE_ROUTES = ['/', '/work', '/network'];
+const WORKSPACE_ROUTES = ['/', '/work'];
 const VIEWPORTS = [{ width: 1440, height: 1000 }, { width: 390, height: 844 }];
 const PHONE_MAX_WIDTH = 760;
 const workspaceToolbarControls = {
-  threads: '[data-toggle-thread-rail]',
+  chat: '[data-workspace-view="chat"]',
   computers: '[data-workspace-view="computers"]',
   settings: '[data-inspector-section="settings"]'
 };
 
-const checkWorkspaceAtLoad = async (routePage, route) => {
+const checkWorkspaceAtLoad = async (routePage) => {
   const workspace = routePage.locator('[data-chat-workspace]');
   await expect(workspace).toBeVisible();
   await expect(routePage.locator('.pool-primary-nav')).toHaveCount(0);
   const toolbar = routePage.locator('[data-chat-rail-toolbar]');
   await expect(toolbar).toBeVisible();
   for (const selector of Object.values(workspaceToolbarControls)) await expect(toolbar.locator(selector)).toBeVisible();
-  await expect(toolbar.locator(workspaceToolbarControls.threads)).toHaveAttribute('href', /[?&]view=threads(?:&|$)/);
+  await expect(routePage.locator('[data-toggle-thread-rail]')).toBeVisible();
   await expect(toolbar.locator('[data-new-thread]')).toHaveCount(0);
   await expect(routePage.locator('[data-new-thread]')).toHaveCount(1);
   await expect(routePage.locator('[data-threads-dialog]')).toBeHidden();
@@ -148,25 +148,13 @@ const appBarFrameFailures = async (routePage, route, width) => {
   return found;
 };
 
-// /network opens the same workspace; its Computers control opens the inspector,
-// which preserves the center conversation while the right drawer is open.
+// /network opens the full Computers page; switching to Settings and Chat renders each as a real page.
 const checkNetworkInspector = async (routePage) => {
   const computers = routePage.locator(`[data-chat-rail-toolbar] ${workspaceToolbarControls.computers}`);
-  await computers.click();
   const participants = routePage.locator('[data-inspector-pane="participants"]');
   await expect(participants).toBeVisible();
   await expect(computers).toHaveAttribute('aria-current', 'page');
-  await expect(participants.locator('h2').first()).toHaveText('Computers');
-  await expect.poll(async () => {
-    const rect = await participants.boundingBox();
-    return rect ? rect.x + rect.width : Infinity;
-  }).toBeLessThanOrEqual(routePage.viewportSize().width);
-  const panel = await routePage.evaluate(() => ({ area: document.querySelector('[data-conversation-area]').getBoundingClientRect().width,
-    slot: document.querySelector('[data-inspector-pane="participants"]').getBoundingClientRect().toJSON(), width: innerWidth,
-    open: !!document.querySelector('.pool-workspace[data-end-open]') }));
-  if (!panel.open || !(panel.area > 0) || !(panel.slot.width > 0) || panel.slot.right > panel.width) {
-    failures.push('/network: the open inspector does not preserve the conversation within the viewport: ' + JSON.stringify(panel));
-  }
+  await expect(participants.locator('h1').first()).toHaveText('Computers');
   // Computers owns contribution and Settings owns file sharing.
   // Both start off: serving is the producer's choice.
   await participants.locator('details:has([data-toggle-contribution]) > summary').click();
@@ -175,15 +163,13 @@ const checkNetworkInspector = async (routePage) => {
   await routePage.locator(`[data-chat-rail-toolbar] ${workspaceToolbarControls.settings}`).click();
   const settings = routePage.locator('[data-inspector-pane="settings"]');
   await expect(settings).toBeVisible();
-  await expect(participants).toBeHidden();
-  await expect(settings.locator('h2').first()).toHaveText('Settings');
+  await expect(participants).toHaveCount(0);
+  await expect(settings.locator('h1').first()).toHaveText('Settings');
   const fileSharing = settings.locator('[data-toggle-file-contribution]');
   await expect(fileSharing).toBeVisible();
-  await expect(participants.locator('[data-toggle-file-contribution]')).toHaveCount(0);
   await expect(fileSharing).toHaveAttribute('aria-checked', 'false');
-  await settings.locator('[data-close-inspector]').click();
-  await expect(settings).toBeHidden();
-  await expect(routePage.locator('.pool-workspace[data-end-open]')).toHaveCount(0);
+  await routePage.locator(`[data-chat-rail-toolbar] ${workspaceToolbarControls.chat}`).click();
+  await expect(settings).toHaveCount(0);
   await expect(routePage.locator('[data-composer-input]')).toBeVisible();
 };
 
@@ -194,20 +180,21 @@ for (const route of routes) {
     await gotoRoute(routePage, route);
     await routePage.waitForSelector(requiredSelectors[route], { timeout: 30000, state: 'attached' });
     const workspace = WORKSPACE_ROUTES.includes(route);
-    if (workspace) await checkWorkspaceAtLoad(routePage, route);
-    for (const viewport of VIEWPORTS) {
-      await routePage.setViewportSize(viewport);
-      failures.push(...await (workspace ? workspaceFrameFailures : appBarFrameFailures)(routePage, route, viewport.width));
+    if (workspace) await checkWorkspaceAtLoad(routePage);
+    if (route === '/network') {
+      await routePage.setViewportSize(VIEWPORTS[0]);
+      await checkNetworkInspector(routePage);
+    } else {
+      for (const viewport of VIEWPORTS) {
+        await routePage.setViewportSize(viewport);
+        failures.push(...await (workspace ? workspaceFrameFailures : appBarFrameFailures)(routePage, route, viewport.width));
+      }
     }
     if (workspace) {
       for (const selector of ['[data-composer-input]', '[data-composer-files]', '[data-composer-send]', '[data-message-stream]']) {
         await routePage.waitForSelector(selector, { timeout: 30000, state: 'attached' });
       }
       if (await routePage.locator('[data-work-example]').count()) failures.push(route + ' still exposes prompt-only task buttons');
-    }
-    if (route === '/network') {
-      await routePage.setViewportSize(VIEWPORTS[0]);
-      await checkNetworkInspector(routePage);
     }
     console.log(`[pool-smoke] route passed ${route}`);
   } catch (error) {
@@ -238,7 +225,7 @@ try {
   await page.locator(workspaceToolbarControls.settings).click();
   const settingsPane = page.locator('[data-inspector-pane="settings"]');
   await expect(settingsPane.locator('[data-toggle-file-contribution]')).toHaveAttribute('aria-checked', 'false');
-  await settingsPane.locator('[data-close-inspector]').click();
+  await page.locator(workspaceToolbarControls.chat).click();
   const draft = 'Unsent deployment check: retain this draft across reload and navigation.';
   await page.locator('[data-composer-input]').fill(draft);
   await page.reload({ waitUntil: 'domcontentloaded' });
