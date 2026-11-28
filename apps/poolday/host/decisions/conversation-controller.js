@@ -174,14 +174,13 @@ export function createConversationController(session, {
   const openDefault = openPolicy();
   /**
    * A visitor who has chosen nothing asks the public network: no computer, model or permission is a step before
-   * the first Send. It holds while computers are being found or one can answer, and only while this device stores
-   * no model, network answers are on and no paired desktop or invite names the computer. The composer states the
-   * computer, the model and who can read the prompt before Send. With nobody to answer, the draft stays on this device.
+   * the first Send. Prefer a ready contributor to cached local weights. With no ready contributor, a stored local
+   * model can answer; without either, the draft stays put. A held network Send never silently changes destinations.
    */
-  // It holds after discovery too: with nobody to answer the composer says so on this route, and never implies this
-  // device is ready to run a model it does not store. This device and its reviewed download stay a choice.
   const automaticContributors = state => !state.activeThread && viewState.privacy === undefined && !viewState.privacyTouched
-    && state.remoteAnswersEnabled !== false && !lockedDestination(state) && !(state.models || []).some(storedHere);
+    && state.remoteAnswersEnabled !== false && !lockedDestination(state)
+    && (!!held() || !(state.models || []).some(storedHere)
+      || (state.models || []).some(model => publicAnswers(model) && model.networkAvailability === 'ready'));
   const explicitPrivacy = state => (state.activeThread ? state.activeThread.privacy : viewState.privacy)
     ?? (automaticContributors(state) ? openDefault : localPolicy);
   /**

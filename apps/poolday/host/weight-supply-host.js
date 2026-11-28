@@ -86,11 +86,12 @@ export function createHostWeightSupply({ identity, connectionId, exchange, inven
 
   return Object.freeze({
     /** Reloads saved state; a fresh profile has none and builds nothing. */
-    async start() {
+    async start({ paused = false } = {}) {
+      if (paused) await inventory.pause();
       const saved = await records.read(computerId);
       if (!saved) { restore = { ...restore, checkedAt: now() }; onChange(); return restore; }
       const supply = await ensure();
-      restore = { ...await supply.restoreWeightSupply(saved), checkedAt: now() };
+      restore = { ...await supply.restoreWeightSupply(paused ? { ...saved, paused: true } : saved), checkedAt: now() };
       // A supply paused before the reload keeps every file on this device unserved.
       if (supply.getWeightSupplyReport().paused) await inventory.pause();
       changed();
@@ -145,7 +146,7 @@ export function createHostWeightSupply({ identity, connectionId, exchange, inven
       const files = shared.files.filter(row => row.offered).map(({ hashAlgorithm, hash, sizeBytes }) => ({ hashAlgorithm, hash, sizeBytes }));
       return weightSupplyOffer({ connectionId: base?.connectionId ?? null, readiness, paused,
         // Cached-model files do not expire; approved pieces alone expire with their approval.
-        expiresAt: base && !cached.enabled ? base.expiresAt : null,
+        expiresAt: base && !(cached.enabled && cached.readiness === 'ready') ? base.expiresAt : null,
         modelIdentities: [...new Set([...(base?.scope.modelIdentities ?? []), ...(cached.enabled ? cached.modelIdentities ?? [] : [])])],
         pieceIndexDigests: base?.scope.pieceIndexDigests ?? [], files,
         maxStorageBytes: base?.scope.maxStorageBytes ?? cached.maxStorageBytes ?? null });

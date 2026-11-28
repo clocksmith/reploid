@@ -53,7 +53,7 @@ function swarmOn(f, records, { loads = { count: 0 } } = {}) {
     createPartitions: () => ({ getModels: () => [], stop: async () => {}, close: async () => {} }),
     createModelFiles: ({ onServed }) => {
       f.served(onServed);
-      return { attach: async () => {}, close: async () => {}, announce() {}, getState: () => ({}), prepareSource: async model => model.id,
+      return { attach: async () => {}, close: async () => {}, announce() {}, getState: () => ({}), stop: async () => {}, prepareSource: async model => model.id,
         weightSupplyPorts: () => ({ exchange: f.peer.exchange, inventory, store: f.peer.store, hashBytes: sha256Hex,
           loadModels: async () => { loads.count++; return [f.pinned]; } }) };
     },
@@ -68,7 +68,8 @@ it('joining a fresh profile builds no offer and computes no recommendation', asy
   try {
     await swarm.connect();
     const state = swarm.getState();
-    expect(state.localOffers.filter(offer => offer.kind === 'weight-supply')).toEqual([]);
+    expect(state).toMatchObject({ computeEnabled: true, filesEnabled: true });
+    expect(state.localOffers).toEqual([]);
     expect(state.weightSupply).toMatchObject({ recommendation: null, approval: null, pieces: [], restore: { approval: 'none' } });
     expect(loads.count).toBe(0);
     expect(f.peer.exchange.getState().sharing).toBe(false);
@@ -105,5 +106,13 @@ it('recommends when asked, approves under the cap the UI passes, reports the off
     expect(swarm.getState().weightSupply).toMatchObject({ verifiedBytes: 3 * 4096, servedBytes: 4096, approval: { approvalId: approval.approvalId },
       transfers: [{ recordedBy: 'provider', pieceId: f.pinned.pieces[1].pieceId }] });
     expect(parseOffer(swarm.getState().localOffers.find(row => row.kind === 'weight-supply'))).toMatchObject({ readiness: 'ready', paused: false });
+    await swarm.stopFiles();
+    expect(swarm.getState()).toMatchObject({ filesEnabled: false, computeEnabled: true, paused: false });
+    expect(f.peer.exchange.getState().sharing).toBe(false);
+    await swarm.close();
+    swarm = swarmOn(f, records);
+    await swarm.connect();
+    expect(swarm.getState()).toMatchObject({ filesEnabled: false, computeEnabled: true, paused: false });
+    expect(f.peer.exchange.getState().sharing).toBe(false);
   } finally { await swarm.close(); await f.leave(); }
 });

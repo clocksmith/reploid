@@ -336,18 +336,17 @@ function deviceView(state, network) {
   const summary = [];
   if (network.sharing || network.stopping) summary.push((sharedName || 'Selected model') + (contribution.partition ? ' · partition compute' : ' · compute'));
   if (sharingFiles) summary.push((network.files?.model?.name || network.files?.model?.id || 'Model files') + ' · files');
-  // This device's offers are the records work-swarm.js reports (getState().localOffers, reploid.offer/1), so the pane and
-  // the offers cannot disagree: a switch is on while its offer stands unpaused, and pausing one offer leaves the other
-  // and consuming untouched. Connection assistance is its own record (getState().connectionAssistance).
+  // Switches show the saved intent, even with an empty cache. Offers show actual assets and readiness.
+  // Pausing one does not affect the other or consuming.
   const own = kind => (Array.isArray(network.localOffers) ? network.localOffers : []).find(offer => offer?.kind === kind) || null;
   const computeOffer = own('inference'), filesOffer = own('weight-supply');
-  const computeOn = !!computeOffer && !computeOffer.paused;
+  const computeOn = (network.computeEnabled ?? !!computeOffer) && !computeOffer?.paused;
   const computeLabel = network.stopping ? 'Stopping' : cleanupPending ? 'Cleanup not confirmed' : network.sharing
     ? (network.contribution?.phase === 'loading' ? preparationStatus(network.contribution.progress).status
       : ({ ready: 'Ready', executing: 'Working', failed: 'Failed', waiting: 'Waiting for another contributor' }[network.contribution?.phase] || 'Sharing'))
     : computeOn ? 'On · waiting for a downloaded model' : 'Not sharing';
   // The same switch Settings shows: the weight-supply offer stands while filesEnabled is on (work-swarm.js).
-  const filesOn = !!filesOffer && !filesOffer.paused, filesLabel = fileSharingStatus(network);
+  const filesOn = (network.files?.enabled ?? !!filesOffer) && !filesOffer?.paused, filesLabel = fileSharingStatus(network);
   return {
     summary: cleanupPending ? '· Cleanup not confirmed'
       : network.stopping ? '· Stopping' : network.contribution?.phase === 'loading' ? '· ' + preparationStatus(network.contribution.progress).status
@@ -367,7 +366,7 @@ function deviceView(state, network) {
     filesOn,
     filesLabel,
     filesDisabled: !network.files || !!network.files.stopping,
-    offers: offerText({ compute: computeOn ? computeLabel : '', files: filesOn ? filesLabel : '' }),
+    offers: offerText({ compute: computeOffer && computeOn ? computeLabel : '', files: filesOffer && filesOn ? filesLabel : '' }),
     pauseAll: computeOn || filesOn,
     computeDisabled: !!network.stopping || cleanupPending,
     retryStop: cleanupPending,

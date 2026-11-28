@@ -66,8 +66,10 @@ describe('Computers decisions', () => {
       files: { enabled: true, sharing: true, model: { name: 'Qwen 3.5 0.8B' } } })).toBe('· Sharing');
   });
 
-  it('reads this device\'s switches from its offers and connection assistance, never from separate flags', () => {
+  it('shows opt-out preferences independently of whether this device has an offer', () => {
     const device = (network: Record<string, unknown>) => projectComputers({ models: [], network: { consumer: { connectionState: 'connected', peers: [] }, ...network } }).device;
+    expect(device({ computeEnabled: true, files: { enabled: true }, localOffers: [] }))
+      .toMatchObject({ computeOn: true, filesOn: true, pauseAll: true, offers: 'Nothing' });
     // Flags that disagree with the records lose: the pane shows what the offers say.
     expect(device({ computeEnabled: true, filesEnabled: true, files: { enabled: true }, introductionAssistance: true,
       localOffers: localOffers({ compute: false, files: false }), connectionAssistance: { schema: 'reploid.connection-assistance/1', enabled: false } }))

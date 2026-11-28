@@ -665,19 +665,16 @@ describe('Conversation workspace', () => {
   it('never pairs this device with a shared-only model: a tap moves the computer, a preset needs Use contributors', async () => {
     const stored = { ...CANONICAL_CHAT_MODELS[0], localCached: true, availability: 'cached', networkAvailability: 'unavailable' };
     const shared = { ...CANONICAL_CHAT_MODELS[1], availability: 'ready', networkAvailability: 'ready', providerIds: ['peer'], reachableProviderIds: ['peer'] };
-    const state = { ...session.getState(), models: [stored, shared], defaultModel: shared, discoveryPhase: 'observed', localDownloadIssue: null };
+    const state = { ...session.getState(), models: [stored, shared], defaultModel: shared, discoveryPhase: 'observed', peerDiscoveryTimedOut: true, localDownloadIssue: null };
     const bind = viewState => open({ ...session, getState: () => state, subscribe(fn) { fn(state); return () => {}; } }, { fresh: true, viewState });
-    // The owner's report: a fresh draft on this device must never open with a shared-only model chosen.
-    // It opens on the model stored here, and its primary answers here.
+    // Automatic placement uses the ready contributor. An explicit device selection pairs only with the stored model.
     let viewState = {}; bind(viewState);
     c().openSheet();
+    expect(checked()).toBe('network');
+    expect(sheet().selectedKey).toBe(shared.id);
+    expect(digest()).toContain(shared.name);
+    c().pickComputer('local');
     expect(checked()).toBe('local');
-    expect(sheet().selectedKey).toBe(stored.id);
-    expect(sheet().outcome.issue).toBe('');
-    expect(sheet().outcome.label).toBe('Answer on this device');
-    expect(digest()).toContain(stored.name);
-    // This device keeps only a model that runs here; the shared model moves the computer to Contributors, staged and stated.
-    c().pickComputer('network'); c().pickComputer('local');
     expect(sheet().selectedKey).toBe(stored.id);
     expect(sheet().outcome.label).toBe('Answer on this device');
     c().pickModel(shared.id, { browsing: true });

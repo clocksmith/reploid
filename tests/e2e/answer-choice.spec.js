@@ -168,3 +168,30 @@ test('first visit at 390px: no idle status strip, late offer and typed draft fal
   expect(await page.evaluate(() => window.fixture.asked)).toEqual([second.id]);
   await page.evaluate(() => window.fixture.close());
 });
+
+test('a ready contributor wins over cached local weights, and an explicit local choice stays local', async ({ page, baseURL }) => {
+  await localOnly(page, baseURL);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/');
+  await page.clock.install();
+  await installTwoContributors(page, [1]);
+  await page.evaluate(() => {
+    const { session, models } = window.fixture;
+    session.setCachedModels([models[0]]);
+  });
+  await page.clock.fastForward(8_000);
+  const chip = page.locator('[data-open-model]');
+  const [local, remote] = await page.evaluate(() => window.fixture.models.map(({ name }) => name));
+  await expect(chip).toHaveAttribute('aria-label', `Answer on Contributors · ${remote}, Ready`);
+  await page.evaluate(() => window.fixture.serve([]));
+  await expect(chip).toHaveAttribute('aria-label', new RegExp(`Answer on This device · ${local}`));
+  await page.evaluate(() => window.fixture.serve([1]));
+  await expect(chip).toHaveAttribute('aria-label', `Answer on Contributors · ${remote}, Ready`);
+  await chip.click();
+  await page.locator('[data-execution-choice=local]').click();
+  await page.locator('[data-model-picker-close]').click();
+  await expect(chip).toHaveAttribute('aria-label', new RegExp(`Answer on This device · ${local}`));
+  await expect(page.locator('[data-model-dialog]')).toBeHidden();
+  expect(await page.evaluate(() => window.fixture.asked)).toEqual([]);
+  await page.evaluate(() => window.fixture.close());
+});

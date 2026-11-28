@@ -461,8 +461,9 @@ it('reports this device\'s two offers and connection assistance as the canonical
   const swarm = fixture();
   expect(swarm.getState()).toMatchObject({ connectionAssistance: { schema: 'reploid.connection-assistance/1', enabled: true } });
   await swarm.stopFiles();
-  // Stopping files pauses weight-supply while inference remains unpaused until stopped.
-  expect(swarm.getState().localOffers.map(offer => [offer.kind, offer.paused])).toEqual([['inference', false], ['weight-supply', true]]);
+  // Stopping files preserves the compute preference, but no empty compute offer is invented.
+  expect(swarm.getState().computeEnabled).toBe(true);
+  expect(swarm.getState().localOffers.map(offer => [offer.kind, offer.paused])).toEqual([['weight-supply', true]]);
   const files = swarm.getState().localOffers.find(offer => offer.kind === 'weight-supply');
   expect(parseOffer(files)).toMatchObject({ kind: 'weight-supply', paused: true, readiness: 'unavailable' });
   await swarm.stop();

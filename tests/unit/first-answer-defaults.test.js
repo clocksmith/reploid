@@ -234,13 +234,15 @@ it('holds a Send pressed while the automatic choice is provisional and sends it 
   expect(key(h.created[0].model)).toBe(key(MEDIUM));
 });
 
-it('stays on this device for a visitor whose device stores a model, or who turned network answers off', () => {
+it('prefers a ready contributor over cached weights and falls back locally without changing a saved opt-out', () => {
   const stored = fixture();
   stored.publish({ ...observed, models: [{ ...SMALL, availability: 'cached', localCached: true }, served(MEDIUM)] });
+  expect([chip(stored).source, chip(stored).selectionId]).toEqual(['Contributors', key(MEDIUM)]);
+  stored.publish({ models: [{ ...SMALL, availability: 'cached', localCached: true }, MEDIUM] });
   expect([chip(stored).source, chip(stored).selectionId]).toEqual(['This device', key(SMALL)]);
   expect(stored.view.composer().disclosure).toBe('Nothing leaves this device.');
   const off = fixture();
-  off.publish({ ...observed, remoteAnswersEnabled: false, models: [SMALL, served(MEDIUM)] });
+  off.publish({ ...observed, remoteAnswersEnabled: false, models: [{ ...SMALL, availability: 'cached', localCached: true }, served(MEDIUM)] });
   expect(chip(off).source).toBe('This device');
 });
 

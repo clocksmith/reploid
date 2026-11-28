@@ -152,24 +152,23 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
   const contributionHistory = createContributionHistory({ storage });
   // Whether this browser ever chose to offer compute or files: a stored choice exists only after the person decided.
   const contributionChosen = () => [PRODUCER_COMPUTE_CHOICE, PRODUCER_FILES_CHOICE].some(key => (storage?.getItem?.(key) ?? null) !== null);
-  // This device's two offers as reploid.offer/1 records, each with its own readiness and pause: a stored 'false'
-  // choice is a paused offer, no stored choice is no offer. Consuming never depends on either.
+  // Preferences default on, but an empty cache is not an offer. A stored off choice remains visible as paused.
+  // Consuming never depends on either contribution preference.
   const COMPUTE_READINESS = { loading: 'preparing', connecting: 'preparing', ready: 'ready', executing: 'ready', stopping: 'stopping', failed: 'failed' };
   const stored = key => storage?.getItem?.(key) ?? null;
   const ownConnection = snapshot => (isConnectionId(snapshot?.peerId) ? snapshot.peerId : null);
   const localOffers = () => {
     const offers = [];
-    if (computeEnabled || stored(PRODUCER_COMPUTE_CHOICE) === 'false') {
+    if (contribution.modelId || stored(PRODUCER_COMPUTE_CHOICE) === 'false') {
       const stage = contribution.partition === true, index = contribution.descriptor?.index;
       offers.push(inferenceOffer({ connectionId: ownConnection(supplier?.getSwarmSnapshot()), paused: !computeEnabled,
         readiness: stopping ? 'stopping' : (computeEnabled && sharing && COMPUTE_READINESS[contribution.phase]) || 'unavailable',
         modelId: contribution.modelId || null, modelIdentities: isDigest(contribution.modelIdentity) ? [contribution.modelIdentity] : [],
         execution: stage ? 'model-stage' : 'whole-model', stageIndex: stage && Number.isSafeInteger(index) && index >= 0 ? index : null }));
     }
-    // One weight-supply offer for this device: weight supply's (under an approval, over the shared inventory, which the
-    // cached-model path's files join), or the cached-model path's alone when the person chose file sharing.
-    const chosen = filesEnabled || stored(PRODUCER_FILES_CHOICE) === 'false';
+    // Supply can come from a bounded approval, the cached-model path, or both.
     const files = modelFiles?.getState() || {};
+    const chosen = !!files.model || files.preparing || files.sharing || files.stopping || stored(PRODUCER_FILES_CHOICE) === 'false';
     const identity = LOCAL_DOPPLER_MODELS.find(model => model.id === files.model?.id)?.identity;
     let readiness = 'unavailable';
     if (files.stopping) readiness = 'stopping';
@@ -440,7 +439,7 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
           cachedPieceIds: async () => (await ports.loadModels()).filter(model => cachedModels.some(row => row.id === model.modelId
             && row.identity === model.modelIdentity)).flatMap(model => model.pieces.map(piece => piece.pieceId)),
           onChange: notify, onError: cause => { error = cause.message; notify(); } } });
-      await weightSupply.start();
+      await weightSupply.start({ paused: !filesEnabled });
     } catch (cause) { error = cause.message; }
     notify();
   }
@@ -588,7 +587,12 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
     /** Pauses all serving from this device (approved pieces and cached-model files); consuming is untouched. */
     pauseWeightSupply: async () => (await weightSupplyReady()).pause(),
     resumeWeightSupply: async () => (await weightSupplyReady()).resume(),
-    stopFiles: () => { filesEnabled = false; storage?.setItem(PRODUCER_FILES_CHOICE, 'false'); notify(); return modelFiles?.stop(); },
+    async stopFiles() {
+      filesEnabled = false; storage?.setItem(PRODUCER_FILES_CHOICE, 'false'); notify();
+      const results = await Promise.allSettled([weightSupply?.pause(), modelFiles?.stop()]);
+      const failure = results.find(result => result.status === 'rejected');
+      if (failure) throw failure.reason;
+    },
     autoConnectEnabled: () => !closed && !paused && automaticAllowed,
     getInviteUrl: () => options.getInviteUrl(),
     generate,
@@ -680,7 +684,9 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
     async allowCachedFiles(enabled) {
       if (closed) throw new Error('Network is closed');
       if (!enabled) return api.stopFiles();
+      const wasOff = !filesEnabled;
       filesEnabled = true; storage?.setItem(PRODUCER_FILES_CHOICE, 'true'); notify();
+      if (wasOff && !paused) weightSupply?.resume();
       return api.shareCachedModels(cachedModels);
     },
     async allowCachedCompute(enabled) {
