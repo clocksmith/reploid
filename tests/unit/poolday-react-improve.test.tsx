@@ -59,6 +59,55 @@ describe('Changes page', () => {
     expect(inspection.querySelector('[data-work-review-actions]')).toBeNull();
   });
 
+  it('starts fresh and only resumes a selected checkpoint through either training button', async () => {
+    const user = userEvent.setup();
+    let step = 0;
+    const candidate = () => ({ manifest: { id: 'my-qwen-adapter', metadata: { checkpointStep: step } } });
+    const run = vi.fn(async (input: { consent: boolean; resume: boolean }) => {
+      if (!input.consent) throw new Error('Approve training on the selected data first');
+      step = input.resume ? step + 1 : 1;
+      return candidate();
+    });
+    const training = { getState: () => ({ phase: 'idle', busy: false }), getCandidate: () => null,
+      policy: { maxInputBytes: 256 }, run, connect: async () => {}, peers: () => [{ id: 'peer-a', name: 'Contributor A' }] };
+    const { services } = mount({ ...createImproveHost(), training });
+    await user.click(screen.getByText('Train a LoRA adapter'));
+    act(() => services.chooseSamples(new File(['[{"inputIds":[1],"targetIds":[2],"supervisedTokenCount":1}]'], 'one.json')));
+    await flush();
+    const resume = () => screen.queryByRole('switch', { name: 'Continue from last checkpoint' });
+    expect(resume()).toBeNull();
+    const consent = screen.getByRole('switch', { name: 'Allow model preparation and training' });
+    expect(consent.getAttribute('aria-checked')).toBe('false');
+    await user.click(consent);
+    const local = screen.getByRole('button', { name: 'Train on this device' });
+    await user.click(local);
+    expect(run.mock.lastCall?.[0]).toMatchObject({ consent: true, peers: [], resume: false, retainCheckpoint: true });
+    expect(resume()?.getAttribute('aria-checked')).toBe('false');
+    await user.click(resume()!);
+    await user.click(local);
+    expect(run.mock.lastCall?.[0]).toMatchObject({ consent: true, peers: [], resume: true, retainCheckpoint: true });
+    expect(screen.getByText('my-qwen-adapter · step 2')).toBeTruthy();
+    expect(resume()?.getAttribute('aria-checked')).toBe('false');
+    await user.click(screen.getByText('Train with connected participants'));
+    await user.click(screen.getByRole('button', { name: 'Connect training' }));
+    await user.click(screen.getByRole('checkbox', { name: 'Contributor A' }));
+    const pooled = screen.getByRole('button', { name: 'Train with selected participants' });
+    await user.click(pooled);
+    expect(run.mock.lastCall?.[0]).toMatchObject({ peers: ['peer-a'], resume: false, retainCheckpoint: true });
+    await user.click(resume()!);
+    await user.click(consent);
+    await user.click(pooled);
+    expect(run.mock.lastCall?.[0]).toMatchObject({ consent: false, peers: ['peer-a'], resume: true, retainCheckpoint: true });
+    expect(screen.getByText('Approve training on the selected data first')).toBeTruthy();
+    expect(screen.getByText('my-qwen-adapter · step 1')).toBeTruthy();
+    expect(resume()?.getAttribute('aria-checked')).toBe('false');
+    await user.click(consent);
+    await user.click(resume()!);
+    await user.click(pooled);
+    expect(run.mock.lastCall?.[0]).toMatchObject({ consent: true, peers: ['peer-a'], resume: true, retainCheckpoint: true });
+    expect(screen.getByText('my-qwen-adapter · step 2')).toBeTruthy();
+  });
+
   it('reviews a delivered result through the work session', async () => {
     const host = createImproveHost();
     const review = vi.spyOn(host.work, 'review');

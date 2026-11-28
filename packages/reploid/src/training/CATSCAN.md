@@ -3,7 +3,7 @@
 Parent: [Reploid Browser Library](../../CATSCAN.md)
 
 ## Target
-Coordinate explicitly authorized individual training and one pooled gradient round.
+Coordinate explicitly authorized individual training and pooled gradient rounds with a fresh grant per round.
 
 ## Authority
 Owns grants, bounded orchestration, participant binding, cancellation and candidate export lifecycle. Doppler owns sample/round identities, gradient production, numerical validation and the shared optimizer update. Hosts own isolated execution, datasets, model preparation and publication decisions.
@@ -22,7 +22,7 @@ Outputs: unapplied candidates and bounded training state. The dedicated training
 - Missing/failed contributions never produce a partial optimizer update. No automatic retry of ambiguous work.
 - Stop waits for the active borrowed GPU command to settle. Transport cancellation is not GPU termination.
 - Training and export cannot evaluate, publish, activate or replace a serving adapter.
-- Sessions keep candidates across route changes; page reload does not resume training.
+- A coordinator can retain the complete optimizer and adapter checkpoint in its session and explicitly resume it. A failed resumed round preserves the previous checkpoint and candidate. Page reload ends the session.
 
 ## Acceptance
 Evidence: [lifecycle](../../../../tests/unit/lora-training.test.js), [transport](../../../../tests/unit/lora-training-network.test.js), [controls](../../../../tests/unit/lora-training-ui.test.js). Fixtures do not establish GPU or cross-machine qualification.

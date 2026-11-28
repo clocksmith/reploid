@@ -27,9 +27,10 @@ export interface TrainingReceiver {
 }
 export interface TrainingSession {
   getState(): TrainingState; getCandidate(): TrainingCandidate | null;
+  getCheckpoint(): { hash: string; value: Record<string, unknown> & { stepCount: number } } | null;
   subscribe(listener: (state: TrainingState) => void): () => void;
   connect(): Promise<void>;
-  run(input: { samples: TrainingSample[]; consent: boolean; peers?: string[];
+  run(input: { samples: TrainingSample[]; consent: boolean; peers?: string[]; retainCheckpoint?: boolean; resume?: boolean;
     adapter: { id: string; name: string; version: string } }): Promise<TrainingCandidate>;
   contribute(input: { sample: TrainingSample; coordinator: string; consent: boolean }): Promise<void>;
   stop(): Promise<void>; disconnect(): Promise<void>; close(): Promise<void>;

@@ -32,19 +32,14 @@ const server = http.createServer(async (request, response) => {
   try {
     const name = decodeURIComponent(new URL(request.url, 'http://localhost').pathname);
     if (name === '/') { response.setHeader('Content-Type', 'text/html'); response.end('<!doctype html><title>Bounded training check</title>'); return; }
-    if (name === '/config/chat-models.json') {
-      const catalog = JSON.parse(await fs.readFile(resolveServedFile(name)));
-      catalog.find(row => row.id === policy.modelId).source.baseUrl = origin + '/model/';
-      response.setHeader('Content-Type', 'application/json'); response.end(JSON.stringify(catalog)); return;
-    }
-    if (!name.startsWith('/model/') && /\.m?js$/.test(name)) {
+    if (!name.startsWith(policy.modelPath) && /\.m?js$/.test(name)) {
       // Browser modules are served as Hosting serves them.
       const bytes = await readServedHarnessFile('/self' + name);
       if (!bytes) throw Error('Not a served browser file');
       response.setHeader('Content-Type', 'text/javascript'); response.end(bytes); return;
     }
-    const base = name.startsWith('/model/') ? modelRoot : path.dirname(resolveServedFile(name));
-    const file = path.resolve(base, '.' + (name.startsWith('/model/') ? name.slice(6) : '/' + path.basename(name)));
+    const base = name.startsWith(policy.modelPath) ? modelRoot : path.dirname(resolveServedFile(name));
+    const file = path.resolve(base, '.' + (name.startsWith(policy.modelPath) ? '/' + name.slice(policy.modelPath.length) : '/' + path.basename(name)));
     if (!file.startsWith(base + '/')) throw Error('Invalid path');
     const stat = await fs.stat(file);
     response.setHeader('Content-Type', file.endsWith('.js') ? 'text/javascript' : file.endsWith('.json') ? 'application/json' : 'application/octet-stream');

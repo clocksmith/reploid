@@ -27,7 +27,7 @@ export function createImproveController({ work = null, evolution = null, swarm =
   const peerChoice = new Map();
   // Training: the chosen samples and the form.
   let trainingState = training?.getState?.() ?? null, exported = training?.getCandidate?.() ?? null;
-  let lora = { samples: null, reading: false, revision: 0, adapterId: 'my-qwen-adapter', version: '0.0.1', consent: false,
+  let lora = { samples: null, reading: false, revision: 0, adapterId: 'my-qwen-adapter', version: '0.0.1', consent: false, resume: false,
     coordinator: '', peers: [], selected: [], error: '', status: '', downloads: !!exported };
 
   const notify = () => { if (disposed) return; snapshot = project(); for (const listener of listeners) listener(); };
@@ -147,11 +147,13 @@ export function createImproveController({ work = null, evolution = null, swarm =
     if (!training) return null;
     const value = trainingState || {};
     const busy = !!value.busy;
+    const step = exported?.manifest?.metadata?.checkpointStep;
     return {
       status: lora.status || `${value.phase}: ${value.message || 'Training is idle.'}`,
       error: lora.error,
       disabled: busy || lora.reading,
       adapterId: lora.adapterId, version: lora.version, consent: lora.consent,
+      checkpoint: Number.isSafeInteger(step) && step > 0 ? { id: exported.manifest.id, step } : null, resume: lora.resume,
       peers: lora.peers, coordinator: lora.coordinator, selected: lora.selected,
       downloads: lora.downloads && !!exported
     };
@@ -188,7 +190,7 @@ export function createImproveController({ work = null, evolution = null, swarm =
   const unsubscribeTraining = training?.subscribe?.(value => {
     trainingState = value;
     if (value.phase === 'completed') { exported = training.getCandidate(); lora = { ...lora, downloads: !!exported }; }
-    if (value.phase === 'preparing') { exported = null; lora = { ...lora, downloads: false }; }
+    if (value.phase === 'preparing' && !value.candidate) { exported = null; lora = { ...lora, downloads: false }; }
     lora = { ...lora, status: '' };
     notify();
   }) ?? (() => {});
@@ -202,6 +204,12 @@ export function createImproveController({ work = null, evolution = null, swarm =
     if (!lora.samples || lora.reading) throw new Error('Choose training samples first');
     return { samples: lora.samples, consent: lora.consent,
       adapter: { id: lora.adapterId.trim(), name: lora.adapterId.trim(), version: lora.version.trim() } };
+  };
+  const train = async peers => {
+    const request = { ...trainingRequest(), peers, retainCheckpoint: true, resume: lora.resume };
+    lora = { ...lora, resume: false };
+    exported = await training.run(request);
+    lora = { ...lora, downloads: true }; notify();
   };
   const trainingAction = task => { lora = { ...lora, error: '' }; notify();
     return Promise.resolve().then(task).catch(cause => { if (!disposed) { lora = { ...lora, error: cause.message }; notify(); } }); };
@@ -321,14 +329,14 @@ export function createImproveController({ work = null, evolution = null, swarm =
       finally { lora = { ...lora, reading: false }; notify(); }
     },
     setTrainingField(field, value) {
-      if (!['adapterId', 'version', 'consent', 'coordinator', 'selected'].includes(field)) return;
+      if (!['adapterId', 'version', 'consent', 'coordinator', 'selected', 'resume'].includes(field)) return;
       lora = { ...lora, [field]: value }; notify();
     },
-    trainHere() { return trainingAction(async () => { exported = await training.run({ ...trainingRequest(), peers: [] }); lora = { ...lora, downloads: true }; notify(); }); },
+    trainHere() { return trainingAction(() => train([])); },
     trainPooled() {
       return trainingAction(async () => {
         if (!lora.selected.length) throw new Error('Select at least one contributor');
-        exported = await training.run({ ...trainingRequest(), peers: [...lora.selected] }); lora = { ...lora, downloads: true }; notify();
+        await train([...lora.selected]);
       });
     },
     stopTraining() { return trainingAction(() => training.stop()); },

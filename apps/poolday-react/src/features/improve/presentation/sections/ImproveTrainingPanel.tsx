@@ -14,6 +14,16 @@ export function TrainingPanel({ training, services }: { readonly training: Train
         </FilePicker>
         <Field label={t.training.adapterId} value={training.adapterId} maxLength={96} onChange={(value) => services.setTrainingField('adapterId', value)} data={{ 'data-lora-id': true }} />
         <Field label={t.training.version} value={training.version} onChange={(value) => services.setTrainingField('version', value)} data={{ 'data-lora-version': true }} />
+        {training.checkpoint && (
+          <Toggle
+            title={t.training.resume}
+            status={t.training.checkpoint(training.checkpoint.id, training.checkpoint.step)}
+            checked={training.resume}
+            disabled={training.disabled}
+            onChange={(on) => services.setTrainingField('resume', on)}
+            controlData={{ 'data-lora-resume': true }}
+          />
+        )}
         <Toggle
           title={t.training.consent}
           status={t.training.consentStatus}

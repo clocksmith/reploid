@@ -16,10 +16,11 @@ export function createDopplerTrainingExecutor({ loadRuntime, modelUrl, policy, o
           }); signal?.throwIfAborted();
           trainer = api.createNativeQwenLoRATrainer({ ...policy.trainer, pipeline: loaded.pipeline,
             baseModelId: policy.modelId, layerIdx: policy.layerIdx, module: policy.module });
+          if (input.checkpoint) trainer.restoreCheckpoint(input.checkpoint.value);
           const assignment = trainer.describeTrainingSample(input.participantId, input.sample);
           const probe = await trainer.createTrainingRound({ jobId: 'identity-check', roundId: '0', assignments: [assignment] });
           if (probe.baseManifestHash !== policy.baseManifestHash) throw new Error('Training base differs from the qualified model');
-          result = { assignment, baseManifestHash: probe.baseManifestHash };
+          result = { assignment, baseManifestHash: probe.baseManifestHash, checkpointHash: probe.checkpointHash };
         } else {
           if (!trainer) throw new Error('Prepare the training pipeline first');
           switch (action) {

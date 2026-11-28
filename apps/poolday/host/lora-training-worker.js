@@ -1,10 +1,10 @@
 /** Worker isolation keeps training separate from the chat pipeline and adapter state. */
 import { createDopplerTrainingExecutor } from './lora-training-executor.js';
 import policy from '../config/lora-training.json' with { type: 'json' };
-import { DOPPLER_TRAINING_URL, getLocalDopplerModel } from '../../../shared/config/doppler-local-models.js';
+import { DOPPLER_TRAINING_URL } from '../../../shared/config/doppler-local-models.js';
 const controller = new AbortController();
 const executor = createDopplerTrainingExecutor({ policy,
-  modelUrl: getLocalDopplerModel(policy.modelId).source.baseUrl,
+  modelUrl: new URL(policy.modelPath, self.location.origin).href,
   loadRuntime: () => import(DOPPLER_TRAINING_URL),
   onProgress: progress => self.postMessage({ progress }) });
 self.addEventListener('message', async ({ data }) => {

@@ -57,6 +57,41 @@ describe('authorized LoRA orchestration', () => {
     expect(calls.find(row => row[0] === 'apply')[1].contributions.map(row => row.participantId)).toEqual(['local', 'remote']);
     expect(result.metrics).toEqual([{ loss: 0.5, stepCount: 1 }]);
   });
+  it('resumes the complete committed checkpoint and keeps it on a failed next round', async () => {
+    const f = await fixture();
+    const original = f.executor.request.getMockImplementation();
+    const checksum = n => 'sha256:' + String(n).padStart(64, '0');
+    let step = 0;
+    f.executor.request.mockImplementation(async (action, data) => {
+      if (action === 'prepare') {
+        step = data.checkpoint?.value.stepCount || 0;
+        if (step) expect(data.checkpoint.value.optimizer).toEqual([{ m: step, v: step * 2 }]);
+        return { ...await original(action, data), checkpointHash: checksum(step) };
+      }
+      if (action === 'round') return { ...await original(action, data), checkpointHash: checksum(step),
+        checkpoint: { stepCount: step, optimizer: [{ m: step, v: step * 2 }] } };
+      if (action === 'apply') return { loss: 0.5, stepCount: ++step };
+      return original(action, data);
+    });
+    const pooled = { ...input, peers: ['remote-wire'] };
+    await expect(f.session.run({ ...pooled, resume: true })).rejects.toThrow('No retained');
+    await f.session.run({ ...pooled, retainCheckpoint: true });
+    expect(f.session.getCheckpoint().hash).toBe(checksum(1));
+    const retained = f.session.getCheckpoint();
+    retained.value.optimizer[0].m = -1;
+    await f.session.run({ ...pooled, resume: true });
+    const prior = f.session.getCheckpoint(), candidate = f.session.getCandidate();
+    expect(prior.hash).toBe(checksum(2));
+    f.remote.request.mockRejectedValue(Error('disconnected'));
+    await expect(f.session.run({ ...pooled, resume: true })).rejects.toThrow('disconnected');
+    expect(f.session.getState()).toMatchObject({ phase: 'failed', completedSteps: 0 });
+    expect(f.session.getCheckpoint()).toEqual(prior);
+    expect(f.session.getCandidate()).toEqual(candidate);
+    await expect(f.session.run({ ...pooled, retainCheckpoint: true })).rejects.toThrow('disconnected');
+    expect(f.session.getCheckpoint()).toEqual(prior);
+    expect(f.session.getCandidate()).toEqual(candidate);
+    expect(f.executor.request.mock.calls.filter(([action]) => action === 'apply')).toHaveLength(2);
+  });
   it('never updates or exports when a selected contributor disappears', async () => {
     const f = await fixture();
     f.remote.request.mockImplementation(async action => {

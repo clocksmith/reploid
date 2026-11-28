@@ -51,6 +51,8 @@ export const improve = {
     chooseSamples: 'Choose training samples',
     adapterId: 'Adapter ID',
     version: 'Version',
+    resume: 'Continue from last checkpoint',
+    checkpoint: (id: string, step: number) => `${id} · step ${step}`,
     consent: 'Allow model preparation and training',
     consentStatus: 'Training runs on these samples. For pooled training, allow gradient and checkpoint exchange with the participants selected below.',
     trainHere: 'Train on this device',

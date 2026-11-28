@@ -1,0 +1,60 @@
+{
+  "schema": "export-triage/v1",
+  "task": "Route an export defect by the affected surface. If the downloaded artifact contains the reported defect, assign queue A. If the saved artifact is correct and the export UI misrepresents it, assign queue B.",
+  "encoding": {
+    "format": "UTF-8 JSON Lines with LF record terminators",
+    "fields": [
+      "id",
+      "prompt",
+      "label"
+    ],
+    "labels": [
+      "A",
+      "B"
+    ],
+    "taskPrompt": "Export triage\nTicket: <ticket>\nQueue:\n",
+    "controlPrompt": "<question>\nA. <option A>\nB. <option B>\nAnswer:\n"
+  },
+  "cases": {
+    "train": {
+      "file": "train.jsonl",
+      "ids": "train-01..train-32",
+      "A": 16,
+      "B": 16
+    },
+    "heldout": {
+      "file": "holdout.sealed.json",
+      "plaintextSha256": "2589364b8fbc3a2c0c55b6e49bc6011524673e62df5471e920f1703022c5e4ef",
+      "task": {
+        "ids": "test-01..test-24",
+        "A": 12,
+        "B": 12
+      },
+      "retention": {
+        "ids": "control-01..control-12",
+        "A": 6,
+        "B": 6
+      }
+    }
+  },
+  "inference": {
+    "format": "Use the full raw prompt as stored, including the final LF. Encode without a chat template or added special tokens. Append no spaces or other content.",
+    "choices": "Verify that tokenizing the concatenated prompt and each bare label yields exactly the prompt tokens followed by one token for the label. Record both token IDs.",
+    "decision": "Compare next-token logits for A and B at the final prompt position. The strictly larger finite logit wins. An exact tie is incorrect. Missing, nonfinite, truncated, or unalignable results invalidate the comparison.",
+    "comparison": "Score identical frozen inputs on the same base revision, tokenizer and inference settings with and without the chosen adapter. Evaluate the selected adapter once. Choose it without heldout predictions, prompts, labels or losses."
+  },
+  "metrics": {
+    "task": "Number correct out of 24 and out of 12 by label. On this balanced sample, accuracy equals balanced accuracy.",
+    "retention": "Number correct out of 12 on unrelated multiple-choice prompts and count of base-correct responses that become incorrect after adaptation.",
+    "reference": "A constant-label prediction earns 12/24 on the heldout task. The primary comparison is paired against the matched, unadapted base."
+  },
+  "gate": {
+    "allRequired": true,
+    "minimumAdaptedTaskCorrect": 16,
+    "minimumAdaptedTaskCorrectPerLabel": 7,
+    "minimumNetGainOverBaseInTaskCorrect": 3,
+    "maximumBaseCorrectRetentionItemsLost": 0,
+    "interpretation": "A pass is a task-specific improvement on these synthetic tickets and preservation of the base's correct answers on the 12 controls. Report counts at either outcome. These thresholds are descriptive and do not establish statistical significance."
+  },
+  "freeze": "Freeze the train data, sealed heldout data, pass criteria, and independent scorer by SHA-256 before the comparison. Holdout plaintext is reserved for the scorer until all competing artifacts are pinned. Retraining after a holdout reveal requires fresh unseen data for a new qualification."
+}

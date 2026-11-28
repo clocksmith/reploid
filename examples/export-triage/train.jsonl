@@ -1,0 +1,32 @@
+{"id":"train-01","prompt":"Export triage\nTicket: Tax is listed correctly in the invoice preview. The exported invoice itself has a zero in the tax field.\nQueue:\n","label":"A"}
+{"id":"train-02","prompt":"Export triage\nTicket: The saved slide is sharp when opened from disk. The export preview makes the lettering look fuzzy.\nQueue:\n","label":"B"}
+{"id":"train-03","prompt":"Export triage\nTicket: A separate reader opens the downloaded checklist with all the boxes ticked correctly. On this site's preview every box appears empty.\nQueue:\n","label":"B"}
+{"id":"train-04","prompt":"Export triage\nTicket: Checking the downloaded class list in a text editor, I found three pupils with the same ID. Their IDs are distinct on screen.\nQueue:\n","label":"A"}
+{"id":"train-05","prompt":"Export triage\nTicket: The data file opened from my downloads has twelve rows as expected. The preview footer says there are none.\nQueue:\n","label":"B"}
+{"id":"train-06","prompt":"Export triage\nTicket: The audio clip sounds complete in the player. The saved clip stops before the speaker finishes her sentence.\nQueue:\n","label":"A"}
+{"id":"train-07","prompt":"Export triage\nTicket: On screen the recipe says two teaspoons. Importing the saved recipe into another app gives two tablespoons.\nQueue:\n","label":"A"}
+{"id":"train-08","prompt":"Export triage\nTicket: The export dialog shows a blank portrait beside the speaker's name. The downloaded conference program has her photo.\nQueue:\n","label":"B"}
+{"id":"train-09","prompt":"Export triage\nTicket: The saved menu prints neatly on one page. Before saving, the preview divides the same menu over three pages.\nQueue:\n","label":"B"}
+{"id":"train-10","prompt":"Export triage\nTicket: Both contacts have phone numbers on the page. The address book file I downloaded has no numbers for either.\nQueue:\n","label":"A"}
+{"id":"train-11","prompt":"Export triage\nTicket: The exported sketch has a white rectangle over the signature in two other viewers. I can see the signature in the editor.\nQueue:\n","label":"A"}
+{"id":"train-12","prompt":"Export triage\nTicket: The animated icon plays each frame when opened elsewhere. In the export panel all I can see is a still image.\nQueue:\n","label":"B"}
+{"id":"train-13","prompt":"Export triage\nTicket: All language entries look fine before export, but the Japanese greeting in the saved translation table has been replaced by question marks.\nQueue:\n","label":"A"}
+{"id":"train-14","prompt":"Export triage\nTicket: The export status line says the file is empty. Counting the records in that same downloaded file gives the expected 300.\nQueue:\n","label":"B"}
+{"id":"train-15","prompt":"Export triage\nTicket: Only the in-app preview clips the right edge of the shipping form. The form I downloaded has a full right edge.\nQueue:\n","label":"B"}
+{"id":"train-16","prompt":"Export triage\nTicket: Our race results show the correct finish times online. Reading the exported table, the last two racers have exchanged times.\nQueue:\n","label":"A"}
+{"id":"train-17","prompt":"Export triage\nTicket: The labels show up once apiece in my workspace. In the download every shipping label has been written twice.\nQueue:\n","label":"A"}
+{"id":"train-18","prompt":"Export triage\nTicket: One label covers the next in the on-screen diagram. Opening the exported diagram separately shows proper spacing.\nQueue:\n","label":"B"}
+{"id":"train-19","prompt":"Export triage\nTicket: The poem in the downloaded booklet has the correct line breaks. The preview in our editor shows one long line.\nQueue:\n","label":"B"}
+{"id":"train-20","prompt":"Export triage\nTicket: Saved the survey answers and loaded the text file on a different computer. None of the comments made it into the file.\nQueue:\n","label":"A"}
+{"id":"train-21","prompt":"Export triage\nTicket: The saved badge has a black border in both the reader and on paper. The export thumbnail makes that border look red.\nQueue:\n","label":"B"}
+{"id":"train-22","prompt":"Export triage\nTicket: The meeting on my calendar is in June. The calendar file I exported tells another app to schedule it in July.\nQueue:\n","label":"A"}
+{"id":"train-23","prompt":"Export triage\nTicket: The floor plan looks complete on screen. In the exported drawing, the kitchen door has no opening, in either of the two readers I tried.\nQueue:\n","label":"A"}
+{"id":"train-24","prompt":"Export triage\nTicket: An imported copy of my downloaded spreadsheet sums to 42 as expected. Its export preview claims the total is 24.\nQueue:\n","label":"B"}
+{"id":"train-25","prompt":"Export triage\nTicket: The download contains the names in alphabetical order. The panel listing what will be exported has those names shuffled.\nQueue:\n","label":"B"}
+{"id":"train-26","prompt":"Export triage\nTicket: I checked the generated archive and the folder for the last chapter is empty. All its pages open on the site.\nQueue:\n","label":"A"}
+{"id":"train-27","prompt":"Export triage\nTicket: The database page shows distinct values for 'owner' and 'reviewer'. The downloaded records put the owner in both places.\nQueue:\n","label":"A"}
+{"id":"train-28","prompt":"Export triage\nTicket: The poster proof in our export dialog is tiny and unreadable. I opened the actual export at the requested size and it looks fine.\nQueue:\n","label":"B"}
+{"id":"train-29","prompt":"Export triage\nTicket: A sensor reading of minus eight looks right in the dashboard. Opening its export in a plain text editor gives positive eight.\nQueue:\n","label":"A"}
+{"id":"train-30","prompt":"Export triage\nTicket: The caption vanishes when I switch to preview mode. I can read the caption in the image saved by that export.\nQueue:\n","label":"B"}
+{"id":"train-31","prompt":"Export triage\nTicket: The file itself uses commas as requested. The application's export sample renders the same values with tabs.\nQueue:\n","label":"B"}
+{"id":"train-32","prompt":"Export triage\nTicket: The printable card looks right in the designer. The PDF we sent the printer actually contains last month's address.\nQueue:\n","label":"A"}

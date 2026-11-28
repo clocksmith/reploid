@@ -1,6 +1,7 @@
 {
   "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
-  "baseManifestHash": "sha256:cf20c690cc397a4bd8e64ee4b00158114947ee75568c0ae8f2df8a9ebc052965",
+  "modelPath": "/model-files/qwen-3-5-0-8b-q4k-ehaf16/",
+  "baseManifestHash": "sha256:9317b66f490c3a73beab54408270e6fb2901a33aadb31c910b9e3b48b1d1b0e0",
   "vocabSize": 248320,
   "layerIdx": 23,
   "module": "down_proj",

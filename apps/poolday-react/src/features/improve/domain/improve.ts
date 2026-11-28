@@ -76,6 +76,8 @@ export type TrainingView = {
   readonly adapterId: string;
   readonly version: string;
   readonly consent: boolean;
+  readonly checkpoint: { readonly id: string; readonly step: number } | null;
+  readonly resume: boolean;
   readonly peers: ReadonlyArray<{ readonly id: string; readonly name: string }>;
   readonly coordinator: string;
   readonly selected: ReadonlyArray<string>;
@@ -90,7 +92,7 @@ export type ImproveSnapshot = {
   readonly training: TrainingView | null;
 };
 
-export type TrainingField = 'adapterId' | 'version' | 'consent' | 'coordinator' | 'selected';
+export type TrainingField = 'adapterId' | 'version' | 'consent' | 'resume' | 'coordinator' | 'selected';
 
 export type ImproveServices = {
   readonly getSnapshot: () => ImproveSnapshot;
