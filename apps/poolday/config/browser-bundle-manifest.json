@@ -1416,7 +1416,7 @@
     {
       "path": "config/module-inventory.json",
       "byteLength": 689798,
-      "sha256": "sha256:df2cf577348a49afa798119065f68f30c04704cd4175a16750852928236b354b"
+      "sha256": "sha256:b5fd403b664c70d634a1f105260ebf473a9553a948c7c5ed37a52795bf3fc58d"
     },
     {
       "path": "config/module-registry.json",
@@ -2370,8 +2370,8 @@
     },
     {
       "path": "host/work-swarm.js",
-      "byteLength": 48560,
-      "sha256": "sha256:9811fa06bd78fc08566fce55b8261786f57182c5a5f8b3f4ed6325b60d3b6864"
+      "byteLength": 48549,
+      "sha256": "sha256:92f3acbc33ade052a617741cb7bba99e220a3f5ff5357290260e5df7d816eeec"
     },
     {
       "path": "host/work-task.js",
@@ -3505,8 +3505,8 @@
     },
     {
       "path": "styles/poolday/primitives/workspace.css",
-      "byteLength": 8922,
-      "sha256": "sha256:accbec356357eeeba52713824e6788de482ff7442bb337c683e69cb5aa13eedc"
+      "byteLength": 7519,
+      "sha256": "sha256:42a880472a67dab30c84016fe5d845f5332dd0654d996bfe3468dc0b8edcaa63"
     },
     {
       "path": "styles/poolday/tokens.css",
@@ -4170,13 +4170,13 @@
     },
     {
       "path": "ui/react/app.js",
-      "byteLength": 3066411,
-      "sha256": "sha256:c7d0e92376612d0b99c89c903a9a13024b21a36599ba9e29a4648a2523205d5d"
+      "byteLength": 3067091,
+      "sha256": "sha256:6f8512bba89ef61fcf242e35d840ac6fadf7a6373d80987fc8da22830a07a1ad"
     },
     {
       "path": "ui/react/design.js",
-      "byteLength": 2116897,
-      "sha256": "sha256:8519e049f842a493e893e31832eb4950522c89c8d4492bdce6e9a9cc423bdc72"
+      "byteLength": 2117228,
+      "sha256": "sha256:fe9b7ccfc12306fc605fb89c28ada18ad4ac1f141ac11fd434d27dbfb71b7b1e"
     },
     {
       "path": "ui/reploid-home/index.js",
@@ -12634,5 +12634,5 @@
       "sha256": "sha256:f17c57d2f5d32a7d9f5517b9ad4937c51e3923fac2e2a03528fdb5f5be6b582b"
     }
   ],
-  "bundleHash": "sha256:80f39b971b881dbb58ef3aab9dc07305d9e9a1e4075c0d067b6821f23ba88d0b"
+  "bundleHash": "sha256:a654ab1a49bf8963603106c12c560cbbe6cbc04d555f47f843d55f598c6e3e86"
 }

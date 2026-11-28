@@ -3985,7 +3985,7 @@
     {
       "path": "self/host/work-swarm.js",
       "owner": "self",
-      "sha256": "sha256:9811fa06bd78fc08566fce55b8261786f57182c5a5f8b3f4ed6325b60d3b6864",
+      "sha256": "sha256:92f3acbc33ade052a617741cb7bba99e220a3f5ff5357290260e5df7d816eeec",
       "imports": [
         "../capabilities/communication/library-adapter.js",
         "../config/doppler-local-models.js",
@@ -5154,13 +5154,13 @@
     {
       "path": "ui/react/app.js",
       "owner": "ui",
-      "sha256": "sha256:c7d0e92376612d0b99c89c903a9a13024b21a36599ba9e29a4648a2523205d5d",
+      "sha256": "sha256:6f8512bba89ef61fcf242e35d840ac6fadf7a6373d80987fc8da22830a07a1ad",
       "imports": []
     },
     {
       "path": "ui/react/design.js",
       "owner": "ui",
-      "sha256": "sha256:8519e049f842a493e893e31832eb4950522c89c8d4492bdce6e9a9cc423bdc72",
+      "sha256": "sha256:fe9b7ccfc12306fc605fb89c28ada18ad4ac1f141ac11fd434d27dbfb71b7b1e",
       "imports": []
     },
     {
