@@ -37,8 +37,13 @@
   overflow: hidden;
   transition: inline-size var(--pool-duration-fast) var(--pool-ease-emphasis);
 }
-.pool-home .pool-workspace-bar:is(:hover, :focus-within, [data-rail-open]) {
+.pool-home .pool-workspace-bar:is(:hover, :focus-within, [data-rail-open]),
+.pool-home .pool-workspace:is([data-start-open], [data-end-open]) > .pool-workspace-bar {
   inline-size: var(--pool-param-rail-expanded);
+}
+.pool-home .pool-workspace:is([data-start-open], [data-end-open]) > .pool-workspace-bar {
+  border-start-end-radius: 0;
+  border-end-end-radius: 0;
 }
 .pool-home .pool-rail-toggle { display: none; }
 .pool-home .pool-workspace-bar-items {
@@ -93,7 +98,8 @@
     max-inline-size var(--pool-duration-fast) var(--pool-ease-emphasis),
     transform var(--pool-duration-fast) var(--pool-ease-emphasis);
 }
-.pool-home .pool-workspace-bar:is(:hover, :focus-within, [data-rail-open]) .pool-bar-label {
+.pool-home .pool-workspace-bar:is(:hover, :focus-within, [data-rail-open]) .pool-bar-label,
+.pool-home .pool-workspace:is([data-start-open], [data-end-open]) > .pool-workspace-bar .pool-bar-label {
   max-inline-size: var(--pool-size-128);
   opacity: 1;
   transform: translateX(0);
@@ -101,7 +107,7 @@
 .pool-home .pool-drawer {
   position: fixed;
   inset-block: var(--pool-param-workspace-gutter);
-  inset-inline-start: calc(var(--pool-param-rail-width) + var(--pool-param-workspace-gutter) * 2);
+  inset-inline-start: calc(var(--pool-param-rail-expanded) + var(--pool-param-workspace-gutter));
   z-index: var(--pool-z-overlay);
   display: flex;
   flex-direction: column;
@@ -110,18 +116,21 @@
   min-block-size: 0;
   margin: 0;
   padding: var(--pool-size-16);
+  border-start-start-radius: 0;
+  border-end-start-radius: 0;
+  border-inline-start: 0;
   overflow: hidden;
   transform-origin: left center;
 }
 .pool-home .pool-drawer-start {
-  inline-size: min(var(--pool-size-320), calc(100vw - var(--pool-param-rail-width) - var(--pool-size-48)));
+  inline-size: min(var(--pool-size-320), calc(100vw - var(--pool-param-rail-expanded) - var(--pool-size-32)));
 }
 .pool-home .pool-drawer-end {
-  inline-size: min(var(--pool-size-360), calc(100vw - var(--pool-param-rail-width) - var(--pool-size-48)));
+  inline-size: min(var(--pool-size-360), calc(100vw - var(--pool-param-rail-expanded) - var(--pool-size-32)));
 }
 .pool-home .pool-workspace[data-start-open] > .pool-drawer-end {
-  inset-inline-start: calc(var(--pool-param-rail-width) + var(--pool-size-320) + var(--pool-param-workspace-gutter) * 3);
-  inline-size: min(var(--pool-size-360), calc(100vw - var(--pool-param-rail-width) - var(--pool-size-320) - var(--pool-size-64)));
+  inset-inline-start: calc(var(--pool-param-rail-expanded) + var(--pool-size-320) + var(--pool-param-workspace-gutter));
+  inline-size: min(var(--pool-size-360), calc(100vw - var(--pool-param-rail-expanded) - var(--pool-size-320) - var(--pool-size-32)));
 }
 .pool-home .pool-drawer-header { display: flex; flex: none; align-items: center; justify-content: space-between; gap: var(--pool-size-8); }
 .pool-home .pool-drawer-header > h2 { margin: 0; }
@@ -153,8 +162,10 @@
     border-radius: var(--pool-radius-pill);
     transform-origin: left top;
   }
-  .pool-home .pool-workspace-bar:is(:hover, :focus-within):not([data-rail-open]) {
+  .pool-home .pool-workspace-bar:is(:hover, :focus-within):not([data-rail-open]),
+  .pool-home .pool-workspace:is([data-start-open], [data-end-open]) > .pool-workspace-bar:not([data-rail-open]) {
     inline-size: auto;
+    border-radius: var(--pool-radius-pill);
   }
   .pool-home .pool-rail-toggle {
     display: inline-flex;
@@ -181,9 +192,11 @@
   }
   .pool-home .pool-drawer,
   .pool-home .pool-workspace[data-start-open] > .pool-drawer-end {
-    inset-block: max(var(--pool-size-8), env(safe-area-inset-top)) max(var(--pool-size-8), env(safe-area-inset-bottom));
+    inset-block: calc(var(--pool-size-64) + max(var(--pool-size-8), env(safe-area-inset-top))) max(var(--pool-size-8), env(safe-area-inset-bottom));
     inset-inline: max(var(--pool-param-workspace-gutter), env(safe-area-inset-left)) max(var(--pool-param-workspace-gutter), env(safe-area-inset-right));
     inline-size: auto;
+    border-radius: var(--pool-radius-panel);
+    border-inline-start: var(--pool-border-hairline) solid var(--pool-color-line);
   }
 }
 /* A Poolday root holding the workspace gives the page to it: the frame owns its gutters and height. */
