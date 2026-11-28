@@ -3051,7 +3051,7 @@
     {
       "path": "self/host/decisions/computers.js",
       "owner": "self",
-      "sha256": "sha256:ac9eff179b250105653a9c5c119e1886a288b3178afa2cd662a80a3e261837c7",
+      "sha256": "sha256:85ac36fc4d8e05ff0a07516eccbe362fb816b9d4f900fba21f78a2e7e2cb90b2",
       "imports": [
         "../../capabilities/communication/library-adapter.js",
         "../../pool/model-contract.js",
@@ -3075,7 +3075,7 @@
     {
       "path": "self/host/decisions/conversation-controller.js",
       "owner": "self",
-      "sha256": "sha256:7e061433878964b615365386325b7438a1d3e29d54c97030db43ca56d157826d",
+      "sha256": "sha256:64876a985e2bd20d268a7bdce427944112da0fa0b4382b8a3d85319a70cb785c",
       "imports": [
         "../../config/chat-prompts.json",
         "../../config/work-profile.json",
@@ -3796,7 +3796,7 @@
     {
       "path": "self/host/weight-supply-host.js",
       "owner": "self",
-      "sha256": "sha256:c6a4bb0797f28780d1393d5b737659129895799995442396d93d720df1aed81d",
+      "sha256": "sha256:e4a9c13e0e221300fd8e8dd51b776f93f56f4370a591f79d56204b6f5c9cb360",
       "imports": [
         "../vendor/reploid/artifacts/custody/weight-supply.js",
         "./computer-records.js"
@@ -3986,7 +3986,7 @@
     {
       "path": "self/host/work-swarm.js",
       "owner": "self",
-      "sha256": "sha256:92f3acbc33ade052a617741cb7bba99e220a3f5ff5357290260e5df7d816eeec",
+      "sha256": "sha256:8af3e9a10ec223ca6cf86e76c249f0958f4f54b7734ebd2abcc81ee066536a94",
       "imports": [
         "../capabilities/communication/library-adapter.js",
         "../config/doppler-local-models.js",
@@ -5155,13 +5155,13 @@
     {
       "path": "ui/react/app.js",
       "owner": "ui",
-      "sha256": "sha256:0c4141facdce2c29c4c9a70fd20f96c1bcd22b6e49cd26c5ae84308c4050b696",
+      "sha256": "sha256:db78f706856e026511d9e99dc586bcf1fd50653ec8a9d09bfada5e442437fbc3",
       "imports": []
     },
     {
       "path": "ui/react/design.js",
       "owner": "ui",
-      "sha256": "sha256:2ad9a2bd23e9511fc382d8f23b6a529c27a650072f89077c739dceb6831ba748",
+      "sha256": "sha256:4961cf1ec320bda7b2ae636e54e0feb8242da4b6922f3aee7558a2f1e938489b",
       "imports": []
     },
     {
