@@ -105,10 +105,10 @@ it('offers the download only once discovery has settled with no contributor for 
 it('moves a first visitor to a public computer when one appears instead of reporting a dead end', () => {
   const f = fixture({ fresh: true }), status = () => f.view.composer().status.text;
   f.publish(observedDiscovery);
-  // Nobody answers yet: the composer says so on the contributor route, and does not offer this device as ready.
-  expect(status()).toBe('No eligible computer found for this model.');
+  // Nobody answers yet: no idle banner or implied local capacity.
+  expect(status()).toBe('');
   expect(f.view.composer().chip.source).toBe('Contributors');
-  expect(f.view.composer().nextAction).toBe('retry');
+  expect(f.view.composer().nextAction).toBeNull();
   f.publish({ models: [{ ...f.state().models[0], availability: 'ready', networkAvailability: 'ready',
     providerIds: ['peer'], reachableProviderIds: ['peer'] }] });
   expect(status()).toBe('');
@@ -155,24 +155,20 @@ it('bounds the host discovery window even when signaling never connects, without
   expect(session.getState().peerDiscoveryTimedOut).toBe(true); expect(session.getState().acquisition.phase).toBe('idle');
   await session.close();
 });
-it('distinguishes discovery in progress, a transport interruption and observed absence of providers', async () => {
-  const f = fixture();
-  const status = () => f.view.composer().status.text, next = () => f.view.composer().nextAction;
-  expect(status()).toMatch(/looking|finding|searching/i);
-  expect(next()).not.toBe('review-shared');
+it('waits for automatic transport recovery without a Retry button and enables Send on a new offer', () => {
+  const f = fixture({ fresh: true });
+  const composer = () => f.view.composer();
+  expect(composer().status.text).toBe('Finding computers…');
   f.publish({ discoveryPhase: 'interrupted', peerDiscoveryTimedOut: true,
     network: { consumer: { connectionState: 'retrying', peers: [] } } });
-  expect(status()).toMatch(/interrupt|connection|connect to/i);
-  expect(next()).toBe('retry');
-  f.c.retryConnection();
-  await vi.waitFor(() => expect(f.api.connect).toHaveBeenCalledOnce());
+  expect(composer()).toMatchObject({ status: { text: '' }, nextAction: null, send: { disabled: true } });
   f.publish(observedDiscovery);
-  expect(status()).toMatch(/no .*computer|no .*provider/i);
-  expect(status()).not.toMatch(/choose a shared model/i);
-  expect(next()).not.toBe('review-shared');
-  f.publish({ network: { ...observedDiscovery.network, connectionFailure: { peerId: 'departed-peer' } } });
-  expect(status()).toContain('A peer connection failed. No eligible computer found');
-  expect(next()).not.toBe('review-shared');
+  expect(composer()).toMatchObject({ status: { text: '' }, nextAction: null, send: { disabled: true } });
+  const model = { ...f.state().models[0], availability: 'ready', networkAvailability: 'ready',
+    providerIds: ['peer'], reachableProviderIds: ['peer'] };
+  f.publish({ models: [model] });
+  expect(composer()).toMatchObject({ status: { text: '' }, nextAction: null, send: { disabled: false } });
+  expect(f.api.connect).not.toHaveBeenCalled();
 });
 
 it('only offers a switch for a reachable shared provider with capacity', () => {
@@ -265,8 +261,8 @@ it('offers local download only as an optional recovery after no usable peers, th
   const f = fixture(); expect(f.view.composer().nextAction).not.toBe('download-local');
   expect(f.view.composer().optionalAction).toBeNull();
   f.publish(observedDiscovery);
-  // The contributor route's next action is searching again; the download is beside it, never in its place.
-  expect(f.view.composer().nextAction).toBe('retry');
+  // Download remains optional in Answer on rather than occupying the idle composer.
+  expect(f.view.composer().nextAction).toBeNull();
   expect(f.view.composer().optionalAction).toBe('download-local');
   expect(f.api.downloadLocalModel).not.toHaveBeenCalled();
   f.c.downloadLocal();

@@ -67,7 +67,9 @@ describe('ChatWorkspace', () => {
     mount();
     await chooseContributors();
     expect(document.querySelector('[data-composer-model-source]')?.textContent).toBe('Contributors');
-    expect(document.querySelector('[data-prompt-disclosure]')?.textContent).toBe('The answering computer can read your prompt.');
+    expect(document.querySelector('[data-prompt-disclosure]')).toBeNull();
+    expect((await openSheet()).querySelector('[data-sheet-disclosure]')?.textContent).toBe('The answering computer can read your prompt.');
+    await closeSheet();
     await send('Pick 3 light comedies.');
     await waitFor(() => expect(within(transcript()).getByText('A synthetic answer to: Pick 3 light comedies.')).toBeTruthy());
   });

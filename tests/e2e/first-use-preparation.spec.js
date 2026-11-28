@@ -40,7 +40,7 @@ for (const theme of ['light', 'dark']) for (const width of [390, 1440]) {
       } });
       // The composer's status line carries preparation. This requester has chosen contributors.
       const privacy = createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'open', ids: [] } });
-      const dispose = mountPoolday(root, { host: { chat: session, close: async () => {} }, viewState: { privacy } });
+      const dispose = mountPoolday(root, { host: { chat: session, close: async () => {} }, viewState: { privacy, executionLocation: 'network' } });
       window.firstUse = {
         state: () => session.getState(), connections: () => connections,
         phase(value) { peer.readiness = value; peer.hasInference = value === 'ready'; peer.availableSlots = value === 'ready' ? 1 : 0; session.refreshNetwork(); },
@@ -67,17 +67,17 @@ for (const theme of ['light', 'dark']) for (const width of [390, 1440]) {
       await page.evaluate(() => window.firstUse.phase('ready'));
       await expect(page.locator('[data-composer-send]')).toBeEnabled();
       await expect(page.locator('[data-retry-connection]')).toBeHidden();
-      await expect(page.locator('[data-prompt-disclosure]')).toHaveText('The answering computer can read your prompt.');
+      await expect(page.locator('[data-prompt-disclosure]')).toHaveCount(0);
       await expect(page.locator('[data-composer-input]')).toHaveValue(draft);
       await observe();
       await page.evaluate(() => window.firstUse.phase('unavailable'));
       // A withdrawn advert does not finish discovery. Let the connected observation window elapse.
       await page.clock.fastForward(8_000);
       await expect(page.locator('[data-composer-send]')).toBeDisabled();
-      // The next step is named beside the status: this model can be downloaded here, so that is the offer.
-      await expect(page.locator('[data-download-local]')).toBeVisible();
-      await expect(page.locator('[data-model-status]')).toBeVisible();
-      await expect(page.locator('[data-model-status]')).toContainText('No eligible computer found');
+      await expect(page.locator('[data-composer-status-row], [data-prompt-disclosure]')).toHaveCount(0);
+      await page.locator('[data-open-model]').click();
+      await expect(page.locator('[data-model-picker] :is([data-optional-download], [data-answer-action="download"])')).toBeVisible();
+      await page.locator('[data-model-picker-close]').click();
       await expect(page.locator('[data-composer-input]')).toHaveValue(draft);
       await observe();
       expect(await page.evaluate(() => ({ calls: window.firstUse.connections(), threads: window.firstUse.state().threads.length }))).toEqual({ calls: 0, threads: 0 });

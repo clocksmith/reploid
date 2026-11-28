@@ -43,7 +43,7 @@ for (const width of [320, 390, 1280]) {
         // One route: every indicator names contributors; nothing implies this device or the paired desktop.
         await expect(page.locator('[data-composer-model-source]')).toHaveText('Contributors');
         await expect(page.locator('[data-composer-input]')).toHaveAttribute('placeholder', 'Message a contributor…');
-        await expect(page.locator('[data-prompt-disclosure]')).toHaveText('The answering computer can read your prompt.');
+        await expect(page.locator('[data-prompt-disclosure]')).toHaveCount(0);
         await expect(page.locator('[data-chat-workspace]')).not.toContainText(/is offline/i);
         await expect(page.locator('[data-download-local], [data-optional-download]')).toHaveCount(0);
         await expectReadableAnswerOn(page);
@@ -82,7 +82,7 @@ for (const width of [320, 390, 1280]) {
         await expect(page.locator('[data-composer-model-source]')).toHaveCount(0);
         await expect(page.locator('[data-composer-send]')).toHaveAttribute('data-send-mode', 'none');
         await expect(page.locator('[data-composer-send]')).toBeDisabled();
-        await expect(page.locator('[data-retry-connection]')).toBeVisible();
+        await expect(page.locator('[data-retry-connection]')).toHaveCount(0);
         await page.locator('[data-composer-send]').click({ force: true });
         await page.locator('[data-composer-input]').press('Enter');
         await page.waitForTimeout(500);
@@ -118,7 +118,7 @@ for (const width of [320, 390, 1280]) {
           await expect(page.locator('[data-model-status]')).toHaveText('No computer answered in 30 seconds. Nothing was sent.', { timeout: 40000 });
           await expect(page.locator('[data-composer-input]')).toHaveValue('Recommend 3 holiday movies that aren’t cheesy.');
           await expect(page.locator('[data-composer-send]')).toHaveAttribute('data-send-mode', 'none');
-          await expect(page.locator('[data-retry-connection]')).toBeVisible();
+          await expect(page.locator('[data-retry-connection]')).toHaveCount(0);
           expect(await page.evaluate(() => window.askAndroid.calls.length)).toBe(0);
           expect(await page.evaluate(() => window.askAndroid.session.getState().threads.length)).toBe(0);
         });

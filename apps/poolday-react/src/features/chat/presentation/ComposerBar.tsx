@@ -1,6 +1,6 @@
 import { useId } from 'react';
 import {
-  Button, FilePicker, IconButton, InputGroup, Notice, Progress, Row, SelectorButton, Stack, StatusLine, Text, TextArea, Toolbar,
+  Button, FilePicker, IconButton, InputGroup, Notice, Progress, Row, SelectorButton, Stack, Text, TextArea, Toolbar,
 } from '@reploid/poolday-ui';
 import type { ComposerView, ConversationCommands, NextAction } from '../domain/conversation';
 import { conversation as t } from '../../../l10n/conversation';
@@ -29,7 +29,7 @@ function NextActionButton({ action, composer, commands }: { readonly action: Nex
 }
 
 /**
- * The message field with its status and who can read the prompt above it, and its controls below: attach, search,
+ * The message field with task-specific feedback and its controls below: attach, search,
  * "Answer on" (where and with which model, and whether it can answer), "Who can read it", and Send or Stop. Every line of status and every
  * action comes from the host's decisions; the status line keeps at most one next action.
  */
@@ -47,13 +47,11 @@ export function ComposerBar({
   readonly focusSignal: number;
   readonly answerOnFocus: number;
 }) {
-  const disclosureId = useId();
   const statusId = useId();
   const { chip, acquisition } = composer;
   const statusText = composer.status.text || acquisition.text;
   const showProgress = !composer.status.text && acquisition.progress !== null;
   const showStatus = !!statusText || showProgress || composer.nextAction !== null;
-  const showDisclosure = composer.disclosure !== '' && chip.executionSource !== 'local';
   const compactPicker = chip.caption || chip.availability !== 'ready' || composer.route.status === 'queued';
   // Send says what one press does: send now, wait for a computer (up to 30 s), ask where to run, or nothing.
   const sendMode = composer.send.disabled ? 'none' : composer.send.mode;
@@ -94,11 +92,6 @@ export function ComposerBar({
           {composer.attachmentHelpText}
         </Text>
       )}
-      {showDisclosure && (
-        <StatusLine id={disclosureId} data={{ 'data-prompt-disclosure': true }}>
-          {composer.disclosure}
-        </StatusLine>
-      )}
       <InputGroup activity="idle" data={{ 'data-composer-field': true, 'data-execution-source': chip.executionSource }}>
         {composer.files.length > 0 && (
           <Row gap="sm" data={{ 'data-attachments-preview': true }}>
@@ -117,7 +110,7 @@ export function ComposerBar({
           onChange={commands.setDraft}
           onSubmit={commands.send}
           focusSignal={focusSignal}
-          describedBy={[showDisclosure && disclosureId, statusText && statusId].filter(Boolean).join(' ') || undefined}
+          describedBy={statusText ? statusId : undefined}
           data={{ 'data-composer-input': true }}
         />
         <Toolbar compact data={{ 'data-composer-toolbar': true }}>
@@ -179,7 +172,7 @@ export function ComposerBar({
               variant={sendMode === 'dispatch' ? 'primary' : 'quiet'}
               label={sendLabel}
               icon="send"
-              describedBy={[showDisclosure && disclosureId, statusText && statusId].filter(Boolean).join(' ') || undefined}
+              describedBy={statusText ? statusId : undefined}
               onPress={sendMode === 'none' ? undefined : commands.send}
               data={{ 'data-composer-send': true, 'data-send-mode': sendMode }}
             />

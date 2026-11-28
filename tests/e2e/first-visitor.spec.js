@@ -31,21 +31,20 @@ async function allowOpenNetwork(page) {
   await expect(policy).toBeHidden();
 }
 
-test('fresh public route stays on contributors, reports interrupted discovery, and keeps this device a choice', async ({ page, baseURL }, info) => {
+test('fresh public route stays on contributors, keeps quiet during interrupted discovery, and keeps this device a choice', async ({ page, baseURL }, info) => {
   await localOnly(page, baseURL);
-  // A first visitor's route is contributors: with the connection down the composer says so and offers a retry, and
-  // never presents this device or a download as the way forward.
+  // The disconnected public route has no manual retry or error panel.
   const message = page.locator('[data-model-status]');
   await expect(page.locator('[data-open-model]')).toHaveAttribute('aria-label', /Contributors/);
   await expect(page.locator('[data-composer-input]')).toHaveAttribute('placeholder', 'Message…');
-  await expect(message).toContainText('Connection interrupted.', { timeout: 12000 });
-  await expect(page.locator('[data-retry-connection]')).toHaveText('Retry connection');
+  await expect(page.locator('[data-retry-connection]')).toHaveCount(0);
+  await expect(page.getByText('Connection interrupted.', { exact: true })).toHaveCount(0);
   await expect(page.locator('[data-review-shared-model]')).toBeHidden();
   const download = page.locator('[data-download-local]');
   await expect(download).toBeHidden();
   // This device stays one choice away, with its reviewed download.
   await chooseComputer(page, 'local');
-  await expect(page.locator('[data-prompt-disclosure]')).toHaveText('Nothing leaves this device.');
+  await expect(page.locator('[data-prompt-disclosure]')).toHaveCount(0);
   if (await page.evaluate(() => !!navigator.gpu && !!navigator.storage?.getDirectory && !!navigator.locks)) {
     await expect(message).toContainText('Model not downloaded yet.');
     await expect(download).toBeVisible();
@@ -122,7 +121,7 @@ test('queues Send while public computers are found and cancels back to an editab
   await expect(cancel).toBeHidden();
   await expect(status).toContainText('Finding computers');
   await page.evaluate(() => window.firstVisitor.peer());
-  await expect(page.locator('[data-prompt-disclosure]')).toHaveText('The answering computer can read your prompt.');
+  await expect(page.locator('[data-prompt-disclosure]')).toHaveCount(0);
   await expect(input).toHaveValue('Explain ocean tides.');
   await expect(page.locator('[data-message-stream]')).toBeEmpty();
 });
@@ -157,7 +156,7 @@ test('reviews a reachable alternate model before changing the public destination
   await expect(source).toHaveText('Contributors');
   await expect(dot).toHaveAttribute('data-availability', 'ready');
   await expect(page.locator('[data-composer-model-name]')).toHaveText(alternateName);
-  await expect(page.locator('[data-prompt-disclosure]')).toHaveText('The answering computer can read your prompt.');
+  await expect(page.locator('[data-prompt-disclosure]')).toHaveCount(0);
 });
 
 for (const [theme, width, height] of [['light', 1440, 1000], ['light', 390, 844], ['dark', 390, 844]]) {
@@ -174,7 +173,7 @@ for (const [theme, width, height] of [['light', 1440, 1000], ['light', 390, 844]
     const privacy = toolbar.locator('[data-open-privacy]');
     const send = toolbar.locator('[data-composer-send]');
     await expect(privacy).not.toContainText('Standard');
-    await expect(page.locator('[data-prompt-disclosure]')).toBeVisible();
+    await expect(page.locator('[data-prompt-disclosure]')).toHaveCount(0);
     expect(Math.abs((await picker.boundingBox()).y - (await send.boundingBox()).y)).toBeLessThan(4);
     await page.screenshot({ path: info.outputPath('empty.png') });
     await picker.click(); await expect(download).toBeVisible();

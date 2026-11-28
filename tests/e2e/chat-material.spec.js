@@ -181,8 +181,7 @@ test('compact chat keeps attempt status reachable and composer visible', async (
       await expect(status).toBeInViewport();
     }
     if (mode === 'empty') {
-      // One status line under the composer explains a disabled Send.
-      await expect(page.locator('[data-model-status]')).toContainText('No eligible computer found');
+      await expect(page.locator('[data-composer-status-row], [data-prompt-disclosure]')).toHaveCount(0);
       await expect(page.locator('[data-message-stream]')).toBeEmpty();
       await expect(page.locator('[data-composer-input]')).toHaveAttribute('placeholder', /^Message/);
     }
@@ -748,14 +747,11 @@ for (const width of [1280, 390, 320]) test(`composer stays anchored across disco
   const input = page.locator('[data-composer-input]'), field = page.locator('[data-composer-field]');
   await input.fill('Keep this draft');
   const before = await field.boundingBox();
-  // Status copy lives outside the field and the model selector keeps one line, so the only state-driven change
-  // inside the field is the pre-send prompt disclosure, which is hidden while an answer runs.
+  // Transactional status stays outside the field and never changes its height.
   const anchors = () => page.evaluate(() => {
     const box = selector => document.querySelector(selector).getBoundingClientRect();
-    const disclosure = document.querySelector('[data-prompt-disclosure]'), status = document.querySelector('[data-model-status]');
-    const gap = parseFloat(getComputedStyle(document.querySelector('[data-composer-field]')).rowGap);
+    const status = document.querySelector('[data-model-status]');
     return { text: box('[data-composer-input]').toJSON(), field: box('[data-composer-field]').toJSON(),
-      disclosure: !disclosure || disclosure.hidden || !disclosure.closest('[data-composer-field]') ? 0 : disclosure.getBoundingClientRect().height + gap,
       status: !status || status.hidden ? null : status.getBoundingClientRect().toJSON() };
   });
   const start = await anchors();
@@ -765,8 +761,7 @@ for (const width of [1280, 390, 320]) test(`composer stays anchored across disco
     expect(box.y + box.height).toBe(before.y + before.height);
     expect(now.text.height).toBe(start.text.height);
     if (now.status) expect(now.status.bottom <= now.field.top || now.status.top >= now.field.bottom).toBe(true);
-    // Field height changes only by the disclosure line; status copy and selector labels never resize it.
-    expect(before.height - box.height).toBeCloseTo(start.disclosure - now.disclosure, 1);
+    expect(box.height).toBeCloseTo(before.height, 1);
   }
   await input.fill('A deliberately multiline draft\n'.repeat(6));
   expect((await field.boundingBox()).height).toBeGreaterThan(before.height);
@@ -938,7 +933,7 @@ for (const width of [1280, 390, 320]) test(`model source, selection and composer
   await expect(page.locator('[data-model-status]')).toContainText('No eligible computer found');
   await expect(page.locator('[data-route-alternatives]')).toHaveCount(0);
   await expect(page.locator('[data-download-local]')).toBeHidden();
-  await expect(page.locator('[data-retry-connection]')).toHaveText('Search again');
+  await expect(page.locator('[data-retry-connection]')).toHaveCount(0);
   expect(await page.locator('[data-composer-field]').boundingBox()).toEqual(field);
   await page.screenshot({ path: info.outputPath(`shared-departed-${width}.png`) });
   await openModel();

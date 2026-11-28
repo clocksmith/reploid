@@ -77,7 +77,7 @@ describe('Paired desktop default', () => {
       expect(composer().chip.source).toBe('Your desktop');
       expect(composer().chip.availability).toBe('unavailable');
       expect(composer().placeholder).toBe('Message…');
-      expect(composer().nextAction).toBe('retry');
+      expect(composer().nextAction).toBeNull();
       expect(composer().send.disabled).toBe(true);
       expect(JSON.stringify(controller.getSnapshot())).not.toContain('Mars');
       expect(JSON.stringify(controller.getSnapshot())).not.toMatch(/wake/i);

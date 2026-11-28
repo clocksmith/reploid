@@ -53,8 +53,8 @@ async function mount(page, { available = true } = {}) {
         return { ...ids, modelId: model.id, modelIdentity: model.identity, adapterIdentities: [], content };
       }
     };
-    const swarm = { getState: () => ({ sharing: false, consumer: { peers: [] } }),
-      async connect() { available = true; listeners.forEach(fn => fn()); } };
+    const arrive = () => { available = true; listeners.forEach(fn => fn()); };
+    const swarm = { getState: () => ({ sharing: false, consumer: { peers: [] } }), async connect() {} };
     const session = createChatSession({ partitions, swarm, storage: localStorage });
     // The React product over this session, in place of the page's own.
     const root = document.createElement('div'); document.body.replaceChildren(root);
@@ -63,7 +63,7 @@ async function mount(page, { available = true } = {}) {
     const privacy = createExecutionPolicy({ placement: 'network-allowed', recipients: { kind: 'open', ids: [] } });
     // The scripted route is the conversation's model, as if chosen in Answer on.
     mountPoolday(root, { host: { chat: session, close: async () => {} }, viewState: { privacy, chosenModel: model, executionLocation: 'network' } });
-    window.journey = { session, jobs };
+    window.journey = { session, jobs, arrive };
   }, { available, partition: fixturePartition });
 }
 // Stop is the composer's, or the answer's own while that answer is in view.
@@ -98,11 +98,12 @@ test.beforeEach(async ({ page }) => {
   await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
 });
 
-test('scripted first visit: capacity retry preserves draft, Send authorizes before output', async ({ page }) => {
+test('scripted first visit: late capacity preserves draft, Send authorizes before output', async ({ page }) => {
   await mount(page, { available: false });
   await page.locator('[data-composer-input]').fill('What can you help with?');
   await expect(page.locator('[data-composer-send]')).toBeDisabled();
-  await page.locator('[data-retry-connection]').click();
+  await expect(page.locator('[data-retry-connection]')).toHaveCount(0);
+  await page.evaluate(() => window.journey.arrive());
   await expect(page.locator('[data-composer-input]')).toHaveValue('What can you help with?');
   await page.locator('[data-composer-send]').click();
   await approve(page); await emit(page, 'Scripted answer, supplied by the test.');

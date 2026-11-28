@@ -34,6 +34,7 @@ import { createDownloadDialog } from './download-dialog.js';
 import { createThreadList } from './threads.js';
 import { createPrivacyDialog } from './privacy-dialog.js';
 import { createRemoteApproval, remotePermissionView } from './remote-approval.js';
+import { selectAvailableChatModel } from '../chat-view.js';
 import { createSendIntentStore } from '../send-intents.js';
 
 export { relativeTime } from './threads.js';
@@ -387,7 +388,7 @@ export function createConversationController(session, {
   const downloadableHere = (model, state) => canDownloadModelHere(model, state, canDownload);
   function pinDraftModel(state) {
     // Not during the discovery wait of a visitor who picked no model: see the pin in project().
-    if (choosingStill(state)) return;
+    if (waitsForAnyModel(state) || choosingStill(state)) return;
     if (state.selectedId == null && !choice.model && !viewState.draftModel) {
       viewState.draftModel = state.models?.find(model => modelKey(model) === currentKey);
     }
@@ -404,7 +405,7 @@ export function createConversationController(session, {
   /** Whether a held Send may keep waiting for `model`: its route and draft still permit it. Discovery does not bound it. */
   function holdable(state, model, location) {
     const privacy = explicitPrivacy(state);
-    const pinned = state.activeThread?.model || choice.model || viewState.draftModel;
+    const pinned = state.activeThread?.model || (waitsForAnyModel(state) ? null : choice.model || viewState.draftModel);
     return !!model?.identity && (!pinned?.identity || modelIdentity(model) === modelIdentity(pinned)) && !model.partition && !model.fleet && location !== 'local'
       && (!state.activeThread || location === 'network') && allowsOpenPlaintext(privacy)
       && !searching() && !attachmentReader.pending
@@ -511,23 +512,27 @@ export function createConversationController(session, {
     }
     const thread = state.activeThread, catalogModels = state.models || [], runningIds = state.runningIds || [];
     if (!thread && !draftText.trim() && !files.length && !attachmentReader.pending) viewState.draftModel = null;
-    // An automatic choice follows availability: when its model is no longer served or stored and another one is,
-    // the composer moves to that one before Send, so the model it names is the model that answers.
-    if (!thread && state.defaultModels?.[effectiveLocation(state)] && !lockedDestination(state)) {
+    // A typed public draft follows a better fallback when its current model stops serving.
+    // Don't depend on the session's generic default: it may include private or split routes.
+    const publicAuto = waitsForAnyModel(state);
+    const location = effectiveLocation(state);
+    if (publicAuto && viewState.draftModel) {
+      const serving = catalogModels.filter(publicAnswers);
+      const currentDraftModel = serving.find(model => modelIdentity(model) === modelIdentity(viewState.draftModel));
+      if (!currentDraftModel || (currentDraftModel.networkAvailability !== 'ready'
+        && serving.some(model => model.networkAvailability === 'ready'))) viewState.draftModel = null;
+    }
+    if (!publicAuto && !thread && state.defaultModels?.[location] && !lockedDestination(state)) {
       const served = model => { const item = findAnswerChoice(answerChoiceOf(model), catalogModels); return !!item && choiceAvailable(item, state); };
       if (viewState.draftModel && !choice.model && !served(viewState.draftModel)) viewState.draftModel = null;
       if (choice.model && choice.automatic && !choice.waiting && !served(choice.model)) setChosen(null);
     }
-    const pinnedModel = thread?.model || choice.model || viewState.draftModel;
+    const pinnedModel = thread?.model || (publicAuto ? viewState.draftModel : choice.model || viewState.draftModel);
     const models = catalogModels.filter(model => modelKey(model) !== modelKey(pinnedModel)
       || !pinnedModel?.identity || modelIdentity(model) === modelIdentity(pinnedModel));
     if (pinnedModel && !models.some(model => modelKey(model) === modelKey(pinnedModel))) models.push(unavailableModelChoice(pinnedModel));
-    const location = effectiveLocation(state);
-    // While computers are still being found for a visitor who chose nothing, a split route or a private pool's model
-    // is not what the search is waiting for (publicAnswers): the composer does not name one, and a held Send keeps
-    // waiting on a whole model.
-    const whole = automaticContributors(state) && !pinnedModel && !catalogModels.some(publicAnswers)
-      ? models.filter(model => !model.fleet && !model.partition) : models;
+    // The public automatic path only chooses whole-model contributors.
+    const whole = publicAuto ? models.filter(model => !model.fleet && !model.partition) : models;
     const sessionDefault = state.defaultModels?.[location] || state.defaultModel;
     const defaultModel = whole === models || whole.some(model => modelKey(model) === modelKey(sessionDefault)) ? sessionDefault
       : whole.find(model => model.id === sessionDefault?.id) || whole[0];
@@ -536,12 +541,13 @@ export function createConversationController(session, {
     const servedDownload = models.find(model => modelExecutionState(model, 'network').usable && downloadable(model));
     const localStart = !pinnedModel && location === 'local'
       ? startingLocalModel(models, { defaultModel: servedDownload || defaultModel, canDownloadHere: downloadable }) : null;
-    const current = modelKey(pinnedModel) || modelKey(localStart)
+    const bestPublic = publicAuto ? selectAvailableChatModel(whole.filter(publicAnswers), preferenceOrder, 'network') : null;
+    const current = modelKey(pinnedModel) || modelKey(bestPublic) || modelKey(localStart)
       || modelKey(whole.find(model => modelKey(model) === modelKey(defaultModel) && selectable(model)))
       || modelKey(whole.find(selectable))
-      // While computers are being found for a visitor who chose nothing, a queued Send needs a whole model to wait on.
-      || (automaticContributors(state) || waitsForAnyModel(state) ? modelKey(whole.find(model => modelKey(model) === modelKey(defaultModel))) : undefined)
-      || modelKey(whole[0]) || modelKey(models[0]);
+      // An internal target lets the picker explain and offer recovery with no serving model.
+      || (publicAuto ? modelKey(whole.find(model => modelKey(model) === modelKey(defaultModel))) : undefined)
+      || modelKey(whole[0]);
     currentKey = current || '';
     const selectedModel = catalogModels.find(model => modelKey(model) === current
       && (!pinnedModel?.identity || modelIdentity(model) === modelIdentity(pinnedModel)));
@@ -549,7 +555,8 @@ export function createConversationController(session, {
     // A typed draft keeps the model it was written for, once computers are known: nothing is pinned while they are
     // being found. For a visitor who chose nothing that lasts the whole bounded discovery wait, so the model is the
     // preferred one among the computers that answered in it, not whichever advertised first.
-    if (!thread && !choice.model && !viewState.draftModel && (draftText.trim() || files.length)
+    if (!thread && (!choice.model || publicAuto) && !viewState.draftModel && (draftText.trim() || files.length)
+      && (!publicAuto || selectedModel && publicAnswers(selectedModel))
       && !((freshVisitor || waitsForAnyModel(state)) && finding && !execution.usable)
       && !choosingStill(state)) viewState.draftModel = selectedModel;
     const prepareHere = location === 'local' && selectedModel?.localCached === true;
@@ -648,12 +655,9 @@ export function createConversationController(session, {
       else if (location === 'local') statusText = state.localModel?.error || state.localDownloadIssue
         || (publicCanAnswer ? 'Not on this device. A public computer can answer.' : 'Model not downloaded yet.');
       else if (phase === 'paused') statusText = 'Network paused.';
-      else if (phase === 'interrupted') statusText = 'Connection interrupted.';
       else if (phase === 'searching') statusText = 'Finding computers…';
-      else if (phase === 'observed') statusText = state.network?.connectionFailure?.peerId
-        ? 'A peer connection failed. No eligible computer found for this model.' : 'No eligible computer found for this model.';
-      else statusText = 'Model unavailable.';
-      if (!usable && !blocked && location !== 'local' && state.localDownloadIssue && !shared && !canAcquire && exhausted) statusText += ' ' + state.localDownloadIssue;
+      else if (!waitsForAnyModel(state) && phase === 'observed') statusText = 'No eligible computer found for this model.';
+      if (statusText && !usable && !blocked && location !== 'local' && state.localDownloadIssue && !shared && !canAcquire && exhausted) statusText += ' ' + state.localDownloadIssue;
     }
     if (!busy && searching() && !thread?.closed && !state.storageError) {
       const personal = webSearch?.enabled() ? webSearch.state() : null;
@@ -712,7 +716,7 @@ export function createConversationController(session, {
       ['network-opt-in', !busy && !usable && !preparing && !acquiring && !thread?.closed
         && (publicCanAnswer || (!!thread && (privacy.placement === 'local-only' || privacy.recipients.kind === 'none')))],
       ['download-local', !busy && canAcquire && !thread?.closed],
-      ['retry', !busy && !usable && !preparing && location !== 'local' && (exhausted || blocked || expiredShown) && !thread?.closed]
+      ['retry', !busy && !usable && !preparing && location !== 'local' && phase === 'paused' && !thread?.closed]
     ];
     const nextAction = nextActions.find(([, eligible]) => eligible)?.[0] ?? null;
     const optionalAction = optionalDownload && nextAction !== 'download-local' && nextAction !== 'cancel-download' ? 'download-local' : null;
@@ -750,7 +754,7 @@ export function createConversationController(session, {
         join: invite ? `Join ${describeCircleHost(invite.hostLabel, invite.hostPeerId).hostLabel}` : 'Join',
         reviewShared: shared ? `Review ${modelVariantLabel(shared)}` : '',
         downloadLocal: ['failed', 'cancelled'].includes(acquisition?.phase) ? 'Retry download' : 'Download model',
-        retry: phase === 'observed' ? 'Search again' : phase === 'paused' ? 'Reconnect' : 'Retry connection',
+        retry: 'Reconnect',
         retryPending: !!retryPending
       },
       disclosure: thread?.closed ? '' : disclosure,
@@ -803,7 +807,7 @@ export function createConversationController(session, {
       notify();
       return;
     }
-    const pinned = state.activeThread?.model || choice.model || viewState.draftModel;
+    const pinned = state.activeThread?.model || (waitsForAnyModel(state) ? null : choice.model || viewState.draftModel);
     if (!model || pinned?.identity && modelIdentity(model) !== modelIdentity(pinned)) return;
     // Right before dispatch the host checks the intent's deadline, selection revision and pinned artifact; a refusal
     // dispatches and creates nothing, and the typed text stays.

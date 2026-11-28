@@ -288,6 +288,31 @@ describe('WebRTCSwarm', () => {
       swarm.disconnect();
       expect(swarm.getConnectionState()).toBe('stopped');
     });
+    it('automatically readmits discovery after signaling drops without a second init', async () => {
+      vi.useFakeTimers();
+      let listener;
+      const adapter = {
+        subscribe(next) { listener = next; return () => { listener = null; }; },
+        publish: vi.fn(message => {
+          if (message.type === 'join') queueMicrotask(() => listener?.({ ...message, type: 'joined', peers: [] }));
+        }),
+      };
+      try {
+        swarm.disconnect();
+        swarm = WebRTCSwarmModule.factory({ Utils: utils, EventBus: eventBus, signalingAdapter: adapter });
+        await expect(swarm.init()).resolves.toBe(true);
+        await listener({ type: 'unavailable', reason: 'Fixture connection dropped' });
+        expect(swarm.getConnectionState()).toBe('retrying');
+        await vi.advanceTimersByTimeAsync(MAX_BACKOFF_MS);
+        const joins = () => adapter.publish.mock.calls.filter(([m]) => m.type === 'join');
+        expect(joins()).toHaveLength(2);
+        expect(swarm.getConnectionState()).toBe('connected');
+        swarm.disconnect();
+        await vi.advanceTimersByTimeAsync(MAX_BACKOFF_MS);
+        expect(joins()).toHaveLength(2);
+      } finally { swarm.disconnect(); vi.useRealTimers(); }
+    });
+
   });
 
   describe('Broadcast', () => {

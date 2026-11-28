@@ -40,8 +40,8 @@ describe('conversation controller', () => {
     const { composer } = controller.getSnapshot();
     // One resolved route: every indicator names contributors, and none implies this device is ready.
     expect(composer.route).toMatchObject({ destination: 'contributors', status: 'unavailable', send: 'none' });
-    expect(composer.status.text).toBe('No eligible computer found for this model.');
-    expect(composer.nextAction).toBe('retry');
+    expect(composer.status.text).toBe('');
+    expect(composer.nextAction).toBeNull();
     expect(composer.optionalAction).toBe('download-local');
     expect(composer.chip.source).toBe('Contributors');
     expect(composer.chip.availability).toBe('unavailable');

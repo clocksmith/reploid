@@ -121,7 +121,7 @@ it('keeps a first visitor on contributors when nobody can answer, says nothing w
   expect(f.created).toHaveLength(0);
   // Editing the kept text clears the notice.
   f.c.setDraft('Typed before discovery settled, again');
-  expect(f.view.composer().status.text).toBe('No eligible computer found for this model.');
+  expect(f.view.composer().status.text).toBe('');
 });
 
 it('moves the automatic choice when its computer leaves, also under a typed draft, and back to none when all leave', () => {
@@ -139,6 +139,27 @@ it('moves the automatic choice when its computer leaves, also under a typed draf
   expect(chip(f).source).toBe('Contributors');
   expect(chip(f).availability).toBe('unavailable');
   expect(f.view.composer().send.disabled).toBe(true);
+});
+
+it('replaces a typed automatic draft’s preparing model with a reachable ready model even without a session default', () => {
+  const f = fixture();
+  f.publish({ ...observed, models: [served(SMALL), MEDIUM] });
+  f.c.setDraft('Keep this exact draft');
+  const preparing = { ...SMALL, availability: 'loading', networkAvailability: 'loading', reachableProviderIds: [] };
+  f.publish({ defaultModels: {}, defaultModel: preparing, models: [preparing, served(MEDIUM)] });
+  expect([chip(f).selectionId, chip(f).availability]).toEqual([key(MEDIUM), 'ready']);
+  expect(f.view.composer()).toMatchObject({ draft: 'Keep this exact draft', status: { text: '' }, nextAction: null });
+  expect(f.sent).toHaveLength(0);
+});
+
+it('uses a ready contributor rather than waiting for the automatic draft model when it becomes busy', () => {
+  const f = fixture();
+  f.publish({ ...observed, models: [served(SMALL), MEDIUM] });
+  f.c.setDraft('Keep this exact draft');
+  f.publish({ models: [{ ...served(SMALL), availability: 'busy', networkAvailability: 'busy' }, served(MEDIUM)] });
+  expect([chip(f).selectionId, chip(f).availability]).toEqual([key(MEDIUM), 'ready']);
+  expect(f.view.composer().draft).toBe('Keep this exact draft');
+  expect(f.sent).toHaveLength(0);
 });
 
 it('does not settle on whichever computer advertised first: during the discovery wait a typed draft follows the preferred model and settles as soon as the top model is ready', async () => {
@@ -387,7 +408,7 @@ it('holds a returning visitor\'s Send for whichever model turns up when their re
   vi.useRealTimers();
   expect(alone.created).toHaveLength(0);
   expect(alone.view.composer().status.text).toBe('No computer answered in 30 seconds. Nothing was sent.');
-  expect(alone.view.composer().nextAction).toBe('retry');
+  expect(alone.view.composer().nextAction).toBeNull();
   expect(alone.view.composer().draft).toBe('Typed before discovery settled');
 });
 

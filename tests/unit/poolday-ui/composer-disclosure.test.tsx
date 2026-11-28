@@ -1,5 +1,3 @@
-// Who can read the prompt is shown beside the message field before Send, not kept for a screen reader only:
-// the composer renders the host's disclosure sentence as visible text and the field and Send are described by it.
 import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 import { composer as localComposer } from '../../../apps/poolday-react/src/app/designFixtures';
@@ -22,24 +20,13 @@ const localRoute: ComposerView = { ...localComposer, disclosure: 'Nothing leaves
 
 const mount = (view: ComposerView) => render(<ComposerBar composer={view} commands={commands} focusSignal={0} answerOnFocus={0} />);
 const disclosure = () => document.querySelector('[data-prompt-disclosure]') as HTMLElement | null;
-/** Shown to a sighted person: not screen-reader-only text, not hidden, and not removed from the accessibility tree. */
-const shown = (node: Element) => !node.closest('.pool-visually-hidden, [hidden], [aria-hidden="true"]');
-
 describe('ComposerBar prompt disclosure', () => {
   for (const [route, view] of remoteRoutes) {
-    it(`shows who can read the prompt before Send on ${route}`, () => {
+    it(`omits ambient disclosure on ${route} and keeps the privacy control`, () => {
       mount(view);
-      const line = disclosure()!;
-      expect(line.textContent).toBe(view.disclosure);
-      expect(shown(line)).toBe(true);
-      // The sentence is on the page once: the visible line is also the one assistive technology reads.
-      expect(screen.getAllByText(view.disclosure)).toEqual([line]);
-      expect(screen.getByRole('textbox', { name: 'Message' }).getAttribute('aria-describedby')?.split(' ')).toContain(line.id);
-      expect(screen.getByRole('button', { name: 'Send' }).getAttribute('aria-describedby')?.split(' ')).toContain(line.id);
-      // It stands before the field, so a longer sentence never moves Send or covers the text.
-      const field = document.querySelector('[data-composer-field]') as HTMLElement;
-      expect(field.contains(line)).toBe(false);
-      expect(line.compareDocumentPosition(field) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+      expect(disclosure()).toBeNull();
+      expect(screen.queryByText(view.disclosure)).toBeNull();
+      expect(document.querySelector('[data-open-privacy]')).not.toBeNull();
     });
   }
 
@@ -49,7 +36,7 @@ describe('ComposerBar prompt disclosure', () => {
     expect(screen.getByRole('textbox', { name: 'Message' }).getAttribute('aria-describedby')).toBeNull();
   });
 
-  it('gives a queued draft one status and one action without hiding the disclosure', () => {
+  it('gives a queued draft one status and one action without an ambient disclosure', () => {
     mount({
       ...remoteRoutes[0]![1],
       route: { ...remoteRoutes[0]![1].route, status: 'queued', send: 'none' },
@@ -66,16 +53,14 @@ describe('ComposerBar prompt disclosure', () => {
     expect(document.querySelector('[data-optional-download]')).toBeNull();
     expect(document.querySelector('[data-composer-model-source]')).toBeNull();
     expect(document.querySelector('[data-open-privacy]')?.textContent).not.toContain('Standard');
-    expect(shown(disclosure()!)).toBe(true);
+    expect(disclosure()).toBeNull();
   });
 
-  it('follows the selection: shows the disclosure when switching from local to contributors', () => {
+  it('does not bring back the status area when switching to contributors', () => {
     const { rerender } = mount(localRoute);
-    expect(disclosure()).toBeNull();
     rerender(<ComposerBar composer={remoteRoutes[0]![1]} commands={commands} focusSignal={0} answerOnFocus={0} />);
-    const line = disclosure()!;
-    expect(line.textContent).toBe('The answering computer can read your prompt.');
-    expect(shown(line)).toBe(true);
-    expect(screen.getByRole('textbox', { name: 'Message' }).getAttribute('aria-describedby')).toBe(line.id);
+    expect(disclosure()).toBeNull();
+    expect(document.querySelector('[data-composer-status-row]')).toBeNull();
+    expect(screen.getByRole('textbox', { name: 'Message' }).getAttribute('aria-describedby')).toBeNull();
   });
 });

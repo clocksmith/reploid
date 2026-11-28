@@ -2,20 +2,21 @@ import { test, expect } from '@playwright/test';
 
 // Controlled execution ports, as in production-journey.spec.js: two contributors serve two models. These are UI
 // contracts for "Answer on", not physical inference or peer evidence.
-async function installTwoContributors(page) {
+async function installTwoContributors(page, initial = [0, 1]) {
   await expect(page.locator('[data-composer-input]')).toBeVisible();
-  await page.evaluate(async () => {
+  await page.evaluate(async initial => {
     window.dispatchEvent(new PageTransitionEvent('pagehide', { persisted: false }));
     const { createChatSession, CANONICAL_CHAT_MODELS } = await import('/host/chat-session.js');
     const { mountPoolday } = await import('/ui/react/app.js');
     const { plaintextExecutionRoute, bindExecutionRoute } = await import('/vendor/reploid/chat/execution-policy.js');
     const models = CANONICAL_CHAT_MODELS.slice(0, 2), asked = [];
+    let serving = initial.map(index => models[index]);
     const peerFor = model => 'peer:' + (model === models[0] ? 'a' : 'b').repeat(24);
     const swarm = { getState: () => ({ sharing: false, introductionState: 'connected', consumer: { connectionState: 'connected',
-      peers: models.map(model => ({ peerId: peerFor(model), model: model.id, modelIdentity: model.identity, readiness: 'ready',
+      peers: serving.map(model => ({ peerId: peerFor(model), model: model.id, modelIdentity: model.identity, readiness: 'ready',
         hasInference: true, availableSlots: 1, identityProtocol: 1, admissionProtocol: 2 })),
-      connections: models.map(model => ({ id: peerFor(model), phase: 'connected', channelState: 'open' })) } }),
-    async connect() {}, hasProvider: () => true,
+      connections: serving.map(model => ({ id: peerFor(model), phase: 'connected', channelState: 'open' })) } }),
+    async connect() {}, hasProvider: () => serving.length > 0,
     async generate(messages, controls) {
       const peer = peerFor(models.find(model => model.id === controls.modelId));
       const request = { model: { id: controls.modelId, identity: controls.modelIdentity }, privacy: controls.privacy };
@@ -32,8 +33,10 @@ async function installTwoContributors(page) {
     document.body.replaceChildren(root);
     // A first visitor's view, with the browser storage the page uses for its "Answer on" choice.
     const dispose = mountPoolday(root, { host: { chat: session, close: () => session.close() } });
-    window.fixture = { session, asked, models, async close() { dispose(); await session.close(); } };
-  });
+    window.fixture = { session, asked, models, serve(indices) {
+      serving = indices.map(index => models[index]); session.refreshNetwork();
+    }, async close() { dispose(); await session.close(); } };
+  }, initial);
 }
 
 async function send(page, text) {
@@ -54,7 +57,7 @@ async function localOnly(page, baseURL) {
 
 test('New thread and the next visit keep the model and computer chosen in Answer on', async ({ page, baseURL }) => {
   await localOnly(page, baseURL);
-  await page.goto('/network');
+  await page.goto('/');
   await installTwoContributors(page);
   const chip = page.locator('[data-open-model]');
   await expect(chip).toHaveAttribute('aria-label', /^Answer on /);
@@ -106,17 +109,17 @@ test('the shipped page reads the stored Answer on choice and waits for it while 
   await page.reload();
   // The network is unreachable here, so nothing shows the model absent: the choice keeps its place on Contributors.
   await expect(page.locator('[data-open-model]')).toHaveAttribute('aria-label', new RegExp(`^Answer on Contributors · ${model.name}`));
-  await expect(page.locator('[data-prompt-disclosure]')).not.toHaveText('Nothing leaves this device.');
+  await expect(page.locator('[data-prompt-disclosure]')).toHaveCount(0);
 });
 
 // FIRST-02 in docs/critical-user-journeys.md, on the shipped page: the bar is type and send.
 test('a first visitor types and sends once, and the model the composer named is the model asked', async ({ page, baseURL }) => {
   await localOnly(page, baseURL);
-  await page.goto('/network');
+  await page.goto('/');
   await installTwoContributors(page);
-  // Nothing was chosen: the composer already says where the question goes, to which model, and who can read it.
+  // Nothing was chosen: the composer names the destination and model without an ambient disclosure.
   await expect(page.locator('[data-open-model]')).toHaveAttribute('aria-label', /^Answer on Contributors · .+, Ready$/);
-  await expect(page.locator('[data-prompt-disclosure]')).toHaveText('The answering computer can read your prompt.');
+  await expect(page.locator('[data-prompt-disclosure]')).toHaveCount(0);
   const name = await page.locator('[data-open-model] [data-composer-model-name]').textContent();
   const named = await page.evaluate(name => window.fixture.models.find(model => model.name === name)?.id, name);
   expect(named).toBeTruthy();
@@ -134,5 +137,34 @@ test('a first visitor types and sends once, and the model the composer named is 
   // The conversation continues on the same model.
   await send(page, 'Second question');
   expect(await page.evaluate(() => window.fixture.asked)).toEqual([named, named]);
+  await page.evaluate(() => window.fixture.close());
+});
+
+
+test('first visit at 390px: no idle status strip, late offer and typed draft fallback', async ({ page, baseURL }) => {
+  await localOnly(page, baseURL);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/');
+  await page.clock.install();
+  await installTwoContributors(page, []);
+  const chip = page.locator('[data-open-model]');
+  const field = page.locator('[data-composer-input]');
+  const sendButton = page.locator('[data-composer-send]');
+  await field.fill('Recommend three detective shows.');
+  await page.clock.fastForward(8_000);
+  await expect(sendButton).toBeDisabled();
+  await expect(page.locator('[data-composer-status-row], [data-prompt-disclosure], [data-retry-connection]')).toHaveCount(0);
+  await expect(page.locator('[data-open-privacy]')).toBeVisible();
+  const [first, second] = await page.evaluate(() => window.fixture.models.map(({ id, name }) => ({ id, name })));
+  await page.evaluate(() => window.fixture.serve([0]));
+  await expect(chip).toHaveAttribute('aria-label', `Answer on Contributors · ${first.name}, Ready`);
+  await page.evaluate(() => window.fixture.serve([1]));
+  await expect(chip).toHaveAttribute('aria-label', `Answer on Contributors · ${second.name}, Ready`);
+  await expect(field).toHaveValue('Recommend three detective shows.');
+  await expect(page.locator('[data-composer-status-row], [data-prompt-disclosure]')).toHaveCount(0);
+  expect(await page.evaluate(() => window.fixture.asked)).toEqual([]);
+  await sendButton.click();
+  await expect(page.locator('[data-message-role=assistant]').last()).toContainText('Controlled answer');
+  expect(await page.evaluate(() => window.fixture.asked)).toEqual([second.id]);
   await page.evaluate(() => window.fixture.close());
 });
