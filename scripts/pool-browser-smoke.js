@@ -107,11 +107,11 @@ const workspaceFrameFailures = async (routePage, route, width) => {
     found.push(`${at}: model chooser escapes the composer: ${detail}`);
   }
   if (width > PHONE_MAX_WIDTH) {
-    if (frame.toolbar.y > frame.area.y) found.push(`${at}: workspace toolbar is not above the conversation: ${detail}`);
-    if (frame.area.y < frame.toolbar.bottom + 8) found.push(`${at}: conversation overlaps the workspace toolbar: ${detail}`);
+    // Desktop navigation rail sits along the start edge beside the conversation without overlapping it.
+    if (frame.toolbar.right > frame.area.x + 1) found.push(`${at}: workspace rail overlaps the conversation: ${detail}`);
   } else {
-    // The phone dock sits at the bottom of the first screen, with the input and Send above it.
-    if (frame.toolbar.bottom > frame.viewport.height + 1 || frame.toolbar.y < frame.area.bottom - 1) found.push(`${at}: workspace toolbar is not docked below the conversation: ${detail}`);
+    // Mobile visible navigation bar docks at the bottom of the first screen, with input, Send and model above it.
+    if (frame.toolbar.bottom > frame.viewport.height + 1 || frame.toolbar.y < frame.area.bottom - 1) found.push(`${at}: workspace bar is not docked below the conversation: ${detail}`);
     for (const name of ['input', 'send', 'model']) {
       if (frame[name].y < 0 || frame[name].bottom > frame.toolbar.y + 1) found.push(`${at}: ${name} is not on the first screen above the dock: ${detail}`);
     }
@@ -123,22 +123,27 @@ const appBarFrameFailures = async (routePage, route, width) => {
   const frame = await routePage.evaluate(async () => {
     await document.fonts.ready;
     await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
-    // A specialist page: the app bar above the page's main column (apps/poolday-react/src/app/RouteFrame.tsx).
+    // A specialist page: vertical navigation rail on desktop or bottom navigation bar on mobile.
     const header = document.querySelector('[data-route-page] [data-app-bar]').getBoundingClientRect();
     const content = document.querySelector('[data-route-page] .pool-workspace-main');
     const page = content.firstElementChild.getBoundingClientRect();
     const bounds = content.getBoundingClientRect();
-    return { header: { x: header.x, width: header.width }, content: { x: bounds.x, width: bounds.width },
+    return { header: { x: header.x, y: header.y, width: header.width, right: header.right, bottom: header.bottom },
+      content: { x: bounds.x, y: bounds.y, width: bounds.width, bottom: bounds.bottom },
       page: { x: page.x, width: page.width } };
   });
   const found = [];
-  if (Math.abs(frame.header.x - frame.content.x) > 1 || Math.abs(frame.header.width - frame.content.width) > 1) {
-    found.push(route + ' at ' + width + 'px: content does not match the header: ' + JSON.stringify(frame));
+  if (width > PHONE_MAX_WIDTH) {
+    if (frame.header.right > frame.content.x + 1) {
+      found.push(route + ' at ' + width + 'px: navigation rail overlaps content: ' + JSON.stringify(frame));
+    }
+  } else if (frame.header.y < frame.content.bottom - 1) {
+    found.push(route + ' at ' + width + 'px: mobile navigation bar overlaps content: ' + JSON.stringify(frame));
   }
-  const headerCenter = frame.header.x + frame.header.width / 2;
+  const contentCenter = frame.content.x + frame.content.width / 2;
   const pageCenter = frame.page.x + frame.page.width / 2;
-  if (Math.abs(headerCenter - pageCenter) > 1) {
-    found.push(route + ' at ' + width + 'px: page is not centered under the header: ' + JSON.stringify(frame));
+  if (Math.abs(contentCenter - pageCenter) > 1) {
+    found.push(route + ' at ' + width + 'px: page is not centered in content column: ' + JSON.stringify(frame));
   }
   return found;
 };

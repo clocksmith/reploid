@@ -127,49 +127,15 @@ function useViewportHeight(): number | null {
 }
 
 /**
- * The navigation rail of destinations: pinned along the start edge on desktop, and collapsed to a
- * floating button that toggles a floating menu on mobile. `lead` holds the top destination, `children` the rest.
+ * The navigation rail of destinations: pinned along the start edge on desktop (primary destinations
+ * in `lead`, bottom-anchored destinations like Settings in `children`), and a visible bottom bar on
+ * mobile. Clicking a destination navigates cleanly without popping an overlay drawer over the page.
  */
 export function WorkspaceBar({ label, lead, children, data }: { readonly label: string; readonly lead?: ReactNode; readonly children: ReactNode; readonly data?: DataAttributes }) {
-  const [railOpen, setRailOpen] = useState(false);
-  const navRef = useRef<HTMLElement>(null);
-  useEffect(() => {
-    if (!railOpen) return undefined;
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setRailOpen(false);
-    };
-    const onPointerDown = (event: PointerEvent) => {
-      if (navRef.current && event.target instanceof Node && !navRef.current.contains(event.target)) {
-        setRailOpen(false);
-      }
-    };
-    document.addEventListener('keydown', onKeyDown);
-    document.addEventListener('pointerdown', onPointerDown);
-    return () => {
-      document.removeEventListener('keydown', onKeyDown);
-      document.removeEventListener('pointerdown', onPointerDown);
-    };
-  }, [railOpen]);
   return (
-    <nav
-      ref={navRef}
-      className="pool-workspace-bar pool-surface"
-      aria-label={label}
-      data-rail-open={railOpen ? '' : undefined}
-      {...dataProps(data)}
-    >
-      <span className="pool-rail-toggle">
-        <IconButton
-          icon={railOpen ? 'close' : 'threads'}
-          label={label}
-          onPress={() => setRailOpen((open) => !open)}
-          data={{ 'data-rail-toggle': true }}
-        />
-      </span>
-      <div className="pool-workspace-bar-items" onClick={() => setRailOpen(false)}>
-        <div className="pool-workspace-bar-lead">{lead}</div>
-        <div className="pool-workspace-bar-end">{children}</div>
-      </div>
+    <nav className="pool-workspace-bar pool-surface" aria-label={label} {...dataProps(data)}>
+      <div className="pool-workspace-bar-lead">{lead}</div>
+      <div className="pool-workspace-bar-end">{children}</div>
     </nav>
   );
 }

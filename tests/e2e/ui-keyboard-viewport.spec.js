@@ -149,35 +149,34 @@ test.describe('keyboard and focus', () => {
   });
 
   for (const width of [390, 1280]) {
-    test(`${width}px: a drawer opened from the bar takes focus, Escape closes it and focus returns`, async ({ page }) => {
+    test(`${width}px: Threads drawer takes focus, Escape closes it, and rail destinations switch full pages cleanly`, async ({ page }) => {
       await page.setViewportSize({ width, height: 800 });
       await open(page, '/');
-      for (const drawer of DRAWERS) {
-        if (width < 760) {
-          const toggle = page.locator('[data-rail-toggle]').first();
-          await toggle.focus();
-          await page.keyboard.press('Enter');
-        }
-        const bar = page.locator(drawer.bar).first();
-        await bar.focus();
-        await page.keyboard.press('Enter');
-        await expect(page).toHaveURL(new RegExp(`view=${drawer.view}`));
-        const panel = page.locator('.pool-drawer:not([hidden])');
-        await expect(panel.locator('h2')).toBeFocused();
-        if (width < 760) {
-          // The drawer covers the conversation: Tab stays with the drawer and the rail toggle, never the hidden page.
-          const seen = await tabThrough(page, 30);
-          expect(seen.filter((state) => state.inMain).map((state) => state.name)).toEqual([]);
-          expect(seen.some((state) => state.inDrawer)).toBe(true);
-        } else {
-          await page.keyboard.press('Tab');
-        }
-        // From inside the drawer, or (on a phone) from the rail toggle, Escape closes it.
-        if (width >= 760) await panel.locator('[data-drawer-close]').focus();
-        await page.keyboard.press('Escape');
-        await expect(page).not.toHaveURL(new RegExp(`view=${drawer.view}`));
+      // Threads is Chat's conversation list drawer.
+      const threadsBtn = page.locator('[data-toggle-thread-rail]').first();
+      await threadsBtn.focus();
+      await page.keyboard.press('Enter');
+      await expect(page).toHaveURL(/view=threads/);
+      const panel = page.locator('.pool-drawer:not([hidden])');
+      await expect(panel.locator('h2')).toBeFocused();
+      if (width < 760) {
+        const seen = await tabThrough(page, 20);
+        expect(seen.filter((state) => state.inMain).map((state) => state.name)).toEqual([]);
+        expect(seen.some((state) => state.inDrawer)).toBe(true);
+      } else {
+        await page.keyboard.press('Tab');
+        await panel.locator('[data-drawer-close]').focus();
+      }
+      await page.keyboard.press('Escape');
+      await expect(page).not.toHaveURL(/view=threads/);
+      await expect(page.locator('.pool-drawer:not([hidden])')).toHaveCount(0);
+
+      // Computers and Settings are real top-level pages; switching never leaves a drawer floating over them.
+      for (const dest of ['computers', 'settings', 'chat']) {
+        const navItem = page.locator(`[data-workspace-view="${dest}"]`).first();
+        await navItem.click();
+        await expect(navItem).toHaveAttribute('aria-current', 'page');
         await expect(page.locator('.pool-drawer:not([hidden])')).toHaveCount(0);
-        if (width >= 760) await expect(bar).toBeFocused();
       }
     });
   }
@@ -198,10 +197,9 @@ test.describe('keyboard and focus', () => {
     }
   });
 
-  test('a dialog opened inside a drawer closes on Escape without closing the drawer', async ({ page }) => {
+  test('a dialog opened inside Settings closes on Escape and keeps Settings open', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 800 });
     await mountScripted(page);
-    await page.locator('[data-rail-toggle]').click();
     await page.locator('[data-workspace-view="settings"]').click();
     const remove = page.locator('[data-storage-remove="stored-model"]');
     await remove.focus();
@@ -212,7 +210,6 @@ test.describe('keyboard and focus', () => {
     await page.keyboard.press('Escape');
     await expect(dialog).toHaveCount(0);
     await expect(page).toHaveURL(/view=settings/);
-    await expect(page.locator('.pool-drawer:not([hidden])')).toHaveCount(1);
     await expect(remove).toBeFocused();
   });
 });
@@ -268,8 +265,6 @@ test('Threads: the actions menu and Rename work from the keyboard and give focus
   await page.locator('[data-composer-send]').click();
   await allowRemoteOnce(page);
   await expect(page.locator('[data-message-role="assistant"]')).toContainText('Scripted answer.');
-  await page.locator('[data-rail-toggle]').focus();
-  await page.keyboard.press('Enter');
   await page.locator('[data-toggle-thread-rail]').focus();
   await page.keyboard.press('Enter');
   const menu = page.locator('.pool-drawer:not([hidden]) .pool-menu summary').first();

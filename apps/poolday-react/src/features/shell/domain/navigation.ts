@@ -30,17 +30,18 @@ export const threadsOpen = (location: WorkspaceLocation) => location.view === 't
 /** The end drawer that shows at this location, if any. */
 export const endView = (location: WorkspaceLocation): EndView | null => (isEndView(location.view) ? location.view : null);
 
-/** Where pressing a destination goes, from where the person is and how wide the window is. */
+/** Where pressing a destination or contextual panel goes. Switching top-level pages closes any open inspector. */
 export function navigate(current: WorkspaceLocation, pressed: WorkspaceView, wide: boolean): WorkspaceLocation {
   const threads = threadsOpen(current);
   if (pressed === 'threads') {
-    if (wide && isEndView(current.view)) return { view: current.view, threads: !threads };
+    if (wide && current.view === 'conversation') return { view: 'conversation', threads: !threads };
     return { view: threads ? 'chat' : 'threads', threads: false };
   }
-  // Pressing the open end destination again keeps it open, as the vanilla workspace did; its Close button closes it.
-  if (pressed === current.view) return current;
-  if (pressed === 'chat') return { view: 'chat', threads: false };
-  return { view: pressed, threads: wide && threads };
+  if (pressed === 'conversation') {
+    return { view: 'conversation', threads: wide && threads };
+  }
+  // Top-level destinations (chat, computers, settings) always switch cleanly with no stale inspector floating over them.
+  return { view: pressed, threads: false };
 }
 
 /** A location restored from the address bar keeps both drawers only where both fit. */

@@ -13,6 +13,7 @@ export const strings = {
   },
   workspace: {
     destinations: 'Workspace destinations',
+    chat: 'Chat',
     threads: 'Threads',
     conversation: 'Details',
     computers: 'Computers',

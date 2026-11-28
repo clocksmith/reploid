@@ -16,10 +16,12 @@ export type ProvidersFilter = { readonly providerIds: ReadonlyArray<string>; rea
  * screen renders the controller's snapshot and calls its commands.
  */
 export function ChatWorkspace({
+  header,
   handover,
   onOpenComputers,
   onOpenDetails,
 }: {
+  readonly header?: ReactNode;
   readonly handover?: ReactNode;
   readonly onOpenComputers?: (filter?: ProvidersFilter) => void;
   readonly onOpenDetails?: (attemptId?: string) => void;
@@ -46,7 +48,9 @@ export function ChatWorkspace({
         data={{ 'data-conversation-area': true }}
         composerData={{ 'data-composer-area': true }}
         transcript={
-          <Transcript
+          <>
+            {header}
+            <Transcript
             label={t.messages}
             conversation={snapshot.selectedId}
             logData={{ 'data-message-stream': true }}
@@ -67,6 +71,7 @@ export function ChatWorkspace({
               <Message key={message.id} message={message} actions={actions} />
             ))}
           </Transcript>
+          </>
         }
         notices={
           <>

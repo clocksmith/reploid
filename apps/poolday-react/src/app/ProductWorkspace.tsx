@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { BarButton, Drawer, Workspace, WorkspaceBar } from '@reploid/poolday-ui';
+import { BarButton, Button, Drawer, Row, Sheet, Stack, Text, Workspace, WorkspaceBar } from '@reploid/poolday-ui';
 import { createConversation } from '../features/chat/infrastructure/conversation';
 import { ConversationProvider } from '../features/chat/presentation/ConversationProvider';
 import { ChatWorkspace } from '../features/chat/presentation/ChatWorkspace';
@@ -15,7 +15,7 @@ import { createDetailsServices } from '../features/details/infrastructure/hostDe
 import { ConversationDetailsPanel } from '../features/details/presentation/ConversationDetailsPanel';
 import { createSettingsServices } from '../features/settings/infrastructure/hostSettings';
 import { SettingsPanel } from '../features/settings/presentation/SettingsPanel';
-import { close, endView, navigate, restore, threadsOpen, type EndView, type WorkspaceLocation, type WorkspaceView } from '../features/shell/domain/navigation';
+import { close, navigate, restore, threadsOpen, type WorkspaceLocation, type WorkspaceView } from '../features/shell/domain/navigation';
 import type { OpenedProduct } from '../features/shell/infrastructure/productHost';
 import { hrefFor, isWide, readLocation, subscribeLocation, subscribeWidth, writeLocation } from '../features/shell/infrastructure/workspaceLocation';
 import { strings } from '../l10n/strings';
@@ -24,14 +24,28 @@ import type { AppServices } from './services';
 
 const t = strings.workspace;
 
-const END_TITLES: Record<EndView, string> = { conversation: t.conversation, computers: t.computers, settings: t.settings };
-// The inspector pane each end drawer was in the vanilla shell; the e2e journeys address them by it.
-const PANE: Record<EndView, string> = { conversation: 'conversation', computers: 'participants', settings: 'settings' };
+type PrimaryDestination = 'chat' | 'computers' | 'settings';
+const primaryOf = (view: WorkspaceView): PrimaryDestination => {
+  if (view === 'computers') return 'computers';
+  if (view === 'settings') return 'settings';
+  return 'chat';
+};
+
+function useIsPhone(): boolean {
+  const [phone, setPhone] = useState(() => (typeof window !== 'undefined' ? window.innerWidth <= 760 : false));
+  useEffect(() => {
+    const onResize = () => setPhone(window.innerWidth <= 760);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+  return phone;
+}
 
 /**
- * The open product: the bar of destinations, the conversation in the middle, Threads on the start
- * side and Conversation details, Computers or Settings on the end side. The address bar records
- * which drawers are open; each drawer's content stays mounted once opened, so its state survives.
+ * The open product: three real full-page destinations (Chat, Computers, Settings) driven by the
+ * navigation rail (desktop) and visible bottom bar (mobile). Threads lives inside Chat, and Details
+ * is a contextual inspector (side pane on desktop, bounded sheet on mobile) that closes whenever
+ * the user switches destinations.
  */
 export function ProductWorkspace({ product, services }: { readonly product: OpenedProduct; readonly services: AppServices }) {
   const createChat = useCallback(() => createConversation(product, services.viewState), [product, services.viewState]);
@@ -74,16 +88,14 @@ type WorkspaceBodyProps = {
 
 function WorkspaceBody({ product, services, computers, details, settings }: WorkspaceBodyProps) {
   const [location, setLocation] = useState<WorkspaceLocation>(() => restore(readLocation(), isWide()));
-  const [visited, setVisited] = useState<ReadonlySet<EndView>>(() => new Set(endView(location) ? [endView(location) as EndView] : []));
   const [computersFilter, setComputersFilter] = useState<ComputersFilter | null>(null);
   const [inspected, setInspected] = useState<string | null>(null);
   const [conversation, port] = useConversation();
+  const isPhone = useIsPhone();
 
   const go = useCallback((next: WorkspaceLocation, { replace = false } = {}) => {
     writeLocation(next, { replace });
     setLocation(next);
-    const end = endView(next);
-    if (end) setVisited((current) => (current.has(end) ? current : new Set([...current, end])));
   }, []);
 
   useEffect(() => {
@@ -107,108 +119,165 @@ function WorkspaceBody({ product, services, computers, details, settings }: Work
   const press = (view: WorkspaceView) => go(navigate(location, view, isWide()));
   const current = useRef(location);
   current.current = location;
-  // Stable, so the transcript's messages keep their memoized rendering across workspace updates.
-  const openEnd = useCallback(
-    (view: EndView) => go(navigate({ view: 'chat', threads: threadsOpen(current.current) && isWide() }, view, isWide())),
-    [go],
-  );
+
   const openComputers = useCallback(
     (filter?: ComputersFilter) => {
       setComputersFilter(filter ?? null);
-      openEnd('computers');
+      go({ view: 'computers', threads: false });
     },
-    [openEnd],
+    [go],
   );
   const openDetails = useCallback(
     (attemptId?: string) => {
       setInspected(attemptId ?? null);
-      openEnd('conversation');
+      go(navigate(current.current, 'conversation', isWide()));
     },
-    [openEnd],
+    [go],
   );
-  const hrefOf = (view: WorkspaceView) => hrefFor(navigate(location, view, isWide()));
-  const end = endView(location);
-  const threads = threadsOpen(location);
 
-  const destination = (view: EndView, icon: 'activity' | 'peers' | 'settings') => (
-    <BarButton
-      icon={icon}
-      label={END_TITLES[view]}
-      href={hrefOf(view)}
-      onPress={() => press(view)}
-      current={end === view}
-      controls={`workspace-${view}`}
-      data={{ 'data-workspace-view': view, 'data-inspector-section': PANE[view] }}
+  const page = primaryOf(location.view);
+  const inChat = page === 'chat';
+  const threads = inChat && threadsOpen(location);
+  const detailsOpen = inChat && location.view === 'conversation';
+  const hrefOf = (view: WorkspaceView) => hrefFor(navigate(location, view, isWide()));
+
+  const detailsBody = (
+    <ConversationDetailsPanel
+      services={details}
+      attemptId={inspected}
+      draftContext={conversation.draftContext}
+      onDraftContext={port.setDraftContext}
     />
   );
 
   return (
     <Workspace
+      scroll={!inChat}
       startOpen={threads}
-      endOpen={end !== null}
-      data={{ 'data-chat-workspace': true, 'data-threads-open': threads, 'data-end-view': end ?? undefined }}
+      endOpen={detailsOpen && !isPhone}
+      data={{ 'data-chat-workspace': true, 'data-destination': page, 'data-threads-open': threads, 'data-end-view': detailsOpen ? 'conversation' : undefined }}
       bar={
         <WorkspaceBar
           label={t.destinations}
           data={{ 'data-thread-sidebar': true, 'data-chat-rail-toolbar': true }}
           lead={
-            <BarButton
-              icon="threads"
-              label={t.threads}
-              href={hrefOf('threads')}
-              onPress={() => press('threads')}
-              current={threads}
-              controls="workspace-threads"
-              data={{ 'data-workspace-view': 'threads', 'data-toggle-thread-rail': true }}
-            />
+            <>
+              <BarButton
+                icon="chat"
+                label={t.chat}
+                href={hrefOf('chat')}
+                onPress={() => press('chat')}
+                current={page === 'chat'}
+                data={{ 'data-workspace-view': 'chat' }}
+              />
+              <BarButton
+                icon="peers"
+                label={t.computers}
+                href={hrefOf('computers')}
+                onPress={() => press('computers')}
+                current={page === 'computers'}
+                data={{ 'data-workspace-view': 'computers', 'data-inspector-section': 'participants' }}
+              />
+            </>
           }
         >
-          {destination('conversation', 'activity')}
-          {destination('computers', 'peers')}
-          {destination('settings', 'settings')}
+          <BarButton
+            icon="settings"
+            label={t.settings}
+            href={hrefOf('settings')}
+            onPress={() => press('settings')}
+            current={page === 'settings'}
+            data={{ 'data-workspace-view': 'settings', 'data-inspector-section': 'settings' }}
+          />
         </WorkspaceBar>
       }
       start={
-        <Drawer
-          id="workspace-threads"
-          side="start"
-          title={t.threads}
-          open={threads}
-          onClose={() => go(close(location, 'threads'))}
-          closeLabel={strings.common.close}
-          closeData={{ 'data-close-threads': true }}
-          data={{ 'data-threads-dialog': true }}
-        >
-          <ThreadsPanel onDone={() => (isWide() ? undefined : go(close(location, 'threads')))} />
-        </Drawer>
+        inChat ? (
+          <Drawer
+            id="workspace-threads"
+            side="start"
+            title={t.threads}
+            open={threads}
+            onClose={() => go(close(location, 'threads'))}
+            closeLabel={strings.common.close}
+            closeData={{ 'data-close-threads': true }}
+            data={{ 'data-threads-dialog': true }}
+          >
+            <ThreadsPanel onDone={() => (isWide() ? undefined : go(close(location, 'threads')))} />
+          </Drawer>
+        ) : undefined
       }
-      end={(['conversation', 'computers', 'settings'] as const).map((view) => (
-        <Drawer
-          key={view}
-          id={`workspace-${view}`}
-          side="end"
-          title={END_TITLES[view]}
-          open={end === view}
-          onClose={() => go(close(location, 'end'))}
-          closeLabel={strings.common.close}
-          closeData={{ 'data-close-inspector': true }}
-          data={{ 'data-inspector-pane': PANE[view], 'data-network-workspace': true, 'data-contextual-inspector': true }}
-        >
-          {visited.has(view) && view === 'conversation' && (
-            <ConversationDetailsPanel services={details} attemptId={inspected} draftContext={conversation.draftContext} onDraftContext={port.setDraftContext} />
-          )}
-          {visited.has(view) && view === 'computers' && (
-            <ComputersPanel services={computers} filter={computersFilter} selectedModel={conversation.composer.chip.selectionId} onClearFilter={() => setComputersFilter(null)} onStartSharing={port.startSharing} />
-          )}
-          {visited.has(view) && view === 'settings' && <SettingsPanel services={settings} appearance={services.appearance} />}
-        </Drawer>
-      ))}
+      end={
+        inChat && !isPhone ? (
+          <Drawer
+            id="workspace-conversation"
+            side="end"
+            title={t.conversation}
+            open={detailsOpen}
+            onClose={() => go(close(location, 'end'))}
+            closeLabel={strings.common.close}
+            closeData={{ 'data-close-inspector': true }}
+            data={{ 'data-inspector-pane': 'conversation', 'data-contextual-inspector': true }}
+          >
+            {detailsOpen && detailsBody}
+          </Drawer>
+        ) : undefined
+      }
     >
-      <ChatWorkspace
-        handover={<HistoryHandoverNotice handover={product.handover} />}
-        onOpenComputers={openComputers}
-        onOpenDetails={openDetails}
-      />
+      {page === 'chat' && (
+        <>
+          <ChatWorkspace
+            header={
+              <Row justify="between" gap="sm">
+                <Button
+                  variant="quiet"
+                  icon="threads"
+                  label={t.threads}
+                  pressed={threads}
+                  onPress={() => press('threads')}
+                  data={{ 'data-toggle-thread-rail': true, 'data-workspace-view': 'threads' }}
+                />
+              </Row>
+            }
+            handover={<HistoryHandoverNotice handover={product.handover} />}
+            onOpenComputers={openComputers}
+            onOpenDetails={openDetails}
+          />
+          {isPhone && (
+            <Sheet
+              title={t.conversation}
+              open={detailsOpen}
+              onClose={() => go(close(location, 'end'))}
+              closeLabel={strings.common.close}
+              data={{ 'data-inspector-pane': 'conversation', 'data-contextual-inspector': true }}
+            >
+              {detailsBody}
+            </Sheet>
+          )}
+        </>
+      )}
+      {page === 'computers' && (
+        <Stack gap="lg" data={{ 'data-inspector-pane': 'participants', 'data-network-workspace': true }}>
+          <Text as="h1" variant="title">
+            {t.computers}
+          </Text>
+          <ComputersPanel
+            services={computers}
+            filter={computersFilter}
+            selectedModel={conversation.composer.chip.selectionId}
+            onClearFilter={() => setComputersFilter(null)}
+            onStartSharing={port.startSharing}
+          />
+        </Stack>
+      )}
+      {page === 'settings' && (
+        <Stack gap="lg" data={{ 'data-inspector-pane': 'settings' }}>
+          <Text as="h1" variant="title">
+            {t.settings}
+          </Text>
+          <SettingsPanel services={settings} appearance={services.appearance} />
+        </Stack>
+      )}
     </Workspace>
   );
 }
