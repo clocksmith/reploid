@@ -19,8 +19,6 @@ export function SettingsPanel({
 }: {
   readonly services: SettingsServices;
   readonly appearance: AppearancePort;
-  /** Opens Computers; the workspace shows its own Computers destination, so Settings offers no second one. */
-  readonly onOpenComputers?: () => void;
 }) {
   const snapshot = useStore(services.snapshot);
   // The Advanced disclosure opens when the answer preference's fix asks for Network answers.
