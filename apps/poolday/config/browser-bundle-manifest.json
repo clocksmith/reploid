@@ -1416,7 +1416,7 @@
     {
       "path": "config/module-inventory.json",
       "byteLength": 689798,
-      "sha256": "sha256:7246f721b219b3713aca57abf726739b8e9249010741f456f9e1a46670ba62bd"
+      "sha256": "sha256:df2cf577348a49afa798119065f68f30c04704cd4175a16750852928236b354b"
     },
     {
       "path": "config/module-registry.json",
@@ -4170,8 +4170,8 @@
     },
     {
       "path": "ui/react/app.js",
-      "byteLength": 3066229,
-      "sha256": "sha256:41ec97d1e2a59db7fe3b248827af701e175a02aa23527661bdac8028b576b8bd"
+      "byteLength": 3066411,
+      "sha256": "sha256:c7d0e92376612d0b99c89c903a9a13024b21a36599ba9e29a4648a2523205d5d"
     },
     {
       "path": "ui/react/design.js",
@@ -12634,5 +12634,5 @@
       "sha256": "sha256:f17c57d2f5d32a7d9f5517b9ad4937c51e3923fac2e2a03528fdb5f5be6b582b"
     }
   ],
-  "bundleHash": "sha256:a30fc0da804e3e28558121e7f26c99e69925bcaa4132b0c4c966a1b0cce5f955"
+  "bundleHash": "sha256:80f39b971b881dbb58ef3aab9dc07305d9e9a1e4075c0d067b6821f23ba88d0b"
 }
